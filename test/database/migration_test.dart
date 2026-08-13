@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'generated_migrations/schema.dart';
 
@@ -14,17 +15,60 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) {
-    test('upgrade from v$version to v17', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]) {
+    test('upgrade from v$version to v18', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 18);
       await db.close();
     });
   }
 
-  test('v16 to v17 preserves determiner and backfills weight units', () async {
+  test('v17 ownerless values become archived guarded legacy values', () async {
+    final schema = await verifier.schemaAt(17);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      'INSERT INTO customFieldDefinition '
+      '(id, name, type, uiSection, scope) VALUES '
+      "(1, 'Canopy cover', 'numeric', 'siteHabitat', 'project')",
+    );
+    raw.execute(
+      'INSERT INTO customFieldValue '
+      '(id, fieldDefinitionId, projectUuid, value, unit) VALUES '
+      "(1, 1, 'project', '42', '%')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 18);
+
+    final definition = await db.select(db.customFieldDefinition).getSingle();
+    final value = await db.select(db.customFieldValue).getSingle();
+    expect(definition.name, 'Canopy cover');
+    expect(definition.type, 'number');
+    expect(definition.uiSection, 'siteAttribute');
+    expect(definition.scope, 'global');
+    expect(definition.projectUuid, isNull);
+    expect(definition.isArchived, 1);
+    expect(value.value, '42');
+    expect(value.unit, '%');
+    expect(value.projectUuid, 'project');
+    expect(value.isLegacy, 1);
+    expect(value.siteId, isNull);
+
+    final service = CustomFieldService(db);
+    await expectLater(
+      service.deleteDefinition(definition.id!),
+      throwsA(isA<CustomFieldValidationException>()),
+    );
+    await service.discardLegacyValues(definition.id!);
+    await service.deleteDefinition(definition.id!);
+    expect(await db.select(db.customFieldDefinition).get(), isEmpty);
+    await db.close();
+  });
+
+  test('v16 to v18 preserves determiner and backfills weight units', () async {
     final schema = await verifier.schemaAt(16);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -51,7 +95,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     final mammal = await (db.select(
       db.specimen,
@@ -82,7 +126,7 @@ void main() {
     await db.close();
   });
 
-  test('v15 to v17 adds catalog and storage location columns', () async {
+  test('v15 to v18 adds catalog and storage location columns', () async {
     final schema = await verifier.schemaAt(15);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -100,7 +144,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -120,7 +164,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
     await db.close();
   });
 
@@ -132,7 +176,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -197,7 +241,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -259,7 +303,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 18);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -315,7 +359,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -375,7 +419,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -416,7 +460,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 18);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

@@ -45,6 +45,7 @@ void main() {
         'specimen::fieldNumber',
         'taxonomy::species',
       ],
+      customFields: [],
     );
 
     await tester.pumpWidget(

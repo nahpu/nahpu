@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1655033197;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -862598360;
 
 // Section: executor
 
@@ -525,11 +525,16 @@ fn wire__crate__api__config__export_config_to_file_impl(
             let api_file_path = <String>::sse_decode(&mut deserializer);
             let api_sections =
                 <Vec<crate::api::config::UserConfigSection>>::sse_decode(&mut deserializer);
+            let api_custom_field_templates =
+                <Vec<crate::api::config::CustomFieldTemplate>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok =
-                        crate::api::config::export_config_to_file(api_file_path, api_sections)?;
+                    let output_ok = crate::api::config::export_config_to_file(
+                        api_file_path,
+                        api_sections,
+                        api_custom_field_templates,
+                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -738,10 +743,46 @@ fn wire__crate__api__config__get_config_export_preview_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_custom_field_templates =
+                <Vec<crate::api::config::CustomFieldTemplate>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, String>((move || {
-                    let output_ok = crate::api::config::get_config_export_preview()?;
+                    let output_ok =
+                        crate::api::config::get_config_export_preview(api_custom_field_templates)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__config__get_custom_field_templates_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_custom_field_templates",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::config::get_custom_field_templates(api_file_path)?;
                     Ok(output_ok)
                 })())
             }
@@ -2685,6 +2726,34 @@ impl SseDecode for crate::api::gis::CoordinateTransferRecord {
     }
 }
 
+impl SseDecode for crate::api::config::CustomFieldTemplate {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_templateUuid = <String>::sse_decode(deserializer);
+        let mut var_label = <String>::sse_decode(deserializer);
+        let mut var_fieldType = <String>::sse_decode(deserializer);
+        let mut var_placement = <String>::sse_decode(deserializer);
+        let mut var_catalogFormat = <Option<String>>::sse_decode(deserializer);
+        let mut var_optionsJson = <Option<String>>::sse_decode(deserializer);
+        let mut var_dwcTarget = <Option<String>>::sse_decode(deserializer);
+        let mut var_dwcField = <Option<String>>::sse_decode(deserializer);
+        let mut var_dwcMode = <Option<String>>::sse_decode(deserializer);
+        let mut var_allowDwcConflict = <bool>::sse_decode(deserializer);
+        return crate::api::config::CustomFieldTemplate {
+            template_uuid: var_templateUuid,
+            label: var_label,
+            field_type: var_fieldType,
+            placement: var_placement,
+            catalog_format: var_catalogFormat,
+            options_json: var_optionsJson,
+            dwc_target: var_dwcTarget,
+            dwc_field: var_dwcField,
+            dwc_mode: var_dwcMode,
+            allow_dwc_conflict: var_allowDwcConflict,
+        };
+    }
+}
+
 impl SseDecode for crate::api::gis::DdmCoordinateFfi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2959,6 +3028,20 @@ impl SseDecode for Vec<crate::api::gis::CoordinateTransferRecord> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<crate::api::gis::CoordinateTransferRecord>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::config::CustomFieldTemplate> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::config::CustomFieldTemplate>::sse_decode(
                 deserializer,
             ));
         }
@@ -3418,6 +3501,7 @@ impl SseDecode for crate::api::config::UserConfigSection {
             2 => crate::api::config::UserConfigSection::TemplatePresets,
             3 => crate::api::config::UserConfigSection::DocumentLayouts,
             4 => crate::api::config::UserConfigSection::TemplateTablePreview,
+            5 => crate::api::config::UserConfigSection::CustomFields,
             _ => unreachable!("Invalid variant for UserConfigSection: {}", inner),
         };
     }
@@ -3438,6 +3522,8 @@ impl SseDecode for crate::api::config::UserConfigTransferPreview {
         let mut var_documentLayouts =
             <Vec<crate::api::config::DocumentLayoutPreview>>::sse_decode(deserializer);
         let mut var_templateTablePreviewColumns = <Vec<String>>::sse_decode(deserializer);
+        let mut var_customFields =
+            <Vec<crate::api::config::CustomFieldTemplate>>::sse_decode(deserializer);
         return crate::api::config::UserConfigTransferPreview {
             schema_version: var_schemaVersion,
             included_sections: var_includedSections,
@@ -3446,6 +3532,7 @@ impl SseDecode for crate::api::config::UserConfigTransferPreview {
             template_presets: var_templatePresets,
             document_layouts: var_documentLayouts,
             template_table_preview_columns: var_templateTablePreviewColumns,
+            custom_fields: var_customFields,
         };
     }
 }
@@ -3589,156 +3676,162 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__config__get_document_layout_statuses_impl(
+        23 => wire__crate__api__config__get_custom_field_templates_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__config__get_record_export_preset_impl(
+        24 => wire__crate__api__config__get_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__config__get_document_layout_statuses_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__config__get_template_preset_usages_impl(
+        26 => wire__crate__api__dwc__get_dwc_headers_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__config__get_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => wire__crate__api__config__get_template_table_preview_columns_impl(
+        28 => wire__crate__api__config__get_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__config__get_template_preset_usages_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => {
+        30 => wire__crate__api__config__get_template_table_preview_columns_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        31 => {
             wire__crate__api__config__get_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        31 => {
+        32 => {
             wire__crate__api__config__get_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__archive__gzip_extractor_extract_impl(
+        33 => wire__crate__api__archive__gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__config__import_config_from_file_impl(
+        34 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__config__import_config_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__config__import_document_layout_from_file_impl(
+        38 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__config__import_document_layout_from_file_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        40 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
-        42 => {
+        40 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
+        43 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__gis__parse_coordinate_input_impl(port, ptr, rust_vec_len, data_len),
-        45 => {
+        44 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__gis__parse_coordinate_input_impl(port, ptr, rust_vec_len, data_len),
+        46 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        46 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        47 => {
+        47 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        48 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        48 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        49 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        50 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        51 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        52 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        53 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        54 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__config__set_record_export_preset_impl(
+        52 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        53 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__config__set_template_table_preview_columns_impl(
+        57 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__config__set_template_table_preview_columns_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        58 => {
+        59 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        59 => {
+        60 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        60 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
+        61 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+        62 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => {
+        63 => {
             wire__crate__api__archive__tar_gzip_writer_new_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => {
+        64 => {
             wire__crate__api__archive__tar_gzip_writer_write_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        65 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        65 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        66 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        67 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        67 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        68 => {
+        68 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        69 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        69 => {
+        70 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        70 => {
+        71 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        71 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        72 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        73 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        72 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        73 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        74 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -3952,6 +4045,35 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::gis::CoordinateTransferRecord
     for crate::api::gis::CoordinateTransferRecord
 {
     fn into_into_dart(self) -> crate::api::gis::CoordinateTransferRecord {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::config::CustomFieldTemplate {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.template_uuid.into_into_dart().into_dart(),
+            self.label.into_into_dart().into_dart(),
+            self.field_type.into_into_dart().into_dart(),
+            self.placement.into_into_dart().into_dart(),
+            self.catalog_format.into_into_dart().into_dart(),
+            self.options_json.into_into_dart().into_dart(),
+            self.dwc_target.into_into_dart().into_dart(),
+            self.dwc_field.into_into_dart().into_dart(),
+            self.dwc_mode.into_into_dart().into_dart(),
+            self.allow_dwc_conflict.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::config::CustomFieldTemplate
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::config::CustomFieldTemplate>
+    for crate::api::config::CustomFieldTemplate
+{
+    fn into_into_dart(self) -> crate::api::config::CustomFieldTemplate {
         self
     }
 }
@@ -4440,6 +4562,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigSection {
             Self::TemplatePresets => 2.into_dart(),
             Self::DocumentLayouts => 3.into_dart(),
             Self::TemplateTablePreview => 4.into_dart(),
+            Self::CustomFields => 5.into_dart(),
             _ => unreachable!(),
         }
     }
@@ -4468,6 +4591,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::UserConfigTransferPre
             self.template_table_preview_columns
                 .into_into_dart()
                 .into_dart(),
+            self.custom_fields.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4712,6 +4836,22 @@ impl SseEncode for crate::api::gis::CoordinateTransferRecord {
     }
 }
 
+impl SseEncode for crate::api::config::CustomFieldTemplate {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.template_uuid, serializer);
+        <String>::sse_encode(self.label, serializer);
+        <String>::sse_encode(self.field_type, serializer);
+        <String>::sse_encode(self.placement, serializer);
+        <Option<String>>::sse_encode(self.catalog_format, serializer);
+        <Option<String>>::sse_encode(self.options_json, serializer);
+        <Option<String>>::sse_encode(self.dwc_target, serializer);
+        <Option<String>>::sse_encode(self.dwc_field, serializer);
+        <Option<String>>::sse_encode(self.dwc_mode, serializer);
+        <bool>::sse_encode(self.allow_dwc_conflict, serializer);
+    }
+}
+
 impl SseEncode for crate::api::gis::DdmCoordinateFfi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4899,6 +5039,16 @@ impl SseEncode for Vec<crate::api::gis::CoordinateTransferRecord> {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <crate::api::gis::CoordinateTransferRecord>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::config::CustomFieldTemplate> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::config::CustomFieldTemplate>::sse_encode(item, serializer);
         }
     }
 }
@@ -5247,6 +5397,7 @@ impl SseEncode for crate::api::config::UserConfigSection {
                 crate::api::config::UserConfigSection::TemplatePresets => 2,
                 crate::api::config::UserConfigSection::DocumentLayouts => 3,
                 crate::api::config::UserConfigSection::TemplateTablePreview => 4,
+                crate::api::config::UserConfigSection::CustomFields => 5,
                 _ => {
                     unimplemented!("");
                 }
@@ -5281,6 +5432,7 @@ impl SseEncode for crate::api::config::UserConfigTransferPreview {
             serializer,
         );
         <Vec<String>>::sse_encode(self.template_table_preview_columns, serializer);
+        <Vec<crate::api::config::CustomFieldTemplate>>::sse_encode(self.custom_fields, serializer);
     }
 }
 

@@ -85,6 +85,8 @@ class CustomFieldService {
         .get();
   }
 
+  Future<CustomFieldDefinitionData> getDefinition(int id) => _definition(id);
+
   Future<CustomFieldDefinitionData> createDefinition(
     CustomFieldDraft draft,
   ) async {
@@ -238,6 +240,22 @@ class CustomFieldService {
       projectUuid: info.projectUuid,
       catalogFormat: info.catalogFormat,
     );
+  }
+
+  Future<CustomFieldCreationContext> getCreationContext(
+    CustomFieldOwner owner,
+  ) async {
+    final info = await _ownerInfo(owner);
+    return CustomFieldCreationContext(
+      projectUuid: info.projectUuid,
+      catalogFormat: info.catalogFormat,
+    );
+  }
+
+  Future<CustomFieldCreationContext> getSpecimenCreationContext(
+    String specimenUuid,
+  ) {
+    return getCreationContext(CustomFieldOwner.specimen(specimenUuid));
   }
 
   Future<void> setValues(

@@ -85,6 +85,16 @@ class CustomFieldDraft {
   final String? sourceTemplateUuid;
 }
 
+class CustomFieldCreationContext {
+  const CustomFieldCreationContext({
+    required this.projectUuid,
+    this.catalogFormat,
+  });
+
+  final String projectUuid;
+  final CatalogFmt? catalogFormat;
+}
+
 class CustomFieldOwner {
   const CustomFieldOwner._({
     required this.placement,

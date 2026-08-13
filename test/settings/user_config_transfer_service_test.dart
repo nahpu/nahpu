@@ -16,6 +16,8 @@ import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/frb_generated.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,7 +90,9 @@ void main() {
       key: parasiteCategoryPrefKey,
       value: ['Ectoparasite'],
     );
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final category = preview.userConfigs.firstWhere(
       (entry) => entry.key == parasiteCategoryPrefKey,
     );
@@ -107,7 +111,9 @@ void main() {
     expect(datums, ['WGS84', 'NAD83', 'NAD27']);
     expect(datums, isNot(contains('Other')));
 
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final datum = preview.userConfigs.firstWhere(
       (entry) => entry.key == datumPrefKey,
     );
@@ -149,13 +155,84 @@ void main() {
       value: true.toString(),
     );
 
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final setting = preview.userConfigs.firstWhere(
       (entry) => entry.key == projectFieldIdAutoIncrementPrefKey,
     );
     expect(setting.label, 'Auto-increment project field ID');
     expect(setting.value, 'true');
   });
+
+  test(
+    'custom field templates strip scope and import to one destination',
+    () async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+      await database
+          .into(database.project)
+          .insert(
+            const ProjectCompanion(
+              uuid: Value('project-a'),
+              name: Value('Project A'),
+            ),
+          );
+      final customFields = CustomFieldService(database);
+      final definition = await customFields.createDefinition(
+        const CustomFieldDraft(
+          name: 'Canopy cover',
+          type: FieldType.number,
+          placement: FieldUISection.siteAttribute,
+          scope: FieldScope.global,
+        ),
+      );
+      const transfer = UserConfigTransferService();
+      final output = File('${tempDir.path}/custom-fields.json');
+      await transfer.export(
+        output: output,
+        format: UserConfigFileFormat.json,
+        sections: const {rust_config.UserConfigSection.customFields},
+        database: database,
+        selectedDefinitionIds: {definition.id!},
+      );
+      final source = await transfer.inspect(XFile(output.path));
+      addTearDown(source.dispose);
+      expect(source.preview.schemaVersion, 4);
+      expect(source.preview.customFields.single.label, 'Canopy cover');
+      await customFields.deleteDefinition(definition.id!);
+
+      await transfer.import(
+        source,
+        const {rust_config.UserConfigSection.customFields},
+        database: database,
+        destination: UserConfigImportDestination.currentProject,
+        projectUuid: 'project-a',
+      );
+      final definitions = await database
+          .select(database.customFieldDefinition)
+          .get();
+      expect(definitions, hasLength(1));
+      final imported = definitions.single;
+      expect(imported.projectUuid, 'project-a');
+      expect(imported.sourceTemplateUuid, definition.uuid);
+      expect(imported.isArchived, 0);
+
+      await transfer.import(
+        source,
+        const {rust_config.UserConfigSection.customFields},
+        database: database,
+        destination: UserConfigImportDestination.currentProject,
+        projectUuid: 'project-a',
+      );
+      expect(
+        await database.select(database.customFieldDefinition).get(),
+        hasLength(1),
+      );
+    },
+  );
 
   testWidgets(
     'project field IDs preserve separators and increment atomically',

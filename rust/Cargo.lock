@@ -2186,6 +2186,15 @@ checksum = "13d2233c9842d08cfe13f9eac96e207ca6a2ea10b80259ebe8ad0268be27d2af"
 [[package]]
 name = "nahpu_archive"
 version = "0.2.0"
+dependencies = [
+ "flate2",
+ "tar",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "nahpu_archive"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a04c36913d5310390b6eda2628e583e6c47e7b46660b62d7127533085db4c84"
 dependencies = [
@@ -2197,12 +2206,24 @@ dependencies = [
 [[package]]
 name = "nahpu_configs"
 version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0eecf60be3f1220d9a7a781191598754b0f66de70f36dbb1b68f62d6536c80e0"
 dependencies = [
  "redb",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "nahpu_db"
+version = "0.5.1"
+dependencies = [
+ "calamine",
+ "csv",
+ "heck",
+ "reqwest",
+ "rust_xlsxwriter",
+ "serde",
+ "serde_json",
+ "sqlparser",
 ]
 
 [[package]]
@@ -2229,20 +2250,18 @@ checksum = "a0a06233c35abd654faebcc8ea3176db1a7b4444e2d74b26abe10935979b3a7d"
 dependencies = [
  "chrono",
  "csv",
- "nahpu_archive",
+ "nahpu_archive 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
 ]
 
 [[package]]
 name = "nahpu_dwc"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a6d9ce1d3227919558f55c1406d25a38cd562c39926ad1363951e4a4e4f9799"
+version = "0.4.1"
 dependencies = [
  "csv",
- "nahpu_archive",
- "nahpu_db",
+ "nahpu_archive 0.2.0",
+ "nahpu_db 0.5.1",
  "quick-xml 0.36.2",
  "serde",
  "serde_json",
@@ -2256,7 +2275,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd942e12424b97dd78927553c407622a8ce208ac03681b0499d697365d1b86c9"
 dependencies = [
  "chrono",
- "nahpu_db",
+ "nahpu_db 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pulldown-cmark",
  "serde",
  "serde_json",
@@ -2275,7 +2294,7 @@ dependencies = [
  "geo",
  "geojson",
  "kml",
- "nahpu_archive",
+ "nahpu_archive 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quick-xml 0.39.4",
  "serde",
  "serde_json",
@@ -3053,9 +3072,9 @@ name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
- "nahpu_archive",
+ "nahpu_archive 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nahpu_configs",
- "nahpu_db",
+ "nahpu_db 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nahpu_dp",
  "nahpu_dwc",
  "nahpu_export",

@@ -24,6 +24,7 @@ pub enum UserConfigSection {
     TemplatePresets,
     DocumentLayouts,
     TemplateTablePreview,
+    CustomFields,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -60,6 +61,20 @@ pub struct DocumentLayoutPreview {
     pub block_count: i32,
 }
 
+#[derive(Clone)]
+pub struct CustomFieldTemplate {
+    pub template_uuid: String,
+    pub label: String,
+    pub field_type: String,
+    pub placement: String,
+    pub catalog_format: Option<String>,
+    pub options_json: Option<String>,
+    pub dwc_target: Option<String>,
+    pub dwc_field: Option<String>,
+    pub dwc_mode: Option<String>,
+    pub allow_dwc_conflict: bool,
+}
+
 pub struct UserConfigTransferPreview {
     pub schema_version: u32,
     pub included_sections: Vec<UserConfigSection>,
@@ -68,6 +83,7 @@ pub struct UserConfigTransferPreview {
     pub template_presets: Vec<TemplatePresetPreview>,
     pub document_layouts: Vec<DocumentLayoutPreview>,
     pub template_table_preview_columns: Vec<String>,
+    pub custom_fields: Vec<CustomFieldTemplate>,
 }
 
 impl From<UserConfigSection> for nahpu_configs::UserConfigSection {
@@ -78,6 +94,7 @@ impl From<UserConfigSection> for nahpu_configs::UserConfigSection {
             UserConfigSection::TemplatePresets => Self::TemplatePresets,
             UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
             UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
+            UserConfigSection::CustomFields => Self::CustomFields,
         }
     }
 }
@@ -90,6 +107,41 @@ impl From<nahpu_configs::UserConfigSection> for UserConfigSection {
             nahpu_configs::UserConfigSection::TemplatePresets => Self::TemplatePresets,
             nahpu_configs::UserConfigSection::DocumentLayouts => Self::DocumentLayouts,
             nahpu_configs::UserConfigSection::TemplateTablePreview => Self::TemplateTablePreview,
+            nahpu_configs::UserConfigSection::CustomFields => Self::CustomFields,
+        }
+    }
+}
+
+impl From<CustomFieldTemplate> for nahpu_configs::CustomFieldTemplate {
+    fn from(value: CustomFieldTemplate) -> Self {
+        Self {
+            template_uuid: value.template_uuid,
+            label: value.label,
+            field_type: value.field_type,
+            placement: value.placement,
+            catalog_format: value.catalog_format,
+            options_json: value.options_json,
+            dwc_target: value.dwc_target,
+            dwc_field: value.dwc_field,
+            dwc_mode: value.dwc_mode,
+            allow_dwc_conflict: value.allow_dwc_conflict,
+        }
+    }
+}
+
+impl From<nahpu_configs::CustomFieldTemplate> for CustomFieldTemplate {
+    fn from(value: nahpu_configs::CustomFieldTemplate) -> Self {
+        Self {
+            template_uuid: value.template_uuid,
+            label: value.label,
+            field_type: value.field_type,
+            placement: value.placement,
+            catalog_format: value.catalog_format,
+            options_json: value.options_json,
+            dwc_target: value.dwc_target,
+            dwc_field: value.dwc_field,
+            dwc_mode: value.dwc_mode,
+            allow_dwc_conflict: value.allow_dwc_conflict,
         }
     }
 }
@@ -406,9 +458,12 @@ pub fn get_all_record_export_presets() -> Result<Vec<ConfigPresetEntry>, String>
     Ok(res.into_iter().map(Into::into).collect())
 }
 
-pub fn get_config_export_preview() -> Result<UserConfigTransferPreview, String> {
+pub fn get_config_export_preview(
+    custom_field_templates: Vec<CustomFieldTemplate>,
+) -> Result<UserConfigTransferPreview, String> {
     let db = ConfigDb::get_instance()?;
-    let export = db.export_configs()?;
+    let mut export = db.export_configs()?;
+    export.custom_field_templates = custom_field_templates.into_iter().map(Into::into).collect();
     Ok(build_config_transfer_preview(&export))
 }
 
@@ -420,13 +475,18 @@ pub fn inspect_config_file(file_path: String) -> Result<UserConfigTransferPrevie
 pub fn export_config_to_file(
     file_path: String,
     sections: Vec<UserConfigSection>,
+    custom_field_templates: Vec<CustomFieldTemplate>,
 ) -> Result<(), String> {
     let db = ConfigDb::get_instance()?;
     let sections = sections
         .into_iter()
         .map(Into::into)
         .collect::<Vec<nahpu_configs::UserConfigSection>>();
-    let export = db.export_selected_configs(&sections)?;
+    let mut export = db.export_selected_configs(&sections)?;
+    if sections.contains(&nahpu_configs::UserConfigSection::CustomFields) {
+        export.custom_field_templates =
+            custom_field_templates.into_iter().map(Into::into).collect();
+    }
 
     let content = serde_json::to_string_pretty(&export).map_err(|e| e.to_string())?;
     std::fs::write(&file_path, content).map_err(|e| e.to_string())?;
@@ -436,14 +496,33 @@ pub fn export_config_to_file(
 pub fn import_config_from_file(
     file_path: String,
     sections: Vec<UserConfigSection>,
-) -> Result<(), String> {
+) -> Result<Vec<CustomFieldTemplate>, String> {
     let db = ConfigDb::get_instance()?;
     let export = read_config_export(&file_path)?;
     let sections = sections
         .into_iter()
         .map(Into::into)
         .collect::<Vec<nahpu_configs::UserConfigSection>>();
-    db.import_selected_configs(export, &sections)
+    let templates = if sections.contains(&nahpu_configs::UserConfigSection::CustomFields) {
+        export
+            .custom_field_templates
+            .clone()
+            .into_iter()
+            .map(Into::into)
+            .collect()
+    } else {
+        Vec::new()
+    };
+    db.import_selected_configs(export, &sections)?;
+    Ok(templates)
+}
+
+pub fn get_custom_field_templates(file_path: String) -> Result<Vec<CustomFieldTemplate>, String> {
+    Ok(read_config_export(&file_path)?
+        .custom_field_templates
+        .into_iter()
+        .map(Into::into)
+        .collect())
 }
 
 fn read_config_export(file_path: &str) -> Result<nahpu_configs::UserConfigsExport, String> {
@@ -576,6 +655,12 @@ fn build_config_transfer_preview(
         template_presets,
         document_layouts,
         template_table_preview_columns: export.template_table_preview_columns.clone(),
+        custom_fields: export
+            .custom_field_templates
+            .iter()
+            .cloned()
+            .map(Into::into)
+            .collect(),
     }
 }
 

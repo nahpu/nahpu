@@ -28,6 +28,7 @@ void main() {
     expect(find.text('Curation'), findsNothing);
     expect(find.text('Additional treatment'), findsNothing);
     expect(find.text('Preparator'), findsNothing);
+    expect(find.text('Add custom field'), findsOneWidget);
 
     final showMore = find.text('Show more');
     await tester.ensureVisible(showMore);
@@ -80,6 +81,20 @@ Future<Database> _pumpPartForm(
   final database = Database.forTesting(
     DatabaseConnection(NativeDatabase.memory()),
   );
+  await database
+      .into(database.project)
+      .insert(
+        const ProjectCompanion(uuid: Value('project'), name: Value('Project')),
+      );
+  await database
+      .into(database.specimen)
+      .insert(
+        const SpecimenCompanion(
+          uuid: Value('specimen'),
+          projectUuid: Value('project'),
+          taxonGroup: Value('Mammals'),
+        ),
+      );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [

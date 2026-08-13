@@ -108,6 +108,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoordinateTransferRecord dco_decode_coordinate_transfer_record(dynamic raw);
 
   @protected
+  CustomFieldTemplate dco_decode_custom_field_template(dynamic raw);
+
+  @protected
   DdmCoordinateFfi dco_decode_ddm_coordinate_ffi(dynamic raw);
 
   @protected
@@ -162,6 +165,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoordinateTransferRecord> dco_decode_list_coordinate_transfer_record(
     dynamic raw,
   );
+
+  @protected
+  List<CustomFieldTemplate> dco_decode_list_custom_field_template(dynamic raw);
 
   @protected
   List<DocumentLayoutBlock> dco_decode_list_document_layout_block(dynamic raw);
@@ -420,6 +426,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CustomFieldTemplate sse_decode_custom_field_template(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DdmCoordinateFfi sse_decode_ddm_coordinate_ffi(SseDeserializer deserializer);
 
   @protected
@@ -490,6 +501,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoordinateTransferRecord> sse_decode_list_coordinate_transfer_record(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CustomFieldTemplate> sse_decode_list_custom_field_template(
     SseDeserializer deserializer,
   );
 
@@ -801,6 +817,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_custom_field_template(
+    CustomFieldTemplate self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_ddm_coordinate_ffi(
     DdmCoordinateFfi self,
     SseSerializer serializer,
@@ -887,6 +909,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_coordinate_transfer_record(
     List<CoordinateTransferRecord> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_custom_field_template(
+    List<CustomFieldTemplate> self,
     SseSerializer serializer,
   );
 

@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `build_config_transfer_preview`, `config_label`, `display_json_value`, `is_controlled_vocabulary`, `read_config_export`, `validate_specimen_sex_values`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `eq`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `eq`, `eq`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// Initializes the configuration database at the specified path.
 Future<void> initConfigDb({required String path}) =>
@@ -63,8 +63,11 @@ Future<void> deleteRecordExportPreset({required String name}) =>
 Future<List<ConfigPresetEntry>> getAllRecordExportPresets() =>
     RustLib.instance.api.crateApiConfigGetAllRecordExportPresets();
 
-Future<UserConfigTransferPreview> getConfigExportPreview() =>
-    RustLib.instance.api.crateApiConfigGetConfigExportPreview();
+Future<UserConfigTransferPreview> getConfigExportPreview({
+  required List<CustomFieldTemplate> customFieldTemplates,
+}) => RustLib.instance.api.crateApiConfigGetConfigExportPreview(
+  customFieldTemplates: customFieldTemplates,
+);
 
 Future<UserConfigTransferPreview> inspectConfigFile({
   required String filePath,
@@ -73,17 +76,25 @@ Future<UserConfigTransferPreview> inspectConfigFile({
 Future<void> exportConfigToFile({
   required String filePath,
   required List<UserConfigSection> sections,
+  required List<CustomFieldTemplate> customFieldTemplates,
 }) => RustLib.instance.api.crateApiConfigExportConfigToFile(
   filePath: filePath,
   sections: sections,
+  customFieldTemplates: customFieldTemplates,
 );
 
-Future<void> importConfigFromFile({
+Future<List<CustomFieldTemplate>> importConfigFromFile({
   required String filePath,
   required List<UserConfigSection> sections,
 }) => RustLib.instance.api.crateApiConfigImportConfigFromFile(
   filePath: filePath,
   sections: sections,
+);
+
+Future<List<CustomFieldTemplate>> getCustomFieldTemplates({
+  required String filePath,
+}) => RustLib.instance.api.crateApiConfigGetCustomFieldTemplates(
+  filePath: filePath,
 );
 
 Future<void> setTemplatePreset({required String name, required String value}) =>
@@ -232,6 +243,61 @@ class ConfigPresetEntry {
           runtimeType == other.runtimeType &&
           name == other.name &&
           preset == other.preset;
+}
+
+class CustomFieldTemplate {
+  final String templateUuid;
+  final String label;
+  final String fieldType;
+  final String placement;
+  final String? catalogFormat;
+  final String? optionsJson;
+  final String? dwcTarget;
+  final String? dwcField;
+  final String? dwcMode;
+  final bool allowDwcConflict;
+
+  const CustomFieldTemplate({
+    required this.templateUuid,
+    required this.label,
+    required this.fieldType,
+    required this.placement,
+    this.catalogFormat,
+    this.optionsJson,
+    this.dwcTarget,
+    this.dwcField,
+    this.dwcMode,
+    required this.allowDwcConflict,
+  });
+
+  @override
+  int get hashCode =>
+      templateUuid.hashCode ^
+      label.hashCode ^
+      fieldType.hashCode ^
+      placement.hashCode ^
+      catalogFormat.hashCode ^
+      optionsJson.hashCode ^
+      dwcTarget.hashCode ^
+      dwcField.hashCode ^
+      dwcMode.hashCode ^
+      allowDwcConflict.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CustomFieldTemplate &&
+          runtimeType == other.runtimeType &&
+          templateUuid == other.templateUuid &&
+          label == other.label &&
+          fieldType == other.fieldType &&
+          placement == other.placement &&
+          catalogFormat == other.catalogFormat &&
+          optionsJson == other.optionsJson &&
+          dwcTarget == other.dwcTarget &&
+          dwcField == other.dwcField &&
+          dwcMode == other.dwcMode &&
+          allowDwcConflict == other.allowDwcConflict;
 }
 
 /// Represents a layout block within a document.
@@ -532,6 +598,7 @@ enum UserConfigSection {
   templatePresets,
   documentLayouts,
   templateTablePreview,
+  customFields,
 }
 
 class UserConfigTransferPreview {
@@ -542,6 +609,7 @@ class UserConfigTransferPreview {
   final List<TemplatePresetPreview> templatePresets;
   final List<DocumentLayoutPreview> documentLayouts;
   final List<String> templateTablePreviewColumns;
+  final List<CustomFieldTemplate> customFields;
 
   const UserConfigTransferPreview({
     required this.schemaVersion,
@@ -551,6 +619,7 @@ class UserConfigTransferPreview {
     required this.templatePresets,
     required this.documentLayouts,
     required this.templateTablePreviewColumns,
+    required this.customFields,
   });
 
   @override
@@ -561,7 +630,8 @@ class UserConfigTransferPreview {
       recordExportPresets.hashCode ^
       templatePresets.hashCode ^
       documentLayouts.hashCode ^
-      templateTablePreviewColumns.hashCode;
+      templateTablePreviewColumns.hashCode ^
+      customFields.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -574,7 +644,8 @@ class UserConfigTransferPreview {
           recordExportPresets == other.recordExportPresets &&
           templatePresets == other.templatePresets &&
           documentLayouts == other.documentLayouts &&
-          templateTablePreviewColumns == other.templateTablePreviewColumns;
+          templateTablePreviewColumns == other.templateTablePreviewColumns &&
+          customFields == other.customFields;
 }
 
 class UserConfigValuePreview {
