@@ -40,6 +40,12 @@ void main() {
         isTrue,
       );
       expect(
+        isAssociatedBackupArchivePath(
+          'project-a/associatedData/sites/site-notes.pdf',
+        ),
+        isTrue,
+      );
+      expect(
         isAssociatedBackupArchivePath('appMedia/personnel/person.jpg'),
         isTrue,
       );

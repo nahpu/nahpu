@@ -12,6 +12,8 @@ import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/associated_data.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:uuid/uuid.dart';
 
@@ -106,6 +108,7 @@ class RecordExchangeSpecimen extends AppServices {
     String? targetUuid,
     SpecimenImportReferences references = const SpecimenImportReferences(),
     Directory? extractedMediaDirectory,
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     final specimenJson = _requiredMap(payload.data['specimen'], 'specimen');
     final personnelIds = await support.importPersonnel(
@@ -125,7 +128,10 @@ class RecordExchangeSpecimen extends AppServices {
         ? const Uuid().v4()
         : (targetUuid ?? existingUuid ?? const Uuid().v4());
     if (await _specimenExists(targetUuid)) {
-      await _deleteSpecimenChildren(targetUuid!);
+      await _deleteSpecimenChildren(
+        targetUuid!,
+        deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
+      );
       await (dbAccess.update(
         dbAccess.specimen,
       )..where((row) => row.uuid.equals(targetUuid))).write(
@@ -397,9 +403,16 @@ class RecordExchangeSpecimen extends AppServices {
     return source.toCompanion(false);
   }
 
-  Future<void> _deleteSpecimenChildren(String uuid) async {
+  Future<void> _deleteSpecimenChildren(
+    String uuid, {
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
+  }) async {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(uuid);
-    await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(uuid);
+    final orphaned = await AssociatedDataServices(ref: ref).detachAllFromTarget(
+      AssociatedDataTarget.specimen(uuid),
+      cleanupFiles: false,
+    );
+    deferredAssociatedDataCleanup?.addAll(orphaned);
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(uuid);
     await (dbAccess.delete(
       dbAccess.mammalAttribute,

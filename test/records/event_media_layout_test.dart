@@ -84,7 +84,7 @@ void main() {
       matching: find.byType(TabBar),
     );
     expect(eventTabBar, findsOneWidget);
-    expect(tester.widget<TabBar>(eventTabBar).tabs, hasLength(2));
+    expect(tester.widget<TabBar>(eventTabBar).tabs, hasLength(3));
     expect(
       tester.getTopLeft(find.byType(EventMediaForm)).dy,
       greaterThan(tester.getTopLeft(find.byType(CollEventTabBar)).dy),

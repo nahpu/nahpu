@@ -12,6 +12,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
@@ -94,7 +95,9 @@ class PartDataFormState extends ConsumerState<PartDataForm>
           ),
           if (supportsParasites(widget.catalogFmt))
             ParasiteForms(specimenUuid: widget.specimenUuid),
-          AssociatedDataViewer(specimenUuid: widget.specimenUuid),
+          AssociatedDataViewer(
+            target: AssociatedDataTarget.specimen(widget.specimenUuid),
+          ),
         ],
       ),
     );

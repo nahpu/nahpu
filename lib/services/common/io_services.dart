@@ -18,6 +18,10 @@
 ///     │   └── fonts/                     # Custom user fonts (`userFontDirName`)
 ///     │   └── maps/                      # Custom user maps (`userMapDirName`)
 ///     └── <project_uuid>/                # Individual project directories
+///         ├── associatedData/            # Project associated-data files
+///         │   ├── sites/                 # Files originating from sites
+///         │   ├── events/                # Files originating from events
+///         │   └── specimens/             # Files originating from specimens
 ///         └── media/                     # Project-specific media files (`mediaDir`)
 ///             ├── site/                  # Site photos/media
 ///             ├── event/                 # Event photos/media
@@ -38,8 +42,9 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
-import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,6 +56,10 @@ import 'package:share_plus/share_plus.dart';
 const String nahpuBackupDir = 'backup';
 const String nahpuAppDir = 'nahpu';
 const String mediaDir = 'media';
+const String associatedDataDir = 'associatedData';
+const String associatedDataSitesDir = 'sites';
+const String associatedDataEventsDir = 'events';
+const String associatedDataSpecimensDir = 'specimens';
 const String nahpuTempDir = 'NahpuTemp';
 const String userConfigDirName = 'UserConfigs';
 const String userFontDirName = 'fonts';
@@ -107,6 +116,18 @@ class FilePickerServices {
       ShareParams(
         files: [XFile(file.path)],
         sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
+  }
+
+  Future<void> shareText(BuildContext context, String text) async {
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(
+      ShareParams(
+        text: text,
+        sharePositionOrigin: box == null
+            ? null
+            : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
   }
@@ -228,6 +249,73 @@ class FileServices extends AppServices {
     final projectDir = await currentProjectDir;
     final targetDir = path.join(projectDir.path, to.path);
     return _copyFileToDir(from, targetDir);
+  }
+
+  Future<Directory> getProjectAssociatedDataDirectory(
+    String projectUuid,
+  ) async {
+    final projectDir = await getProjectDirByUUID(projectUuid);
+    return Directory(path.join(projectDir.path, associatedDataDir));
+  }
+
+  Future<Directory> getAssociatedDataDirectory(
+    AssociatedDataOrigin origin,
+  ) async {
+    final root = await getProjectAssociatedDataDirectory(currentProjectUuid);
+    final directoryName = switch (origin) {
+      AssociatedDataOrigin.sites => associatedDataSitesDir,
+      AssociatedDataOrigin.events => associatedDataEventsDir,
+      AssociatedDataOrigin.specimens => associatedDataSpecimensDir,
+    };
+    return Directory(path.join(root.path, directoryName));
+  }
+
+  Future<File> copyAssociatedDataFile(
+    File from,
+    AssociatedDataOrigin origin,
+  ) async {
+    final directory = await getAssociatedDataDirectory(origin);
+    return _copyFileToDir(from, directory.path);
+  }
+
+  Future<String> associatedDataStorageKey(File file) async {
+    final root = await getProjectAssociatedDataDirectory(currentProjectUuid);
+    final absoluteRoot = path.absolute(root.path);
+    final absoluteFile = path.absolute(file.path);
+    if (!path.isWithin(absoluteRoot, absoluteFile)) {
+      throw const FormatException(
+        'Associated data file is outside the project directory.',
+      );
+    }
+    return path
+        .relative(absoluteFile, from: absoluteRoot)
+        .replaceAll('\\', '/');
+  }
+
+  Future<File> resolveAssociatedDataFile(
+    String projectUuid,
+    String storageKey,
+  ) async {
+    final value = storageKey.trim();
+    final rawSegments = value.replaceAll('\\', '/').split('/');
+    if (value.isEmpty ||
+        path.posix.isAbsolute(value) ||
+        path.windows.isAbsolute(value) ||
+        Uri.parse(value).hasScheme ||
+        rawSegments.contains('..')) {
+      throw const FormatException('Invalid associated data file path.');
+    }
+    final normalized = path.normalize(value.replaceAll('/', path.separator));
+    if (normalized == '.' || path.split(normalized).contains('..')) {
+      throw const FormatException('Invalid associated data file path.');
+    }
+    final root = await getProjectAssociatedDataDirectory(projectUuid);
+    final absoluteRoot = path.absolute(root.path);
+    final resolved = path.absolute(path.join(absoluteRoot, normalized));
+    if (!path.isWithin(absoluteRoot, resolved)) {
+      throw const FormatException('Invalid associated data file path.');
+    }
+    return File(resolved);
   }
 
   Future<File> copyFileToAppDir(File from, Directory to) async {

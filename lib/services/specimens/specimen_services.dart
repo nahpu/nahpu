@@ -20,6 +20,8 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:path/path.dart';
@@ -534,7 +536,9 @@ class SpecimenServices extends AppServices {
   ) async {
     await deleteAllSpecimenParts(specimenUuid);
     await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
-    await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(specimenUuid);
+    await AssociatedDataServices(
+      ref: ref,
+    ).detachAllFromTarget(AssociatedDataTarget.specimen(specimenUuid));
     switch (catalogFmt) {
       case CatalogFmt.birds:
         await deleteBirdAttributes(specimenUuid);
@@ -561,9 +565,9 @@ class SpecimenServices extends AppServices {
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
       await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimen.uuid);
-      await AssociatedDataQuery(
-        dbAccess,
-      ).deleteAllAssociatedData(specimen.uuid);
+      await AssociatedDataServices(
+        ref: ref,
+      ).detachAllFromTarget(AssociatedDataTarget.specimen(specimen.uuid));
       await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimen.uuid);
       CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(specimen.taxonGroup);
       switch (catalogFmt) {
@@ -915,112 +919,6 @@ class SpecimenSettingServices {
 
   bool getSpecimenSettingField(String key) {
     return _prefs.getBool(key) ?? false;
-  }
-}
-
-class AssociatedDataServices extends AppServices {
-  const AssociatedDataServices({required super.ref});
-
-  Future<List<AssociatedDataData>> getAssociatedData(
-    String specimenUuid,
-  ) async {
-    return await AssociatedDataQuery(
-      dbAccess,
-    ).getAllAssociatedData(specimenUuid);
-  }
-
-  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
-    return AssociatedDataQuery(dbAccess).getAssociatedDataForSite(siteId);
-  }
-
-  Future<List<AssociatedDataData>> getProjectAssociatedData() {
-    return AssociatedDataQuery(
-      dbAccess,
-    ).getAssociatedDataForProject(currentProjectUuid);
-  }
-
-  Future<void> createAssociatedData(
-    String specimenUuid,
-    AssociatedDataCompanion form,
-  ) async {
-    await AssociatedDataQuery(
-      dbAccess,
-    ).createSpecimenDataAssociation(specimenUuid, form);
-    _invalidateData();
-  }
-
-  Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
-    final id = await AssociatedDataQuery(dbAccess).createProjectAssociatedData(
-      form.copyWith(projectUuid: db.Value(currentProjectUuid)),
-    );
-    _invalidateData();
-    return id;
-  }
-
-  Future<void> linkToSpecimen(int id, String specimenUuid) async {
-    await AssociatedDataQuery(dbAccess).linkToSpecimen(id, specimenUuid);
-    _invalidateData();
-  }
-
-  Future<void> linkToSite(int id, int siteId) async {
-    await AssociatedDataQuery(dbAccess).linkToSite(id, siteId);
-    _invalidateData();
-  }
-
-  Future<void> unlinkFromSpecimen(int id, String specimenUuid) async {
-    await AssociatedDataQuery(dbAccess).unlinkFromSpecimen(id, specimenUuid);
-    _invalidateData();
-  }
-
-  Future<void> unlinkFromSite(int id, int siteId) async {
-    await AssociatedDataQuery(dbAccess).unlinkFromSite(id, siteId);
-    _invalidateData();
-  }
-
-  Future<void> updateAssociatedData(
-    int associatedDataId,
-    AssociatedDataCompanion form,
-  ) async {
-    await AssociatedDataQuery(
-      dbAccess,
-    ).updateAssociatedData(associatedDataId, form);
-    _invalidateData();
-  }
-
-  Future<bool> isFileUsed(File file) async {
-    return await AssociatedDataQuery(dbAccess).isFileUsed(basename(file.path));
-  }
-
-  Future<void> deleteAssociatedData(int associatedDataId) async {
-    final query = AssociatedDataQuery(dbAccess);
-    final data = await query.getAssociatedDataById(associatedDataId);
-    await query.deleteAssociatedData(associatedDataId);
-    if (data?.type == 'File' &&
-        data?.projectUuid != null &&
-        data?.uri?.isNotEmpty == true &&
-        !await query.isFileUsed(data!.uri!)) {
-      final projectDir = await FileServices(
-        ref: ref,
-      ).getProjectDirByUUID(data.projectUuid!);
-      final file = File(join(projectDir.path, 'associatedData', data.uri));
-      if (file.existsSync()) {
-        await file.delete();
-      }
-    }
-    _invalidateData();
-  }
-
-  Future<File> copyAssociatedDataFile(File path) async {
-    final dataDir = Directory('associatedData');
-
-    File dataPath = await FileServices(
-      ref: ref,
-    ).copyFileToProjectDir(path, dataDir);
-    return dataPath;
-  }
-
-  void _invalidateData() {
-    ref.invalidate(associatedDataProvider);
   }
 }
 

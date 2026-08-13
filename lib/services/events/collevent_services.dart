@@ -11,6 +11,8 @@ import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
 
 String formatCollEventId(CollEventData event, SiteData? site) {
@@ -174,6 +176,9 @@ class CollEventServices extends AppServices {
         dbAccess,
       ).deleteCollPersonnelByEventId(collEvenId);
       await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvenId);
+      await AssociatedDataServices(
+        ref: ref,
+      ).detachAllFromTarget(AssociatedDataTarget.event(collEvenId));
       await CollEventQuery(dbAccess).deleteCollEvent(collEvenId);
       invalidateCollEvent();
     } catch (e) {
@@ -208,6 +213,9 @@ class CollEventServices extends AppServices {
           dbAccess,
         ).deleteCollPersonnelByEventId(collEvent.id);
         await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvent.id);
+        await AssociatedDataServices(
+          ref: ref,
+        ).detachAllFromTarget(AssociatedDataTarget.event(collEvent.id));
       }
       await CollEventQuery(dbAccess).deleteAllCollEvents(projectUuid);
       invalidateCollEvent();

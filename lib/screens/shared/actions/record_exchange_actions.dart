@@ -10,6 +10,8 @@ import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/associated_data.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 
 class RecordExchangeActions {
@@ -249,7 +251,11 @@ class RecordExchangeActions {
         ref.invalidate(siteEntryProvider);
       }
       ref.invalidate(partBySpecimenProvider(result.recordUuid!));
-      ref.invalidate(associatedDataProvider(result.recordUuid!));
+      ref.invalidate(
+        associatedDataProvider(
+          AssociatedDataTarget.specimen(result.recordUuid!),
+        ),
+      );
       _showSuccess('Specimen imported successfully.');
     } catch (error) {
       _showError(error);
@@ -285,6 +291,9 @@ class RecordExchangeActions {
           .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
           .updateState(result.recordId);
       ref.invalidate(siteEntryProvider);
+      ref.invalidate(
+        associatedDataProvider(AssociatedDataTarget.site(result.recordId)),
+      );
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
       _showSuccess('Site imported successfully.');
@@ -335,6 +344,9 @@ class RecordExchangeActions {
       }
       ref.invalidate(collEventEntryProvider);
       ref.invalidate(eventMediaProvider(result.recordId));
+      ref.invalidate(
+        associatedDataProvider(AssociatedDataTarget.event(result.recordId)),
+      );
       ref.invalidate(siteEntryProvider);
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);

@@ -5,6 +5,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_archive.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
@@ -108,10 +109,15 @@ class RecordExchangeService extends AppServices {
     Directory? extractedMediaDirectory,
   }) async {
     payload.validate();
-    return dbAccess.transaction(() async {
+    final deferredAssociatedDataCleanup = <AssociatedDataData>[];
+    final result = await dbAccess.transaction(() async {
       switch (payload.type) {
         case RecordExchangeType.site:
-          return siteEvent.importSite(payload, targetId: targetId);
+          return siteEvent.importSite(
+            payload,
+            targetId: targetId,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
+          );
         case RecordExchangeType.event:
           return siteEvent.importEvent(
             payload,
@@ -119,6 +125,7 @@ class RecordExchangeService extends AppServices {
             linkedSiteId: linkedSiteId,
             createEmbeddedSite: createEmbeddedSite,
             extractedMediaDirectory: extractedMediaDirectory,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
           );
         case RecordExchangeType.specimen:
           return specimen.importSpecimen(
@@ -126,9 +133,15 @@ class RecordExchangeService extends AppServices {
             targetUuid: targetSpecimenUuid,
             references: references,
             extractedMediaDirectory: extractedMediaDirectory,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
           );
       }
     });
+    final associatedData = AssociatedDataServices(ref: ref);
+    for (final data in deferredAssociatedDataCleanup) {
+      await associatedData.cleanupManagedFileIfUnused(data);
+    }
+    return result;
   }
 
   Future<List<SiteData>> getCurrentProjectSites() =>

@@ -7,7 +7,7 @@ import 'package:nahpu/screens/sites/components/media.dart';
 import 'package:nahpu/screens/sites/components/site_info.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/screens/sites/components/coordinates.dart';
+import 'package:nahpu/screens/sites/components/tab_bar.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
 class SiteForm extends ConsumerStatefulWidget {
@@ -58,13 +58,11 @@ class SiteFormState extends ConsumerState<SiteForm> {
                   useHorizontalLayout: useHorizontalLayout,
                   siteFormCtr: widget.siteFormCtr,
                 ),
-                CoordinateFields(
-                  siteId: widget.id,
-                ),
+                SiteDataTabBar(siteId: widget.id),
               ],
             ),
             SiteMediaForm(siteId: widget.id),
-            const BottomPadding()
+            const BottomPadding(),
           ],
         );
       },

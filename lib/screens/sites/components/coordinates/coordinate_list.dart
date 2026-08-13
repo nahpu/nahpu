@@ -18,6 +18,26 @@ class CoordinateFields extends StatelessWidget {
   }
 }
 
+class CoordinateTabView extends StatelessWidget {
+  const CoordinateTabView({super.key, required this.siteId});
+
+  final int siteId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const TitleForm(
+          text: 'Coordinates',
+          infoContent: CoordinateInfoContent(),
+        ),
+        SizedBox(height: 450, child: CoordinateList(sideId: siteId)),
+      ],
+    );
+  }
+}
+
 class AddCoordinateButton extends ConsumerWidget {
   const AddCoordinateButton({super.key, required this.siteId});
 

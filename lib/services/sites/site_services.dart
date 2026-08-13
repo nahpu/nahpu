@@ -11,6 +11,8 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart';
 
 String formatSiteName(SiteData site) {
@@ -125,6 +127,9 @@ class SiteServices extends AppServices {
     try {
       await CoordinateServices(ref: ref).deleteCoordinateBySiteID(id);
       await SiteQuery(dbAccess).deleteAllSiteMedias(id);
+      await AssociatedDataServices(
+        ref: ref,
+      ).detachAllFromTarget(AssociatedDataTarget.site(id));
       await SiteQuery(dbAccess).deleteSite(id);
     } catch (e) {
       rethrow;
@@ -140,6 +145,9 @@ class SiteServices extends AppServices {
       for (SiteData site in sites) {
         await CoordinateServices(ref: ref).deleteCoordinateBySiteID(site.id);
         await SiteQuery(dbAccess).deleteAllSiteMedias(site.id);
+        await AssociatedDataServices(
+          ref: ref,
+        ).detachAllFromTarget(AssociatedDataTarget.site(site.id));
       }
       await SiteQuery(dbAccess).deleteAllSites(projectUuid);
       invalidateSite();

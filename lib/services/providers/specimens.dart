@@ -50,15 +50,6 @@ final specimenPartEntryProvider =
       .getSpecimenPartsForProject(projectUuid);
 });
 
-final associatedDataProvider = FutureProvider.family
-    .autoDispose<List<AssociatedDataData>, String>((ref, specimenUuid) async {
-  final associatedDataEntries =
-      await AssociatedDataQuery(ref.read(databaseProvider))
-          .getAllAssociatedData(specimenUuid);
-
-  return associatedDataEntries;
-});
-
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
   List<SpecimenMediaData> mediaList =

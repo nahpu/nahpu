@@ -141,6 +141,7 @@ class RecordExchangePayload {
     if (type == RecordExchangeType.event) {
       mapList(data['effort']);
       mapList(data['personnelAssignments']);
+      mapList(data['associatedData']);
       final weather = data['weather'];
       if (weather != null && weather is! Map) {
         throw const FormatException('Event weather data is invalid.');

@@ -13,6 +13,8 @@ import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/associated_data.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 
 class RecordExchangeSiteEvent extends AppServices {
   const RecordExchangeSiteEvent({required super.ref});
@@ -125,6 +127,10 @@ class RecordExchangeSiteEvent extends AppServices {
           .map(support.portableAssignment)
           .toList(growable: false),
       'weather': weather == null ? null : support.portableWeather(weather),
+      'associatedData':
+          (await AssociatedDataQuery(dbAccess).getAssociatedDataForEvent(
+            event.id,
+          )).map(support.portableAssociatedData).toList(growable: false),
       'site': ?linkedSite,
     };
     if (includeMedia) {
@@ -142,6 +148,7 @@ class RecordExchangeSiteEvent extends AppServices {
   Future<RecordExchangeResult> importSite(
     RecordExchangePayload payload, {
     int? targetId,
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
@@ -176,7 +183,12 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.coordinate,
       )..where((row) => row.siteID.equals(targetId))).go();
-      await AssociatedDataQuery(dbAccess).unlinkAllFromSite(targetId);
+      final orphaned = await AssociatedDataServices(ref: ref)
+          .detachAllFromTarget(
+            AssociatedDataTarget.site(targetId),
+            cleanupFiles: false,
+          );
+      deferredAssociatedDataCleanup?.addAll(orphaned);
     }
     for (final coordinateJson in RecordExchangePayload.mapList(
       payload.data['coordinates'],
@@ -188,13 +200,12 @@ class RecordExchangeSiteEvent extends AppServices {
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
-      final associatedDataId = await AssociatedDataQuery(dbAccess)
-          .createProjectAssociatedData(
-            AssociatedDataData.fromJson(
-              support.associatedDataJson(json),
-            ).toCompanion(true),
-          );
-      await AssociatedDataQuery(dbAccess).linkToSite(associatedDataId, siteId);
+      await AssociatedDataServices(ref: ref).createAssociatedData(
+        target: AssociatedDataTarget.site(siteId),
+        form: AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
+      );
     }
     return RecordExchangeResult(recordId: siteId);
   }
@@ -205,6 +216,7 @@ class RecordExchangeSiteEvent extends AppServices {
     int? linkedSiteId,
     bool createEmbeddedSite = false,
     Directory? extractedMediaDirectory,
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
@@ -269,6 +281,12 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.weather,
       )..where((row) => row.eventID.equals(targetId))).go();
+      final orphaned = await AssociatedDataServices(ref: ref)
+          .detachAllFromTarget(
+            AssociatedDataTarget.event(targetId),
+            cleanupFiles: false,
+          );
+      deferredAssociatedDataCleanup?.addAll(orphaned);
     }
 
     for (final effortJson in RecordExchangePayload.mapList(
@@ -299,6 +317,16 @@ class RecordExchangeSiteEvent extends AppServices {
               eventId,
             ),
           );
+    }
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['associatedData'],
+    )) {
+      await AssociatedDataServices(ref: ref).createAssociatedData(
+        target: AssociatedDataTarget.event(eventId),
+        form: AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
+      );
     }
     if (payload.data.containsKey('media')) {
       await _deleteEventMedia(eventId);

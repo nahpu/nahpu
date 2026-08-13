@@ -146,26 +146,31 @@ class DbExport extends AppServices {
   }
 
   Future<List<File>> _collectAssociatedDataFiles() async {
-    final root = await nahpuDocumentDir;
     final rows = await dbAccess
         .customSelect(
           "SELECT projectUuid, uri FROM associatedData WHERE type = 'File'",
         )
         .get();
-    File? associatedDataFile(QueryRow row) {
+    Future<File?> associatedDataFile(QueryRow row) async {
       final projectUuid = row.data['projectUuid'] as String?;
-      final fileName = row.data['uri'] as String?;
-      if (projectUuid == null || fileName == null || fileName.isEmpty) {
+      final storageKey = row.data['uri'] as String?;
+      if (projectUuid == null ||
+          storageKey == null ||
+          storageKey.isEmpty ||
+          Uri.tryParse(storageKey)?.scheme == 'file') {
         return null;
       }
-      return File(p.join(root.path, projectUuid, 'associatedData', fileName));
+      try {
+        return await FileServices(
+          ref: ref,
+        ).resolveAssociatedDataFile(projectUuid, storageKey);
+      } on FormatException {
+        return null;
+      }
     }
 
-    return rows
-        .map(associatedDataFile)
-        .whereType<File>()
-        .where((file) => file.existsSync())
-        .toList();
+    final files = await Future.wait(rows.map(associatedDataFile));
+    return files.whereType<File>().where((file) => file.existsSync()).toList();
   }
 
   Future<void> _copyAssociatedFiles(Directory staging) async {

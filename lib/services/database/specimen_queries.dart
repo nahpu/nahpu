@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 
 part 'specimen_queries.g.dart';
@@ -645,6 +646,74 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
     });
   }
 
+  Future<int> createSiteDataAssociation(
+    int siteId,
+    AssociatedDataCompanion form,
+  ) async {
+    final siteRow = await (select(
+      site,
+    )..where((row) => row.id.equals(siteId))).getSingle();
+    final projectUuid = siteRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires a site project.');
+    }
+
+    return transaction(() async {
+      final id = await into(
+        associatedData,
+      ).insert(form.copyWith(projectUuid: Value(projectUuid)));
+      await into(siteAssociatedData).insert(
+        SiteAssociatedDataCompanion.insert(
+          siteId: siteId,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createEventDataAssociation(
+    int eventId,
+    AssociatedDataCompanion form,
+  ) async {
+    final eventRow = await (select(
+      collEvent,
+    )..where((row) => row.id.equals(eventId))).getSingle();
+    final projectUuid = eventRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires an event project.');
+    }
+
+    return transaction(() async {
+      final id = await into(
+        associatedData,
+      ).insert(form.copyWith(projectUuid: Value(projectUuid)));
+      await into(eventAssociatedData).insert(
+        EventAssociatedDataCompanion.insert(
+          eventID: eventId,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createDataAssociation(
+    AssociatedDataTarget target,
+    AssociatedDataCompanion form,
+  ) => switch (target) {
+    SpecimenAssociatedDataTarget(:final specimenUuid) =>
+      createSpecimenDataAssociation(specimenUuid, form),
+    SiteAssociatedDataTarget(:final siteId) => createSiteDataAssociation(
+      siteId,
+      form,
+    ),
+    EventAssociatedDataTarget(:final eventId) => createEventDataAssociation(
+      eventId,
+      form,
+    ),
+  };
+
   Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
     if (!form.projectUuid.present || form.projectUuid.value == null) {
       throw ArgumentError('Associated data requires a project.');
@@ -668,6 +737,26 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
       mode: InsertMode.insertOrIgnore,
     );
   }
+
+  Future<void> linkToEvent(int id, int eventId) {
+    return into(eventAssociatedData).insert(
+      EventAssociatedDataCompanion.insert(
+        eventID: eventId,
+        associatedDataId: id,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> linkToTarget(int id, AssociatedDataTarget target) =>
+      switch (target) {
+        SpecimenAssociatedDataTarget(:final specimenUuid) => linkToSpecimen(
+          id,
+          specimenUuid,
+        ),
+        SiteAssociatedDataTarget(:final siteId) => linkToSite(id, siteId),
+        EventAssociatedDataTarget(:final eventId) => linkToEvent(id, eventId),
+      };
 
   Future<int> updateAssociatedData(int id, AssociatedDataCompanion form) async {
     return (update(
@@ -696,6 +785,30 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
     return query.map((row) => row.readTable(associatedData)).get();
   }
 
+  Future<List<AssociatedDataData>> getAssociatedDataForEvent(int eventId) {
+    final query = select(associatedData).join([
+      innerJoin(
+        eventAssociatedData,
+        eventAssociatedData.associatedDataId.equalsExp(
+          associatedData.primaryId,
+        ),
+      ),
+    ])..where(eventAssociatedData.eventID.equals(eventId));
+    return query.map((row) => row.readTable(associatedData)).get();
+  }
+
+  Future<List<AssociatedDataData>> getAssociatedDataForTarget(
+    AssociatedDataTarget target,
+  ) => switch (target) {
+    SpecimenAssociatedDataTarget(:final specimenUuid) => getAllAssociatedData(
+      specimenUuid,
+    ),
+    SiteAssociatedDataTarget(:final siteId) => getAssociatedDataForSite(siteId),
+    EventAssociatedDataTarget(:final eventId) => getAssociatedDataForEvent(
+      eventId,
+    ),
+  };
+
   Future<List<AssociatedDataData>> getAssociatedDataForProject(
     String projectUuid,
   ) {
@@ -710,12 +823,14 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
     )..where((row) => row.primaryId.equals(id))).getSingleOrNull();
   }
 
-  Future<bool> isFileUsed(String baseName) async {
-    AssociatedDataData? data =
-        await (select(associatedData)
-              ..where((t) => t.uri.equals(baseName))
-              ..limit(1))
-            .getSingleOrNull();
+  Future<bool> isFileUsed(String storageKey, {String? projectUuid}) async {
+    final query = select(associatedData)
+      ..where((row) => row.uri.equals(storageKey));
+    if (projectUuid != null) {
+      query.where((row) => row.projectUuid.equals(projectUuid));
+    }
+    query.limit(1);
+    final data = await query.getSingleOrNull();
     return data != null;
   }
 
@@ -743,15 +858,97 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
         .go();
   }
 
+  Future<void> unlinkFromEvent(int id, int eventId) {
+    return (delete(eventAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.eventID.equals(eventId)))
+        .go();
+  }
+
+  Future<void> unlinkFromTarget(int id, AssociatedDataTarget target) =>
+      switch (target) {
+        SpecimenAssociatedDataTarget(:final specimenUuid) => unlinkFromSpecimen(
+          id,
+          specimenUuid,
+        ),
+        SiteAssociatedDataTarget(:final siteId) => unlinkFromSite(id, siteId),
+        EventAssociatedDataTarget(:final eventId) => unlinkFromEvent(
+          id,
+          eventId,
+        ),
+      };
+
+  Future<bool> detachFromTarget(int id, AssociatedDataTarget target) async {
+    return transaction(() async {
+      await unlinkFromTarget(id, target);
+      final isStillLinked = await _isLinked(id);
+      if (!isStillLinked) {
+        await deleteAssociatedData(id);
+      }
+      return !isStillLinked;
+    });
+  }
+
+  Future<List<int>> getAssociatedDataIdsForTarget(
+    AssociatedDataTarget target,
+  ) async {
+    switch (target) {
+      case SpecimenAssociatedDataTarget(:final specimenUuid):
+        final rows = await (select(
+          specimenAssociatedData,
+        )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+      case SiteAssociatedDataTarget(:final siteId):
+        final rows = await (select(
+          siteAssociatedData,
+        )..where((row) => row.siteId.equals(siteId))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+      case EventAssociatedDataTarget(:final eventId):
+        final rows = await (select(
+          eventAssociatedData,
+        )..where((row) => row.eventID.equals(eventId))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+    }
+  }
+
   Future<void> unlinkAllFromSite(int siteId) {
     return (delete(
       siteAssociatedData,
     )..where((row) => row.siteId.equals(siteId))).go();
   }
 
+  Future<void> unlinkAllFromEvent(int eventId) {
+    return (delete(
+      eventAssociatedData,
+    )..where((row) => row.eventID.equals(eventId))).go();
+  }
+
   Future<void> deleteAllAssociatedDataForProject(String projectUuid) {
     return (delete(
       associatedData,
     )..where((row) => row.projectUuid.equals(projectUuid))).go();
+  }
+
+  Future<bool> _isLinked(int id) async {
+    final specimenLink =
+        await (select(specimenAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (specimenLink != null) return true;
+
+    final siteLink =
+        await (select(siteAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (siteLink != null) return true;
+
+    final eventLink =
+        await (select(eventAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    return eventLink != null;
   }
 }

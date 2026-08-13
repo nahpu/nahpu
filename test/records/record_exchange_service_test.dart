@@ -223,6 +223,18 @@ void main() {
               moonPhase: const Value('Full moon'),
             ),
           );
+      final associatedDataId = await AssociatedDataQuery(database)
+          .createProjectAssociatedData(
+            const AssociatedDataCompanion(
+              projectUuid: Value('project-a'),
+              name: Value('Event field notes'),
+              type: Value('Link'),
+              uri: Value('https://example.org/event-notes'),
+            ),
+          );
+      await AssociatedDataQuery(
+        database,
+      ).linkToEvent(associatedDataId, sourceEvent);
 
       final payload = await service.exportEvent(sourceEvent);
       final result = await service.importPayload(
@@ -253,6 +265,12 @@ void main() {
       )..where((row) => row.eventID.equals(result.recordId))).getSingle();
       expect(weather.highestDayTempC, 27.0);
       expect(weather.moonPhase, 'Full moon');
+      final associatedData = await AssociatedDataQuery(
+        database,
+      ).getAssociatedDataForEvent(result.recordId);
+      expect(associatedData, hasLength(1));
+      expect(associatedData.single.name, 'Event field notes');
+      expect(associatedData.single.uri, 'https://example.org/event-notes');
     },
   );
 
@@ -290,6 +308,50 @@ void main() {
       database.collEvent,
     )..where((row) => row.id.equals(result.recordId))).getSingle();
     expect(importedEvent.siteID, result.createdSiteId);
+  });
+
+  testWidgets('event replacement safely detaches prior associated data', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceEvent = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+    final targetEvent = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+    final retainingSite = await database
+        .into(database.site)
+        .insert(const SiteCompanion(projectUuid: Value('project-a')));
+    final replacementId = await AssociatedDataQuery(database)
+        .createEventDataAssociation(
+          sourceEvent,
+          const AssociatedDataCompanion(name: Value('Replacement notes')),
+        );
+    final priorId = await AssociatedDataQuery(database)
+        .createEventDataAssociation(
+          targetEvent,
+          const AssociatedDataCompanion(name: Value('Prior shared notes')),
+        );
+    await AssociatedDataQuery(database).linkToSite(priorId, retainingSite);
+
+    final payload = await service.exportEvent(sourceEvent);
+    final result = await service.importPayload(payload, targetId: targetEvent);
+
+    expect(result.recordId, targetEvent);
+    final targetData = await AssociatedDataQuery(
+      database,
+    ).getAssociatedDataForEvent(targetEvent);
+    expect(targetData.map((entry) => entry.name), ['Replacement notes']);
+    expect(
+      await AssociatedDataQuery(database).getAssociatedDataById(priorId),
+      isNotNull,
+    );
+    expect(
+      await AssociatedDataQuery(database).getAssociatedDataById(replacementId),
+      isNotNull,
+    );
   });
 
   testWidgets(
