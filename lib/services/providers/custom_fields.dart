@@ -16,6 +16,11 @@ typedef CustomFieldDefinitionFilter = ({
   bool includeArchived,
 });
 
+typedef CustomFieldSpecimenContext = ({
+  FieldUISection placement,
+  String specimenUuid,
+});
+
 final customFieldDefinitionsProvider = FutureProvider.autoDispose
     .family<List<CustomFieldDefinitionData>, CustomFieldDefinitionFilter>(
       (ref, filter) => ref
@@ -44,8 +49,27 @@ final customFieldEntriesProvider = FutureProvider.autoDispose
       (ref, owner) => ref.watch(customFieldServiceProvider).getEntries(owner),
     );
 
+final customFieldSpecimenDefinitionsProvider = FutureProvider.autoDispose
+    .family<List<CustomFieldDefinitionData>, CustomFieldSpecimenContext>(
+      (ref, context) => ref
+          .watch(customFieldServiceProvider)
+          .getDefinitionsForSpecimenContext(
+            placement: context.placement,
+            specimenUuid: context.specimenUuid,
+          ),
+    );
+
 final customFieldUsageProvider = FutureProvider.autoDispose
     .family<CustomFieldUsage, int>(
       (ref, definitionId) =>
           ref.watch(customFieldServiceProvider).getUsage(definitionId),
     );
+
+void invalidateCustomFieldDefinitionProviders(WidgetRef ref) {
+  ref.invalidate(customFieldDefinitionsProvider);
+  ref.invalidate(customFieldSpecimenDefinitionsProvider);
+  ref.invalidate(customFieldEntriesProvider);
+  ref.invalidate(manageableCustomFieldsProvider);
+  ref.invalidate(allCustomFieldDefinitionsProvider);
+  ref.invalidate(customFieldUsageProvider);
+}

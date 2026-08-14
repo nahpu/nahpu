@@ -28,7 +28,7 @@ void main() {
     expect(find.text('Curation'), findsNothing);
     expect(find.text('Additional treatment'), findsNothing);
     expect(find.text('Preparator'), findsNothing);
-    expect(find.text('Add custom field'), findsOneWidget);
+    expect(find.text('Add custom field'), findsNothing);
 
     final showMore = find.text('Show more');
     await tester.ensureVisible(showMore);
@@ -36,6 +36,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Curation'), findsOneWidget);
+    expect(find.text('Custom fields'), findsOneWidget);
+    expect(find.text('Add custom field'), findsOneWidget);
     _expectFieldInSection(tester, 'Additional treatment', 'Preparation');
     _expectFieldInSection(tester, 'Preparator', 'Sampling');
     _expectFieldInSection(tester, 'Storage', 'Curation');

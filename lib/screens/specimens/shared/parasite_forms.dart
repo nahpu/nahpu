@@ -308,12 +308,13 @@ class ParasiteRecordForm extends ConsumerStatefulWidget {
 
 class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   bool _showMore = false;
-  final Map<int, String?> _customValues = {};
+  final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   bool get _isEditing => widget.parasite != null;
 
   @override
   void dispose() {
+    _customFields.dispose();
     widget.controller.dispose();
     super.dispose();
   }
@@ -397,23 +398,22 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             visible: _showMore,
             child: _AdvancedParasiteFields(controller: widget.controller),
           ),
-          ShowMoreButton(
-            showMore: _showMore,
-            onPressed: () => setState(() => _showMore = !_showMore),
-          ),
           if (_isEditing)
             CustomFieldForm(
               owner: CustomFieldOwner.parasite(widget.parasite!.id!),
+              showAll: _showMore,
             )
           else
             CustomFieldDraftForm(
               placement: FieldUISection.parasite,
               specimenUuid: widget.specimenUuid,
-              onChanged: (definitionId, value) {
-                _customValues[definitionId] = value;
-              },
+              controller: _customFields,
+              showAll: _showMore,
             ),
-          const SizedBox(height: 16),
+          ShowMoreButton(
+            showMore: _showMore,
+            onPressed: () => setState(() => _showMore = !_showMore),
+          ),
           FormButton(isEditing: _isEditing, onSubmitted: _submit),
         ],
       ),
@@ -435,7 +435,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
           ).createParasite(widget.specimenUuid, form);
           await ref
               .read(customFieldServiceProvider)
-              .setValues(CustomFieldOwner.parasite(id), _customValues);
+              .setValues(CustomFieldOwner.parasite(id), _customFields.values);
         });
       }
       if (mounted) Navigator.of(context).pop();

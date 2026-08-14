@@ -304,7 +304,7 @@ class _CustomFieldDefinitionEditorState
       final saved = _isEditing
           ? await _update(service, draft)
           : await service.createDefinition(draft);
-      ref.invalidate(allCustomFieldDefinitionsProvider);
+      invalidateCustomFieldDefinitionProviders(ref);
       if (mounted) Navigator.pop(context, saved);
     } catch (error) {
       if (!mounted) return;

@@ -624,10 +624,11 @@ class PartForm extends ConsumerStatefulWidget {
 
 class PartFormState extends ConsumerState<PartForm> {
   bool _showMore = false;
-  final Map<int, String?> _customValues = {};
+  final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   @override
   void dispose() {
+    _customFields.dispose();
     widget.partCtr.dispose();
     super.dispose();
   }
@@ -672,6 +673,18 @@ class PartFormState extends ConsumerState<PartForm> {
               ),
             ),
           ),
+          if (widget.isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
+              showAll: _showMore,
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.specimenPart,
+              specimenUuid: widget.specimenUuid,
+              controller: _customFields,
+              showAll: _showMore,
+            ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () {
@@ -680,19 +693,6 @@ class PartFormState extends ConsumerState<PartForm> {
               });
             },
           ),
-          if (widget.isEditing)
-            CustomFieldForm(
-              owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
-            )
-          else
-            CustomFieldDraftForm(
-              placement: FieldUISection.specimenPart,
-              specimenUuid: widget.specimenUuid,
-              onChanged: (definitionId, value) {
-                _customValues[definitionId] = value;
-              },
-            ),
-          const SizedBox(height: 16),
           FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
         ],
       ),
@@ -720,7 +720,10 @@ class PartFormState extends ConsumerState<PartForm> {
           ).createSpecimenPart(_getForm());
           await ref
               .read(customFieldServiceProvider)
-              .setValues(CustomFieldOwner.specimenPart(id), _customValues);
+              .setValues(
+                CustomFieldOwner.specimenPart(id),
+                _customFields.values,
+              );
         });
       }
       if (mounted) Navigator.of(context).pop();

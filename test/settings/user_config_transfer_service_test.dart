@@ -234,6 +234,43 @@ void main() {
     },
   );
 
+  test('custom field QR payload contains only selected templates', () async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final customFields = CustomFieldService(database);
+    final included = await customFields.createDefinition(
+      const CustomFieldDraft(
+        name: 'Included field',
+        type: FieldType.text,
+        placement: FieldUISection.siteAttribute,
+        scope: FieldScope.global,
+      ),
+    );
+    await customFields.createDefinition(
+      const CustomFieldDraft(
+        name: 'Excluded field',
+        type: FieldType.boolean,
+        placement: FieldUISection.siteAttribute,
+        scope: FieldScope.global,
+      ),
+    );
+
+    const transfer = UserConfigTransferService();
+    final payload = await transfer.exportCustomFieldPayload(
+      database: database,
+      projectUuid: null,
+      selectedDefinitionIds: {included.id!},
+    );
+    final source = await transfer.inspectCustomFieldPayload(payload);
+    addTearDown(source.dispose);
+
+    expect(source.preview.schemaVersion, 4);
+    expect(source.preview.customFields, hasLength(1));
+    expect(source.preview.customFields.single.label, 'Included field');
+  });
+
   testWidgets(
     'project field IDs preserve separators and increment atomically',
     (tester) async {

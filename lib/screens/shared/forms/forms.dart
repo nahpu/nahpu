@@ -124,10 +124,16 @@ class CommonIDForm extends StatelessWidget {
 }
 
 class FormSection extends StatelessWidget {
-  const FormSection({super.key, required this.title, required this.child});
+  const FormSection({
+    super.key,
+    required this.title,
+    required this.child,
+    this.trailing,
+  });
 
   final String title;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +155,20 @@ class FormSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                ...switch (trailing) {
+                  null => const <Widget>[],
+                  final trailing => <Widget>[trailing],
+                },
+              ],
+            ),
             const SizedBox(height: NahpuSpacing.md),
             child,
           ],

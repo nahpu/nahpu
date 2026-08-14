@@ -120,6 +120,54 @@ class UserConfigTransferService {
     }
   }
 
+  Future<String> exportCustomFieldPayload({
+    required Database database,
+    required String? projectUuid,
+    required Set<int> selectedDefinitionIds,
+  }) async {
+    final staging = Directory.systemTemp.createTempSync(
+      'nahpu-custom-field-qr-',
+    );
+    try {
+      final output = File(path.join(staging.path, 'custom-fields.json'));
+      await export(
+        output: output,
+        format: UserConfigFileFormat.json,
+        sections: const {rust_config.UserConfigSection.customFields},
+        database: database,
+        projectUuid: projectUuid,
+        selectedDefinitionIds: selectedDefinitionIds,
+      );
+      return await output.readAsString();
+    } finally {
+      if (staging.existsSync()) await staging.delete(recursive: true);
+    }
+  }
+
+  Future<UserConfigImportSource> inspectCustomFieldPayload(
+    String payload,
+  ) async {
+    final staging = Directory.systemTemp.createTempSync(
+      'nahpu-custom-field-import-',
+    );
+    try {
+      final jsonFile = File(path.join(staging.path, 'custom-fields.json'));
+      await jsonFile.writeAsString(payload);
+      final preview = await rust_config.inspectConfigFile(
+        filePath: jsonFile.path,
+      );
+      return UserConfigImportSource(
+        input: XFile(jsonFile.path),
+        jsonFile: jsonFile,
+        preview: preview,
+        temporaryDirectory: staging,
+      );
+    } catch (_) {
+      if (staging.existsSync()) await staging.delete(recursive: true);
+      rethrow;
+    }
+  }
+
   Future<UserConfigImportSource> inspect(XFile input) async {
     final lowerPath = input.path.toLowerCase();
     if (lowerPath.endsWith('.json')) {

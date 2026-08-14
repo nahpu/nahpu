@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:uuid/uuid.dart';
@@ -93,6 +94,32 @@ class CustomFieldCreationContext {
 
   final String projectUuid;
   final CatalogFmt? catalogFormat;
+}
+
+class CustomFieldDraftController extends ChangeNotifier {
+  final Map<int, String?> _values = {};
+
+  Map<int, String?> get values => Map.unmodifiable(_values);
+
+  String? valueFor(int definitionId) => _values[definitionId];
+
+  void setValue(int definitionId, String? value) {
+    final normalized = value?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      if (_values.remove(definitionId) != null) notifyListeners();
+      return;
+    }
+    if (_values[definitionId] == normalized) return;
+    _values[definitionId] = normalized;
+    notifyListeners();
+  }
+
+  void retainDefinitionIds(Iterable<int> definitionIds) {
+    final retained = definitionIds.toSet();
+    final previousLength = _values.length;
+    _values.removeWhere((definitionId, _) => !retained.contains(definitionId));
+    if (_values.length != previousLength) notifyListeners();
+  }
 }
 
 class CustomFieldOwner {
