@@ -63,7 +63,7 @@ class Habitat extends ConsumerWidget {
                           isExpanded: true,
                           initialValue: initialValue,
                           decoration: const InputDecoration(
-                            labelText: 'Type',
+                            labelText: 'Habitat Type',
                             hintText: 'Select a habitat type',
                           ),
                           items: items,
@@ -84,7 +84,7 @@ class Habitat extends ConsumerWidget {
                 TextFormField(
                   controller: siteFormCtr.habitatConditionCtr,
                   decoration: const InputDecoration(
-                    labelText: 'Condition',
+                    labelText: 'Habitat Condition',
                     hintText: 'E.g. "Pristine", "Disturbed", "etc."',
                   ),
                   onChanged: (value) => SiteServices(ref: ref).updateSite(
@@ -93,10 +93,10 @@ class Habitat extends ConsumerWidget {
                   ),
                 ),
                 TextFormField(
-                  maxLines: 15,
+                  maxLines: 10,
                   controller: siteFormCtr.habitatDescriptionCtr,
                   decoration: const InputDecoration(
-                    labelText: 'Description',
+                    labelText: 'Habitat Description',
                     hintText:
                         'Describe the site, e.g. "A camp site in the middle of the forest."',
                   ),
