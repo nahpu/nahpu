@@ -123,9 +123,7 @@ class DatabaseSettingSections extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const TaxonRegistryPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const ManageTaxa()),
             );
           },
         ),

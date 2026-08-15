@@ -13,9 +13,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/statistics.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
-  const TaxonRegistryViewer({
-    super.key,
-  });
+  const TaxonRegistryViewer({super.key});
 
   @override
   TaxonRegistryViewerState createState() => TaxonRegistryViewerState();
@@ -42,20 +40,19 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
               spacing: 8,
               children: [
                 SecondaryButton(
-                    text: 'Import from file',
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const TaxonImportForm(),
-                        ),
-                      );
-                    }),
-                PrimaryButton(
+                  text: 'Import from file',
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const NewTaxon(),
+                        builder: (context) => const TaxonImportForm(),
                       ),
+                    );
+                  },
+                ),
+                PrimaryButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const NewTaxon()),
                     );
                   },
                   label: 'Add taxon',
@@ -71,13 +68,13 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
 }
 
 class RegistryInfo extends ConsumerWidget {
-  const RegistryInfo({
-    super.key,
-  });
+  const RegistryInfo({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(taxonRegistryProvider).when(
+    return ref
+        .watch(taxonRegistryProvider)
+        .when(
           data: (data) {
             return data.isEmpty
                 ? const EmptyTaxa()
@@ -111,10 +108,7 @@ class EmptyTaxa extends StatelessWidget {
 }
 
 class RegisteredTaxa extends StatelessWidget {
-  const RegisteredTaxa({
-    super.key,
-    required this.taxonData,
-  });
+  const RegisteredTaxa({super.key, required this.taxonData});
 
   final List<TaxonomyData> taxonData;
 
@@ -124,45 +118,44 @@ class RegisteredTaxa extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const TaxonStatText(
-            text: 'Registered',
-          ),
+          const TaxonStatText(text: 'Registered'),
           FittedBox(
-              fit: BoxFit.fill,
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${taxonData.length}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    TextSpan(
-                      text: ' species\n',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    TextSpan(
-                      text: '${_countFamily(taxonData)}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    TextSpan(
-                      text: ' families',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ],
-                ),
-              )),
+            fit: BoxFit.fill,
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${taxonData.length}',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  TextSpan(
+                    text: ' species\n',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  TextSpan(
+                    text: '${_countFamily(taxonData)}',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  TextSpan(
+                    text: ' families',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ],
+              ),
+            ),
+          ),
           taxonData.isEmpty
               ? const SizedBox.shrink()
               : TextButton(
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const TaxonRegistryPage(),
+                        builder: (context) => const ManageTaxa(),
                       ),
                     );
                   },
-                  child: const Text('View all'),
-                )
+                  child: const Text('Manage taxa'),
+                ),
         ],
       ),
     );
@@ -183,7 +176,9 @@ class RecordedTaxa extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenEntryProvider).when(
+    return ref
+        .watch(specimenEntryProvider)
+        .when(
           data: (data) => RecordedTaxaView(data: data),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
@@ -192,10 +187,7 @@ class RecordedTaxa extends ConsumerWidget {
 }
 
 class RecordedTaxaView extends ConsumerStatefulWidget {
-  const RecordedTaxaView({
-    super.key,
-    required this.data,
-  });
+  const RecordedTaxaView({super.key, required this.data});
 
   final List<SpecimenData> data;
 
@@ -211,18 +203,13 @@ class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const TaxonStatText(
-            text: 'Recorded',
-          ),
+          const TaxonStatText(text: 'Recorded'),
           widget.data.isEmpty
               ? Text(
                   'No record found',
                   style: Theme.of(context).textTheme.labelLarge,
                 )
-              : const FittedBox(
-                  fit: BoxFit.fill,
-                  child: RecordedCounts(),
-                ),
+              : const FittedBox(fit: BoxFit.fill, child: RecordedCounts()),
           widget.data.isEmpty
               ? const SizedBox.shrink()
               : TextButton(
@@ -230,12 +217,13 @@ class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
                     if (context.mounted) {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) => SpecimenListPage()),
+                          builder: (context) => SpecimenListPage(),
+                        ),
                       );
                     }
                   },
                   child: const Text('View all'),
-                )
+                ),
         ],
       ),
     );
@@ -243,13 +231,13 @@ class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
 }
 
 class RecordedCounts extends ConsumerWidget {
-  const RecordedCounts({
-    super.key,
-  });
+  const RecordedCounts({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(recordStatisticTotalsProvider).when(
+    return ref
+        .watch(recordStatisticTotalsProvider)
+        .when(
           data: (totals) => Padding(
             padding: const EdgeInsets.only(top: 8),
             child: RichText(
@@ -290,49 +278,39 @@ class RecordedCounts extends ConsumerWidget {
 }
 
 class CountText extends StatelessWidget {
-  const CountText({
-    super.key,
-    required this.text,
-  });
+  const CountText({super.key, required this.text});
 
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.titleMedium,
-    );
+    return Text(text, style: Theme.of(context).textTheme.titleMedium);
   }
 }
 
 class TaxonDataContainer extends StatelessWidget {
-  const TaxonDataContainer({
-    super.key,
-    required this.child,
-  });
+  const TaxonDataContainer({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(8),
-        child: Container(
-          height: 220,
-          width: 200,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withAlpha(50),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(
-              20,
-            ),
+      padding: const EdgeInsets.all(8),
+      child: Container(
+        height: 220,
+        width: 200,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withAlpha(50),
+            width: 2,
           ),
-          child: child,
-        ));
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: child,
+      ),
+    );
   }
 }
 
@@ -344,10 +322,7 @@ class TaxonStatText extends StatelessWidget {
     return Container(
       alignment: Alignment.topLeft,
       padding: const EdgeInsets.only(left: 16),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      child: Text(text, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }
@@ -361,11 +336,13 @@ class TaxonRegistryInfoContent extends StatelessWidget {
       content: [
         InfoContent(
           header: 'Overview',
-          content: 'List of taxa registered in the project.'
+          content:
+              'List of taxa registered in the project.'
               ' You can add new taxa or import taxa from a file.',
         ),
         InfoContent(
-          content: 'For file input, preferred formats are .xlsx, .csv, and '
+          content:
+              'For file input, preferred formats are .xlsx, .csv, and '
               '.tsv. Delimiter follows extension (.csv = comma, .tsv = tab). '
               'For other file types, NAHPU makes a best-effort parsing '
               'attempt using auto detection and manual override options. '
@@ -373,7 +350,8 @@ class TaxonRegistryInfoContent extends StatelessWidget {
         ),
         InfoContent(
           header: 'Term definitions',
-          content: 'Registered taxa - The number of taxa that are registered '
+          content:
+              'Registered taxa - The number of taxa that are registered '
               'in the project. '
               '\nRecorded taxa - Information about recorded specimens/captures.'
               ' It will update when you add a new specimen/capture.',

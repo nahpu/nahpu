@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/types/controllers.dart';
@@ -37,11 +38,12 @@ class PersonnelFormPage extends ConsumerStatefulWidget {
 
 class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
   final _formKey = GlobalKey<FormState>();
-  bool _isShowMore = false;
+  late bool _isShowMore;
   late String? initialRole;
 
   @override
   void initState() {
+    _isShowMore = widget.isEditing;
     _getRole();
     super.initState();
   }
@@ -59,216 +61,210 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PersonnelAvatar(ctr: widget.ctr),
-          const SizedBox(height: 8),
-          PersonnelNameField(
-            ctr: widget.ctr,
-            onChanged: (value) {
-              if (widget.isEditing) {
-                _validateEditing();
-              } else {
-                ref
-                    .watch(personnelFormValidatorProvider.notifier)
-                    .validateName(value);
-              }
-            },
-          ),
-          TextFormField(
-            controller: widget.ctr.affiliationCtr,
-            decoration: const InputDecoration(
-              labelText: 'Affiliation',
-              hintText: 'Enter Affiliation',
-            ),
-            onChanged: (value) {
-              if (widget.isEditing) {
-                _validateEditing();
-              }
-            },
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.emailCtr.text.isNotEmpty,
-            child: TextFormField(
-              controller: widget.ctr.emailCtr,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'Enter email',
-                errorText: ref
-                    .watch(personnelFormValidatorProvider)
-                    .when(
-                      data: (data) => data.email.errMsg,
-                      loading: () => null,
-                      error: (e, s) => null,
-                    ),
-              ),
-              onChanged: (value) {
-                if (widget.isEditing) {
-                  _validateEditing();
-                } else {
-                  widget.ctr.emailCtr.value = TextEditingValue(
-                    text: value.toLowerCase(),
-                    selection: widget.ctr.emailCtr.selection,
-                  );
-                  ref
-                      .watch(personnelFormValidatorProvider.notifier)
-                      .validateEmail(value);
-                }
-              },
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.phoneCtr.text.isNotEmpty,
-            child: TextFormField(
-              controller: widget.ctr.phoneCtr,
-              decoration: const InputDecoration(
-                labelText: 'Phone',
-                hintText: 'Enter phone',
-              ),
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (value) {
-                if (widget.isEditing) {
-                  _validateEditing();
-                }
-              },
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.orcidCtr.text.isNotEmpty,
-            child: TextFormField(
-              controller: widget.ctr.orcidCtr,
-              decoration: InputDecoration(
-                labelText: 'ORCID iD',
-                hintText: '0000-0000-0000-0000',
-                errorText: _orcidError,
-              ),
-              onChanged: (_) {
-                setState(() {});
-                if (widget.isEditing) _validateEditing();
-              },
-            ),
-          ),
-          DropdownButtonFormField(
-            initialValue: widget.ctr.roleCtr,
-            decoration: const InputDecoration(
-              labelText: 'Specimen care role',
-              hintText: 'Enter role',
-            ),
-            items: personnelRoleList
-                .map(
-                  (role) => DropdownMenuItem(
-                    value: role,
-                    child: CommonDropdownText(text: role),
-                  ),
-                )
-                .toList(),
-            onChanged: _isDisabled()
-                ? null
-                : (String? newValue) {
-                    setState(() {
-                      widget.ctr.roleCtr = newValue;
-                    });
-                  },
-          ),
-          Visibility(
-            visible: widget.ctr.roleCtr == 'Cataloger',
+          FormSection(
+            title: 'Profile',
             child: Column(
               children: [
-                SwitchListTile(
-                  title: const Text('Register personal field number'),
-                  subtitle: Text(
-                    'Initials and cataloger number will be used to generate specimen field ID.',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  value: widget.ctr.isRegisterField,
-                  onChanged: (bool value) {
-                    setState(() {
-                      widget.ctr.isRegisterField = value;
-                    });
+                PersonnelAvatar(ctr: widget.ctr),
+                const SizedBox(height: 8),
+                PersonnelNameField(
+                  ctr: widget.ctr,
+                  onChanged: (value) {
                     if (widget.isEditing) {
                       _validateEditing();
                     } else {
                       ref
                           .watch(personnelFormValidatorProvider.notifier)
-                          .validateAll(widget.ctr);
+                          .validateName(value);
                     }
                   },
                 ),
-                Visibility(
-                  visible: widget.ctr.isRegisterField,
-                  child: Column(
-                    children: [
-                      PersonnelInitialField(
-                        ctr: widget.ctr,
-                        onChanged: (value) {
-                          widget.ctr.initialCtr.value = TextEditingValue(
-                            text: value.toUpperCase(),
-                            selection: widget.ctr.initialCtr.selection,
-                          );
-                          if (widget.isEditing) {
-                            _validateEditing();
-                          } else {
-                            ref
-                                .watch(personnelFormValidatorProvider.notifier)
-                                .validateInitial(
-                                  widget.ctr.initialCtr.text,
-                                  widget.ctr.isRegisterField,
-                                );
-                          }
-                        },
-                      ),
-                      CatalogerNumberField(
-                        ctr: widget.ctr,
-                        onChanged: (value) {
-                          if (widget.isEditing) {
-                            _validateEditing();
-                          } else {
-                            ref
-                                .watch(personnelFormValidatorProvider.notifier)
-                                .validateCollNum(
-                                  value,
-                                  widget.ctr.isRegisterField,
-                                );
-                          }
-                        },
-                      ),
-                    ],
+                TextFormField(
+                  controller: widget.ctr.affiliationCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Affiliation',
+                    hintText: 'Enter affiliation',
                   ),
+                  onChanged: (_) {
+                    if (widget.isEditing) _validateEditing();
+                  },
+                ),
+                TextFormField(
+                  controller: widget.ctr.orcidCtr,
+                  decoration: InputDecoration(
+                    labelText: 'ORCID iD',
+                    hintText: '0000-0000-0000-0000',
+                    errorText: _orcidError,
+                  ),
+                  onChanged: (_) {
+                    setState(() {});
+                    if (widget.isEditing) _validateEditing();
+                  },
                 ),
               ],
             ),
           ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
-            child: TextField(
-              controller: widget.ctr.noteCtr,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Write notes',
-              ),
-              maxLines: 3,
-              onChanged: (value) {
-                if (widget.isEditing) {
-                  _validateEditing();
-                }
-              },
+          FormSection(
+            title: 'Specimen care',
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: widget.ctr.roleCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Specimen care role',
+                    hintText: 'Enter role',
+                  ),
+                  items: personnelRoleList
+                      .map(
+                        (role) => DropdownMenuItem(
+                          value: role,
+                          child: CommonDropdownText(text: role),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _isDisabled()
+                      ? null
+                      : (newValue) {
+                          setState(() => widget.ctr.roleCtr = newValue);
+                          ref
+                              .read(personnelFormValidatorProvider.notifier)
+                              .validateAll(widget.ctr);
+                        },
+                ),
+                if (widget.ctr.roleCtr == 'Cataloger') ...[
+                  Material(
+                    color: Colors.transparent,
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Register personal field number'),
+                      subtitle: Text(
+                        'Initials and cataloger number will be used to generate specimen field ID.',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                      value: widget.ctr.isRegisterField,
+                      onChanged: (value) {
+                        setState(() => widget.ctr.isRegisterField = value);
+                        ref
+                            .read(personnelFormValidatorProvider.notifier)
+                            .validateAll(widget.ctr);
+                      },
+                    ),
+                  ),
+                  if (widget.ctr.isRegisterField) ...[
+                    PersonnelInitialField(
+                      ctr: widget.ctr,
+                      onChanged: (value) {
+                        widget.ctr.initialCtr.value = TextEditingValue(
+                          text: value.toUpperCase(),
+                          selection: widget.ctr.initialCtr.selection,
+                        );
+                        if (widget.isEditing) {
+                          _validateEditing();
+                        } else {
+                          ref
+                              .watch(personnelFormValidatorProvider.notifier)
+                              .validateInitial(
+                                widget.ctr.initialCtr.text,
+                                widget.ctr.isRegisterField,
+                              );
+                        }
+                      },
+                    ),
+                    CatalogerNumberField(
+                      ctr: widget.ctr,
+                      onChanged: (value) {
+                        if (widget.isEditing) {
+                          _validateEditing();
+                        } else {
+                          ref
+                              .watch(personnelFormValidatorProvider.notifier)
+                              .validateCollNum(
+                                value,
+                                widget.ctr.isRegisterField,
+                              );
+                        }
+                      },
+                    ),
+                  ],
+                ],
+              ],
             ),
           ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _isShowMore = !_isShowMore;
-              });
-            },
-            child: Text(_isShowMore ? 'Show less' : 'Show more'),
+          ShowMoreButton(
+            onPressed: () => setState(() => _isShowMore = !_isShowMore),
+            showMore: _isShowMore,
           ),
-          const SizedBox(height: 16),
+          if (_isShowMore)
+            FormSection(
+              title: 'Contact',
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: widget.ctr.emailCtr,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Enter email',
+                      errorText: ref
+                          .watch(personnelFormValidatorProvider)
+                          .when(
+                            data: (data) => data.email.errMsg,
+                            loading: () => null,
+                            error: (e, s) => null,
+                          ),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (value) {
+                      if (widget.isEditing) {
+                        _validateEditing();
+                      } else {
+                        widget.ctr.emailCtr.value = TextEditingValue(
+                          text: value.toLowerCase(),
+                          selection: widget.ctr.emailCtr.selection,
+                        );
+                        ref
+                            .read(personnelFormValidatorProvider.notifier)
+                            .validateEmail(value);
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    controller: widget.ctr.phoneCtr,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone',
+                      hintText: 'Enter phone',
+                    ),
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (_) {
+                      if (widget.isEditing) _validateEditing();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          if (_isShowMore)
+            FormSection(
+              title: 'Notes',
+              child: TextField(
+                controller: widget.ctr.noteCtr,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  hintText: 'Write notes',
+                ),
+                minLines: 3,
+                maxLines: 5,
+                onChanged: (_) => _validateEditing(),
+              ),
+            ),
           FormButton(
             isEditing: widget.isEditing,
             onSubmitted: _validateForm()
                 ? () async {
-                    widget.isEditing
-                        ? _updatePersonnel()
-                        : await _addPersonnel();
+                    if (widget.isEditing) {
+                      await _updatePersonnel();
+                    } else {
+                      await _addPersonnel();
+                    }
                     PersonnelServices(ref: ref).invalidatePersonnel();
                     if (context.mounted) {
                       Navigator.of(context).pop();
@@ -326,8 +322,8 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
     return 'Enter a valid hyphenated ORCID iD';
   }
 
-  void _updatePersonnel() {
-    PersonnelServices(ref: ref).updatePersonnelEntry(
+  Future<void> _updatePersonnel() async {
+    await PersonnelServices(ref: ref).updatePersonnelEntry(
       widget.personnelUuid,
       PersonnelCompanion(
         name: db.Value(widget.ctr.nameCtr.text),

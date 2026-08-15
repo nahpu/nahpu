@@ -132,6 +132,7 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
         mainAxisSize: MainAxisSize.min,
         children: [
           DropdownButtonFormField<TaxonRank>(
+            isExpanded: true,
             decoration: const InputDecoration(
               labelText: 'Taxon rank',
               hintText: 'Select the rank represented by this record',
