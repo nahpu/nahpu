@@ -14,6 +14,8 @@ import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
+const String versionName = 'Tropical Mountains';
+const String appName = 'NAHPU';
 
 class HomeMenuDrawer extends StatelessWidget {
   const HomeMenuDrawer({super.key});
@@ -21,17 +23,34 @@ class HomeMenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationDrawer(
+      footer: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            FutureBuilder(
+              builder: (context, snapshot) {
+                return Text(
+                  'v${snapshot.data?.version ?? ''}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              },
+              future: PackageInfo.fromPlatform(),
+            ),
+            Text(versionName, style: Theme.of(context).textTheme.bodyMedium),
+          ],
+        ),
+      ),
       children: [
         DrawerHeader(
           decoration: BoxDecoration(
             color: Color.lerp(
-              Theme.of(context).colorScheme.primaryContainer,
+              Theme.of(context).colorScheme.primary,
               Theme.of(context).colorScheme.surface,
               0.2,
             ),
           ),
           child: SvgPicture.asset(
-            'assets/logo/nahpu-nobg.svg',
+            'assets/logo/nahpu-fg.svg',
             fit: BoxFit.contain,
           ),
         ),
@@ -150,19 +169,20 @@ class AppAbout extends StatelessWidget {
     return FutureBuilder(
       builder: (context, snapshot) {
         return AboutDialog(
-          applicationName: snapshot.data?.appName ?? '',
-          applicationVersion: snapshot.data?.version ?? '',
+          applicationName: appName,
+          applicationVersion: 'v${snapshot.data?.version ?? ''} ($versionName)',
           applicationIcon: const Icon(Icons.info_rounded),
           children: [
             Text(
-              'Rethinking species inventory in the digital age',
+              'Rethinking species inventories in the digital age',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             const Text(
-              'Nahpu is a field cataloging app for natural history projects.'
-              ' Developed by museum scientists '
-              'for museum scientists.',
+              '$appName is a cross-platform '
+              'digital catalog app designed for natural history '
+              'specimen data collection and management, providing '
+              'insights at the point of collection.',
             ),
           ],
         );
