@@ -23,23 +23,6 @@ class HomeMenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationDrawer(
-      footer: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            FutureBuilder(
-              builder: (context, snapshot) {
-                return Text(
-                  'v${snapshot.data?.version ?? ''}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                );
-              },
-              future: PackageInfo.fromPlatform(),
-            ),
-            Text(versionName, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      ),
       children: [
         DrawerHeader(
           decoration: BoxDecoration(
@@ -168,23 +151,27 @@ class AppAbout extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder(
       builder: (context, snapshot) {
-        return AboutDialog(
-          applicationName: appName,
-          applicationVersion: 'v${snapshot.data?.version ?? ''} ($versionName)',
-          applicationIcon: const Icon(Icons.info_rounded),
-          children: [
-            Text(
-              'Rethinking species inventories in the digital age',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '$appName is a cross-platform '
-              'digital catalog app designed for natural history '
-              'specimen data collection and management, providing '
-              'insights at the point of collection.',
-            ),
-          ],
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: AboutDialog(
+            applicationName: appName,
+            applicationVersion:
+                'v${snapshot.data?.version ?? ''} ($versionName)',
+            applicationIcon: const Icon(Icons.info_outline),
+            children: [
+              Text(
+                'Rethinking species inventories in the digital age',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '$appName is a cross-platform '
+                'digital catalog app designed for natural history '
+                'specimen data collection and management, providing '
+                'insights at the point of collection.',
+              ),
+            ],
+          ),
         );
       },
       future: PackageInfo.fromPlatform(),
