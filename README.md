@@ -1,11 +1,11 @@
-# nahpu <img src="assets/web/nahpu-light.svg" alt="nahpu logo" align="right" width="150"/>
+# nahpu <img src="assets/web/nahpu-logo.svg" alt="nahpu logo" align="right" width="150"/>
 
 [![Nahpu-Tests](https://github.com/hhandika/nahpu/workflows/Nahpu-Tests/badge.svg)](https://github.com/hhandika/nahpu/actions/workflows/test.yml)
 [![LoC](https://tokei.rs/b1/github/hhandika/nahpu?category=code)](https://github.com/XAMPPRocky/tokei)
 [![GitHub last commit](https://img.shields.io/github/last-commit/hhandika/nahpu)](https://github.com/hhandika/nahpu/commits/main)
 [![GitHub license](https://img.shields.io/github/license/hhandika/nahpu)](https://github.com/hhandika/nahpu/blob/main/LICENSE)
 
-NAHPU (NAtural History Project Utility) is a cross-platform application designed for cataloging natural history specimens. It modernizes data recording and management for field and museum work.
+NAHPU (NAtural History Project Utility) is a cross-platform application designed for cataloging ntiatural history specimens. It modernizes data recording and management for field and museum work.
 
 Visit our website to learn more: [nahpu.app](https://nahpu.app)
 
