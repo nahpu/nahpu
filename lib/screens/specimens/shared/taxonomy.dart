@@ -26,7 +26,7 @@ class TaxonomicForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
       title: 'Taxon Info',
-      infoContent: const TaxonomyInfoContent(),
+      infoTopic: InfoTopic.specimenTaxonomy,
       mainAxisAlignment: MainAxisAlignment.center,
       child: ref
           .watch(taxonDataProvider(specimenUuid))
@@ -285,31 +285,6 @@ class SpeciesField extends StatelessWidget {
       validator: (value) => value!.isEmpty ? 'Please enter a taxon' : null,
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
-    );
-  }
-}
-
-class TaxonomyInfoContent extends StatelessWidget {
-  const TaxonomyInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    ScreenType screenType = getScreenType(context);
-    return InfoContainer(
-      content: [
-        const InfoContent(
-          content:
-              'Taxonomic information is automatically added based on the '
-              'species you enter. ',
-        ),
-        screenType == ScreenType.phone
-            ? const InfoContent(
-                content: 'From top to bottom: Class, Order, Family',
-              )
-            : const InfoContent(
-                content: 'From left to right: Class, Order, Family',
-              ),
-      ],
     );
   }
 }

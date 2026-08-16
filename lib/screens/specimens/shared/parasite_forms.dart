@@ -37,7 +37,7 @@ class ParasiteForms extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Parasite records',
-          infoContent: ParasiteRecordInfoContent(),
+          infoTopic: InfoTopic.specimenParasites,
         ),
         SizedBox(height: 450, child: ParasiteList(specimenUuid: specimenUuid)),
       ],
@@ -944,22 +944,3 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
 }
 
 enum _ParasiteIdAction { scan, newNumber, settings }
-
-class ParasiteRecordInfoContent extends StatelessWidget {
-  const ParasiteRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Record parasites collected from the specimen, '
-              'including their taxonomy, location, collection, preservation, '
-              'and identification details.',
-        ),
-      ],
-    );
-  }
-}

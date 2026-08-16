@@ -35,7 +35,7 @@ class AssociatedDataViewer extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Associated Data',
-          infoContent: AssociatedDataInfoContent(),
+          infoTopic: InfoTopic.associatedData,
         ),
         SizedBox(height: 450, child: AssociatedDataList(target: target)),
       ],
@@ -1009,29 +1009,6 @@ class _DetailRow extends StatelessWidget {
               ? 'Not provided'
               : displayValue,
           style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ],
-    );
-  }
-}
-
-class AssociatedDataInfoContent extends StatelessWidget {
-  const AssociatedDataInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Add links and non-media files associated with this record, '
-              'such as accession numbers, datasets, and supporting documents.',
-        ),
-        InfoContent(
-          content:
-              'Add supported images, audio, and video through the Media '
-              'section instead.',
         ),
       ],
     );

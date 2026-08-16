@@ -50,7 +50,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
     return FormCard(
       title: 'Event Details',
       isPrimary: true,
-      infoContent: const CollInfoHelpContent(),
+      infoTopic: InfoTopic.eventOverview,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       child: Column(
@@ -386,40 +386,5 @@ class EventTimeField extends ConsumerWidget {
           loading: () => TimeOfDay.now(),
           error: (err, stack) => TimeOfDay.now(),
         );
-  }
-}
-
-class CollInfoHelpContent extends StatelessWidget {
-  const CollInfoHelpContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Details about the collecting event.'
-              ' Event helps you keep track of collecting efforts.',
-        ),
-        InfoContent(
-          content:
-              'The event ID is automatically generated'
-              ' based on the site ID and the start date of the event.'
-              ' You can add suffix for the event ID'
-              ' by using the edit icon.',
-        ),
-        InfoContent(
-          content:
-              'We recommend creating a new event'
-              ' for each day for each site, even if the effort is the same.'
-              ' You can use duplicate button in the menu to duplicated a event.'
-              ' The new events will have the same information as the original event,'
-              ' except the weather data, and the dates'
-              ' Weather data will be empty. '
-              'The date will be auto-incremented by one day',
-        ),
-      ],
-    );
   }
 }

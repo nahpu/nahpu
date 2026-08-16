@@ -51,7 +51,7 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
     return FormCard(
       title: 'Collection & Identification',
       isPrimary: true,
-      infoContent: const CollRecordInfoContent(),
+      infoTopic: InfoTopic.specimenGeneralRecord,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       child: Column(
@@ -1041,53 +1041,5 @@ class _SpecimenFieldIdEditorState
       ref.invalidate(personnelNameProvider(_cataloger!.uuid));
     }
     if (mounted) Navigator.pop(context);
-  }
-}
-
-class CollRecordInfoContent extends StatelessWidget {
-  const CollRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'General record of the specimen. '
-              'Field ID uses the project default and can be either a '
-              'cataloger field number or a project catalog number. '
-              'Use the edit button to change the number or identifier type.',
-        ),
-        InfoContent(
-          header: 'Cataloger and preparator fields',
-          content:
-              'By default, the cataloger is the preparator.'
-              ' If the preparator is different, '
-              'select the preparator from the dropdown.',
-        ),
-        InfoContent(
-          header: 'Taxon field',
-          content:
-              'Type the taxon name to search for it in the taxon registry. '
-              'You can start by typing the epithet to simplify the search. '
-              'The taxon field will be disabled if no'
-              ' taxa are registered in the project.'
-              ' You can add a taxon in the taxon registry section in the '
-              'project dashboard.',
-        ),
-        InfoContent(
-          header: 'Condition field',
-          content:
-              'The condition field is a qualitative measure of the freshness'
-              ' of the specimen at time of prep.'
-              ' Condition can depend on factors including time since death,'
-              ' temperature, sun exposure (especially for salvage specimens), etc.'
-              ' If the collection time (i.e., time of death) and prep times are known,'
-              ' these can also be added for a more quantitative'
-              ' measure of condition at time of prep.',
-        ),
-      ],
-    );
   }
 }

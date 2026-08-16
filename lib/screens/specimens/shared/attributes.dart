@@ -27,7 +27,7 @@ class _AttributeFormState extends State<AttributeForm> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Specimen Attributes',
-      infoContent: const AttributeInfoContent(),
+      infoTopic: InfoTopic.specimenAttributes,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
         height: 484,
@@ -40,24 +40,6 @@ class _AttributeFormState extends State<AttributeForm> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class AttributeInfoContent extends StatelessWidget {
-  const AttributeInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Measurements and other biological attributes of the '
-              'specimen, including age, sex, reproductive condition, and '
-              'taxon-specific observations.',
-        ),
-      ],
     );
   }
 }

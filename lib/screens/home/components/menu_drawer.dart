@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
-import 'package:nahpu/screens/home/components/learning_resources.dart';
+import 'package:nahpu/screens/home/components/how_to_recipes.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
@@ -109,8 +109,15 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         const CommonLineDivider(),
-        // const LearningResourceTile(),
-        // const CommonLineDivider(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
+          child: Text(
+            'Cookbook',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+        const HowToRecipesTile(),
+        const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.info_outlined),
           title: const Text('About'),
@@ -179,18 +186,18 @@ class AppAbout extends StatelessWidget {
   }
 }
 
-class LearningResourceTile extends StatelessWidget {
-  const LearningResourceTile({super.key});
+class HowToRecipesTile extends StatelessWidget {
+  const HowToRecipesTile({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(Icons.school_rounded),
-      title: const Text('Learning resources'),
+      leading: const Icon(Icons.menu_book_outlined),
+      title: const Text('How-to Recipes'),
       onTap: () async {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const LearningResourcePage()),
+          MaterialPageRoute(builder: (context) => const HowToRecipesScreen()),
         );
       },
     );

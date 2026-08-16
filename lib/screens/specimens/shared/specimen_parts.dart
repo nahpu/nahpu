@@ -76,7 +76,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
   Widget build(BuildContext context) {
     return FormCard(
       isWithTitle: false,
-      infoContent: const SpecimenPartInfoContent(),
+      infoTopic: InfoTopic.specimenParts,
       isWithSidePadding: false,
       child: CommonTabBars(
         tabController: _tabController,
@@ -126,7 +126,7 @@ class SpecimenPartFields extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Specimen Parts',
-          infoContent: SpecimenPartInfoContent(),
+          infoTopic: InfoTopic.specimenParts,
         ),
         SizedBox(
           height: 450,
@@ -1453,24 +1453,5 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
 
   bool _hasNoId() {
     return widget.tissueIDct.text.isEmpty;
-  }
-}
-
-class SpecimenPartInfoContent extends StatelessWidget {
-  const SpecimenPartInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'List of specimen parts collected from the specimen, '
-              'such as skin, skull, liver, etc.'
-              ' You can edit the type and treatments list in the settings,',
-        ),
-      ],
-    );
   }
 }

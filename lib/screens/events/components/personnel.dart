@@ -43,7 +43,7 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
         children: [
           const TitleForm(
             text: 'Event Personnel',
-            infoContent: EventPersonnelInfoContent(),
+            infoTopic: InfoTopic.eventPersonnel,
           ),
           SizedBox(
             height: 368,
@@ -398,23 +398,5 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
             return const Text('Error');
           },
         );
-  }
-}
-
-class EventPersonnelInfoContent extends StatelessWidget {
-  const EventPersonnelInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Personnel involves in the event.'
-              ' We recommend adding anyone involved in the event.'
-              ' For instance, if someone drive you to the site, add them.',
-        ),
-      ],
-    );
   }
 }

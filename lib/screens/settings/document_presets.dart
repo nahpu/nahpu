@@ -805,7 +805,7 @@ class DocumentPresetListColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Select Presets',
-      infoContent: const DocumentPresetInfoContent(),
+      infoTopic: InfoTopic.documentPresets,
       isWithSidePadding: false,
       isExpanded: true,
       child: Column(
@@ -1104,24 +1104,6 @@ class _DocumentPresetNameDialogState extends State<_DocumentPresetNameDialog> {
     setState(() {
       _errorText = error;
     });
-  }
-}
-
-class DocumentPresetInfoContent extends StatelessWidget {
-  const DocumentPresetInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Document Presets',
-          content:
-              'Create and manage custom configurations for exporting documents. '
-              'You can configure the page size, margins, and the template blocks to layout.',
-        ),
-      ],
-    );
   }
 }
 

@@ -316,7 +316,7 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Select Presets',
-      infoContent: const ExportPresetInfoContent(),
+      infoTopic: InfoTopic.tabularExportPresets,
       isWithSidePadding: false,
       isExpanded: true,
       child: Column(
@@ -530,23 +530,5 @@ class NewPresetDialogState extends ConsumerState<NewPresetDialog> {
     setState(() {
       _errorText = null;
     });
-  }
-}
-
-class ExportPresetInfoContent extends StatelessWidget {
-  const ExportPresetInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Export Presets',
-          content:
-              'Create and manage custom configurations for exporting records. '
-              'You can select specific fields to include in your exports.',
-        ),
-      ],
-    );
   }
 }

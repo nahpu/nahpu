@@ -1,9 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/screens/specimens/shared/general_records.dart';
 import 'package:nahpu/screens/specimens/shared/taxonomy.dart';
+import 'package:nahpu/services/docs/documentation_repository.dart';
 
 void main() {
   testWidgets('specimen taxon fields use taxon terminology', (tester) async {
@@ -41,15 +40,14 @@ void main() {
     expect(find.text('Species'), findsNothing);
   });
 
-  testWidgets('collection help describes the taxon field', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: CollRecordInfoContent())),
+  test('collection help describes the taxon field', () async {
+    final document = await DocumentationRepository().loadInfo(
+      InfoTopic.specimenGeneralRecord,
+      DocsLanguage.english,
     );
 
-    final taxonHelp = tester
-        .widgetList<InfoContent>(find.byType(InfoContent))
-        .singleWhere((content) => content.header == 'Taxon field');
-    expect(taxonHelp.content, contains('Type the taxon name'));
-    expect(taxonHelp.content, contains('The taxon field will be disabled'));
+    expect(document.title, 'Specimen general record');
+    expect(document.markdown, contains('Choose the taxon'));
+    expect(document.markdown, contains('`dwc:Occurrence`'));
   });
 }

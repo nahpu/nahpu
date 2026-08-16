@@ -24,7 +24,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Taxon Registry',
-      infoContent: const TaxonRegistryInfoContent(),
+      infoTopic: InfoTopic.taxonRegistry,
       mainAxisAlignment: MainAxisAlignment.start,
       child: Center(
         child: Column(
@@ -323,40 +323,6 @@ class TaxonStatText extends StatelessWidget {
       alignment: Alignment.topLeft,
       padding: const EdgeInsets.only(left: 16),
       child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-    );
-  }
-}
-
-class TaxonRegistryInfoContent extends StatelessWidget {
-  const TaxonRegistryInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'List of taxa registered in the project.'
-              ' You can add new taxa or import taxa from a file.',
-        ),
-        InfoContent(
-          content:
-              'For file input, preferred formats are .xlsx, .csv, and '
-              '.tsv. Delimiter follows extension (.csv = comma, .tsv = tab). '
-              'For other file types, NAHPU makes a best-effort parsing '
-              'attempt using auto detection and manual override options. '
-              'Best support is for .xlsx.',
-        ),
-        InfoContent(
-          header: 'Term definitions',
-          content:
-              'Registered taxa - The number of taxa that are registered '
-              'in the project. '
-              '\nRecorded taxa - Information about recorded specimens/captures.'
-              ' It will update when you add a new specimen/capture.',
-        ),
-      ],
     );
   }
 }

@@ -78,7 +78,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
               const TitleForm(
                 text: 'Media',
                 isCentered: false,
-                infoContent: MediaInfoContent(),
+                infoTopic: InfoTopic.media,
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -994,23 +994,5 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-}
-
-class MediaInfoContent extends StatelessWidget {
-  const MediaInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Media files of the project. Use Add to take photos or videos,'
-              ' record audio, or import supported media. Camera and gallery'
-              ' actions are available on Android and iOS.',
-        ),
-      ],
-    );
   }
 }

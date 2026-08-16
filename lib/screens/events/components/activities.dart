@@ -29,7 +29,7 @@ class CollActivityFields extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
       title: 'Activity',
-      infoContent: const ActivityInfoContent(),
+      infoTopic: InfoTopic.eventActivity,
       mainAxisSize: MainAxisSize.min,
       child: CommonPadding(
         child: Column(
@@ -70,24 +70,6 @@ class CollActivityFields extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class ActivityInfoContent extends StatelessWidget {
-  const ActivityInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Primary activity for the event.'
-              'We recommend to add notes if you have a secondary activity'
-              ' or select "Other".',
-        ),
-      ],
     );
   }
 }
