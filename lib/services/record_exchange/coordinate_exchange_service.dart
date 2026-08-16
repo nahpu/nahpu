@@ -5,17 +5,36 @@ import 'package:drift/drift.dart' as db;
 import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/types/coordinate_import.dart';
 import 'package:nahpu/src/rust/api/gis.dart' as rust_gis;
 
 const coordinateFileTypeGroup = XTypeGroup(
-  label: 'Coordinates (GeoJSON, KML, Shapefile ZIP, GPX)',
-  extensions: ['geojson', 'json', 'kml', 'zip', 'gpx'],
+  label: 'Coordinates (GIS, CSV, TSV, Excel)',
+  extensions: [
+    'geojson',
+    'json',
+    'kml',
+    'zip',
+    'gpx',
+    'csv',
+    'tsv',
+    'xlsx',
+    'xls',
+    'xlsm',
+    'xltx',
+    'xltm',
+    'xlsb',
+  ],
   mimeTypes: [
     'application/geo+json',
     'application/json',
     'application/vnd.google-earth.kml+xml',
     'application/zip',
     'application/gpx+xml',
+    'text/csv',
+    'text/tab-separated-values',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ],
 );
 
@@ -28,7 +47,7 @@ class CoordinateImportReview {
     required this.warnings,
   });
 
-  final List<rust_gis.CoordinateTransferRecord> coordinates;
+  final List<CoordinateImportRecord> coordinates;
   final int skippedCount;
   final List<String> warnings;
 }
@@ -81,15 +100,43 @@ class CoordinateExchangeService extends AppServices {
 
   Future<CoordinateImportReview> importFile(String inputPath) async {
     final result = await rust_gis.importCoordinates(inputPath: inputPath);
+    final coordinates = <CoordinateImportRecord>[];
+    var skippedCount = result.skippedCount.toInt();
+    final warnings = List<String>.from(result.warnings);
+    for (final record in result.coordinates) {
+      try {
+        _validateCoordinatePair(
+          record.decimalLatitude,
+          record.decimalLongitude,
+        );
+        coordinates.add(
+          CoordinateImportRecord(
+            nameId: record.nameId,
+            decimalLatitude: record.decimalLatitude!,
+            decimalLongitude: record.decimalLongitude!,
+            elevationInMeter: record.elevationInMeter,
+            notes: record.notes,
+          ),
+        );
+      } on FormatException {
+        skippedCount++;
+        warnings.add('${record.nameId} was skipped: invalid coordinates.');
+      }
+    }
+    if (coordinates.isEmpty) {
+      throw const FormatException(
+        'No valid point coordinates were found in the selected file.',
+      );
+    }
     return CoordinateImportReview(
-      coordinates: result.coordinates,
-      skippedCount: result.skippedCount.toInt(),
-      warnings: result.warnings,
+      coordinates: coordinates,
+      skippedCount: skippedCount,
+      warnings: warnings,
     );
   }
 
   static List<CoordinateCompanion> companionsForSite(
-    Iterable<rust_gis.CoordinateTransferRecord> records,
+    Iterable<CoordinateImportRecord> records,
     int siteId, {
     required String? defaultDatum,
   }) {
@@ -101,6 +148,7 @@ class CoordinateExchangeService extends AppServices {
         decimalLongitude: db.Value(record.decimalLongitude),
         elevationInMeter: db.Value(record.elevationInMeter),
         datum: db.Value(defaultDatum),
+        gpsUnit: db.Value(record.gpsUnit),
         siteID: db.Value(siteId),
         notes: db.Value(record.notes),
       );
