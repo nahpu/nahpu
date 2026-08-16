@@ -1157,7 +1157,7 @@ void main() {
     expect(find.text('Create project'), findsOneWidget);
     expect(find.text('Import project'), findsOneWidget);
     expect(find.text('Cookbook'), findsOneWidget);
-    expect(find.text('How-to Recipes'), findsOneWidget);
+    expect(find.text('How-to Recipes'), findsNothing);
     expect(find.text('Learning resources'), findsNothing);
 
     final drawerText = tester
@@ -1170,7 +1170,7 @@ void main() {
         .map((text) => text.data)
         .toList();
     expect(
-      drawerText.indexOf('How-to Recipes'),
+      drawerText.indexOf('Cookbook'),
       lessThan(drawerText.indexOf('About')),
     );
   });

@@ -109,13 +109,6 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         const CommonLineDivider(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(28, 8, 28, 0),
-          child: Text(
-            'Cookbook',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-        ),
         const HowToRecipesTile(),
         const CommonLineDivider(),
         ListTile(
@@ -193,7 +186,7 @@ class HowToRecipesTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
-      title: const Text('How-to Recipes'),
+      title: const Text('Cookbook'),
       onTap: () async {
         Navigator.push(
           context,

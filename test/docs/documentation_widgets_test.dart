@@ -2,21 +2,31 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/home/components/how_to_recipes.dart';
+import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
+import 'package:nahpu/styles/themes.dart';
 
 void main() {
   testWidgets('info opens in English, switches language, and resets', (
     tester,
   ) async {
+    _setSize(tester, const Size(600, 800));
     await tester.pumpWidget(
       _testApp(child: const InfoButton(topic: InfoTopic.projectOverview)),
     );
 
     await tester.tap(find.byTooltip('Show information'));
     await tester.pumpAndSettle();
+    final dialogSurface = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(Material),
+    );
+    expect(tester.getSize(dialogSurface.first).height, lessThan(600));
     expect(find.text('English info'), findsOneWidget);
     expect(find.text('English'), findsOneWidget);
     expect(find.text('Português'), findsOneWidget);
@@ -34,6 +44,63 @@ void main() {
     expect(find.text('English info'), findsOneWidget);
   });
 
+  testWidgets('mobile info sizes short content and scrolls long content', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(500, 800));
+    await tester.pumpWidget(
+      _testApp(
+        child: const InfoButton(
+          topic: InfoTopic.projectOverview,
+          platformOverride: PlatformType.mobile,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Show information'));
+    await tester.pumpAndSettle();
+    final shortSheet = find.byType(BottomSheet);
+    expect(tester.getSize(shortSheet).height, lessThan(600));
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+
+    Navigator.of(tester.element(shortSheet)).pop();
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _testApp(
+        infoBody: List.generate(
+          80,
+          (index) => 'Long information paragraph $index.',
+        ).join('\n\n'),
+        child: const InfoButton(
+          topic: InfoTopic.projectOverview,
+          platformOverride: PlatformType.mobile,
+        ),
+      ),
+    );
+    await tester.tap(find.byTooltip('Show information'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(BottomSheet)).height,
+      lessThanOrEqualTo(800 * 0.9),
+    );
+  });
+
+  testWidgets('Cookbook shows all categories in a flat list', (tester) async {
+    _setSize(tester, const Size(900, 800));
+    await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExpansionTile), findsNothing);
+    expect(find.text('English recipe'), findsNWidgets(2));
+    expect(find.text('Collect recipe'), findsOneWidget);
+
+    await tester.tap(find.text('Collect recipe'));
+    await tester.pumpAndSettle();
+    expect(find.text('Collection steps.'), findsOneWidget);
+  });
+
   testWidgets('wide Cookbook selects the first recipe in a split view', (
     tester,
   ) async {
@@ -41,15 +108,52 @@ void main() {
     await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('How-to Recipes'), findsOneWidget);
+    expect(find.text('Cookbook'), findsOneWidget);
+    final sidePanelTitle = tester.widget<Text>(find.text('How-to Recipes'));
+    expect(sidePanelTitle.textAlign, TextAlign.center);
     expect(find.text('Prepare'), findsOneWidget);
     expect(find.text('English recipe'), findsNWidgets(2));
     expect(find.text('English purpose.'), findsOneWidget);
+
+    final recipeTile = tester.widget<ListTile>(
+      find.widgetWithText(ListTile, 'English recipe'),
+    );
+    final tileBorder = recipeTile.shape! as RoundedRectangleBorder;
+    expect(
+      tileBorder.side.color,
+      Theme.of(
+        tester.element(find.byType(ListTile).first),
+      ).colorScheme.outlineVariant,
+    );
 
     await tester.tap(find.text('Español'));
     await tester.pumpAndSettle();
     expect(find.text('Preparar'), findsOneWidget);
     expect(find.text('Propósito en español.'), findsOneWidget);
+  });
+
+  testWidgets('Cookbook Markdown links use the text button color', (
+    tester,
+  ) async {
+    const document = MarkdownDocument(
+      id: 'link',
+      title: 'Links',
+      markdown: '[NAHPU](https://nahpu.app/)',
+      assetPath: 'test/link.md',
+      order: 1,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: NahpuTheme.lightTheme(),
+        home: const Scaffold(body: MarkdownDocumentView(document: document)),
+      ),
+    );
+
+    final markdown = tester.widget<MarkdownBody>(find.byType(MarkdownBody));
+    expect(
+      markdown.styleSheet?.a?.color,
+      Theme.of(tester.element(find.byType(MarkdownBody))).colorScheme.primary,
+    );
   });
 
   testWidgets('phone Cookbook opens recipe content in a bottom sheet', (
@@ -70,7 +174,7 @@ void main() {
   });
 }
 
-Widget _testApp({required Widget child}) {
+Widget _testApp({required Widget child, String infoBody = 'Helpful details.'}) {
   final assets = <String, String>{};
   const localized = {
     'en': ('Prepare', 'English recipe', 'English purpose.', 'Steps'),
@@ -89,6 +193,12 @@ Widget _testApp({required Widget child}) {
     'es': 'Información en español',
     'id': 'Informasi Indonesia',
   };
+  const collectTitles = {
+    'en': ('Collect', 'Collect recipe'),
+    'pt': ('Coletar', 'Receita de coleta'),
+    'es': ('Recopilar', 'Receta de recopilación'),
+    'id': ('Mengumpulkan', 'Resep pengumpulan'),
+  };
 
   for (final language in localized.entries) {
     final values = language.value;
@@ -102,10 +212,18 @@ Widget _testApp({required Widget child}) {
       1,
       '${values.$3}\n\n## ${values.$4}\n\n1. Start.\n2. Continue.\n3. Finish.',
     );
+    final collect = collectTitles[language.key]!;
+    assets['assets/docs/cookbook/${language.key}/collect/index.md'] = _markdown(
+      collect.$1,
+      2,
+      'Collection purpose.',
+    );
+    assets['assets/docs/cookbook/${language.key}/collect/collect.md'] =
+        _markdown(collect.$2, 1, 'Collection steps.');
     assets['assets/docs/info/${language.key}/project-overview.md'] = _markdown(
       infoTitles[language.key]!,
       1,
-      '${values.$3}\n\nHelpful details.',
+      '${values.$3}\n\n$infoBody',
     );
   }
 

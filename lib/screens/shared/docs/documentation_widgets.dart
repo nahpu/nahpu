@@ -66,6 +66,9 @@ class MarkdownDocumentView extends StatelessWidget {
           MarkdownBody(
             data: document.markdown,
             selectable: false,
+            styleSheet: MarkdownStyleSheet(
+              a: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
             onTapLink: (text, href, title) => _openLink(href),
           ),
         ],

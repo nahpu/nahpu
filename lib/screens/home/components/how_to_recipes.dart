@@ -22,7 +22,7 @@ class _HowToRecipesScreenState extends ConsumerState<HowToRecipesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('How-to Recipes')),
+      appBar: AppBar(title: const Text('Cookbook')),
       body: SafeArea(
         child: FutureBuilder<List<CookbookCategory>>(
           future: _categories ??= _loadCategories(),
@@ -104,7 +104,11 @@ class _CookbookLayout extends StatelessWidget {
                   const SizedBox(height: NahpuSpacing.lg),
                   Expanded(
                     child: isWide
-                        ? _wideLayout(constraints.maxWidth, selectedRecipe)
+                        ? _wideLayout(
+                            context,
+                            constraints.maxWidth,
+                            selectedRecipe,
+                          )
                         : OutlinedSurface(child: _recipeList(context, false)),
                   ),
                 ],
@@ -116,14 +120,33 @@ class _CookbookLayout extends StatelessWidget {
     );
   }
 
-  Widget _wideLayout(double availableWidth, CookbookRecipe selectedRecipe) {
+  Widget _wideLayout(
+    BuildContext context,
+    double availableWidth,
+    CookbookRecipe selectedRecipe,
+  ) {
     final listWidth = math.min(380.0, availableWidth * 0.38);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           width: listWidth,
-          child: OutlinedSurface(child: _recipeList(null, true)),
+          child: OutlinedSurface(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(NahpuSpacing.lg),
+                  child: Text(
+                    'How-to Recipes',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const Divider(height: NahpuStroke.thin),
+                Expanded(child: _recipeList(context, true)),
+              ],
+            ),
+          ),
         ),
         const SizedBox(width: NahpuSpacing.lg),
         Expanded(
@@ -138,7 +161,7 @@ class _CookbookLayout extends StatelessWidget {
     );
   }
 
-  Widget _recipeList(BuildContext? context, bool isWide) {
+  Widget _recipeList(BuildContext context, bool isWide) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
       children: [
@@ -152,22 +175,34 @@ class _CookbookLayout extends StatelessWidget {
             ),
             child: Text(
               category.title,
-              style: context == null
-                  ? null
-                  : Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
           for (final recipe in category.recipes)
-            ListTile(
-              selected: isWide && recipe.id == _findSelectedRecipe().id,
-              title: Text(recipe.document.title),
-              trailing: isWide ? null : const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                onRecipeSelected(recipe.id);
-                if (!isWide && context != null) {
-                  _showRecipeSheet(context, recipe.id);
-                }
-              },
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: NahpuSpacing.lg,
+                vertical: NahpuSpacing.xs,
+              ),
+              child: ListTile(
+                selected: isWide && recipe.id == _findSelectedRecipe().id,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+                title: Text(recipe.document.title),
+                trailing: isWide
+                    ? null
+                    : const Icon(Icons.chevron_right_rounded),
+                onTap: () {
+                  onRecipeSelected(recipe.id);
+                  if (!isWide) {
+                    _showRecipeSheet(context, recipe.id);
+                  }
+                },
+              ),
             ),
         ],
       ],

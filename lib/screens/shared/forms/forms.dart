@@ -228,15 +228,16 @@ class TitleForm extends StatelessWidget {
 }
 
 class InfoButton extends StatelessWidget {
-  const InfoButton({super.key, required this.topic});
+  const InfoButton({super.key, required this.topic, this.platformOverride});
 
   final InfoTopic topic;
+  final PlatformType? platformOverride;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: () {
-        systemPlatform == PlatformType.mobile
+        (platformOverride ?? systemPlatform) == PlatformType.mobile
             ? _showModalSheet(context)
             : _showInfoDialog(context);
       },
@@ -256,9 +257,13 @@ class InfoButton extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Info'),
+          constraints: BoxConstraints(
+            maxWidth: 600,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+          ),
+          scrollable: true,
           content: SizedBox(
             width: 520,
-            height: MediaQuery.sizeOf(context).height * 0.7,
             child: _InfoDocumentContent(topic: topic),
           ),
           actions: [
@@ -283,21 +288,31 @@ class InfoButton extends StatelessWidget {
       builder: (BuildContext context) {
         return SizedBox(
           width: double.infinity,
-          height: MediaQuery.sizeOf(context).height * 0.9,
-          child: Column(
-            children: [
-              Text('Info', style: Theme.of(context).textTheme.titleLarge),
-              Divider(
-                thickness: NahpuStroke.thin,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: _InfoDocumentContent(topic: topic),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight:
+                  MediaQuery.sizeOf(context).height * 0.9 -
+                  NahpuControlSize.touchTarget,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Info', style: Theme.of(context).textTheme.titleLarge),
+                Divider(
+                  thickness: NahpuStroke.thin,
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
                 ),
-              ),
-            ],
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: SingleChildScrollView(
+                      child: _InfoDocumentContent(topic: topic),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -322,29 +337,31 @@ class _InfoDocumentContentState extends ConsumerState<_InfoDocumentContent> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         DocsLanguageSelector(
           selectedLanguage: _language,
           onSelected: _selectLanguage,
         ),
         const SizedBox(height: NahpuSpacing.md),
-        Expanded(
-          child: FutureBuilder<MarkdownDocument>(
-            future: _document ??= _loadDocument(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CommonProgressIndicator());
-              }
-              final document = snapshot.data;
-              if (snapshot.hasError || document == null) {
-                return DocumentationErrorView(onRetry: _retry);
-              }
-              return SingleChildScrollView(
-                padding: const EdgeInsets.only(right: NahpuSpacing.md),
-                child: MarkdownDocumentView(document: document),
+        FutureBuilder<MarkdownDocument>(
+          future: _document ??= _loadDocument(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: NahpuControlSize.prominent,
+                child: Center(child: CommonProgressIndicator()),
               );
-            },
-          ),
+            }
+            final document = snapshot.data;
+            if (snapshot.hasError || document == null) {
+              return DocumentationErrorView(onRetry: _retry);
+            }
+            return Padding(
+              padding: const EdgeInsets.only(right: NahpuSpacing.md),
+              child: MarkdownDocumentView(document: document),
+            );
+          },
         ),
       ],
     );
