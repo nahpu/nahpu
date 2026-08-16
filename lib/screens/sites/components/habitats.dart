@@ -28,7 +28,7 @@ class Habitat extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
       title: 'Site Attributes',
-      infoContent: const HabitatInfoContent(),
+      infoTopic: InfoTopic.siteHabitat,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
         height: 484,
@@ -111,24 +111,6 @@ class Habitat extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class HabitatInfoContent extends StatelessWidget {
-  const HabitatInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Information about the attributes and habitat of the site.'
-              ' Note important habitat information in the description.'
-              ' For example, the dominant tree species, ground cover, etc.',
-        ),
-      ],
     );
   }
 }

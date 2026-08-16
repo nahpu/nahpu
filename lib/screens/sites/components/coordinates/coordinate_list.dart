@@ -11,7 +11,7 @@ class CoordinateFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Coordinates',
-      infoContent: const CoordinateInfoContent(),
+      infoTopic: InfoTopic.siteCoordinates,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(height: 484, child: CoordinateList(sideId: siteId)),
     );
@@ -30,7 +30,7 @@ class CoordinateTabView extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Coordinates',
-          infoContent: CoordinateInfoContent(),
+          infoTopic: InfoTopic.siteCoordinates,
         ),
         SizedBox(height: 450, child: CoordinateList(sideId: siteId)),
       ],
