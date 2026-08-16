@@ -196,9 +196,10 @@ void main() {
     await tester.tap(find.text('Import'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Supported files:'), findsOneWidget);
     expect(
       find.text(
-        'Supported files: GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
+        'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
       ),
       findsOneWidget,
     );
