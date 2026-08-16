@@ -1,0 +1,21 @@
+---
+title: "Crie um evento de coleta"
+sidebar:
+  order: 4
+---
+
+Registre um esforço de amostragem definido em um site e período.
+
+## Etapas
+
+1. Abra a página Events e selecione `+`.
+2. Escolha o Site ID e informe datas e horários de início e término.
+3. Revise o Event ID gerado e adicione um sufixo somente quando necessário para garantir unicidade.
+4. Complete as seções de atividade, esforço, pessoal, clima e astronomia.
+5. Salve o evento antes de vincular registros de espécimes.
+
+> **Dica:** Crie outro evento quando site, período, sampling protocol, esforço ou equipe participante mudar de forma relevante.
+
+## Saiba mais
+
+[Abra o guia completo](https://nahpu.app/pt/usages/events/)

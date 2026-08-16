@@ -1,0 +1,21 @@
+---
+title: "Capture a coordinate with GPS"
+sidebar:
+  order: 2
+---
+
+Record a site position and uncertainty from the device location service.
+
+## Steps
+
+1. Open the site and its `Coordinates` section.
+2. Select `Add coordinate`, choose `Manual`, and enable device GPS.
+3. Allow location access and wait for latitude, longitude, elevation, and uncertainty to stabilize.
+4. Add a coordinate name, datum, and notes when needed.
+5. Save and verify the point on the map.
+
+> **Caution:** Do not report more precision than the observed coordinate uncertainty supports.
+
+## Learn more
+
+[Open the full guide](https://nahpu.app/en/usages/sites/#use-device-gps-while-adding-a-coordinate)

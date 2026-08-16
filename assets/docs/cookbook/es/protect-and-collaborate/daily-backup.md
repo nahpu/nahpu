@@ -1,0 +1,21 @@
+---
+title: "Haga una copia de seguridad diaria de la base de datos"
+sidebar:
+  order: 2
+---
+
+Cree una copia restaurable de la base de datos y, cuando lo seleccione, de los archivos administrados y los medios.
+
+## Pasos
+
+1. Abra el menú de inicio o del proyecto y seleccione `Backup database`.
+2. Elija si desea incluir datos del proyecto, archivos administrados y medios en el archivo.
+3. Use un nombre descriptivo que incluya fecha y dispositivo o equipo.
+4. Guarde la copia en un almacenamiento separado del dispositivo de trabajo.
+5. Confirme que el archivo resultante exista y pueda abrirse con el flujo de restauración previsto.
+
+> **Precaución:** Una exportación CSV o transferencia ligera del proyecto no es una copia restaurable de la base de datos.
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/curatorial-guideline/backup-restore/#backing-up-the-database)

@@ -1,0 +1,19 @@
+---
+title: "Export tabular records"
+sidebar:
+  order: 1
+---
+
+Export one record type for spreadsheet review, analysis, or database import.
+
+## Steps
+
+1. Open the project drawer and select `Export records`.
+2. Choose a preset or select the record type, taxon filter, and field mode.
+3. Choose whether repeated entries should be concatenated and whether headers use field names.
+4. Select CSV, TSV, Excel, or JSON.
+5. Enter a filename and destination, select `Save`, and inspect the output.
+
+## Learn more
+
+[Open the full guide](https://nahpu.app/en/usages/export/export-records/)

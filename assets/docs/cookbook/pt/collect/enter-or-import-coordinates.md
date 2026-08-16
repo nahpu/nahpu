@@ -1,0 +1,19 @@
+---
+title: "Insira ou importe coordenadas"
+sidebar:
+  order: 3
+---
+
+Adicione coordenadas de notas de campo, arquivos GIS ou um QR code do NAHPU.
+
+## Etapas
+
+1. Abra `Coordinates` e selecione `Add coordinate`.
+2. Para entrada manual, escolha DD, DDM, DMS ou WGS84 UTM e informe os valores e direções necessários.
+3. Para importar arquivo, escolha `Import` e selecione GeoJSON/JSON, KML, Shapefile compactado ou GPX.
+4. Para um QR code de coordenada do NAHPU, use o leitor na aba Import.
+5. Revise datum, incerteza, elevação e posição no mapa antes de salvar.
+
+## Saiba mais
+
+[Abra o guia completo](https://nahpu.app/pt/usages/sites/#manually-adding-coordinate)

@@ -1,0 +1,20 @@
+---
+title: "Tambahkan specimen record"
+sidebar:
+  order: 6
+---
+
+Katalogkan specimen dan hubungkan dengan taxon serta collecting event.
+
+## Langkah
+
+1. Pastikan format katalog yang dimaksud di `Settings`.
+2. Buka Specimen Records lalu pilih `+`.
+3. Tetapkan atau periksa Field ID, Cataloger, Preparator, dan taxon.
+4. Pilih collecting event lalu tinjau tanggal, waktu, metode capture, dan collecting personnel.
+5. Isi condition, measurement, biological attribute, dan remarks yang benar-benar diamati.
+6. Simpan dan tinjau record lengkap sebelum beralih ke specimen berikutnya.
+
+## Pelajari lebih lanjut
+
+[Buka panduan lengkap](https://nahpu.app/id/usages/specimens/)

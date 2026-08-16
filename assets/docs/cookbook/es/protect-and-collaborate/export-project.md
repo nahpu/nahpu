@@ -1,0 +1,19 @@
+---
+title: "Exporte un proyecto para otro dispositivo"
+sidebar:
+  order: 5
+---
+
+Cree una transferencia de proyecto que otra instalación de NAHPU pueda combinar.
+
+## Pasos
+
+1. Abra el menú del proyecto de origen y seleccione `Export project`.
+2. Revise los recuentos de registros y las advertencias de medios ausentes.
+3. Elija `JSON.GZ` ligero solo para registros sin medios o ZIP/TAR.GZ para una transferencia completa con los medios disponibles.
+4. Exporte y almacene o envíe el archivo de forma segura.
+5. Conserve los datos de origen hasta que el dispositivo receptor complete y verifique la combinación.
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/usages/export/project-transfer/#export-a-project)

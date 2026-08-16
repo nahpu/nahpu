@@ -1,0 +1,19 @@
+---
+title: "Create, duplicate, or copy a site"
+sidebar:
+  order: 1
+---
+
+Create a reusable place record for collecting events.
+
+## Steps
+
+1. Open the Sites page and select `+` or `Create site`.
+2. Enter a unique, stable Site ID and select the leader and site type.
+3. Record country, state/province, county, municipality, precise locality, and remarks as applicable.
+4. Describe habitat type, condition, and observed habitat.
+5. Use `Duplicate site` for similar sites or `Copy from project` to reuse information from another project, then assign a new Site ID.
+
+## Learn more
+
+[Open the full guide](https://nahpu.app/en/usages/sites/)

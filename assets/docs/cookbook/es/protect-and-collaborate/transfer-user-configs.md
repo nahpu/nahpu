@@ -1,0 +1,19 @@
+---
+title: "Transfiera configuraciones de usuario"
+sidebar:
+  order: 4
+---
+
+Mueva listas controladas, presets de exportación, templates y diseños de impresión sin sustituir datos del proyecto.
+
+## Pasos
+
+1. En la instalación de origen, abra el menú del proyecto y seleccione `Export user configs`.
+2. Elija las secciones de configuración necesarias en la instalación receptora.
+3. Guarde o comparta el archivo de configuración exportado.
+4. En la instalación receptora, seleccione `Import user configs` y elija el archivo.
+5. Revise las advertencias de sustitución, importe las secciones seleccionadas y verifique listas controladas y presets.
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/curatorial-guideline/backup-restore/#backing-up-user-configs)

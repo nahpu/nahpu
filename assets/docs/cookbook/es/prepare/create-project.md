@@ -1,0 +1,19 @@
+---
+title: "Cree un proyecto"
+sidebar:
+  order: 2
+---
+
+Cree la identidad del proyecto y los valores locales del catálogo que usarán los registros nuevos.
+
+## Pasos
+
+1. En la pantalla de inicio, seleccione `+` y después `New project`.
+2. Elija `Create new project` e introduzca la información del proyecto y la zona horaria IANA.
+3. Elija el formato del taxón principal para los nuevos formularios de espécimen de este dispositivo.
+4. Elija un Field ID basado en personal o proyecto y complete los datos solicitados del Cataloger.
+5. Revise el resumen y seleccione `Create project`.
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/usages/projects/)

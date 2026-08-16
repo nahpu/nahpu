@@ -1,0 +1,19 @@
+---
+title: "Escolha o tipo de exportação correto"
+sidebar:
+  order: 3
+---
+
+Escolha backup, transferência, exportação estruturada ou pacote de publicação conforme o próximo uso.
+
+## Etapas
+
+1. Para recuperação de desastre, escolha `Backup database`.
+2. Para combinar dispositivos NAHPU, escolha `Export project`; use JSON.GZ sem mídia ou ZIP/TAR.GZ com mídia.
+3. Para planilhas ou análise, escolha `Export records`.
+4. Para compartilhamento baseado em padrões, escolha `Bundle records` e selecione Darwin Core Archive, Darwin Core Data Package ou NAHPU Data Package.
+5. Para etiquetas ou relatórios, escolha `Export documents`.
+
+## Saiba mais
+
+[Abra o guia completo](https://nahpu.app/pt/usages/export/)

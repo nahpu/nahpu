@@ -1,0 +1,19 @@
+---
+title: "Imprima e arquive tags ou documentos"
+sidebar:
+  order: 8
+---
+
+Produza saídas físicas mantendo uma cópia digital reproduzível.
+
+## Etapas
+
+1. Visualize o PDF com registros representativos e o papel ou material de tag pretendido.
+2. Salve o PDF final com nome do projeto, tipo de saída e data.
+3. Imprima um pequeno teste e confira dimensões, margens, legibilidade, identificadores e orientação frente e verso.
+4. Imprima o conjunto final e compare uma amostra com os registros de origem.
+5. Arquive PDF, template, layout de impressão e configuração do usuário relevante junto ao backup do projeto.
+
+## Saiba mais
+
+[Abra o guia completo](https://nahpu.app/pt/curatorial-guideline/tag-printing/)

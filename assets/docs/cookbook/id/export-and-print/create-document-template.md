@@ -1,0 +1,19 @@
+---
+title: "Buat document template"
+sidebar:
+  order: 6
+---
+
+Rancang satu blok label, tag, lembar, atau dokumen yang dapat digunakan ulang.
+
+## Langkah
+
+1. Buka `Settings` > `Documents` > `Templates` lalu pilih `Create new template`.
+2. Isi nama, deskripsi, tipe record, jumlah sisi, lebar, dan tinggi.
+3. Tambahkan teks, placeholder field record, gambar, garis, atau bentuk.
+4. Gunakan placeholder lengkap `Table::Field` untuk template yang dapat digunakan ulang.
+5. Pratinjau dengan nilai panjang dan kosong, lalu simpan template.
+
+## Pelajari lebih lanjut
+
+[Buka panduan lengkap](https://nahpu.app/id/usages/export/export-documents/#create-a-template)

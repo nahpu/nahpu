@@ -1,0 +1,19 @@
+---
+title: "Set up personnel and Field IDs"
+sidebar:
+  order: 4
+---
+
+Add project personnel and choose how specimen Field IDs are assigned.
+
+## Steps
+
+1. Open the project dashboard and select `Add personnel`.
+2. Select an existing person or create a database entry.
+3. Assign `Cataloger`, `Preparator only`, `Determiner only`, or `None` according to the person’s work.
+4. For personnel Field IDs, give each eligible Cataloger initials and a current field number.
+5. For project Field IDs, open `Settings` > `Specimens` and configure the prefix, number, suffix, and auto-increment.
+
+## Learn more
+
+[Open the full guide](https://nahpu.app/en/usages/personnel/)

@@ -1,0 +1,19 @@
+---
+title: "Create a Darwin Core Archive"
+sidebar:
+  order: 4
+---
+
+Package biodiversity records in Darwin Core text tables for compatible data workflows.
+
+## Steps
+
+1. Open the project drawer and select `Bundle records`.
+2. Choose `Darwin Core Archive`.
+3. Select the intended record scope and review mapped Darwin Core fields.
+4. Choose the archive options and generate the bundle.
+5. Review warnings, inspect `meta.xml` and the output tables, and validate the archive before publication.
+
+## Learn more
+
+[Open the full guide](https://nahpu.app/en/usages/export/export-bundles/#darwin-core-archive)

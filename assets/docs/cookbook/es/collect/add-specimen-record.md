@@ -1,0 +1,20 @@
+---
+title: "Añada un registro de espécimen"
+sidebar:
+  order: 6
+---
+
+Catalogue un espécimen y conéctelo con su taxón y evento de recolección.
+
+## Pasos
+
+1. Confirme el formato de catálogo deseado en `Settings`.
+2. Abra Specimen Records y seleccione `+`.
+3. Asigne o verifique Field ID, Cataloger, Preparator y taxón.
+4. Seleccione el evento de recolección y revise fecha, hora, método de captura y personal de recolección.
+5. Introduzca la condición, las mediciones, los atributos biológicos y las observaciones realmente constatadas.
+6. Guarde y revise el registro completo antes de continuar con el siguiente espécimen.
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/usages/specimens/)

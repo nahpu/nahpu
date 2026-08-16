@@ -1,0 +1,19 @@
+---
+title: "Transfer konfigurasi pengguna"
+sidebar:
+  order: 4
+---
+
+Pindahkan controlled list, export preset, template, dan print layout tanpa mengganti data proyek.
+
+## Langkah
+
+1. Pada instalasi sumber, buka drawer proyek lalu pilih `Export user configs`.
+2. Pilih bagian konfigurasi yang diperlukan instalasi penerima.
+3. Simpan atau bagikan berkas konfigurasi hasil ekspor.
+4. Pada instalasi penerima, pilih `Import user configs` lalu pilih berkas.
+5. Tinjau peringatan penggantian, impor bagian yang dipilih, lalu periksa controlled list dan preset.
+
+## Pelajari lebih lanjut
+
+[Buka panduan lengkap](https://nahpu.app/id/curatorial-guideline/backup-restore/#backing-up-user-configs)
