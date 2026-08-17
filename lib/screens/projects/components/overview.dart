@@ -1,5 +1,6 @@
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -29,14 +30,6 @@ class ProjectOverview extends ConsumerWidget {
           .watch(projectInfoProvider(projectUuid))
           .when(
             data: (data) {
-              final projectInfo = Padding(
-                padding: const EdgeInsets.all(8),
-                child: ProjectInfo(
-                  projectData: data,
-                  showActions: false,
-                  useSectionContainers: false,
-                ),
-              );
               final actions = ProjectInfoActions(
                 projectData: data,
                 onEdit: onEdit,
@@ -44,17 +37,17 @@ class ProjectOverview extends ConsumerWidget {
               if (useHorizontalLayout) {
                 return Column(
                   children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        key: const ValueKey('project-overview-scroll'),
-                        child: projectInfo,
-                      ),
-                    ),
+                    Expanded(child: _ProjectInfoSection(data: data)),
                     actions,
                   ],
                 );
               }
-              return Column(children: [projectInfo, actions]);
+              return Column(
+                children: [
+                  SizedBox(height: 360, child: _ProjectInfoSection(data: data)),
+                  actions,
+                ],
+              );
             },
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),
@@ -71,6 +64,27 @@ class ProjectOverview extends ConsumerWidget {
             'Failed fetching data from the database. Check if the project name exists. $error',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ProjectInfoSection extends StatelessWidget {
+  const _ProjectInfoSection({required this.data});
+
+  final ProjectData? data;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      key: const ValueKey('project-overview-scroll'),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: ProjectInfo(
+          projectData: data,
+          showActions: false,
+          useSectionContainers: false,
+        ),
       ),
     );
   }
