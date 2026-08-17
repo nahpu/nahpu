@@ -144,7 +144,7 @@ class FormSection extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        padding: const EdgeInsets.all(NahpuSpacing.lg),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(NahpuRadius.large),
           color: Theme.of(

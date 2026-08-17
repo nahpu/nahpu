@@ -257,7 +257,7 @@ class _CustomFieldArea extends StatelessWidget {
         : entries.where((entry) => entry.hasValue).toList(growable: false);
     if (!showAll && visibleEntries.isEmpty) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(top: NahpuSpacing.md),
+      padding: const EdgeInsets.only(top: NahpuSpacing.lg),
       child: _CustomFieldSection(
         entries: visibleEntries,
         showAdd: showAll,
@@ -307,7 +307,7 @@ class _CustomFieldSection extends StatelessWidget {
             ),
           if (showAdd)
             Align(
-              alignment: Alignment.centerRight,
+              alignment: Alignment.center,
               child: OutlinedButton.icon(
                 onPressed: onAdd,
                 icon: const Icon(Icons.add),

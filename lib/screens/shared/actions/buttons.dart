@@ -206,21 +206,25 @@ class FormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      children: [
-        SecondaryButton(
-          text: 'Cancel',
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(width: 24),
-        PrimaryButton(
-          label: isEditing ? 'Update' : 'Add',
-          icon: isEditing ? Icons.check : Icons.add,
-          onPressed: onSubmitted,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.lg),
+      child: Wrap(
+        spacing: 16,
+        children: [
+          SecondaryButton(
+            text: 'Cancel',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          const SizedBox(width: 24),
+          PrimaryButton(
+            label: isEditing ? 'Update' : 'Add',
+            icon: isEditing ? Icons.check : Icons.add,
+            onPressed: onSubmitted,
+          ),
+        ],
+      ),
     );
   }
 }
