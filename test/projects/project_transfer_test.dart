@@ -161,6 +161,59 @@ void main() {
       expect(data['specimenUuid'], 'specimen-a');
     });
 
+    test('normalizes v6 site, weather, age, and arthropod fields', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 6,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'site': [
+              {
+                'id': 7,
+                'siteID': 'Camp A',
+                'habitatType': 'Forest',
+                'habitatCondition': 'Intact',
+                'habitatDescription': 'Lowland rainforest',
+              },
+            ],
+            'weather': [
+              {'eventID': 9, 'averageHumidity': 80.0},
+            ],
+            'mammalAttribute': [
+              {'specimenUuid': 'mammal', 'age': 1},
+            ],
+            'herpAttribute': [
+              {'specimenUuid': 'herp', 'age': 3},
+            ],
+            'arthropodAttribute': [
+              {
+                'specimenUuid': 'arthropod',
+                'headWidth': 2.5,
+                'ambientTemperature': 26.0,
+                'canopyCover': '75%',
+              },
+            ],
+          },
+        }),
+      );
+
+      final site = decoded.rows('site').single;
+      expect(site, isNot(contains('habitatType')));
+      final attribute = decoded.rows('siteAttribute').single;
+      expect(attribute['siteID'], 7);
+      expect(attribute['habitatType'], 'Forest');
+      expect(attribute['habitatCondition'], 'Intact');
+      expect(attribute['habitatDescription'], 'Lowland rainforest');
+      expect(decoded.rows('environment').single['averageHumidity'], 80.0);
+      expect(decoded.rows('mammalAttribute').single['lifeStage'], 'Subadult');
+      expect(decoded.rows('herpAttribute').single['lifeStage'], 'Metamorph');
+      final arthropod = decoded.rows('arthropodAttribute').single;
+      expect(arthropod['headWidth'], 2.5);
+      expect(arthropod, isNot(contains('ambientTemperature')));
+      expect(arthropod, isNot(contains('canopyCover')));
+    });
+
     test('rejects conflicting legacy and canonical collections', () {
       expect(
         () => ProjectTransferPayload.parse(
@@ -389,7 +442,7 @@ void main() {
             const ArthropodAttributeCompanion(
               specimenUuid: Value('arthropod-a'),
               headWidth: Value(3.25),
-              dissolvedOxygen: Value(8.4),
+              lifeStage: Value('Adult'),
             ),
           );
 
@@ -398,7 +451,7 @@ void main() {
       expect(payload!.version, projectTransferVersion);
       expect(payload.rows('arthropodAttribute'), hasLength(1));
       expect(payload.rows('arthropodAttribute').single['headWidth'], 3.25);
-      expect(payload.rows('arthropodAttribute').single['dissolvedOxygen'], 8.4);
+      expect(payload.rows('arthropodAttribute').single['lifeStage'], 'Adult');
     });
 
     testWidgets('exports parasite identifiers and event data links', (

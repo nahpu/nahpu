@@ -53,8 +53,8 @@ void main() {
         .into(database.collEvent)
         .insert(const CollEventCompanion(projectUuid: Value(projectUuid)));
     await database
-        .into(database.weather)
-        .insert(WeatherCompanion(eventID: Value(eventId)));
+        .into(database.environment)
+        .insert(EnvironmentCompanion(eventID: Value(eventId)));
 
     SharedPreferences.setMockInitialValues(const {});
     final preferences = await SharedPreferences.getInstance();

@@ -221,7 +221,7 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Field: [site::habitatType]'), findsOneWidget);
+      expect(find.text('Field: [siteAttribute::habitatType]'), findsOneWidget);
     },
   );
 

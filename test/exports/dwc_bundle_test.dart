@@ -104,6 +104,16 @@ void main() {
     expect(arthropodFemale['enum_name'], 'female');
     expect(arthropodFemale['display_name'], 'Female');
 
+    final arthropodWorker = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'arthropodAttribute' &&
+          mapping['column'] == 'caste' &&
+          mapping['sqlite_index'] == 8,
+    );
+    expect(arthropodWorker['enum_type'], 'ArthropodCaste');
+    expect(arthropodWorker['enum_name'], 'worker');
+    expect(arthropodWorker['display_name'], 'worker');
+
     final birdMaleUncertain = mappings.singleWhere(
       (mapping) =>
           mapping['table'] == 'birdAttribute' &&

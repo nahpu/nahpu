@@ -207,7 +207,9 @@ Future<({int? sharedMediaId, int? taxonomyId})> _seedProjectWithLinkedData(
         ),
       );
 
-  await db.into(db.weather).insert(WeatherCompanion(eventID: Value(eventId)));
+  await db
+      .into(db.environment)
+      .insert(EnvironmentCompanion(eventID: Value(eventId)));
 
   final specimenUuid = 'specimen-$projectUuid';
   await SpecimenQuery(db).createSpecimen(

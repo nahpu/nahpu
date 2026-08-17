@@ -125,6 +125,61 @@ void main() {
       expect(cataloger.currentFieldNumber, 7);
     },
   );
+
+  testWidgets(
+    'IdMethod follows ID Confidence and preserves a hidden legacy value',
+    (tester) async {
+      final harness = await _SpecimenFormHarness.create();
+      addTearDown(harness.dispose);
+      await harness.database
+          .update(harness.database.specimen)
+          .write(const SpecimenCompanion(iDMethod: Value('legacy microscopy')));
+      final controller = SpecimenFormCtrModel.fromData(
+        await harness.getSpecimen(),
+      );
+      addTearDown(controller.dispose);
+
+      await harness.pump(
+        tester,
+        GeneralRecordField(
+          specimenUuid: 'specimen-a',
+          specimenCtr: controller,
+          useHorizontalLayout: false,
+        ),
+      );
+
+      expect(find.text('ID Confidence'), findsOneWidget);
+      expect(find.text('IdMethod'), findsNothing);
+
+      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('High').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('IdMethod'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('IdMethod')).dy,
+        greaterThan(tester.getTopLeft(find.text('ID Confidence')).dy),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<String?>).last);
+      await tester.pumpAndSettle();
+      for (final option in [...defaultIdMethods, 'legacy microscopy']) {
+        expect(find.text(option), findsWidgets);
+      }
+      await tester.tap(find.text('legacy microscopy').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Not assigned').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('IdMethod'), findsNothing);
+      expect(controller.idMethodCtr, 'legacy microscopy');
+      expect((await harness.getSpecimen()).iDMethod, 'legacy microscopy');
+    },
+  );
 }
 
 class _SpecimenFormHarness {
@@ -141,6 +196,9 @@ class _SpecimenFormHarness {
       overrides: [
         databaseProvider.overrideWithValue(database),
         fieldIdModeNotifierProvider.overrideWith(_TestFieldIdModeNotifier.new),
+        userDefinedFieldProvider.overrideWith(
+          (ref, prefKey) async => getDefaultOptionsList(prefKey),
+        ),
       ],
     );
     container.read(projectUuidProvider.notifier).updateProjectUuid('project-a');

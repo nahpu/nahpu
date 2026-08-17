@@ -45,4 +45,23 @@ void main() {
       'measurement::toeHex',
     );
   });
+
+  test('moves legacy arthropod environment and canopy sources', () {
+    expect(
+      canonicalizeSpecimenAttributeSourceKey(
+        'arthropodAttribute::ambientHumidity',
+      ),
+      'environment::ambientHumidity',
+    );
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('arthropodAttribute::canopyCover'),
+      'siteAttribute::canopyCover',
+    );
+    expect(
+      canonicalizeSpecimenAttributeExpression(
+        r'${arthropodAttribute::flowVelocity}',
+      ),
+      r'${environment::flowVelocity}',
+    );
+  });
 }

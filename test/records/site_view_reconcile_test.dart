@@ -53,6 +53,11 @@ void main() {
   Future<void> drainOverlayTimer(WidgetTester tester) =>
       tester.pump(const Duration(seconds: 6));
 
+  Finder siteRecordPageView() => find.byWidgetPredicate(
+    (widget) => widget is PageView && widget.key is ObjectKey,
+    description: 'site record PageView',
+  );
+
   testWidgets('empty list renders without a setState-during-build error', (
     tester,
   ) async {
@@ -169,9 +174,7 @@ void main() {
     // Assert the real viewport, not just the counter text — the counter reads
     // bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
     expect(tester.takeException(), isNull);
@@ -202,9 +205,7 @@ void main() {
     // real viewport too — a counter-only check can pass while the view stays
     // behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(
@@ -228,9 +229,9 @@ void main() {
     final container = await pumpViewer(tester, db);
 
     // First load lands on 4 of 4; swipe back into the middle of the list.
-    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.fling(siteRecordPageView(), const Offset(600, 0), 2000);
     await tester.pumpAndSettle();
-    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.fling(siteRecordPageView(), const Offset(600, 0), 2000);
     await tester.pumpAndSettle();
     expect(find.text('Page 2 of 4'), findsAtLeastNWidgets(1));
 
@@ -246,9 +247,7 @@ void main() {
     // layout and stuck the view one page short. The keyed controller swap
     // must land the real viewport on the new record.
     expect(find.text('Page 5 of 5'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 4.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(tester.takeException(), isNull);

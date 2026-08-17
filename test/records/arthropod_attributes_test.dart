@@ -12,7 +12,7 @@ import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
   testWidgets(
-    'arthropod ecology and environment are primary while morphometrics toggle',
+    'arthropod life stage, caste, and ecology precede morphometrics',
     (tester) async {
       final database = Database.forTesting(
         DatabaseConnection(NativeDatabase.memory()),
@@ -67,8 +67,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Ecological interactions'), findsOneWidget);
-      expect(find.text('Environmental parameters'), findsOneWidget);
+      expect(find.text('Environmental parameters'), findsNothing);
       expect(find.byType(SpecimenSexDropdown), findsOneWidget);
+      expect(find.byType(LifeStageDropdown), findsOneWidget);
+      expect(find.text('Caste'), findsOneWidget);
       final sectionLabel = tester.widget<Text>(
         find.text('Ecological interactions'),
       );

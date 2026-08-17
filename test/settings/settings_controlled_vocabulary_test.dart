@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/sites.dart';
 
 void main() {
   testWidgets('site settings include the default datum vocabulary', (
@@ -47,6 +48,9 @@ void main() {
           effectiveUserDefinedFieldProvider(
             datumPrefKey,
           ).overrideWith((ref) async => const ['WGS84', 'NAD83', 'NAD27']),
+          userDefinedFieldProvider(
+            siteGeographyFieldsPrefKey,
+          ).overrideWith((ref) async => defaultVisibleSiteGeographyFields),
         ],
         child: const MaterialApp(home: SiteSelection()),
       ),
@@ -58,6 +62,22 @@ void main() {
     expect(find.text('NAD83'), findsOneWidget);
     expect(find.text('NAD27'), findsOneWidget);
     expect(find.text('Other'), findsNothing);
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.widgetWithText(CheckboxListTile, 'Country'),
+          )
+          .value,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.widgetWithText(CheckboxListTile, 'Island group'),
+          )
+          .value,
+      isFalse,
+    );
   });
 
   testWidgets(

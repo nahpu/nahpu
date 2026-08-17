@@ -82,8 +82,8 @@ void main() {
         .into(database.collEvent)
         .insert(const CollEventCompanion(projectUuid: Value(projectUuid)));
     await database
-        .into(database.weather)
-        .insert(WeatherCompanion(eventID: Value(id)));
+        .into(database.environment)
+        .insert(EnvironmentCompanion(eventID: Value(id)));
     return id;
   }
 

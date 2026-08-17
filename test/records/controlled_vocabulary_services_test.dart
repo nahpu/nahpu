@@ -11,8 +11,21 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
+  test('v19 specimen vocabularies keep their canonical default order', () {
+    expect(getDefaultOptionsList(idMethodPrefKey), defaultIdMethods);
+    expect(getDefaultOptionsList(lifeStagePrefKey), defaultLifeStages);
+    expect(defaultIdMethods, [
+      'morphology',
+      'taxonomy',
+      'genomics',
+      'mtDNA',
+      'unknown',
+    ]);
+  });
+
   test(
     'effective vocabulary keeps configured order and database-only terms',
     () {
