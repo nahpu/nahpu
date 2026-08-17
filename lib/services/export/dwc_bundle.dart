@@ -503,7 +503,8 @@ class DwcBundleWriter extends AppServices {
     ProjectTransferPayload payload,
   ) async {
     final tables = <Map<String, dynamic>>[];
-    for (final tableName in _nahpuTableNames) {
+    for (final table in database.allTables) {
+      final tableName = table.actualTableName;
       final columns = await database
           .customSelect('PRAGMA table_info("$tableName")')
           .get();
@@ -1589,41 +1590,6 @@ String normalizeBundleTaxonGroup(String? value) {
   }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }
-
-const List<String> _nahpuTableNames = [
-  'project',
-  'site',
-  'siteAttribute',
-  'coordinate',
-  'collEvent',
-  'environment',
-  'collPersonnel',
-  'collEffort',
-  'narrative',
-  'media',
-  'narrativeMedia',
-  'siteMedia',
-  'eventMedia',
-  'specimenMedia',
-  'associatedData',
-  'specimenAssociatedData',
-  'siteAssociatedData',
-  'eventAssociatedData',
-  'personnelList',
-  'personnel',
-  'taxonomy',
-  'specimen',
-  'mammalAttribute',
-  'birdAttribute',
-  'herpAttribute',
-  'arthropodAttribute',
-  'fossilAttribute',
-  'parasiteDetection',
-  'parasite',
-  'specimenPart',
-  'customFieldDefinition',
-  'customFieldValue',
-];
 
 Map<String, dynamic> _removeEmpty(Map<String, dynamic> source) {
   return Map<String, dynamic>.fromEntries(

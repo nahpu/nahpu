@@ -279,7 +279,7 @@ void main() {
     expect(icons, contains(Icons.video_file_outlined));
   });
 
-  testWidgets('NAHPU package planning uses project JSON without SQLite', (
+  testWidgets('NAHPU package export handles missing optional tables', (
     tester,
   ) async {
     final tempDir = Directory.systemTemp.createTempSync('nahpu-dp-test-');
@@ -336,8 +336,9 @@ void main() {
         .read(projectUuidProvider.notifier)
         .updateProjectUuid('project-a');
 
+    final writer = DwcBundleWriter(ref: widgetRef!);
     final manifest = (await tester.runAsync(
-      () => DwcBundleWriter(ref: widgetRef!).plan(
+      () => writer.plan(
         format: DwcBundleFormat.nahpuDataPackage,
         archiveFormat: BundleArchiveFormat.zip,
         selectedTaxonGroups: const {},
@@ -347,6 +348,33 @@ void main() {
 
     expect(paths, contains('nahpu-project.json'));
     expect(paths, isNot(contains('database/nahpu.sqlite3')));
+
+    for (final archive in BundleArchiveFormat.values) {
+      final extension = archive == BundleArchiveFormat.zip ? 'zip' : 'tar.gz';
+      final outputPath = '${tempDir.path}/empty.nahpu-dp.$extension';
+      final written = await tester.runAsync(
+        () => writer.write(
+          format: DwcBundleFormat.nahpuDataPackage,
+          archiveFormat: archive,
+          selectedTaxonGroups: const {},
+          outputPath: outputPath,
+        ),
+      );
+
+      expect(File(outputPath).existsSync(), isTrue);
+      expect(
+        written!.files.any((file) => file.path == 'tables/environment.csv'),
+        isTrue,
+      );
+      expect(
+        written.files.any((file) => file.path == 'tables/parasite.csv'),
+        isTrue,
+      );
+      expect(
+        written.files.any((file) => file.path == 'tables/fossilSite.csv'),
+        isTrue,
+      );
+    }
   });
 }
 

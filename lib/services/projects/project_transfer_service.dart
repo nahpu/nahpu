@@ -61,6 +61,7 @@ class ProjectTransferService extends AppServices {
       'siteID',
       siteIds,
     );
+    records['fossilSite'] = await _rowsForIds('fossilSite', 'siteID', siteIds);
     records['coordinate'] = await _rowsForIds('coordinate', 'siteID', siteIds);
     records['collEvent'] = await _projectRows('collEvent');
     final eventIds = _intIds(records['collEvent']!, 'id');
@@ -621,6 +622,7 @@ class ProjectTransferService extends AppServices {
               targetId,
             );
             await _deleteWhere('siteAttribute', 'siteID', targetId);
+            await _deleteWhere('fossilSite', 'siteID', targetId);
             siteMap[sourceId] = targetId;
             sitesUsingImportedChildren.add(sourceId);
             updated++;
@@ -657,6 +659,14 @@ class ProjectTransferService extends AppServices {
           if (targetSiteId != null &&
               sitesUsingImportedChildren.contains(sourceSiteId)) {
             await _insert('siteAttribute', {...row, 'siteID': targetSiteId});
+          }
+        }
+        for (final row in plan.payload.rows('fossilSite')) {
+          final sourceSiteId = row['siteID'] as int?;
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId)) {
+            await _insert('fossilSite', {...row, 'siteID': targetSiteId});
           }
         }
         for (final sourceSiteId in sitesUsingImportedChildren) {
@@ -1681,6 +1691,11 @@ class ProjectTransferService extends AppServices {
     for (final row in records['siteAttribute'] ?? const []) {
       if (!siteIds.contains(row['siteID'])) {
         throw const FormatException('A site attribute has an unresolved site.');
+      }
+    }
+    for (final row in records['fossilSite'] ?? const []) {
+      if (!siteIds.contains(row['siteID'])) {
+        throw const FormatException('A fossil site has an unresolved site.');
       }
     }
     for (final row in records['environment'] ?? const []) {

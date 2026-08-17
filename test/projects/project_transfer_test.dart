@@ -454,6 +454,30 @@ void main() {
       expect(payload.rows('arthropodAttribute').single['lifeStage'], 'Adult');
     });
 
+    testWidgets('exports fossil site attributes with project sites', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final siteId = await database
+          .into(database.site)
+          .insert(const SiteCompanion(projectUuid: Value('project-a')));
+      await database
+          .into(database.fossilSite)
+          .insert(
+            FossilSiteCompanion(
+              siteID: Value(siteId),
+              formation: const Value('Hell Creek'),
+            ),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.rows('fossilSite'), hasLength(1));
+      expect(payload.rows('fossilSite').single['siteID'], siteId);
+      expect(payload.rows('fossilSite').single['formation'], 'Hell Creek');
+    });
+
     testWidgets('exports parasite identifiers and event data links', (
       tester,
     ) async {
@@ -751,6 +775,9 @@ void main() {
               'leadStaffId': 'person-1',
             },
           ],
+          'fossilSite': [
+            {'siteID': 8, 'formation': 'Hell Creek'},
+          ],
           'collEvent': [
             {'id': 9, 'projectUuid': 'project-b', 'siteID': 8},
           ],
@@ -795,6 +822,10 @@ void main() {
       expect(
         (await database.select(database.collEvent).get()).single.projectUuid,
         'project-b',
+      );
+      expect(
+        (await database.select(database.fossilSite).get()).single.formation,
+        'Hell Creek',
       );
       final specimen = await database.select(database.specimen).getSingle();
       expect(specimen.projectUuid, 'project-b');

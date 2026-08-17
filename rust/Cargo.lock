@@ -2223,9 +2223,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dp"
-version = "0.3.0"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0a06233c35abd654faebcc8ea3176db1a7b4444e2d74b26abe10935979b3a7d"
+checksum = "fe2ad0fe08acf0320119739e5ff8aff186ed195f0d55a32398dd5da8b2b2886d"
 dependencies = [
  "chrono",
  "csv",

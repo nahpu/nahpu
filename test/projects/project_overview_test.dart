@@ -104,13 +104,16 @@ void main() {
     expect(tester.takeException(), equals(null));
   });
 
-  testWidgets('narrow project overview expands without an internal scroll', (
+  testWidgets('narrow project overview keeps its internal scroll', (
     tester,
   ) async {
     await tester.pumpWidget(overview(useHorizontalLayout: false));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('project-overview-scroll')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('project-overview-scroll')),
+      findsOneWidget,
+    );
     expect(find.text('Record metadata'), findsOneWidget);
     expect(tester.takeException(), equals(null));
   });
