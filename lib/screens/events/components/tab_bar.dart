@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/events/components/personnel.dart';
-import 'package:nahpu/screens/events/components/weather_data.dart';
+import 'package:nahpu/screens/events/components/environment_data.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/associated_data.dart';
 import 'package:nahpu/services/types/associated_data.dart';
@@ -53,7 +53,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
         ],
         children: [
           EventPersonnel(eventID: widget.eventID),
-          WeatherDataView(
+          EnvironmentDataView(
             useHorizontalLayout: widget.useHorizontalLayout,
             eventID: widget.eventID,
           ),
