@@ -50,6 +50,7 @@ class ProjectInfo extends StatelessWidget {
           children: [
             if (showQrBesideIdentity)
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: _ProjectIdentityDetails(projectData: projectData),
