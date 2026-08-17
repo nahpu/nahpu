@@ -5,6 +5,7 @@ enum SiteCopyField {
   leadStaff,
   siteType,
   country,
+  islandGroup,
   stateProvince,
   county,
   municipality,
@@ -13,6 +14,7 @@ enum SiteCopyField {
   habitatType,
   habitatCondition,
   habitatDescription,
+  canopyCover,
   coordinates,
 }
 
@@ -22,6 +24,7 @@ extension SiteCopyFieldLabel on SiteCopyField {
     SiteCopyField.leadStaff => 'Site leader',
     SiteCopyField.siteType => 'Site type',
     SiteCopyField.country => 'Country',
+    SiteCopyField.islandGroup => 'Island group',
     SiteCopyField.stateProvince => 'State/Province',
     SiteCopyField.county => 'County/Parish/District',
     SiteCopyField.municipality => 'Municipality/City/Town',
@@ -30,9 +33,33 @@ extension SiteCopyFieldLabel on SiteCopyField {
     SiteCopyField.habitatType => 'Habitat type',
     SiteCopyField.habitatCondition => 'Habitat condition',
     SiteCopyField.habitatDescription => 'Habitat description',
+    SiteCopyField.canopyCover => 'Canopy cover',
     SiteCopyField.coordinates => 'Coordinates',
   };
 }
+
+const List<String> siteGeographyFields = [
+  'country',
+  'islandGroup',
+  'stateProvince',
+  'county',
+  'municipality',
+];
+
+const List<String> defaultVisibleSiteGeographyFields = [
+  'country',
+  'stateProvince',
+  'county',
+  'municipality',
+];
+
+const Map<String, String> siteGeographyFieldLabels = {
+  'country': 'Country',
+  'islandGroup': 'Island group',
+  'stateProvince': 'State/Province',
+  'county': 'County/Parish/District',
+  'municipality': 'Municipality/City/Town',
+};
 
 const List<String> defaultSiteTypes = [
   'City',

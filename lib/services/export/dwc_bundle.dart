@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
@@ -16,9 +17,9 @@ import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/birds.dart' as birds;
-import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/arthropods.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/parasites.dart';
@@ -249,6 +250,9 @@ class DwcBundleWriter extends AppServices {
       final site = event == null
           ? null
           : await SiteServices(ref: ref).getSite(event.siteID);
+      final siteAttribute = site == null
+          ? null
+          : await SiteServices(ref: ref).getSiteAttribute(site.id);
       final coordinate = await _coordinateForSpecimen(
         specimen.coordinateID,
         event?.siteID,
@@ -289,10 +293,7 @@ class DwcBundleWriter extends AppServices {
           : await _resolveEventAgents(event.id, agents);
       if (eventAgents.isEmpty && cataloger != null) eventAgents = [cataloger];
       final recorders = _catalogerFirst(cataloger, eventAgents);
-      final arthropodAttributes =
-          normalizeBundleTaxonGroup(specimen.taxonGroup) == 'Arthropods'
-          ? await _arthropodAttributeValues(specimen.uuid)
-          : const <String, dynamic>{};
+      final specimenAttributes = await _measurementValues(specimen);
 
       final occurrenceRow = _occurrenceRow(
         specimen: specimen,
@@ -300,11 +301,12 @@ class DwcBundleWriter extends AppServices {
         event: event,
         eventId: eventId,
         site: site,
+        siteAttribute: siteAttribute,
         coordinate: coordinate,
         recorders: recorders,
         determiner: determiner,
         catalogNumber: catalogNumber,
-        arthropodAttributes: arthropodAttributes,
+        specimenAttributes: specimenAttributes,
       );
       _applyCustomFields(
         await CustomFieldService(
@@ -319,7 +321,19 @@ class DwcBundleWriter extends AppServices {
       occurrenceRows.add(occurrenceRow);
       if (event != null) {
         if (!events.containsKey(eventId)) {
-          final eventRow = _eventRow(event, site, eventId!, eventAgents);
+          final eventRow = _eventRow(
+            event,
+            site,
+            siteAttribute,
+            eventId!,
+            eventAgents,
+          );
+          await _addEnvironmentAssertions(
+            event,
+            siteAttribute,
+            eventId,
+            eventAssertionRows,
+          );
           if (site != null) {
             _applyCustomFields(
               await CustomFieldService(
@@ -601,11 +615,12 @@ class DwcBundleWriter extends AppServices {
     required CollEventData? event,
     required String? eventId,
     required SiteData? site,
+    required SiteAttributeData? siteAttribute,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
     required _ResolvedAgent? determiner,
     required String? catalogNumber,
-    required Map<String, dynamic> arthropodAttributes,
+    required Map<String, dynamic> specimenAttributes,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
     final scientificName = [
@@ -640,11 +655,12 @@ class DwcBundleWriter extends AppServices {
       'vernacularName': taxon?.commonName,
       'taxonRemarks': taxon?.notes,
       'country': site?.country,
+      'islandGroup': site?.islandGroup,
       'stateProvince': site?.stateProvince,
       'county': site?.county,
       'municipality': site?.municipality,
       'locality': site?.locality,
-      'habitat': site?.habitatDescription ?? site?.habitatType,
+      'habitat': _habitat(siteAttribute),
       'locationRemarks': site?.remark,
       'decimalLatitude': coordinate?.decimalLatitude,
       'decimalLongitude': coordinate?.decimalLongitude,
@@ -664,20 +680,15 @@ class DwcBundleWriter extends AppServices {
       'recordedByID': _agentIds(recorders),
       'identifiedBy': determiner?.name,
       'identifiedByID': determiner?.id,
-      'sex': _specimenSexLabel(arthropodAttributes['sex']),
-      'associatedTaxa': _hostAssociation(arthropodAttributes['hostOrganism']),
-      'occurrenceRemarks': arthropodAttributes['remark'],
+      'identificationType': specimen.iDMethod,
+      'sex': _specimenSexLabel(specimenAttributes['sex']),
+      'lifeStage':
+          specimenAttributes['lifeStage'] ??
+          specimenAttributes['ontogeneticStage'],
+      'caste': _casteLabel(specimenAttributes['caste']),
+      'associatedTaxa': _hostAssociation(specimenAttributes['hostOrganism']),
+      'occurrenceRemarks': specimenAttributes['remark'],
     };
-  }
-
-  Future<Map<String, dynamic>> _arthropodAttributeValues(String uuid) async {
-    try {
-      return (await SpecimenServices(
-        ref: ref,
-      ).getArthropodAttributeData(uuid)).toJson();
-    } catch (_) {
-      return const <String, dynamic>{};
-    }
   }
 
   String? _specimenSexLabel(dynamic value) {
@@ -689,9 +700,32 @@ class DwcBundleWriter extends AppServices {
     return 'host: ${value.trim()}';
   }
 
+  String? _casteLabel(dynamic value) {
+    if (value is! int || value < 0 || value >= arthropodCasteList.length) {
+      return null;
+    }
+    return arthropodCasteList[value];
+  }
+
+  String? _habitat(SiteAttributeData? attribute) {
+    if (attribute == null) return null;
+    final values =
+        [
+              attribute.habitatType,
+              attribute.habitatCondition,
+              attribute.habitatDescription,
+            ]
+            .whereType<String>()
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty);
+    final habitat = values.join(' | ');
+    return habitat.isEmpty ? null : habitat;
+  }
+
   Map<String, dynamic> _eventRow(
     CollEventData event,
     SiteData? site,
+    SiteAttributeData? siteAttribute,
     String eventId,
     List<_ResolvedAgent> agents,
   ) {
@@ -707,12 +741,62 @@ class DwcBundleWriter extends AppServices {
       'samplingEffort': event.collMethodNotes,
       'locationID': site == null ? null : _locationId(site),
       'country': site?.country,
+      'islandGroup': site?.islandGroup,
       'stateProvince': site?.stateProvince,
       'county': site?.county,
       'municipality': site?.municipality,
       'locality': site?.locality,
-      'habitat': site?.habitatDescription ?? site?.habitatType,
+      'habitat': _habitat(siteAttribute),
     };
+  }
+
+  Future<void> _addEnvironmentAssertions(
+    CollEventData event,
+    SiteAttributeData? siteAttribute,
+    String eventId,
+    List<Map<String, dynamic>> output,
+  ) async {
+    EnvironmentData? environment;
+    try {
+      environment = await EnvironmentDataQuery(
+        dbAccess,
+      ).getEnvironmentDataByEventId(event.id);
+    } catch (_) {
+      environment = null;
+    }
+    if (environment == null && siteAttribute?.canopyCover == null) return;
+    final values = <String, (Object?, String?)>{
+      'lowest day temperature': (environment?.lowestDayTempC, '°C'),
+      'highest day temperature': (environment?.highestDayTempC, '°C'),
+      'lowest night temperature': (environment?.lowestNightTempC, '°C'),
+      'highest night temperature': (environment?.highestNightTempC, '°C'),
+      'average humidity': (environment?.averageHumidity, '%'),
+      'dew point': (environment?.dewPointTemp, '°C'),
+      'sunrise': (environment?.sunriseTime, 'hh:mm:ss'),
+      'sunset': (environment?.sunsetTime, 'hh:mm:ss'),
+      'moon phase': (environment?.moonPhase, null),
+      'cloud cover': (environment?.cloudCover, 'okta'),
+      'rainfall': (environment?.rainfallInMm, 'mm'),
+      'ambient temperature': (environment?.ambientTemperature, '°C'),
+      'ambient humidity': (environment?.ambientHumidity, '%'),
+      'water temperature': (environment?.waterTemperature, '°C'),
+      'pH': (environment?.pH, null),
+      'dissolved oxygen': (environment?.dissolvedOxygen, 'mg/L'),
+      'flow velocity': (environment?.flowVelocity, 'm/s'),
+      'canopy cover': (siteAttribute?.canopyCover, null),
+      'environmental notes': (environment?.notes, null),
+    };
+    for (final entry in values.entries) {
+      final value = entry.value.$1;
+      if (value == null || value.toString().trim().isEmpty) continue;
+      output.add({
+        'eventID': eventId,
+        'assertionID': '$eventId:environment:${entry.key.replaceAll(' ', '-')}',
+        'assertionType': entry.key,
+        'assertionValue': entry.value.$1,
+        'assertionUnit': entry.value.$2,
+      });
+    }
   }
 
   Future<List<Map<String, dynamic>>> _materialRows(
@@ -963,6 +1047,11 @@ class DwcBundleWriter extends AppServices {
           return (await SpecimenServices(
             ref: ref,
           ).getArthropodAttributeData(specimen.uuid)).toJson();
+        case 'Fossils':
+          return (await (dbAccess.select(dbAccess.fossilAttribute)
+                    ..where((row) => row.specimenUuid.equals(specimen.uuid)))
+                  .getSingle())
+              .toJson();
         default:
           return (await SpecimenServices(
             ref: ref,
@@ -1180,12 +1269,12 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
     ..._specimenSexMappingRows(table: 'birdAttribute', column: 'sex'),
     ..._specimenSexMappingRows(table: 'herpAttribute', column: 'sex'),
     ..._specimenSexMappingRows(table: 'arthropodAttribute', column: 'sex'),
-    ..._enumMappingRows(
-      table: 'mammalAttribute',
-      column: 'age',
-      enumType: 'mammals.SpecimenAge',
-      values: mammals.SpecimenAge.values,
-      displayNames: mammals.specimenAgeList,
+    ..._indexedMappingRows(
+      table: 'arthropodAttribute',
+      column: 'caste',
+      enumType: 'ArthropodCaste',
+      enumNames: arthropodCasteList,
+      displayNames: arthropodCasteList,
     ),
     ..._enumMappingRows(
       table: 'mammalAttribute',
@@ -1263,13 +1352,6 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
       enumType: 'birds.BodyMolt',
       values: birds.BodyMolt.values,
       displayNames: birds.bodyMoltList,
-    ),
-    ..._enumMappingRows(
-      table: 'herpAttribute',
-      column: 'age',
-      enumType: 'herps.SpecimenAge',
-      values: herps.SpecimenAge.values,
-      displayNames: herps.specimenAgeList,
     ),
     ..._indexedMappingRows(
       table: 'specimen',
@@ -1390,6 +1472,16 @@ const _nahpuControlledVocabularyDefinitions = [
     name: 'Specimen sex',
   ),
   _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: idMethodPrefKey,
+    name: 'IdMethod',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: lifeStagePrefKey,
+    name: 'Life stage',
+  ),
+  _NahpuControlledVocabularyDefinition(
     section: 'parasites',
     configKey: parasiteCategoryPrefKey,
     name: 'Parasite category',
@@ -1467,14 +1559,6 @@ const _measurementDefinitions = <String, _MeasurementDefinition>{
   'wingspanUpper': _MeasurementDefinition('upper wingspan', 'mm'),
   'wingspanLower': _MeasurementDefinition('lower wingspan', 'mm'),
   'hostPart': _MeasurementDefinition('host part'),
-  'canopyAffinity': _MeasurementDefinition('canopy affinity'),
-  'canopyCover': _MeasurementDefinition('canopy cover'),
-  'ambientTemperature': _MeasurementDefinition('ambient temperature', '°C'),
-  'ambientHumidity': _MeasurementDefinition('ambient humidity', '%'),
-  'waterTemperature': _MeasurementDefinition('water temperature', '°C'),
-  'pH': _MeasurementDefinition('pH'),
-  'dissolvedOxygen': _MeasurementDefinition('dissolved oxygen', 'mg/L'),
-  'flowVelocity': _MeasurementDefinition('flow velocity', 'm/s'),
 };
 
 /// Normalizes both current and legacy database labels to package choices.
@@ -1500,15 +1584,19 @@ String normalizeBundleTaxonGroup(String? value) {
       normalized.contains('arachnid')) {
     return 'Arthropods';
   }
+  if (normalized.contains('fossil') || normalized.contains('paleo')) {
+    return 'Fossils';
+  }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }
 
 const List<String> _nahpuTableNames = [
   'project',
   'site',
+  'siteAttribute',
   'coordinate',
   'collEvent',
-  'weather',
+  'environment',
   'collPersonnel',
   'collEffort',
   'narrative',
@@ -1529,6 +1617,7 @@ const List<String> _nahpuTableNames = [
   'birdAttribute',
   'herpAttribute',
   'arthropodAttribute',
+  'fossilAttribute',
   'parasiteDetection',
   'parasite',
   'specimenPart',

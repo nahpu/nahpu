@@ -3,6 +3,7 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/arthropods.dart';
 
 /// Formats arthropod attribute records for specimen exports.
 class ArthropodAttributes {
@@ -22,16 +23,14 @@ class ArthropodAttributes {
       _number(data.wingspanUpper),
       _number(data.wingspanLower),
       getSpecimenSexLabel(data.sex) ?? '',
+      data.lifeStage ?? '',
+      data.caste == null ||
+              data.caste! < 0 ||
+              data.caste! >= arthropodCasteList.length
+          ? ''
+          : arthropodCasteList[data.caste!],
       data.hostOrganism ?? '',
       data.hostPart ?? '',
-      data.canopyAffinity ?? '',
-      data.canopyCover ?? '',
-      _number(data.ambientTemperature),
-      _number(data.ambientHumidity),
-      _number(data.waterTemperature),
-      _number(data.pH),
-      _number(data.dissolvedOxygen),
-      _number(data.flowVelocity),
       data.remark ?? '',
     ];
   }

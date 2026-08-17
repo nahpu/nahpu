@@ -82,13 +82,17 @@ class SiteWriterServices extends AppServices {
       if (data == null) {
         return List.filled(emptySite, '');
       } else {
+        final attribute = await SiteServices(ref: ref).getSiteAttribute(siteID);
         String verbatimLocality = _createVerbatimLocality(data);
 
         List<String> siteDelimited = _getSiteDelimited(data);
         String coordinates = await getCoordinates(siteID);
         List<String> siteDetails = [
           data.siteID.toString(),
-          data.habitatType ?? '',
+          attribute?.habitatType ?? '',
+          attribute?.habitatCondition ?? '',
+          attribute?.habitatDescription ?? '',
+          attribute?.canopyCover ?? '',
           ...siteDelimited,
           verbatimLocality,
           coordinates,
@@ -169,6 +173,7 @@ class SiteWriterServices extends AppServices {
 
   List<String> _getSiteDelimited(SiteData data) {
     String country = data.country != null ? '${data.country}' : '';
+    String islandGroup = data.islandGroup ?? '';
     String stateProvince = data.stateProvince != null
         ? '${data.stateProvince}'
         : '';
@@ -182,6 +187,7 @@ class SiteWriterServices extends AppServices {
     String siteRemark = data.remark != null ? '${data.remark}' : '';
     return [
       country,
+      islandGroup,
       stateProvince,
       county,
       municipality,

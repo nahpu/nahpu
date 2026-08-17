@@ -21,12 +21,14 @@ class SiteCopySource {
   const SiteCopySource({
     required this.project,
     required this.site,
+    required this.attribute,
     required this.coordinates,
     this.leaderName,
   });
 
   final ProjectSummary project;
   final SiteData site;
+  final SiteAttributeData? attribute;
   final List<CoordinateData> coordinates;
   final String? leaderName;
 
@@ -110,6 +112,7 @@ class SiteCopyServices extends AppServices {
     final coordinates = await CoordinateQuery(
       dbAccess,
     ).getCoordinatesBySiteID(siteId);
+    final attribute = await SiteQuery(dbAccess).getSiteAttribute(siteId);
     String? leaderName;
     if (site.leadStaffId != null) {
       try {
@@ -123,6 +126,7 @@ class SiteCopyServices extends AppServices {
     return SiteCopySource(
       project: project,
       site: site,
+      attribute: attribute,
       coordinates: coordinates,
       leaderName: leaderName,
     );
@@ -130,7 +134,8 @@ class SiteCopyServices extends AppServices {
 
   Future<bool> isTargetEmpty(int targetSiteId) async {
     final site = await SiteQuery(dbAccess).getSiteById(targetSiteId);
-    return _isEmpty(site);
+    final attribute = await SiteQuery(dbAccess).getSiteAttribute(targetSiteId);
+    return _isEmpty(site, attribute);
   }
 
   Future<SiteCopyResult> copy(SiteCopyRequest request) async {
@@ -146,7 +151,10 @@ class SiteCopyServices extends AppServices {
           'The selected target site is not in the active project.',
         );
       }
-      if (!await _isEmpty(target)) {
+      final targetAttribute = await SiteQuery(
+        dbAccess,
+      ).getSiteAttribute(target.id);
+      if (!await _isEmpty(target, targetAttribute)) {
         throw const SiteCopyException(
           'The current site must be empty before copying data.',
         );
@@ -166,12 +174,27 @@ class SiteCopyServices extends AppServices {
       if (source == null) {
         throw const SiteCopyException('The source site could not be found.');
       }
+      final sourceAttribute = await SiteQuery(
+        dbAccess,
+      ).getSiteAttribute(source.id);
       final coordinates = await CoordinateQuery(
         dbAccess,
       ).getCoordinatesBySiteID(source.id);
 
       final companion = _siteCompanion(source, request.fields);
       await SiteQuery(dbAccess).updateSiteEntry(target.id, companion);
+      final attributeCompanion = _siteAttributeCompanion(
+        sourceAttribute,
+        request.fields,
+      );
+      final updated = await SiteQuery(
+        dbAccess,
+      ).updateSiteAttributeEntry(target.id, attributeCompanion);
+      if (updated == 0) {
+        await SiteQuery(dbAccess).createSiteAttribute(
+          attributeCompanion.copyWith(siteID: db.Value(target.id)),
+        );
+      }
 
       if (request.fields.contains(SiteCopyField.leadStaff) &&
           source.leadStaffId != null) {
@@ -230,21 +253,23 @@ class SiteCopyServices extends AppServices {
     return result;
   }
 
-  Future<bool> _isEmpty(SiteData site) async {
+  Future<bool> _isEmpty(SiteData site, SiteAttributeData? attribute) async {
     final scalarValues = [
       site.siteID,
       site.leadStaffId,
       site.siteType,
       site.country,
+      site.islandGroup,
       site.stateProvince,
       site.county,
       site.municipality,
       site.mediaID,
       site.locality,
       site.remark,
-      site.habitatType,
-      site.habitatCondition,
-      site.habitatDescription,
+      attribute?.habitatType,
+      attribute?.habitatCondition,
+      attribute?.habitatDescription,
+      attribute?.canopyCover,
     ];
     if (scalarValues.any((value) => value?.trim().isNotEmpty == true)) {
       return false;
@@ -283,6 +308,9 @@ class SiteCopyServices extends AppServices {
       country: fields.contains(SiteCopyField.country)
           ? db.Value(source.country)
           : const db.Value.absent(),
+      islandGroup: fields.contains(SiteCopyField.islandGroup)
+          ? db.Value(source.islandGroup)
+          : const db.Value.absent(),
       stateProvince: fields.contains(SiteCopyField.stateProvince)
           ? db.Value(source.stateProvince)
           : const db.Value.absent(),
@@ -298,14 +326,25 @@ class SiteCopyServices extends AppServices {
       remark: fields.contains(SiteCopyField.remark)
           ? db.Value(source.remark)
           : const db.Value.absent(),
+    );
+  }
+
+  SiteAttributeCompanion _siteAttributeCompanion(
+    SiteAttributeData? source,
+    Set<SiteCopyField> fields,
+  ) {
+    return SiteAttributeCompanion(
       habitatType: fields.contains(SiteCopyField.habitatType)
-          ? db.Value(source.habitatType)
+          ? db.Value(source?.habitatType)
           : const db.Value.absent(),
       habitatCondition: fields.contains(SiteCopyField.habitatCondition)
-          ? db.Value(source.habitatCondition)
+          ? db.Value(source?.habitatCondition)
           : const db.Value.absent(),
       habitatDescription: fields.contains(SiteCopyField.habitatDescription)
-          ? db.Value(source.habitatDescription)
+          ? db.Value(source?.habitatDescription)
+          : const db.Value.absent(),
+      canopyCover: fields.contains(SiteCopyField.canopyCover)
+          ? db.Value(source?.canopyCover)
           : const db.Value.absent(),
     );
   }

@@ -48,7 +48,7 @@ class MammalAttributes extends AppServices {
       data.accuracy ?? '',
       data.accuracySpecify ?? '',
       getSpecimenSexLabel(data.sex) ?? '',
-      data.age != null ? specimenAgeList[data.age!] : '',
+      data.lifeStage ?? '',
       ..._getSexData(), // 16 items
       data.remark ?? '',
     ];

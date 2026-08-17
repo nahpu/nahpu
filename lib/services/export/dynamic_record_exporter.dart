@@ -232,6 +232,12 @@ class DynamicRecordExporter {
           final site = await SiteServices(ref: ref).getSite(event.siteID!);
           if (site != null) {
             _addData(record, 'site', site.toJson());
+            final siteAttribute = await SiteServices(
+              ref: ref,
+            ).getSiteAttribute(site.id);
+            if (siteAttribute != null) {
+              _addData(record, 'siteAttribute', siteAttribute.toJson());
+            }
             await _addCustomFieldData(
               CustomFieldOwner.site(site.id),
               'customSite',
@@ -241,12 +247,12 @@ class DynamicRecordExporter {
         }
 
         try {
-          final weather = await CollEventServices(
+          final environment = await CollEventServices(
             ref: ref,
-          ).getAllWeatherData(collEventID);
-          _addData(record, 'weather', weather.toJson());
+          ).getAllEnvironmentData(collEventID);
+          _addData(record, 'environment', environment.toJson());
         } catch (_) {
-          // No weather data found
+          // No environmental data found.
         }
       }
     }
@@ -329,6 +335,12 @@ class DynamicRecordExporter {
     )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
     if (arthropod != null) {
       _addData(record, 'arthropodAttribute', arthropod.toJson());
+    }
+    final fossil = await (db.select(
+      db.fossilAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    if (fossil != null) {
+      _addData(record, 'fossilAttribute', fossil.toJson());
     }
     final detection = await (db.select(
       db.parasiteDetection,

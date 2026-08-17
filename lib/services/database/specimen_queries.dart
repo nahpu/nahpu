@@ -120,6 +120,48 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  Future<List<String>> getDistinctIdMethods() async {
+    final query = selectOnly(specimen, distinct: true)
+      ..addColumns([specimen.iDMethod])
+      ..where(specimen.iDMethod.isNotNull());
+    return (await query.get())
+        .map((row) => row.read(specimen.iDMethod))
+        .whereType<String>()
+        .where((value) => value.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<String>> getDistinctLifeStages() async {
+    final values = await Future.wait([
+      (selectOnly(mammalAttribute, distinct: true)
+            ..addColumns([mammalAttribute.lifeStage])
+            ..where(mammalAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(mammalAttribute.lifeStage))
+          .get(),
+      (selectOnly(birdAttribute, distinct: true)
+            ..addColumns([birdAttribute.lifeStage])
+            ..where(birdAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(birdAttribute.lifeStage))
+          .get(),
+      (selectOnly(herpAttribute, distinct: true)
+            ..addColumns([herpAttribute.lifeStage])
+            ..where(herpAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(herpAttribute.lifeStage))
+          .get(),
+      (selectOnly(arthropodAttribute, distinct: true)
+            ..addColumns([arthropodAttribute.lifeStage])
+            ..where(arthropodAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(arthropodAttribute.lifeStage))
+          .get(),
+    ]);
+    return values
+        .expand((entries) => entries)
+        .whereType<String>()
+        .where((value) => value.trim().isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+  }
+
   Future<Set<int>> getDistinctSexCodes() async {
     final codes = <int>{};
     final mammalQuery = selectOnly(mammalAttribute, distinct: true)

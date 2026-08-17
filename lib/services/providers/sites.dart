@@ -34,8 +34,12 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
     state = await AsyncValue.guard(() async {
       if (state.value == null) return [];
       final sites = await _fetchSiteEntry();
+      final attributes = await SiteQuery(
+        ref.read(databaseProvider),
+      ).getSiteAttributes(sites.map((site) => site.id));
       final filteredSites = SiteSearchServices(
         siteEntries: sites,
+        attributesBySite: attributes,
       ).search(query.toLowerCase());
       return filteredSites;
     });
@@ -47,6 +51,12 @@ final coordinateBySiteProvider = FutureProvider.family
       (ref, siteId) => CoordinateQuery(
         ref.read(databaseProvider),
       ).getCoordinatesBySiteID(siteId),
+    );
+
+final siteAttributeProvider = FutureProvider.family
+    .autoDispose<SiteAttributeData?, int>(
+      (ref, siteId) =>
+          SiteQuery(ref.read(databaseProvider)).getSiteAttribute(siteId),
     );
 
 final coordinateByProjectProvider =

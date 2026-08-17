@@ -9,8 +9,42 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
 
   Future<int> createSite(SiteCompanion form) => into(site).insert(form);
 
+  Future<int> createSiteAttribute(SiteAttributeCompanion form) =>
+      into(siteAttribute).insert(form);
+
   Future updateSiteEntry(int id, SiteCompanion entry) {
     return (update(site)..where((t) => t.id.equals(id))).write(entry);
+  }
+
+  Future<int> updateSiteAttributeEntry(
+    int siteId,
+    SiteAttributeCompanion entry,
+  ) {
+    return (update(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).write(entry);
+  }
+
+  Future<SiteAttributeData?> getSiteAttribute(int siteId) {
+    return (select(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).getSingleOrNull();
+  }
+
+  Future<Map<int, SiteAttributeData>> getSiteAttributes(
+    Iterable<int> siteIds,
+  ) async {
+    final ids = siteIds.toList(growable: false);
+    if (ids.isEmpty) return const {};
+    final rows = await (select(
+      siteAttribute,
+    )..where((table) => table.siteID.isIn(ids))).get();
+    final bySite = <int, SiteAttributeData>{};
+    for (final row in rows) {
+      final id = row.siteID;
+      if (id != null) bySite[id] = row;
+    }
+    return bySite;
   }
 
   /// Returns sites oldest-first so new records are the final form page.
@@ -55,6 +89,12 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     return (delete(site)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<void> deleteSiteAttribute(int siteId) {
+    return (delete(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).go();
+  }
+
   Future<SiteData> getSiteById(int id) async {
     return await (select(site)..where((t) => t.id.equals(id))).getSingle();
   }
@@ -64,13 +104,13 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<String>> getDistinctHabitatTypes() async {
-    final query = selectOnly(site)
-      ..addColumns([site.habitatType])
-      ..where(site.habitatType.isNotNull())
-      ..groupBy([site.habitatType]);
+    final query = selectOnly(siteAttribute)
+      ..addColumns([siteAttribute.habitatType])
+      ..where(siteAttribute.habitatType.isNotNull())
+      ..groupBy([siteAttribute.habitatType]);
 
     final result = await query.get();
-    return result.map((row) => row.read(site.habitatType)!).toList();
+    return result.map((row) => row.read(siteAttribute.habitatType)!).toList();
   }
 
   Future<List<String>> getDistinctSiteTypes() async {

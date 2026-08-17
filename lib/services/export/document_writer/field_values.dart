@@ -59,9 +59,17 @@ Future<Map<String, String>> documentFieldValuesForSite(
   for (var entry in s.toJson().entries) {
     m['site::${entry.key}'] = entry.value?.toString() ?? '';
   }
+  final attribute = await SiteServices(ref: ref).getSiteAttribute(s.id);
+  if (attribute != null) {
+    for (final entry in attribute.toJson().entries) {
+      if (entry.key == 'siteID') continue;
+      m['siteAttribute::${entry.key}'] = entry.value?.toString() ?? '';
+    }
+  }
 
   m['site::site'] = s.siteID ?? '';
-  m['site::habitatType'] = s.habitatType ?? '';
+  m['siteAttribute::habitatType'] = attribute?.habitatType ?? '';
+  m['site::habitatType'] = attribute?.habitatType ?? '';
   m['site::country'] = s.country ?? '';
   m['site::stateProvince'] = s.stateProvince ?? '';
   m['site::county'] = s.county ?? '';

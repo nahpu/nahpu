@@ -65,11 +65,12 @@ final collPersonnelProvider = FutureProvider.family
       ).getCollPersonnelByEventId(collEventId),
     );
 
-final weatherDataProvider = FutureProvider.family.autoDispose<WeatherData, int>(
-  (ref, collEventId) => WeatherDataQuery(
-    ref.read(databaseProvider),
-  ).getWeatherDataByEventId(collEventId),
-);
+final environmentDataProvider = FutureProvider.family
+    .autoDispose<EnvironmentData, int>(
+      (ref, collEventId) => EnvironmentDataQuery(
+        ref.read(databaseProvider),
+      ).getEnvironmentDataByEventId(collEventId),
+    );
 
 final eventMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, eventId) async {

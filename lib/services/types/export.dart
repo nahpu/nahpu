@@ -121,6 +121,8 @@ const collectingRecordExportList = [
   'specimen::genus',
   'specimen::specificEpithet',
   'specimen::condition',
+  'specimen::iDConfidence',
+  'specimen::iDMethod',
   'specimen::collectionTime',
   'specimen::preparationDate',
   'specimen::preparationTime',
@@ -175,8 +177,12 @@ const List<String> parasiteExportList = [
 
 const siteExportList = [
   'site::site',
-  'site::habitatType',
+  'siteAttribute::habitatType',
+  'siteAttribute::habitatCondition',
+  'siteAttribute::habitatDescription',
+  'siteAttribute::canopyCover',
   'site::country',
+  'site::islandGroup',
   'site::stateProvince',
   'site::county',
   'site::municipality',
@@ -195,7 +201,7 @@ const mammalAttributeExportList = [
   'measurement::accuracy',
   'measurement::accuracySpecify',
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::testisPosition',
   'measurement::testisLength',
   'measurement::testisWidth',
@@ -231,7 +237,7 @@ const batAttributeExportList = [
   'measurement::accuracy',
   'measurement::accuracySpecify',
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::testisPosition',
   'measurement::testisLength',
   'measurement::testisWidth',
@@ -267,6 +273,7 @@ const birdAttributeExportList = [
   'measurement::tarsusColor',
   'measurement::tarsusHex',
   'measurement::sex',
+  'measurement::lifeStage',
   'measurement::broodPatch',
   'measurement::skullOssification',
   'measurement::hasBursa',
@@ -298,7 +305,7 @@ const birdAttributeExportList = [
 
 const herpAttributeExportList = [
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::weight',
   'measurement::svl',
   'measurement::remark',
@@ -310,16 +317,20 @@ const arthropodAttributeExportList = [
   'measurement::wingspanUpper',
   'measurement::wingspanLower',
   'measurement::sex',
+  'measurement::lifeStage',
+  'measurement::caste',
   'measurement::hostOrganism',
   'measurement::hostPart',
-  'measurement::canopyAffinity',
-  'measurement::canopyCover',
-  'measurement::ambientTemperature',
-  'measurement::ambientHumidity',
-  'measurement::waterTemperature',
-  'measurement::pH',
-  'measurement::dissolvedOxygen',
-  'measurement::flowVelocity',
+  'measurement::remark',
+];
+
+const fossilAttributeExportList = [
+  'measurement::fossilType',
+  'measurement::specimenDescription',
+  'measurement::sex',
+  'measurement::ontogeneticStage',
+  'measurement::weight',
+  'measurement::weightUnit',
   'measurement::remark',
 ];
 
@@ -339,6 +350,28 @@ const collEventExportList = [
   'event::endTime',
   'event::methods',
   'event::personnel',
+  ...environmentalDataExportList,
+];
+
+const environmentalDataExportList = [
+  'environment::lowestDayTempC',
+  'environment::highestDayTempC',
+  'environment::lowestNightTempC',
+  'environment::highestNightTempC',
+  'environment::averageHumidity',
+  'environment::dewPointTemp',
+  'environment::sunriseTime',
+  'environment::sunsetTime',
+  'environment::moonPhase',
+  'environment::cloudCover',
+  'environment::rainfallInMm',
+  'environment::ambientTemperature',
+  'environment::ambientHumidity',
+  'environment::waterTemperature',
+  'environment::pH',
+  'environment::dissolvedOxygen',
+  'environment::flowVelocity',
+  'environment::notes',
 ];
 
 const allMediaExportList = [

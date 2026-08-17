@@ -18,6 +18,8 @@ const controlledVocabularyPrefKeys = [
   treatmentPrefKey,
   conditionPrefKey,
   specimenSexPrefKey,
+  idMethodPrefKey,
+  lifeStagePrefKey,
   parasiteCategoryPrefKey,
   parasiteDetectionMethodPrefKey,
   parasitePreparationMethodPrefKey,
@@ -59,6 +61,10 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         conditionPrefKey => await SpecimenQuery(
           database,
         ).getDistinctConditions(),
+        idMethodPrefKey => await SpecimenQuery(database).getDistinctIdMethods(),
+        lifeStagePrefKey => await SpecimenQuery(
+          database,
+        ).getDistinctLifeStages(),
         parasiteCategoryPrefKey => await ParasiteQuery(
           database,
         ).getDistinctCategories(),

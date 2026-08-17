@@ -237,11 +237,15 @@ class RecordExchangeSpecimen extends AppServices {
     final arthropod = await (dbAccess.select(
       dbAccess.arthropodAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
+    final fossil = await (dbAccess.select(
+      dbAccess.fossilAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
     return {
       'mammal': mammal?.toJson(),
       'avian': bird?.toJson(),
       'herp': herp?.toJson(),
       'arthropod': arthropod?.toJson(),
+      'fossil': fossil?.toJson(),
     };
   }
 
@@ -508,6 +512,9 @@ class RecordExchangeSpecimen extends AppServices {
     await (dbAccess.delete(
       dbAccess.arthropodAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
+    await (dbAccess.delete(
+      dbAccess.fossilAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).go();
   }
 
   Future<void> _importAttributes(
@@ -521,6 +528,10 @@ class RecordExchangeSpecimen extends AppServices {
     final mammal = attributes['mammal'];
     if (mammal is Map) {
       final mammalJson = Map<String, dynamic>.from(mammal);
+      mammalJson['lifeStage'] ??= _legacyLifeStage(
+        mammalJson.remove('age'),
+        const ['Adult', 'Subadult', 'Juvenile', 'Unknown'],
+      );
       if (mammalJson['weight'] != null && mammalJson['weightUnit'] == null) {
         mammalJson['weightUnit'] = 'g';
       }
@@ -555,6 +566,13 @@ class RecordExchangeSpecimen extends AppServices {
     final herp = attributes['herp'];
     if (herp is Map) {
       final herpJson = Map<String, dynamic>.from(herp);
+      herpJson['lifeStage'] ??= _legacyLifeStage(herpJson.remove('age'), const [
+        'Adult',
+        'Juvenile',
+        'Neonate',
+        'Metamorph',
+        'Unknown',
+      ]);
       if (herpJson['weight'] != null && herpJson['weightUnit'] == null) {
         herpJson['weightUnit'] = 'g';
       }
@@ -578,6 +596,23 @@ class RecordExchangeSpecimen extends AppServices {
             }).toCompanion(true),
           );
     }
+    final fossil = attributes['fossil'];
+    if (fossil is Map) {
+      await dbAccess
+          .into(dbAccess.fossilAttribute)
+          .insert(
+            FossilAttributeData.fromJson({
+              ...Map<String, dynamic>.from(fossil),
+              'specimenUuid': uuid,
+            }).toCompanion(true),
+          );
+    }
+  }
+
+  String? _legacyLifeStage(Object? value, List<String> labels) {
+    final index = value is num ? value.toInt() : int.tryParse('$value');
+    if (index == null || index < 0 || index >= labels.length) return null;
+    return labels[index];
   }
 
   Future<Map<int, int>> _importParts(

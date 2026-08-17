@@ -30,6 +30,7 @@ const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
+const String siteGeographyFieldsPrefKey = 'siteGeographyFields';
 const String datumPrefKey = 'datums';
 const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
@@ -43,6 +44,10 @@ const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
 const String specimenSexPrefKey = 'specimenSexes';
+const String idMethodPrefKey = 'idMethods';
+const String idMethodFmtPrefKey = 'idMethodFmt';
+const String lifeStagePrefKey = 'lifeStages';
+const String lifeStageFmtPrefKey = 'lifeStageFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
 const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
 const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
@@ -170,6 +175,8 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultHabitatTypes;
     case siteTypePrefKey:
       return defaultSiteTypes;
+    case siteGeographyFieldsPrefKey:
+      return defaultVisibleSiteGeographyFields;
     case datumPrefKey:
       return defaultDatums;
     case collMethodPrefKey:
@@ -184,6 +191,10 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultCondition;
     case specimenSexPrefKey:
       return defaultSpecimenSexLabels;
+    case idMethodPrefKey:
+      return defaultIdMethods;
+    case lifeStagePrefKey:
+      return defaultLifeStages;
     default:
       return [];
   }

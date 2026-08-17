@@ -26,7 +26,7 @@ export 'project_transfer_models.dart';
 /// Exports and imports complete NAHPU projects with related attribute records.
 ///
 /// Archives are normalized while parsing so legacy attribute names and the
-/// v1-v3 associated-data URL field remain importable.
+/// legacy associated-data URL field remain importable.
 class ProjectTransferService extends AppServices {
   ProjectTransferService({required super.ref})
     : _database = ref.read(databaseProvider),
@@ -56,10 +56,19 @@ class ProjectTransferService extends AppServices {
     final records = <String, List<Map<String, dynamic>>>{};
     records['site'] = await _projectRows('site');
     final siteIds = _intIds(records['site']!, 'id');
+    records['siteAttribute'] = await _rowsForIds(
+      'siteAttribute',
+      'siteID',
+      siteIds,
+    );
     records['coordinate'] = await _rowsForIds('coordinate', 'siteID', siteIds);
     records['collEvent'] = await _projectRows('collEvent');
     final eventIds = _intIds(records['collEvent']!, 'id');
-    records['weather'] = await _rowsForIds('weather', 'eventID', eventIds);
+    records['environment'] = await _rowsForIds(
+      'environment',
+      'eventID',
+      eventIds,
+    );
     records['collPersonnel'] = await _rowsForIds(
       'collPersonnel',
       'eventID',
@@ -94,6 +103,11 @@ class ProjectTransferService extends AppServices {
     );
     records['arthropodAttribute'] = await _rowsForStrings(
       'arthropodAttribute',
+      'specimenUuid',
+      specimenUuids,
+    );
+    records['fossilAttribute'] = await _rowsForStrings(
+      'fossilAttribute',
       'specimenUuid',
       specimenUuids,
     );
@@ -606,6 +620,7 @@ class ProjectTransferService extends AppServices {
               'id',
               targetId,
             );
+            await _deleteWhere('siteAttribute', 'siteID', targetId);
             siteMap[sourceId] = targetId;
             sitesUsingImportedChildren.add(sourceId);
             updated++;
@@ -634,6 +649,24 @@ class ProjectTransferService extends AppServices {
               'site',
               projectUuid: targetProjectUuid,
             );
+          }
+        }
+        for (final row in plan.payload.rows('siteAttribute')) {
+          final sourceSiteId = row['siteID'] as int?;
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId)) {
+            await _insert('siteAttribute', {...row, 'siteID': targetSiteId});
+          }
+        }
+        for (final sourceSiteId in sitesUsingImportedChildren) {
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId == null) continue;
+          final hasAttribute = plan.payload
+              .rows('siteAttribute')
+              .any((row) => row['siteID'] == sourceSiteId);
+          if (!hasAttribute) {
+            await _insert('siteAttribute', {'siteID': targetSiteId});
           }
         }
         for (final row in plan.payload.rows('coordinate')) {
@@ -700,7 +733,7 @@ class ProjectTransferService extends AppServices {
               'id',
               targetId,
             );
-            await _deleteWhere('weather', 'eventID', targetId);
+            await _deleteWhere('environment', 'eventID', targetId);
             await _deleteWhere('collPersonnel', 'eventID', targetId);
             await _deleteWhere('collEffort', 'eventID', targetId);
             await _deleteWhere('eventMedia', 'eventID', targetId);
@@ -722,12 +755,22 @@ class ProjectTransferService extends AppServices {
             );
           }
         }
-        for (final row in plan.payload.rows('weather')) {
+        for (final row in plan.payload.rows('environment')) {
           final sourceEventId = row['eventID'] as int?;
           final eventId = eventMap[sourceEventId];
           if (eventId != null &&
               eventsUsingImportedChildren.contains(sourceEventId)) {
-            await _insert('weather', {...row, 'eventID': eventId});
+            await _insert('environment', {...row, 'eventID': eventId});
+          }
+        }
+        for (final sourceEventId in eventsUsingImportedChildren) {
+          final targetEventId = eventMap[sourceEventId];
+          if (targetEventId == null) continue;
+          final hasEnvironment = plan.payload
+              .rows('environment')
+              .any((row) => row['eventID'] == sourceEventId);
+          if (!hasEnvironment) {
+            await _insert('environment', {'eventID': targetEventId});
           }
         }
         for (final row in plan.payload.rows('collPersonnel')) {
@@ -1138,6 +1181,7 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'arthropodAttribute',
+      'fossilAttribute',
     ]) {
       for (final row in payload.rows(table)) {
         final sourceUuid = row['specimenUuid'] as String?;
@@ -1610,6 +1654,7 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'arthropodAttribute',
+      'fossilAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -1631,6 +1676,18 @@ class ProjectTransferService extends AppServices {
     for (final row in records['coordinate'] ?? const []) {
       if (!siteIds.contains(row['siteID'])) {
         throw const FormatException('A coordinate has an unresolved site.');
+      }
+    }
+    for (final row in records['siteAttribute'] ?? const []) {
+      if (!siteIds.contains(row['siteID'])) {
+        throw const FormatException('A site attribute has an unresolved site.');
+      }
+    }
+    for (final row in records['environment'] ?? const []) {
+      if (!eventIds.contains(row['eventID'])) {
+        throw const FormatException(
+          'Environmental data has an unresolved event.',
+        );
       }
     }
     for (final row in records['collEvent'] ?? const []) {
@@ -1658,6 +1715,7 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'arthropodAttribute',
+      'fossilAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',

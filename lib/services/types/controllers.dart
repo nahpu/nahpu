@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
+import 'package:nahpu/services/types/arthropods.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/coordinate_input.dart';
 import 'package:nahpu/services/common/utility_services.dart';
@@ -158,6 +159,7 @@ class SiteFormCtrModel {
     required this.leadStaffCtr,
     required this.siteTypeCtr,
     required this.countryCtr,
+    required this.islandGroupCtr,
     required this.stateProvinceCtr,
     required this.countyCtr,
     required this.municipalityCtr,
@@ -166,11 +168,13 @@ class SiteFormCtrModel {
     required this.habitatTypeCtr,
     required this.habitatDescriptionCtr,
     required this.habitatConditionCtr,
+    required this.canopyCoverCtr,
   });
   TextEditingController siteIDCtr;
   String? leadStaffCtr;
   String? siteTypeCtr;
   TextEditingController countryCtr;
+  TextEditingController islandGroupCtr;
   TextEditingController stateProvinceCtr;
   TextEditingController countyCtr;
   TextEditingController municipalityCtr;
@@ -179,12 +183,14 @@ class SiteFormCtrModel {
   TextEditingController habitatTypeCtr;
   TextEditingController habitatDescriptionCtr;
   TextEditingController habitatConditionCtr;
+  TextEditingController canopyCoverCtr;
 
   factory SiteFormCtrModel.empty() => SiteFormCtrModel(
     siteIDCtr: TextEditingController(),
     leadStaffCtr: null,
     siteTypeCtr: null,
     countryCtr: TextEditingController(),
+    islandGroupCtr: TextEditingController(),
     stateProvinceCtr: TextEditingController(),
     countyCtr: TextEditingController(),
     municipalityCtr: TextEditingController(),
@@ -193,26 +199,37 @@ class SiteFormCtrModel {
     habitatTypeCtr: TextEditingController(),
     habitatDescriptionCtr: TextEditingController(),
     habitatConditionCtr: TextEditingController(),
+    canopyCoverCtr: TextEditingController(),
   );
 
-  factory SiteFormCtrModel.fromData(SiteData site) => SiteFormCtrModel(
+  factory SiteFormCtrModel.fromData(
+    SiteData site,
+    SiteAttributeData? attribute,
+  ) => SiteFormCtrModel(
     siteIDCtr: TextEditingController(text: site.siteID),
     leadStaffCtr: site.leadStaffId,
     siteTypeCtr: site.siteType,
     countryCtr: TextEditingController(text: site.country),
+    islandGroupCtr: TextEditingController(text: site.islandGroup),
     stateProvinceCtr: TextEditingController(text: site.stateProvince),
     countyCtr: TextEditingController(text: site.county),
     municipalityCtr: TextEditingController(text: site.municipality),
     localityCtr: TextEditingController(text: site.locality),
     remarkCtr: TextEditingController(text: site.remark),
-    habitatTypeCtr: TextEditingController(text: site.habitatType),
-    habitatDescriptionCtr: TextEditingController(text: site.habitatDescription),
-    habitatConditionCtr: TextEditingController(text: site.habitatCondition),
+    habitatTypeCtr: TextEditingController(text: attribute?.habitatType),
+    habitatDescriptionCtr: TextEditingController(
+      text: attribute?.habitatDescription,
+    ),
+    habitatConditionCtr: TextEditingController(
+      text: attribute?.habitatCondition,
+    ),
+    canopyCoverCtr: TextEditingController(text: attribute?.canopyCover),
   );
 
   void dispose() {
     siteIDCtr.dispose();
     countryCtr.dispose();
+    islandGroupCtr.dispose();
     stateProvinceCtr.dispose();
     countyCtr.dispose();
     municipalityCtr.dispose();
@@ -221,6 +238,7 @@ class SiteFormCtrModel {
     habitatTypeCtr.dispose();
     habitatDescriptionCtr.dispose();
     habitatConditionCtr.dispose();
+    canopyCoverCtr.dispose();
   }
 }
 
@@ -350,7 +368,7 @@ class SpecimenFormCtrModel {
   int? relativeTimeCtr;
   int? coordinateCtr;
   TextEditingController coordinateExtentCtr;
-  TextEditingController idMethodCtr;
+  String? idMethodCtr;
   TextEditingController museumIDCtr;
   TextEditingController persFieldNumberCtr;
   TextEditingController projFieldNumberCtr;
@@ -380,7 +398,7 @@ class SpecimenFormCtrModel {
     projFieldNumberCtr: TextEditingController(),
     speciesCtr: null,
     idConfidenceCtr: null,
-    idMethodCtr: TextEditingController(),
+    idMethodCtr: null,
     museumIDCtr: TextEditingController(),
     prepDateCtr: DateEditingController(),
     prepTimeCtr: TimeEditingController(),
@@ -409,7 +427,7 @@ class SpecimenFormCtrModel {
           text: specimen.coordinateExtentMeters?.truncateZero(),
         ),
         idConfidenceCtr: specimen.iDConfidence,
-        idMethodCtr: TextEditingController(text: specimen.iDMethod ?? ''),
+        idMethodCtr: specimen.iDMethod,
         museumIDCtr: TextEditingController(text: specimen.museumID ?? ''),
         persFieldNumberCtr: TextEditingController(
           text: specimen.fieldNumber?.toString() ?? '',
@@ -435,7 +453,6 @@ class SpecimenFormCtrModel {
 
   void dispose() {
     museumIDCtr.dispose();
-    idMethodCtr.dispose();
     persFieldNumberCtr.dispose();
     projFieldNumberCtr.dispose();
     prepDateCtr.dispose();
@@ -468,7 +485,7 @@ class MammalAttributeCtrModel {
     required this.weightUnitCtr,
     required this.accuracyCtr,
     required this.sexCtr,
-    required this.ageCtr,
+    required this.lifeStageCtr,
     required this.testisPosCtr,
     required this.testisLengthCtr,
     required this.testisWidthCtr,
@@ -505,7 +522,7 @@ class MammalAttributeCtrModel {
   String weightUnitCtr;
   MammalAccuracyDetails accuracyCtr;
   int? sexCtr;
-  int? ageCtr;
+  String? lifeStageCtr;
   int? testisPosCtr;
   TextEditingController testisLengthCtr;
   TextEditingController testisWidthCtr;
@@ -542,7 +559,7 @@ class MammalAttributeCtrModel {
     weightUnitCtr: 'g',
     accuracyCtr: MammalAccuracyDetails(status: MammalAccuracyStatus.accurate),
     sexCtr: null,
-    ageCtr: null,
+    lifeStageCtr: null,
     testisPosCtr: null,
     testisLengthCtr: TextEditingController(),
     testisWidthCtr: TextEditingController(),
@@ -601,7 +618,7 @@ class MammalAttributeCtrModel {
       includeBatFields: includeBatFields,
     ),
     sexCtr: data.sex,
-    ageCtr: data.age,
+    lifeStageCtr: data.lifeStage,
     testisPosCtr: data.testisPosition,
     testisLengthCtr: TextEditingController(
       text: data.testisLength?.truncateZero() ?? '',
@@ -700,6 +717,7 @@ class BirdAttributeCtrModel {
     required this.toeCtr,
     required this.tarsusCtr,
     required this.sexCtr,
+    required this.lifeStageCtr,
     required this.broodPatchCtr,
     required this.skullOssCtr,
     required this.hasBursaCtr,
@@ -739,6 +757,7 @@ class BirdAttributeCtrModel {
   TextEditingController toeCtr;
   TextEditingController tarsusCtr;
   int? sexCtr;
+  String? lifeStageCtr;
   int? broodPatchCtr;
   int? skullOssCtr;
   TextEditingController bursaLengthCtr;
@@ -778,6 +797,7 @@ class BirdAttributeCtrModel {
     toeCtr: TextEditingController(),
     tarsusCtr: TextEditingController(),
     sexCtr: null,
+    lifeStageCtr: null,
     broodPatchCtr: null,
     skullOssCtr: null,
     hasBursaCtr: null,
@@ -820,6 +840,7 @@ class BirdAttributeCtrModel {
     toeCtr: TextEditingController(text: data.toeColor ?? ''),
     tarsusCtr: TextEditingController(text: data.tarsusColor ?? ''),
     sexCtr: data.sex,
+    lifeStageCtr: data.lifeStage,
     broodPatchCtr: data.broodPatch,
     skullOssCtr: data.skullOssification,
     hasBursaCtr: data.hasBursa,
@@ -917,7 +938,7 @@ class BirdAttributeCtrModel {
 class HerpAttributeCtrModel {
   HerpAttributeCtrModel({
     required this.sexCtr,
-    required this.ageCtr,
+    required this.lifeStageCtr,
     required this.weightCtr,
     required this.weightUnitCtr,
     required this.svlCtr,
@@ -925,7 +946,7 @@ class HerpAttributeCtrModel {
   });
 
   int? sexCtr;
-  int? ageCtr;
+  String? lifeStageCtr;
   TextEditingController weightCtr;
   String weightUnitCtr;
   TextEditingController svlCtr;
@@ -933,7 +954,7 @@ class HerpAttributeCtrModel {
 
   factory HerpAttributeCtrModel.empty() => HerpAttributeCtrModel(
     sexCtr: null,
-    ageCtr: null,
+    lifeStageCtr: null,
     weightCtr: TextEditingController(),
     weightUnitCtr: 'g',
     svlCtr: TextEditingController(),
@@ -943,7 +964,7 @@ class HerpAttributeCtrModel {
   factory HerpAttributeCtrModel.fromData(HerpAttributeData data) =>
       HerpAttributeCtrModel(
         sexCtr: data.sex,
-        ageCtr: data.age,
+        lifeStageCtr: data.lifeStage,
         weightCtr: TextEditingController(
           text: data.weight?.truncateZero() ?? '',
         ),
@@ -970,16 +991,10 @@ class ArthropodAttributeCtrModel {
     required this.wingspanUpperCtr,
     required this.wingspanLowerCtr,
     required this.sexCtr,
+    required this.lifeStageCtr,
+    required this.casteCtr,
     required this.hostOrganismCtr,
     required this.hostPartCtr,
-    required this.canopyAffinityCtr,
-    required this.canopyCoverCtr,
-    required this.ambientTemperatureCtr,
-    required this.ambientHumidityCtr,
-    required this.waterTemperatureCtr,
-    required this.pHCtr,
-    required this.dissolvedOxygenCtr,
-    required this.flowVelocityCtr,
     required this.remarkCtr,
   });
 
@@ -988,16 +1003,10 @@ class ArthropodAttributeCtrModel {
   TextEditingController wingspanUpperCtr;
   TextEditingController wingspanLowerCtr;
   int? sexCtr;
+  String? lifeStageCtr;
+  int? casteCtr;
   TextEditingController hostOrganismCtr;
   TextEditingController hostPartCtr;
-  TextEditingController canopyAffinityCtr;
-  TextEditingController canopyCoverCtr;
-  TextEditingController ambientTemperatureCtr;
-  TextEditingController ambientHumidityCtr;
-  TextEditingController waterTemperatureCtr;
-  TextEditingController pHCtr;
-  TextEditingController dissolvedOxygenCtr;
-  TextEditingController flowVelocityCtr;
   TextEditingController remarkCtr;
 
   bool get hasMorphometricData =>
@@ -1012,16 +1021,10 @@ class ArthropodAttributeCtrModel {
     wingspanUpperCtr: TextEditingController(),
     wingspanLowerCtr: TextEditingController(),
     sexCtr: null,
+    lifeStageCtr: null,
+    casteCtr: null,
     hostOrganismCtr: TextEditingController(),
     hostPartCtr: TextEditingController(),
-    canopyAffinityCtr: TextEditingController(),
-    canopyCoverCtr: TextEditingController(),
-    ambientTemperatureCtr: TextEditingController(),
-    ambientHumidityCtr: TextEditingController(),
-    waterTemperatureCtr: TextEditingController(),
-    pHCtr: TextEditingController(),
-    dissolvedOxygenCtr: TextEditingController(),
-    flowVelocityCtr: TextEditingController(),
     remarkCtr: TextEditingController(),
   );
 
@@ -1040,28 +1043,15 @@ class ArthropodAttributeCtrModel {
           text: data.wingspanLower?.truncateZero() ?? '',
         ),
         sexCtr: data.sex,
+        lifeStageCtr: data.lifeStage,
+        casteCtr:
+            data.caste != null &&
+                data.caste! >= 0 &&
+                data.caste! < arthropodCasteList.length
+            ? data.caste
+            : null,
         hostOrganismCtr: TextEditingController(text: data.hostOrganism ?? ''),
         hostPartCtr: TextEditingController(text: data.hostPart ?? ''),
-        canopyAffinityCtr: TextEditingController(
-          text: data.canopyAffinity ?? '',
-        ),
-        canopyCoverCtr: TextEditingController(text: data.canopyCover ?? ''),
-        ambientTemperatureCtr: TextEditingController(
-          text: data.ambientTemperature?.truncateZero() ?? '',
-        ),
-        ambientHumidityCtr: TextEditingController(
-          text: data.ambientHumidity?.truncateZero() ?? '',
-        ),
-        waterTemperatureCtr: TextEditingController(
-          text: data.waterTemperature?.truncateZero() ?? '',
-        ),
-        pHCtr: TextEditingController(text: data.pH?.truncateZero() ?? ''),
-        dissolvedOxygenCtr: TextEditingController(
-          text: data.dissolvedOxygen?.truncateZero() ?? '',
-        ),
-        flowVelocityCtr: TextEditingController(
-          text: data.flowVelocity?.truncateZero() ?? '',
-        ),
         remarkCtr: TextEditingController(text: data.remark ?? ''),
       );
 
@@ -1072,14 +1062,6 @@ class ArthropodAttributeCtrModel {
     wingspanLowerCtr.dispose();
     hostOrganismCtr.dispose();
     hostPartCtr.dispose();
-    canopyAffinityCtr.dispose();
-    canopyCoverCtr.dispose();
-    ambientTemperatureCtr.dispose();
-    ambientHumidityCtr.dispose();
-    waterTemperatureCtr.dispose();
-    pHCtr.dispose();
-    dissolvedOxygenCtr.dispose();
-    flowVelocityCtr.dispose();
     remarkCtr.dispose();
   }
 }
@@ -1750,8 +1732,8 @@ class EventPersonnelCtrModel {
       );
 }
 
-class CollWeatherCtrModel {
-  CollWeatherCtrModel({
+class CollEnvironmentCtrModel {
+  CollEnvironmentCtrModel({
     required this.lowestDayTempCtr,
     required this.highestDayTempCtr,
     required this.lowestNightTempCtr,
@@ -1761,6 +1743,14 @@ class CollWeatherCtrModel {
     required this.sunriseTimeCtr,
     required this.sunsetTimeCtr,
     required this.moonPhaseCtr,
+    required this.cloudCoverCtr,
+    required this.rainfallInMmCtr,
+    required this.ambientTemperatureCtr,
+    required this.ambientHumidityCtr,
+    required this.waterTemperatureCtr,
+    required this.pHCtr,
+    required this.dissolvedOxygenCtr,
+    required this.flowVelocityCtr,
     required this.noteCtr,
   });
 
@@ -1774,35 +1764,64 @@ class CollWeatherCtrModel {
   TextEditingController sunsetTimeCtr;
   TextEditingController noteCtr;
   String? moonPhaseCtr;
+  String? cloudCoverCtr;
+  TextEditingController rainfallInMmCtr;
+  TextEditingController ambientTemperatureCtr;
+  TextEditingController ambientHumidityCtr;
+  TextEditingController waterTemperatureCtr;
+  TextEditingController pHCtr;
+  TextEditingController dissolvedOxygenCtr;
+  TextEditingController flowVelocityCtr;
 
-  factory CollWeatherCtrModel.fromData(WeatherData data) => CollWeatherCtrModel(
-    lowestDayTempCtr: TextEditingController(
-      text: data.lowestDayTempC?.toString() ?? '',
-    ),
-    highestDayTempCtr: TextEditingController(
-      text: data.highestDayTempC?.toString() ?? '',
-    ),
-    lowestNightTempCtr: TextEditingController(
-      text: data.lowestNightTempC?.toString() ?? '',
-    ),
-    highestNightTempCtr: TextEditingController(
-      text: data.highestNightTempC?.toString() ?? '',
-    ),
-    averageHumidityCtr: TextEditingController(
-      text: data.averageHumidity?.toString() ?? '',
-    ),
-    dewPointCtr: TextEditingController(
-      text: data.dewPointTemp?.toString() ?? '',
-    ),
-    sunriseTimeCtr: TextEditingController(
-      text: data.sunriseTime?.toString() ?? '',
-    ),
-    sunsetTimeCtr: TextEditingController(
-      text: data.sunsetTime?.toString() ?? '',
-    ),
-    moonPhaseCtr: data.moonPhase,
-    noteCtr: TextEditingController(text: data.notes ?? ''),
-  );
+  factory CollEnvironmentCtrModel.fromData(EnvironmentData data) =>
+      CollEnvironmentCtrModel(
+        lowestDayTempCtr: TextEditingController(
+          text: data.lowestDayTempC?.toString() ?? '',
+        ),
+        highestDayTempCtr: TextEditingController(
+          text: data.highestDayTempC?.toString() ?? '',
+        ),
+        lowestNightTempCtr: TextEditingController(
+          text: data.lowestNightTempC?.toString() ?? '',
+        ),
+        highestNightTempCtr: TextEditingController(
+          text: data.highestNightTempC?.toString() ?? '',
+        ),
+        averageHumidityCtr: TextEditingController(
+          text: data.averageHumidity?.toString() ?? '',
+        ),
+        dewPointCtr: TextEditingController(
+          text: data.dewPointTemp?.toString() ?? '',
+        ),
+        sunriseTimeCtr: TextEditingController(
+          text: data.sunriseTime?.toString() ?? '',
+        ),
+        sunsetTimeCtr: TextEditingController(
+          text: data.sunsetTime?.toString() ?? '',
+        ),
+        moonPhaseCtr: data.moonPhase,
+        cloudCoverCtr: data.cloudCover,
+        rainfallInMmCtr: TextEditingController(
+          text: data.rainfallInMm?.toString() ?? '',
+        ),
+        ambientTemperatureCtr: TextEditingController(
+          text: data.ambientTemperature?.toString() ?? '',
+        ),
+        ambientHumidityCtr: TextEditingController(
+          text: data.ambientHumidity?.toString() ?? '',
+        ),
+        waterTemperatureCtr: TextEditingController(
+          text: data.waterTemperature?.toString() ?? '',
+        ),
+        pHCtr: TextEditingController(text: data.pH?.toString() ?? ''),
+        dissolvedOxygenCtr: TextEditingController(
+          text: data.dissolvedOxygen?.toString() ?? '',
+        ),
+        flowVelocityCtr: TextEditingController(
+          text: data.flowVelocity?.toString() ?? '',
+        ),
+        noteCtr: TextEditingController(text: data.notes ?? ''),
+      );
 
   void dispose() {
     lowestDayTempCtr.dispose();
@@ -1813,6 +1832,13 @@ class CollWeatherCtrModel {
     dewPointCtr.dispose();
     sunriseTimeCtr.dispose();
     sunsetTimeCtr.dispose();
+    rainfallInMmCtr.dispose();
+    ambientTemperatureCtr.dispose();
+    ambientHumidityCtr.dispose();
+    waterTemperatureCtr.dispose();
+    pHCtr.dispose();
+    dissolvedOxygenCtr.dispose();
+    flowVelocityCtr.dispose();
     noteCtr.dispose();
   }
 }

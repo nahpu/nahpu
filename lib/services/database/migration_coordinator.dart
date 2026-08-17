@@ -26,6 +26,7 @@ class _MigrationCoordinator {
       15: (m) => _Version16Migration(db).upgrade(m),
       16: (m) => _Version17Migration(db).upgrade(m),
       17: (m) => _Version18Migration(db).upgrade(m),
+      18: (m) => _Version19Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -37,6 +38,396 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version19Migration {
+  const _Version19Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await _migrateSite(migrator);
+    await _migrateEnvironment();
+    await _migrateMammalAttributes(migrator);
+    await _migrateBirdAttributes(migrator);
+    await _migrateHerpAttributes(migrator);
+    await _migrateArthropodAttributes(migrator);
+    await _migrateFossilAttributes(migrator);
+    await _validate();
+  }
+
+  Future<void> _migrateSite(Migrator migrator) async {
+    await db.customStatement('PRAGMA legacy_alter_table = ON');
+    try {
+      await db.customStatement('ALTER TABLE site RENAME TO siteV18');
+      await migrator.createTable(db.site);
+      await db.customStatement('''
+        INSERT INTO site (
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          country,
+          stateProvince,
+          county,
+          municipality,
+          mediaID,
+          locality,
+          remark
+        )
+        SELECT
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          country,
+          stateProvince,
+          county,
+          municipality,
+          mediaID,
+          locality,
+          remark
+        FROM siteV18
+      ''');
+      await migrator.createTable(db.siteAttribute);
+      await db.customStatement('''
+        INSERT INTO siteAttribute (
+          siteID,
+          habitatType,
+          habitatCondition,
+          habitatDescription,
+          canopyCover
+        )
+        SELECT
+          id,
+          habitatType,
+          habitatCondition,
+          habitatDescription,
+          NULL
+        FROM siteV18
+      ''');
+      await db.customStatement('DROP TABLE siteV18');
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
+      );
+    } finally {
+      await db.customStatement('PRAGMA legacy_alter_table = OFF');
+    }
+  }
+
+  Future<void> _migrateEnvironment() async {
+    if (await db._tableExists('weather')) {
+      await db.customStatement('ALTER TABLE weather RENAME TO environment');
+    } else {
+      await db._requireTable('environment');
+    }
+    final columns = await _columnNames('environment');
+    for (final definition in const [
+      'cloudCover TEXT',
+      'rainfallInMm REAL',
+      'ambientTemperature REAL',
+      'ambientHumidity REAL',
+      'waterTemperature REAL',
+      'pH REAL',
+      'dissolvedOxygen REAL',
+      'flowVelocity REAL',
+    ]) {
+      final name = definition.split(' ').first;
+      if (!columns.contains(name)) {
+        await db.customStatement(
+          'ALTER TABLE environment ADD COLUMN $definition',
+        );
+      }
+    }
+  }
+
+  Future<void> _migrateMammalAttributes(Migrator migrator) async {
+    final columns = await _columnNames('mammalAttribute');
+    final lifeStageExpression = columns.contains('age')
+        ? '''CASE age
+          WHEN 0 THEN 'Adult'
+          WHEN 1 THEN 'Subadult'
+          WHEN 2 THEN 'Juvenile'
+          WHEN 3 THEN 'Unknown'
+          ELSE NULL
+        END'''
+        : columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE mammalAttribute RENAME TO mammalAttributeV18',
+    );
+    await migrator.createTable(db.mammalAttribute);
+    await db.customStatement('''
+      INSERT INTO mammalAttribute (
+        specimenUuid,
+        showBatFields,
+        totalLength,
+        tailLength,
+        hindFootLength,
+        earLength,
+        forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
+        weight,
+        weightUnit,
+        accuracy,
+        accuracySpecify,
+        sex,
+        lifeStage,
+        testisPosition,
+        testisLength,
+        testisWidth,
+        epididymisAppearance,
+        reproductiveStage,
+        leftPlacentalScars,
+        rightPlacentalScars,
+        mammaeCondition,
+        mammaeInguinalCount,
+        mammaeAxillaryCount,
+        mammaeAbdominalCount,
+        vaginaOpening,
+        pubicSymphysis,
+        embryoLeftCount,
+        embryoRightCount,
+        embryoCR,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        showBatFields,
+        totalLength,
+        tailLength,
+        hindFootLength,
+        earLength,
+        forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
+        weight,
+        weightUnit,
+        accuracy,
+        accuracySpecify,
+        sex,
+        $lifeStageExpression,
+        testisPosition,
+        testisLength,
+        testisWidth,
+        epididymisAppearance,
+        reproductiveStage,
+        leftPlacentalScars,
+        rightPlacentalScars,
+        mammaeCondition,
+        mammaeInguinalCount,
+        mammaeAxillaryCount,
+        mammaeAbdominalCount,
+        vaginaOpening,
+        pubicSymphysis,
+        embryoLeftCount,
+        embryoRightCount,
+        embryoCR,
+        remark
+      FROM mammalAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE mammalAttributeV18');
+  }
+
+  Future<void> _migrateBirdAttributes(Migrator migrator) async {
+    if (!(await _columnNames('birdAttribute')).contains('lifeStage')) {
+      await migrator.addColumn(db.birdAttribute, db.birdAttribute.lifeStage);
+    }
+  }
+
+  Future<void> _migrateHerpAttributes(Migrator migrator) async {
+    final columns = await _columnNames('herpAttribute');
+    final lifeStageExpression = columns.contains('age')
+        ? '''CASE age
+          WHEN 0 THEN 'Adult'
+          WHEN 1 THEN 'Juvenile'
+          WHEN 2 THEN 'Neonate'
+          WHEN 3 THEN 'Metamorph'
+          WHEN 4 THEN 'Unknown'
+          ELSE NULL
+        END'''
+        : columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE herpAttribute RENAME TO herpAttributeV18',
+    );
+    await migrator.createTable(db.herpAttribute);
+    await db.customStatement('''
+      INSERT INTO herpAttribute (
+        specimenUuid,
+        sex,
+        lifeStage,
+        weight,
+        weightUnit,
+        svl,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        sex,
+        $lifeStageExpression,
+        weight,
+        weightUnit,
+        svl,
+        remark
+      FROM herpAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE herpAttributeV18');
+  }
+
+  Future<void> _migrateArthropodAttributes(Migrator migrator) async {
+    final columns = await _columnNames('arthropodAttribute');
+    final lifeStageExpression = columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    final casteExpression = columns.contains('caste') ? 'caste' : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE arthropodAttribute RENAME TO arthropodAttributeV18',
+    );
+    await migrator.createTable(db.arthropodAttribute);
+    await db.customStatement('''
+      INSERT INTO arthropodAttribute (
+        specimenUuid,
+        headWidth,
+        bodyLength,
+        wingspanUpper,
+        wingspanLower,
+        sex,
+        hostOrganism,
+        hostPart,
+        lifeStage,
+        caste,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        headWidth,
+        bodyLength,
+        wingspanUpper,
+        wingspanLower,
+        sex,
+        hostOrganism,
+        hostPart,
+        $lifeStageExpression,
+        $casteExpression,
+        remark
+      FROM arthropodAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE arthropodAttributeV18');
+  }
+
+  Future<void> _migrateFossilAttributes(Migrator migrator) async {
+    final columns = await _columnNames('fossilAttribute');
+    for (final column in [
+      db.fossilAttribute.sex,
+      db.fossilAttribute.ontogeneticStage,
+      db.fossilAttribute.weight,
+      db.fossilAttribute.weightUnit,
+      db.fossilAttribute.remark,
+    ]) {
+      if (!columns.contains(column.name)) {
+        await migrator.addColumn(db.fossilAttribute, column);
+      }
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    for (final table in const [
+      'siteAttribute',
+      'environment',
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+      'arthropodAttribute',
+      'fossilAttribute',
+    ]) {
+      await db._requireTable(table);
+    }
+    if (await db._tableExists('weather')) {
+      throw StateError('Database migration retained the weather table.');
+    }
+
+    final expectedColumns = {
+      'site': {'islandGroup'},
+      'siteAttribute': {
+        'siteID',
+        'habitatType',
+        'habitatCondition',
+        'habitatDescription',
+        'canopyCover',
+      },
+      'environment': {
+        'cloudCover',
+        'rainfallInMm',
+        'ambientTemperature',
+        'ambientHumidity',
+        'waterTemperature',
+        'pH',
+        'dissolvedOxygen',
+        'flowVelocity',
+      },
+      'mammalAttribute': {'lifeStage'},
+      'birdAttribute': {'lifeStage'},
+      'herpAttribute': {'lifeStage'},
+      'arthropodAttribute': {'lifeStage', 'caste'},
+      'fossilAttribute': {
+        'sex',
+        'ontogeneticStage',
+        'weight',
+        'weightUnit',
+        'remark',
+      },
+    };
+    for (final entry in expectedColumns.entries) {
+      final columns = await db
+          .customSelect('PRAGMA table_info(${entry.key})', readsFrom: const {})
+          .get();
+      final names = columns.map((row) => row.read<String>('name')).toSet();
+      if (!names.containsAll(entry.value)) {
+        throw StateError(
+          'Database migration did not add the v19 columns to ${entry.key}.',
+        );
+      }
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v19 migration.');
     }
   }
 }

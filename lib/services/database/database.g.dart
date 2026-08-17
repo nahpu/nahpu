@@ -2431,6 +2431,17 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _islandGroupMeta = const VerificationMeta(
+    'islandGroup',
+  );
+  late final GeneratedColumn<String> islandGroup = GeneratedColumn<String>(
+    'islandGroup',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _stateProvinceMeta = const VerificationMeta(
     'stateProvince',
   );
@@ -2493,39 +2504,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _habitatTypeMeta = const VerificationMeta(
-    'habitatType',
-  );
-  late final GeneratedColumn<String> habitatType = GeneratedColumn<String>(
-    'habitatType',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _habitatConditionMeta = const VerificationMeta(
-    'habitatCondition',
-  );
-  late final GeneratedColumn<String> habitatCondition = GeneratedColumn<String>(
-    'habitatCondition',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _habitatDescriptionMeta =
-      const VerificationMeta('habitatDescription');
-  late final GeneratedColumn<String> habitatDescription =
-      GeneratedColumn<String>(
-        'habitatDescription',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2534,15 +2512,13 @@ class Site extends Table with TableInfo<Site, SiteData> {
     leadStaffId,
     siteType,
     country,
+    islandGroup,
     stateProvince,
     county,
     municipality,
     mediaID,
     locality,
     remark,
-    habitatType,
-    habitatCondition,
-    habitatDescription,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2595,6 +2571,15 @@ class Site extends Table with TableInfo<Site, SiteData> {
         country.isAcceptableOrUnknown(data['country']!, _countryMeta),
       );
     }
+    if (data.containsKey('islandGroup')) {
+      context.handle(
+        _islandGroupMeta,
+        islandGroup.isAcceptableOrUnknown(
+          data['islandGroup']!,
+          _islandGroupMeta,
+        ),
+      );
+    }
     if (data.containsKey('stateProvince')) {
       context.handle(
         _stateProvinceMeta,
@@ -2637,33 +2622,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
         remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
       );
     }
-    if (data.containsKey('habitatType')) {
-      context.handle(
-        _habitatTypeMeta,
-        habitatType.isAcceptableOrUnknown(
-          data['habitatType']!,
-          _habitatTypeMeta,
-        ),
-      );
-    }
-    if (data.containsKey('habitatCondition')) {
-      context.handle(
-        _habitatConditionMeta,
-        habitatCondition.isAcceptableOrUnknown(
-          data['habitatCondition']!,
-          _habitatConditionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('habitatDescription')) {
-      context.handle(
-        _habitatDescriptionMeta,
-        habitatDescription.isAcceptableOrUnknown(
-          data['habitatDescription']!,
-          _habitatDescriptionMeta,
-        ),
-      );
-    }
     return context;
   }
 
@@ -2697,6 +2655,10 @@ class Site extends Table with TableInfo<Site, SiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}country'],
       ),
+      islandGroup: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}islandGroup'],
+      ),
       stateProvince: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}stateProvince'],
@@ -2720,18 +2682,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}remark'],
-      ),
-      habitatType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatType'],
-      ),
-      habitatCondition: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatCondition'],
-      ),
-      habitatDescription: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatDescription'],
       ),
     );
   }
@@ -2757,6 +2707,7 @@ class SiteData extends DataClass implements Insertable<SiteData> {
   final String? leadStaffId;
   final String? siteType;
   final String? country;
+  final String? islandGroup;
   final String? stateProvince;
   final String? county;
   final String? municipality;
@@ -2765,9 +2716,6 @@ class SiteData extends DataClass implements Insertable<SiteData> {
 
   /// verbatim locality in DWC
   final String? remark;
-  final String? habitatType;
-  final String? habitatCondition;
-  final String? habitatDescription;
   const SiteData({
     required this.id,
     this.siteID,
@@ -2775,15 +2723,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     this.leadStaffId,
     this.siteType,
     this.country,
+    this.islandGroup,
     this.stateProvince,
     this.county,
     this.municipality,
     this.mediaID,
     this.locality,
     this.remark,
-    this.habitatType,
-    this.habitatCondition,
-    this.habitatDescription,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2804,6 +2750,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     if (!nullToAbsent || country != null) {
       map['country'] = Variable<String>(country);
     }
+    if (!nullToAbsent || islandGroup != null) {
+      map['islandGroup'] = Variable<String>(islandGroup);
+    }
     if (!nullToAbsent || stateProvince != null) {
       map['stateProvince'] = Variable<String>(stateProvince);
     }
@@ -2821,15 +2770,6 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
-    }
-    if (!nullToAbsent || habitatType != null) {
-      map['habitatType'] = Variable<String>(habitatType);
-    }
-    if (!nullToAbsent || habitatCondition != null) {
-      map['habitatCondition'] = Variable<String>(habitatCondition);
-    }
-    if (!nullToAbsent || habitatDescription != null) {
-      map['habitatDescription'] = Variable<String>(habitatDescription);
     }
     return map;
   }
@@ -2852,6 +2792,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       country: country == null && nullToAbsent
           ? const Value.absent()
           : Value(country),
+      islandGroup: islandGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(islandGroup),
       stateProvince: stateProvince == null && nullToAbsent
           ? const Value.absent()
           : Value(stateProvince),
@@ -2870,15 +2813,6 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
-      habitatType: habitatType == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatType),
-      habitatCondition: habitatCondition == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatCondition),
-      habitatDescription: habitatDescription == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatDescription),
     );
   }
 
@@ -2894,17 +2828,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       leadStaffId: serializer.fromJson<String?>(json['leadStaffId']),
       siteType: serializer.fromJson<String?>(json['siteType']),
       country: serializer.fromJson<String?>(json['country']),
+      islandGroup: serializer.fromJson<String?>(json['islandGroup']),
       stateProvince: serializer.fromJson<String?>(json['stateProvince']),
       county: serializer.fromJson<String?>(json['county']),
       municipality: serializer.fromJson<String?>(json['municipality']),
       mediaID: serializer.fromJson<String?>(json['mediaID']),
       locality: serializer.fromJson<String?>(json['locality']),
       remark: serializer.fromJson<String?>(json['remark']),
-      habitatType: serializer.fromJson<String?>(json['habitatType']),
-      habitatCondition: serializer.fromJson<String?>(json['habitatCondition']),
-      habitatDescription: serializer.fromJson<String?>(
-        json['habitatDescription'],
-      ),
     );
   }
   @override
@@ -2917,15 +2847,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       'leadStaffId': serializer.toJson<String?>(leadStaffId),
       'siteType': serializer.toJson<String?>(siteType),
       'country': serializer.toJson<String?>(country),
+      'islandGroup': serializer.toJson<String?>(islandGroup),
       'stateProvince': serializer.toJson<String?>(stateProvince),
       'county': serializer.toJson<String?>(county),
       'municipality': serializer.toJson<String?>(municipality),
       'mediaID': serializer.toJson<String?>(mediaID),
       'locality': serializer.toJson<String?>(locality),
       'remark': serializer.toJson<String?>(remark),
-      'habitatType': serializer.toJson<String?>(habitatType),
-      'habitatCondition': serializer.toJson<String?>(habitatCondition),
-      'habitatDescription': serializer.toJson<String?>(habitatDescription),
     };
   }
 
@@ -2936,15 +2864,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     Value<String?> leadStaffId = const Value.absent(),
     Value<String?> siteType = const Value.absent(),
     Value<String?> country = const Value.absent(),
+    Value<String?> islandGroup = const Value.absent(),
     Value<String?> stateProvince = const Value.absent(),
     Value<String?> county = const Value.absent(),
     Value<String?> municipality = const Value.absent(),
     Value<String?> mediaID = const Value.absent(),
     Value<String?> locality = const Value.absent(),
     Value<String?> remark = const Value.absent(),
-    Value<String?> habitatType = const Value.absent(),
-    Value<String?> habitatCondition = const Value.absent(),
-    Value<String?> habitatDescription = const Value.absent(),
   }) => SiteData(
     id: id ?? this.id,
     siteID: siteID.present ? siteID.value : this.siteID,
@@ -2952,6 +2878,7 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     leadStaffId: leadStaffId.present ? leadStaffId.value : this.leadStaffId,
     siteType: siteType.present ? siteType.value : this.siteType,
     country: country.present ? country.value : this.country,
+    islandGroup: islandGroup.present ? islandGroup.value : this.islandGroup,
     stateProvince: stateProvince.present
         ? stateProvince.value
         : this.stateProvince,
@@ -2960,13 +2887,6 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     mediaID: mediaID.present ? mediaID.value : this.mediaID,
     locality: locality.present ? locality.value : this.locality,
     remark: remark.present ? remark.value : this.remark,
-    habitatType: habitatType.present ? habitatType.value : this.habitatType,
-    habitatCondition: habitatCondition.present
-        ? habitatCondition.value
-        : this.habitatCondition,
-    habitatDescription: habitatDescription.present
-        ? habitatDescription.value
-        : this.habitatDescription,
   );
   SiteData copyWithCompanion(SiteCompanion data) {
     return SiteData(
@@ -2980,6 +2900,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           : this.leadStaffId,
       siteType: data.siteType.present ? data.siteType.value : this.siteType,
       country: data.country.present ? data.country.value : this.country,
+      islandGroup: data.islandGroup.present
+          ? data.islandGroup.value
+          : this.islandGroup,
       stateProvince: data.stateProvince.present
           ? data.stateProvince.value
           : this.stateProvince,
@@ -2990,15 +2913,6 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       mediaID: data.mediaID.present ? data.mediaID.value : this.mediaID,
       locality: data.locality.present ? data.locality.value : this.locality,
       remark: data.remark.present ? data.remark.value : this.remark,
-      habitatType: data.habitatType.present
-          ? data.habitatType.value
-          : this.habitatType,
-      habitatCondition: data.habitatCondition.present
-          ? data.habitatCondition.value
-          : this.habitatCondition,
-      habitatDescription: data.habitatDescription.present
-          ? data.habitatDescription.value
-          : this.habitatDescription,
     );
   }
 
@@ -3011,15 +2925,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
           ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
           ..write('stateProvince: $stateProvince, ')
           ..write('county: $county, ')
           ..write('municipality: $municipality, ')
           ..write('mediaID: $mediaID, ')
           ..write('locality: $locality, ')
-          ..write('remark: $remark, ')
-          ..write('habitatType: $habitatType, ')
-          ..write('habitatCondition: $habitatCondition, ')
-          ..write('habitatDescription: $habitatDescription')
+          ..write('remark: $remark')
           ..write(')'))
         .toString();
   }
@@ -3032,15 +2944,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     leadStaffId,
     siteType,
     country,
+    islandGroup,
     stateProvince,
     county,
     municipality,
     mediaID,
     locality,
     remark,
-    habitatType,
-    habitatCondition,
-    habitatDescription,
   );
   @override
   bool operator ==(Object other) =>
@@ -3052,15 +2962,13 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           other.leadStaffId == this.leadStaffId &&
           other.siteType == this.siteType &&
           other.country == this.country &&
+          other.islandGroup == this.islandGroup &&
           other.stateProvince == this.stateProvince &&
           other.county == this.county &&
           other.municipality == this.municipality &&
           other.mediaID == this.mediaID &&
           other.locality == this.locality &&
-          other.remark == this.remark &&
-          other.habitatType == this.habitatType &&
-          other.habitatCondition == this.habitatCondition &&
-          other.habitatDescription == this.habitatDescription);
+          other.remark == this.remark);
 }
 
 class SiteCompanion extends UpdateCompanion<SiteData> {
@@ -3070,15 +2978,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
   final Value<String?> leadStaffId;
   final Value<String?> siteType;
   final Value<String?> country;
+  final Value<String?> islandGroup;
   final Value<String?> stateProvince;
   final Value<String?> county;
   final Value<String?> municipality;
   final Value<String?> mediaID;
   final Value<String?> locality;
   final Value<String?> remark;
-  final Value<String?> habitatType;
-  final Value<String?> habitatCondition;
-  final Value<String?> habitatDescription;
   const SiteCompanion({
     this.id = const Value.absent(),
     this.siteID = const Value.absent(),
@@ -3086,15 +2992,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
     this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
     this.stateProvince = const Value.absent(),
     this.county = const Value.absent(),
     this.municipality = const Value.absent(),
     this.mediaID = const Value.absent(),
     this.locality = const Value.absent(),
     this.remark = const Value.absent(),
-    this.habitatType = const Value.absent(),
-    this.habitatCondition = const Value.absent(),
-    this.habitatDescription = const Value.absent(),
   });
   SiteCompanion.insert({
     this.id = const Value.absent(),
@@ -3103,15 +3007,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
     this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
     this.stateProvince = const Value.absent(),
     this.county = const Value.absent(),
     this.municipality = const Value.absent(),
     this.mediaID = const Value.absent(),
     this.locality = const Value.absent(),
     this.remark = const Value.absent(),
-    this.habitatType = const Value.absent(),
-    this.habitatCondition = const Value.absent(),
-    this.habitatDescription = const Value.absent(),
   });
   static Insertable<SiteData> custom({
     Expression<int>? id,
@@ -3120,15 +3022,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Expression<String>? leadStaffId,
     Expression<String>? siteType,
     Expression<String>? country,
+    Expression<String>? islandGroup,
     Expression<String>? stateProvince,
     Expression<String>? county,
     Expression<String>? municipality,
     Expression<String>? mediaID,
     Expression<String>? locality,
     Expression<String>? remark,
-    Expression<String>? habitatType,
-    Expression<String>? habitatCondition,
-    Expression<String>? habitatDescription,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3137,15 +3037,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       if (leadStaffId != null) 'leadStaffId': leadStaffId,
       if (siteType != null) 'siteType': siteType,
       if (country != null) 'country': country,
+      if (islandGroup != null) 'islandGroup': islandGroup,
       if (stateProvince != null) 'stateProvince': stateProvince,
       if (county != null) 'county': county,
       if (municipality != null) 'municipality': municipality,
       if (mediaID != null) 'mediaID': mediaID,
       if (locality != null) 'locality': locality,
       if (remark != null) 'remark': remark,
-      if (habitatType != null) 'habitatType': habitatType,
-      if (habitatCondition != null) 'habitatCondition': habitatCondition,
-      if (habitatDescription != null) 'habitatDescription': habitatDescription,
     });
   }
 
@@ -3156,15 +3054,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Value<String?>? leadStaffId,
     Value<String?>? siteType,
     Value<String?>? country,
+    Value<String?>? islandGroup,
     Value<String?>? stateProvince,
     Value<String?>? county,
     Value<String?>? municipality,
     Value<String?>? mediaID,
     Value<String?>? locality,
     Value<String?>? remark,
-    Value<String?>? habitatType,
-    Value<String?>? habitatCondition,
-    Value<String?>? habitatDescription,
   }) {
     return SiteCompanion(
       id: id ?? this.id,
@@ -3173,15 +3069,13 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       leadStaffId: leadStaffId ?? this.leadStaffId,
       siteType: siteType ?? this.siteType,
       country: country ?? this.country,
+      islandGroup: islandGroup ?? this.islandGroup,
       stateProvince: stateProvince ?? this.stateProvince,
       county: county ?? this.county,
       municipality: municipality ?? this.municipality,
       mediaID: mediaID ?? this.mediaID,
       locality: locality ?? this.locality,
       remark: remark ?? this.remark,
-      habitatType: habitatType ?? this.habitatType,
-      habitatCondition: habitatCondition ?? this.habitatCondition,
-      habitatDescription: habitatDescription ?? this.habitatDescription,
     );
   }
 
@@ -3206,6 +3100,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     if (country.present) {
       map['country'] = Variable<String>(country.value);
     }
+    if (islandGroup.present) {
+      map['islandGroup'] = Variable<String>(islandGroup.value);
+    }
     if (stateProvince.present) {
       map['stateProvince'] = Variable<String>(stateProvince.value);
     }
@@ -3224,15 +3121,6 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
     }
-    if (habitatType.present) {
-      map['habitatType'] = Variable<String>(habitatType.value);
-    }
-    if (habitatCondition.present) {
-      map['habitatCondition'] = Variable<String>(habitatCondition.value);
-    }
-    if (habitatDescription.present) {
-      map['habitatDescription'] = Variable<String>(habitatDescription.value);
-    }
     return map;
   }
 
@@ -3245,15 +3133,424 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
           ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
           ..write('stateProvince: $stateProvince, ')
           ..write('county: $county, ')
           ..write('municipality: $municipality, ')
           ..write('mediaID: $mediaID, ')
           ..write('locality: $locality, ')
-          ..write('remark: $remark, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SiteAttribute extends Table
+    with TableInfo<SiteAttribute, SiteAttributeData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SiteAttribute(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _siteIDMeta = const VerificationMeta('siteID');
+  late final GeneratedColumn<int> siteID = GeneratedColumn<int>(
+    'siteID',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatTypeMeta = const VerificationMeta(
+    'habitatType',
+  );
+  late final GeneratedColumn<String> habitatType = GeneratedColumn<String>(
+    'habitatType',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatConditionMeta = const VerificationMeta(
+    'habitatCondition',
+  );
+  late final GeneratedColumn<String> habitatCondition = GeneratedColumn<String>(
+    'habitatCondition',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatDescriptionMeta =
+      const VerificationMeta('habitatDescription');
+  late final GeneratedColumn<String> habitatDescription =
+      GeneratedColumn<String>(
+        'habitatDescription',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _canopyCoverMeta = const VerificationMeta(
+    'canopyCover',
+  );
+  late final GeneratedColumn<String> canopyCover = GeneratedColumn<String>(
+    'canopyCover',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    siteID,
+    habitatType,
+    habitatCondition,
+    habitatDescription,
+    canopyCover,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'siteAttribute';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SiteAttributeData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('siteID')) {
+      context.handle(
+        _siteIDMeta,
+        siteID.isAcceptableOrUnknown(data['siteID']!, _siteIDMeta),
+      );
+    }
+    if (data.containsKey('habitatType')) {
+      context.handle(
+        _habitatTypeMeta,
+        habitatType.isAcceptableOrUnknown(
+          data['habitatType']!,
+          _habitatTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('habitatCondition')) {
+      context.handle(
+        _habitatConditionMeta,
+        habitatCondition.isAcceptableOrUnknown(
+          data['habitatCondition']!,
+          _habitatConditionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('habitatDescription')) {
+      context.handle(
+        _habitatDescriptionMeta,
+        habitatDescription.isAcceptableOrUnknown(
+          data['habitatDescription']!,
+          _habitatDescriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('canopyCover')) {
+      context.handle(
+        _canopyCoverMeta,
+        canopyCover.isAcceptableOrUnknown(
+          data['canopyCover']!,
+          _canopyCoverMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  SiteAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SiteAttributeData(
+      siteID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}siteID'],
+      ),
+      habitatType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatType'],
+      ),
+      habitatCondition: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatCondition'],
+      ),
+      habitatDescription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatDescription'],
+      ),
+      canopyCover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}canopyCover'],
+      ),
+    );
+  }
+
+  @override
+  SiteAttribute createAlias(String alias) {
+    return SiteAttribute(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(siteID)REFERENCES site(id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SiteAttributeData extends DataClass
+    implements Insertable<SiteAttributeData> {
+  final int? siteID;
+  final String? habitatType;
+  final String? habitatCondition;
+  final String? habitatDescription;
+  final String? canopyCover;
+  const SiteAttributeData({
+    this.siteID,
+    this.habitatType,
+    this.habitatCondition,
+    this.habitatDescription,
+    this.canopyCover,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || siteID != null) {
+      map['siteID'] = Variable<int>(siteID);
+    }
+    if (!nullToAbsent || habitatType != null) {
+      map['habitatType'] = Variable<String>(habitatType);
+    }
+    if (!nullToAbsent || habitatCondition != null) {
+      map['habitatCondition'] = Variable<String>(habitatCondition);
+    }
+    if (!nullToAbsent || habitatDescription != null) {
+      map['habitatDescription'] = Variable<String>(habitatDescription);
+    }
+    if (!nullToAbsent || canopyCover != null) {
+      map['canopyCover'] = Variable<String>(canopyCover);
+    }
+    return map;
+  }
+
+  SiteAttributeCompanion toCompanion(bool nullToAbsent) {
+    return SiteAttributeCompanion(
+      siteID: siteID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(siteID),
+      habitatType: habitatType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatType),
+      habitatCondition: habitatCondition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatCondition),
+      habitatDescription: habitatDescription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatDescription),
+      canopyCover: canopyCover == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canopyCover),
+    );
+  }
+
+  factory SiteAttributeData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SiteAttributeData(
+      siteID: serializer.fromJson<int?>(json['siteID']),
+      habitatType: serializer.fromJson<String?>(json['habitatType']),
+      habitatCondition: serializer.fromJson<String?>(json['habitatCondition']),
+      habitatDescription: serializer.fromJson<String?>(
+        json['habitatDescription'],
+      ),
+      canopyCover: serializer.fromJson<String?>(json['canopyCover']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'siteID': serializer.toJson<int?>(siteID),
+      'habitatType': serializer.toJson<String?>(habitatType),
+      'habitatCondition': serializer.toJson<String?>(habitatCondition),
+      'habitatDescription': serializer.toJson<String?>(habitatDescription),
+      'canopyCover': serializer.toJson<String?>(canopyCover),
+    };
+  }
+
+  SiteAttributeData copyWith({
+    Value<int?> siteID = const Value.absent(),
+    Value<String?> habitatType = const Value.absent(),
+    Value<String?> habitatCondition = const Value.absent(),
+    Value<String?> habitatDescription = const Value.absent(),
+    Value<String?> canopyCover = const Value.absent(),
+  }) => SiteAttributeData(
+    siteID: siteID.present ? siteID.value : this.siteID,
+    habitatType: habitatType.present ? habitatType.value : this.habitatType,
+    habitatCondition: habitatCondition.present
+        ? habitatCondition.value
+        : this.habitatCondition,
+    habitatDescription: habitatDescription.present
+        ? habitatDescription.value
+        : this.habitatDescription,
+    canopyCover: canopyCover.present ? canopyCover.value : this.canopyCover,
+  );
+  SiteAttributeData copyWithCompanion(SiteAttributeCompanion data) {
+    return SiteAttributeData(
+      siteID: data.siteID.present ? data.siteID.value : this.siteID,
+      habitatType: data.habitatType.present
+          ? data.habitatType.value
+          : this.habitatType,
+      habitatCondition: data.habitatCondition.present
+          ? data.habitatCondition.value
+          : this.habitatCondition,
+      habitatDescription: data.habitatDescription.present
+          ? data.habitatDescription.value
+          : this.habitatDescription,
+      canopyCover: data.canopyCover.present
+          ? data.canopyCover.value
+          : this.canopyCover,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SiteAttributeData(')
+          ..write('siteID: $siteID, ')
           ..write('habitatType: $habitatType, ')
           ..write('habitatCondition: $habitatCondition, ')
-          ..write('habitatDescription: $habitatDescription')
+          ..write('habitatDescription: $habitatDescription, ')
+          ..write('canopyCover: $canopyCover')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    siteID,
+    habitatType,
+    habitatCondition,
+    habitatDescription,
+    canopyCover,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SiteAttributeData &&
+          other.siteID == this.siteID &&
+          other.habitatType == this.habitatType &&
+          other.habitatCondition == this.habitatCondition &&
+          other.habitatDescription == this.habitatDescription &&
+          other.canopyCover == this.canopyCover);
+}
+
+class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
+  final Value<int?> siteID;
+  final Value<String?> habitatType;
+  final Value<String?> habitatCondition;
+  final Value<String?> habitatDescription;
+  final Value<String?> canopyCover;
+  final Value<int> rowid;
+  const SiteAttributeCompanion({
+    this.siteID = const Value.absent(),
+    this.habitatType = const Value.absent(),
+    this.habitatCondition = const Value.absent(),
+    this.habitatDescription = const Value.absent(),
+    this.canopyCover = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SiteAttributeCompanion.insert({
+    this.siteID = const Value.absent(),
+    this.habitatType = const Value.absent(),
+    this.habitatCondition = const Value.absent(),
+    this.habitatDescription = const Value.absent(),
+    this.canopyCover = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  static Insertable<SiteAttributeData> custom({
+    Expression<int>? siteID,
+    Expression<String>? habitatType,
+    Expression<String>? habitatCondition,
+    Expression<String>? habitatDescription,
+    Expression<String>? canopyCover,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (siteID != null) 'siteID': siteID,
+      if (habitatType != null) 'habitatType': habitatType,
+      if (habitatCondition != null) 'habitatCondition': habitatCondition,
+      if (habitatDescription != null) 'habitatDescription': habitatDescription,
+      if (canopyCover != null) 'canopyCover': canopyCover,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SiteAttributeCompanion copyWith({
+    Value<int?>? siteID,
+    Value<String?>? habitatType,
+    Value<String?>? habitatCondition,
+    Value<String?>? habitatDescription,
+    Value<String?>? canopyCover,
+    Value<int>? rowid,
+  }) {
+    return SiteAttributeCompanion(
+      siteID: siteID ?? this.siteID,
+      habitatType: habitatType ?? this.habitatType,
+      habitatCondition: habitatCondition ?? this.habitatCondition,
+      habitatDescription: habitatDescription ?? this.habitatDescription,
+      canopyCover: canopyCover ?? this.canopyCover,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (siteID.present) {
+      map['siteID'] = Variable<int>(siteID.value);
+    }
+    if (habitatType.present) {
+      map['habitatType'] = Variable<String>(habitatType.value);
+    }
+    if (habitatCondition.present) {
+      map['habitatCondition'] = Variable<String>(habitatCondition.value);
+    }
+    if (habitatDescription.present) {
+      map['habitatDescription'] = Variable<String>(habitatDescription.value);
+    }
+    if (canopyCover.present) {
+      map['canopyCover'] = Variable<String>(canopyCover.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SiteAttributeCompanion(')
+          ..write('siteID: $siteID, ')
+          ..write('habitatType: $habitatType, ')
+          ..write('habitatCondition: $habitatCondition, ')
+          ..write('habitatDescription: $habitatDescription, ')
+          ..write('canopyCover: $canopyCover, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -5884,11 +6181,11 @@ class CollEventCompanion extends UpdateCompanion<CollEventData> {
   }
 }
 
-class Weather extends Table with TableInfo<Weather, WeatherData> {
+class Environment extends Table with TableInfo<Environment, EnvironmentData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  Weather(this.attachedDatabase, [this._alias]);
+  Environment(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _eventIDMeta = const VerificationMeta(
     'eventID',
   );
@@ -6000,6 +6297,92 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _cloudCoverMeta = const VerificationMeta(
+    'cloudCover',
+  );
+  late final GeneratedColumn<String> cloudCover = GeneratedColumn<String>(
+    'cloudCover',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _rainfallInMmMeta = const VerificationMeta(
+    'rainfallInMm',
+  );
+  late final GeneratedColumn<double> rainfallInMm = GeneratedColumn<double>(
+    'rainfallInMm',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _ambientTemperatureMeta =
+      const VerificationMeta('ambientTemperature');
+  late final GeneratedColumn<double> ambientTemperature =
+      GeneratedColumn<double>(
+        'ambientTemperature',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _ambientHumidityMeta = const VerificationMeta(
+    'ambientHumidity',
+  );
+  late final GeneratedColumn<double> ambientHumidity = GeneratedColumn<double>(
+    'ambientHumidity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _waterTemperatureMeta = const VerificationMeta(
+    'waterTemperature',
+  );
+  late final GeneratedColumn<double> waterTemperature = GeneratedColumn<double>(
+    'waterTemperature',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _pHMeta = const VerificationMeta('pH');
+  late final GeneratedColumn<double> pH = GeneratedColumn<double>(
+    'pH',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dissolvedOxygenMeta = const VerificationMeta(
+    'dissolvedOxygen',
+  );
+  late final GeneratedColumn<double> dissolvedOxygen = GeneratedColumn<double>(
+    'dissolvedOxygen',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _flowVelocityMeta = const VerificationMeta(
+    'flowVelocity',
+  );
+  late final GeneratedColumn<double> flowVelocity = GeneratedColumn<double>(
+    'flowVelocity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
     'notes',
@@ -6021,16 +6404,24 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
     sunriseTime,
     sunsetTime,
     moonPhase,
+    cloudCover,
+    rainfallInMm,
+    ambientTemperature,
+    ambientHumidity,
+    waterTemperature,
+    pH,
+    dissolvedOxygen,
+    flowVelocity,
     notes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'weather';
+  static const String $name = 'environment';
   @override
   VerificationContext validateIntegrity(
-    Insertable<WeatherData> instance, {
+    Insertable<EnvironmentData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -6116,6 +6507,69 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
         moonPhase.isAcceptableOrUnknown(data['moonPhase']!, _moonPhaseMeta),
       );
     }
+    if (data.containsKey('cloudCover')) {
+      context.handle(
+        _cloudCoverMeta,
+        cloudCover.isAcceptableOrUnknown(data['cloudCover']!, _cloudCoverMeta),
+      );
+    }
+    if (data.containsKey('rainfallInMm')) {
+      context.handle(
+        _rainfallInMmMeta,
+        rainfallInMm.isAcceptableOrUnknown(
+          data['rainfallInMm']!,
+          _rainfallInMmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ambientTemperature')) {
+      context.handle(
+        _ambientTemperatureMeta,
+        ambientTemperature.isAcceptableOrUnknown(
+          data['ambientTemperature']!,
+          _ambientTemperatureMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ambientHumidity')) {
+      context.handle(
+        _ambientHumidityMeta,
+        ambientHumidity.isAcceptableOrUnknown(
+          data['ambientHumidity']!,
+          _ambientHumidityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('waterTemperature')) {
+      context.handle(
+        _waterTemperatureMeta,
+        waterTemperature.isAcceptableOrUnknown(
+          data['waterTemperature']!,
+          _waterTemperatureMeta,
+        ),
+      );
+    }
+    if (data.containsKey('pH')) {
+      context.handle(_pHMeta, pH.isAcceptableOrUnknown(data['pH']!, _pHMeta));
+    }
+    if (data.containsKey('dissolvedOxygen')) {
+      context.handle(
+        _dissolvedOxygenMeta,
+        dissolvedOxygen.isAcceptableOrUnknown(
+          data['dissolvedOxygen']!,
+          _dissolvedOxygenMeta,
+        ),
+      );
+    }
+    if (data.containsKey('flowVelocity')) {
+      context.handle(
+        _flowVelocityMeta,
+        flowVelocity.isAcceptableOrUnknown(
+          data['flowVelocity']!,
+          _flowVelocityMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -6128,9 +6582,9 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  WeatherData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  EnvironmentData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return WeatherData(
+    return EnvironmentData(
       eventID: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}eventID'],
@@ -6171,6 +6625,38 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
         DriftSqlType.string,
         data['${effectivePrefix}moonPhase'],
       ),
+      cloudCover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cloudCover'],
+      ),
+      rainfallInMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}rainfallInMm'],
+      ),
+      ambientTemperature: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ambientTemperature'],
+      ),
+      ambientHumidity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ambientHumidity'],
+      ),
+      waterTemperature: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}waterTemperature'],
+      ),
+      pH: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}pH'],
+      ),
+      dissolvedOxygen: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dissolvedOxygen'],
+      ),
+      flowVelocity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}flowVelocity'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -6179,8 +6665,8 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   }
 
   @override
-  Weather createAlias(String alias) {
-    return Weather(attachedDatabase, alias);
+  Environment createAlias(String alias) {
+    return Environment(attachedDatabase, alias);
   }
 
   @override
@@ -6191,7 +6677,7 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   bool get dontWriteConstraints => true;
 }
 
-class WeatherData extends DataClass implements Insertable<WeatherData> {
+class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
   final int? eventID;
   final double? lowestDayTempC;
   final double? highestDayTempC;
@@ -6202,8 +6688,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
   final String? sunriseTime;
   final String? sunsetTime;
   final String? moonPhase;
+  final String? cloudCover;
+  final double? rainfallInMm;
+  final double? ambientTemperature;
+  final double? ambientHumidity;
+  final double? waterTemperature;
+  final double? pH;
+  final double? dissolvedOxygen;
+  final double? flowVelocity;
   final String? notes;
-  const WeatherData({
+  const EnvironmentData({
     this.eventID,
     this.lowestDayTempC,
     this.highestDayTempC,
@@ -6214,6 +6708,14 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     this.sunriseTime,
     this.sunsetTime,
     this.moonPhase,
+    this.cloudCover,
+    this.rainfallInMm,
+    this.ambientTemperature,
+    this.ambientHumidity,
+    this.waterTemperature,
+    this.pH,
+    this.dissolvedOxygen,
+    this.flowVelocity,
     this.notes,
   });
   @override
@@ -6249,14 +6751,38 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     if (!nullToAbsent || moonPhase != null) {
       map['moonPhase'] = Variable<String>(moonPhase);
     }
+    if (!nullToAbsent || cloudCover != null) {
+      map['cloudCover'] = Variable<String>(cloudCover);
+    }
+    if (!nullToAbsent || rainfallInMm != null) {
+      map['rainfallInMm'] = Variable<double>(rainfallInMm);
+    }
+    if (!nullToAbsent || ambientTemperature != null) {
+      map['ambientTemperature'] = Variable<double>(ambientTemperature);
+    }
+    if (!nullToAbsent || ambientHumidity != null) {
+      map['ambientHumidity'] = Variable<double>(ambientHumidity);
+    }
+    if (!nullToAbsent || waterTemperature != null) {
+      map['waterTemperature'] = Variable<double>(waterTemperature);
+    }
+    if (!nullToAbsent || pH != null) {
+      map['pH'] = Variable<double>(pH);
+    }
+    if (!nullToAbsent || dissolvedOxygen != null) {
+      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen);
+    }
+    if (!nullToAbsent || flowVelocity != null) {
+      map['flowVelocity'] = Variable<double>(flowVelocity);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
     return map;
   }
 
-  WeatherCompanion toCompanion(bool nullToAbsent) {
-    return WeatherCompanion(
+  EnvironmentCompanion toCompanion(bool nullToAbsent) {
+    return EnvironmentCompanion(
       eventID: eventID == null && nullToAbsent
           ? const Value.absent()
           : Value(eventID),
@@ -6287,18 +6813,40 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       moonPhase: moonPhase == null && nullToAbsent
           ? const Value.absent()
           : Value(moonPhase),
+      cloudCover: cloudCover == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudCover),
+      rainfallInMm: rainfallInMm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rainfallInMm),
+      ambientTemperature: ambientTemperature == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ambientTemperature),
+      ambientHumidity: ambientHumidity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ambientHumidity),
+      waterTemperature: waterTemperature == null && nullToAbsent
+          ? const Value.absent()
+          : Value(waterTemperature),
+      pH: pH == null && nullToAbsent ? const Value.absent() : Value(pH),
+      dissolvedOxygen: dissolvedOxygen == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dissolvedOxygen),
+      flowVelocity: flowVelocity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(flowVelocity),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
     );
   }
 
-  factory WeatherData.fromJson(
+  factory EnvironmentData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return WeatherData(
+    return EnvironmentData(
       eventID: serializer.fromJson<int?>(json['eventID']),
       lowestDayTempC: serializer.fromJson<double?>(json['lowestDayTempC']),
       highestDayTempC: serializer.fromJson<double?>(json['highestDayTempC']),
@@ -6311,6 +6859,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       sunriseTime: serializer.fromJson<String?>(json['sunriseTime']),
       sunsetTime: serializer.fromJson<String?>(json['sunsetTime']),
       moonPhase: serializer.fromJson<String?>(json['moonPhase']),
+      cloudCover: serializer.fromJson<String?>(json['cloudCover']),
+      rainfallInMm: serializer.fromJson<double?>(json['rainfallInMm']),
+      ambientTemperature: serializer.fromJson<double?>(
+        json['ambientTemperature'],
+      ),
+      ambientHumidity: serializer.fromJson<double?>(json['ambientHumidity']),
+      waterTemperature: serializer.fromJson<double?>(json['waterTemperature']),
+      pH: serializer.fromJson<double?>(json['pH']),
+      dissolvedOxygen: serializer.fromJson<double?>(json['dissolvedOxygen']),
+      flowVelocity: serializer.fromJson<double?>(json['flowVelocity']),
       notes: serializer.fromJson<String?>(json['notes']),
     );
   }
@@ -6328,11 +6886,19 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       'sunriseTime': serializer.toJson<String?>(sunriseTime),
       'sunsetTime': serializer.toJson<String?>(sunsetTime),
       'moonPhase': serializer.toJson<String?>(moonPhase),
+      'cloudCover': serializer.toJson<String?>(cloudCover),
+      'rainfallInMm': serializer.toJson<double?>(rainfallInMm),
+      'ambientTemperature': serializer.toJson<double?>(ambientTemperature),
+      'ambientHumidity': serializer.toJson<double?>(ambientHumidity),
+      'waterTemperature': serializer.toJson<double?>(waterTemperature),
+      'pH': serializer.toJson<double?>(pH),
+      'dissolvedOxygen': serializer.toJson<double?>(dissolvedOxygen),
+      'flowVelocity': serializer.toJson<double?>(flowVelocity),
       'notes': serializer.toJson<String?>(notes),
     };
   }
 
-  WeatherData copyWith({
+  EnvironmentData copyWith({
     Value<int?> eventID = const Value.absent(),
     Value<double?> lowestDayTempC = const Value.absent(),
     Value<double?> highestDayTempC = const Value.absent(),
@@ -6343,8 +6909,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     Value<String?> sunriseTime = const Value.absent(),
     Value<String?> sunsetTime = const Value.absent(),
     Value<String?> moonPhase = const Value.absent(),
+    Value<String?> cloudCover = const Value.absent(),
+    Value<double?> rainfallInMm = const Value.absent(),
+    Value<double?> ambientTemperature = const Value.absent(),
+    Value<double?> ambientHumidity = const Value.absent(),
+    Value<double?> waterTemperature = const Value.absent(),
+    Value<double?> pH = const Value.absent(),
+    Value<double?> dissolvedOxygen = const Value.absent(),
+    Value<double?> flowVelocity = const Value.absent(),
     Value<String?> notes = const Value.absent(),
-  }) => WeatherData(
+  }) => EnvironmentData(
     eventID: eventID.present ? eventID.value : this.eventID,
     lowestDayTempC: lowestDayTempC.present
         ? lowestDayTempC.value
@@ -6365,10 +6939,26 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     sunriseTime: sunriseTime.present ? sunriseTime.value : this.sunriseTime,
     sunsetTime: sunsetTime.present ? sunsetTime.value : this.sunsetTime,
     moonPhase: moonPhase.present ? moonPhase.value : this.moonPhase,
+    cloudCover: cloudCover.present ? cloudCover.value : this.cloudCover,
+    rainfallInMm: rainfallInMm.present ? rainfallInMm.value : this.rainfallInMm,
+    ambientTemperature: ambientTemperature.present
+        ? ambientTemperature.value
+        : this.ambientTemperature,
+    ambientHumidity: ambientHumidity.present
+        ? ambientHumidity.value
+        : this.ambientHumidity,
+    waterTemperature: waterTemperature.present
+        ? waterTemperature.value
+        : this.waterTemperature,
+    pH: pH.present ? pH.value : this.pH,
+    dissolvedOxygen: dissolvedOxygen.present
+        ? dissolvedOxygen.value
+        : this.dissolvedOxygen,
+    flowVelocity: flowVelocity.present ? flowVelocity.value : this.flowVelocity,
     notes: notes.present ? notes.value : this.notes,
   );
-  WeatherData copyWithCompanion(WeatherCompanion data) {
-    return WeatherData(
+  EnvironmentData copyWithCompanion(EnvironmentCompanion data) {
+    return EnvironmentData(
       eventID: data.eventID.present ? data.eventID.value : this.eventID,
       lowestDayTempC: data.lowestDayTempC.present
           ? data.lowestDayTempC.value
@@ -6395,13 +6985,35 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           ? data.sunsetTime.value
           : this.sunsetTime,
       moonPhase: data.moonPhase.present ? data.moonPhase.value : this.moonPhase,
+      cloudCover: data.cloudCover.present
+          ? data.cloudCover.value
+          : this.cloudCover,
+      rainfallInMm: data.rainfallInMm.present
+          ? data.rainfallInMm.value
+          : this.rainfallInMm,
+      ambientTemperature: data.ambientTemperature.present
+          ? data.ambientTemperature.value
+          : this.ambientTemperature,
+      ambientHumidity: data.ambientHumidity.present
+          ? data.ambientHumidity.value
+          : this.ambientHumidity,
+      waterTemperature: data.waterTemperature.present
+          ? data.waterTemperature.value
+          : this.waterTemperature,
+      pH: data.pH.present ? data.pH.value : this.pH,
+      dissolvedOxygen: data.dissolvedOxygen.present
+          ? data.dissolvedOxygen.value
+          : this.dissolvedOxygen,
+      flowVelocity: data.flowVelocity.present
+          ? data.flowVelocity.value
+          : this.flowVelocity,
       notes: data.notes.present ? data.notes.value : this.notes,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('WeatherData(')
+    return (StringBuffer('EnvironmentData(')
           ..write('eventID: $eventID, ')
           ..write('lowestDayTempC: $lowestDayTempC, ')
           ..write('highestDayTempC: $highestDayTempC, ')
@@ -6412,6 +7024,14 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           ..write('sunriseTime: $sunriseTime, ')
           ..write('sunsetTime: $sunsetTime, ')
           ..write('moonPhase: $moonPhase, ')
+          ..write('cloudCover: $cloudCover, ')
+          ..write('rainfallInMm: $rainfallInMm, ')
+          ..write('ambientTemperature: $ambientTemperature, ')
+          ..write('ambientHumidity: $ambientHumidity, ')
+          ..write('waterTemperature: $waterTemperature, ')
+          ..write('pH: $pH, ')
+          ..write('dissolvedOxygen: $dissolvedOxygen, ')
+          ..write('flowVelocity: $flowVelocity, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -6429,12 +7049,20 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     sunriseTime,
     sunsetTime,
     moonPhase,
+    cloudCover,
+    rainfallInMm,
+    ambientTemperature,
+    ambientHumidity,
+    waterTemperature,
+    pH,
+    dissolvedOxygen,
+    flowVelocity,
     notes,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is WeatherData &&
+      (other is EnvironmentData &&
           other.eventID == this.eventID &&
           other.lowestDayTempC == this.lowestDayTempC &&
           other.highestDayTempC == this.highestDayTempC &&
@@ -6445,10 +7073,18 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           other.sunriseTime == this.sunriseTime &&
           other.sunsetTime == this.sunsetTime &&
           other.moonPhase == this.moonPhase &&
+          other.cloudCover == this.cloudCover &&
+          other.rainfallInMm == this.rainfallInMm &&
+          other.ambientTemperature == this.ambientTemperature &&
+          other.ambientHumidity == this.ambientHumidity &&
+          other.waterTemperature == this.waterTemperature &&
+          other.pH == this.pH &&
+          other.dissolvedOxygen == this.dissolvedOxygen &&
+          other.flowVelocity == this.flowVelocity &&
           other.notes == this.notes);
 }
 
-class WeatherCompanion extends UpdateCompanion<WeatherData> {
+class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
   final Value<int?> eventID;
   final Value<double?> lowestDayTempC;
   final Value<double?> highestDayTempC;
@@ -6459,9 +7095,17 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
   final Value<String?> sunriseTime;
   final Value<String?> sunsetTime;
   final Value<String?> moonPhase;
+  final Value<String?> cloudCover;
+  final Value<double?> rainfallInMm;
+  final Value<double?> ambientTemperature;
+  final Value<double?> ambientHumidity;
+  final Value<double?> waterTemperature;
+  final Value<double?> pH;
+  final Value<double?> dissolvedOxygen;
+  final Value<double?> flowVelocity;
   final Value<String?> notes;
   final Value<int> rowid;
-  const WeatherCompanion({
+  const EnvironmentCompanion({
     this.eventID = const Value.absent(),
     this.lowestDayTempC = const Value.absent(),
     this.highestDayTempC = const Value.absent(),
@@ -6472,10 +7116,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     this.sunriseTime = const Value.absent(),
     this.sunsetTime = const Value.absent(),
     this.moonPhase = const Value.absent(),
+    this.cloudCover = const Value.absent(),
+    this.rainfallInMm = const Value.absent(),
+    this.ambientTemperature = const Value.absent(),
+    this.ambientHumidity = const Value.absent(),
+    this.waterTemperature = const Value.absent(),
+    this.pH = const Value.absent(),
+    this.dissolvedOxygen = const Value.absent(),
+    this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  WeatherCompanion.insert({
+  EnvironmentCompanion.insert({
     this.eventID = const Value.absent(),
     this.lowestDayTempC = const Value.absent(),
     this.highestDayTempC = const Value.absent(),
@@ -6486,10 +7138,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     this.sunriseTime = const Value.absent(),
     this.sunsetTime = const Value.absent(),
     this.moonPhase = const Value.absent(),
+    this.cloudCover = const Value.absent(),
+    this.rainfallInMm = const Value.absent(),
+    this.ambientTemperature = const Value.absent(),
+    this.ambientHumidity = const Value.absent(),
+    this.waterTemperature = const Value.absent(),
+    this.pH = const Value.absent(),
+    this.dissolvedOxygen = const Value.absent(),
+    this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  static Insertable<WeatherData> custom({
+  static Insertable<EnvironmentData> custom({
     Expression<int>? eventID,
     Expression<double>? lowestDayTempC,
     Expression<double>? highestDayTempC,
@@ -6500,6 +7160,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     Expression<String>? sunriseTime,
     Expression<String>? sunsetTime,
     Expression<String>? moonPhase,
+    Expression<String>? cloudCover,
+    Expression<double>? rainfallInMm,
+    Expression<double>? ambientTemperature,
+    Expression<double>? ambientHumidity,
+    Expression<double>? waterTemperature,
+    Expression<double>? pH,
+    Expression<double>? dissolvedOxygen,
+    Expression<double>? flowVelocity,
     Expression<String>? notes,
     Expression<int>? rowid,
   }) {
@@ -6514,12 +7182,20 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
       if (sunriseTime != null) 'sunriseTime': sunriseTime,
       if (sunsetTime != null) 'sunsetTime': sunsetTime,
       if (moonPhase != null) 'moonPhase': moonPhase,
+      if (cloudCover != null) 'cloudCover': cloudCover,
+      if (rainfallInMm != null) 'rainfallInMm': rainfallInMm,
+      if (ambientTemperature != null) 'ambientTemperature': ambientTemperature,
+      if (ambientHumidity != null) 'ambientHumidity': ambientHumidity,
+      if (waterTemperature != null) 'waterTemperature': waterTemperature,
+      if (pH != null) 'pH': pH,
+      if (dissolvedOxygen != null) 'dissolvedOxygen': dissolvedOxygen,
+      if (flowVelocity != null) 'flowVelocity': flowVelocity,
       if (notes != null) 'notes': notes,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  WeatherCompanion copyWith({
+  EnvironmentCompanion copyWith({
     Value<int?>? eventID,
     Value<double?>? lowestDayTempC,
     Value<double?>? highestDayTempC,
@@ -6530,10 +7206,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     Value<String?>? sunriseTime,
     Value<String?>? sunsetTime,
     Value<String?>? moonPhase,
+    Value<String?>? cloudCover,
+    Value<double?>? rainfallInMm,
+    Value<double?>? ambientTemperature,
+    Value<double?>? ambientHumidity,
+    Value<double?>? waterTemperature,
+    Value<double?>? pH,
+    Value<double?>? dissolvedOxygen,
+    Value<double?>? flowVelocity,
     Value<String?>? notes,
     Value<int>? rowid,
   }) {
-    return WeatherCompanion(
+    return EnvironmentCompanion(
       eventID: eventID ?? this.eventID,
       lowestDayTempC: lowestDayTempC ?? this.lowestDayTempC,
       highestDayTempC: highestDayTempC ?? this.highestDayTempC,
@@ -6544,6 +7228,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
       sunriseTime: sunriseTime ?? this.sunriseTime,
       sunsetTime: sunsetTime ?? this.sunsetTime,
       moonPhase: moonPhase ?? this.moonPhase,
+      cloudCover: cloudCover ?? this.cloudCover,
+      rainfallInMm: rainfallInMm ?? this.rainfallInMm,
+      ambientTemperature: ambientTemperature ?? this.ambientTemperature,
+      ambientHumidity: ambientHumidity ?? this.ambientHumidity,
+      waterTemperature: waterTemperature ?? this.waterTemperature,
+      pH: pH ?? this.pH,
+      dissolvedOxygen: dissolvedOxygen ?? this.dissolvedOxygen,
+      flowVelocity: flowVelocity ?? this.flowVelocity,
       notes: notes ?? this.notes,
       rowid: rowid ?? this.rowid,
     );
@@ -6582,6 +7274,30 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     if (moonPhase.present) {
       map['moonPhase'] = Variable<String>(moonPhase.value);
     }
+    if (cloudCover.present) {
+      map['cloudCover'] = Variable<String>(cloudCover.value);
+    }
+    if (rainfallInMm.present) {
+      map['rainfallInMm'] = Variable<double>(rainfallInMm.value);
+    }
+    if (ambientTemperature.present) {
+      map['ambientTemperature'] = Variable<double>(ambientTemperature.value);
+    }
+    if (ambientHumidity.present) {
+      map['ambientHumidity'] = Variable<double>(ambientHumidity.value);
+    }
+    if (waterTemperature.present) {
+      map['waterTemperature'] = Variable<double>(waterTemperature.value);
+    }
+    if (pH.present) {
+      map['pH'] = Variable<double>(pH.value);
+    }
+    if (dissolvedOxygen.present) {
+      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen.value);
+    }
+    if (flowVelocity.present) {
+      map['flowVelocity'] = Variable<double>(flowVelocity.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -6593,7 +7309,7 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
 
   @override
   String toString() {
-    return (StringBuffer('WeatherCompanion(')
+    return (StringBuffer('EnvironmentCompanion(')
           ..write('eventID: $eventID, ')
           ..write('lowestDayTempC: $lowestDayTempC, ')
           ..write('highestDayTempC: $highestDayTempC, ')
@@ -6604,6 +7320,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
           ..write('sunriseTime: $sunriseTime, ')
           ..write('sunsetTime: $sunsetTime, ')
           ..write('moonPhase: $moonPhase, ')
+          ..write('cloudCover: $cloudCover, ')
+          ..write('rainfallInMm: $rainfallInMm, ')
+          ..write('ambientTemperature: $ambientTemperature, ')
+          ..write('ambientHumidity: $ambientHumidity, ')
+          ..write('waterTemperature: $waterTemperature, ')
+          ..write('pH: $pH, ')
+          ..write('dissolvedOxygen: $dissolvedOxygen, ')
+          ..write('flowVelocity: $flowVelocity, ')
           ..write('notes: $notes, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -13223,12 +13947,14 @@ class MammalAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _ageMeta = const VerificationMeta('age');
-  late final GeneratedColumn<int> age = GeneratedColumn<int>(
-    'age',
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -13432,7 +14158,7 @@ class MammalAttribute extends Table
     accuracy,
     accuracySpecify,
     sex,
-    age,
+    lifeStage,
     testisPosition,
     testisLength,
     testisWidth,
@@ -13609,10 +14335,10 @@ class MammalAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
-    if (data.containsKey('age')) {
+    if (data.containsKey('lifeStage')) {
       context.handle(
-        _ageMeta,
-        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('testisPosition')) {
@@ -13847,9 +14573,9 @@ class MammalAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
-      age: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}age'],
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
       ),
       testisPosition: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -13956,7 +14682,7 @@ class MammalAttributeData extends DataClass
   final String? accuracy;
   final String? accuracySpecify;
   final int? sex;
-  final int? age;
+  final String? lifeStage;
   final int? testisPosition;
 
   /// encode using enum
@@ -13996,7 +14722,7 @@ class MammalAttributeData extends DataClass
     this.accuracy,
     this.accuracySpecify,
     this.sex,
-    this.age,
+    this.lifeStage,
     this.testisPosition,
     this.testisLength,
     this.testisWidth,
@@ -14073,8 +14799,8 @@ class MammalAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
-    if (!nullToAbsent || age != null) {
-      map['age'] = Variable<int>(age);
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || testisPosition != null) {
       map['testisPosition'] = Variable<int>(testisPosition);
@@ -14185,7 +14911,9 @@ class MammalAttributeData extends DataClass
           ? const Value.absent()
           : Value(accuracySpecify),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
-      age: age == null && nullToAbsent ? const Value.absent() : Value(age),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       testisPosition: testisPosition == null && nullToAbsent
           ? const Value.absent()
           : Value(testisPosition),
@@ -14267,7 +14995,7 @@ class MammalAttributeData extends DataClass
       accuracy: serializer.fromJson<String?>(json['accuracy']),
       accuracySpecify: serializer.fromJson<String?>(json['accuracySpecify']),
       sex: serializer.fromJson<int?>(json['sex']),
-      age: serializer.fromJson<int?>(json['age']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       testisPosition: serializer.fromJson<int?>(json['testisPosition']),
       testisLength: serializer.fromJson<double?>(json['testisLength']),
       testisWidth: serializer.fromJson<double?>(json['testisWidth']),
@@ -14320,7 +15048,7 @@ class MammalAttributeData extends DataClass
       'accuracy': serializer.toJson<String?>(accuracy),
       'accuracySpecify': serializer.toJson<String?>(accuracySpecify),
       'sex': serializer.toJson<int?>(sex),
-      'age': serializer.toJson<int?>(age),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'testisPosition': serializer.toJson<int?>(testisPosition),
       'testisLength': serializer.toJson<double?>(testisLength),
       'testisWidth': serializer.toJson<double?>(testisWidth),
@@ -14361,7 +15089,7 @@ class MammalAttributeData extends DataClass
     Value<String?> accuracy = const Value.absent(),
     Value<String?> accuracySpecify = const Value.absent(),
     Value<int?> sex = const Value.absent(),
-    Value<int?> age = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<int?> testisPosition = const Value.absent(),
     Value<double?> testisLength = const Value.absent(),
     Value<double?> testisWidth = const Value.absent(),
@@ -14409,7 +15137,7 @@ class MammalAttributeData extends DataClass
         ? accuracySpecify.value
         : this.accuracySpecify,
     sex: sex.present ? sex.value : this.sex,
-    age: age.present ? age.value : this.age,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     testisPosition: testisPosition.present
         ? testisPosition.value
         : this.testisPosition,
@@ -14499,7 +15227,7 @@ class MammalAttributeData extends DataClass
           ? data.accuracySpecify.value
           : this.accuracySpecify,
       sex: data.sex.present ? data.sex.value : this.sex,
-      age: data.age.present ? data.age.value : this.age,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       testisPosition: data.testisPosition.present
           ? data.testisPosition.value
           : this.testisPosition,
@@ -14572,7 +15300,7 @@ class MammalAttributeData extends DataClass
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('testisPosition: $testisPosition, ')
           ..write('testisLength: $testisLength, ')
           ..write('testisWidth: $testisWidth, ')
@@ -14615,7 +15343,7 @@ class MammalAttributeData extends DataClass
     accuracy,
     accuracySpecify,
     sex,
-    age,
+    lifeStage,
     testisPosition,
     testisLength,
     testisWidth,
@@ -14657,7 +15385,7 @@ class MammalAttributeData extends DataClass
           other.accuracy == this.accuracy &&
           other.accuracySpecify == this.accuracySpecify &&
           other.sex == this.sex &&
-          other.age == this.age &&
+          other.lifeStage == this.lifeStage &&
           other.testisPosition == this.testisPosition &&
           other.testisLength == this.testisLength &&
           other.testisWidth == this.testisWidth &&
@@ -14697,7 +15425,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
   final Value<String?> accuracy;
   final Value<String?> accuracySpecify;
   final Value<int?> sex;
-  final Value<int?> age;
+  final Value<String?> lifeStage;
   final Value<int?> testisPosition;
   final Value<double?> testisLength;
   final Value<double?> testisWidth;
@@ -14736,7 +15464,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.testisPosition = const Value.absent(),
     this.testisLength = const Value.absent(),
     this.testisWidth = const Value.absent(),
@@ -14776,7 +15504,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.testisPosition = const Value.absent(),
     this.testisLength = const Value.absent(),
     this.testisWidth = const Value.absent(),
@@ -14816,7 +15544,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     Expression<String>? accuracy,
     Expression<String>? accuracySpecify,
     Expression<int>? sex,
-    Expression<int>? age,
+    Expression<String>? lifeStage,
     Expression<int>? testisPosition,
     Expression<double>? testisLength,
     Expression<double>? testisWidth,
@@ -14857,7 +15585,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
       if (accuracy != null) 'accuracy': accuracy,
       if (accuracySpecify != null) 'accuracySpecify': accuracySpecify,
       if (sex != null) 'sex': sex,
-      if (age != null) 'age': age,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (testisPosition != null) 'testisPosition': testisPosition,
       if (testisLength != null) 'testisLength': testisLength,
       if (testisWidth != null) 'testisWidth': testisWidth,
@@ -14904,7 +15632,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     Value<String?>? accuracy,
     Value<String?>? accuracySpecify,
     Value<int?>? sex,
-    Value<int?>? age,
+    Value<String?>? lifeStage,
     Value<int?>? testisPosition,
     Value<double?>? testisLength,
     Value<double?>? testisWidth,
@@ -14944,7 +15672,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
       accuracy: accuracy ?? this.accuracy,
       accuracySpecify: accuracySpecify ?? this.accuracySpecify,
       sex: sex ?? this.sex,
-      age: age ?? this.age,
+      lifeStage: lifeStage ?? this.lifeStage,
       testisPosition: testisPosition ?? this.testisPosition,
       testisLength: testisLength ?? this.testisLength,
       testisWidth: testisWidth ?? this.testisWidth,
@@ -15028,8 +15756,8 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
-    if (age.present) {
-      map['age'] = Variable<int>(age.value);
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (testisPosition.present) {
       map['testisPosition'] = Variable<int>(testisPosition.value);
@@ -15110,7 +15838,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('testisPosition: $testisPosition, ')
           ..write('testisLength: $testisLength, ')
           ..write('testisWidth: $testisWidth, ')
@@ -15318,6 +16046,17 @@ class BirdAttribute extends Table
     aliasedName,
     true,
     type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -15635,6 +16374,7 @@ class BirdAttribute extends Table
     tarsusColor,
     tarsusHex,
     sex,
+    lifeStage,
     broodPatch,
     skullOssification,
     hasBursa,
@@ -15792,6 +16532,12 @@ class BirdAttribute extends Table
       context.handle(
         _sexMeta,
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('broodPatch')) {
@@ -16081,6 +16827,10 @@ class BirdAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
       broodPatch: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}broodPatch'],
@@ -16226,6 +16976,7 @@ class BirdAttributeData extends DataClass
   final String? tarsusColor;
   final String? tarsusHex;
   final int? sex;
+  final String? lifeStage;
   final int? broodPatch;
   final int? skullOssification;
   final int? hasBursa;
@@ -16277,6 +17028,7 @@ class BirdAttributeData extends DataClass
     this.tarsusColor,
     this.tarsusHex,
     this.sex,
+    this.lifeStage,
     this.broodPatch,
     this.skullOssification,
     this.hasBursa,
@@ -16356,6 +17108,9 @@ class BirdAttributeData extends DataClass
     }
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || broodPatch != null) {
       map['broodPatch'] = Variable<int>(broodPatch);
@@ -16490,6 +17245,9 @@ class BirdAttributeData extends DataClass
           ? const Value.absent()
           : Value(tarsusHex),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       broodPatch: broodPatch == null && nullToAbsent
           ? const Value.absent()
           : Value(broodPatch),
@@ -16595,6 +17353,7 @@ class BirdAttributeData extends DataClass
       tarsusColor: serializer.fromJson<String?>(json['tarsusColor']),
       tarsusHex: serializer.fromJson<String?>(json['tarsusHex']),
       sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       broodPatch: serializer.fromJson<int?>(json['broodPatch']),
       skullOssification: serializer.fromJson<int?>(json['skullOssification']),
       hasBursa: serializer.fromJson<int?>(json['hasBursa']),
@@ -16645,6 +17404,7 @@ class BirdAttributeData extends DataClass
       'tarsusColor': serializer.toJson<String?>(tarsusColor),
       'tarsusHex': serializer.toJson<String?>(tarsusHex),
       'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'broodPatch': serializer.toJson<int?>(broodPatch),
       'skullOssification': serializer.toJson<int?>(skullOssification),
       'hasBursa': serializer.toJson<int?>(hasBursa),
@@ -16693,6 +17453,7 @@ class BirdAttributeData extends DataClass
     Value<String?> tarsusColor = const Value.absent(),
     Value<String?> tarsusHex = const Value.absent(),
     Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<int?> broodPatch = const Value.absent(),
     Value<int?> skullOssification = const Value.absent(),
     Value<int?> hasBursa = const Value.absent(),
@@ -16740,6 +17501,7 @@ class BirdAttributeData extends DataClass
     tarsusColor: tarsusColor.present ? tarsusColor.value : this.tarsusColor,
     tarsusHex: tarsusHex.present ? tarsusHex.value : this.tarsusHex,
     sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     broodPatch: broodPatch.present ? broodPatch.value : this.broodPatch,
     skullOssification: skullOssification.present
         ? skullOssification.value
@@ -16815,6 +17577,7 @@ class BirdAttributeData extends DataClass
           : this.tarsusColor,
       tarsusHex: data.tarsusHex.present ? data.tarsusHex.value : this.tarsusHex,
       sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       broodPatch: data.broodPatch.present
           ? data.broodPatch.value
           : this.broodPatch,
@@ -16909,6 +17672,7 @@ class BirdAttributeData extends DataClass
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('broodPatch: $broodPatch, ')
           ..write('skullOssification: $skullOssification, ')
           ..write('hasBursa: $hasBursa, ')
@@ -16959,6 +17723,7 @@ class BirdAttributeData extends DataClass
     tarsusColor,
     tarsusHex,
     sex,
+    lifeStage,
     broodPatch,
     skullOssification,
     hasBursa,
@@ -17008,6 +17773,7 @@ class BirdAttributeData extends DataClass
           other.tarsusColor == this.tarsusColor &&
           other.tarsusHex == this.tarsusHex &&
           other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
           other.broodPatch == this.broodPatch &&
           other.skullOssification == this.skullOssification &&
           other.hasBursa == this.hasBursa &&
@@ -17055,6 +17821,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
   final Value<String?> tarsusColor;
   final Value<String?> tarsusHex;
   final Value<int?> sex;
+  final Value<String?> lifeStage;
   final Value<int?> broodPatch;
   final Value<int?> skullOssification;
   final Value<int?> hasBursa;
@@ -17101,6 +17868,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.broodPatch = const Value.absent(),
     this.skullOssification = const Value.absent(),
     this.hasBursa = const Value.absent(),
@@ -17148,6 +17916,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.broodPatch = const Value.absent(),
     this.skullOssification = const Value.absent(),
     this.hasBursa = const Value.absent(),
@@ -17195,6 +17964,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Expression<String>? tarsusColor,
     Expression<String>? tarsusHex,
     Expression<int>? sex,
+    Expression<String>? lifeStage,
     Expression<int>? broodPatch,
     Expression<int>? skullOssification,
     Expression<int>? hasBursa,
@@ -17242,6 +18012,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       if (tarsusColor != null) 'tarsusColor': tarsusColor,
       if (tarsusHex != null) 'tarsusHex': tarsusHex,
       if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (broodPatch != null) 'broodPatch': broodPatch,
       if (skullOssification != null) 'skullOssification': skullOssification,
       if (hasBursa != null) 'hasBursa': hasBursa,
@@ -17291,6 +18062,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Value<String?>? tarsusColor,
     Value<String?>? tarsusHex,
     Value<int?>? sex,
+    Value<String?>? lifeStage,
     Value<int?>? broodPatch,
     Value<int?>? skullOssification,
     Value<int?>? hasBursa,
@@ -17338,6 +18110,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       tarsusColor: tarsusColor ?? this.tarsusColor,
       tarsusHex: tarsusHex ?? this.tarsusHex,
       sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
       broodPatch: broodPatch ?? this.broodPatch,
       skullOssification: skullOssification ?? this.skullOssification,
       hasBursa: hasBursa ?? this.hasBursa,
@@ -17422,6 +18195,9 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     }
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
+    }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (broodPatch.present) {
       map['broodPatch'] = Variable<int>(broodPatch.value);
@@ -17530,6 +18306,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('broodPatch: $broodPatch, ')
           ..write('skullOssification: $skullOssification, ')
           ..write('hasBursa: $hasBursa, ')
@@ -17589,12 +18366,14 @@ class HerpAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _ageMeta = const VerificationMeta('age');
-  late final GeneratedColumn<int> age = GeneratedColumn<int>(
-    'age',
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -17640,7 +18419,7 @@ class HerpAttribute extends Table
   List<GeneratedColumn> get $columns => [
     specimenUuid,
     sex,
-    age,
+    lifeStage,
     weight,
     weightUnit,
     svl,
@@ -17675,10 +18454,10 @@ class HerpAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
-    if (data.containsKey('age')) {
+    if (data.containsKey('lifeStage')) {
       context.handle(
-        _ageMeta,
-        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('weight')) {
@@ -17722,9 +18501,9 @@ class HerpAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
-      age: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}age'],
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
       ),
       weight: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
@@ -17762,7 +18541,7 @@ class HerpAttributeData extends DataClass
     implements Insertable<HerpAttributeData> {
   final String specimenUuid;
   final int? sex;
-  final int? age;
+  final String? lifeStage;
   final double? weight;
   final String? weightUnit;
   final double? svl;
@@ -17770,7 +18549,7 @@ class HerpAttributeData extends DataClass
   const HerpAttributeData({
     required this.specimenUuid,
     this.sex,
-    this.age,
+    this.lifeStage,
     this.weight,
     this.weightUnit,
     this.svl,
@@ -17783,8 +18562,8 @@ class HerpAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
-    if (!nullToAbsent || age != null) {
-      map['age'] = Variable<int>(age);
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || weight != null) {
       map['weight'] = Variable<double>(weight);
@@ -17805,7 +18584,9 @@ class HerpAttributeData extends DataClass
     return HerpAttributeCompanion(
       specimenUuid: Value(specimenUuid),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
-      age: age == null && nullToAbsent ? const Value.absent() : Value(age),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       weight: weight == null && nullToAbsent
           ? const Value.absent()
           : Value(weight),
@@ -17827,7 +18608,7 @@ class HerpAttributeData extends DataClass
     return HerpAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       sex: serializer.fromJson<int?>(json['sex']),
-      age: serializer.fromJson<int?>(json['age']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       weight: serializer.fromJson<double?>(json['weight']),
       weightUnit: serializer.fromJson<String?>(json['weightUnit']),
       svl: serializer.fromJson<double?>(json['svl']),
@@ -17840,7 +18621,7 @@ class HerpAttributeData extends DataClass
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
       'sex': serializer.toJson<int?>(sex),
-      'age': serializer.toJson<int?>(age),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'weight': serializer.toJson<double?>(weight),
       'weightUnit': serializer.toJson<String?>(weightUnit),
       'svl': serializer.toJson<double?>(svl),
@@ -17851,7 +18632,7 @@ class HerpAttributeData extends DataClass
   HerpAttributeData copyWith({
     String? specimenUuid,
     Value<int?> sex = const Value.absent(),
-    Value<int?> age = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<double?> weight = const Value.absent(),
     Value<String?> weightUnit = const Value.absent(),
     Value<double?> svl = const Value.absent(),
@@ -17859,7 +18640,7 @@ class HerpAttributeData extends DataClass
   }) => HerpAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     sex: sex.present ? sex.value : this.sex,
-    age: age.present ? age.value : this.age,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     weight: weight.present ? weight.value : this.weight,
     weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
     svl: svl.present ? svl.value : this.svl,
@@ -17871,7 +18652,7 @@ class HerpAttributeData extends DataClass
           ? data.specimenUuid.value
           : this.specimenUuid,
       sex: data.sex.present ? data.sex.value : this.sex,
-      age: data.age.present ? data.age.value : this.age,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       weight: data.weight.present ? data.weight.value : this.weight,
       weightUnit: data.weightUnit.present
           ? data.weightUnit.value
@@ -17886,7 +18667,7 @@ class HerpAttributeData extends DataClass
     return (StringBuffer('HerpAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('weight: $weight, ')
           ..write('weightUnit: $weightUnit, ')
           ..write('svl: $svl, ')
@@ -17896,15 +18677,22 @@ class HerpAttributeData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(specimenUuid, sex, age, weight, weightUnit, svl, remark);
+  int get hashCode => Object.hash(
+    specimenUuid,
+    sex,
+    lifeStage,
+    weight,
+    weightUnit,
+    svl,
+    remark,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is HerpAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.sex == this.sex &&
-          other.age == this.age &&
+          other.lifeStage == this.lifeStage &&
           other.weight == this.weight &&
           other.weightUnit == this.weightUnit &&
           other.svl == this.svl &&
@@ -17914,7 +18702,7 @@ class HerpAttributeData extends DataClass
 class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   final Value<String> specimenUuid;
   final Value<int?> sex;
-  final Value<int?> age;
+  final Value<String?> lifeStage;
   final Value<double?> weight;
   final Value<String?> weightUnit;
   final Value<double?> svl;
@@ -17923,7 +18711,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   const HerpAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.weight = const Value.absent(),
     this.weightUnit = const Value.absent(),
     this.svl = const Value.absent(),
@@ -17933,7 +18721,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   HerpAttributeCompanion.insert({
     required String specimenUuid,
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.weight = const Value.absent(),
     this.weightUnit = const Value.absent(),
     this.svl = const Value.absent(),
@@ -17943,7 +18731,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   static Insertable<HerpAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<int>? sex,
-    Expression<int>? age,
+    Expression<String>? lifeStage,
     Expression<double>? weight,
     Expression<String>? weightUnit,
     Expression<double>? svl,
@@ -17953,7 +18741,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (sex != null) 'sex': sex,
-      if (age != null) 'age': age,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (weight != null) 'weight': weight,
       if (weightUnit != null) 'weightUnit': weightUnit,
       if (svl != null) 'svl': svl,
@@ -17965,7 +18753,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   HerpAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<int?>? sex,
-    Value<int?>? age,
+    Value<String?>? lifeStage,
     Value<double?>? weight,
     Value<String?>? weightUnit,
     Value<double?>? svl,
@@ -17975,7 +18763,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return HerpAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       sex: sex ?? this.sex,
-      age: age ?? this.age,
+      lifeStage: lifeStage ?? this.lifeStage,
       weight: weight ?? this.weight,
       weightUnit: weightUnit ?? this.weightUnit,
       svl: svl ?? this.svl,
@@ -17993,8 +18781,8 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
-    if (age.present) {
-      map['age'] = Variable<int>(age.value);
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (weight.present) {
       map['weight'] = Variable<double>(weight.value);
@@ -18019,7 +18807,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return (StringBuffer('HerpAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('weight: $weight, ')
           ..write('weightUnit: $weightUnit, ')
           ..write('svl: $svl, ')
@@ -18100,6 +18888,26 @@ class ArthropodAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _casteMeta = const VerificationMeta('caste');
+  late final GeneratedColumn<int> caste = GeneratedColumn<int>(
+    'caste',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _hostOrganismMeta = const VerificationMeta(
     'hostOrganism',
   );
@@ -18122,92 +18930,6 @@ class ArthropodAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _canopyAffinityMeta = const VerificationMeta(
-    'canopyAffinity',
-  );
-  late final GeneratedColumn<String> canopyAffinity = GeneratedColumn<String>(
-    'canopyAffinity',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _canopyCoverMeta = const VerificationMeta(
-    'canopyCover',
-  );
-  late final GeneratedColumn<String> canopyCover = GeneratedColumn<String>(
-    'canopyCover',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _ambientTemperatureMeta =
-      const VerificationMeta('ambientTemperature');
-  late final GeneratedColumn<double> ambientTemperature =
-      GeneratedColumn<double>(
-        'ambientTemperature',
-        aliasedName,
-        true,
-        type: DriftSqlType.double,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
-  static const VerificationMeta _ambientHumidityMeta = const VerificationMeta(
-    'ambientHumidity',
-  );
-  late final GeneratedColumn<double> ambientHumidity = GeneratedColumn<double>(
-    'ambientHumidity',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _waterTemperatureMeta = const VerificationMeta(
-    'waterTemperature',
-  );
-  late final GeneratedColumn<double> waterTemperature = GeneratedColumn<double>(
-    'waterTemperature',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _pHMeta = const VerificationMeta('pH');
-  late final GeneratedColumn<double> pH = GeneratedColumn<double>(
-    'pH',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _dissolvedOxygenMeta = const VerificationMeta(
-    'dissolvedOxygen',
-  );
-  late final GeneratedColumn<double> dissolvedOxygen = GeneratedColumn<double>(
-    'dissolvedOxygen',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _flowVelocityMeta = const VerificationMeta(
-    'flowVelocity',
-  );
-  late final GeneratedColumn<double> flowVelocity = GeneratedColumn<double>(
-    'flowVelocity',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
   static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
   late final GeneratedColumn<String> remark = GeneratedColumn<String>(
     'remark',
@@ -18225,16 +18947,10 @@ class ArthropodAttribute extends Table
     wingspanUpper,
     wingspanLower,
     sex,
+    lifeStage,
+    caste,
     hostOrganism,
     hostPart,
-    canopyAffinity,
-    canopyCover,
-    ambientTemperature,
-    ambientHumidity,
-    waterTemperature,
-    pH,
-    dissolvedOxygen,
-    flowVelocity,
     remark,
   ];
   @override
@@ -18296,6 +19012,18 @@ class ArthropodAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
+      );
+    }
+    if (data.containsKey('caste')) {
+      context.handle(
+        _casteMeta,
+        caste.isAcceptableOrUnknown(data['caste']!, _casteMeta),
+      );
+    }
     if (data.containsKey('hostOrganism')) {
       context.handle(
         _hostOrganismMeta,
@@ -18309,72 +19037,6 @@ class ArthropodAttribute extends Table
       context.handle(
         _hostPartMeta,
         hostPart.isAcceptableOrUnknown(data['hostPart']!, _hostPartMeta),
-      );
-    }
-    if (data.containsKey('canopyAffinity')) {
-      context.handle(
-        _canopyAffinityMeta,
-        canopyAffinity.isAcceptableOrUnknown(
-          data['canopyAffinity']!,
-          _canopyAffinityMeta,
-        ),
-      );
-    }
-    if (data.containsKey('canopyCover')) {
-      context.handle(
-        _canopyCoverMeta,
-        canopyCover.isAcceptableOrUnknown(
-          data['canopyCover']!,
-          _canopyCoverMeta,
-        ),
-      );
-    }
-    if (data.containsKey('ambientTemperature')) {
-      context.handle(
-        _ambientTemperatureMeta,
-        ambientTemperature.isAcceptableOrUnknown(
-          data['ambientTemperature']!,
-          _ambientTemperatureMeta,
-        ),
-      );
-    }
-    if (data.containsKey('ambientHumidity')) {
-      context.handle(
-        _ambientHumidityMeta,
-        ambientHumidity.isAcceptableOrUnknown(
-          data['ambientHumidity']!,
-          _ambientHumidityMeta,
-        ),
-      );
-    }
-    if (data.containsKey('waterTemperature')) {
-      context.handle(
-        _waterTemperatureMeta,
-        waterTemperature.isAcceptableOrUnknown(
-          data['waterTemperature']!,
-          _waterTemperatureMeta,
-        ),
-      );
-    }
-    if (data.containsKey('pH')) {
-      context.handle(_pHMeta, pH.isAcceptableOrUnknown(data['pH']!, _pHMeta));
-    }
-    if (data.containsKey('dissolvedOxygen')) {
-      context.handle(
-        _dissolvedOxygenMeta,
-        dissolvedOxygen.isAcceptableOrUnknown(
-          data['dissolvedOxygen']!,
-          _dissolvedOxygenMeta,
-        ),
-      );
-    }
-    if (data.containsKey('flowVelocity')) {
-      context.handle(
-        _flowVelocityMeta,
-        flowVelocity.isAcceptableOrUnknown(
-          data['flowVelocity']!,
-          _flowVelocityMeta,
-        ),
       );
     }
     if (data.containsKey('remark')) {
@@ -18416,6 +19078,14 @@ class ArthropodAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
+      caste: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}caste'],
+      ),
       hostOrganism: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}hostOrganism'],
@@ -18423,38 +19093,6 @@ class ArthropodAttribute extends Table
       hostPart: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}hostPart'],
-      ),
-      canopyAffinity: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}canopyAffinity'],
-      ),
-      canopyCover: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}canopyCover'],
-      ),
-      ambientTemperature: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}ambientTemperature'],
-      ),
-      ambientHumidity: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}ambientHumidity'],
-      ),
-      waterTemperature: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}waterTemperature'],
-      ),
-      pH: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}pH'],
-      ),
-      dissolvedOxygen: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}dissolvedOxygen'],
-      ),
-      flowVelocity: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}flowVelocity'],
       ),
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -18484,16 +19122,10 @@ class ArthropodAttributeData extends DataClass
   final double? wingspanUpper;
   final double? wingspanLower;
   final int? sex;
+  final String? lifeStage;
+  final int? caste;
   final String? hostOrganism;
   final String? hostPart;
-  final String? canopyAffinity;
-  final String? canopyCover;
-  final double? ambientTemperature;
-  final double? ambientHumidity;
-  final double? waterTemperature;
-  final double? pH;
-  final double? dissolvedOxygen;
-  final double? flowVelocity;
   final String? remark;
   const ArthropodAttributeData({
     required this.specimenUuid,
@@ -18502,16 +19134,10 @@ class ArthropodAttributeData extends DataClass
     this.wingspanUpper,
     this.wingspanLower,
     this.sex,
+    this.lifeStage,
+    this.caste,
     this.hostOrganism,
     this.hostPart,
-    this.canopyAffinity,
-    this.canopyCover,
-    this.ambientTemperature,
-    this.ambientHumidity,
-    this.waterTemperature,
-    this.pH,
-    this.dissolvedOxygen,
-    this.flowVelocity,
     this.remark,
   });
   @override
@@ -18533,35 +19159,17 @@ class ArthropodAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
+    }
+    if (!nullToAbsent || caste != null) {
+      map['caste'] = Variable<int>(caste);
+    }
     if (!nullToAbsent || hostOrganism != null) {
       map['hostOrganism'] = Variable<String>(hostOrganism);
     }
     if (!nullToAbsent || hostPart != null) {
       map['hostPart'] = Variable<String>(hostPart);
-    }
-    if (!nullToAbsent || canopyAffinity != null) {
-      map['canopyAffinity'] = Variable<String>(canopyAffinity);
-    }
-    if (!nullToAbsent || canopyCover != null) {
-      map['canopyCover'] = Variable<String>(canopyCover);
-    }
-    if (!nullToAbsent || ambientTemperature != null) {
-      map['ambientTemperature'] = Variable<double>(ambientTemperature);
-    }
-    if (!nullToAbsent || ambientHumidity != null) {
-      map['ambientHumidity'] = Variable<double>(ambientHumidity);
-    }
-    if (!nullToAbsent || waterTemperature != null) {
-      map['waterTemperature'] = Variable<double>(waterTemperature);
-    }
-    if (!nullToAbsent || pH != null) {
-      map['pH'] = Variable<double>(pH);
-    }
-    if (!nullToAbsent || dissolvedOxygen != null) {
-      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen);
-    }
-    if (!nullToAbsent || flowVelocity != null) {
-      map['flowVelocity'] = Variable<double>(flowVelocity);
     }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
@@ -18585,34 +19193,18 @@ class ArthropodAttributeData extends DataClass
           ? const Value.absent()
           : Value(wingspanLower),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
+      caste: caste == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caste),
       hostOrganism: hostOrganism == null && nullToAbsent
           ? const Value.absent()
           : Value(hostOrganism),
       hostPart: hostPart == null && nullToAbsent
           ? const Value.absent()
           : Value(hostPart),
-      canopyAffinity: canopyAffinity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(canopyAffinity),
-      canopyCover: canopyCover == null && nullToAbsent
-          ? const Value.absent()
-          : Value(canopyCover),
-      ambientTemperature: ambientTemperature == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ambientTemperature),
-      ambientHumidity: ambientHumidity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ambientHumidity),
-      waterTemperature: waterTemperature == null && nullToAbsent
-          ? const Value.absent()
-          : Value(waterTemperature),
-      pH: pH == null && nullToAbsent ? const Value.absent() : Value(pH),
-      dissolvedOxygen: dissolvedOxygen == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dissolvedOxygen),
-      flowVelocity: flowVelocity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(flowVelocity),
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
@@ -18631,18 +19223,10 @@ class ArthropodAttributeData extends DataClass
       wingspanUpper: serializer.fromJson<double?>(json['wingspanUpper']),
       wingspanLower: serializer.fromJson<double?>(json['wingspanLower']),
       sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
+      caste: serializer.fromJson<int?>(json['caste']),
       hostOrganism: serializer.fromJson<String?>(json['hostOrganism']),
       hostPart: serializer.fromJson<String?>(json['hostPart']),
-      canopyAffinity: serializer.fromJson<String?>(json['canopyAffinity']),
-      canopyCover: serializer.fromJson<String?>(json['canopyCover']),
-      ambientTemperature: serializer.fromJson<double?>(
-        json['ambientTemperature'],
-      ),
-      ambientHumidity: serializer.fromJson<double?>(json['ambientHumidity']),
-      waterTemperature: serializer.fromJson<double?>(json['waterTemperature']),
-      pH: serializer.fromJson<double?>(json['pH']),
-      dissolvedOxygen: serializer.fromJson<double?>(json['dissolvedOxygen']),
-      flowVelocity: serializer.fromJson<double?>(json['flowVelocity']),
       remark: serializer.fromJson<String?>(json['remark']),
     );
   }
@@ -18656,16 +19240,10 @@ class ArthropodAttributeData extends DataClass
       'wingspanUpper': serializer.toJson<double?>(wingspanUpper),
       'wingspanLower': serializer.toJson<double?>(wingspanLower),
       'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
+      'caste': serializer.toJson<int?>(caste),
       'hostOrganism': serializer.toJson<String?>(hostOrganism),
       'hostPart': serializer.toJson<String?>(hostPart),
-      'canopyAffinity': serializer.toJson<String?>(canopyAffinity),
-      'canopyCover': serializer.toJson<String?>(canopyCover),
-      'ambientTemperature': serializer.toJson<double?>(ambientTemperature),
-      'ambientHumidity': serializer.toJson<double?>(ambientHumidity),
-      'waterTemperature': serializer.toJson<double?>(waterTemperature),
-      'pH': serializer.toJson<double?>(pH),
-      'dissolvedOxygen': serializer.toJson<double?>(dissolvedOxygen),
-      'flowVelocity': serializer.toJson<double?>(flowVelocity),
       'remark': serializer.toJson<String?>(remark),
     };
   }
@@ -18677,16 +19255,10 @@ class ArthropodAttributeData extends DataClass
     Value<double?> wingspanUpper = const Value.absent(),
     Value<double?> wingspanLower = const Value.absent(),
     Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
+    Value<int?> caste = const Value.absent(),
     Value<String?> hostOrganism = const Value.absent(),
     Value<String?> hostPart = const Value.absent(),
-    Value<String?> canopyAffinity = const Value.absent(),
-    Value<String?> canopyCover = const Value.absent(),
-    Value<double?> ambientTemperature = const Value.absent(),
-    Value<double?> ambientHumidity = const Value.absent(),
-    Value<double?> waterTemperature = const Value.absent(),
-    Value<double?> pH = const Value.absent(),
-    Value<double?> dissolvedOxygen = const Value.absent(),
-    Value<double?> flowVelocity = const Value.absent(),
     Value<String?> remark = const Value.absent(),
   }) => ArthropodAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
@@ -18699,26 +19271,10 @@ class ArthropodAttributeData extends DataClass
         ? wingspanLower.value
         : this.wingspanLower,
     sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
+    caste: caste.present ? caste.value : this.caste,
     hostOrganism: hostOrganism.present ? hostOrganism.value : this.hostOrganism,
     hostPart: hostPart.present ? hostPart.value : this.hostPart,
-    canopyAffinity: canopyAffinity.present
-        ? canopyAffinity.value
-        : this.canopyAffinity,
-    canopyCover: canopyCover.present ? canopyCover.value : this.canopyCover,
-    ambientTemperature: ambientTemperature.present
-        ? ambientTemperature.value
-        : this.ambientTemperature,
-    ambientHumidity: ambientHumidity.present
-        ? ambientHumidity.value
-        : this.ambientHumidity,
-    waterTemperature: waterTemperature.present
-        ? waterTemperature.value
-        : this.waterTemperature,
-    pH: pH.present ? pH.value : this.pH,
-    dissolvedOxygen: dissolvedOxygen.present
-        ? dissolvedOxygen.value
-        : this.dissolvedOxygen,
-    flowVelocity: flowVelocity.present ? flowVelocity.value : this.flowVelocity,
     remark: remark.present ? remark.value : this.remark,
   );
   ArthropodAttributeData copyWithCompanion(ArthropodAttributeCompanion data) {
@@ -18737,32 +19293,12 @@ class ArthropodAttributeData extends DataClass
           ? data.wingspanLower.value
           : this.wingspanLower,
       sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
+      caste: data.caste.present ? data.caste.value : this.caste,
       hostOrganism: data.hostOrganism.present
           ? data.hostOrganism.value
           : this.hostOrganism,
       hostPart: data.hostPart.present ? data.hostPart.value : this.hostPart,
-      canopyAffinity: data.canopyAffinity.present
-          ? data.canopyAffinity.value
-          : this.canopyAffinity,
-      canopyCover: data.canopyCover.present
-          ? data.canopyCover.value
-          : this.canopyCover,
-      ambientTemperature: data.ambientTemperature.present
-          ? data.ambientTemperature.value
-          : this.ambientTemperature,
-      ambientHumidity: data.ambientHumidity.present
-          ? data.ambientHumidity.value
-          : this.ambientHumidity,
-      waterTemperature: data.waterTemperature.present
-          ? data.waterTemperature.value
-          : this.waterTemperature,
-      pH: data.pH.present ? data.pH.value : this.pH,
-      dissolvedOxygen: data.dissolvedOxygen.present
-          ? data.dissolvedOxygen.value
-          : this.dissolvedOxygen,
-      flowVelocity: data.flowVelocity.present
-          ? data.flowVelocity.value
-          : this.flowVelocity,
       remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
@@ -18776,16 +19312,10 @@ class ArthropodAttributeData extends DataClass
           ..write('wingspanUpper: $wingspanUpper, ')
           ..write('wingspanLower: $wingspanLower, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('caste: $caste, ')
           ..write('hostOrganism: $hostOrganism, ')
           ..write('hostPart: $hostPart, ')
-          ..write('canopyAffinity: $canopyAffinity, ')
-          ..write('canopyCover: $canopyCover, ')
-          ..write('ambientTemperature: $ambientTemperature, ')
-          ..write('ambientHumidity: $ambientHumidity, ')
-          ..write('waterTemperature: $waterTemperature, ')
-          ..write('pH: $pH, ')
-          ..write('dissolvedOxygen: $dissolvedOxygen, ')
-          ..write('flowVelocity: $flowVelocity, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -18799,16 +19329,10 @@ class ArthropodAttributeData extends DataClass
     wingspanUpper,
     wingspanLower,
     sex,
+    lifeStage,
+    caste,
     hostOrganism,
     hostPart,
-    canopyAffinity,
-    canopyCover,
-    ambientTemperature,
-    ambientHumidity,
-    waterTemperature,
-    pH,
-    dissolvedOxygen,
-    flowVelocity,
     remark,
   );
   @override
@@ -18821,16 +19345,10 @@ class ArthropodAttributeData extends DataClass
           other.wingspanUpper == this.wingspanUpper &&
           other.wingspanLower == this.wingspanLower &&
           other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
+          other.caste == this.caste &&
           other.hostOrganism == this.hostOrganism &&
           other.hostPart == this.hostPart &&
-          other.canopyAffinity == this.canopyAffinity &&
-          other.canopyCover == this.canopyCover &&
-          other.ambientTemperature == this.ambientTemperature &&
-          other.ambientHumidity == this.ambientHumidity &&
-          other.waterTemperature == this.waterTemperature &&
-          other.pH == this.pH &&
-          other.dissolvedOxygen == this.dissolvedOxygen &&
-          other.flowVelocity == this.flowVelocity &&
           other.remark == this.remark);
 }
 
@@ -18842,16 +19360,10 @@ class ArthropodAttributeCompanion
   final Value<double?> wingspanUpper;
   final Value<double?> wingspanLower;
   final Value<int?> sex;
+  final Value<String?> lifeStage;
+  final Value<int?> caste;
   final Value<String?> hostOrganism;
   final Value<String?> hostPart;
-  final Value<String?> canopyAffinity;
-  final Value<String?> canopyCover;
-  final Value<double?> ambientTemperature;
-  final Value<double?> ambientHumidity;
-  final Value<double?> waterTemperature;
-  final Value<double?> pH;
-  final Value<double?> dissolvedOxygen;
-  final Value<double?> flowVelocity;
   final Value<String?> remark;
   final Value<int> rowid;
   const ArthropodAttributeCompanion({
@@ -18861,16 +19373,10 @@ class ArthropodAttributeCompanion
     this.wingspanUpper = const Value.absent(),
     this.wingspanLower = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.caste = const Value.absent(),
     this.hostOrganism = const Value.absent(),
     this.hostPart = const Value.absent(),
-    this.canopyAffinity = const Value.absent(),
-    this.canopyCover = const Value.absent(),
-    this.ambientTemperature = const Value.absent(),
-    this.ambientHumidity = const Value.absent(),
-    this.waterTemperature = const Value.absent(),
-    this.pH = const Value.absent(),
-    this.dissolvedOxygen = const Value.absent(),
-    this.flowVelocity = const Value.absent(),
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -18881,16 +19387,10 @@ class ArthropodAttributeCompanion
     this.wingspanUpper = const Value.absent(),
     this.wingspanLower = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.caste = const Value.absent(),
     this.hostOrganism = const Value.absent(),
     this.hostPart = const Value.absent(),
-    this.canopyAffinity = const Value.absent(),
-    this.canopyCover = const Value.absent(),
-    this.ambientTemperature = const Value.absent(),
-    this.ambientHumidity = const Value.absent(),
-    this.waterTemperature = const Value.absent(),
-    this.pH = const Value.absent(),
-    this.dissolvedOxygen = const Value.absent(),
-    this.flowVelocity = const Value.absent(),
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
@@ -18901,16 +19401,10 @@ class ArthropodAttributeCompanion
     Expression<double>? wingspanUpper,
     Expression<double>? wingspanLower,
     Expression<int>? sex,
+    Expression<String>? lifeStage,
+    Expression<int>? caste,
     Expression<String>? hostOrganism,
     Expression<String>? hostPart,
-    Expression<String>? canopyAffinity,
-    Expression<String>? canopyCover,
-    Expression<double>? ambientTemperature,
-    Expression<double>? ambientHumidity,
-    Expression<double>? waterTemperature,
-    Expression<double>? pH,
-    Expression<double>? dissolvedOxygen,
-    Expression<double>? flowVelocity,
     Expression<String>? remark,
     Expression<int>? rowid,
   }) {
@@ -18921,16 +19415,10 @@ class ArthropodAttributeCompanion
       if (wingspanUpper != null) 'wingspanUpper': wingspanUpper,
       if (wingspanLower != null) 'wingspanLower': wingspanLower,
       if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
+      if (caste != null) 'caste': caste,
       if (hostOrganism != null) 'hostOrganism': hostOrganism,
       if (hostPart != null) 'hostPart': hostPart,
-      if (canopyAffinity != null) 'canopyAffinity': canopyAffinity,
-      if (canopyCover != null) 'canopyCover': canopyCover,
-      if (ambientTemperature != null) 'ambientTemperature': ambientTemperature,
-      if (ambientHumidity != null) 'ambientHumidity': ambientHumidity,
-      if (waterTemperature != null) 'waterTemperature': waterTemperature,
-      if (pH != null) 'pH': pH,
-      if (dissolvedOxygen != null) 'dissolvedOxygen': dissolvedOxygen,
-      if (flowVelocity != null) 'flowVelocity': flowVelocity,
       if (remark != null) 'remark': remark,
       if (rowid != null) 'rowid': rowid,
     });
@@ -18943,16 +19431,10 @@ class ArthropodAttributeCompanion
     Value<double?>? wingspanUpper,
     Value<double?>? wingspanLower,
     Value<int?>? sex,
+    Value<String?>? lifeStage,
+    Value<int?>? caste,
     Value<String?>? hostOrganism,
     Value<String?>? hostPart,
-    Value<String?>? canopyAffinity,
-    Value<String?>? canopyCover,
-    Value<double?>? ambientTemperature,
-    Value<double?>? ambientHumidity,
-    Value<double?>? waterTemperature,
-    Value<double?>? pH,
-    Value<double?>? dissolvedOxygen,
-    Value<double?>? flowVelocity,
     Value<String?>? remark,
     Value<int>? rowid,
   }) {
@@ -18963,16 +19445,10 @@ class ArthropodAttributeCompanion
       wingspanUpper: wingspanUpper ?? this.wingspanUpper,
       wingspanLower: wingspanLower ?? this.wingspanLower,
       sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
+      caste: caste ?? this.caste,
       hostOrganism: hostOrganism ?? this.hostOrganism,
       hostPart: hostPart ?? this.hostPart,
-      canopyAffinity: canopyAffinity ?? this.canopyAffinity,
-      canopyCover: canopyCover ?? this.canopyCover,
-      ambientTemperature: ambientTemperature ?? this.ambientTemperature,
-      ambientHumidity: ambientHumidity ?? this.ambientHumidity,
-      waterTemperature: waterTemperature ?? this.waterTemperature,
-      pH: pH ?? this.pH,
-      dissolvedOxygen: dissolvedOxygen ?? this.dissolvedOxygen,
-      flowVelocity: flowVelocity ?? this.flowVelocity,
       remark: remark ?? this.remark,
       rowid: rowid ?? this.rowid,
     );
@@ -18999,35 +19475,17 @@ class ArthropodAttributeCompanion
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
+    }
+    if (caste.present) {
+      map['caste'] = Variable<int>(caste.value);
+    }
     if (hostOrganism.present) {
       map['hostOrganism'] = Variable<String>(hostOrganism.value);
     }
     if (hostPart.present) {
       map['hostPart'] = Variable<String>(hostPart.value);
-    }
-    if (canopyAffinity.present) {
-      map['canopyAffinity'] = Variable<String>(canopyAffinity.value);
-    }
-    if (canopyCover.present) {
-      map['canopyCover'] = Variable<String>(canopyCover.value);
-    }
-    if (ambientTemperature.present) {
-      map['ambientTemperature'] = Variable<double>(ambientTemperature.value);
-    }
-    if (ambientHumidity.present) {
-      map['ambientHumidity'] = Variable<double>(ambientHumidity.value);
-    }
-    if (waterTemperature.present) {
-      map['waterTemperature'] = Variable<double>(waterTemperature.value);
-    }
-    if (pH.present) {
-      map['pH'] = Variable<double>(pH.value);
-    }
-    if (dissolvedOxygen.present) {
-      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen.value);
-    }
-    if (flowVelocity.present) {
-      map['flowVelocity'] = Variable<double>(flowVelocity.value);
     }
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
@@ -19047,16 +19505,10 @@ class ArthropodAttributeCompanion
           ..write('wingspanUpper: $wingspanUpper, ')
           ..write('wingspanLower: $wingspanLower, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('caste: $caste, ')
           ..write('hostOrganism: $hostOrganism, ')
           ..write('hostPart: $hostPart, ')
-          ..write('canopyAffinity: $canopyAffinity, ')
-          ..write('canopyCover: $canopyCover, ')
-          ..write('ambientTemperature: $ambientTemperature, ')
-          ..write('ambientHumidity: $ambientHumidity, ')
-          ..write('waterTemperature: $waterTemperature, ')
-          ..write('pH: $pH, ')
-          ..write('dissolvedOxygen: $dissolvedOxygen, ')
-          ..write('flowVelocity: $flowVelocity, ')
           ..write('remark: $remark, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -19092,6 +19544,46 @@ class FossilAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+    'sex',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _ontogeneticStageMeta = const VerificationMeta(
+    'ontogeneticStage',
+  );
+  late final GeneratedColumn<String> ontogeneticStage = GeneratedColumn<String>(
+    'ontogeneticStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+    'weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightUnitMeta = const VerificationMeta(
+    'weightUnit',
+  );
+  late final GeneratedColumn<String> weightUnit = GeneratedColumn<String>(
+    'weightUnit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _specimenDescriptionMeta =
       const VerificationMeta('specimenDescription');
   late final GeneratedColumn<String> specimenDescription =
@@ -19103,11 +19595,25 @@ class FossilAttribute extends Table
         requiredDuringInsert: false,
         $customConstraints: '',
       );
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+    'remark',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     specimenUuid,
     fossilType,
+    sex,
+    ontogeneticStage,
+    weight,
+    weightUnit,
     specimenDescription,
+    remark,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -19138,6 +19644,33 @@ class FossilAttribute extends Table
         fossilType.isAcceptableOrUnknown(data['fossilType']!, _fossilTypeMeta),
       );
     }
+    if (data.containsKey('sex')) {
+      context.handle(
+        _sexMeta,
+        sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('ontogeneticStage')) {
+      context.handle(
+        _ontogeneticStageMeta,
+        ontogeneticStage.isAcceptableOrUnknown(
+          data['ontogeneticStage']!,
+          _ontogeneticStageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight')) {
+      context.handle(
+        _weightMeta,
+        weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
+      );
+    }
+    if (data.containsKey('weightUnit')) {
+      context.handle(
+        _weightUnitMeta,
+        weightUnit.isAcceptableOrUnknown(data['weightUnit']!, _weightUnitMeta),
+      );
+    }
     if (data.containsKey('specimenDescription')) {
       context.handle(
         _specimenDescriptionMeta,
@@ -19145,6 +19678,12 @@ class FossilAttribute extends Table
           data['specimenDescription']!,
           _specimenDescriptionMeta,
         ),
+      );
+    }
+    if (data.containsKey('remark')) {
+      context.handle(
+        _remarkMeta,
+        remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
       );
     }
     return context;
@@ -19164,9 +19703,29 @@ class FossilAttribute extends Table
         DriftSqlType.string,
         data['${effectivePrefix}fossilType'],
       ),
+      sex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sex'],
+      ),
+      ontogeneticStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ontogeneticStage'],
+      ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight'],
+      ),
+      weightUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weightUnit'],
+      ),
       specimenDescription: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenDescription'],
+      ),
+      remark: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remark'],
       ),
     );
   }
@@ -19188,11 +19747,21 @@ class FossilAttributeData extends DataClass
     implements Insertable<FossilAttributeData> {
   final String specimenUuid;
   final String? fossilType;
+  final int? sex;
+  final String? ontogeneticStage;
+  final double? weight;
+  final String? weightUnit;
   final String? specimenDescription;
+  final String? remark;
   const FossilAttributeData({
     required this.specimenUuid,
     this.fossilType,
+    this.sex,
+    this.ontogeneticStage,
+    this.weight,
+    this.weightUnit,
     this.specimenDescription,
+    this.remark,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -19201,8 +19770,23 @@ class FossilAttributeData extends DataClass
     if (!nullToAbsent || fossilType != null) {
       map['fossilType'] = Variable<String>(fossilType);
     }
+    if (!nullToAbsent || sex != null) {
+      map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || ontogeneticStage != null) {
+      map['ontogeneticStage'] = Variable<String>(ontogeneticStage);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<double>(weight);
+    }
+    if (!nullToAbsent || weightUnit != null) {
+      map['weightUnit'] = Variable<String>(weightUnit);
+    }
     if (!nullToAbsent || specimenDescription != null) {
       map['specimenDescription'] = Variable<String>(specimenDescription);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
     }
     return map;
   }
@@ -19213,9 +19797,22 @@ class FossilAttributeData extends DataClass
       fossilType: fossilType == null && nullToAbsent
           ? const Value.absent()
           : Value(fossilType),
+      sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      ontogeneticStage: ontogeneticStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ontogeneticStage),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
+      weightUnit: weightUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightUnit),
       specimenDescription: specimenDescription == null && nullToAbsent
           ? const Value.absent()
           : Value(specimenDescription),
+      remark: remark == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remark),
     );
   }
 
@@ -19227,9 +19824,14 @@ class FossilAttributeData extends DataClass
     return FossilAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       fossilType: serializer.fromJson<String?>(json['fossilType']),
+      sex: serializer.fromJson<int?>(json['sex']),
+      ontogeneticStage: serializer.fromJson<String?>(json['ontogeneticStage']),
+      weight: serializer.fromJson<double?>(json['weight']),
+      weightUnit: serializer.fromJson<String?>(json['weightUnit']),
       specimenDescription: serializer.fromJson<String?>(
         json['specimenDescription'],
       ),
+      remark: serializer.fromJson<String?>(json['remark']),
     );
   }
   @override
@@ -19238,20 +19840,37 @@ class FossilAttributeData extends DataClass
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
       'fossilType': serializer.toJson<String?>(fossilType),
+      'sex': serializer.toJson<int?>(sex),
+      'ontogeneticStage': serializer.toJson<String?>(ontogeneticStage),
+      'weight': serializer.toJson<double?>(weight),
+      'weightUnit': serializer.toJson<String?>(weightUnit),
       'specimenDescription': serializer.toJson<String?>(specimenDescription),
+      'remark': serializer.toJson<String?>(remark),
     };
   }
 
   FossilAttributeData copyWith({
     String? specimenUuid,
     Value<String?> fossilType = const Value.absent(),
+    Value<int?> sex = const Value.absent(),
+    Value<String?> ontogeneticStage = const Value.absent(),
+    Value<double?> weight = const Value.absent(),
+    Value<String?> weightUnit = const Value.absent(),
     Value<String?> specimenDescription = const Value.absent(),
+    Value<String?> remark = const Value.absent(),
   }) => FossilAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     fossilType: fossilType.present ? fossilType.value : this.fossilType,
+    sex: sex.present ? sex.value : this.sex,
+    ontogeneticStage: ontogeneticStage.present
+        ? ontogeneticStage.value
+        : this.ontogeneticStage,
+    weight: weight.present ? weight.value : this.weight,
+    weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
     specimenDescription: specimenDescription.present
         ? specimenDescription.value
         : this.specimenDescription,
+    remark: remark.present ? remark.value : this.remark,
   );
   FossilAttributeData copyWithCompanion(FossilAttributeCompanion data) {
     return FossilAttributeData(
@@ -19261,9 +19880,18 @@ class FossilAttributeData extends DataClass
       fossilType: data.fossilType.present
           ? data.fossilType.value
           : this.fossilType,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      ontogeneticStage: data.ontogeneticStage.present
+          ? data.ontogeneticStage.value
+          : this.ontogeneticStage,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      weightUnit: data.weightUnit.present
+          ? data.weightUnit.value
+          : this.weightUnit,
       specimenDescription: data.specimenDescription.present
           ? data.specimenDescription.value
           : this.specimenDescription,
+      remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
 
@@ -19272,51 +19900,94 @@ class FossilAttributeData extends DataClass
     return (StringBuffer('FossilAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('fossilType: $fossilType, ')
-          ..write('specimenDescription: $specimenDescription')
+          ..write('sex: $sex, ')
+          ..write('ontogeneticStage: $ontogeneticStage, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('specimenDescription: $specimenDescription, ')
+          ..write('remark: $remark')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(specimenUuid, fossilType, specimenDescription);
+  int get hashCode => Object.hash(
+    specimenUuid,
+    fossilType,
+    sex,
+    ontogeneticStage,
+    weight,
+    weightUnit,
+    specimenDescription,
+    remark,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FossilAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.fossilType == this.fossilType &&
-          other.specimenDescription == this.specimenDescription);
+          other.sex == this.sex &&
+          other.ontogeneticStage == this.ontogeneticStage &&
+          other.weight == this.weight &&
+          other.weightUnit == this.weightUnit &&
+          other.specimenDescription == this.specimenDescription &&
+          other.remark == this.remark);
 }
 
 class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
   final Value<String> specimenUuid;
   final Value<String?> fossilType;
+  final Value<int?> sex;
+  final Value<String?> ontogeneticStage;
+  final Value<double?> weight;
+  final Value<String?> weightUnit;
   final Value<String?> specimenDescription;
+  final Value<String?> remark;
   final Value<int> rowid;
   const FossilAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.fossilType = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.ontogeneticStage = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.specimenDescription = const Value.absent(),
+    this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FossilAttributeCompanion.insert({
     required String specimenUuid,
     this.fossilType = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.ontogeneticStage = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.specimenDescription = const Value.absent(),
+    this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
   static Insertable<FossilAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<String>? fossilType,
+    Expression<int>? sex,
+    Expression<String>? ontogeneticStage,
+    Expression<double>? weight,
+    Expression<String>? weightUnit,
     Expression<String>? specimenDescription,
+    Expression<String>? remark,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (fossilType != null) 'fossilType': fossilType,
+      if (sex != null) 'sex': sex,
+      if (ontogeneticStage != null) 'ontogeneticStage': ontogeneticStage,
+      if (weight != null) 'weight': weight,
+      if (weightUnit != null) 'weightUnit': weightUnit,
       if (specimenDescription != null)
         'specimenDescription': specimenDescription,
+      if (remark != null) 'remark': remark,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -19324,13 +19995,23 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
   FossilAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<String?>? fossilType,
+    Value<int?>? sex,
+    Value<String?>? ontogeneticStage,
+    Value<double?>? weight,
+    Value<String?>? weightUnit,
     Value<String?>? specimenDescription,
+    Value<String?>? remark,
     Value<int>? rowid,
   }) {
     return FossilAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       fossilType: fossilType ?? this.fossilType,
+      sex: sex ?? this.sex,
+      ontogeneticStage: ontogeneticStage ?? this.ontogeneticStage,
+      weight: weight ?? this.weight,
+      weightUnit: weightUnit ?? this.weightUnit,
       specimenDescription: specimenDescription ?? this.specimenDescription,
+      remark: remark ?? this.remark,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -19344,8 +20025,23 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
     if (fossilType.present) {
       map['fossilType'] = Variable<String>(fossilType.value);
     }
+    if (sex.present) {
+      map['sex'] = Variable<int>(sex.value);
+    }
+    if (ontogeneticStage.present) {
+      map['ontogeneticStage'] = Variable<String>(ontogeneticStage.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (weightUnit.present) {
+      map['weightUnit'] = Variable<String>(weightUnit.value);
+    }
     if (specimenDescription.present) {
       map['specimenDescription'] = Variable<String>(specimenDescription.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -19358,7 +20054,12 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
     return (StringBuffer('FossilAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('fossilType: $fossilType, ')
+          ..write('sex: $sex, ')
+          ..write('ontogeneticStage: $ontogeneticStage, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
           ..write('specimenDescription: $specimenDescription, ')
+          ..write('remark: $remark, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -23721,10 +24422,11 @@ abstract class _$Database extends GeneratedDatabase {
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
   late final Site site = Site(this);
+  late final SiteAttribute siteAttribute = SiteAttribute(this);
   late final FossilSite fossilSite = FossilSite(this);
   late final Coordinate coordinate = Coordinate(this);
   late final CollEvent collEvent = CollEvent(this);
-  late final Weather weather = Weather(this);
+  late final Environment environment = Environment(this);
   late final CollPersonnel collPersonnel = CollPersonnel(this);
   late final CollEffort collEffort = CollEffort(this);
   late final Narrative narrative = Narrative(this);
@@ -23858,10 +24560,11 @@ abstract class _$Database extends GeneratedDatabase {
     personnel,
     media,
     site,
+    siteAttribute,
     fossilSite,
     coordinate,
     collEvent,
-    weather,
+    environment,
     collPersonnel,
     collEffort,
     narrative,
@@ -25407,15 +26110,13 @@ typedef $SiteCreateCompanionBuilder =
       Value<String?> leadStaffId,
       Value<String?> siteType,
       Value<String?> country,
+      Value<String?> islandGroup,
       Value<String?> stateProvince,
       Value<String?> county,
       Value<String?> municipality,
       Value<String?> mediaID,
       Value<String?> locality,
       Value<String?> remark,
-      Value<String?> habitatType,
-      Value<String?> habitatCondition,
-      Value<String?> habitatDescription,
     });
 typedef $SiteUpdateCompanionBuilder =
     SiteCompanion Function({
@@ -25425,15 +26126,13 @@ typedef $SiteUpdateCompanionBuilder =
       Value<String?> leadStaffId,
       Value<String?> siteType,
       Value<String?> country,
+      Value<String?> islandGroup,
       Value<String?> stateProvince,
       Value<String?> county,
       Value<String?> municipality,
       Value<String?> mediaID,
       Value<String?> locality,
       Value<String?> remark,
-      Value<String?> habitatType,
-      Value<String?> habitatCondition,
-      Value<String?> habitatDescription,
     });
 
 final class $SiteReferences extends BaseReferences<_$Database, Site, SiteData> {
@@ -25496,6 +26195,11 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get stateProvince => $composableBuilder(
     column: $table.stateProvince,
     builder: (column) => ColumnFilters(column),
@@ -25523,21 +26227,6 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
 
   ColumnFilters<String> get remark => $composableBuilder(
     column: $table.remark,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -25605,6 +26294,11 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get stateProvince => $composableBuilder(
     column: $table.stateProvince,
     builder: (column) => ColumnOrderings(column),
@@ -25632,21 +26326,6 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
 
   ColumnOrderings<String> get remark => $composableBuilder(
     column: $table.remark,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -25681,6 +26360,11 @@ class $SiteAnnotationComposer extends Composer<_$Database, Site> {
   GeneratedColumn<String> get country =>
       $composableBuilder(column: $table.country, builder: (column) => column);
 
+  GeneratedColumn<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get stateProvince => $composableBuilder(
     column: $table.stateProvince,
     builder: (column) => column,
@@ -25702,21 +26386,6 @@ class $SiteAnnotationComposer extends Composer<_$Database, Site> {
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
-
-  GeneratedColumn<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
-    builder: (column) => column,
-  );
 
   Expression<T> collEventRefs<T extends Object>(
     Expression<T> Function($CollEventAnnotationComposer a) f,
@@ -25778,15 +26447,13 @@ class $SiteTableManager
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
                 Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
                 Value<String?> stateProvince = const Value.absent(),
                 Value<String?> county = const Value.absent(),
                 Value<String?> municipality = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
                 Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
-                Value<String?> habitatType = const Value.absent(),
-                Value<String?> habitatCondition = const Value.absent(),
-                Value<String?> habitatDescription = const Value.absent(),
               }) => SiteCompanion(
                 id: id,
                 siteID: siteID,
@@ -25794,15 +26461,13 @@ class $SiteTableManager
                 leadStaffId: leadStaffId,
                 siteType: siteType,
                 country: country,
+                islandGroup: islandGroup,
                 stateProvince: stateProvince,
                 county: county,
                 municipality: municipality,
                 mediaID: mediaID,
                 locality: locality,
                 remark: remark,
-                habitatType: habitatType,
-                habitatCondition: habitatCondition,
-                habitatDescription: habitatDescription,
               ),
           createCompanionCallback:
               ({
@@ -25812,15 +26477,13 @@ class $SiteTableManager
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
                 Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
                 Value<String?> stateProvince = const Value.absent(),
                 Value<String?> county = const Value.absent(),
                 Value<String?> municipality = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
                 Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
-                Value<String?> habitatType = const Value.absent(),
-                Value<String?> habitatCondition = const Value.absent(),
-                Value<String?> habitatDescription = const Value.absent(),
               }) => SiteCompanion.insert(
                 id: id,
                 siteID: siteID,
@@ -25828,15 +26491,13 @@ class $SiteTableManager
                 leadStaffId: leadStaffId,
                 siteType: siteType,
                 country: country,
+                islandGroup: islandGroup,
                 stateProvince: stateProvince,
                 county: county,
                 municipality: municipality,
                 mediaID: mediaID,
                 locality: locality,
                 remark: remark,
-                habitatType: habitatType,
-                habitatCondition: habitatCondition,
-                habitatDescription: habitatDescription,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), $SiteReferences(db, table, e)))
@@ -25879,6 +26540,213 @@ typedef $SiteProcessedTableManager =
       (SiteData, $SiteReferences),
       SiteData,
       PrefetchHooks Function({bool collEventRefs})
+    >;
+typedef $SiteAttributeCreateCompanionBuilder =
+    SiteAttributeCompanion Function({
+      Value<int?> siteID,
+      Value<String?> habitatType,
+      Value<String?> habitatCondition,
+      Value<String?> habitatDescription,
+      Value<String?> canopyCover,
+      Value<int> rowid,
+    });
+typedef $SiteAttributeUpdateCompanionBuilder =
+    SiteAttributeCompanion Function({
+      Value<int?> siteID,
+      Value<String?> habitatType,
+      Value<String?> habitatCondition,
+      Value<String?> habitatDescription,
+      Value<String?> canopyCover,
+      Value<int> rowid,
+    });
+
+class $SiteAttributeFilterComposer extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get siteID => $composableBuilder(
+    column: $table.siteID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $SiteAttributeOrderingComposer
+    extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get siteID => $composableBuilder(
+    column: $table.siteID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $SiteAttributeAnnotationComposer
+    extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get siteID =>
+      $composableBuilder(column: $table.siteID, builder: (column) => column);
+
+  GeneratedColumn<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => column,
+  );
+}
+
+class $SiteAttributeTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          SiteAttribute,
+          SiteAttributeData,
+          $SiteAttributeFilterComposer,
+          $SiteAttributeOrderingComposer,
+          $SiteAttributeAnnotationComposer,
+          $SiteAttributeCreateCompanionBuilder,
+          $SiteAttributeUpdateCompanionBuilder,
+          (
+            SiteAttributeData,
+            BaseReferences<_$Database, SiteAttribute, SiteAttributeData>,
+          ),
+          SiteAttributeData,
+          PrefetchHooks Function()
+        > {
+  $SiteAttributeTableManager(_$Database db, SiteAttribute table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SiteAttributeFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SiteAttributeOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SiteAttributeAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int?> siteID = const Value.absent(),
+                Value<String?> habitatType = const Value.absent(),
+                Value<String?> habitatCondition = const Value.absent(),
+                Value<String?> habitatDescription = const Value.absent(),
+                Value<String?> canopyCover = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SiteAttributeCompanion(
+                siteID: siteID,
+                habitatType: habitatType,
+                habitatCondition: habitatCondition,
+                habitatDescription: habitatDescription,
+                canopyCover: canopyCover,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int?> siteID = const Value.absent(),
+                Value<String?> habitatType = const Value.absent(),
+                Value<String?> habitatCondition = const Value.absent(),
+                Value<String?> habitatDescription = const Value.absent(),
+                Value<String?> canopyCover = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SiteAttributeCompanion.insert(
+                siteID: siteID,
+                habitatType: habitatType,
+                habitatCondition: habitatCondition,
+                habitatDescription: habitatDescription,
+                canopyCover: canopyCover,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $SiteAttributeProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      SiteAttribute,
+      SiteAttributeData,
+      $SiteAttributeFilterComposer,
+      $SiteAttributeOrderingComposer,
+      $SiteAttributeAnnotationComposer,
+      $SiteAttributeCreateCompanionBuilder,
+      $SiteAttributeUpdateCompanionBuilder,
+      (
+        SiteAttributeData,
+        BaseReferences<_$Database, SiteAttribute, SiteAttributeData>,
+      ),
+      SiteAttributeData,
+      PrefetchHooks Function()
     >;
 typedef $FossilSiteCreateCompanionBuilder =
     FossilSiteCompanion Function({
@@ -27109,8 +27977,8 @@ typedef $CollEventProcessedTableManager =
       CollEventData,
       PrefetchHooks Function({bool siteID})
     >;
-typedef $WeatherCreateCompanionBuilder =
-    WeatherCompanion Function({
+typedef $EnvironmentCreateCompanionBuilder =
+    EnvironmentCompanion Function({
       Value<int?> eventID,
       Value<double?> lowestDayTempC,
       Value<double?> highestDayTempC,
@@ -27121,11 +27989,19 @@ typedef $WeatherCreateCompanionBuilder =
       Value<String?> sunriseTime,
       Value<String?> sunsetTime,
       Value<String?> moonPhase,
+      Value<String?> cloudCover,
+      Value<double?> rainfallInMm,
+      Value<double?> ambientTemperature,
+      Value<double?> ambientHumidity,
+      Value<double?> waterTemperature,
+      Value<double?> pH,
+      Value<double?> dissolvedOxygen,
+      Value<double?> flowVelocity,
       Value<String?> notes,
       Value<int> rowid,
     });
-typedef $WeatherUpdateCompanionBuilder =
-    WeatherCompanion Function({
+typedef $EnvironmentUpdateCompanionBuilder =
+    EnvironmentCompanion Function({
       Value<int?> eventID,
       Value<double?> lowestDayTempC,
       Value<double?> highestDayTempC,
@@ -27136,12 +28012,20 @@ typedef $WeatherUpdateCompanionBuilder =
       Value<String?> sunriseTime,
       Value<String?> sunsetTime,
       Value<String?> moonPhase,
+      Value<String?> cloudCover,
+      Value<double?> rainfallInMm,
+      Value<double?> ambientTemperature,
+      Value<double?> ambientHumidity,
+      Value<double?> waterTemperature,
+      Value<double?> pH,
+      Value<double?> dissolvedOxygen,
+      Value<double?> flowVelocity,
       Value<String?> notes,
       Value<int> rowid,
     });
 
-class $WeatherFilterComposer extends Composer<_$Database, Weather> {
-  $WeatherFilterComposer({
+class $EnvironmentFilterComposer extends Composer<_$Database, Environment> {
+  $EnvironmentFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27198,14 +28082,54 @@ class $WeatherFilterComposer extends Composer<_$Database, Weather> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get pH => $composableBuilder(
+    column: $table.pH,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $WeatherOrderingComposer extends Composer<_$Database, Weather> {
-  $WeatherOrderingComposer({
+class $EnvironmentOrderingComposer extends Composer<_$Database, Environment> {
+  $EnvironmentOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27262,14 +28186,54 @@ class $WeatherOrderingComposer extends Composer<_$Database, Weather> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get pH => $composableBuilder(
+    column: $table.pH,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $WeatherAnnotationComposer extends Composer<_$Database, Weather> {
-  $WeatherAnnotationComposer({
+class $EnvironmentAnnotationComposer extends Composer<_$Database, Environment> {
+  $EnvironmentAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27322,36 +28286,77 @@ class $WeatherAnnotationComposer extends Composer<_$Database, Weather> {
   GeneratedColumn<String> get moonPhase =>
       $composableBuilder(column: $table.moonPhase, builder: (column) => column);
 
+  GeneratedColumn<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get pH =>
+      $composableBuilder(column: $table.pH, builder: (column) => column);
+
+  GeneratedColumn<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 }
 
-class $WeatherTableManager
+class $EnvironmentTableManager
     extends
         RootTableManager<
           _$Database,
-          Weather,
-          WeatherData,
-          $WeatherFilterComposer,
-          $WeatherOrderingComposer,
-          $WeatherAnnotationComposer,
-          $WeatherCreateCompanionBuilder,
-          $WeatherUpdateCompanionBuilder,
-          (WeatherData, BaseReferences<_$Database, Weather, WeatherData>),
-          WeatherData,
+          Environment,
+          EnvironmentData,
+          $EnvironmentFilterComposer,
+          $EnvironmentOrderingComposer,
+          $EnvironmentAnnotationComposer,
+          $EnvironmentCreateCompanionBuilder,
+          $EnvironmentUpdateCompanionBuilder,
+          (
+            EnvironmentData,
+            BaseReferences<_$Database, Environment, EnvironmentData>,
+          ),
+          EnvironmentData,
           PrefetchHooks Function()
         > {
-  $WeatherTableManager(_$Database db, Weather table)
+  $EnvironmentTableManager(_$Database db, Environment table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $WeatherFilterComposer($db: db, $table: table),
+              $EnvironmentFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $WeatherOrderingComposer($db: db, $table: table),
+              $EnvironmentOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $WeatherAnnotationComposer($db: db, $table: table),
+              $EnvironmentAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int?> eventID = const Value.absent(),
@@ -27364,9 +28369,17 @@ class $WeatherTableManager
                 Value<String?> sunriseTime = const Value.absent(),
                 Value<String?> sunsetTime = const Value.absent(),
                 Value<String?> moonPhase = const Value.absent(),
+                Value<String?> cloudCover = const Value.absent(),
+                Value<double?> rainfallInMm = const Value.absent(),
+                Value<double?> ambientTemperature = const Value.absent(),
+                Value<double?> ambientHumidity = const Value.absent(),
+                Value<double?> waterTemperature = const Value.absent(),
+                Value<double?> pH = const Value.absent(),
+                Value<double?> dissolvedOxygen = const Value.absent(),
+                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => WeatherCompanion(
+              }) => EnvironmentCompanion(
                 eventID: eventID,
                 lowestDayTempC: lowestDayTempC,
                 highestDayTempC: highestDayTempC,
@@ -27377,6 +28390,14 @@ class $WeatherTableManager
                 sunriseTime: sunriseTime,
                 sunsetTime: sunsetTime,
                 moonPhase: moonPhase,
+                cloudCover: cloudCover,
+                rainfallInMm: rainfallInMm,
+                ambientTemperature: ambientTemperature,
+                ambientHumidity: ambientHumidity,
+                waterTemperature: waterTemperature,
+                pH: pH,
+                dissolvedOxygen: dissolvedOxygen,
+                flowVelocity: flowVelocity,
                 notes: notes,
                 rowid: rowid,
               ),
@@ -27392,9 +28413,17 @@ class $WeatherTableManager
                 Value<String?> sunriseTime = const Value.absent(),
                 Value<String?> sunsetTime = const Value.absent(),
                 Value<String?> moonPhase = const Value.absent(),
+                Value<String?> cloudCover = const Value.absent(),
+                Value<double?> rainfallInMm = const Value.absent(),
+                Value<double?> ambientTemperature = const Value.absent(),
+                Value<double?> ambientHumidity = const Value.absent(),
+                Value<double?> waterTemperature = const Value.absent(),
+                Value<double?> pH = const Value.absent(),
+                Value<double?> dissolvedOxygen = const Value.absent(),
+                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => WeatherCompanion.insert(
+              }) => EnvironmentCompanion.insert(
                 eventID: eventID,
                 lowestDayTempC: lowestDayTempC,
                 highestDayTempC: highestDayTempC,
@@ -27405,6 +28434,14 @@ class $WeatherTableManager
                 sunriseTime: sunriseTime,
                 sunsetTime: sunsetTime,
                 moonPhase: moonPhase,
+                cloudCover: cloudCover,
+                rainfallInMm: rainfallInMm,
+                ambientTemperature: ambientTemperature,
+                ambientHumidity: ambientHumidity,
+                waterTemperature: waterTemperature,
+                pH: pH,
+                dissolvedOxygen: dissolvedOxygen,
+                flowVelocity: flowVelocity,
                 notes: notes,
                 rowid: rowid,
               ),
@@ -27416,18 +28453,21 @@ class $WeatherTableManager
       );
 }
 
-typedef $WeatherProcessedTableManager =
+typedef $EnvironmentProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      Weather,
-      WeatherData,
-      $WeatherFilterComposer,
-      $WeatherOrderingComposer,
-      $WeatherAnnotationComposer,
-      $WeatherCreateCompanionBuilder,
-      $WeatherUpdateCompanionBuilder,
-      (WeatherData, BaseReferences<_$Database, Weather, WeatherData>),
-      WeatherData,
+      Environment,
+      EnvironmentData,
+      $EnvironmentFilterComposer,
+      $EnvironmentOrderingComposer,
+      $EnvironmentAnnotationComposer,
+      $EnvironmentCreateCompanionBuilder,
+      $EnvironmentUpdateCompanionBuilder,
+      (
+        EnvironmentData,
+        BaseReferences<_$Database, Environment, EnvironmentData>,
+      ),
+      EnvironmentData,
       PrefetchHooks Function()
     >;
 typedef $CollPersonnelCreateCompanionBuilder =
@@ -31094,7 +32134,7 @@ typedef $MammalAttributeCreateCompanionBuilder =
       Value<String?> accuracy,
       Value<String?> accuracySpecify,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<int?> testisPosition,
       Value<double?> testisLength,
       Value<double?> testisWidth,
@@ -31135,7 +32175,7 @@ typedef $MammalAttributeUpdateCompanionBuilder =
       Value<String?> accuracy,
       Value<String?> accuracySpecify,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<int?> testisPosition,
       Value<double?> testisLength,
       Value<double?> testisWidth,
@@ -31260,8 +32300,8 @@ class $MammalAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -31455,8 +32495,8 @@ class $MammalAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -31636,8 +32676,8 @@ class $MammalAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
-  GeneratedColumn<int> get age =>
-      $composableBuilder(column: $table.age, builder: (column) => column);
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
 
   GeneratedColumn<int> get testisPosition => $composableBuilder(
     column: $table.testisPosition,
@@ -31771,7 +32811,7 @@ class $MammalAttributeTableManager
                 Value<String?> accuracy = const Value.absent(),
                 Value<String?> accuracySpecify = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> testisPosition = const Value.absent(),
                 Value<double?> testisLength = const Value.absent(),
                 Value<double?> testisWidth = const Value.absent(),
@@ -31810,7 +32850,7 @@ class $MammalAttributeTableManager
                 accuracy: accuracy,
                 accuracySpecify: accuracySpecify,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 testisPosition: testisPosition,
                 testisLength: testisLength,
                 testisWidth: testisWidth,
@@ -31851,7 +32891,7 @@ class $MammalAttributeTableManager
                 Value<String?> accuracy = const Value.absent(),
                 Value<String?> accuracySpecify = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> testisPosition = const Value.absent(),
                 Value<double?> testisLength = const Value.absent(),
                 Value<double?> testisWidth = const Value.absent(),
@@ -31890,7 +32930,7 @@ class $MammalAttributeTableManager
                 accuracy: accuracy,
                 accuracySpecify: accuracySpecify,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 testisPosition: testisPosition,
                 testisLength: testisLength,
                 testisWidth: testisWidth,
@@ -31954,6 +32994,7 @@ typedef $BirdAttributeCreateCompanionBuilder =
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
+      Value<String?> lifeStage,
       Value<int?> broodPatch,
       Value<int?> skullOssification,
       Value<int?> hasBursa,
@@ -32002,6 +33043,7 @@ typedef $BirdAttributeUpdateCompanionBuilder =
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
+      Value<String?> lifeStage,
       Value<int?> broodPatch,
       Value<int?> skullOssification,
       Value<int?> hasBursa,
@@ -32122,6 +33164,11 @@ class $BirdAttributeFilterComposer extends Composer<_$Database, BirdAttribute> {
 
   ColumnFilters<int> get sex => $composableBuilder(
     column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32355,6 +33402,11 @@ class $BirdAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get broodPatch => $composableBuilder(
     column: $table.broodPatch,
     builder: (column) => ColumnOrderings(column),
@@ -32565,6 +33617,9 @@ class $BirdAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
   GeneratedColumn<int> get broodPatch => $composableBuilder(
     column: $table.broodPatch,
     builder: (column) => column,
@@ -32739,6 +33794,7 @@ class $BirdAttributeTableManager
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> broodPatch = const Value.absent(),
                 Value<int?> skullOssification = const Value.absent(),
                 Value<int?> hasBursa = const Value.absent(),
@@ -32785,6 +33841,7 @@ class $BirdAttributeTableManager
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,
+                lifeStage: lifeStage,
                 broodPatch: broodPatch,
                 skullOssification: skullOssification,
                 hasBursa: hasBursa,
@@ -32833,6 +33890,7 @@ class $BirdAttributeTableManager
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> broodPatch = const Value.absent(),
                 Value<int?> skullOssification = const Value.absent(),
                 Value<int?> hasBursa = const Value.absent(),
@@ -32879,6 +33937,7 @@ class $BirdAttributeTableManager
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,
+                lifeStage: lifeStage,
                 broodPatch: broodPatch,
                 skullOssification: skullOssification,
                 hasBursa: hasBursa,
@@ -32937,7 +33996,7 @@ typedef $HerpAttributeCreateCompanionBuilder =
     HerpAttributeCompanion Function({
       required String specimenUuid,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<double?> weight,
       Value<String?> weightUnit,
       Value<double?> svl,
@@ -32948,7 +34007,7 @@ typedef $HerpAttributeUpdateCompanionBuilder =
     HerpAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<double?> weight,
       Value<String?> weightUnit,
       Value<double?> svl,
@@ -32974,8 +34033,8 @@ class $HerpAttributeFilterComposer extends Composer<_$Database, HerpAttribute> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -33019,8 +34078,8 @@ class $HerpAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -33062,8 +34121,8 @@ class $HerpAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
-  GeneratedColumn<int> get age =>
-      $composableBuilder(column: $table.age, builder: (column) => column);
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
 
   GeneratedColumn<double> get weight =>
       $composableBuilder(column: $table.weight, builder: (column) => column);
@@ -33113,7 +34172,7 @@ class $HerpAttributeTableManager
               ({
                 Value<String> specimenUuid = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<String?> weightUnit = const Value.absent(),
                 Value<double?> svl = const Value.absent(),
@@ -33122,7 +34181,7 @@ class $HerpAttributeTableManager
               }) => HerpAttributeCompanion(
                 specimenUuid: specimenUuid,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 weight: weight,
                 weightUnit: weightUnit,
                 svl: svl,
@@ -33133,7 +34192,7 @@ class $HerpAttributeTableManager
               ({
                 required String specimenUuid,
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<String?> weightUnit = const Value.absent(),
                 Value<double?> svl = const Value.absent(),
@@ -33142,7 +34201,7 @@ class $HerpAttributeTableManager
               }) => HerpAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 weight: weight,
                 weightUnit: weightUnit,
                 svl: svl,
@@ -33182,16 +34241,10 @@ typedef $ArthropodAttributeCreateCompanionBuilder =
       Value<double?> wingspanUpper,
       Value<double?> wingspanLower,
       Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> caste,
       Value<String?> hostOrganism,
       Value<String?> hostPart,
-      Value<String?> canopyAffinity,
-      Value<String?> canopyCover,
-      Value<double?> ambientTemperature,
-      Value<double?> ambientHumidity,
-      Value<double?> waterTemperature,
-      Value<double?> pH,
-      Value<double?> dissolvedOxygen,
-      Value<double?> flowVelocity,
       Value<String?> remark,
       Value<int> rowid,
     });
@@ -33203,16 +34256,10 @@ typedef $ArthropodAttributeUpdateCompanionBuilder =
       Value<double?> wingspanUpper,
       Value<double?> wingspanLower,
       Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> caste,
       Value<String?> hostOrganism,
       Value<String?> hostPart,
-      Value<String?> canopyAffinity,
-      Value<String?> canopyCover,
-      Value<double?> ambientTemperature,
-      Value<double?> ambientHumidity,
-      Value<double?> waterTemperature,
-      Value<double?> pH,
-      Value<double?> dissolvedOxygen,
-      Value<double?> flowVelocity,
       Value<String?> remark,
       Value<int> rowid,
     });
@@ -33256,6 +34303,16 @@ class $ArthropodAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get caste => $composableBuilder(
+    column: $table.caste,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => ColumnFilters(column),
@@ -33263,46 +34320,6 @@ class $ArthropodAttributeFilterComposer
 
   ColumnFilters<String> get hostPart => $composableBuilder(
     column: $table.hostPart,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get pH => $composableBuilder(
-    column: $table.pH,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -33351,6 +34368,16 @@ class $ArthropodAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get caste => $composableBuilder(
+    column: $table.caste,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => ColumnOrderings(column),
@@ -33358,46 +34385,6 @@ class $ArthropodAttributeOrderingComposer
 
   ColumnOrderings<String> get hostPart => $composableBuilder(
     column: $table.hostPart,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get pH => $composableBuilder(
-    column: $table.pH,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -33442,6 +34429,12 @@ class $ArthropodAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
+  GeneratedColumn<int> get caste =>
+      $composableBuilder(column: $table.caste, builder: (column) => column);
+
   GeneratedColumn<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => column,
@@ -33449,44 +34442,6 @@ class $ArthropodAttributeAnnotationComposer
 
   GeneratedColumn<String> get hostPart =>
       $composableBuilder(column: $table.hostPart, builder: (column) => column);
-
-  GeneratedColumn<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get pH =>
-      $composableBuilder(column: $table.pH, builder: (column) => column);
-
-  GeneratedColumn<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
@@ -33533,16 +34488,10 @@ class $ArthropodAttributeTableManager
                 Value<double?> wingspanUpper = const Value.absent(),
                 Value<double?> wingspanLower = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> caste = const Value.absent(),
                 Value<String?> hostOrganism = const Value.absent(),
                 Value<String?> hostPart = const Value.absent(),
-                Value<String?> canopyAffinity = const Value.absent(),
-                Value<String?> canopyCover = const Value.absent(),
-                Value<double?> ambientTemperature = const Value.absent(),
-                Value<double?> ambientHumidity = const Value.absent(),
-                Value<double?> waterTemperature = const Value.absent(),
-                Value<double?> pH = const Value.absent(),
-                Value<double?> dissolvedOxygen = const Value.absent(),
-                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArthropodAttributeCompanion(
@@ -33552,16 +34501,10 @@ class $ArthropodAttributeTableManager
                 wingspanUpper: wingspanUpper,
                 wingspanLower: wingspanLower,
                 sex: sex,
+                lifeStage: lifeStage,
+                caste: caste,
                 hostOrganism: hostOrganism,
                 hostPart: hostPart,
-                canopyAffinity: canopyAffinity,
-                canopyCover: canopyCover,
-                ambientTemperature: ambientTemperature,
-                ambientHumidity: ambientHumidity,
-                waterTemperature: waterTemperature,
-                pH: pH,
-                dissolvedOxygen: dissolvedOxygen,
-                flowVelocity: flowVelocity,
                 remark: remark,
                 rowid: rowid,
               ),
@@ -33573,16 +34516,10 @@ class $ArthropodAttributeTableManager
                 Value<double?> wingspanUpper = const Value.absent(),
                 Value<double?> wingspanLower = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> caste = const Value.absent(),
                 Value<String?> hostOrganism = const Value.absent(),
                 Value<String?> hostPart = const Value.absent(),
-                Value<String?> canopyAffinity = const Value.absent(),
-                Value<String?> canopyCover = const Value.absent(),
-                Value<double?> ambientTemperature = const Value.absent(),
-                Value<double?> ambientHumidity = const Value.absent(),
-                Value<double?> waterTemperature = const Value.absent(),
-                Value<double?> pH = const Value.absent(),
-                Value<double?> dissolvedOxygen = const Value.absent(),
-                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArthropodAttributeCompanion.insert(
@@ -33592,16 +34529,10 @@ class $ArthropodAttributeTableManager
                 wingspanUpper: wingspanUpper,
                 wingspanLower: wingspanLower,
                 sex: sex,
+                lifeStage: lifeStage,
+                caste: caste,
                 hostOrganism: hostOrganism,
                 hostPart: hostPart,
-                canopyAffinity: canopyAffinity,
-                canopyCover: canopyCover,
-                ambientTemperature: ambientTemperature,
-                ambientHumidity: ambientHumidity,
-                waterTemperature: waterTemperature,
-                pH: pH,
-                dissolvedOxygen: dissolvedOxygen,
-                flowVelocity: flowVelocity,
                 remark: remark,
                 rowid: rowid,
               ),
@@ -33634,14 +34565,24 @@ typedef $FossilAttributeCreateCompanionBuilder =
     FossilAttributeCompanion Function({
       required String specimenUuid,
       Value<String?> fossilType,
+      Value<int?> sex,
+      Value<String?> ontogeneticStage,
+      Value<double?> weight,
+      Value<String?> weightUnit,
       Value<String?> specimenDescription,
+      Value<String?> remark,
       Value<int> rowid,
     });
 typedef $FossilAttributeUpdateCompanionBuilder =
     FossilAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<String?> fossilType,
+      Value<int?> sex,
+      Value<String?> ontogeneticStage,
+      Value<double?> weight,
+      Value<String?> weightUnit,
       Value<String?> specimenDescription,
+      Value<String?> remark,
       Value<int> rowid,
     });
 
@@ -33664,8 +34605,33 @@ class $FossilAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remark => $composableBuilder(
+    column: $table.remark,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -33689,8 +34655,33 @@ class $FossilAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+    column: $table.remark,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -33714,10 +34705,29 @@ class $FossilAttributeAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
 }
 
 class $FossilAttributeTableManager
@@ -33753,24 +34763,44 @@ class $FossilAttributeTableManager
               ({
                 Value<String> specimenUuid = const Value.absent(),
                 Value<String?> fossilType = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> ontogeneticStage = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
                 Value<String?> specimenDescription = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FossilAttributeCompanion(
                 specimenUuid: specimenUuid,
                 fossilType: fossilType,
+                sex: sex,
+                ontogeneticStage: ontogeneticStage,
+                weight: weight,
+                weightUnit: weightUnit,
                 specimenDescription: specimenDescription,
+                remark: remark,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String specimenUuid,
                 Value<String?> fossilType = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> ontogeneticStage = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
                 Value<String?> specimenDescription = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FossilAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 fossilType: fossilType,
+                sex: sex,
+                ontogeneticStage: ontogeneticStage,
+                weight: weight,
+                weightUnit: weightUnit,
                 specimenDescription: specimenDescription,
+                remark: remark,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -35865,13 +36895,16 @@ class $DatabaseManager {
       $PersonnelTableManager(_db, _db.personnel);
   $MediaTableManager get media => $MediaTableManager(_db, _db.media);
   $SiteTableManager get site => $SiteTableManager(_db, _db.site);
+  $SiteAttributeTableManager get siteAttribute =>
+      $SiteAttributeTableManager(_db, _db.siteAttribute);
   $FossilSiteTableManager get fossilSite =>
       $FossilSiteTableManager(_db, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db, _db.coordinate);
   $CollEventTableManager get collEvent =>
       $CollEventTableManager(_db, _db.collEvent);
-  $WeatherTableManager get weather => $WeatherTableManager(_db, _db.weather);
+  $EnvironmentTableManager get environment =>
+      $EnvironmentTableManager(_db, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db, _db.collPersonnel);
   $CollEffortTableManager get collEffort =>

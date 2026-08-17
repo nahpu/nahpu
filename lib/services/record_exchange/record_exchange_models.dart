@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-const int recordExchangeVersion = 3;
-const Set<int> supportedRecordExchangeVersions = {1, 2, 3};
+const int recordExchangeVersion = 4;
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4};
 
 enum RecordExchangeType { site, event, specimen }
 
@@ -134,6 +134,10 @@ class RecordExchangePayload {
     mapList(data['personnel']);
     mapList(data['coordinates']);
     if (type == RecordExchangeType.site) {
+      final attribute = data['siteAttribute'];
+      if (attribute != null && attribute is! Map) {
+        throw const FormatException('Site attribute data is invalid.');
+      }
       mapList(data['associatedData']);
       _validateCustomFields(data['customFields']);
       return;
@@ -143,9 +147,9 @@ class RecordExchangePayload {
       mapList(data['effort']);
       mapList(data['personnelAssignments']);
       mapList(data['associatedData']);
-      final weather = data['weather'];
-      if (weather != null && weather is! Map) {
-        throw const FormatException('Event weather data is invalid.');
+      final environment = data['environment'] ?? data['weather'];
+      if (environment != null && environment is! Map) {
+        throw const FormatException('Event environmental data is invalid.');
       }
       final site = data['site'];
       if (site != null && site is! Map) {
@@ -155,6 +159,12 @@ class RecordExchangePayload {
         final linked = Map<String, dynamic>.from(site);
         if (linked['site'] is! Map) {
           throw const FormatException('Event linked site data is missing.');
+        }
+        final attribute = linked['siteAttribute'];
+        if (attribute != null && attribute is! Map) {
+          throw const FormatException(
+            'Event linked site attributes are invalid.',
+          );
         }
         mapList(linked['coordinates']);
         _validateCustomFields(linked['customFields']);

@@ -13,6 +13,7 @@ import 'package:nahpu/services/export/bird_attributes.dart';
 import 'package:nahpu/services/export/arthropod_attributes.dart';
 import 'package:nahpu/services/export/mammal_attributes.dart';
 import 'package:nahpu/services/export/herp_attributes.dart';
+import 'package:nahpu/services/export/fossil_attributes.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
@@ -146,6 +147,7 @@ class SpecimenRecordWriter {
           ...batAttributeExportList,
           ...herpAttributeExportList,
           ...arthropodAttributeExportList,
+          ...fossilAttributeExportList,
         }.toList();
     }
   }
@@ -182,6 +184,16 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getAttributes(SpecimenData data) async {
+    if (recordType == SpecimenRecordType.allTaxa &&
+        data.taxonGroup?.toLowerCase().contains('fossil') == true) {
+      final values = await _getFossilAttributes(data.uuid);
+      final combinedHeader = _getAttributeHeader();
+      final mapped = <String, String>{
+        for (var index = 0; index < fossilAttributeExportList.length; index++)
+          fossilAttributeExportList[index]: values[index],
+      };
+      return combinedHeader.map((key) => mapped[key] ?? '').toList();
+    }
     SpecimenRecordType currentType = recordType;
     if (recordType == SpecimenRecordType.allTaxa) {
       currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
@@ -231,6 +243,13 @@ class SpecimenRecordWriter {
     }
 
     return combinedHeader.map((k) => map[k] ?? '').toList();
+  }
+
+  Future<List<String>> _getFossilAttributes(String specimenUuid) {
+    return FossilAttributes(
+      ref: ref,
+      specimenUuid: specimenUuid,
+    ).getAttributes();
   }
 
   Future<List<String>> _getMammalAttributes(

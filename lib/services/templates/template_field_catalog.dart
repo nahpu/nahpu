@@ -17,13 +17,14 @@ Map<String, List<String>> availableTemplateFieldGroups(
       allowedTables = {'narrative', 'site', 'personnel'};
       break;
     case RecordType.site:
-      allowedTables = {'site', 'personnel', 'coordinate'};
+      allowedTables = {'site', 'siteAttribute', 'personnel', 'coordinate'};
       break;
     case RecordType.collEvent:
       allowedTables = {
         'collEvent',
         'site',
-        'weather',
+        'siteAttribute',
+        'environment',
         'coordinate',
         'collEffort',
         'collPersonnel',
@@ -38,12 +39,14 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'project',
         'collEvent',
         'site',
+        'siteAttribute',
         'coordinate',
-        'weather',
+        'environment',
         'mammalAttribute',
         'birdAttribute',
         'herpAttribute',
         'arthropodAttribute',
+        'fossilAttribute',
         'specimenPart',
       };
       if (selectedTaxon == 'Mammals') {

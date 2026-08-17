@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
-const int projectTransferVersion = 6;
-const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5, 6};
+const int projectTransferVersion = 7;
+const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5, 6, 7};
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 
@@ -294,11 +294,95 @@ class ProjectTransferPayload {
             entry.value.map(_normalizeAssociatedData).toList(growable: false),
           'birdAttribute' =>
             entry.value.map(_normalizeBirdAttribute).toList(growable: false),
+          'mammalAttribute' =>
+            entry.value
+                .map(
+                  (row) => _normalizeLifeStage(row, const [
+                    'Adult',
+                    'Subadult',
+                    'Juvenile',
+                    'Unknown',
+                  ]),
+                )
+                .toList(growable: false),
+          'herpAttribute' =>
+            entry.value
+                .map(
+                  (row) => _normalizeLifeStage(row, const [
+                    'Adult',
+                    'Juvenile',
+                    'Neonate',
+                    'Metamorph',
+                    'Unknown',
+                  ]),
+                )
+                .toList(growable: false),
+          'arthropodAttribute' =>
+            entry.value
+                .map(_normalizeArthropodAttribute)
+                .toList(growable: false),
           _ => entry.value,
         };
       }
     }
+    final sites = canonical['site'];
+    if (sites != null) {
+      final attributes = canonical.putIfAbsent('siteAttribute', () => []);
+      final sitesWithAttributes = attributes
+          .map((row) => row['siteID'])
+          .whereType<int>()
+          .toSet();
+      for (final site in sites) {
+        final siteId = site['id'];
+        if (siteId is int && !sitesWithAttributes.contains(siteId)) {
+          attributes.add({
+            'siteID': siteId,
+            'habitatType': site['habitatType'],
+            'habitatCondition': site['habitatCondition'],
+            'habitatDescription': site['habitatDescription'],
+            'canopyCover': null,
+          });
+        }
+        site.remove('habitatType');
+        site.remove('habitatCondition');
+        site.remove('habitatDescription');
+      }
+    }
     return canonical;
+  }
+
+  static Map<String, dynamic> _normalizeLifeStage(
+    Map<String, dynamic> source,
+    List<String> legacyLabels,
+  ) {
+    final normalized = Map<String, dynamic>.from(source);
+    if (normalized['lifeStage'] == null && normalized['age'] is num) {
+      final index = (normalized['age'] as num).toInt();
+      if (index >= 0 && index < legacyLabels.length) {
+        normalized['lifeStage'] = legacyLabels[index];
+      }
+    }
+    normalized.remove('age');
+    return normalized;
+  }
+
+  static Map<String, dynamic> _normalizeArthropodAttribute(
+    Map<String, dynamic> source,
+  ) {
+    final normalized = Map<String, dynamic>.from(source);
+    for (final field in const {
+      'canopyAffinity',
+      'canopyCover',
+      'ambientTemperature',
+      'ambientHumidity',
+      'waterTemperature',
+      'pH',
+      'dissolvedOxygen',
+      'flowVelocity',
+    }) {
+      normalized.remove(field);
+    }
+    return normalized;
   }
 
   static Map<String, dynamic> _normalizeAssociatedData(

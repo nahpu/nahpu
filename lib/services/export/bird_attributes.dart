@@ -31,6 +31,7 @@ class BirdAttributes {
       data.tarsusColor ?? '',
       data.tarsusHex ?? '',
       getSpecimenSexLabel(data.sex) ?? '',
+      data.lifeStage ?? '',
       _getBroodPatch(),
       data.skullOssification?.toString() ?? '',
       _getHasBursa(),

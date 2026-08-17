@@ -31,6 +31,27 @@ enum SpecimenSearchOption {
 
 enum FieldIdMode { personnel, project }
 
+const List<String> defaultIdMethods = [
+  'morphology',
+  'taxonomy',
+  'genomics',
+  'mtDNA',
+  'unknown',
+];
+
+const List<String> defaultLifeStages = [
+  'Egg',
+  'Larva',
+  'Nymph',
+  'Pupa',
+  'Neonate',
+  'Juvenile',
+  'Subadult',
+  'Adult',
+  'Metamorph',
+  'Unknown',
+];
+
 /// Stable database codes for specimen sex.
 ///
 /// DO NOT CHANGE THE KEYS.

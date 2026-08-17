@@ -1,22 +1,3 @@
-// Database read through index.
-// and stored as integer.
-// DON'T CHANGE ORDER!
-enum SpecimenAge { adult, subadult, juvenile, unknown }
-
-const List<String> specimenAgeList = [
-  'Adult',
-  'Subadult',
-  'Juvenile',
-  'Unknown',
-];
-
-SpecimenAge? getSpecimenAge(int? age) {
-  if (age != null) {
-    return SpecimenAge.values[age];
-  }
-  return null;
-}
-
 enum TestisPosition { scrotal, abdominal }
 
 const List<String> testisPositionList = ['Scrotal', 'Abdominal'];

@@ -33,6 +33,7 @@ class RecordExchangeSiteEvent extends AppServices {
     final coordinates = await CoordinateQuery(
       dbAccess,
     ).getCoordinatesBySiteID(site.id);
+    final siteAttribute = await SiteQuery(dbAccess).getSiteAttribute(site.id);
     final personnel = <Map<String, dynamic>>[];
     if (site.leadStaffId != null) {
       final leadStaff = await support.getPersonnel(site.leadStaffId!);
@@ -45,6 +46,9 @@ class RecordExchangeSiteEvent extends AppServices {
       type: RecordExchangeType.site,
       data: {
         'site': support.portableSite(site),
+        'siteAttribute': siteAttribute == null
+            ? null
+            : support.portableSiteAttribute(siteAttribute),
         'coordinates': coordinates
             .map(support.portableCoordinate)
             .toList(growable: false),
@@ -99,8 +103,14 @@ class RecordExchangeSiteEvent extends AppServices {
         final coordinates = await CoordinateQuery(
           dbAccess,
         ).getCoordinatesBySiteID(site.id);
+        final siteAttribute = await SiteQuery(
+          dbAccess,
+        ).getSiteAttribute(site.id);
         linkedSite = {
           'site': support.portableSite(site),
+          'siteAttribute': siteAttribute == null
+              ? null
+              : support.portableSiteAttribute(siteAttribute),
           'coordinates': coordinates
               .map(support.portableCoordinate)
               .toList(growable: false),
@@ -117,13 +127,13 @@ class RecordExchangeSiteEvent extends AppServices {
       }
     }
 
-    WeatherData? weather;
+    EnvironmentData? environment;
     try {
-      weather = await (dbAccess.select(
-        dbAccess.weather,
+      environment = await (dbAccess.select(
+        dbAccess.environment,
       )..where((row) => row.eventID.equals(event.id))).getSingleOrNull();
     } catch (_) {
-      weather = null;
+      environment = null;
     }
 
     final mediaFiles = <RecordExchangeMediaFile>[];
@@ -133,7 +143,9 @@ class RecordExchangeSiteEvent extends AppServices {
       'personnelAssignments': assignments
           .map(support.portableAssignment)
           .toList(growable: false),
-      'weather': weather == null ? null : support.portableWeather(weather),
+      'environment': environment == null
+          ? null
+          : support.portableEnvironment(environment),
       'associatedData':
           (await AssociatedDataQuery(dbAccess).getAssociatedDataForEvent(
             event.id,
@@ -161,6 +173,9 @@ class RecordExchangeSiteEvent extends AppServices {
       RecordExchangePayload.mapList(payload.data['personnel']),
     );
     final siteJson = _requiredMap(payload.data['site'], 'site');
+    final siteAttributeJson = payload.data['siteAttribute'] is Map
+        ? Map<String, dynamic>.from(payload.data['siteAttribute'] as Map)
+        : siteJson;
     final leadStaffId = RecordExchangeDatabase.optionalString(
       siteJson['leadStaffId'],
     );
@@ -190,6 +205,9 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.coordinate,
       )..where((row) => row.siteID.equals(targetId))).go();
+      await (dbAccess.delete(
+        dbAccess.siteAttribute,
+      )..where((row) => row.siteID.equals(targetId))).go();
       final orphaned = await AssociatedDataServices(ref: ref)
           .detachAllFromTarget(
             AssociatedDataTarget.site(targetId),
@@ -197,6 +215,9 @@ class RecordExchangeSiteEvent extends AppServices {
           );
       deferredAssociatedDataCleanup?.addAll(orphaned);
     }
+    await dbAccess
+        .into(dbAccess.siteAttribute)
+        .insert(support.siteAttributeCompanion(siteAttributeJson, siteId));
     for (final coordinateJson in RecordExchangePayload.mapList(
       payload.data['coordinates'],
     )) {
@@ -239,6 +260,9 @@ class RecordExchangeSiteEvent extends AppServices {
       final linked = _requiredMap(siteData, 'linked site');
       createdSiteId = await support.insertPortableSite(
         _requiredMap(linked['site'], 'linked site'),
+        linked['siteAttribute'] is Map
+            ? Map<String, dynamic>.from(linked['siteAttribute'] as Map)
+            : null,
         RecordExchangePayload.mapList(linked['coordinates']),
         personnelIds,
       );
@@ -292,7 +316,7 @@ class RecordExchangeSiteEvent extends AppServices {
         dbAccess.collPersonnel,
       )..where((row) => row.eventID.equals(targetId))).go();
       await (dbAccess.delete(
-        dbAccess.weather,
+        dbAccess.environment,
       )..where((row) => row.eventID.equals(targetId))).go();
       final orphaned = await AssociatedDataServices(ref: ref)
           .detachAllFromTarget(
@@ -320,17 +344,17 @@ class RecordExchangeSiteEvent extends AppServices {
           .into(dbAccess.collPersonnel)
           .insert(support.assignmentCompanion(assignmentJson, eventId));
     }
-    final weather = payload.data['weather'];
-    if (weather is Map) {
-      await dbAccess
-          .into(dbAccess.weather)
-          .insert(
-            support.weatherCompanion(
-              Map<String, dynamic>.from(weather),
-              eventId,
-            ),
-          );
-    }
+    final environment = payload.data['environment'] ?? payload.data['weather'];
+    await dbAccess
+        .into(dbAccess.environment)
+        .insert(
+          support.environmentCompanion(
+            environment is Map
+                ? Map<String, dynamic>.from(environment)
+                : const {},
+            eventId,
+          ),
+        );
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
