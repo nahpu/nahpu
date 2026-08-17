@@ -3,6 +3,7 @@ import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectInfo extends StatelessWidget {
   const ProjectInfo({
@@ -12,6 +13,8 @@ class ProjectInfo extends StatelessWidget {
     this.showExport = true,
     this.showActions = true,
     this.useSectionContainers = true,
+    this.qrData,
+    this.useHorizontalQrLayout = false,
   });
 
   final ProjectData? projectData;
@@ -19,26 +22,47 @@ class ProjectInfo extends StatelessWidget {
   final bool showExport;
   final bool showActions;
   final bool useSectionContainers;
+  final String? qrData;
+  final bool useHorizontalQrLayout;
 
   @override
   Widget build(BuildContext context) {
+    final projectQrData = qrData;
+    final showQrBesideIdentity = projectQrData != null && useHorizontalQrLayout;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (projectQrData != null && !useHorizontalQrLayout)
+          Padding(
+            key: const ValueKey('project-overview-qr-compact'),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Center(
+              child: ProjectQrIcon(
+                key: const ValueKey('project-overview-qr'),
+                data: projectQrData,
+              ),
+            ),
+          ),
         _ProjectInfoSection(
+          key: const ValueKey('project-info-identity'),
           title: 'Identity',
           useContainer: useSectionContainers,
           children: [
-            Text(
-              _displayValue(projectData?.name),
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _ProjectInfoField(
-              label: 'UUID',
-              value: _displayValue(projectData?.uuid),
-              isSelectable: true,
-            ),
+            if (showQrBesideIdentity)
+              Row(
+                children: [
+                  Expanded(
+                    child: _ProjectIdentityDetails(projectData: projectData),
+                  ),
+                  const SizedBox(width: 8),
+                  ProjectQrIcon(
+                    key: const ValueKey('project-overview-qr'),
+                    data: projectQrData,
+                  ),
+                ],
+              )
+            else
+              _ProjectIdentityDetails(projectData: projectData),
           ],
         ),
         _ProjectInfoSection(
@@ -133,6 +157,38 @@ class ProjectInfo extends StatelessWidget {
   }
 }
 
+class _ProjectIdentityDetails extends StatelessWidget {
+  const _ProjectIdentityDetails({required this.projectData});
+
+  final ProjectData? projectData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _displayValue(projectData?.name),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 12),
+        _ProjectInfoField(
+          label: 'UUID',
+          value: _displayValue(projectData?.uuid),
+          isSelectable: true,
+        ),
+      ],
+    );
+  }
+
+  String _displayValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Not provided';
+    }
+    return value;
+  }
+}
+
 class ProjectInfoActions extends StatelessWidget {
   const ProjectInfoActions({
     super.key,
@@ -175,6 +231,7 @@ class ProjectInfoActions extends StatelessWidget {
 
 class _ProjectInfoSection extends StatelessWidget {
   const _ProjectInfoSection({
+    super.key,
     required this.title,
     required this.children,
     required this.useContainer,
@@ -325,7 +382,7 @@ class ProjectQrCode extends StatelessWidget {
   Widget build(BuildContext context) {
     final background = backgroundColor ?? Colors.transparent;
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(NahpuSpacing.xs),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(16),

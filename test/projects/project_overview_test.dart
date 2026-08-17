@@ -7,7 +7,24 @@ import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/providers/database.dart';
+
+const _project = ProjectData(
+  uuid: 'project-uuid',
+  name: 'Field Project',
+  description:
+      'A complete project description with enough information to span '
+      'multiple lines while remaining fully visible to project members.',
+  principalInvestigator: 'A. Researcher',
+  accession: 'ACC-2026-1',
+  location: 'Java, Indonesia',
+  timeZone: 'Asia/Jakarta',
+  startDate: '2026-01-01',
+  endDate: '2026-02-01',
+  created: '2026-01-01 08:00:00',
+  lastAccessed: '2026-01-02 09:00:00',
+);
 
 void main() {
   late Database database;
@@ -89,6 +106,16 @@ void main() {
     );
     expect(find.text('Edit'), findsOneWidget);
     expect(find.text('Export info'), findsOneWidget);
+    _expectQrPayload(tester);
+
+    final qrRect = tester.getRect(
+      find.byKey(const ValueKey('project-overview-qr')),
+    );
+    final identityRect = tester.getRect(
+      find.byKey(const ValueKey('project-info-identity')),
+    );
+    expect(qrRect.left, greaterThan(identityRect.center.dx));
+    expect(qrRect.center.dy, closeTo(identityRect.center.dy, 16));
     expect(
       find.descendant(of: overviewScroll, matching: find.text('Edit')),
       findsNothing,
@@ -115,8 +142,45 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Record metadata'), findsOneWidget);
+    _expectQrPayload(tester);
+
+    final qrRect = tester.getRect(
+      find.byKey(const ValueKey('project-overview-qr')),
+    );
+    final identityRect = tester.getRect(
+      find.byKey(const ValueKey('project-info-identity')),
+    );
+    expect(qrRect.center.dx, closeTo(identityRect.center.dx, 1));
+    expect(qrRect.bottom, lessThan(identityRect.top));
     expect(tester.takeException(), equals(null));
   });
+
+  testWidgets('project overview QR opens the full-size dialog', (tester) async {
+    await tester.pumpWidget(overview(useHorizontalLayout: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('project-overview-qr')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is ProjectQrCodeViewer && widget.isFullScreen,
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+}
+
+void _expectQrPayload(WidgetTester tester) {
+  final qr = tester.widget<ProjectQrIcon>(
+    find.byKey(const ValueKey('project-overview-qr')),
+  );
+  expect(qr.data, ProjectExchangeService.encodeQr(_project));
 }
 
 Finder _sectionContainers(Finder ancestor) {
