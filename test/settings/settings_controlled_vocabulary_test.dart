@@ -110,6 +110,29 @@ void main() {
         findsOneWidget,
       );
 
+      await tester.tap(find.text('Match database'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SegmentedButton<DatabaseMatchMode>), findsOneWidget);
+      expect(
+        find.text(
+          'Add values found in the database without changing your existing '
+          'Specimen Types.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Override all'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Replace all configured Specimen Types with the values currently '
+          'found in the database.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
       await tester.tap(find.byTooltip('Set case format'));
       await tester.pumpAndSettle();
 

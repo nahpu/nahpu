@@ -38,6 +38,13 @@ class ImageServices extends AppServices {
     return MediaFinder(ref: ref).getPathForMedia(filePath, category);
   }
 
+  Future<File> getProjectMediaPath(String filePath, String projectUuid) async {
+    if (projectUuid.trim().isEmpty) return getMediaPath(filePath);
+    return MediaFinder(
+      ref: ref,
+    ).getPathForProjectMedia(filePath, projectUuid, category);
+  }
+
   Future<File> getPersonnelMediaPath(String filePath) async {
     return await MediaFinder(ref: ref).getPathForPersonnel(filePath, category);
   }
@@ -208,7 +215,7 @@ class MediaMetadataServices {
     final List<String> metadata = [
       'Type: ${matchMediaKindLabel(mediaKind)}',
       'Format: $ext',
-      'Size: ${_sizeToReadable(byteSize)}',
+      'Size: ${formatMediaFileSize(byteSize)}',
       'Modified: ${modifiedAt.toLocal()}',
     ];
 
@@ -229,19 +236,19 @@ class MediaMetadataServices {
         .replaceAll('\n', ' ')
         .trim();
   }
+}
 
-  String _sizeToReadable(int bytes) {
-    if (bytes < 1024) {
-      return '$bytes B';
-    }
-    if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    }
-    if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
-    }
-    return '${(bytes / 1024 / 1024 / 1024).toStringAsFixed(1)} GB';
+String formatMediaFileSize(int bytes) {
+  if (bytes < 1024) {
+    return '$bytes B';
   }
+  if (bytes < 1024 * 1024) {
+    return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  }
+  if (bytes < 1024 * 1024 * 1024) {
+    return '${(bytes / 1024 / 1024).toStringAsFixed(1)} MB';
+  }
+  return '${(bytes / 1024 / 1024 / 1024).toStringAsFixed(1)} GB';
 }
 
 class ExifData {

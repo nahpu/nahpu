@@ -88,9 +88,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
     ];
     return Column(
       children: [
-        Text(
-          'Temperature (°C)',
-          style: Theme.of(context).textTheme.titleMedium,
+        CommonPadding(
+          child: Text(
+            'Temperature (°C)',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -167,7 +169,12 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
           ],
         ),
         const SizedBox(height: 8),
-        Text('Humidity (%)', style: Theme.of(context).textTheme.titleMedium),
+        CommonPadding(
+          child: Text(
+            'Humidity (%)',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
@@ -199,45 +206,44 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          'Environmental measurements',
-          style: Theme.of(context).textTheme.titleMedium,
+        CommonPadding(
+          child: Text(
+            'Environmental measurements',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: DropdownButtonFormField<String?>(
-                key: const ValueKey('environment-cloud-cover'),
-                initialValue: widget.environmentCtr.cloudCoverCtr,
-                decoration: const InputDecoration(
-                  labelText: 'Cloud cover (oktas)',
-                  hintText: 'Select cloud cover',
-                ),
-                items: [
-                  const DropdownMenuItem<String?>(
-                    value: null,
-                    child: CommonDropdownText(text: 'Not recorded'),
-                  ),
-                  ...List.generate(9, (index) {
-                    return DropdownMenuItem<String?>(
-                      value: '$index',
-                      child: CommonDropdownText(text: '$index — $index/8'),
-                    );
-                  }),
-                  const DropdownMenuItem<String?>(
-                    value: '9',
-                    child: CommonDropdownText(text: '9 — Sky obscured'),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() => widget.environmentCtr.cloudCoverCtr = value);
-                  _updateEnvironmentData(
-                    EnvironmentCompanion(cloudCover: db.Value(value)),
-                  );
-                },
+            DropdownButtonFormField<String?>(
+              key: const ValueKey('environment-cloud-cover'),
+              initialValue: widget.environmentCtr.cloudCoverCtr,
+              decoration: const InputDecoration(
+                labelText: 'Cloud cover (oktas)',
+                hintText: 'Select cloud cover',
               ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: CommonDropdownText(text: 'Not recorded'),
+                ),
+                ...List.generate(9, (index) {
+                  return DropdownMenuItem<String?>(
+                    value: '$index',
+                    child: CommonDropdownText(text: '$index — $index/8'),
+                  );
+                }),
+                const DropdownMenuItem<String?>(
+                  value: '9',
+                  child: CommonDropdownText(text: '9 — Sky obscured'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() => widget.environmentCtr.cloudCoverCtr = value);
+                _updateEnvironmentData(
+                  EnvironmentCompanion(cloudCover: db.Value(value)),
+                );
+              },
             ),
             CommonNumField(
               controller: widget.environmentCtr.rainfallInMmCtr,
@@ -280,6 +286,13 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               onChanged: _updateAmbientHumidity,
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        CommonPadding(
+          child: Text(
+            'Aquatic Data',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -339,7 +352,12 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
           ],
         ),
         const SizedBox(height: 8),
-        Text('Astronomy', style: Theme.of(context).textTheme.titleMedium),
+        CommonPadding(
+          child: Text(
+            'Astronomy',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
@@ -386,50 +404,54 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: DropdownButtonFormField(
-            initialValue: widget.environmentCtr.moonPhaseCtr,
-            decoration: const InputDecoration(
-              labelText: 'Moon Phase',
-              hintText: 'Select moon phase',
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            DropdownButtonFormField(
+              initialValue: widget.environmentCtr.moonPhaseCtr,
+              decoration: const InputDecoration(
+                labelText: 'Moon Phase',
+                hintText: 'Select moon phase',
+              ),
+              items: moonPhase
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: CommonDropdownText(text: e),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (String? value) {
+                if (value != null) {
+                  widget.environmentCtr.moonPhaseCtr = value;
+                  CollEventServices(ref: ref).updateEnvironmentData(
+                    widget.eventID,
+                    EnvironmentCompanion(moonPhase: db.Value(value)),
+                  );
+                }
+              },
             ),
-            items: moonPhase
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: CommonDropdownText(text: e),
-                  ),
-                )
-                .toList(),
-            onChanged: (String? value) {
-              if (value != null) {
-                widget.environmentCtr.moonPhaseCtr = value;
-                CollEventServices(ref: ref).updateEnvironmentData(
-                  widget.eventID,
-                  EnvironmentCompanion(moonPhase: db.Value(value)),
-                );
-              }
-            },
-          ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: CommonTextField(
-            controller: widget.environmentCtr.noteCtr,
-            labelText: 'Notes',
-            hintText: 'Enter notes',
-            maxLines: 3,
-            isLastField: true,
-            onChanged: (String? value) {
-              if (value != null) {
-                CollEventServices(ref: ref).updateEnvironmentData(
-                  widget.eventID,
-                  EnvironmentCompanion(notes: db.Value(value)),
-                );
-              }
-            },
-          ),
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            CommonTextField(
+              controller: widget.environmentCtr.noteCtr,
+              labelText: 'Notes',
+              hintText: 'Enter notes',
+              maxLines: 3,
+              isLastField: true,
+              onChanged: (String? value) {
+                if (value != null) {
+                  CollEventServices(ref: ref).updateEnvironmentData(
+                    widget.eventID,
+                    EnvironmentCompanion(notes: db.Value(value)),
+                  );
+                }
+              },
+            ),
+          ],
         ),
         const SizedBox(height: 30),
       ],

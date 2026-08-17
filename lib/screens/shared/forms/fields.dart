@@ -576,23 +576,75 @@ class UserDefinedSettingField extends ConsumerWidget {
       },
       onCaseFormatPressed: onCaseFormatPressed,
       resetLabel: 'Match database',
-      onReset: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return CommonAlertDialog(
-              titleText: 'Match database ${plural.toLowerCase()}?',
-              descText:
-                  'Matching database types will'
-                  ' delete all unused ${plural.toLowerCase()}',
-              confirmFunction: () {
-                UtilityServices(ref: ref).getAllOptions(typePrefKey);
-              },
-              cancelFunction: () {},
-            );
-          },
-        );
-      },
+      onReset: () => _showDatabaseMatchDialog(context, ref, plural),
+    );
+  }
+
+  void _showDatabaseMatchDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String plural,
+  ) {
+    var mode = DatabaseMatchMode.appendMissing;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final description = switch (mode) {
+            DatabaseMatchMode.appendMissing =>
+              'Add values found in the database without changing your existing '
+                  '$plural.',
+            DatabaseMatchMode.overrideAll =>
+              'Replace all configured $plural with the values currently found '
+                  'in the database.',
+          };
+          return AlertDialog(
+            title: Text('Match database ${plural.toLowerCase()}?'),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SegmentedButton<DatabaseMatchMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: DatabaseMatchMode.appendMissing,
+                        label: Text('Append missing'),
+                      ),
+                      ButtonSegment(
+                        value: DatabaseMatchMode.overrideAll,
+                        label: Text('Override all'),
+                      ),
+                    ],
+                    selected: {mode},
+                    onSelectionChanged: (selection) {
+                      setState(() => mode = selection.single);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Text(description),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  await UtilityServices(
+                    ref: ref,
+                  ).matchDatabaseOptions(typePrefKey, mode: mode);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: const Text('Match database'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

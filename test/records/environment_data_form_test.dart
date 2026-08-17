@@ -46,6 +46,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Aquatic Data'), findsOneWidget);
+    expect(find.text('Water temperature (°C)'), findsOneWidget);
+    expect(find.text('Dissolved oxygen (mg/L)'), findsOneWidget);
     expect(find.text('Cloud cover (oktas)'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('environment-cloud-cover')));
     await tester.pumpAndSettle();

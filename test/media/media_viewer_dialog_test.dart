@@ -307,10 +307,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Show info'));
     await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pump();
+    await _flushMediaLoad(tester);
     expect(find.text('Media info'), findsOneWidget);
     expect(find.text('Camera'), findsOneWidget);
     expect(find.text('NAHPU Camera'), findsOneWidget);
     expect(find.text('Additional EXIF'), findsOneWidget);
+    expect(find.text('Size'), findsOneWidget);
+    expect(find.text('${_pngBytes.length} B'), findsOneWidget);
     expect(find.byType(FormSection), findsNWidgets(4));
   });
 

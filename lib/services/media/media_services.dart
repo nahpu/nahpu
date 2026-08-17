@@ -328,6 +328,17 @@ class MediaFinder extends AppServices {
     return _getMediaPath(projectDir, filePath, category);
   }
 
+  Future<File> getPathForProjectMedia(
+    String filePath,
+    String projectUuid,
+    MediaCategory category,
+  ) async {
+    final projectDir = await FileServices(
+      ref: ref,
+    ).getProjectDirByUUID(projectUuid);
+    return _getMediaPath(projectDir, filePath, category);
+  }
+
   Future<File> getPathForPersonnel(
     String filePath,
     MediaCategory category,
