@@ -9,6 +9,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 const _project = ProjectData(
   uuid: 'project-uuid',
@@ -115,7 +116,17 @@ void main() {
       find.byKey(const ValueKey('project-info-identity')),
     );
     expect(qrRect.left, greaterThan(identityRect.center.dx));
-    expect(qrRect.center.dy, closeTo(identityRect.center.dy, 16));
+    final identityDetailsRect = tester.getRect(find.text('Field Project'));
+    expect(qrRect.top, closeTo(identityDetailsRect.top, 1));
+    final qrCodeContainer = tester.widget<Container>(
+      find
+          .descendant(
+            of: find.byType(ProjectQrCode),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect(qrCodeContainer.padding, EdgeInsets.all(NahpuSpacing.xs));
     expect(
       find.descendant(of: overviewScroll, matching: find.text('Edit')),
       findsNothing,

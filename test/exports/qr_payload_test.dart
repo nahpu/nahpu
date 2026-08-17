@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 void main() {
   test('QR capacity helper detects oversized payloads', () {
@@ -50,7 +51,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('project QR viewer uses 8px padding and 16px corners', (
+  testWidgets('project QR viewer uses xs padding and 16px corners', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -62,7 +63,7 @@ void main() {
     expect(find.byType(ProjectQrCodeViewer), findsOneWidget);
     expect(find.byType(QrImageView), findsOneWidget);
     final container = tester.widget<Container>(find.byType(Container));
-    expect(container.padding, const EdgeInsets.all(8));
+    expect(container.padding, const EdgeInsets.all(NahpuSpacing.xs));
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.borderRadius, BorderRadius.circular(16));
     expect(tester.takeException(), isNull);

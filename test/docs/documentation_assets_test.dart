@@ -68,8 +68,7 @@ void main() {
           .listSync(recursive: true)
           .whereType<File>()
           .where(
-            (file) =>
-                file.path.endsWith('.md') && !file.path.endsWith('/index.md'),
+            (file) => file.path.endsWith('.md') && !_isIndexFile(file.path),
           );
 
       for (final file in recipes) {
@@ -132,9 +131,9 @@ _CookbookMetadata _cookbookMetadata(
     );
     orders[relativePath] = document.order;
     titles[relativePath] = document.title;
-    if (relativePath.endsWith('/index.md')) {
+    if (_isCategoryIndex(relativePath)) {
       categoryPaths.add(relativePath);
-    } else if (relativePath != 'index.md') {
+    } else if (!_isIndexFile(relativePath)) {
       recipePaths.add(relativePath);
     }
   }
@@ -146,6 +145,12 @@ _CookbookMetadata _cookbookMetadata(
     titles: titles,
   );
 }
+
+bool _isIndexFile(String path) =>
+    path.split(Platform.pathSeparator).last.toLowerCase() == 'index.md';
+
+bool _isCategoryIndex(String path) =>
+    _isIndexFile(path) && path.contains(Platform.pathSeparator);
 
 class _CookbookMetadata {
   const _CookbookMetadata({
