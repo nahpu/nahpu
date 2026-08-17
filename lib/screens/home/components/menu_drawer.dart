@@ -186,7 +186,7 @@ class HowToRecipesTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
-      title: const Text('Cookbook'),
+      title: const Text('How-to recipes'),
       onTap: () async {
         Navigator.push(
           context,

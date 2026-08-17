@@ -22,7 +22,7 @@ class _HowToRecipesScreenState extends ConsumerState<HowToRecipesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cookbook')),
+      appBar: AppBar(title: const Text('How-to Recipes')),
       body: SafeArea(
         child: FutureBuilder<List<CookbookCategory>>(
           future: _categories ??= _loadCategories(),
@@ -67,7 +67,7 @@ class _HowToRecipesScreenState extends ConsumerState<HowToRecipesScreen> {
   }
 }
 
-class _CookbookLayout extends StatelessWidget {
+class _CookbookLayout extends StatefulWidget {
   const _CookbookLayout({
     required this.categories,
     required this.language,
@@ -81,6 +81,22 @@ class _CookbookLayout extends StatelessWidget {
   final String? selectedRecipeId;
   final ValueChanged<DocsLanguage> onLanguageSelected;
   final ValueChanged<String> onRecipeSelected;
+
+  @override
+  State<_CookbookLayout> createState() => _CookbookLayoutState();
+}
+
+class _CookbookLayoutState extends State<_CookbookLayout> {
+  final Set<String> _collapsedCategoryIds = {};
+
+  @override
+  void didUpdateWidget(covariant _CookbookLayout oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final categoryIds = widget.categories
+        .map((category) => category.id)
+        .toSet();
+    _collapsedCategoryIds.retainAll(categoryIds);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +114,8 @@ class _CookbookLayout extends StatelessWidget {
               child: Column(
                 children: [
                   DocsLanguageSelector(
-                    selectedLanguage: language,
-                    onSelected: onLanguageSelected,
+                    selectedLanguage: widget.language,
+                    onSelected: widget.onLanguageSelected,
                   ),
                   const SizedBox(height: NahpuSpacing.lg),
                   Expanded(
@@ -137,7 +153,7 @@ class _CookbookLayout extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(NahpuSpacing.lg),
                   child: Text(
-                    'How-to Recipes',
+                    'Recipes',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
@@ -163,57 +179,86 @@ class _CookbookLayout extends StatelessWidget {
 
   Widget _recipeList(BuildContext context, bool isWide) {
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
       children: [
-        for (final category in categories) ...[
+        for (final category in widget.categories) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              NahpuSpacing.xl,
               NahpuSpacing.lg,
-              NahpuSpacing.xl,
+              NahpuSpacing.lg,
+              NahpuSpacing.lg,
               NahpuSpacing.xs,
             ),
-            child: Text(
-              category.title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          for (final recipe in category.recipes)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: NahpuSpacing.lg,
-                vertical: NahpuSpacing.xs,
-              ),
-              child: ListTile(
-                selected: isWide && recipe.id == _findSelectedRecipe().id,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(NahpuRadius.medium),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    category.title,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                title: Text(recipe.document.title),
-                trailing: isWide
-                    ? null
-                    : const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  onRecipeSelected(recipe.id);
-                  if (!isWide) {
-                    _showRecipeSheet(context, recipe.id);
-                  }
-                },
-              ),
+                IconButton(
+                  tooltip: _isCategoryExpanded(category)
+                      ? 'Collapse ${category.title}'
+                      : 'Expand ${category.title}',
+                  icon: Icon(
+                    _isCategoryExpanded(category) ? Icons.remove : Icons.add,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      if (_isCategoryExpanded(category)) {
+                        _collapsedCategoryIds.add(category.id);
+                      } else {
+                        _collapsedCategoryIds.remove(category.id);
+                      }
+                    });
+                  },
+                ),
+              ],
             ),
+          ),
+          if (_isCategoryExpanded(category))
+            for (final recipe in category.recipes)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: NahpuSpacing.xl,
+                  vertical: NahpuSpacing.xs,
+                ),
+                child: ListTile(
+                  selected: isWide && recipe.id == _findSelectedRecipe().id,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  title: Text(recipe.document.title),
+                  trailing: isWide
+                      ? null
+                      : const Icon(Icons.chevron_right_rounded),
+                  onTap: () {
+                    widget.onRecipeSelected(recipe.id);
+                    if (!isWide) {
+                      _showRecipeSheet(context, recipe.id);
+                    }
+                  },
+                ),
+              ),
         ],
       ],
     );
   }
 
+  bool _isCategoryExpanded(CookbookCategory category) {
+    return !_collapsedCategoryIds.contains(category.id);
+  }
+
   CookbookRecipe _findSelectedRecipe() {
-    final recipes = categories.expand((category) => category.recipes);
+    final recipes = widget.categories.expand((category) => category.recipes);
     return recipes.firstWhere(
-      (recipe) => recipe.id == selectedRecipeId,
-      orElse: () => categories.first.recipes.first,
+      (recipe) => recipe.id == widget.selectedRecipeId,
+      orElse: () => widget.categories.first.recipes.first,
     );
   }
 
@@ -227,8 +272,8 @@ class _CookbookLayout extends StatelessWidget {
         heightFactor: 0.92,
         child: _RecipeBottomSheet(
           recipeId: recipeId,
-          initialLanguage: language,
-          onLanguageSelected: onLanguageSelected,
+          initialLanguage: widget.language,
+          onLanguageSelected: widget.onLanguageSelected,
         ),
       ),
     );

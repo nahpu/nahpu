@@ -1139,41 +1139,42 @@ void main() {
     );
   });
 
-  testWidgets('home menu exposes project actions and Cookbook before About', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(500, 1200);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
+  testWidgets(
+    'home menu exposes project actions and How-to recipes before About',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(500, 1200);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
-    );
-    final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
-    scaffold.openDrawer();
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
+      );
+      final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
+      scaffold.openDrawer();
+      await tester.pumpAndSettle();
 
-    expect(find.text('Create project'), findsOneWidget);
-    expect(find.text('Import project'), findsOneWidget);
-    expect(find.text('Cookbook'), findsOneWidget);
-    expect(find.text('How-to Recipes'), findsNothing);
-    expect(find.text('Learning resources'), findsNothing);
+      expect(find.text('Create project'), findsOneWidget);
+      expect(find.text('Import project'), findsOneWidget);
+      expect(find.text('How-to recipes'), findsOneWidget);
+      expect(find.text('How-to Recipes'), findsNothing);
+      expect(find.text('Learning resources'), findsNothing);
 
-    final drawerText = tester
-        .widgetList<Text>(
-          find.descendant(
-            of: find.byType(HomeMenuDrawer),
-            matching: find.byType(Text),
-          ),
-        )
-        .map((text) => text.data)
-        .toList();
-    expect(
-      drawerText.indexOf('Cookbook'),
-      lessThan(drawerText.indexOf('About')),
-    );
-  });
+      final drawerText = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(HomeMenuDrawer),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((text) => text.data)
+          .toList();
+      expect(
+        drawerText.indexOf('How-to recipes'),
+        lessThan(drawerText.indexOf('About')),
+      );
+    },
+  );
 
   testWidgets('home speed dial exposes project creation and import', (
     tester,

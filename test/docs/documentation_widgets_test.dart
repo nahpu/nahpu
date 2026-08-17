@@ -87,14 +87,37 @@ void main() {
     );
   });
 
-  testWidgets('Cookbook shows all categories in a flat list', (tester) async {
+  testWidgets('How-to Recipes categories expand and collapse independently', (
+    tester,
+  ) async {
     _setSize(tester, const Size(900, 800));
     await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ExpansionTile), findsNothing);
-    expect(find.text('English recipe'), findsNWidgets(2));
-    expect(find.text('Collect recipe'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'English recipe'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Collect recipe'), findsOneWidget);
+    expect(find.byTooltip('Collapse Prepare'), findsOneWidget);
+    expect(find.byTooltip('Collapse Collect'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Collapse Prepare'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ListTile, 'English recipe'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Collect recipe'), findsOneWidget);
+    expect(find.byTooltip('Expand Prepare'), findsOneWidget);
+    expect(find.byTooltip('Collapse Collect'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Collapse Collect'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, 'Collect recipe'), findsNothing);
+
+    await tester.tap(find.byTooltip('Expand Prepare'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, 'English recipe'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Expand Collect'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ListTile, 'Collect recipe'), findsOneWidget);
 
     await tester.tap(find.text('Collect recipe'));
     await tester.pumpAndSettle();
@@ -108,8 +131,8 @@ void main() {
     await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Cookbook'), findsOneWidget);
-    final sidePanelTitle = tester.widget<Text>(find.text('How-to Recipes'));
+    expect(find.text('How-to Recipes'), findsOneWidget);
+    final sidePanelTitle = tester.widget<Text>(find.text('Recipes'));
     expect(sidePanelTitle.textAlign, TextAlign.center);
     expect(find.text('Prepare'), findsOneWidget);
     expect(find.text('English recipe'), findsNWidgets(2));

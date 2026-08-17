@@ -1,9 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024" role="img" aria-label="NAHPU">
-  <title>NAHPU — track adaptive foreground</title>
-  <g transform="translate(20.00 20.00) scale(0.6)">
-    <g transform="translate(3 3.5)">
-      <g transform="rotate(-8 54 17) translate(3 0)"><path fill="#f2bf27" d="M50 15C61 32 71 51 66 69C63 80 54 85 50 76Z"></path></g>
-      <g transform="translate(94 0) scale(-1 1) rotate(-8 54 17) translate(3 0)"><path fill="#f5ead8" d="M50 15C61 32 71 51 66 69C63 80 54 85 50 76Z"></path></g>
-    </g>
-    </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" baseProfile="tiny" version="1.2" viewBox="0 0 1024 1024">
+  <!-- Generator: Adobe Illustrator 30.7.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 114)  -->
+  <path d="M589,79.7c180.4,208.2,351.1,445.3,317.8,697.3-19.6,153.9-131.4,238.3-202.3,124.6l-115.5-821.9Z" fill="#f2bf27"/>
+  <path d="M433,79.7C252.6,287.9,81.9,525,115.2,776.9c19.6,153.9,131.4,238.3,202.3,124.6L433,79.7Z" fill="#f5ead8"/>
 </svg>
