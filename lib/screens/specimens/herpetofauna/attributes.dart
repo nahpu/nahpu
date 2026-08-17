@@ -8,7 +8,6 @@ import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
-import 'package:nahpu/services/types/herps.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -57,31 +56,14 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
               currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
-            DropdownButtonFormField<SpecimenAge>(
-              initialValue: getSpecimenAge(ctr.ageCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                hintText: 'Select specimen age',
-              ),
-              items: specimenAgeList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenAge.values[specimenAgeList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (SpecimenAge? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.ageCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateHerpAttribute(
-                      widget.specimenUuid,
-                      HerpAttributeCompanion(age: db.Value(newValue.index)),
-                    );
-                  });
-                }
+            LifeStageDropdown(
+              currentValue: ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => ctr.lifeStageCtr = value);
+                SpecimenServices(ref: ref).updateHerpAttribute(
+                  widget.specimenUuid,
+                  HerpAttributeCompanion(lifeStage: db.Value(value)),
+                );
               },
             ),
           ],

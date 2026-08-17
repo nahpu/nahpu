@@ -78,6 +78,19 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 TissueIDFields(isMobile: isMobile),
                 const SpecimenSexSetting(),
                 const ControlledVocabularySetting(
+                  title: 'IdMethod',
+                  typePrefKey: idMethodPrefKey,
+                  fmtPrefKey: idMethodFmtPrefKey,
+                  typeName: 'IdMethod',
+                  pluralName: 'IdMethods',
+                ),
+                const ControlledVocabularySetting(
+                  title: 'Life stages',
+                  typePrefKey: lifeStagePrefKey,
+                  fmtPrefKey: lifeStageFmtPrefKey,
+                  typeName: 'life stage',
+                ),
+                const ControlledVocabularySetting(
                   title: 'Specimen types',
                   typePrefKey: specimenTypePrefKey,
                   fmtPrefKey: specimenTypeFmtPrefKey,

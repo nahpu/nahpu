@@ -244,8 +244,9 @@ String _summary(RecordExchangePayload payload) {
     );
   }
   if (payload.type == RecordExchangeType.event &&
-      payload.data['weather'] != null) {
-    parts.add('weather');
+      (payload.data['environment'] != null ||
+          payload.data['weather'] != null)) {
+    parts.add('environmental data');
   }
   if (payload.mediaCount > 0) {
     parts.add(

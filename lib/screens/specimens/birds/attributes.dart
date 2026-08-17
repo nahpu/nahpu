@@ -205,6 +205,16 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
               currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
+            LifeStageDropdown(
+              currentValue: ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => ctr.lifeStageCtr = value);
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(lifeStage: db.Value(value)),
+                );
+              },
+            ),
           ],
         ),
         AdaptiveLayout(

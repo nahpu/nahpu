@@ -11,6 +11,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/arthropods.dart';
 
 typedef _ArthropodCompanionBuilder =
     ArthropodAttributeCompanion Function(double? value);
@@ -35,8 +36,6 @@ class _ArthropodAttributeFormsState
   ArthropodAttributeCtrModel _ctr = ArthropodAttributeCtrModel.empty();
   Key _sexDropdownKey = UniqueKey();
   bool _showMorphometrics = false;
-  String? _ambientHumidityError;
-  String? _pHError;
 
   @override
   void initState() {
@@ -72,6 +71,41 @@ class _ArthropodAttributeFormsState
               currentCode: _ctr.sexCtr,
               onChanged: _updateSex,
             ),
+            LifeStageDropdown(
+              currentValue: _ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => _ctr.lifeStageCtr = value);
+                _updateAttribute(
+                  ArthropodAttributeCompanion(lifeStage: db.Value(value)),
+                );
+              },
+            ),
+            DropdownButtonFormField<int?>(
+              initialValue: _ctr.casteCtr,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Caste',
+                hintText: 'Select caste',
+              ),
+              items: [
+                const DropdownMenuItem<int?>(
+                  value: null,
+                  child: CommonDropdownText(text: 'Not assigned'),
+                ),
+                ...arthropodCasteList.indexed.map(
+                  (entry) => DropdownMenuItem<int?>(
+                    value: entry.$1,
+                    child: CommonDropdownText(text: entry.$2),
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() => _ctr.casteCtr = value);
+                _updateAttribute(
+                  ArthropodAttributeCompanion(caste: db.Value(value)),
+                );
+              },
+            ),
           ],
         ),
         const SpecimenAttributeSectionLabel(text: 'Ecological interactions'),
@@ -87,47 +121,6 @@ class _ArthropodAttributeFormsState
             ArthropodAttributeCompanion(
               hostPart: db.Value(_optionalText(value)),
             ),
-          ),
-          onCanopyAffinityChanged: (value) => _updateAttribute(
-            ArthropodAttributeCompanion(
-              canopyAffinity: db.Value(_optionalText(value)),
-            ),
-          ),
-        ),
-        const CommonDivider(),
-        const SpecimenAttributeSectionLabel(text: 'Environmental parameters'),
-        _EnvironmentalParameterSection(
-          ctr: _ctr,
-          useHorizontalLayout: widget.useHorizontalLayout,
-          ambientHumidityError: _ambientHumidityError,
-          pHError: _pHError,
-          onCanopyCoverChanged: (value) => _updateAttribute(
-            ArthropodAttributeCompanion(
-              canopyCover: db.Value(_optionalText(value)),
-            ),
-          ),
-          onAmbientTemperatureChanged: (value) => _updateDouble(
-            value,
-            (parsed) => ArthropodAttributeCompanion(
-              ambientTemperature: db.Value(parsed),
-            ),
-          ),
-          onAmbientHumidityChanged: _updateAmbientHumidity,
-          onWaterTemperatureChanged: (value) => _updateDouble(
-            value,
-            (parsed) =>
-                ArthropodAttributeCompanion(waterTemperature: db.Value(parsed)),
-          ),
-          onPHChanged: _updatePH,
-          onDissolvedOxygenChanged: (value) => _updateDouble(
-            value,
-            (parsed) =>
-                ArthropodAttributeCompanion(dissolvedOxygen: db.Value(parsed)),
-          ),
-          onFlowVelocityChanged: (value) => _updateDouble(
-            value,
-            (parsed) =>
-                ArthropodAttributeCompanion(flowVelocity: db.Value(parsed)),
           ),
         ),
         const CommonDivider(),
@@ -210,8 +203,6 @@ class _ArthropodAttributeFormsState
       _ctr = nextCtr;
       _showMorphometrics = nextCtr.hasMorphometricData;
       _sexDropdownKey = UniqueKey();
-      _ambientHumidityError = null;
-      _pHError = null;
     });
     previousCtr.dispose();
   }
@@ -226,34 +217,6 @@ class _ArthropodAttributeFormsState
     final parsed = double.tryParse(value ?? '');
     if (value?.isNotEmpty == true && parsed == null) return;
     _updateAttribute(builder(parsed));
-  }
-
-  void _updateAmbientHumidity(String? value) {
-    final hasValue = value?.trim().isNotEmpty == true;
-    final parsed = double.tryParse(value ?? '');
-    final isValid =
-        !hasValue || (parsed != null && parsed >= 0 && parsed <= 100);
-    setState(() {
-      _ambientHumidityError = isValid ? null : 'Enter a value from 0 to 100';
-    });
-    if (isValid) {
-      _updateAttribute(
-        ArthropodAttributeCompanion(ambientHumidity: db.Value(parsed)),
-      );
-    }
-  }
-
-  void _updatePH(String? value) {
-    final hasValue = value?.trim().isNotEmpty == true;
-    final parsed = double.tryParse(value ?? '');
-    final isValid =
-        !hasValue || (parsed != null && parsed >= 0 && parsed <= 14);
-    setState(() {
-      _pHError = isValid ? null : 'Enter a value from 0 to 14';
-    });
-    if (isValid) {
-      _updateAttribute(ArthropodAttributeCompanion(pH: db.Value(parsed)));
-    }
   }
 
   void _updateAttribute(ArthropodAttributeCompanion attribute) {
@@ -274,14 +237,12 @@ class _EcologicalInteractionSection extends StatelessWidget {
     required this.useHorizontalLayout,
     required this.onHostOrganismChanged,
     required this.onHostPartChanged,
-    required this.onCanopyAffinityChanged,
   });
 
   final ArthropodAttributeCtrModel ctr;
   final bool useHorizontalLayout;
   final ValueChanged<String?> onHostOrganismChanged;
   final ValueChanged<String?> onHostPartChanged;
-  final ValueChanged<String?> onCanopyAffinityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -308,128 +269,6 @@ class _EcologicalInteractionSection extends StatelessWidget {
               hintText: 'Enter the occupied host part',
               isLastField: false,
               onChanged: onHostPartChanged,
-            ),
-            CommonTextField(
-              controller: ctr.canopyAffinityCtr,
-              labelText: 'Canopy affinity',
-              hintText: 'Enter canopy association',
-              isLastField: false,
-              onChanged: onCanopyAffinityChanged,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _EnvironmentalParameterSection extends StatelessWidget {
-  const _EnvironmentalParameterSection({
-    required this.ctr,
-    required this.useHorizontalLayout,
-    required this.ambientHumidityError,
-    required this.pHError,
-    required this.onCanopyCoverChanged,
-    required this.onAmbientTemperatureChanged,
-    required this.onAmbientHumidityChanged,
-    required this.onWaterTemperatureChanged,
-    required this.onPHChanged,
-    required this.onDissolvedOxygenChanged,
-    required this.onFlowVelocityChanged,
-  });
-
-  final ArthropodAttributeCtrModel ctr;
-  final bool useHorizontalLayout;
-  final String? ambientHumidityError;
-  final String? pHError;
-  final ValueChanged<String?> onCanopyCoverChanged;
-  final ValueChanged<String?> onAmbientTemperatureChanged;
-  final ValueChanged<String?> onAmbientHumidityChanged;
-  final ValueChanged<String?> onWaterTemperatureChanged;
-  final ValueChanged<String?> onPHChanged;
-  final ValueChanged<String?> onDissolvedOxygenChanged;
-  final ValueChanged<String?> onFlowVelocityChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AdaptiveLayout(
-          useHorizontalLayout: useHorizontalLayout,
-          children: [
-            CommonTextField(
-              controller: ctr.canopyCoverCtr,
-              labelText: 'Canopy cover',
-              hintText: 'Enter canopy cover',
-              isLastField: false,
-              onChanged: onCanopyCoverChanged,
-            ),
-            CommonNumField(
-              controller: ctr.ambientTemperatureCtr,
-              labelText: 'Ambient temperature (°C)',
-              hintText: 'Enter ambient temperature',
-              isDouble: true,
-              isSigned: true,
-              isLastField: false,
-              onChanged: onAmbientTemperatureChanged,
-            ),
-          ],
-        ),
-        AdaptiveLayout(
-          useHorizontalLayout: useHorizontalLayout,
-          children: [
-            CommonNumField(
-              controller: ctr.ambientHumidityCtr,
-              labelText: 'Ambient humidity (%)',
-              hintText: 'Enter relative humidity',
-              isDouble: true,
-              isLastField: false,
-              errorText: ambientHumidityError,
-              onChanged: onAmbientHumidityChanged,
-            ),
-            CommonNumField(
-              controller: ctr.waterTemperatureCtr,
-              labelText: 'Water temperature (°C)',
-              hintText: 'Enter water temperature',
-              isDouble: true,
-              isSigned: true,
-              isLastField: false,
-              onChanged: onWaterTemperatureChanged,
-            ),
-          ],
-        ),
-        AdaptiveLayout(
-          useHorizontalLayout: useHorizontalLayout,
-          children: [
-            CommonNumField(
-              controller: ctr.pHCtr,
-              labelText: 'pH',
-              hintText: 'Enter pH',
-              isDouble: true,
-              isLastField: false,
-              errorText: pHError,
-              onChanged: onPHChanged,
-            ),
-            CommonNumField(
-              controller: ctr.dissolvedOxygenCtr,
-              labelText: 'Dissolved oxygen (mg/L)',
-              hintText: 'Enter dissolved oxygen',
-              isDouble: true,
-              isLastField: false,
-              onChanged: onDissolvedOxygenChanged,
-            ),
-          ],
-        ),
-        AdaptiveLayout(
-          useHorizontalLayout: useHorizontalLayout,
-          children: [
-            CommonNumField(
-              controller: ctr.flowVelocityCtr,
-              labelText: 'Flow velocity (m/s)',
-              hintText: 'Enter flow velocity',
-              isDouble: true,
-              isLastField: false,
-              onChanged: onFlowVelocityChanged,
             ),
           ],
         ),

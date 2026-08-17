@@ -363,31 +363,14 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
-            DropdownButtonFormField<SpecimenAge>(
-              initialValue: getSpecimenAge(ctr.ageCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                hintText: 'Select specimen age',
-              ),
-              items: specimenAgeList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenAge.values[specimenAgeList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (SpecimenAge? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.ageCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(age: db.Value(newValue.index)),
-                    );
-                  });
-                }
+            LifeStageDropdown(
+              currentValue: ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => ctr.lifeStageCtr = value);
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(lifeStage: db.Value(value)),
+                );
               },
             ),
           ],
@@ -401,14 +384,14 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
         OvaryOpeningField(
           specimenUuid: widget.specimenUuid,
           specimenSex: getSpecimenSex(ctr.sexCtr),
-          specimenAge: getSpecimenAge(ctr.ageCtr),
+          lifeStage: ctr.lifeStageCtr,
           useHorizontalLayout: widget.useHorizontalLayout,
           ctr: ctr,
         ),
         FemaleGonadForm(
           specimenUuid: widget.specimenUuid,
           specimenSex: getSpecimenSex(ctr.sexCtr),
-          specimenAge: getSpecimenAge(ctr.ageCtr),
+          lifeStage: ctr.lifeStageCtr,
           useHorizontalLayout: widget.useHorizontalLayout,
           ctr: ctr,
         ),
@@ -1043,14 +1026,14 @@ class OvaryOpeningField extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenSex,
-    required this.specimenAge,
+    required this.lifeStage,
     required this.useHorizontalLayout,
     required this.ctr,
   });
 
   final String specimenUuid;
   final SpecimenSex? specimenSex;
-  final SpecimenAge? specimenAge;
+  final String? lifeStage;
   final bool useHorizontalLayout;
   final MammalAttributeCtrModel ctr;
 
@@ -1091,7 +1074,7 @@ class OvaryOpeningField extends ConsumerWidget {
         Visibility(
           visible:
               specimenSex?.supportsFemaleAttributes == true &&
-              specimenAge == SpecimenAge.adult,
+              lifeStage?.toLowerCase() == 'adult',
           child: DropdownButtonFormField<PubicSymphysis>(
             initialValue: _getPubicSymphysis(),
             isExpanded: true,
@@ -1143,14 +1126,14 @@ class FemaleGonadForm extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenSex,
-    required this.specimenAge,
+    required this.lifeStage,
     required this.useHorizontalLayout,
     required this.ctr,
   });
 
   final String specimenUuid;
   final SpecimenSex? specimenSex;
-  final SpecimenAge? specimenAge;
+  final String? lifeStage;
   final bool useHorizontalLayout;
   final MammalAttributeCtrModel ctr;
   @override
@@ -1158,7 +1141,7 @@ class FemaleGonadForm extends ConsumerWidget {
     return Visibility(
       visible:
           specimenSex?.supportsFemaleAttributes == true &&
-          specimenAge == SpecimenAge.adult,
+          lifeStage?.toLowerCase() == 'adult',
       child: Column(
         children: [
           const CommonDivider(),

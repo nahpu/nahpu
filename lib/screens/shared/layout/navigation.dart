@@ -289,7 +289,7 @@ void _invalidateProjectDestination(WidgetRef ref, int index) {
   switch (index) {
     case 0:
       ref.invalidate(siteEntryProvider);
-      ref.invalidate(weatherDataProvider);
+      ref.invalidate(environmentDataProvider);
       ref.invalidate(collEventEntryProvider);
       ref.invalidate(specimenEntryProvider);
       ref.invalidate(narrativeEntryProvider);

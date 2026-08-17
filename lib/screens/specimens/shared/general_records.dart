@@ -73,10 +73,10 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
           IDConfidence(
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
+            onChanged: () => setState(() {}),
           ),
           Visibility(
-            visible:
-                _showMore || widget.specimenCtr.idMethodCtr.text.isNotEmpty,
+            visible: widget.specimenCtr.idConfidenceCtr != null,
             child: IDMethod(
               specimenUuid: widget.specimenUuid,
               specimenCtr: widget.specimenCtr,
@@ -165,10 +165,12 @@ class IDConfidence extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
+    required this.onChanged,
   });
 
   final String specimenUuid;
   final SpecimenFormCtrModel specimenCtr;
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -176,6 +178,8 @@ class IDConfidence extends ConsumerWidget {
       child: DropdownButtonFormField<int?>(
         initialValue: specimenCtr.idConfidenceCtr,
         onChanged: (int? value) {
+          specimenCtr.idConfidenceCtr = value;
+          onChanged();
           SpecimenServices(ref: ref).updateSpecimen(
             specimenUuid,
             SpecimenCompanion(iDConfidence: db.Value(value)),
@@ -185,14 +189,18 @@ class IDConfidence extends ConsumerWidget {
           labelText: 'ID Confidence',
           hintText: 'Choose a confidence level',
         ),
-        items: idConfidenceList.reversed
-            .map(
-              (e) => DropdownMenuItem<int?>(
-                value: idConfidenceList.indexOf(e),
-                child: CommonDropdownText(text: e),
-              ),
-            )
-            .toList(),
+        items: [
+          const DropdownMenuItem<int?>(
+            value: null,
+            child: CommonDropdownText(text: 'Not assigned'),
+          ),
+          ...idConfidenceList.reversed.map(
+            (e) => DropdownMenuItem<int?>(
+              value: idConfidenceList.indexOf(e),
+              child: CommonDropdownText(text: e),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -264,24 +272,47 @@ class IDMethod extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final service = SpecimenServices(ref: ref);
-    return CommonPadding(
-      child: TextField(
-        controller: specimenCtr.idMethodCtr,
-        decoration: const InputDecoration(
-          labelText: 'ID Method',
-          hintText: 'Enter ID method',
-        ),
-        onChanged: (value) {
-          if (value.isNotEmpty) {
-            service.updateSpecimenSkipInvalidation(
-              specimenUuid,
-              SpecimenCompanion(iDMethod: db.Value(value)),
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(idMethodPrefKey))
+        .when(
+          data: (data) {
+            final options = includeCurrentVocabularyValue(
+              data,
+              specimenCtr.idMethodCtr,
             );
-          }
-        },
-        onSubmitted: (_) => service.invalidateSpecimenList(),
-      ),
-    );
+            return CommonPadding(
+              child: DropdownButtonFormField<String?>(
+                initialValue: specimenCtr.idMethodCtr,
+                decoration: const InputDecoration(
+                  labelText: 'IdMethod',
+                  hintText: 'Choose an IdMethod',
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: CommonDropdownText(text: 'Not assigned'),
+                  ),
+                  ...options.map(
+                    (value) => DropdownMenuItem<String?>(
+                      value: value,
+                      child: CommonDropdownText(text: value),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  specimenCtr.idMethodCtr = value;
+                  service.updateSpecimenSkipInvalidation(
+                    specimenUuid,
+                    SpecimenCompanion(iDMethod: db.Value(value)),
+                  );
+                  service.invalidateSpecimenList();
+                },
+              ),
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error: $error'),
+        );
   }
 }
 

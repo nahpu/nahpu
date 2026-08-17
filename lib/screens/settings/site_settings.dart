@@ -4,6 +4,7 @@ import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/map_settings.dart';
 import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
+import 'package:nahpu/services/types/sites.dart';
 
 class SiteSelection extends StatefulWidget {
   const SiteSelection({super.key});
@@ -21,6 +22,7 @@ class _SiteSelectionState extends State<SiteSelection> {
         child: CommonSettingList(
           sections: const [
             SiteMapSettings(),
+            SiteGeographyFieldSettings(),
             ControlledVocabularySetting(
               title: 'Site types',
               typePrefKey: siteTypePrefKey,
@@ -43,6 +45,56 @@ class _SiteSelectionState extends State<SiteSelection> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class SiteGeographyFieldSettings extends ConsumerWidget {
+  const SiteGeographyFieldSettings({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonSettingSection(
+      title: 'Geography fields',
+      isDivided: true,
+      children: [
+        ref
+            .watch(userDefinedFieldProvider(siteGeographyFieldsPrefKey))
+            .when(
+              data: (selected) => Column(
+                children: [
+                  for (final field in siteGeographyFields)
+                    CheckboxListTile(
+                      value: selected.contains(field),
+                      title: Text(siteGeographyFieldLabels[field]!),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      onChanged: (visible) async {
+                        final next = selected.toSet();
+                        if (visible == true) {
+                          next.add(field);
+                        } else {
+                          next.remove(field);
+                        }
+                        await ref
+                            .read(userConfigSettingsServiceProvider)
+                            .replaceOptions(
+                              siteGeographyFieldsPrefKey,
+                              siteGeographyFields
+                                  .where(next.contains)
+                                  .toList(growable: false),
+                            );
+                        ref.invalidate(
+                          userDefinedFieldProvider(siteGeographyFieldsPrefKey),
+                        );
+                      },
+                    ),
+                ],
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (error, _) =>
+                  Text('Unable to load geography fields: $error'),
+            ),
+      ],
     );
   }
 }

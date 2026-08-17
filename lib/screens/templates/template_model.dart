@@ -4,7 +4,6 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/specimens.dart' as specimens;
-import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 
@@ -355,13 +354,15 @@ String? getEncodedDefaultValue(String key, String value) {
     return specimens.getSpecimenSexLabel(intVal);
   } else if (cleanKey == 'mammalattribute::age' ||
       cleanKey == 'mammalmeasurement::age') {
-    if (intVal >= 0 && intVal < mammals.specimenAgeList.length) {
-      return mammals.specimenAgeList[intVal];
+    const labels = ['Adult', 'Subadult', 'Juvenile', 'Unknown'];
+    if (intVal >= 0 && intVal < labels.length) {
+      return labels[intVal];
     }
   } else if (cleanKey == 'herpattribute::age' ||
       cleanKey == 'herpmeasurement::age') {
-    if (intVal >= 0 && intVal < herps.specimenAgeList.length) {
-      return herps.specimenAgeList[intVal];
+    const labels = ['Adult', 'Juvenile', 'Neonate', 'Metamorph', 'Unknown'];
+    if (intVal >= 0 && intVal < labels.length) {
+      return labels[intVal];
     }
   } else if (cleanKey.endsWith('::testisposition')) {
     if (intVal >= 0 && intVal < mammals.testisPositionList.length) {

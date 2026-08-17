@@ -209,7 +209,7 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   }
 }
 
-class SitePages extends StatelessWidget {
+class SitePages extends ConsumerWidget {
   const SitePages({
     super.key,
     required this.siteEntries,
@@ -224,26 +224,31 @@ class SitePages extends StatelessWidget {
   final void Function(int) onPageChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PageView.builder(
       // Keyed by controller identity so openControllerAt's swap takes effect.
       key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: siteEntries.length,
       itemBuilder: (context, index) {
-        final siteForm = _updateController(siteEntries[index]);
-        return PageViewer(
-          pageNav: pageNav,
-          isNavButtonVisible: isNavButtonVisible,
-          child: SiteForm(id: siteEntries[index].id, siteFormCtr: siteForm),
-        );
+        final site = siteEntries[index];
+        return ref
+            .watch(siteAttributeProvider(site.id))
+            .when(
+              data: (attribute) {
+                final siteForm = SiteFormCtrModel.fromData(site, attribute);
+                return PageViewer(
+                  pageNav: pageNav,
+                  isNavButtonVisible: isNavButtonVisible,
+                  child: SiteForm(id: site.id, siteFormCtr: siteForm),
+                );
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            );
       },
       onPageChanged: onPageChanged,
     );
-  }
-
-  SiteFormCtrModel _updateController(SiteData siteEntries) {
-    return SiteFormCtrModel.fromData(siteEntries);
   }
 }
 

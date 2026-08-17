@@ -576,13 +576,14 @@ Map<String, List<String>> _availableFieldGroups(
       allowedTables = {'narrative', 'site', 'personnel'};
       break;
     case RecordType.site:
-      allowedTables = {'site', 'personnel', 'coordinate'};
+      allowedTables = {'site', 'siteAttribute', 'personnel', 'coordinate'};
       break;
     case RecordType.collEvent:
       allowedTables = {
         'collEvent',
         'site',
-        'weather',
+        'siteAttribute',
+        'environment',
         'coordinate',
         'collEffort',
         'collPersonnel',
@@ -599,12 +600,14 @@ Map<String, List<String>> _availableFieldGroups(
         'collEffort',
         'collPersonnel',
         'site',
+        'siteAttribute',
         'coordinate',
-        'weather',
+        'environment',
         'mammalAttribute',
         'birdAttribute',
         'herpAttribute',
         'arthropodAttribute',
+        'fossilAttribute',
         'specimenPart',
       };
       if (specimenRecordType == SpecimenRecordType.generalMammals ||

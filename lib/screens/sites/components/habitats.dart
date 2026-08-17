@@ -70,9 +70,11 @@ class Habitat extends ConsumerWidget {
                           onChanged: (String? newValue) {
                             if (newValue != null) {
                               siteFormCtr.habitatTypeCtr.text = newValue;
-                              SiteServices(ref: ref).updateSite(
+                              SiteServices(ref: ref).updateSiteAttribute(
                                 id,
-                                SiteCompanion(habitatType: db.Value(newValue)),
+                                SiteAttributeCompanion(
+                                  habitatType: db.Value(newValue),
+                                ),
                               );
                             }
                           },
@@ -87,10 +89,13 @@ class Habitat extends ConsumerWidget {
                     labelText: 'Habitat Condition',
                     hintText: 'E.g. "Pristine", "Disturbed", "etc."',
                   ),
-                  onChanged: (value) => SiteServices(ref: ref).updateSite(
-                    id,
-                    SiteCompanion(habitatCondition: db.Value(value)),
-                  ),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(
+                          habitatCondition: db.Value(value),
+                        ),
+                      ),
                 ),
                 TextFormField(
                   maxLines: 10,
@@ -100,10 +105,25 @@ class Habitat extends ConsumerWidget {
                     hintText:
                         'Describe the site, e.g. "A camp site in the middle of the forest."',
                   ),
-                  onChanged: (value) => SiteServices(ref: ref).updateSite(
-                    id,
-                    SiteCompanion(habitatDescription: db.Value(value)),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(
+                          habitatDescription: db.Value(value),
+                        ),
+                      ),
+                ),
+                TextFormField(
+                  controller: siteFormCtr.canopyCoverCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Canopy Cover',
+                    hintText: 'Enter canopy cover',
                   ),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(canopyCover: db.Value(value)),
+                      ),
                 ),
                 CustomFieldForm(owner: CustomFieldOwner.site(id)),
               ],

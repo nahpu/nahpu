@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
@@ -99,6 +100,54 @@ class SpecimenSexDropdown extends ConsumerWidget {
       ],
       onChanged: onChanged,
     );
+  }
+}
+
+class LifeStageDropdown extends ConsumerWidget {
+  const LifeStageDropdown({
+    super.key,
+    required this.currentValue,
+    required this.onChanged,
+  });
+
+  final String? currentValue;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(lifeStagePrefKey))
+        .when(
+          data: (configured) {
+            final options = includeCurrentVocabularyValue(
+              configured,
+              currentValue,
+            );
+            return DropdownButtonFormField<String?>(
+              initialValue: currentValue,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Life stage',
+                hintText: 'Select life stage',
+              ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: CommonDropdownText(text: 'Not assigned'),
+                ),
+                ...options.map(
+                  (value) => DropdownMenuItem<String?>(
+                    value: value,
+                    child: CommonDropdownText(text: value),
+                  ),
+                ),
+              ],
+              onChanged: onChanged,
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Unable to load life stages: $error'),
+        );
   }
 }
 
