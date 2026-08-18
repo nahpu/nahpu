@@ -97,7 +97,7 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.input_outlined),
+          leading: const Icon(Icons.download_outlined),
           title: const Text('Import settings'),
           onTap: () {
             Navigator.push(

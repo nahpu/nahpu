@@ -108,7 +108,7 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
   windows:
     generate: true
-    image_path: "assets/launcher/nahpu-light.png"
+    image_path: "assets/launcher/nahpu-no-bg.png"
   macos:
     generate: true
     image_path: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
