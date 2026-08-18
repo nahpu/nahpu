@@ -12,7 +12,6 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:video_player/video_player.dart';
 
 const double _metadataPanelWidth = 360;
-const double _metadataPanelHeight = 280;
 const double _smallScreenBreakpoint = 600;
 const List<double> _playbackSpeeds = [
   0.25,
@@ -33,6 +32,20 @@ Future<void> showMediaViewerDialog(
   required List<MediaData> mediaList,
   required int initialIndex,
 }) {
+  final isSmallScreen =
+      MediaQuery.sizeOf(context).width < _smallScreenBreakpoint;
+  if (isSmallScreen) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => MediaViewerDialog._bottomSheet(
+        mediaList: mediaList,
+        initialIndex: initialIndex,
+      ),
+    );
+  }
   return showDialog(
     context: context,
     builder: (context) {
@@ -49,16 +62,26 @@ class MediaViewerDialog extends ConsumerStatefulWidget {
     super.key,
     required this.mediaList,
     required this.initialIndex,
-  });
+  }) : _useBottomSheet = false;
+
+  const MediaViewerDialog._bottomSheet({
+    required this.mediaList,
+    required this.initialIndex,
+  }) : _useBottomSheet = true;
 
   final List<MediaData> mediaList;
   final int initialIndex;
+  final bool _useBottomSheet;
 
   @override
   MediaViewerDialogState createState() => MediaViewerDialogState();
 }
 
 class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
+  static const double _smallSheetInitialSize = 0.88;
+  static const double _smallSheetMinSize = 0.55;
+  static const double _smallSheetMaxSize = 1.0;
+
   late int _currentIndex;
   bool _showMetadata = true;
   bool _isFullscreen = false;
@@ -72,6 +95,8 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   double _lastNonZeroVolume = 1.0;
   double _playbackSpeed = 1.0;
   final FocusNode _focusNode = FocusNode();
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
 
   MediaData get _currentMedia => widget.mediaList[_currentIndex];
 
@@ -83,11 +108,15 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.mediaList.length - 1);
+    if (widget._useBottomSheet) {
+      _sheetController.addListener(_onSheetExtentChanged);
+    }
     _loadMedia();
   }
 
   @override
   void dispose() {
+    _sheetController.dispose();
     _videoController?.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -104,9 +133,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
         return KeyEventResult.handled;
       }
       if (event.logicalKey == LogicalKeyboardKey.escape && _isFullscreen) {
-        setState(() {
-          _isFullscreen = false;
-        });
+        _setFullscreen(false);
         return KeyEventResult.handled;
       }
     }
@@ -116,65 +143,97 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    return Dialog(
-      insetPadding: _isFullscreen ? EdgeInsets.zero : const EdgeInsets.all(16),
-      clipBehavior: Clip.antiAlias,
-      child: Focus(
-        focusNode: _focusNode,
-        autofocus: true,
-        onKeyEvent: _handleKeyEvent,
-        child: SizedBox(
-          width: screenSize.width,
-          height: screenSize.height,
-          child: _isFullscreen
-              ? _buildMediaArea(context)
-              : Column(
-                  children: [
-                    _buildTopBar(context),
-                    Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isSmallScreen =
-                              constraints.maxWidth < _smallScreenBreakpoint;
-                          if (!_showMetadata) {
-                            return _buildMediaArea(context);
-                          }
-                          if (isSmallScreen) {
-                            return Column(
-                              children: [
-                                Expanded(child: _buildMediaArea(context)),
-                                SizedBox(
-                                  height: _metadataPanelHeight,
-                                  width: double.infinity,
-                                  child: _MediaMetadataPanel(
-                                    media: _currentMedia,
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                          return Row(
-                            children: [
-                              Expanded(child: _buildMediaArea(context)),
-                              SizedBox(
-                                width: _metadataPanelWidth,
-                                child: _MediaMetadataPanel(
-                                  media: _currentMedia,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
+    final viewer = widget._useBottomSheet
+        ? _buildBottomSheet(context)
+        : Dialog(
+            insetPadding: _isFullscreen
+                ? EdgeInsets.zero
+                : const EdgeInsets.all(16),
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              width: screenSize.width,
+              height: screenSize.height,
+              child: _isFullscreen
+                  ? _buildMediaArea(context)
+                  : _buildWideViewer(context),
+            ),
+          );
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: _handleKeyEvent,
+      child: viewer,
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildBottomSheet(BuildContext context) {
+    return DraggableScrollableSheet(
+      controller: _sheetController,
+      initialChildSize: _smallSheetInitialSize,
+      minChildSize: _smallSheetMinSize,
+      maxChildSize: _smallSheetMaxSize,
+      expand: false,
+      builder: (context, _) {
+        return Material(
+          clipBehavior: Clip.antiAlias,
+          color: Theme.of(context).colorScheme.surface,
+          child: DefaultTabController(
+            length: 2,
+            child: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  _buildTopBar(context, showMetadataToggle: false),
+                  TabBar(
+                    tabs: const [
+                      Tab(icon: Icon(Icons.image_outlined), text: 'Media'),
+                      Tab(icon: Icon(Icons.info_outline), text: 'Info'),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildMediaArea(context),
+                        _MediaMetadataPanel(media: _currentMedia),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWideViewer(BuildContext context) {
+    return Column(
+      children: [
+        _buildTopBar(context),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, _) {
+              if (!_showMetadata) {
+                return _buildMediaArea(context);
+              }
+              return Row(
+                children: [
+                  Expanded(child: _buildMediaArea(context)),
+                  SizedBox(
+                    width: _metadataPanelWidth,
+                    child: _MediaMetadataPanel(media: _currentMedia),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context, {bool showMetadataToggle = true}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
@@ -186,15 +245,16 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          IconButton(
-            tooltip: _showMetadata ? 'Hide details' : 'Show details',
-            icon: Icon(_showMetadata ? Icons.info : Icons.info_outline),
-            onPressed: () {
-              setState(() {
-                _showMetadata = !_showMetadata;
-              });
-            },
-          ),
+          if (showMetadataToggle)
+            IconButton(
+              tooltip: _showMetadata ? 'Hide details' : 'Show details',
+              icon: Icon(_showMetadata ? Icons.info : Icons.info_outline),
+              onPressed: () {
+                setState(() {
+                  _showMetadata = !_showMetadata;
+                });
+              },
+            ),
           IconButton(
             tooltip: 'Close',
             icon: const Icon(Icons.close),
@@ -448,9 +508,28 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   }
 
   void _toggleFullscreen() {
-    setState(() {
-      _isFullscreen = !_isFullscreen;
-    });
+    _setFullscreen(!_isFullscreen);
+  }
+
+  void _setFullscreen(bool value) {
+    final nextValue = value;
+    if (_isFullscreen != nextValue) {
+      setState(() => _isFullscreen = nextValue);
+    }
+    if (!widget._useBottomSheet || !_sheetController.isAttached) return;
+    _sheetController.animateTo(
+      nextValue ? _smallSheetMaxSize : _smallSheetInitialSize,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _onSheetExtentChanged() {
+    if (!mounted || !_sheetController.isAttached) return;
+    final isFullscreen = _sheetController.size >= _smallSheetMaxSize - 0.01;
+    if (isFullscreen != _isFullscreen) {
+      setState(() => _isFullscreen = isFullscreen);
+    }
   }
 }
 

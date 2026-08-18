@@ -186,29 +186,36 @@ void main() {
     expect(bottomPanel, findsNothing);
   });
 
-  testWidgets('narrow layout shows metadata at the bottom', (tester) async {
+  testWidgets('narrow layout opens a sheet with media and info tabs', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(500, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final mediaList = seedImages(1);
+    _writeMediaFile(tempAppDir, 'photo1.png', _pngBytes);
+    final mediaList = [
+      _buildMedia(id: 1, fileName: 'photo1.png', caption: 'A nice view'),
+    ];
     await _pumpViewerLauncher(tester, db, mediaList);
     await _openDialog(tester);
 
-    final sidePanel = find.ancestor(
-      of: find.byType(MediaDetailsView),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.width == 360,
-      ),
-    );
-    final bottomPanel = find.ancestor(
-      of: find.byType(MediaDetailsView),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.height == 280,
-      ),
-    );
-    expect(bottomPanel, findsOneWidget);
-    expect(sidePanel, findsNothing);
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+    expect(find.byType(TabBar), findsOneWidget);
+    expect(find.text('Media'), findsOneWidget);
+    expect(find.text('Info'), findsOneWidget);
+    expect(find.text('A nice view'), findsNothing);
+
+    await tester.tap(find.text('Info'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaDetailsView), findsOneWidget);
+    expect(find.text('A nice view'), findsOneWidget);
+
+    await tester.tap(find.byType(Tab).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(find.text('A nice view'), findsNothing);
   });
 
   testWidgets('falls back gracefully for audio when playback is unavailable', (

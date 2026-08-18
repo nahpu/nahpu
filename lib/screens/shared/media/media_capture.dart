@@ -163,12 +163,10 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
         !controller.value.isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return Center(
-      child: AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: CameraPreview(controller),
-      ),
-    );
+    // CameraPreview already applies the orientation-aware aspect ratio. A
+    // second AspectRatio around it would use the raw sensor ratio and stretch
+    // portrait previews on platforms that rotate the preview internally.
+    return Center(child: CameraPreview(controller));
   }
 
   Future<void> _initializeCameras() async {
