@@ -105,7 +105,7 @@ flutter_launcher_icons:
   image_path_android: "assets/launcher/nahpu-bg.png"
   remove_alpha_ios: true
   adaptive_icon_background: "#f4f1de"
-  adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
+  adaptive_icon_foreground: "assets/launcher/nahpu-fg.png"
   windows:
     generate: true
     image_path: "assets/launcher/nahpu-no-bg.png"
