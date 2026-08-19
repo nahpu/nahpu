@@ -40,7 +40,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(_ProjectQrIcon), findsNothing);
+    expect(find.byType(ProjectQrIcon), findsNothing);
     expect(find.text('Edit'), findsOneWidget);
     expect(find.text('Export info'), findsOneWidget);
 
