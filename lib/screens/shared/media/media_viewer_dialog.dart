@@ -255,13 +255,14 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
                 });
               },
             ),
-          IconButton(
-            tooltip: 'Close',
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          if (!widget._useBottomSheet)
+            IconButton(
+              tooltip: 'Close',
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
         ],
       ),
     );

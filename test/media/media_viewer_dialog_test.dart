@@ -184,6 +184,7 @@ void main() {
     );
     expect(sidePanel, findsOneWidget);
     expect(bottomPanel, findsNothing);
+    expect(find.byTooltip('Close'), findsOneWidget);
   });
 
   testWidgets('narrow layout opens a sheet with media and info tabs', (
@@ -201,7 +202,13 @@ void main() {
     await _openDialog(tester);
 
     expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle,
+      isTrue,
+    );
     expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+    expect(find.byTooltip('Close'), findsNothing);
+    expect(find.byIcon(Icons.close), findsNothing);
     expect(find.byType(TabBar), findsOneWidget);
     expect(find.text('Media'), findsOneWidget);
     expect(find.text('Info'), findsOneWidget);
