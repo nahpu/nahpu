@@ -179,6 +179,33 @@ void main() {
     );
   });
 
+  testWidgets('documentation Markdown uses dark theme colors', (tester) async {
+    const document = MarkdownDocument(
+      id: 'dark-theme',
+      title: 'Dark theme',
+      markdown: '## Details\n\nHelpful details.\n\n> **Tip:** Keep going.',
+      assetPath: 'test/dark-theme.md',
+      order: 1,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: NahpuTheme.darkTheme(),
+        home: const Scaffold(body: MarkdownDocumentView(document: document)),
+      ),
+    );
+
+    final context = tester.element(find.byType(MarkdownBody));
+    final theme = Theme.of(context);
+    final markdown = tester.widget<MarkdownBody>(find.byType(MarkdownBody));
+    final style = markdown.styleSheet!;
+    final blockquote = style.blockquoteDecoration! as BoxDecoration;
+
+    expect(style.p!.color, theme.colorScheme.onSurface);
+    expect(style.h2!.color, theme.colorScheme.onSurface);
+    expect(blockquote.color, theme.colorScheme.surfaceContainerHighest);
+    expect(style.a!.color, theme.colorScheme.primary);
+  });
+
   testWidgets('phone Cookbook opens recipe content in a bottom sheet', (
     tester,
   ) async {

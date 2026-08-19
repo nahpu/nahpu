@@ -66,9 +66,9 @@ class MarkdownDocumentView extends StatelessWidget {
           MarkdownBody(
             data: document.markdown,
             selectable: false,
-            styleSheet: MarkdownStyleSheet(
-              a: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            listItemCrossAxisAlignment:
+                MarkdownListItemCrossAxisAlignment.start,
+            styleSheet: documentationMarkdownStyleSheet(context),
             onTapLink: (text, href, title) => _openLink(href),
           ),
         ],
@@ -81,6 +81,81 @@ class MarkdownDocumentView extends StatelessWidget {
     if (uri == null || !uri.hasScheme) return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
+}
+
+MarkdownStyleSheet documentationMarkdownStyleSheet(BuildContext context) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  final bodyStyle = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+    color: colorScheme.onSurface,
+  );
+
+  return MarkdownStyleSheet(
+    a: bodyStyle.copyWith(color: colorScheme.primary),
+    p: bodyStyle,
+    pPadding: EdgeInsets.zero,
+    code: bodyStyle.copyWith(
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      fontFamily: 'monospace',
+      fontSize: (bodyStyle.fontSize ?? 14) * 0.85,
+    ),
+    h1: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+    h1Padding: EdgeInsets.zero,
+    h2: theme.textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h6Padding: EdgeInsets.zero,
+    em: bodyStyle.copyWith(fontStyle: FontStyle.italic),
+    strong: bodyStyle.copyWith(fontWeight: FontWeight.bold),
+    del: bodyStyle.copyWith(decoration: TextDecoration.lineThrough),
+    blockquote: bodyStyle,
+    img: bodyStyle,
+    checkbox: bodyStyle.copyWith(color: colorScheme.primary),
+    blockSpacing: NahpuSpacing.md,
+    listIndent: NahpuSpacing.xxl,
+    listBullet: bodyStyle,
+    listBulletPadding: const EdgeInsets.only(right: NahpuSpacing.xs),
+    tableHead: bodyStyle.copyWith(fontWeight: FontWeight.w600),
+    tableBody: bodyStyle,
+    tableHeadAlign: TextAlign.center,
+    tablePadding: const EdgeInsets.only(bottom: NahpuSpacing.xs),
+    tableBorder: TableBorder.all(color: colorScheme.outlineVariant),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(
+      NahpuSpacing.xl,
+      NahpuSpacing.md,
+      NahpuSpacing.xl,
+      NahpuSpacing.md,
+    ),
+    tableCellsDecoration: const BoxDecoration(),
+    tableHeadCellsPadding: const EdgeInsets.fromLTRB(
+      NahpuSpacing.xl,
+      NahpuSpacing.md,
+      NahpuSpacing.xl,
+      NahpuSpacing.md,
+    ),
+    tableHeadCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(NahpuSpacing.md),
+    blockquoteDecoration: BoxDecoration(
+      color: colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(NahpuRadius.small),
+      border: Border(left: BorderSide(color: colorScheme.primary, width: 3)),
+    ),
+    codeblockPadding: const EdgeInsets.all(NahpuSpacing.md),
+    codeblockDecoration: BoxDecoration(
+      color: colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(NahpuRadius.small),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+    ),
+  );
 }
 
 class DocumentationErrorView extends StatelessWidget {

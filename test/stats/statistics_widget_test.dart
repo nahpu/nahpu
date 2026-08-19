@@ -50,6 +50,35 @@ void main() {
     expect(find.text('lucifugus'), findsOneWidget);
   });
 
+  testWidgets('compact chart keeps y-axis labels separated', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 280,
+            child: StatisticBarChart(
+              compact: true,
+              height: 180,
+              data: [
+                StatisticDatum(label: 'One', count: 12),
+                StatisticDatum(label: 'Two', count: 9),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final labels = [
+      for (final value in [0, 3, 6, 9, 12])
+        tester.getRect(find.byKey(ValueKey('statistics-y-axis-$value'))),
+    ]..sort((first, second) => first.top.compareTo(second.top));
+    for (var index = 1; index < labels.length; index++) {
+      expect(labels[index].top, greaterThanOrEqualTo(labels[index - 1].bottom));
+    }
+  });
+
   testWidgets('statistics table shows fields and invokes export', (
     tester,
   ) async {

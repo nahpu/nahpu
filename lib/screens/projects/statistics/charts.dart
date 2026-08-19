@@ -9,6 +9,7 @@ class StatisticBarChart extends StatelessWidget {
   static const _detailSlotWidth = 112.0;
   static const _leftAxisWidth = 42.0;
   static const _horizontalChartPadding = 16.0;
+  static const _maximumYAxisIntervals = 4;
 
   const StatisticBarChart({
     super.key,
@@ -70,9 +71,12 @@ class StatisticBarChart extends StatelessWidget {
 
   BarChartData _chartData(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final maximum =
-        data.fold<int>(0, (value, datum) => math.max(value, datum.count));
+    final maximum = data.fold<int>(
+      0,
+      (value, datum) => math.max(value, datum.count),
+    );
     final maxY = maximum == 0 ? 1.0 : maximum * 1.22;
+    final yAxisInterval = _yAxisInterval(maximum);
 
     return BarChartData(
       maxY: maxY,
@@ -102,15 +106,14 @@ class StatisticBarChart extends StatelessWidget {
       ),
       gridData: FlGridData(
         drawVerticalLine: false,
+        horizontalInterval: yAxisInterval,
         getDrawingHorizontalLine: (value) => FlLine(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           strokeWidth: 2,
         ),
       ),
       titlesData: FlTitlesData(
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
@@ -118,6 +121,8 @@ class StatisticBarChart extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 42,
+            interval: yAxisInterval,
+            maxIncluded: false,
             getTitlesWidget: (value, meta) {
               if (value != value.roundToDouble()) {
                 return const SizedBox.shrink();
@@ -125,6 +130,7 @@ class StatisticBarChart extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: Text(
+                  key: ValueKey('statistics-y-axis-${value.toInt()}'),
                   value.toInt().toString(),
                   textAlign: TextAlign.right,
                   style: Theme.of(context).textTheme.labelSmall,
@@ -168,8 +174,10 @@ class StatisticBarChart extends StatelessWidget {
       barTouchData: BarTouchData(
         enabled: true,
         touchTooltipData: BarTouchTooltipData(
-          tooltipPadding:
-              const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          tooltipPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
           tooltipMargin: 5,
           tooltipBorderRadius: BorderRadius.circular(8),
           fitInsideHorizontally: true,
@@ -188,6 +196,11 @@ class StatisticBarChart extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _yAxisInterval(int maximum) {
+    if (maximum <= 0) return 1;
+    return math.max(1, (maximum / _maximumYAxisIntervals).ceil()).toDouble();
   }
 }
 
