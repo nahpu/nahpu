@@ -115,9 +115,31 @@ void main() {
     final identityRect = tester.getRect(
       find.byKey(const ValueKey('project-info-identity')),
     );
-    expect(qrRect.left, greaterThan(identityRect.center.dx));
-    final identityDetailsRect = tester.getRect(find.text('Field Project'));
-    expect(qrRect.top, closeTo(identityDetailsRect.top, 1));
+    final wideRow = find.byKey(const ValueKey('project-overview-wide-row'));
+    expect(wideRow, findsOneWidget);
+    expect(
+      find.descendant(
+        of: wideRow,
+        matching: find.byKey(const ValueKey('project-info-identity')),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: wideRow,
+        matching: find.byKey(const ValueKey('project-overview-qr')),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('project-info-identity')),
+        matching: find.byKey(const ValueKey('project-overview-qr')),
+      ),
+      findsNothing,
+    );
+    expect(qrRect.left, greaterThan(identityRect.right));
+    expect(qrRect.top, closeTo(identityRect.top, 1));
     final qrCodeContainer = tester.widget<Container>(
       find
           .descendant(
@@ -151,6 +173,10 @@ void main() {
     expect(
       find.byKey(const ValueKey('project-overview-scroll')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('project-overview-wide-row')),
+      findsNothing,
     );
     expect(find.text('Record metadata'), findsOneWidget);
     _expectQrPayload(tester);

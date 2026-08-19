@@ -29,43 +29,30 @@ class ProjectInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final projectQrData = qrData;
     final showQrBesideIdentity = projectQrData != null && useHorizontalQrLayout;
+    final identitySection = _ProjectInfoSection(
+      title: 'Identity',
+      useContainer: useSectionContainers,
+      children: [_ProjectIdentityDetails(projectData: projectData)],
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (projectQrData != null && !useHorizontalQrLayout)
           Padding(
-            key: const ValueKey('project-overview-qr-compact'),
             padding: const EdgeInsets.only(bottom: 8),
-            child: Center(
-              child: ProjectQrIcon(
-                key: const ValueKey('project-overview-qr'),
-                data: projectQrData,
-              ),
-            ),
+            child: Center(child: ProjectQrIcon(data: projectQrData)),
           ),
-        _ProjectInfoSection(
-          key: const ValueKey('project-info-identity'),
-          title: 'Identity',
-          useContainer: useSectionContainers,
-          children: [
-            if (showQrBesideIdentity)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _ProjectIdentityDetails(projectData: projectData),
-                  ),
-                  const SizedBox(width: 8),
-                  ProjectQrIcon(
-                    key: const ValueKey('project-overview-qr'),
-                    data: projectQrData,
-                  ),
-                ],
-              )
-            else
-              _ProjectIdentityDetails(projectData: projectData),
-          ],
-        ),
+        if (showQrBesideIdentity)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: identitySection),
+              const SizedBox(width: 4),
+              ProjectQrIcon(data: projectQrData),
+            ],
+          )
+        else
+          identitySection,
         _ProjectInfoSection(
           title: 'Description',
           useContainer: useSectionContainers,
@@ -232,7 +219,6 @@ class ProjectInfoActions extends StatelessWidget {
 
 class _ProjectInfoSection extends StatelessWidget {
   const _ProjectInfoSection({
-    super.key,
     required this.title,
     required this.children,
     required this.useContainer,
