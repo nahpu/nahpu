@@ -109,35 +109,18 @@ void main() {
     expect(find.text('Export info'), findsOneWidget);
     _expectQrPayload(tester);
 
-    final qrRect = tester.getRect(
-      find.byKey(const ValueKey('project-overview-qr')),
-    );
-    final identityRect = tester.getRect(
-      find.byKey(const ValueKey('project-info-identity')),
-    );
-    final wideRow = find.byKey(const ValueKey('project-overview-wide-row'));
+    final qr = find.byType(ProjectQrIcon);
+    final qrRect = tester.getRect(qr);
+    final identitySection = _identitySection();
+    final identityRect = tester.getRect(identitySection);
+    final wideRow = find.ancestor(of: qr, matching: find.byType(Row));
     expect(wideRow, findsOneWidget);
     expect(
-      find.descendant(
-        of: wideRow,
-        matching: find.byKey(const ValueKey('project-info-identity')),
-      ),
+      find.descendant(of: wideRow, matching: find.text('Identity')),
       findsOneWidget,
     );
-    expect(
-      find.descendant(
-        of: wideRow,
-        matching: find.byKey(const ValueKey('project-overview-qr')),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('project-info-identity')),
-        matching: find.byKey(const ValueKey('project-overview-qr')),
-      ),
-      findsNothing,
-    );
+    expect(find.descendant(of: wideRow, matching: qr), findsOneWidget);
+    expect(find.descendant(of: identitySection, matching: qr), findsNothing);
     expect(qrRect.left, greaterThan(identityRect.right));
     expect(qrRect.top, closeTo(identityRect.top, 1));
     final qrCodeContainer = tester.widget<Container>(
@@ -175,18 +158,14 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('project-overview-wide-row')),
+      find.ancestor(of: find.byType(ProjectQrIcon), matching: find.byType(Row)),
       findsNothing,
     );
     expect(find.text('Record metadata'), findsOneWidget);
     _expectQrPayload(tester);
 
-    final qrRect = tester.getRect(
-      find.byKey(const ValueKey('project-overview-qr')),
-    );
-    final identityRect = tester.getRect(
-      find.byKey(const ValueKey('project-info-identity')),
-    );
+    final qrRect = tester.getRect(find.byType(ProjectQrIcon));
+    final identityRect = tester.getRect(_identitySection());
     expect(qrRect.center.dx, closeTo(identityRect.center.dx, 1));
     expect(qrRect.bottom, lessThan(identityRect.top));
     expect(tester.takeException(), equals(null));
@@ -196,7 +175,7 @@ void main() {
     await tester.pumpWidget(overview(useHorizontalLayout: false));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('project-overview-qr')));
+    await tester.tap(find.byType(ProjectQrIcon));
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
@@ -214,10 +193,25 @@ void main() {
 }
 
 void _expectQrPayload(WidgetTester tester) {
-  final qr = tester.widget<ProjectQrIcon>(
-    find.byKey(const ValueKey('project-overview-qr')),
-  );
+  final qr = tester.widget<ProjectQrIcon>(find.byType(ProjectQrIcon));
   expect(qr.data, ProjectExchangeService.encodeQr(_project));
+}
+
+Finder _identitySection() {
+  return find.ancestor(
+    of: find.text('Identity'),
+    matching: find.byWidgetPredicate((widget) {
+      if (widget is! Padding || widget.padding != const EdgeInsets.all(8)) {
+        return false;
+      }
+      final child = widget.child;
+      return child is Flex &&
+          child.direction == Axis.vertical &&
+          child.children.any(
+            (child) => child is Text && child.data == 'Identity',
+          );
+    }),
+  );
 }
 
 Finder _sectionContainers(Finder ancestor) {
