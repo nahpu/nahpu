@@ -1061,8 +1061,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.storageCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.storageCtr,
-            labelText: 'Storage',
-            hintText: 'Enter storage medium or method',
+            labelText: 'Storage type',
+            hintText: 'Enter storage type',
             isLastField: false,
           ),
         ),
@@ -1071,7 +1071,8 @@ class PartCurationFields extends StatelessWidget {
           child: CommonTextField(
             controller: partCtr.storageLocationCtr,
             labelText: 'Storage location',
-            hintText: 'Enter freezer, cabinet, shelf, or container',
+            hintText:
+                'It can be cell or jar ID, following your museum convention',
             isLastField: false,
           ),
         ),
