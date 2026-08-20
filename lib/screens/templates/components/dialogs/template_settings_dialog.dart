@@ -100,8 +100,9 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
   @override
   void initState() {
     super.initState();
-    _descriptionController =
-        TextEditingController(text: widget.template.description);
+    _descriptionController = TextEditingController(
+      text: widget.template.description,
+    );
     _isDuplex = widget.isDuplex;
   }
 
@@ -130,18 +131,22 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Template settings',
-              style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            'Template settings',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 16),
         ],
-        Text(widget.template.name,
-            style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          widget.template.name,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 4),
         Text(
           'Record type: ${_recordTypeLabel(widget.template.recordType)}',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 20),
         Text('Sides', style: Theme.of(context).textTheme.titleSmall),
@@ -159,16 +164,6 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
           selected: _isDuplex,
           onTap: () => setState(() => _isDuplex = true),
         ),
-        if (!_isDuplex) ...[
-          const SizedBox(height: 8),
-          Text(
-            'The Back design is preserved but will not be printed. '
-            'Choose 2 sided to use it again.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
-          ),
-        ],
         const SizedBox(height: 20),
         TextField(
           controller: _descriptionController,
@@ -249,8 +244,10 @@ class _SideChoiceCard extends StatelessWidget {
                   children: [
                     Text(title, style: Theme.of(context).textTheme.titleSmall),
                     const SizedBox(height: 2),
-                    Text(description,
-                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
