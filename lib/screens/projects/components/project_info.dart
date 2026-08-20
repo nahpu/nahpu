@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
@@ -306,77 +307,21 @@ class ProjectQrIcon extends StatelessWidget {
         child: SizedBox(
           width: 96,
           height: 96,
-          child: ProjectQrCodeViewer(data: data, isFullScreen: false),
+          child: QrCodeViewer(data: data, maxSize: 96),
         ),
         onTap: () {
           showDialog(
             context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: ProjectQrCodeViewer(data: data, isFullScreen: true),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Close'),
-                  ),
-                ],
-              );
-            },
+            builder: (context) => QrCodeDialog(
+              title: 'Project QR code',
+              data: data,
+              description:
+                  'Scan this code when creating a new project to transfer '
+                  'project information.',
+            ),
           );
         },
       ),
-    );
-  }
-}
-
-class ProjectQrCodeViewer extends StatelessWidget {
-  const ProjectQrCodeViewer({
-    super.key,
-    required this.data,
-    required this.isFullScreen,
-  });
-
-  final String data;
-  final bool isFullScreen;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: isFullScreen ? 400 : 80,
-      height: isFullScreen ? 400 : 80,
-      child: ProjectQrCode(
-        data: data,
-        color: Colors.black,
-        backgroundColor: Colors.white,
-      ),
-    );
-  }
-}
-
-class ProjectQrCode extends StatelessWidget {
-  const ProjectQrCode({
-    super.key,
-    required this.data,
-    required this.color,
-    required this.backgroundColor,
-  });
-
-  final Color? color;
-  final Color? backgroundColor;
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    final background = backgroundColor ?? Colors.transparent;
-    return Container(
-      padding: const EdgeInsets.all(NahpuSpacing.xs),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: QrImageView(data: data, backgroundColor: background, color: color),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/dialogs/record_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -420,7 +421,12 @@ class RecordExchangeActions {
       }
       await showDialog<void>(
         context: context,
-        builder: (context) => RecordQrDialog(title: title, data: qrData),
+        builder: (context) => QrCodeDialog(
+          title: title,
+          data: qrData,
+          description:
+              'Scan this code from another NAHPU device to import the record.',
+        ),
       );
     } catch (error) {
       _showError(error);

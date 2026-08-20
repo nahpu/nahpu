@@ -381,6 +381,40 @@ class QrImageView extends StatelessWidget {
   }
 }
 
+/// Displays a QR code using scan-safe colors and a responsive square surface.
+///
+/// This is the shared viewer for exchange dialogs and compact project
+/// previews. The lower-level [QrImageView] remains configurable for document
+/// templates and other callers that intentionally use custom colors/shapes.
+class QrCodeViewer extends StatelessWidget {
+  const QrCodeViewer({super.key, required this.data, this.maxSize = 400});
+
+  final String data;
+  final double maxSize;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(maxSize > 0);
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxSize, maxHeight: maxSize),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: DefaultTextStyle(
+            style: const TextStyle(color: Colors.black),
+            child: QrImageView(
+              data: data,
+              color: Colors.black,
+              backgroundColor: Colors.white,
+              padding: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 bool canEncodeQrPayload(String data) {
   try {
     QrCode(

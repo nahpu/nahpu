@@ -3,45 +3,11 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
-
-class RecordQrDialog extends StatelessWidget {
-  const RecordQrDialog({super.key, required this.title, required this.data});
-
-  final String title;
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QrImageView(data: data, size: 280, backgroundColor: Colors.white),
-            const SizedBox(height: 12),
-            const Text(
-              'Scan this code from another NAHPU device to import the record.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
-    );
-  }
-}
 
 class RecordImportTargetChoice {
   const RecordImportTargetChoice({required this.targetId});

@@ -11,6 +11,7 @@ import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -438,31 +439,12 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Project QR code'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ProjectQrCodeViewer(
-                  data: ProjectExchangeService.encodeQr(value),
-                  isFullScreen: true,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Scan this code when creating a new project to transfer '
-                  'project information.',
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
+        return QrCodeDialog(
+          title: 'Project QR code',
+          data: ProjectExchangeService.encodeQr(value),
+          description:
+              'Scan this code when creating a new project to transfer '
+              'project information.',
         );
       },
     );

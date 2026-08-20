@@ -5,11 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/styles/design_tokens.dart';
 
 const _project = ProjectData(
   uuid: 'project-uuid',
@@ -123,15 +124,10 @@ void main() {
     expect(find.descendant(of: identitySection, matching: qr), findsNothing);
     expect(qrRect.left, greaterThan(identityRect.right));
     expect(qrRect.top, closeTo(identityRect.top, 1));
-    final qrCodeContainer = tester.widget<Container>(
-      find
-          .descendant(
-            of: find.byType(ProjectQrCode),
-            matching: find.byType(Container),
-          )
-          .first,
+    final qrViewer = tester.widget<QrCodeViewer>(
+      find.descendant(of: qr, matching: find.byType(QrCodeViewer)),
     );
-    expect(qrCodeContainer.padding, EdgeInsets.all(NahpuSpacing.xs));
+    expect(qrViewer.maxSize, 96);
     expect(
       find.descendant(of: overviewScroll, matching: find.text('Edit')),
       findsNothing,
@@ -179,9 +175,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.byType(QrCodeDialog), findsOneWidget);
     expect(
-      find.byWidgetPredicate(
-        (widget) => widget is ProjectQrCodeViewer && widget.isFullScreen,
+      find.descendant(
+        of: find.byType(QrCodeDialog),
+        matching: find.byType(QrCodeViewer),
       ),
       findsOneWidget,
     );
