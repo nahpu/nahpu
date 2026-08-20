@@ -40,6 +40,7 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
   Set<int> _usedTaxonIds = {};
   int? _focusedTaxonId;
   String _query = '';
+  TaxonSearchCategory _searchCategory = TaxonSearchCategory.allFields;
   bool _isSelecting = false;
 
   @override
@@ -61,7 +62,11 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
             }
             final filteredTaxa = _query.isEmpty
                 ? taxa
-                : TaxonFilterServices().filterTaxonList(taxa, _query);
+                : TaxonFilterServices().filterTaxonList(
+                    taxa,
+                    _query,
+                    category: _searchCategory,
+                  );
             final focusedTaxon = _focusedTaxon(filteredTaxa);
             final isWide =
                 MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
@@ -106,7 +111,10 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
           child: CommonSearchBar(
             controller: _searchController,
             focusNode: _focus,
-            hintText: 'Search taxa',
+            constraints: const BoxConstraints.tightFor(
+              height: NahpuControlSize.touchTarget,
+            ),
+            hintText: 'Search ${_searchCategory.label.toLowerCase()}',
             trailing: [
               if (_query.isNotEmpty)
                 IconButton(
@@ -114,6 +122,16 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
                   onPressed: _clearSearch,
                   icon: const Icon(Icons.clear_rounded),
                 ),
+              IconButton(
+                key: const ValueKey('taxon-search-category-button'),
+                tooltip: 'Search category: ${_searchCategory.label}',
+                onPressed: _chooseSearchCategory,
+                icon: Icon(
+                  _searchCategory == TaxonSearchCategory.allFields
+                      ? Icons.tune_rounded
+                      : Icons.filter_alt_rounded,
+                ),
+              ),
             ],
             onChanged: (query) => setState(() => _query = query.trim()),
           ),
@@ -137,7 +155,7 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
         const Divider(height: NahpuStroke.thin),
         Expanded(
           child: taxa.isEmpty
-              ? _NoTaxaMatches(query: _query)
+              ? _NoTaxaMatches(query: _query, category: _searchCategory)
               : CommonScrollbar(
                   scrollController: _scrollController,
                   child: ListView.builder(
@@ -299,6 +317,38 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
     });
   }
 
+  Future<void> _chooseSearchCategory() async {
+    final isCompact =
+        MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    final selected = isCompact
+        ? await showModalBottomSheet<TaxonSearchCategory>(
+            context: context,
+            showDragHandle: true,
+            isScrollControlled: true,
+            builder: (sheetContext) => _TaxonSearchCategoryPicker(
+              selected: _searchCategory,
+              useSheetLayout: true,
+            ),
+          )
+        : await showDialog<TaxonSearchCategory>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Search category'),
+              content: SizedBox(
+                width: 360,
+                height: 520,
+                child: _TaxonSearchCategoryPicker(
+                  selected: _searchCategory,
+                  useSheetLayout: false,
+                ),
+              ),
+            ),
+          );
+    if (selected != null && mounted) {
+      setState(() => _searchCategory = selected);
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(
       context,
@@ -318,9 +368,10 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
 }
 
 class _NoTaxaMatches extends StatelessWidget {
-  const _NoTaxaMatches({required this.query});
+  const _NoTaxaMatches({required this.query, required this.category});
 
   final String query;
+  final TaxonSearchCategory category;
 
   @override
   Widget build(BuildContext context) {
@@ -328,9 +379,72 @@ class _NoTaxaMatches extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         child: Text(
-          'No taxa match “$query”.',
+          category == TaxonSearchCategory.allFields
+              ? 'No taxa match “$query”.'
+              : 'No taxa match “$query” in ${category.label}.',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ),
+    );
+  }
+}
+
+class _TaxonSearchCategoryPicker extends StatelessWidget {
+  const _TaxonSearchCategoryPicker({
+    required this.selected,
+    required this.useSheetLayout,
+  });
+
+  final TaxonSearchCategory selected;
+  final bool useSheetLayout;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = TaxonSearchCategory.values;
+    final list = RadioGroup<TaxonSearchCategory>(
+      groupValue: selected,
+      onChanged: (value) {
+        if (value != null) Navigator.of(context).pop(value);
+      },
+      child: ListView.separated(
+        shrinkWrap: !useSheetLayout,
+        itemCount: options.length,
+        separatorBuilder: (context, index) => index == 0
+            ? const Divider(height: NahpuStroke.thin)
+            : const SizedBox.shrink(),
+        itemBuilder: (context, index) {
+          final option = options[index];
+          return RadioListTile<TaxonSearchCategory>(
+            value: option,
+            title: Text(option.label),
+            contentPadding: EdgeInsets.zero,
+          );
+        },
+      ),
+    );
+    if (!useSheetLayout) return list;
+    return SafeArea(
+      child: FractionallySizedBox(
+        heightFactor: 0.8,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.xl,
+            0,
+            NahpuSpacing.xl,
+            NahpuSpacing.xl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Search category',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              Expanded(child: list),
+            ],
+          ),
         ),
       ),
     );

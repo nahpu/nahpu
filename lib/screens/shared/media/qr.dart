@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:qr/qr.dart';
 
 enum ScannerMode { qr, barcode }
@@ -337,7 +338,7 @@ class QrImageView extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(NahpuRadius.small),
           ),
           child: const Center(
             child: FittedBox(
@@ -406,7 +407,7 @@ class QrCodeViewer extends StatelessWidget {
               data: data,
               color: Colors.black,
               backgroundColor: Colors.white,
-              padding: 12,
+              padding: NahpuSpacing.sm,
             ),
           ),
         ),

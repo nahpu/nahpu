@@ -190,6 +190,7 @@ class CommonSearchBar extends StatelessWidget {
     required this.trailing,
     required this.hintText,
     required this.focusNode,
+    this.constraints,
   });
 
   final TextEditingController controller;
@@ -197,6 +198,7 @@ class CommonSearchBar extends StatelessWidget {
   final Iterable<Widget> trailing;
   final String hintText;
   final FocusNode focusNode;
+  final BoxConstraints? constraints;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +209,7 @@ class CommonSearchBar extends StatelessWidget {
       padding: const WidgetStatePropertyAll<EdgeInsets>(
         EdgeInsets.symmetric(horizontal: 8.0),
       ),
+      constraints: constraints,
       elevation: WidgetStateProperty.all(0),
       hintText: hintText,
       backgroundColor: WidgetStateProperty.all(Colors.grey.withAlpha(48)),

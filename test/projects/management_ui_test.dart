@@ -98,6 +98,83 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Manage taxa'), findsOneWidget);
   });
 
+  testWidgets('taxon registry shows modern rank metrics and total taxa', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture(includeGenusTaxon: true);
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('registry-stat-orders')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('registry-stat-families')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('registry-stat-species')), findsOneWidget);
+    expect(find.byKey(const ValueKey('registry-stat-taxa')), findsOneWidget);
+    expect(find.text('Registered'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('registry-stat-orders'))).height,
+      greaterThanOrEqualTo(104),
+    );
+    final registeredContainer = find.byType(TaxonDataContainer);
+    expect(
+      find.descendant(of: registeredContainer, matching: find.byType(Divider)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('manage taxa category picker filters by selected field', (
+    tester,
+  ) async {
+    await _pumpManageTaxa(tester, size: const Size(1000, 900));
+
+    await tester.tap(
+      find.byKey(const ValueKey('taxon-search-category-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('All fields'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+    await tester.pump();
+    expect(find.text('Common name'), findsOneWidget);
+    expect(find.byType(Divider), findsAtLeastNWidgets(1));
+
+    await tester.tap(find.text('Common name'));
+    await tester.pumpAndSettle();
+    final searchField = find.descendant(
+      of: find.byType(CommonSearchBar),
+      matching: find.byType(TextField),
+    );
+    expect(tester.getSize(find.byType(SearchBar)).height, 48);
+    await tester.enterText(searchField, 'little brown');
+    await tester.pump();
+
+    expect(find.text('Myotis lucifugus'), findsOneWidget);
+    expect(find.text('Rattus rattus'), findsNothing);
+  });
+
+  testWidgets('compact manage taxa category picker uses a bottom sheet', (
+    tester,
+  ) async {
+    await _pumpManageTaxa(tester, size: const Size(390, 844));
+
+    await tester.tap(
+      find.byKey(const ValueKey('taxon-search-category-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('All fields'), findsOneWidget);
+  });
+
   testWidgets('settings Taxa entry opens Manage taxa', (tester) async {
     final fixture = await _taxonFixture();
     addTearDown(fixture.database.close);
@@ -197,7 +274,10 @@ Future<_TaxonFixture> _pumpManageTaxa(
   return fixture;
 }
 
-Future<_TaxonFixture> _taxonFixture({bool useMyotis = false}) async {
+Future<_TaxonFixture> _taxonFixture({
+  bool useMyotis = false,
+  bool includeGenusTaxon = false,
+}) async {
   final database = Database.forTesting(
     DatabaseConnection(NativeDatabase.memory()),
   );
@@ -233,6 +313,19 @@ Future<_TaxonFixture> _taxonFixture({bool useMyotis = false}) async {
           SpecimenCompanion(
             uuid: const Value('used-myotis'),
             speciesID: Value(myotisId),
+          ),
+        );
+  }
+  if (includeGenusTaxon) {
+    await database
+        .into(database.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonRank: Value('genus'),
+            taxonClass: Value('Mammalia'),
+            taxonOrder: Value('Chiroptera'),
+            taxonFamily: Value('Vespertilionidae'),
+            genus: Value('Pipistrellus'),
           ),
         );
   }

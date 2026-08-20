@@ -8,6 +8,7 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
   const TaxonRegistryViewer({super.key});
@@ -22,14 +23,17 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
     return FormCard(
       title: 'Taxon Registry',
       infoTopic: InfoTopic.taxonRegistry,
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       child: Center(
         child: Column(
           children: [
             const SizedBox(height: 20),
             Container(
-              constraints: const BoxConstraints(maxWidth: 460, maxHeight: 250),
-              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(
+                maxWidth: NahpuContentWidth.form,
+              ),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: const RegistryInfo(),
             ),
             const SizedBox(height: 24),
@@ -114,49 +118,131 @@ class RegisteredTaxa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _metrics(taxonData);
     return TaxonDataContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const TaxonStatText(text: 'Registered'),
-          FittedBox(
-            fit: BoxFit.fill,
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${taxonData.length}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' taxa\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${_countFamily(taxonData)}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' families',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
+      child: Padding(
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.account_tree_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: NahpuSpacing.md),
+                Text(
+                  'Registered',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: NahpuSpacing.lg),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = metrics.length >= 4
+                    ? 2
+                    : constraints.maxWidth >= 360
+                    ? metrics.length
+                    : 2;
+                final spacing = NahpuSpacing.md * (columns - 1);
+                final width = (constraints.maxWidth - spacing) / columns;
+                return Wrap(
+                  spacing: NahpuSpacing.md,
+                  runSpacing: NahpuSpacing.md,
+                  children: [
+                    for (final metric in metrics)
+                      SizedBox(
+                        key: ValueKey('registry-stat-${metric.label}'),
+                        width: width,
+                        child: _RegistryMetric(metric: metric),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  int _countFamily(List<TaxonomyData> data) {
-    return data.fold(<String, int>{}, (Map<String, int> map, taxon) {
-      final family = taxon.taxonFamily?.trim();
-      if (family?.isNotEmpty == true) {
-        map[family!] = (map[family] ?? 0) + 1;
+  List<_RegistryMetricData> _metrics(List<TaxonomyData> data) {
+    final species = <String>{};
+    final families = <String>{};
+    final orders = <String>{};
+    for (final taxon in data) {
+      _addNormalized(families, taxon.taxonFamily);
+      _addNormalized(orders, taxon.taxonOrder);
+      final speciesName = [taxon.genus, taxon.specificEpithet]
+          .whereType<String>()
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .join(' ')
+          .toLowerCase();
+      if (speciesName.isNotEmpty &&
+          taxon.genus?.trim().isNotEmpty == true &&
+          taxon.specificEpithet?.trim().isNotEmpty == true) {
+        species.add(speciesName);
       }
-      return map;
-    }).length;
+    }
+    final metrics = [
+      _RegistryMetricData(label: 'orders', value: orders.length),
+      _RegistryMetricData(label: 'families', value: families.length),
+      _RegistryMetricData(label: 'species', value: species.length),
+    ];
+    if (data.length > species.length) {
+      metrics.add(_RegistryMetricData(label: 'taxa', value: data.length));
+    }
+    return metrics;
+  }
+
+  void _addNormalized(Set<String> values, String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized?.isNotEmpty == true) values.add(normalized!);
+  }
+}
+
+class _RegistryMetricData {
+  const _RegistryMetricData({required this.label, required this.value});
+
+  final String label;
+  final int value;
+}
+
+class _RegistryMetric extends StatelessWidget {
+  const _RegistryMetric({required this.metric});
+
+  final _RegistryMetricData metric;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 104),
+      padding: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.lg,
+        vertical: NahpuSpacing.xl,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(NahpuRadius.medium),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${metric.value}',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(metric.label, style: Theme.of(context).textTheme.labelLarge),
+        ],
+      ),
+    );
   }
 }
 
@@ -170,33 +256,10 @@ class TaxonDataContainer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Container(
-        height: 220,
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withAlpha(50),
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
         child: child,
       ),
-    );
-  }
-}
-
-class TaxonStatText extends StatelessWidget {
-  const TaxonStatText({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.topLeft,
-      padding: const EdgeInsets.only(left: 16),
-      child: Text(text, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }
