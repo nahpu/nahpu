@@ -18,9 +18,13 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
     required this.formatLabel,
     required this.onFormatChanged,
     required this.onFileNameChanged,
+    required this.extensionForFormat,
+    required this.appendDate,
+    required this.onAppendDateChanged,
     required this.onSelectDir,
     required this.onClearDir,
     this.formatFieldLabel = 'File format',
+    this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
@@ -28,11 +32,15 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
   final T format;
   final List<T> formats;
   final String Function(T) formatLabel;
+  final String Function(T) extensionForFormat;
   final ValueChanged<T> onFormatChanged;
   final ValueChanged<String?> onFileNameChanged;
+  final bool appendDate;
+  final ValueChanged<bool> onAppendDateChanged;
   final VoidCallback onSelectDir;
   final VoidCallback onClearDir;
   final String formatFieldLabel;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -63,18 +71,32 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
                     child: CommonDropdownText(text: formatLabel(value)),
                   ),
               ],
-              onChanged: (value) {
-                if (value != null) onFormatChanged(value);
-              },
+              onChanged: enabled
+                  ? (value) {
+                      if (value != null) onFormatChanged(value);
+                    }
+                  : null,
             ),
-            FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
+            const SizedBox(height: 16),
+            FileNameField(
+              controller: exportCtr.fileNameCtr,
+              extension: extensionForFormat(format),
+              appendDate: appendDate,
+              enabled: enabled,
+              onChanged: onFileNameChanged,
+            ),
+            AppendDateSwitch(
+              value: appendDate,
+              enabled: enabled,
+              onChanged: onAppendDateChanged,
+            ),
             if (systemPlatform == PlatformType.desktop)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: FileSettingsDirectoryPicker(
                   selectedDir: selectedDir,
-                  onSelectDir: onSelectDir,
-                  onClearDir: onClearDir,
+                  onSelectDir: enabled ? onSelectDir : () {},
+                  onClearDir: enabled ? onClearDir : () {},
                 ),
               ),
           ],
@@ -91,16 +113,22 @@ class FileSettingsCard extends StatelessWidget {
     required this.selectedDir,
     required this.onExportFmtChanged,
     required this.onFileNameChanged,
+    required this.appendDate,
+    required this.onAppendDateChanged,
     required this.onSelectDir,
     required this.onClearDir,
+    this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
   final void Function(ExportFmt?) onExportFmtChanged;
   final void Function(String?) onFileNameChanged;
+  final bool appendDate;
+  final ValueChanged<bool> onAppendDateChanged;
   final VoidCallback onSelectDir;
   final VoidCallback onClearDir;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +138,17 @@ class FileSettingsCard extends StatelessWidget {
       format: exportCtr.exportFmtCtr,
       formats: ExportFmt.values,
       formatLabel: (value) => exportFormats[value.index],
+      extensionForFormat: (value) => switch (value) {
+        ExportFmt.excel => 'xlsx',
+        _ => value.name,
+      },
       onFormatChanged: (value) => onExportFmtChanged(value),
       onFileNameChanged: onFileNameChanged,
+      appendDate: appendDate,
+      onAppendDateChanged: onAppendDateChanged,
       onSelectDir: onSelectDir,
       onClearDir: onClearDir,
+      enabled: enabled,
     );
   }
 }
@@ -128,8 +163,11 @@ class BundleFileSettingsCard extends StatelessWidget {
     required this.onFormatChanged,
     required this.onArchiveFormatChanged,
     required this.onFileNameChanged,
+    required this.appendDate,
+    required this.onAppendDateChanged,
     required this.onSelectDir,
     required this.onClearDir,
+    this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
@@ -139,8 +177,11 @@ class BundleFileSettingsCard extends StatelessWidget {
   final ValueChanged<DwcBundleFormat> onFormatChanged;
   final ValueChanged<BundleArchiveFormat> onArchiveFormatChanged;
   final ValueChanged<String?> onFileNameChanged;
+  final bool appendDate;
+  final ValueChanged<bool> onAppendDateChanged;
   final VoidCallback onSelectDir;
   final VoidCallback onClearDir;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -170,9 +211,11 @@ class BundleFileSettingsCard extends StatelessWidget {
                     ),
                   )
                   .toList(growable: false),
-              onChanged: (value) {
-                if (value != null) onFormatChanged(value);
-              },
+              onChanged: enabled
+                  ? (value) {
+                      if (value != null) onFormatChanged(value);
+                    }
+                  : null,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<BundleArchiveFormat>(
@@ -187,7 +230,7 @@ class BundleFileSettingsCard extends StatelessWidget {
                     ),
                   )
                   .toList(growable: false),
-              onChanged: format.allowedArchives.length == 1
+              onChanged: !enabled || format.allowedArchives.length == 1
                   ? null
                   : (value) {
                       if (value != null) onArchiveFormatChanged(value);
@@ -201,15 +244,27 @@ class BundleFileSettingsCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
+            const SizedBox(height: 16),
+            FileNameField(
+              controller: exportCtr.fileNameCtr,
+              extension: format.outputExtension(archiveFormat),
+              appendDate: appendDate,
+              enabled: enabled,
+              onChanged: onFileNameChanged,
+            ),
+            AppendDateSwitch(
+              value: appendDate,
+              enabled: enabled,
+              onChanged: onAppendDateChanged,
+            ),
             Visibility(
               visible: !Platform.isIOS,
               child: Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: FileSettingsDirectoryPicker(
                   selectedDir: selectedDir,
-                  onSelectDir: onSelectDir,
-                  onClearDir: onClearDir,
+                  onSelectDir: enabled ? onSelectDir : () {},
+                  onClearDir: enabled ? onClearDir : () {},
                 ),
               ),
             ),

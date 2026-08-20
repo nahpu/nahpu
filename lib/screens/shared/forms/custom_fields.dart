@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/custom_fields.dart';
 import 'package:nahpu/screens/shared/forms/custom_field_definition_editor.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -22,6 +25,48 @@ class CustomFieldForm extends ConsumerStatefulWidget {
 }
 
 class _CustomFieldFormState extends ConsumerState<CustomFieldForm> {
+  static const _textSaveDelay = Duration(milliseconds: 400);
+
+  final Map<int, Timer> _saveTimers = {};
+  final Map<int, String?> _pendingValues = {};
+  final Map<int, Future<void>> _saveChains = {};
+  late final CustomFieldService _service;
+  late CustomFieldOwner _owner;
+
+  @override
+  void initState() {
+    super.initState();
+    _service = ref.read(customFieldServiceProvider);
+    _owner = widget.owner;
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomFieldForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.owner == widget.owner) return;
+
+    for (final timer in _saveTimers.values) {
+      timer.cancel();
+    }
+    _saveTimers.clear();
+    for (final definitionId in _pendingValues.keys.toList()) {
+      _flushValue(definitionId);
+    }
+    _owner = widget.owner;
+  }
+
+  @override
+  void dispose() {
+    for (final timer in _saveTimers.values) {
+      timer.cancel();
+    }
+    _saveTimers.clear();
+    for (final definitionId in _pendingValues.keys.toList()) {
+      _flushValue(definitionId);
+    }
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ref
@@ -40,6 +85,7 @@ class _CustomFieldFormState extends ConsumerState<CustomFieldForm> {
             onAdd: _addDefinition,
             onManage: _openSettings,
             onChanged: _setValue,
+            onFocusLost: (definition) => _flushValue(definition.id!),
           ),
           loading: () => const LinearProgressIndicator(),
           error: (error, _) => Text('Unable to load custom fields: $error'),
@@ -91,19 +137,46 @@ class _CustomFieldFormState extends ConsumerState<CustomFieldForm> {
     }
   }
 
-  Future<void> _setValue(
-    CustomFieldDefinitionData definition,
-    String? value,
-  ) async {
-    try {
-      await ref
-          .read(customFieldServiceProvider)
-          .setValue(widget.owner, definition.id!, value);
-      ref.invalidate(customFieldEntriesProvider(widget.owner));
-    } catch (error) {
-      if (!mounted) return;
-      _showError(error);
+  void _setValue(CustomFieldDefinitionData definition, String? value) {
+    final definitionId = definition.id!;
+    _pendingValues[definitionId] = value;
+    _saveTimers.remove(definitionId)?.cancel();
+
+    if (definition.fieldType == FieldType.text ||
+        definition.fieldType == FieldType.number) {
+      _saveTimers[definitionId] = Timer(_textSaveDelay, () {
+        _saveTimers.remove(definitionId);
+        _flushValue(definitionId);
+      });
+      return;
     }
+
+    _flushValue(definitionId);
+  }
+
+  void _flushValue(int definitionId) {
+    _saveTimers.remove(definitionId)?.cancel();
+    if (!_pendingValues.containsKey(definitionId)) return;
+
+    final value = _pendingValues.remove(definitionId);
+    final previous = _saveChains[definitionId] ?? Future<void>.value();
+    final owner = _owner;
+    late final Future<void> current;
+    current = previous.then((_) async {
+      try {
+        await _service.setValue(owner, definitionId, value);
+      } catch (error) {
+        if (mounted) _showError(error);
+      }
+    });
+    _saveChains[definitionId] = current;
+    unawaited(
+      current.then((_) {
+        if (identical(_saveChains[definitionId], current)) {
+          _saveChains.remove(definitionId);
+        }
+      }),
+    );
   }
 
   void _showError(Object error) {
@@ -241,6 +314,7 @@ class _CustomFieldArea extends StatelessWidget {
     required this.onAdd,
     required this.onManage,
     required this.onChanged,
+    this.onFocusLost,
   });
 
   final List<_CustomFieldDisplayEntry> entries;
@@ -249,6 +323,7 @@ class _CustomFieldArea extends StatelessWidget {
   final VoidCallback onManage;
   final void Function(CustomFieldDefinitionData definition, String? value)
   onChanged;
+  final ValueChanged<CustomFieldDefinitionData>? onFocusLost;
 
   @override
   Widget build(BuildContext context) {
@@ -264,6 +339,7 @@ class _CustomFieldArea extends StatelessWidget {
         onAdd: onAdd,
         onManage: onManage,
         onChanged: onChanged,
+        onFocusLost: onFocusLost,
       ),
     );
   }
@@ -276,6 +352,7 @@ class _CustomFieldSection extends StatelessWidget {
     required this.onAdd,
     required this.onManage,
     required this.onChanged,
+    this.onFocusLost,
   });
 
   final List<_CustomFieldDisplayEntry> entries;
@@ -284,6 +361,7 @@ class _CustomFieldSection extends StatelessWidget {
   final VoidCallback onManage;
   final void Function(CustomFieldDefinitionData definition, String? value)
   onChanged;
+  final ValueChanged<CustomFieldDefinitionData>? onFocusLost;
 
   @override
   Widget build(BuildContext context) {
@@ -304,14 +382,20 @@ class _CustomFieldSection extends StatelessWidget {
               ),
               entry: entry,
               onChanged: (value) => onChanged(entry.definition, value),
+              onFocusLost: onFocusLost == null
+                  ? null
+                  : () => onFocusLost!(entry.definition),
             ),
           if (showAdd)
-            Align(
-              alignment: Alignment.center,
-              child: OutlinedButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add),
-                label: const Text('Add custom field'),
+            Padding(
+              padding: const EdgeInsets.only(top: NahpuSpacing.xl),
+              child: Align(
+                alignment: Alignment.center,
+                child: OutlinedButton.icon(
+                  onPressed: onAdd,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add custom field'),
+                ),
               ),
             ),
         ],
@@ -325,10 +409,12 @@ class _CustomFieldInput extends StatefulWidget {
     super.key,
     required this.entry,
     required this.onChanged,
+    this.onFocusLost,
   });
 
   final _CustomFieldDisplayEntry entry;
   final ValueChanged<String?> onChanged;
+  final VoidCallback? onFocusLost;
 
   @override
   State<_CustomFieldInput> createState() => _CustomFieldInputState();
@@ -338,10 +424,17 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
   late final TextEditingController _controller = TextEditingController(
     text: widget.entry.value ?? '',
   );
+  late final FocusNode _focusNode = FocusNode()
+    ..addListener(_handleFocusChange);
   late String _boolean = widget.entry.value ?? 'unset';
+
+  void _handleFocusChange() {
+    if (!_focusNode.hasFocus) widget.onFocusLost?.call();
+  }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -352,6 +445,7 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
     return switch (definition.fieldType) {
       FieldType.text => CommonTextField(
         controller: _controller,
+        focusNode: _focusNode,
         labelText: definition.name,
         hintText: 'Enter ${definition.name.toLowerCase()}',
         isLastField: false,
@@ -359,6 +453,7 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
       ),
       FieldType.number => CommonNumField(
         controller: _controller,
+        focusNode: _focusNode,
         labelText: definition.name,
         hintText: 'Enter a number',
         isDouble: true,

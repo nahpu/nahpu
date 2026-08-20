@@ -39,6 +39,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
   File? _savedFile;
   bool _isLoadingPreview = true;
   bool _isRunning = false;
+  bool _appendDate = false;
   String? _previewError;
 
   @override
@@ -102,6 +103,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
             format: _format,
             formats: UserConfigFileFormat.values,
             formatLabel: (format) => format.label,
+            extensionForFormat: (format) => format.extension,
             onFormatChanged: (format) {
               setState(() {
                 _format = format;
@@ -109,6 +111,11 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
               });
             },
             onFileNameChanged: (_) => setState(() => _savedFile = null),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _savedFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDirectory = null;
@@ -249,7 +256,12 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     try {
       final output = await AppIOServices(
         dir: _selectedDirectory,
-        fileStem: _exportController.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(
+                _exportController.fileNameCtr.text,
+                DateTime.now(),
+              )
+            : _exportController.fileNameCtr.text.trim(),
         ext: _format.extension,
       ).getSavePath();
       await _service.export(

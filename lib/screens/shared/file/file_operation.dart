@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';
@@ -23,52 +23,64 @@ class FileOperationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Center(
-          child: ScrollableConstrainedLayout(
-        child: Column(
-          mainAxisAlignment: mainAxisAlignment,
-          crossAxisAlignment: crossAxisAlignment,
-          children: children,
+        child: ScrollableConstrainedLayout(
+          child: Column(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: crossAxisAlignment,
+            children: children,
+          ),
         ),
-      )),
+      ),
     );
   }
 }
 
 class FileNameField extends StatelessWidget {
-  const FileNameField(
-      {super.key, required this.controller, required this.onChanged});
+  const FileNameField({
+    super.key,
+    required this.controller,
+    required this.extension,
+    required this.appendDate,
+    required this.onChanged,
+    this.enabled = true,
+  });
 
-  final FileOpCtrModel controller;
-  final Function(String?) onChanged;
+  final TextEditingController controller;
+  final String extension;
+  final bool appendDate;
+  final ValueChanged<String> onChanged;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller.fileNameCtr,
+      controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
-          labelText: 'File name',
-          hintText: 'my_file',
-          suffix: controller.fileNameCtr.text.isEmpty
-              ? null
-              : IconButton(
-                  icon: const Icon(
-                    Icons.clear_rounded,
-                  ),
-                  onPressed: () {
-                    controller.fileNameCtr.clear();
-                  },
-                )),
+        labelText: 'File name',
+        hintText: 'my_file',
+        suffixText: fileNameFieldSuffix(extension, appendDate: appendDate),
+        border: const OutlineInputBorder(),
+      ),
       keyboardType: TextInputType.text,
       onChanged: onChanged,
     );
   }
 }
 
+String fileNameFieldSuffix(
+  String extension, {
+  required bool appendDate,
+  DateTime? date,
+}) {
+  final dateSuffix = appendDate
+      ? formatFileDateSuffix(date ?? DateTime.now())
+      : '';
+  return '$dateSuffix.$extension';
+}
+
 class SaveSecondaryButton extends StatelessWidget {
-  const SaveSecondaryButton({
-    super.key,
-    required this.hasSaved,
-  });
+  const SaveSecondaryButton({super.key, required this.hasSaved});
 
   final bool hasSaved;
   @override
@@ -123,12 +135,7 @@ class SelectDirField extends StatelessWidget {
         dirPath != null
             ? const Icon(Icons.folder_open_outlined)
             : const SizedBox.shrink(),
-        Expanded(
-          child: Text(
-            _getDirPath(),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        Expanded(child: Text(_getDirPath(), overflow: TextOverflow.ellipsis)),
         const SizedBox(width: 8),
         dirPath == null
             ? IconButton(
@@ -136,7 +143,9 @@ class SelectDirField extends StatelessWidget {
                 onPressed: onPressed,
               )
             : IconButton(
-                onPressed: onCanceled, icon: const Icon(Icons.clear_rounded)),
+                onPressed: onCanceled,
+                icon: const Icon(Icons.clear_rounded),
+              ),
       ],
     );
   }
@@ -180,9 +189,7 @@ class SelectFileField extends StatelessWidget {
       child: Container(
         width: width,
         height: 160,
-        constraints: BoxConstraints(
-          maxWidth: maxWidth,
-        ),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.secondary.withAlpha(40),
@@ -231,8 +238,9 @@ class SelectFileField extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     side: BorderSide(
-                      color:
-                          Theme.of(context).colorScheme.secondary.withAlpha(24),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondary.withAlpha(24),
                       width: 2,
                     ),
                     shape: RoundedRectangleBorder(
@@ -256,15 +264,16 @@ class FileFormatIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: SvgPicture.asset(
-          path,
-          height: 116,
-          width: 116,
-          colorFilter: ColorFilter.mode(
-            Theme.of(context).colorScheme.primary,
-            BlendMode.srcIn,
-          ),
-        ));
+      padding: const EdgeInsets.only(bottom: 16),
+      child: SvgPicture.asset(
+        path,
+        height: 116,
+        width: 116,
+        colorFilter: ColorFilter.mode(
+          Theme.of(context).colorScheme.primary,
+          BlendMode.srcIn,
+        ),
+      ),
+    );
   }
 }

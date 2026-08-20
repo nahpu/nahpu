@@ -191,6 +191,7 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
   Directory? _directory;
   File? _exportedFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -218,6 +219,13 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
         });
       },
       onFileNameChanged: (_) => _resetExport(),
+      appendDate: _appendDate,
+      onAppendDateChanged: (value) {
+        setState(() {
+          _appendDate = value;
+          _exportedFile = null;
+        });
+      },
       onSelectDir: _selectDirectory,
       onClearDir: () => setState(() {
         _directory = null;
@@ -295,7 +303,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
       };
       final file = await AppIOServices(
         dir: _directory,
-        fileStem: _exportCtr.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text.trim(),
         ext: extension,
       ).getSavePath();
       await const StatisticsTableExporter().writeRows(

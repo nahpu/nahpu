@@ -34,6 +34,7 @@ class ExportFormState extends ConsumerState<ExportForm>
   ExportPresetModel? _selectedPreset;
   bool _hasSaved = false;
   bool _isRunning = false;
+  bool _appendDate = false;
   late File _savePath;
   late TabController _mobileTabController;
 
@@ -111,6 +112,13 @@ class ExportFormState extends ConsumerState<ExportForm>
                     if (value == null) return;
                     setState(() {
                       _fileStem = value;
+                      _hasSaved = false;
+                    });
+                  },
+                  appendDate: _appendDate,
+                  onAppendDateChanged: (value) {
+                    setState(() {
+                      _appendDate = value;
                       _hasSaved = false;
                     });
                   },
@@ -218,7 +226,9 @@ class ExportFormState extends ConsumerState<ExportForm>
       };
       _savePath = await AppIOServices(
         dir: _selectedDir,
-        fileStem: _fileStem,
+        fileStem: _appendDate
+            ? appendDateToFileStem(_fileStem, DateTime.now())
+            : _fileStem.trim(),
         ext: ext,
       ).getSavePath();
       await PresetRecordExporter(

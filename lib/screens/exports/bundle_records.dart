@@ -39,6 +39,7 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   bool _isPlanning = false;
   bool _isWriting = false;
   bool _isLoadingTaxa = true;
+  bool _appendDate = false;
   int _planGeneration = 0;
 
   @override
@@ -78,6 +79,13 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
         onTaxonGroupsChanged: _changeTaxonGroups,
         onTaxonSelectionModeChanged: _changeTaxonSelectionMode,
         onFileNameChanged: _changeFileName,
+        appendDate: _appendDate,
+        onAppendDateChanged: (value) {
+          setState(() {
+            _appendDate = value;
+            _outputPath = null;
+          });
+        },
         onSelectDirectory: _selectDirectory,
         onClearDirectory: _clearDirectory,
         onBundle: _writeBundle,
@@ -271,7 +279,9 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   Future<File> _getOutputPath() async {
     final output = await AppIOServices(
       dir: _selectedDirectory,
-      fileStem: _fileStem,
+      fileStem: _appendDate
+          ? appendDateToFileStem(_fileStem, DateTime.now())
+          : _fileStem.trim(),
       ext: _format.outputExtension(_archiveFormat),
     ).getSavePath();
     return output;
@@ -321,6 +331,8 @@ class _BundleSettingsPane extends StatelessWidget {
     required this.onTaxonGroupsChanged,
     required this.onTaxonSelectionModeChanged,
     required this.onFileNameChanged,
+    required this.appendDate,
+    required this.onAppendDateChanged,
     required this.onSelectDirectory,
     required this.onClearDirectory,
     required this.onBundle,
@@ -342,6 +354,8 @@ class _BundleSettingsPane extends StatelessWidget {
   final ValueChanged<Set<String>> onTaxonGroupsChanged;
   final ValueChanged<BundleTaxonSelectionMode> onTaxonSelectionModeChanged;
   final ValueChanged<String?> onFileNameChanged;
+  final bool appendDate;
+  final ValueChanged<bool> onAppendDateChanged;
   final Future<void> Function() onSelectDirectory;
   final VoidCallback onClearDirectory;
   final Future<void> Function() onBundle;
@@ -377,6 +391,8 @@ class _BundleSettingsPane extends StatelessWidget {
           onFormatChanged: onFormatChanged,
           onArchiveFormatChanged: onArchiveFormatChanged,
           onFileNameChanged: onFileNameChanged,
+          appendDate: appendDate,
+          onAppendDateChanged: onAppendDateChanged,
           onSelectDir: onSelectDirectory,
           onClearDir: onClearDirectory,
         ),

@@ -273,15 +273,12 @@ class _BackupSettingsCard extends StatelessWidget {
                   : null,
             ),
             const SizedBox(height: 20),
-            TextField(
+            FileNameField(
               controller: controller,
               enabled: enabled,
+              extension: format.extension,
+              appendDate: appendDate,
               onChanged: onFileNameChanged,
-              decoration: InputDecoration(
-                labelText: 'File name',
-                suffixText: '.${format.extension}',
-                border: const OutlineInputBorder(),
-              ),
             ),
             AppendDateSwitch(
               value: appendDate,

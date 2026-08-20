@@ -318,6 +318,7 @@ class CommonTextField extends StatelessWidget {
     super.key,
     required this.labelText,
     this.controller,
+    this.focusNode,
     required this.hintText,
     this.enabled = true,
     this.keyboardType = TextInputType.text,
@@ -328,6 +329,7 @@ class CommonTextField extends StatelessWidget {
 
   final bool enabled;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String labelText;
   final String hintText;
   final TextInputType keyboardType;
@@ -341,6 +343,7 @@ class CommonTextField extends StatelessWidget {
       enabled: enabled,
       maxLines: maxLines,
       controller: controller,
+      focusNode: focusNode,
       decoration: InputDecoration(labelText: labelText, hintText: hintText),
       keyboardType: keyboardType,
       onChanged: onChanged,

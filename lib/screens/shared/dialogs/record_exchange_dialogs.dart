@@ -343,6 +343,7 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   bool get _hasMedia => widget.payload.hasMedia;
 
@@ -385,11 +386,21 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
             formats: formats,
             formatLabel: _formatLabel,
             formatFieldLabel: _hasMedia ? 'Archive format' : 'File format',
+            extensionForFormat: (format) => switch (format) {
+              _RecordExportFormat.json => 'json',
+              _RecordExportFormat.zip => 'zip',
+              _RecordExportFormat.tarGzip => 'tar.gz',
+            },
             onFormatChanged: (value) => setState(() {
               _format = value;
               _outputFile = null;
             }),
             onFileNameChanged: (_) => _resetExport(),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _outputFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDir = null;
@@ -442,7 +453,9 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
     setState(() => _isRunning = true);
     try {
       final file = await widget.onExport(
-        fileStem: _exportCtr.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text.trim(),
         destinationDirectory: _selectedDir,
         archiveFormat: switch (_format) {
           _RecordExportFormat.json => null,

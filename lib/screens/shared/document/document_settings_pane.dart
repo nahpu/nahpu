@@ -34,9 +34,11 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.selectedDir,
     required this.isRunning,
     required this.hasExported,
+    required this.appendDate,
     required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onFileNameChanged,
+    required this.onAppendDateChanged,
     required this.onSelectDir,
     required this.onClearDir,
     required this.onExportPressed,
@@ -59,11 +61,13 @@ class DocumentSettingsPane extends StatelessWidget {
   final Directory? selectedDir;
   final bool isRunning;
   final bool hasExported;
+  final bool appendDate;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
 
   final ValueChanged<String?> onFileNameChanged;
+  final ValueChanged<bool> onAppendDateChanged;
   final Future<void> Function() onSelectDir;
   final VoidCallback onClearDir;
   final VoidCallback? onExportPressed;
@@ -110,7 +114,10 @@ class DocumentSettingsPane extends StatelessWidget {
               _FileSettingsSection(
                 exportCtr: exportCtr,
                 selectedDir: selectedDir,
+                appendDate: appendDate,
+                enabled: !isRunning,
                 onFileNameChanged: onFileNameChanged,
+                onAppendDateChanged: onAppendDateChanged,
                 onSelectDir: onSelectDir,
                 onClearDir: onClearDir,
               ),
@@ -190,14 +197,20 @@ class _FileSettingsSection extends StatelessWidget {
   const _FileSettingsSection({
     required this.exportCtr,
     required this.selectedDir,
+    required this.appendDate,
+    required this.enabled,
     required this.onFileNameChanged,
+    required this.onAppendDateChanged,
     required this.onSelectDir,
     required this.onClearDir,
   });
 
   final FileOpCtrModel exportCtr;
   final Directory? selectedDir;
+  final bool appendDate;
+  final bool enabled;
   final ValueChanged<String?> onFileNameChanged;
+  final ValueChanged<bool> onAppendDateChanged;
   final Future<void> Function() onSelectDir;
   final VoidCallback onClearDir;
 
@@ -209,13 +222,24 @@ class _FileSettingsSection extends StatelessWidget {
         children: [
           Text('File settings', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
+          FileNameField(
+            controller: exportCtr.fileNameCtr,
+            extension: 'pdf',
+            appendDate: appendDate,
+            enabled: enabled,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
           if (!Platform.isIOS && !Platform.isAndroid) ...[
             const SizedBox(height: 16),
             FileSettingsDirectoryPicker(
               selectedDir: selectedDir,
-              onSelectDir: onSelectDir,
-              onClearDir: onClearDir,
+              onSelectDir: enabled ? onSelectDir : () {},
+              onClearDir: enabled ? onClearDir : () {},
             ),
           ],
         ],

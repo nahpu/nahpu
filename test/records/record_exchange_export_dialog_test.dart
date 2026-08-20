@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/dialogs/record_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 
 void main() {
@@ -86,5 +88,48 @@ void main() {
     await tester.tap(find.text('ZIP (.zip)'));
     await tester.pumpAndSettle();
     expect(find.text('TAR.GZ (.tar.gz)'), findsOneWidget);
+  });
+
+  testWidgets('record export appends the current date to the file stem', (
+    tester,
+  ) async {
+    String? exportedFileStem;
+    const payload = RecordExchangePayload(
+      type: RecordExchangeType.site,
+      data: {
+        'site': {'siteID': 'Ridge 01'},
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: RecordExportDialog(
+            payload: payload,
+            onExport:
+                ({
+                  required fileStem,
+                  required destinationDirectory,
+                  required archiveFormat,
+                }) async {
+                  exportedFileStem = fileStem;
+                  return File('/tmp/nahpu-site.json');
+                },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+    expect(
+      find.text(fileNameFieldSuffix('json', appendDate: true)),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Export'));
+    await tester.pumpAndSettle();
+
+    expect(exportedFileStem, appendDateToFileStem('Ridge 01', DateTime.now()));
   });
 }

@@ -49,6 +49,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Directory? _selectedDir;
   File? _savePath;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -80,10 +81,17 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             selectedDir: _selectedDir,
             isRunning: _isRunning,
             hasExported: _savePath != null,
+            appendDate: _appendDate,
             onLayoutChanged: _layoutChanged,
             onSetupSelected: _selectSetup,
             onFileNameChanged: (v) {
               setState(() {
+                _savePath = null;
+              });
+            },
+            onAppendDateChanged: (value) {
+              setState(() {
+                _appendDate = value;
                 _savePath = null;
               });
             },
@@ -297,7 +305,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     try {
       final savePath = await ExportDocumentService(ref: ref).exportDocuments(
         selectedDir: _selectedDir!,
-        fileStem: exportCtr.fileNameCtr.text,
+        fileStem: _appendDate
+            ? appendDateToFileStem(exportCtr.fileNameCtr.text, DateTime.now())
+            : exportCtr.fileNameCtr.text,
         layout: _layout!,
       );
 

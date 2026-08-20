@@ -59,6 +59,7 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -94,8 +95,14 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
             format: _ProjectExportFormat.json,
             formats: const [_ProjectExportFormat.json],
             formatLabel: (_) => 'JSON (.json)',
+            extensionForFormat: (_) => 'json',
             onFormatChanged: (_) {},
             onFileNameChanged: (_) => _resetExport(),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _outputFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDir = null;
@@ -133,7 +140,9 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
     try {
       final output = await ProjectExchangeService().save(
         widget.projectData,
-        fileStem: _exportCtr.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text.trim(),
         destinationDirectory: _selectedDir,
       );
       if (!mounted) return;

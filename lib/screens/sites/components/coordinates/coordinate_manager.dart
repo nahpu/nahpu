@@ -412,6 +412,7 @@ class _CoordinateExportOverlayState
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -447,11 +448,21 @@ class _CoordinateExportOverlayState
             format: _format,
             formats: CoordinateFileFormat.values,
             formatLabel: _formatLabel,
+            extensionForFormat: (format) => switch (format) {
+              CoordinateFileFormat.geoJson => 'geojson',
+              CoordinateFileFormat.kml => 'kml',
+              CoordinateFileFormat.shapefile => 'zip',
+            },
             onFormatChanged: (value) => setState(() {
               _format = value;
               _outputFile = null;
             }),
             onFileNameChanged: (_) => _resetExport(),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _outputFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDir = null;
@@ -496,7 +507,9 @@ class _CoordinateExportOverlayState
       final file = await CoordinateExchangeService(ref: ref).exportCoordinates(
         widget.coordinates,
         _format,
-        fileName: _exportCtr.fileNameCtr.text,
+        fileName: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text,
         destinationDirectory: _selectedDir,
       );
       if (!mounted) return;

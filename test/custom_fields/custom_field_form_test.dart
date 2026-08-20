@@ -174,6 +174,188 @@ void main() {
     expect(find.text('Transient field'), findsNothing);
   });
 
+  testWidgets('site text fields preserve focus and scroll while saving', (
+    tester,
+  ) async {
+    final definition = await _createDefinition(
+      database,
+      name: 'Site note',
+      placement: FieldUISection.siteAttribute,
+    );
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+
+    await _pumpScrollable(
+      tester,
+      database,
+      const CustomFieldOwner.site(1),
+      scrollController,
+    );
+    final field = find.byType(TextField);
+    scrollController.jumpTo(240);
+    await tester.tap(field);
+    final focusNode = tester.widget<TextField>(field).focusNode!;
+    final offset = scrollController.offset;
+
+    await tester.enterText(field, 'latest site value');
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(focusNode.hasFocus, isTrue);
+    expect(scrollController.offset, offset);
+    expect(find.text('Custom fields'), findsOneWidget);
+    expect(await database.select(database.customFieldValue).get(), isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    final value =
+        await (database.select(database.customFieldValue)
+              ..where((row) => row.fieldDefinitionId.equals(definition.id!)))
+            .getSingle();
+    expect(value.value, 'latest site value');
+  });
+
+  testWidgets('specimen text fields preserve focus and scroll while saving', (
+    tester,
+  ) async {
+    final definition = await _createDefinition(
+      database,
+      name: 'Specimen note',
+      placement: FieldUISection.specimenAttribute,
+    );
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+
+    await _pumpScrollable(
+      tester,
+      database,
+      const CustomFieldOwner.specimen('bird'),
+      scrollController,
+    );
+    final field = find.byType(TextField);
+    scrollController.jumpTo(240);
+    await tester.tap(field);
+    final focusNode = tester.widget<TextField>(field).focusNode!;
+    final offset = scrollController.offset;
+
+    await tester.enterText(field, 'latest specimen value');
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(focusNode.hasFocus, isTrue);
+    expect(scrollController.offset, offset);
+    expect(find.text('Custom fields'), findsOneWidget);
+    expect(await database.select(database.customFieldValue).get(), isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    final value =
+        await (database.select(database.customFieldValue)
+              ..where((row) => row.fieldDefinitionId.equals(definition.id!)))
+            .getSingle();
+    expect(value.value, 'latest specimen value');
+  });
+
+  testWidgets('blur and disposal flush pending text values', (tester) async {
+    final blurDefinition = await _createDefinition(
+      database,
+      name: 'Blur note',
+      placement: FieldUISection.siteAttribute,
+    );
+    final disposeDefinition = await _createDefinition(
+      database,
+      name: 'Dispose note',
+      placement: FieldUISection.siteAttribute,
+    );
+
+    await _pump(
+      tester,
+      database,
+      const CustomFieldForm(owner: CustomFieldOwner.site(1)),
+    );
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'saved on blur');
+    await tester.pump(const Duration(milliseconds: 50));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+
+    var values = await database.select(database.customFieldValue).get();
+    expect(values.single.fieldDefinitionId, blurDefinition.id);
+    expect(values.single.value, 'saved on blur');
+
+    await tester.tap(fields.at(0));
+    await tester.enterText(fields.at(0), '');
+    await tester.pump(const Duration(milliseconds: 50));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(await database.select(database.customFieldValue).get(), isEmpty);
+
+    await tester.tap(fields.at(1));
+    await tester.enterText(fields.at(1), 'saved on dispose');
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    values = await database.select(database.customFieldValue).get();
+    expect(values, hasLength(1));
+    expect(
+      values
+          .singleWhere(
+            (value) => value.fieldDefinitionId == disposeDefinition.id,
+          )
+          .value,
+      'saved on dispose',
+    );
+  });
+
+  testWidgets('dropdown and boolean fields save immediately', (tester) async {
+    final dropdownDefinition = await _createDefinition(
+      database,
+      name: 'Dropdown field',
+      placement: FieldUISection.siteAttribute,
+      type: FieldType.dropdown,
+      options: [CustomFieldOption.create('Option A')],
+    );
+    final booleanDefinition = await _createDefinition(
+      database,
+      name: 'Boolean field',
+      placement: FieldUISection.siteAttribute,
+      type: FieldType.boolean,
+    );
+
+    await _pump(
+      tester,
+      database,
+      const CustomFieldForm(owner: CustomFieldOwner.site(1)),
+    );
+    await tester.tap(find.text('Unset').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Option A').last);
+    await tester.pumpAndSettle();
+
+    var values = await database.select(database.customFieldValue).get();
+    expect(
+      values
+          .singleWhere(
+            (value) => value.fieldDefinitionId == dropdownDefinition.id,
+          )
+          .value,
+      isNotEmpty,
+    );
+
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
+    values = await database.select(database.customFieldValue).get();
+    expect(
+      values
+          .singleWhere(
+            (value) => value.fieldDefinitionId == booleanDefinition.id,
+          )
+          .value,
+      'true',
+    );
+  });
+
   testWidgets('collapsed draft shows values but hides blank field actions', (
     tester,
   ) async {
@@ -281,4 +463,53 @@ Future<void> _pump(WidgetTester tester, Database database, Widget child) async {
     ),
   );
   await tester.pumpAndSettle();
+}
+
+Future<void> _pumpScrollable(
+  WidgetTester tester,
+  Database database,
+  CustomFieldOwner owner,
+  ScrollController scrollController,
+) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(database)],
+      child: MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 220,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                children: [
+                  const SizedBox(height: 300),
+                  CustomFieldForm(owner: owner),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<CustomFieldDefinitionData> _createDefinition(
+  Database database, {
+  required String name,
+  required FieldUISection placement,
+  FieldType type = FieldType.text,
+  List<CustomFieldOption> options = const [],
+}) {
+  return CustomFieldService(database).createDefinition(
+    CustomFieldDraft(
+      name: name,
+      type: type,
+      placement: placement,
+      scope: FieldScope.project,
+      projectUuid: 'project-a',
+      options: options,
+    ),
+  );
 }

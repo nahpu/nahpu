@@ -67,6 +67,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                   _output = null;
                 });
               },
+              onFileNameChanged: (_) => setState(() => _output = null),
               onLightExportChanged: (value) {
                 setState(() {
                   _lightExport = value;
@@ -213,6 +214,7 @@ class _SettingsCard extends StatelessWidget {
     required this.enabled,
     required this.onFormatChanged,
     required this.onAppendDateChanged,
+    required this.onFileNameChanged,
     required this.onLightExportChanged,
     required this.onSelectDirectory,
     required this.onClearDirectory,
@@ -226,6 +228,7 @@ class _SettingsCard extends StatelessWidget {
   final bool enabled;
   final ValueChanged<ProjectTransferArchiveFormat> onFormatChanged;
   final ValueChanged<bool> onAppendDateChanged;
+  final ValueChanged<String> onFileNameChanged;
   final ValueChanged<bool> onLightExportChanged;
   final VoidCallback onSelectDirectory;
   final VoidCallback onClearDirectory;
@@ -281,15 +284,14 @@ class _SettingsCard extends StatelessWidget {
               onChanged: enabled ? onLightExportChanged : null,
             ),
             const SizedBox(height: 20),
-            TextField(
+            FileNameField(
               controller: controller,
+              extension: lightExport
+                  ? ProjectTransferArchiveFormat.jsonGzip.extension
+                  : format.extension,
+              appendDate: appendDate,
               enabled: enabled,
-              decoration: InputDecoration(
-                labelText: 'File name',
-                suffixText:
-                    '.${lightExport ? ProjectTransferArchiveFormat.jsonGzip.extension : format.extension}',
-                border: const OutlineInputBorder(),
-              ),
+              onChanged: onFileNameChanged,
             ),
             AppendDateSwitch(
               value: appendDate,
