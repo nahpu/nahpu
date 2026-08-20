@@ -1,16 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/taxa.dart';
-import 'package:nahpu/screens/projects/taxonomy/import_taxa.dart';
-import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
+import 'package:nahpu/screens/projects/taxonomy/add_taxon.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/import/taxon_entry.dart';
+import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
-import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/providers/statistics.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
   const TaxonRegistryViewer({super.key});
@@ -40,19 +37,30 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
               spacing: 8,
               children: [
                 SecondaryButton(
-                  text: 'Import from file',
+                  text: 'Manage',
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const TaxonImportForm(),
+                        builder: (context) => const ManageTaxa(),
                       ),
                     );
                   },
                 ),
                 PrimaryButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const NewTaxon()),
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const AddTaxon()),
+                    );
+                    if (!context.mounted || result is! TaxonImportResult) {
+                      return;
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Imported ${result.importedTaxaCount} taxa across '
+                          '${result.importedFamilyCount} families.',
+                        ),
+                      ),
                     );
                   },
                   label: 'Add taxon',
@@ -75,16 +83,9 @@ class RegistryInfo extends ConsumerWidget {
     return ref
         .watch(taxonRegistryProvider)
         .when(
-          data: (data) {
-            return data.isEmpty
-                ? const EmptyTaxa()
-                : TaxonRegistryLayout(
-                    children: [
-                      RegisteredTaxa(taxonData: data),
-                      const RecordedTaxa(),
-                    ],
-                  );
-          },
+          data: (data) => data.isEmpty
+              ? const EmptyTaxa()
+              : RegisteredTaxa(taxonData: data),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );
@@ -98,8 +99,7 @@ class EmptyTaxa extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'No taxon found.\n'
-        'Add/import taxa to start recording captures.',
+        'No taxon found.\nAdd/import taxa to start recording captures.',
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelLarge,
       ),
@@ -129,7 +129,7 @@ class RegisteredTaxa extends StatelessWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   TextSpan(
-                    text: ' species\n',
+                    text: ' taxa\n',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   TextSpan(
@@ -144,147 +144,19 @@ class RegisteredTaxa extends StatelessWidget {
               ),
             ),
           ),
-          taxonData.isEmpty
-              ? const SizedBox.shrink()
-              : TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ManageTaxa(),
-                      ),
-                    );
-                  },
-                  child: const Text('Manage taxa'),
-                ),
         ],
       ),
     );
   }
 
   int _countFamily(List<TaxonomyData> data) {
-    return data.fold(<String, int>{}, (Map<String, int> map, e) {
-      if (e.taxonFamily != null) {
-        map[e.taxonFamily!] = (map[e.taxonFamily!] ?? 0) + 1;
+    return data.fold(<String, int>{}, (Map<String, int> map, taxon) {
+      final family = taxon.taxonFamily?.trim();
+      if (family?.isNotEmpty == true) {
+        map[family!] = (map[family] ?? 0) + 1;
       }
       return map;
     }).length;
-  }
-}
-
-class RecordedTaxa extends ConsumerWidget {
-  const RecordedTaxa({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(specimenEntryProvider)
-        .when(
-          data: (data) => RecordedTaxaView(data: data),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
-        );
-  }
-}
-
-class RecordedTaxaView extends ConsumerStatefulWidget {
-  const RecordedTaxaView({super.key, required this.data});
-
-  final List<SpecimenData> data;
-
-  @override
-  RecordedTaxaViewState createState() => RecordedTaxaViewState();
-}
-
-class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
-  @override
-  Widget build(BuildContext context) {
-    return TaxonDataContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const TaxonStatText(text: 'Recorded'),
-          widget.data.isEmpty
-              ? Text(
-                  'No record found',
-                  style: Theme.of(context).textTheme.labelLarge,
-                )
-              : const FittedBox(fit: BoxFit.fill, child: RecordedCounts()),
-          widget.data.isEmpty
-              ? const SizedBox.shrink()
-              : TextButton(
-                  onPressed: () async {
-                    if (context.mounted) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SpecimenListPage(),
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text('View all'),
-                ),
-        ],
-      ),
-    );
-  }
-}
-
-class RecordedCounts extends ConsumerWidget {
-  const RecordedCounts({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(recordStatisticTotalsProvider)
-        .when(
-          data: (totals) => Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${totals.specimenCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' specimens\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${totals.speciesCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' species\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${totals.familyCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' families',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, stackTrace) => Text('Unable to load counts: $error'),
-        );
-  }
-}
-
-class CountText extends StatelessWidget {
-  const CountText({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(text, style: Theme.of(context).textTheme.titleMedium);
   }
 }
 
@@ -299,7 +171,7 @@ class TaxonDataContainer extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       child: Container(
         height: 220,
-        width: 200,
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(
@@ -316,7 +188,9 @@ class TaxonDataContainer extends StatelessWidget {
 
 class TaxonStatText extends StatelessWidget {
   const TaxonStatText({super.key, required this.text});
+
   final String text;
+
   @override
   Widget build(BuildContext context) {
     return Container(

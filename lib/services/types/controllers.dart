@@ -1266,7 +1266,7 @@ class TaxonRegistryCtrModel {
   TextEditingController noteCtr;
 
   factory TaxonRegistryCtrModel.empty() => TaxonRegistryCtrModel(
-    taxonRankCtr: null,
+    taxonRankCtr: 'species',
     kingdomCtr: TextEditingController(),
     phylumCtr: TextEditingController(),
     taxonClassCtr: TextEditingController(),

@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -618,39 +617,97 @@ class TaxonEntryReader extends AppServices {
   }
 
   Future<ParsedCSVdata> parseData(CsvData data) async {
+    final review = await reviewData(data);
+    final selected = {
+      for (var index = 0; index < review.candidates.length; index++)
+        if (review.candidates[index].isSelectable) index,
+    };
+    final result = await importSelected(review, selected);
+    final importData = ParsedCSVdata.empty()
+      ..recordCount = result.importedTaxaCount
+      ..importedSpeciesCount = result.importedTaxaCount
+      ..importedFamilyCount = result.importedFamilyCount;
+    for (final candidate in review.candidates) {
+      if (!candidate.isSelectable) {
+        importData.skippedSpecies.add(candidate.scientificName);
+      }
+    }
+    return importData;
+  }
+
+  Future<TaxonImportReview> reviewData(CsvData data) async {
     final problems = findProblems(data.headerMap, rows: data.data);
     if (problems.isNotEmpty) {
       throw Exception('Invalid import data: ${problems.join(', ')}');
     }
 
-    ParsedCSVdata importData = ParsedCSVdata.empty();
-    HashSet<String> importedFamilies = HashSet();
-    HashSet<String> importedSpecies = HashSet();
+    final existingTaxa = await TaxonomyServices(ref: ref).getTaxonList();
+    final existingKeys = existingTaxa
+        .map((taxon) => _speciesKey(taxon.genus, taxon.specificEpithet))
+        .toSet();
+    final seenKeys = <String>{};
+    final parsedData = _parseData(data);
+    final candidates = <TaxonImportCandidate>[];
 
-    List<TaxonEntryData> parsedData = _parseData(data);
+    for (var index = 0; index < parsedData.length; index++) {
+      final entry = _normalizeData(parsedData[index]);
+      final key = _speciesKey(entry.genus, entry.specificEpithet);
+      final status = existingKeys.contains(key)
+          ? TaxonImportStatus.alreadyRegistered
+          : seenKeys.contains(key)
+          ? TaxonImportStatus.duplicateInFile
+          : TaxonImportStatus.ready;
+      seenKeys.add(key);
+      candidates.add(
+        TaxonImportCandidate(sourceRow: index + 2, data: entry, status: status),
+      );
+    }
 
-    for (var data in parsedData) {
-      bool hasSpecies = await _checkSpeciesExist(data);
-      String species = '${data.genus} ${data.specificEpithet}';
-      if (hasSpecies) {
-        importData.skippedSpecies.add(species);
-        continue;
-      }
-      TaxonomyCompanion dbForm = _getDbForm(data);
-      TaxonomyServices(ref: ref).createTaxon(dbForm);
-      importData.recordCount++;
+    return TaxonImportReview(candidates: candidates);
+  }
 
-      if (!importedFamilies.contains(data.taxonFamily)) {
-        importedFamilies.add(data.taxonFamily);
-      }
-
-      if (!importedSpecies.contains(species)) {
-        importedSpecies.add(species);
+  Future<TaxonImportResult> importSelected(
+    TaxonImportReview review,
+    Set<int> selectedIndexes,
+  ) async {
+    final currentTaxa = await TaxonomyServices(ref: ref).getTaxonList();
+    final currentKeys = currentTaxa
+        .map((taxon) => _speciesKey(taxon.genus, taxon.specificEpithet))
+        .toSet();
+    final selectedIndexesInOrder = selectedIndexes.toList()..sort();
+    final selected = <TaxonImportCandidate>[];
+    final selectedKeys = <String>{};
+    for (final index in selectedIndexesInOrder) {
+      if (index < 0 || index >= review.candidates.length) continue;
+      final candidate = review.candidates[index];
+      final key = _speciesKey(
+        candidate.data.genus,
+        candidate.data.specificEpithet,
+      );
+      if (candidate.isSelectable &&
+          !currentKeys.contains(key) &&
+          selectedKeys.add(key)) {
+        selected.add(candidate);
       }
     }
-    importData.countAll(importedSpecies, importedFamilies);
+    final families = selected
+        .map((candidate) => candidate.data.taxonFamily.trim())
+        .where((family) => family.isNotEmpty)
+        .toSet();
+
+    await dbAccess.transaction(() async {
+      for (final candidate in selected) {
+        await dbAccess
+            .into(dbAccess.taxonomy)
+            .insert(_getDbForm(candidate.data));
+      }
+    });
     ref.invalidate(taxonRegistryProvider);
-    return importData;
+    ref.invalidate(taxonProvider);
+    return TaxonImportResult(
+      importedTaxaCount: selected.length,
+      importedFamilyCount: families.length,
+    );
   }
 
   List<TaxonEntryData> _parseData(CsvData data) {
@@ -682,14 +739,23 @@ class TaxonEntryReader extends AppServices {
     );
   }
 
-  Future<bool> _checkSpeciesExist(TaxonEntryData data) async {
-    try {
-      TaxonomyData? species = await TaxonomyServices(
-        ref: ref,
-      ).getTaxonBySpecies(data.genus, data.specificEpithet);
-      return species != null;
-    } catch (e) {
-      throw Exception('Error checking species: $e');
-    }
+  TaxonEntryData _normalizeData(TaxonEntryData data) {
+    return data.copyWith(
+      taxonClass: data.taxonClass.trim().toSentenceCase(),
+      taxonOrder: data.taxonOrder.trim().toSentenceCase(),
+      taxonFamily: data.taxonFamily.trim().toSentenceCase(),
+      genus: data.genus.trim().toSentenceCase(),
+      specificEpithet: data.specificEpithet.trim().toLowerCase(),
+      authors: data.authors?.trim(),
+      commonName: data.commonName?.trim().toLowerCase(),
+      citesStatus: data.citesStatus?.trim().toUpperCase(),
+      redListCategory: data.redListCategory?.trim().toUpperCase(),
+      countryStatus: data.countryStatus?.trim().toUpperCase(),
+      notes: data.notes?.trim(),
+    );
+  }
+
+  String _speciesKey(String? genus, String? epithet) {
+    return '${genus ?? ''}|${epithet ?? ''}'.trim().toLowerCase();
   }
 }

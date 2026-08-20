@@ -79,28 +79,19 @@ void main() {
     expect(find.text('Edit taxon'), findsOneWidget);
   });
 
-  testWidgets('registered taxa action opens Manage taxa', (tester) async {
+  testWidgets('taxon registry manage action opens Manage taxa', (tester) async {
     final fixture = await _taxonFixture();
     addTearDown(fixture.database.close);
-    final taxa = await fixture.database.select(fixture.database.taxonomy).get();
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(fixture.database)],
-        child: MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 340,
-              height: 250,
-              child: RegisteredTaxa(taxonData: taxa),
-            ),
-          ),
-        ),
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Manage taxa'));
+    await tester.tap(find.text('Manage'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ManageTaxa), findsOneWidget);
