@@ -305,9 +305,9 @@ class ProjectQrIcon extends StatelessWidget {
       message: 'Project QR code. Tap to view full.',
       child: GestureDetector(
         child: SizedBox(
-          width: 96,
-          height: 96,
-          child: QrCodeViewer(data: data, maxSize: 96),
+          width: 112,
+          height: 112,
+          child: QrCodeViewer(data: data, maxSize: 112),
         ),
         onTap: () {
           showDialog(

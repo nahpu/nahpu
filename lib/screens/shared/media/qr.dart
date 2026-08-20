@@ -338,13 +338,13 @@ class QrImageView extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(NahpuRadius.sm),
+            borderRadius: BorderRadius.circular(NahpuRadius.xs),
           ),
           child: const Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(NahpuSpacing.md),
                 child: Text(
                   'Data is too large for QR code.\n Try using file export feature instead.',
                   textAlign: TextAlign.center,

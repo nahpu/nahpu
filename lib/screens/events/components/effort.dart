@@ -214,7 +214,7 @@ class NewCollEffort extends ConsumerWidget {
     final collToolCtr = CollEffortCtrModel.empty();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Method'),
+        title: const Text('Add Effort'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -395,31 +395,45 @@ class CollEffortFormState extends ConsumerState<CollEffortForm> {
     return ScrollableConstrainedLayout(
       child: Column(
         children: [
-          CollectionMethods(ctr: widget.collToolCtr),
-          CommonTextField(
-            controller: widget.collToolCtr.brandCtr,
-            labelText: 'Brand and Model',
-            hintText: 'Enter brand and Model of the tool',
-            isLastField: false,
+          FormSection(
+            title: 'Effort',
+            child: Column(
+              children: [
+                CollectionMethods(ctr: widget.collToolCtr),
+                CommonNumField(
+                  controller: widget.collToolCtr.countCtr,
+                  labelText: 'Count',
+                  hintText: 'How many of this tool were used (if applicable)?',
+                  isLastField: false,
+                ),
+              ],
+            ),
           ),
-          CommonNumField(
-            controller: widget.collToolCtr.countCtr,
-            labelText: 'Count',
-            hintText: 'How many of this tool were used?',
-            isLastField: false,
-          ),
-          CommonTextField(
-            controller: widget.collToolCtr.sizeCtr,
-            labelText: 'Size',
-            hintText: 'Enter size of the tool (if applicable)',
-            isLastField: false,
-          ),
-          CommonTextField(
-            controller: widget.collToolCtr.noteCtr,
-            maxLines: 3,
-            labelText: 'Notes',
-            hintText: 'Enter any notes about the tool (if applicable)',
-            isLastField: true,
+          FormSection(
+            title: 'Method details',
+            child: Column(
+              children: [
+                CommonTextField(
+                  controller: widget.collToolCtr.brandCtr,
+                  labelText: 'Brand and Model',
+                  hintText: 'Enter brand and model of the tool (if applicable)',
+                  isLastField: false,
+                ),
+                CommonTextField(
+                  controller: widget.collToolCtr.sizeCtr,
+                  labelText: 'Size',
+                  hintText: 'Enter size of the tool (if applicable)',
+                  isLastField: false,
+                ),
+                CommonTextField(
+                  controller: widget.collToolCtr.noteCtr,
+                  maxLines: 3,
+                  labelText: 'Notes',
+                  hintText: 'Enter any notes about the tool (if applicable)',
+                  isLastField: true,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           FormButton(

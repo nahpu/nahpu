@@ -44,7 +44,7 @@ void main() {
     _expectOutsideScroll(tester, 'Add');
     _expectFieldInSection(tester, 'Additional treatment', 'Preparation');
     _expectFieldInSection(tester, 'Preparator', 'Sampling');
-    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage type', 'Curation');
     _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
 
@@ -72,7 +72,7 @@ void main() {
     expect(find.text('Show more'), findsOneWidget);
     _expectFieldInSection(tester, 'Date taken', 'Sampling');
     _expectFieldInSection(tester, 'PMI', 'Sampling');
-    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage type', 'Curation');
     _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
     expect(find.text('Museum loan'), findsNothing);

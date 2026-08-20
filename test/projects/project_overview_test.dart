@@ -127,7 +127,7 @@ void main() {
     final qrViewer = tester.widget<QrCodeViewer>(
       find.descendant(of: qr, matching: find.byType(QrCodeViewer)),
     );
-    expect(qrViewer.maxSize, 96);
+    expect(qrViewer.maxSize, 112);
     expect(
       find.descendant(of: overviewScroll, matching: find.text('Edit')),
       findsNothing,

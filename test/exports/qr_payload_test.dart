@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 void main() {
   test('QR capacity helper detects oversized payloads', () {
@@ -69,7 +70,7 @@ void main() {
     final qr = tester.widget<QrImageView>(find.byType(QrImageView));
     expect(qr.color, Colors.black);
     expect(qr.backgroundColor, Colors.white);
-    expect(qr.padding, 12);
+    expect(qr.padding, NahpuSpacing.sm);
     expect(tester.getSize(find.byType(QrImageView)), const Size(120, 120));
     expect(tester.takeException(), isNull);
   });
