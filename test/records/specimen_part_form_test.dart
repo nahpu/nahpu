@@ -20,6 +20,8 @@ void main() {
     );
     addTearDown(database.close);
 
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     expect(find.text('IDs'), findsOneWidget);
     expect(find.text('Specimen UUID: specimen'), findsOneWidget);
     expect(find.text('Additional Part ID'), findsNothing);
@@ -38,6 +40,8 @@ void main() {
     expect(find.text('Curation'), findsOneWidget);
     expect(find.text('Custom fields'), findsOneWidget);
     expect(find.text('Add custom field'), findsOneWidget);
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     _expectFieldInSection(tester, 'Additional treatment', 'Preparation');
     _expectFieldInSection(tester, 'Preparator', 'Sampling');
     _expectFieldInSection(tester, 'Storage', 'Curation');
@@ -74,6 +78,16 @@ void main() {
     expect(find.text('Museum loan'), findsNothing);
     expect(find.text('Remarks'), findsNothing);
   });
+}
+
+void _expectOutsideScroll(WidgetTester tester, String label) {
+  expect(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(SingleChildScrollView),
+    ),
+    findsNothing,
+  );
 }
 
 Future<Database> _pumpPartForm(

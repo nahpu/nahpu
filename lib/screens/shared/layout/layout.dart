@@ -8,16 +8,33 @@ class ScrollableConstrainedLayout extends StatelessWidget {
   const ScrollableConstrainedLayout({
     super.key,
     required this.child,
+    this.footer,
   });
 
   final Widget child;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: ConstrainedLayout(
-        child: child,
-      ),
+    if (footer == null) {
+      return SingleChildScrollView(
+        child: ConstrainedLayout(
+          child: child,
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: ConstrainedLayout(
+              child: child,
+            ),
+          ),
+        ),
+        ConstrainedLayout(child: footer!),
+      ],
     );
   }
 }

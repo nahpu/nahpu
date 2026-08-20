@@ -4,7 +4,6 @@ import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/select_personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 enum PersonnelSelection { selectPersonnel, newPersonnel }
@@ -30,7 +29,7 @@ class AddPersonnelState extends ConsumerState<AddPersonnel> {
             .when(
               data: (data) => data.isNotEmpty
                   ? const AddWithOptions()
-                  : const ScrollableConstrainedLayout(child: NewPersonnel()),
+                  : const NewPersonnel(),
               loading: () => const Center(child: CommonProgressIndicator()),
               error: (error, stack) => Center(child: Text(error.toString())),
             ),
@@ -90,7 +89,7 @@ class AddWithOptionsState extends ConsumerState<AddWithOptions> {
         ),
         Expanded(
           child: _selection.first == PersonnelSelection.newPersonnel
-              ? const ScrollableConstrainedLayout(child: NewPersonnel())
+              ? const NewPersonnel()
               : ref
                     .watch(projectPersonnelProvider)
                     .when(

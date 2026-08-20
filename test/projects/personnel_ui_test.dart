@@ -141,12 +141,10 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: PersonnelFormPage(
-                ctr: controller,
-                personnelUuid: 'ada',
-                isEditing: false,
-              ),
+            body: PersonnelFormPage(
+              ctr: controller,
+              personnelUuid: 'ada',
+              isEditing: false,
             ),
           ),
         ),
@@ -164,6 +162,9 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'ORCID iD'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Initials*'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Cataloger number*'), findsOneWidget);
+    _expectInsideScroll(tester, 'Show more');
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
 
     await tester.tap(find.text('Show more'));
     await tester.pump();
@@ -174,6 +175,9 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'Phone'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Notes'), findsOneWidget);
     expect(find.text('Show less'), findsOneWidget);
+    _expectInsideScroll(tester, 'Show less');
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     expect(tester.takeException(), isNull);
   });
 
@@ -189,12 +193,10 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           home: Scaffold(
-            body: SingleChildScrollView(
-              child: PersonnelFormPage(
-                ctr: _personnelController(),
-                personnelUuid: 'ada',
-                isEditing: true,
-              ),
+            body: PersonnelFormPage(
+              ctr: _personnelController(),
+              personnelUuid: 'ada',
+              isEditing: true,
             ),
           ),
         ),
@@ -209,7 +211,11 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'Phone'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'ORCID iD'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Notes'), findsOneWidget);
+    _expectInsideScroll(tester, 'Show less');
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Update');
 
+    await tester.ensureVisible(find.text('Show less'));
     await tester.tap(find.text('Show less'));
     await tester.pump();
 
@@ -217,6 +223,9 @@ void main() {
     expect(find.widgetWithText(TextFormField, 'ORCID iD'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Email'), findsNothing);
     expect(find.widgetWithText(TextField, 'Notes'), findsNothing);
+    _expectInsideScroll(tester, 'Show more');
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Update');
     expect(tester.takeException(), isNull);
   });
 
@@ -305,6 +314,26 @@ void main() {
     expect(find.byKey(const ValueKey('managed-personnel-grace')), findsNothing);
     expect(find.byKey(const ValueKey('managed-personnel-ada')), findsOneWidget);
   });
+}
+
+void _expectOutsideScroll(WidgetTester tester, String label) {
+  expect(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(SingleChildScrollView),
+    ),
+    findsNothing,
+  );
+}
+
+void _expectInsideScroll(WidgetTester tester, String label) {
+  expect(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(SingleChildScrollView),
+    ),
+    findsOneWidget,
+  );
 }
 
 PersonnelFormCtrModel _personnelController() {

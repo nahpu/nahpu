@@ -322,6 +322,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      footer: FormButton(isEditing: _isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -414,7 +415,6 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             showMore: _showMore,
             onPressed: () => setState(() => _showMore = !_showMore),
           ),
-          FormButton(isEditing: _isEditing, onSubmitted: _submit),
         ],
       ),
     );

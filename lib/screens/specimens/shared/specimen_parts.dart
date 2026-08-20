@@ -636,6 +636,7 @@ class PartFormState extends ConsumerState<PartForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      footer: FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -693,7 +694,6 @@ class PartFormState extends ConsumerState<PartForm> {
               });
             },
           ),
-          FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
         ],
       ),
     );
