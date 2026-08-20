@@ -11,6 +11,7 @@ import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 
 void main() {
   testWidgets('manage taxa uses outlined tap-driven details and search', (
@@ -112,6 +113,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(
+      tester.widget<FormCard>(find.byType(FormCard)).mainAxisAlignment,
+      MainAxisAlignment.start,
+    );
     expect(find.byKey(const ValueKey('registry-stat-orders')), findsOneWidget);
     expect(
       find.byKey(const ValueKey('registry-stat-families')),

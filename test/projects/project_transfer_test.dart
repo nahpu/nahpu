@@ -1188,7 +1188,7 @@ void main() {
       );
       final firstStep = tester.widget<ListTile>(find.byType(ListTile).first);
 
-      expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.large));
+      expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.lg));
       expect(decoration.border, isA<Border>());
       expect(find.byType(VerticalDivider), findsNothing);
       expect(firstStep.selectedTileColor, theme.colorScheme.primaryContainer);

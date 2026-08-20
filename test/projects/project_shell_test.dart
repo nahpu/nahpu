@@ -152,7 +152,7 @@ void main() {
     expect(railSurface.shape, isA<RoundedRectangleBorder>());
     expect(
       (railSurface.shape! as RoundedRectangleBorder).borderRadius,
-      BorderRadius.circular(NahpuRadius.large),
+      BorderRadius.circular(NahpuRadius.lg),
     );
     expect(railSurface.clipBehavior, Clip.antiAlias);
     final surfaceElement = tester.element(railSurfaceFinder);

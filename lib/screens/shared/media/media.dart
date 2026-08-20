@@ -461,7 +461,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: ClipRRect(
               borderRadius: const BorderRadius.all(
-                Radius.circular(NahpuRadius.medium),
+                Radius.circular(NahpuRadius.md),
               ),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),

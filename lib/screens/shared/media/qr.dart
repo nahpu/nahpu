@@ -338,7 +338,7 @@ class QrImageView extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(NahpuRadius.small),
+            borderRadius: BorderRadius.circular(NahpuRadius.sm),
           ),
           child: const Center(
             child: FittedBox(

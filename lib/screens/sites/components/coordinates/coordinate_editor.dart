@@ -1369,7 +1369,7 @@ class _AngularCoordinateFields extends StatelessWidget {
           color: Theme.of(context).colorScheme.outlineVariant,
           width: NahpuStroke.thin,
         ),
-        borderRadius: BorderRadius.circular(NahpuRadius.large),
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

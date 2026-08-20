@@ -339,7 +339,7 @@ class RedListCategoryPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(NahpuRadius.extraLarge),
+        borderRadius: BorderRadius.circular(NahpuRadius.xl),
       ),
       child: Text(
         category,

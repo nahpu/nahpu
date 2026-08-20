@@ -23,7 +23,7 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
     return FormCard(
       title: 'Taxon Registry',
       infoTopic: InfoTopic.taxonRegistry,
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       child: Center(
         child: Column(
           children: [
@@ -227,7 +227,7 @@ class _RegistryMetric extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(NahpuRadius.medium),
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

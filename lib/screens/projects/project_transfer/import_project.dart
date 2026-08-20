@@ -180,7 +180,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           color: colors.outlineVariant,
           width: NahpuStroke.thin,
         ),
-        borderRadius: BorderRadius.circular(NahpuRadius.large),
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
       ),
       child: ListView.builder(
         padding: const EdgeInsets.all(NahpuSpacing.lg),
@@ -193,7 +193,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             child: Material(
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
               ),
               clipBehavior: Clip.antiAlias,
               child: ListTile(
@@ -1371,7 +1371,7 @@ class _StepNumber extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return CircleAvatar(
-      radius: NahpuRadius.medium,
+      radius: NahpuRadius.md,
       backgroundColor: selected
           ? colors.primary
           : colors.surfaceContainerHighest,

@@ -165,7 +165,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             child: Material(
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
               ),
               clipBehavior: Clip.antiAlias,
               child: ListTile(
@@ -173,7 +173,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                 selectedTileColor: colors.primaryContainer,
                 selectedColor: colors.onPrimaryContainer,
                 leading: CircleAvatar(
-                  radius: NahpuRadius.medium,
+                  radius: NahpuRadius.md,
                   backgroundColor: selected
                       ? colors.primary
                       : colors.surfaceContainerHighest,

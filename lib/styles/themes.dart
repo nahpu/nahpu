@@ -53,7 +53,7 @@ class NahpuTheme {
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.medium)),
+        borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
         side: BorderSide(
           color: colorScheme.outlineVariant,
           width: NahpuStroke.thin,

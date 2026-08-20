@@ -17,10 +17,11 @@ abstract final class NahpuSpacing {
 }
 
 abstract final class NahpuRadius {
-  static const double small = 8;
-  static const double medium = 12;
-  static const double large = 16;
-  static const double extraLarge = 24;
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 24;
 }
 
 abstract final class NahpuStroke {

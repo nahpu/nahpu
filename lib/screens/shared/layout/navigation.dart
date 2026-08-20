@@ -108,7 +108,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
         elevation: NahpuElevation.none,
         shape: RoundedRectangleBorder(
           side: BorderSide(color: colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
         ),
         clipBehavior: Clip.antiAlias,
         child: NavigationRail(
@@ -463,7 +463,7 @@ class PageNumberViewer extends StatelessWidget {
               0.5,
             ),
             borderRadius: const BorderRadius.all(
-              Radius.circular(NahpuRadius.medium),
+              Radius.circular(NahpuRadius.md),
             ),
           ),
           height: 40,

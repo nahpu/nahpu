@@ -228,7 +228,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                 child: ListTile(
                   selected: isWide && recipe.id == _findSelectedRecipe().id,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                    borderRadius: BorderRadius.circular(NahpuRadius.md),
                     side: BorderSide(
                       color: Theme.of(context).colorScheme.outlineVariant,
                     ),

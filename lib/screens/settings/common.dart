@@ -57,7 +57,7 @@ class CommonSettingSection extends StatelessWidget {
             context,
           ).colorScheme.surfaceContainerHighest.withAlpha(120),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(NahpuRadius.large),
+            borderRadius: BorderRadius.circular(NahpuRadius.lg),
             side: BorderSide(
               color: Theme.of(context).colorScheme.outlineVariant,
               width: NahpuStroke.thin,

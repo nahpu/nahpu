@@ -74,7 +74,7 @@ class OutlinedSurface extends StatelessWidget {
         context,
       ).colorScheme.surfaceContainerHighest.withAlpha(80),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(NahpuRadius.large),
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
         side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
@@ -116,7 +116,7 @@ class OutlinedListTile extends StatelessWidget {
             ? colorScheme.secondaryContainer.withAlpha(110)
             : colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(NahpuRadius.medium),
+          borderRadius: BorderRadius.circular(NahpuRadius.md),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
         clipBehavior: Clip.antiAlias,

@@ -144,13 +144,13 @@ MarkdownStyleSheet documentationMarkdownStyleSheet(BuildContext context) {
     blockquotePadding: const EdgeInsets.all(NahpuSpacing.md),
     blockquoteDecoration: BoxDecoration(
       color: colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(NahpuRadius.small),
+      borderRadius: BorderRadius.circular(NahpuRadius.sm),
       border: Border(left: BorderSide(color: colorScheme.primary, width: 3)),
     ),
     codeblockPadding: const EdgeInsets.all(NahpuSpacing.md),
     codeblockDecoration: BoxDecoration(
       color: colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(NahpuRadius.small),
+      borderRadius: BorderRadius.circular(NahpuRadius.sm),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(top: BorderSide(color: colorScheme.outlineVariant)),

@@ -46,7 +46,7 @@ class FormCard extends StatelessWidget {
       padding: const EdgeInsets.all(NahpuSpacing.xs),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
           color: isPrimary
               ? Color.lerp(
                   Theme.of(context).colorScheme.secondaryContainer,
@@ -118,7 +118,7 @@ class CommonIDForm extends StatelessWidget {
             color: Theme.of(context).disabledColor,
             width: NahpuStroke.thin,
           ),
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
         ),
         child: child,
       ),
@@ -146,7 +146,7 @@ class FormSection extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(NahpuSpacing.lg),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
           color: Theme.of(
             context,
           ).colorScheme.surfaceContainerHighest.withAlpha(80),

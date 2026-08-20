@@ -15,10 +15,11 @@ void main() {
         NahpuSpacing.xxxl,
         NahpuSpacing.display,
         NahpuSpacing.displayLarge,
-        NahpuRadius.small,
-        NahpuRadius.medium,
-        NahpuRadius.large,
-        NahpuRadius.extraLarge,
+        NahpuRadius.xs,
+        NahpuRadius.sm,
+        NahpuRadius.md,
+        NahpuRadius.lg,
+        NahpuRadius.xl,
         NahpuStroke.regular,
         NahpuElevation.low,
         NahpuElevation.medium,
@@ -62,10 +63,11 @@ void main() {
         NahpuSpacing.displayLarge,
       ];
       const radii = <double>[
-        NahpuRadius.small,
-        NahpuRadius.medium,
-        NahpuRadius.large,
-        NahpuRadius.extraLarge,
+        NahpuRadius.xs,
+        NahpuRadius.sm,
+        NahpuRadius.md,
+        NahpuRadius.lg,
+        NahpuRadius.xl,
       ];
 
       expect(spacing, isNot(contains(5)));
