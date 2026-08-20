@@ -47,8 +47,10 @@ class ProjectInfo extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: identitySection),
-              const SizedBox(width: 4),
-              ProjectQrIcon(data: projectQrData),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+                child: ProjectQrIcon(data: projectQrData),
+              ),
             ],
           )
         else
