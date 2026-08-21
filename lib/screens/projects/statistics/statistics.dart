@@ -26,7 +26,7 @@ class StatisticViewer extends ConsumerWidget {
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
-        contentAlignment: Alignment.bottomCenter,
+        contentAlignment: Alignment.center,
         content: totals.when(
           data: (value) => _RecordStatisticsSummary(totals: value),
           loading: () => const Center(child: CircularProgressIndicator()),
