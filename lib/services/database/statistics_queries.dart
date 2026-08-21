@@ -141,7 +141,28 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             WHERE specimen.projectUuid = ?
               AND trim(coalesce(taxonomy.taxonFamily, '')) != ''
           ) AS family_count,
-          (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count
+          (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count,
+          (
+            SELECT MIN(coordinate.elevationInMeter)
+            FROM coordinate
+            INNER JOIN site ON site.id = coordinate.siteID
+            WHERE site.projectUuid = ?
+              AND coordinate.elevationInMeter IS NOT NULL
+          ) AS minimum_elevation,
+          (
+            SELECT MAX(coordinate.elevationInMeter)
+            FROM coordinate
+            INNER JOIN site ON site.id = coordinate.siteID
+            WHERE site.projectUuid = ?
+              AND coordinate.elevationInMeter IS NOT NULL
+          ) AS maximum_elevation,
+          (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
+          (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,
+          (
+            SELECT COUNT(DISTINCT NULLIF(trim(specimen.captureDate), ''))
+            FROM specimen
+            WHERE specimen.projectUuid = ?
+          ) AS total_capture_days
       ''',
       variables: [
         Variable(projectUuid),
@@ -150,9 +171,16 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         Variable(projectUuid),
         Variable(projectUuid),
         Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
       ],
       readsFrom: {
+        db.project,
         db.site,
+        db.coordinate,
         db.collEvent,
         db.specimen,
         db.taxonomy,
@@ -166,8 +194,30 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         speciesCount: row.read<int>('species_count'),
         familyCount: row.read<int>('family_count'),
         narrativeCount: row.read<int>('narrative_count'),
+        minimumElevationInMeter: row.readNullable<double>('minimum_elevation'),
+        maximumElevationInMeter: row.readNullable<double>('maximum_elevation'),
+        totalDays: _inclusiveDayCount(
+          row.readNullable<String>('project_start_date'),
+          row.readNullable<String>('project_end_date'),
+        ),
+        totalCaptureDays: row.read<int>('total_capture_days'),
       ),
     );
+  }
+
+  int? _inclusiveDayCount(String? start, String? end) {
+    final startDate = _dateOnly(start);
+    final endDate = _dateOnly(end);
+    if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
+      return null;
+    }
+    return endDate.difference(startDate).inDays + 1;
+  }
+
+  DateTime? _dateOnly(String? value) {
+    final parsed = DateTime.tryParse(value?.trim() ?? '');
+    if (parsed == null) return null;
+    return DateTime.utc(parsed.year, parsed.month, parsed.day);
   }
 
   Stream<List<SpatialStatisticDatum>> watchSpatialStatistics(

@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/statistics.dart';
+import 'package:nahpu/services/sites/coordinate_format.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -295,10 +296,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       filterId: selectedFilter?.id,
     );
     final details = ref.watch(statisticDataProvider(request));
+    final totals = ref.watch(recordStatisticTotalsProvider);
     final projectName = ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Project Statistics')),
+      appBar: AppBar(title: const Text('Record Statistics')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(8, 12, 8, 32),
@@ -314,14 +316,22 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 16),
                   CommonPadding(
-                    child: Text(
-                      'Top five categories across the current project.',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    child: _FullScreenRecordStatisticsSummary(
+                      value: totals,
+                      onRetry: () =>
+                          ref.invalidate(recordStatisticTotalsProvider),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
+                  CommonPadding(
+                    child: Text(
+                      'Top five',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   _StatisticSummary(
                     projectUuid: projectUuid,
                     onExplore: _selectAndReveal,
@@ -494,6 +504,184 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
         .replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_')
         .replaceAll(RegExp(r'_+'), '_')
         .replaceAll(RegExp(r'^_|_$'), '');
+  }
+}
+
+class _FullScreenRecordStatisticsSummary extends StatelessWidget {
+  const _FullScreenRecordStatisticsSummary({
+    required this.value,
+    required this.onRetry,
+  });
+
+  final AsyncValue<RecordStatisticTotals> value;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return value.when(
+      data: (totals) => _FullScreenRecordStatisticsGrid(totals: totals),
+      loading: () => const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stackTrace) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(NahpuSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Unable to load record statistics: $error'),
+              const SizedBox(height: NahpuSpacing.md),
+              TextButton(onPressed: onRetry, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FullScreenRecordStatisticsGrid extends StatelessWidget {
+  const _FullScreenRecordStatisticsGrid({required this.totals});
+
+  final RecordStatisticTotals totals;
+
+  @override
+  Widget build(BuildContext context) {
+    final metrics = [
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-specimens'),
+        label: 'Specimens',
+        value: totals.specimenCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-species'),
+        label: 'Species',
+        value: totals.speciesCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-families'),
+        label: 'Families',
+        value: totals.familyCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-sites'),
+        label: 'Sites',
+        value: totals.siteCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-events'),
+        label: 'Events',
+        value: totals.eventCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-narratives'),
+        label: 'Narratives',
+        value: totals.narrativeCount.toString(),
+      ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-elevation'),
+        label: 'Site elevational range',
+        value: _formatElevationRange(totals),
+      ),
+      if (totals.totalDays != null)
+        _RecordSummaryMetric(
+          key: const ValueKey('full-screen-record-stat-total-days'),
+          label: 'Total days',
+          value: totals.totalDays.toString(),
+        ),
+      _RecordSummaryMetric(
+        key: const ValueKey('full-screen-record-stat-capture-days'),
+        label: 'Total capture days',
+        value: totals.totalCaptureDays.toString(),
+      ),
+    ];
+
+    return Card(
+      key: const ValueKey('full-screen-record-stat-summary'),
+      child: Padding(
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final columnCount = switch (constraints.maxWidth) {
+              >= 900 => 4,
+              >= 560 => 3,
+              >= 360 => 2,
+              _ => 1,
+            };
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: metrics.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount,
+                crossAxisSpacing: NahpuSpacing.md,
+                mainAxisSpacing: NahpuSpacing.md,
+                mainAxisExtent: 136,
+              ),
+              itemBuilder: (context, index) => metrics[index],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  String _formatElevationRange(RecordStatisticTotals totals) {
+    final minimum = totals.minimumElevationInMeter;
+    final maximum = totals.maximumElevationInMeter;
+    if (minimum == null || maximum == null) return '—';
+    return '${formatCoordinate(minimum, decimals: 2)}–'
+        '${formatCoordinate(maximum, decimals: 2)} m';
+  }
+}
+
+class _RecordSummaryMetric extends StatelessWidget {
+  const _RecordSummaryMetric({
+    super.key,
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Semantics(
+      container: true,
+      label: '$label: $value',
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(NahpuSpacing.lg),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(NahpuRadius.md),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: NahpuSpacing.xs),
+            Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

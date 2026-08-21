@@ -135,7 +135,7 @@ void main() {
     ]);
   });
 
-  test('record totals are calculated in SQLite', () async {
+  test('record totals include project summary metrics', () async {
     final totals = await query.watchRecordTotals('project-a').first;
 
     expect(totals.siteCount, 1);
@@ -144,6 +144,10 @@ void main() {
     expect(totals.speciesCount, 2);
     expect(totals.familyCount, 1);
     expect(totals.narrativeCount, 1);
+    expect(totals.minimumElevationInMeter, 120.5);
+    expect(totals.maximumElevationInMeter, 350.25);
+    expect(totals.totalDays, 3);
+    expect(totals.totalCaptureDays, 2);
 
     final otherProjectTotals = await query.watchRecordTotals('project-b').first;
     expect(otherProjectTotals.siteCount, 0);
@@ -152,6 +156,10 @@ void main() {
     expect(otherProjectTotals.speciesCount, 1);
     expect(otherProjectTotals.familyCount, 1);
     expect(otherProjectTotals.narrativeCount, 1);
+    expect(otherProjectTotals.minimumElevationInMeter, equals(null));
+    expect(otherProjectTotals.maximumElevationInMeter, equals(null));
+    expect(otherProjectTotals.totalDays, equals(null));
+    expect(otherProjectTotals.totalCaptureDays, 1);
 
     final normalizedDuplicate = await db
         .into(db.taxonomy)
@@ -189,6 +197,7 @@ void main() {
     expect(updatedTotals.specimenCount, 6);
     expect(updatedTotals.speciesCount, 2);
     expect(updatedTotals.familyCount, 2);
+    expect(updatedTotals.totalCaptureDays, 2);
   });
 
   test('table rows include stable rank and percentages', () {
@@ -205,7 +214,12 @@ void main() {
 Future<void> _seedStatistics(Database db) async {
   await db.batch((batch) {
     batch.insertAll(db.project, const [
-      ProjectCompanion(uuid: Value('project-a'), name: Value('Project A')),
+      ProjectCompanion(
+        uuid: Value('project-a'),
+        name: Value('Project A'),
+        startDate: Value('2026-01-10'),
+        endDate: Value('2026-01-12'),
+      ),
       ProjectCompanion(uuid: Value('project-b'), name: Value('Project B')),
       ProjectCompanion(
         uuid: Value('project-limit'),
@@ -240,6 +254,19 @@ Future<void> _seedStatistics(Database db) async {
           projectUuid: Value('project-a'),
         ),
       );
+  await db.batch((batch) {
+    batch.insertAll(db.coordinate, [
+      CoordinateCompanion(
+        elevationInMeter: const Value(120.5),
+        siteID: Value(site),
+      ),
+      CoordinateCompanion(
+        elevationInMeter: const Value(350.25),
+        siteID: Value(site),
+      ),
+      CoordinateCompanion(siteID: Value(site)),
+    ]);
+  });
   final event = await db
       .into(db.collEvent)
       .insert(
@@ -269,18 +296,21 @@ Future<void> _seedStatistics(Database db) async {
         projectUuid: const Value('project-a'),
         speciesID: Value(myotis),
         collEventID: Value(event),
+        captureDate: const Value('2026-01-10'),
       ),
       SpecimenCompanion(
         uuid: const Value('a-2'),
         projectUuid: const Value('project-a'),
         speciesID: Value(myotis),
         collEventID: Value(event),
+        captureDate: const Value(' 2026-01-10 '),
       ),
       SpecimenCompanion(
         uuid: const Value('a-3'),
         projectUuid: const Value('project-a'),
         speciesID: Value(eptesicus),
         collEventID: Value(event),
+        captureDate: const Value('2026-01-11'),
       ),
       const SpecimenCompanion(
         uuid: Value('a-unknown'),
@@ -290,6 +320,7 @@ Future<void> _seedStatistics(Database db) async {
         uuid: const Value('b-1'),
         projectUuid: const Value('project-b'),
         speciesID: Value(myotis),
+        captureDate: const Value('2026-02-01'),
       ),
     ]);
     batch.insertAll(db.specimenPart, const [

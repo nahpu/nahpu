@@ -76,8 +76,80 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
-    expect(find.text('Project Statistics'), findsOneWidget);
+    expect(find.text('Record Statistics'), findsOneWidget);
     expect(find.text('Species counts'), findsWidgets);
+  });
+
+  testWidgets('full-screen record statistics shows a consistent summary', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(599, 1200),
+      includeProjectDates: true,
+    );
+
+    await tester.tap(find.text('Explore more stats'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Summary'), findsOneWidget);
+    expect(find.text('Top five'), findsOneWidget);
+    expect(find.text('Site elevational range'), findsOneWidget);
+    expect(find.text('120.5–350.25 m'), findsOneWidget);
+    expect(find.text('Total days'), findsOneWidget);
+    expect(find.text('3'), findsWidgets);
+    expect(find.text('Total capture days'), findsOneWidget);
+    expect(find.text('2'), findsWidgets);
+
+    final summaryTitle = tester.widget<Text>(find.text('Summary'));
+    final topFiveTitle = tester.widget<Text>(find.text('Top five'));
+    expect(
+      summaryTitle.style!.fontSize,
+      greaterThan(topFiveTitle.style!.fontSize!),
+    );
+    expect(
+      tester.getRect(find.text('Top five')).top,
+      greaterThan(
+        tester
+            .getRect(
+              find.byKey(const ValueKey('full-screen-record-stat-summary')),
+            )
+            .bottom,
+      ),
+    );
+
+    const tileKeys = [
+      'specimens',
+      'species',
+      'families',
+      'sites',
+      'events',
+      'narratives',
+      'elevation',
+      'total-days',
+      'capture-days',
+    ];
+    final tileRects = [
+      for (final key in tileKeys)
+        tester.getRect(find.byKey(ValueKey('full-screen-record-stat-$key'))),
+    ];
+    for (final rect in tileRects.skip(1)) {
+      expect(rect.width, closeTo(tileRects.first.width, 0.1));
+      expect(rect.height, closeTo(tileRects.first.height, 0.1));
+    }
+  });
+
+  testWidgets('full-screen summary omits total days without project dates', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(599, 1200));
+
+    await tester.tap(find.text('Explore more stats'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Total days'), findsNothing);
+    expect(find.text('Total capture days'), findsOneWidget);
   });
 
   testWidgets(
@@ -375,6 +447,7 @@ Future<void> _pumpRecordStatisticsPanel(
   WidgetTester tester,
   Size size, {
   ThemeData? theme,
+  bool includeProjectDates = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -390,9 +463,15 @@ Future<void> _pumpRecordStatisticsPanel(
   await database
       .into(database.project)
       .insert(
-        const ProjectCompanion(
-          uuid: Value(projectUuid),
-          name: Value('Record Statistics Project'),
+        ProjectCompanion(
+          uuid: const Value(projectUuid),
+          name: const Value('Record Statistics Project'),
+          startDate: includeProjectDates
+              ? const Value('2026-01-10')
+              : const Value.absent(),
+          endDate: includeProjectDates
+              ? const Value('2026-01-12')
+              : const Value.absent(),
         ),
       );
   final myotis = await database
@@ -428,16 +507,19 @@ Future<void> _pumpRecordStatisticsPanel(
         uuid: const Value('record-specimen-1'),
         projectUuid: const Value(projectUuid),
         speciesID: Value(myotis),
+        captureDate: const Value('2026-01-10'),
       ),
       SpecimenCompanion(
         uuid: const Value('record-specimen-2'),
         projectUuid: const Value(projectUuid),
         speciesID: Value(myotis),
+        captureDate: const Value(' 2026-01-10 '),
       ),
       SpecimenCompanion(
         uuid: const Value('record-specimen-3'),
         projectUuid: const Value(projectUuid),
         speciesID: Value(eptesicus),
+        captureDate: const Value('2026-01-11'),
       ),
       const SpecimenCompanion(
         uuid: Value('record-specimen-4'),
@@ -450,6 +532,22 @@ Future<void> _pumpRecordStatisticsPanel(
       NarrativeCompanion(projectUuid: Value(projectUuid)),
       NarrativeCompanion(projectUuid: Value(projectUuid)),
       NarrativeCompanion(projectUuid: Value(projectUuid)),
+    ]);
+  });
+
+  final projectSites = await (database.select(
+    database.site,
+  )..where((site) => site.projectUuid.equals(projectUuid))).get();
+  await database.batch((batch) {
+    batch.insertAll(database.coordinate, [
+      CoordinateCompanion(
+        elevationInMeter: const Value(120.5),
+        siteID: Value(projectSites.first.id),
+      ),
+      CoordinateCompanion(
+        elevationInMeter: const Value(350.25),
+        siteID: Value(projectSites.last.id),
+      ),
     ]);
   });
 

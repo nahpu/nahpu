@@ -100,6 +100,10 @@ class RecordStatisticTotals {
     required this.speciesCount,
     required this.familyCount,
     required this.narrativeCount,
+    this.minimumElevationInMeter,
+    this.maximumElevationInMeter,
+    this.totalDays,
+    this.totalCaptureDays = 0,
   });
 
   final int siteCount;
@@ -108,6 +112,10 @@ class RecordStatisticTotals {
   final int speciesCount;
   final int familyCount;
   final int narrativeCount;
+  final double? minimumElevationInMeter;
+  final double? maximumElevationInMeter;
+  final int? totalDays;
+  final int totalCaptureDays;
 }
 
 class StatisticTableRow {
