@@ -9,31 +9,31 @@ enum StatisticKind {
 
 extension StatisticKindLabels on StatisticKind {
   String get label => switch (this) {
-        StatisticKind.species => 'Species',
-        StatisticKind.families => 'Families',
-        StatisticKind.speciesBySite => 'Species by site',
-        StatisticKind.partTypes => 'Part types',
-        StatisticKind.partTypesBySpecies => 'Part types by species',
-        StatisticKind.partTreatments => 'Part treatments',
-      };
+    StatisticKind.species => 'Species',
+    StatisticKind.families => 'Families',
+    StatisticKind.speciesBySite => 'Species by site',
+    StatisticKind.partTypes => 'Part types',
+    StatisticKind.partTypesBySpecies => 'Part types by species',
+    StatisticKind.partTreatments => 'Part treatments',
+  };
 
   String get title => switch (this) {
-        StatisticKind.species => 'Species counts',
-        StatisticKind.families => 'Family counts',
-        StatisticKind.speciesBySite => 'Species counts by site',
-        StatisticKind.partTypes => 'Specimen part quantities',
-        StatisticKind.partTypesBySpecies => 'Part quantities by species',
-        StatisticKind.partTreatments => 'Part treatment quantities',
-      };
+    StatisticKind.species => 'Species counts',
+    StatisticKind.families => 'Family counts',
+    StatisticKind.speciesBySite => 'Species counts by site',
+    StatisticKind.partTypes => 'Specimen part quantities',
+    StatisticKind.partTypesBySpecies => 'Part quantities by species',
+    StatisticKind.partTreatments => 'Part treatment quantities',
+  };
 
   String get fileSlug => switch (this) {
-        StatisticKind.species => 'species',
-        StatisticKind.families => 'families',
-        StatisticKind.speciesBySite => 'species-by-site',
-        StatisticKind.partTypes => 'part-types',
-        StatisticKind.partTypesBySpecies => 'part-types-by-species',
-        StatisticKind.partTreatments => 'part-treatments',
-      };
+    StatisticKind.species => 'species',
+    StatisticKind.families => 'families',
+    StatisticKind.speciesBySite => 'species-by-site',
+    StatisticKind.partTypes => 'part-types',
+    StatisticKind.partTypesBySpecies => 'part-types-by-species',
+    StatisticKind.partTreatments => 'part-treatments',
+  };
 
   bool get needsSite => this == StatisticKind.speciesBySite;
 
@@ -94,14 +94,16 @@ class StatisticRequest {
 
 class RecordStatisticTotals {
   const RecordStatisticTotals({
+    required this.siteCount,
+    required this.eventCount,
     required this.specimenCount,
-    required this.speciesCount,
-    required this.familyCount,
+    required this.narrativeCount,
   });
 
+  final int siteCount;
+  final int eventCount;
   final int specimenCount;
-  final int speciesCount;
-  final int familyCount;
+  final int narrativeCount;
 }
 
 class StatisticTableRow {

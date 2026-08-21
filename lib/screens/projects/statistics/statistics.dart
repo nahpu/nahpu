@@ -4,12 +4,12 @@ import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
-import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 const int topStatisticCount = 5;
 
@@ -18,40 +18,57 @@ class StatisticViewer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectUuid = ref.watch(projectUuidProvider);
-    final request = StatisticRequest(
-      projectUuid: projectUuid,
-      kind: StatisticKind.species,
-      limit: topStatisticCount,
-    );
-    final data = ref.watch(statisticDataProvider(request));
+    final totals = ref.watch(recordStatisticTotalsProvider);
 
     return FormCard(
-      title: 'Statistics',
+      title: 'Record Statistics',
       mainAxisAlignment: MainAxisAlignment.start,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 360, maxWidth: 460),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Top species', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
             Expanded(
-              child: _StatisticAsyncContent(
-                value: data,
-                onRetry: () => ref.invalidate(statisticDataProvider(request)),
-                builder: (rows) => StatisticBarChart(
-                  data: rows,
-                  kind: StatisticKind.species,
-                  compact: true,
-                  height: 240,
+              child: totals.when(
+                data: (value) => Container(
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Record counts',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: NahpuSpacing.lg),
+                        _RecordStatisticsBento(totals: value),
+                      ],
+                    ),
+                  ),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Unable to load record statistics: $error'),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () =>
+                            ref.invalidate(recordStatisticTotalsProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.center,
-              child: PrimaryButton(
+              child: FilledButton(
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -60,12 +77,101 @@ class StatisticViewer extends ConsumerWidget {
                     ),
                   ),
                 ),
-                icon: Icons.analytics_outlined,
-                label: 'Open statistics',
+                child: const Text('Open statistics'),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RecordStatisticsBento extends StatelessWidget {
+  const _RecordStatisticsBento({required this.totals});
+
+  final RecordStatisticTotals totals;
+
+  @override
+  Widget build(BuildContext context) {
+    final records = [
+      (label: 'Sites', count: totals.siteCount),
+      (label: 'Events', count: totals.eventCount),
+      (label: 'Specimens', count: totals.specimenCount),
+      (label: 'Narratives', count: totals.narrativeCount),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useTwoColumns = constraints.maxWidth >= 320;
+        final tileWidth = useTwoColumns
+            ? (constraints.maxWidth - NahpuSpacing.lg) / 2
+            : constraints.maxWidth;
+        final spacing = useTwoColumns ? NahpuSpacing.lg : NahpuSpacing.md;
+        final tileHeight = useTwoColumns ? 96.0 : 56.0;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final record in records)
+              SizedBox(
+                width: tileWidth,
+                height: tileHeight,
+                child: _RecordStatisticTile(
+                  label: record.label,
+                  count: record.count,
+                  compact: !useTwoColumns,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RecordStatisticTile extends StatelessWidget {
+  const _RecordStatisticTile({
+    required this.label,
+    required this.count,
+    required this.compact,
+  });
+
+  final String label;
+  final int count;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.all(compact ? NahpuSpacing.xs : NahpuSpacing.lg),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            count.toString(),
+            style: compact
+                ? Theme.of(context).textTheme.titleMedium
+                : Theme.of(context).textTheme.headlineSmall,
+          ),
+          SizedBox(height: compact ? NahpuSpacing.xxs : NahpuSpacing.xs),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: compact
+                ? Theme.of(context).textTheme.bodySmall
+                : Theme.of(context).textTheme.titleSmall,
+          ),
+        ],
       ),
     );
   }

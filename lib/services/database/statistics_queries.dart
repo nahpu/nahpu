@@ -120,20 +120,24 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     return customSelect(
       '''
         SELECT
-          COUNT(*) AS specimen_count,
-          COUNT(DISTINCT $_speciesLabel) AS species_count,
-          COUNT(DISTINCT $_familyLabel) AS family_count
-        FROM specimen
-        LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
-        WHERE specimen.projectUuid = ?
+          (SELECT COUNT(*) FROM site WHERE projectUuid = ?) AS site_count,
+          (SELECT COUNT(*) FROM collEvent WHERE projectUuid = ?) AS event_count,
+          (SELECT COUNT(*) FROM specimen WHERE projectUuid = ?) AS specimen_count,
+          (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count
       ''',
-      variables: [Variable(projectUuid)],
-      readsFrom: {db.specimen, db.taxonomy},
+      variables: [
+        Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
+      ],
+      readsFrom: {db.site, db.collEvent, db.specimen, db.narrative},
     ).watchSingle().map(
       (row) => RecordStatisticTotals(
+        siteCount: row.read<int>('site_count'),
+        eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
-        speciesCount: row.read<int>('species_count'),
-        familyCount: row.read<int>('family_count'),
+        narrativeCount: row.read<int>('narrative_count'),
       ),
     );
   }

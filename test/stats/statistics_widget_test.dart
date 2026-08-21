@@ -1,13 +1,49 @@
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
+import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
 void main() {
+  testWidgets('record statistics panel shows project record counts', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+
+    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record counts'), findsOneWidget);
+    expect(find.text('Top species'), findsNothing);
+    expect(find.byType(StatisticBarChart), findsNothing);
+    expect(find.text('Sites'), findsOneWidget);
+    expect(find.text('Events'), findsOneWidget);
+    expect(find.text('Specimens'), findsOneWidget);
+    expect(find.text('Narratives'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
+  });
+
+  testWidgets('record statistics bento stacks on narrow panels', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(280, 600));
+
+    final sites = tester.getRect(find.text('Sites'));
+    final events = tester.getRect(find.text('Events'));
+    expect(events.top, greaterThan(sites.bottom));
+  });
+
   testWidgets('bar chart keeps complete labels available', (tester) async {
     const longLabel = 'Extremely long scientific category label';
     await tester.pumpWidget(
@@ -193,4 +229,76 @@ void main() {
     expect(find.byType(FileSettingsCard), findsOneWidget);
     expect(find.text('Close'), findsNothing);
   });
+}
+
+Future<void> _pumpRecordStatisticsPanel(WidgetTester tester, Size size) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  final database = Database.forTesting(
+    DatabaseConnection(NativeDatabase.memory()),
+  );
+  addTearDown(database.close);
+  const projectUuid = 'record-statistics-project';
+
+  await database
+      .into(database.project)
+      .insert(
+        const ProjectCompanion(
+          uuid: Value(projectUuid),
+          name: Value('Record Statistics Project'),
+        ),
+      );
+  await database.batch((batch) {
+    batch.insertAll(database.site, [
+      SiteCompanion(projectUuid: Value(projectUuid)),
+      SiteCompanion(projectUuid: Value(projectUuid)),
+    ]);
+    batch.insertAll(database.collEvent, [
+      CollEventCompanion(projectUuid: Value(projectUuid)),
+      CollEventCompanion(projectUuid: Value(projectUuid)),
+      CollEventCompanion(projectUuid: Value(projectUuid)),
+    ]);
+    batch.insertAll(database.specimen, [
+      const SpecimenCompanion(
+        uuid: Value('record-specimen-1'),
+        projectUuid: Value(projectUuid),
+      ),
+      const SpecimenCompanion(
+        uuid: Value('record-specimen-2'),
+        projectUuid: Value(projectUuid),
+      ),
+      const SpecimenCompanion(
+        uuid: Value('record-specimen-3'),
+        projectUuid: Value(projectUuid),
+      ),
+      const SpecimenCompanion(
+        uuid: Value('record-specimen-4'),
+        projectUuid: Value(projectUuid),
+      ),
+    ]);
+    batch.insertAll(database.narrative, [
+      NarrativeCompanion(projectUuid: Value(projectUuid)),
+      NarrativeCompanion(projectUuid: Value(projectUuid)),
+      NarrativeCompanion(projectUuid: Value(projectUuid)),
+      NarrativeCompanion(projectUuid: Value(projectUuid)),
+      NarrativeCompanion(projectUuid: Value(projectUuid)),
+    ]);
+  });
+
+  final container = ProviderContainer(
+    overrides: [databaseProvider.overrideWithValue(database)],
+  );
+  addTearDown(container.dispose);
+  container.read(projectUuidProvider.notifier).updateProjectUuid(projectUuid);
+
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: const MaterialApp(home: Scaffold(body: StatisticViewer())),
+    ),
+  );
+  await tester.pumpAndSettle();
 }

@@ -126,6 +126,13 @@ void main() {
     expect(find.byKey(const ValueKey('registry-stat-taxa')), findsOneWidget);
     expect(find.text('Registered'), findsOneWidget);
     expect(
+      find.descendant(
+        of: find.byType(RegisteredTaxa),
+        matching: find.byType(Icon),
+      ),
+      findsNothing,
+    );
+    expect(
       tester.getSize(find.byKey(const ValueKey('registry-stat-orders'))).height,
       greaterThanOrEqualTo(104),
     );
@@ -134,6 +141,30 @@ void main() {
       find.descendant(of: registeredContainer, matching: find.byType(Divider)),
       findsNothing,
     );
+  });
+
+  testWidgets('taxon registry expands species when total taxa is absent', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture();
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('registry-stat-taxa')), findsNothing);
+    final ordersWidth = tester
+        .getSize(find.byKey(const ValueKey('registry-stat-orders')))
+        .width;
+    final speciesWidth = tester
+        .getSize(find.byKey(const ValueKey('registry-stat-species')))
+        .width;
+    expect(speciesWidth, greaterThan(ordersWidth));
   });
 
   testWidgets('manage taxa category picker filters by selected field', (

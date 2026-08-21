@@ -121,47 +121,58 @@ class RegisteredTaxa extends StatelessWidget {
     final metrics = _metrics(taxonData);
     return TaxonDataContainer(
       child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        padding: const EdgeInsets.symmetric(
+          horizontal: NahpuSpacing.xl,
+          vertical: NahpuSpacing.lg,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.account_tree_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: NahpuSpacing.md),
-                Text(
-                  'Registered',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
+            Center(
+              child: Text(
+                'Registered',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             const SizedBox(height: NahpuSpacing.lg),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = metrics.length >= 4
-                    ? 2
-                    : constraints.maxWidth >= 360
-                    ? metrics.length
-                    : 2;
-                final spacing = NahpuSpacing.md * (columns - 1);
-                final width = (constraints.maxWidth - spacing) / columns;
-                return Wrap(
-                  spacing: NahpuSpacing.md,
-                  runSpacing: NahpuSpacing.md,
-                  children: [
-                    for (final metric in metrics)
-                      SizedBox(
-                        key: ValueKey('registry-stat-${metric.label}'),
-                        width: width,
-                        child: _RegistryMetric(metric: metric),
-                      ),
-                  ],
-                );
-              },
+            Container(
+              width: double.infinity,
+              alignment: Alignment.center,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final useTwoColumns = constraints.maxWidth >= 320;
+                    final hasTotalTaxa = metrics.any(
+                      (metric) => metric.label == 'taxa',
+                    );
+                    final spacing = NahpuSpacing.lg;
+                    final width = useTwoColumns
+                        ? (constraints.maxWidth - spacing) / 2
+                        : constraints.maxWidth;
+                    final height = useTwoColumns ? 104.0 : 64.0;
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (final metric in metrics)
+                          SizedBox(
+                            key: ValueKey('registry-stat-${metric.label}'),
+                            width: !hasTotalTaxa && metric.label == 'species'
+                                ? constraints.maxWidth
+                                : width,
+                            height: height,
+                            child: _RegistryMetric(
+                              metric: metric,
+                              compact: !useTwoColumns,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -213,33 +224,38 @@ class _RegistryMetricData {
 }
 
 class _RegistryMetric extends StatelessWidget {
-  const _RegistryMetric({required this.metric});
+  const _RegistryMetric({required this.metric, required this.compact});
 
   final _RegistryMetricData metric;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      constraints: const BoxConstraints(minHeight: 104),
-      padding: const EdgeInsets.symmetric(
-        horizontal: NahpuSpacing.lg,
-        vertical: NahpuSpacing.xl,
-      ),
+      alignment: Alignment.center,
+      padding: EdgeInsets.all(compact ? NahpuSpacing.md : NahpuSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${metric.value}',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+            style: compact
+                ? Theme.of(context).textTheme.titleMedium
+                : Theme.of(context).textTheme.headlineSmall,
           ),
-          Text(metric.label, style: Theme.of(context).textTheme.labelLarge),
+          SizedBox(height: compact ? NahpuSpacing.xxs : NahpuSpacing.xs),
+          Text(
+            metric.label,
+            style: compact
+                ? Theme.of(context).textTheme.bodySmall
+                : Theme.of(context).textTheme.titleSmall,
+          ),
         ],
       ),
     );
