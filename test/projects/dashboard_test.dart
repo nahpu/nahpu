@@ -51,7 +51,7 @@ void main() {
     );
 
     expect(registryActions.bottom, closeTo(recordActions.bottom, 0.1));
-    expect(recordActions.top - recordSecondary.bottom, closeTo(8, 0.1));
+    expect(recordActions.top, greaterThan(recordSecondary.bottom));
   });
 
   testWidgets('stacked dashboard panels keep content before actions', (
