@@ -298,24 +298,24 @@ void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
     find.byKey(const ValueKey('record-stat-specimens')),
   );
   final heroDecoration = hero.decoration! as BoxDecoration;
-  final primaryForeground = theme.colorScheme.onPrimaryContainer;
-  final primaryBackground = theme.colorScheme.primaryContainer.withValues(
+  final secondaryForeground = theme.colorScheme.onSecondaryContainer;
+  final secondaryBackground = theme.colorScheme.secondaryContainer.withValues(
     alpha: 0.16,
   );
-  expect(heroDecoration.color, primaryBackground);
+  expect(heroDecoration.color, secondaryBackground);
   for (final text in tester.widgetList<Text>(
     find.descendant(
       of: find.byKey(const ValueKey('record-stat-specimens')),
       matching: find.byType(Text),
     ),
   )) {
-    expect(text.style?.color, primaryForeground);
+    expect(text.style?.color, secondaryForeground);
     expect(text.textAlign, TextAlign.center);
   }
   expect(
     _contrastRatio(
-      primaryForeground,
-      Color.alphaBlend(primaryBackground, theme.colorScheme.surface),
+      secondaryForeground,
+      Color.alphaBlend(secondaryBackground, theme.colorScheme.surface),
     ),
     greaterThanOrEqualTo(4.5),
   );

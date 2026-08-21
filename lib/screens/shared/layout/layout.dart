@@ -164,17 +164,26 @@ class DashboardPanelBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 360, maxWidth: 460),
+      constraints: const BoxConstraints(
+        minHeight: 360,
+        maxHeight: 360,
+        maxWidth: 460,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Align(
-              alignment: contentAlignment,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: content,
-              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Align(
+                  alignment: contentAlignment,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: content,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),

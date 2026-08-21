@@ -25,7 +25,7 @@ class StatisticViewer extends ConsumerWidget {
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
-        contentAlignment: Alignment.center,
+        contentAlignment: Alignment.bottomCenter,
         content: totals.when(
           data: (value) => _RecordStatisticsSummary(totals: value),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -69,8 +69,8 @@ class _RecordStatisticsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final primaryForeground = colorScheme.onPrimaryContainer;
-    final primaryBackground = colorScheme.primaryContainer.withValues(
+    final secondaryForeground = colorScheme.onSecondaryContainer;
+    final secondaryBackground = colorScheme.secondaryContainer.withValues(
       alpha: 0.16,
     );
 
@@ -87,7 +87,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
             NahpuSpacing.lg,
           ),
           decoration: BoxDecoration(
-            color: primaryBackground,
+            color: secondaryBackground,
             borderRadius: BorderRadius.circular(NahpuRadius.md),
             border: Border.all(color: colorScheme.outlineVariant),
           ),
@@ -99,14 +99,14 @@ class _RecordStatisticsSummary extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.headlineLarge?.copyWith(color: primaryForeground),
+                ).textTheme.headlineLarge?.copyWith(color: secondaryForeground),
               ),
               Text(
                 'Specimens',
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
-                ).textTheme.titleMedium?.copyWith(color: primaryForeground),
+                ).textTheme.titleMedium?.copyWith(color: secondaryForeground),
               ),
               const SizedBox(height: NahpuSpacing.md),
               Container(
@@ -125,7 +125,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
                       count: totals.speciesCount,
                       countStyle: Theme.of(context).textTheme.titleLarge,
                       labelStyle: Theme.of(context).textTheme.bodyMedium,
-                      foregroundColor: primaryForeground,
+                      foregroundColor: secondaryForeground,
                     ),
                   ),
                   Container(
@@ -140,7 +140,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
                       count: totals.familyCount,
                       countStyle: Theme.of(context).textTheme.titleLarge,
                       labelStyle: Theme.of(context).textTheme.bodyMedium,
-                      foregroundColor: primaryForeground,
+                      foregroundColor: secondaryForeground,
                     ),
                   ),
                 ],
