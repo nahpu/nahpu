@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/styles/themes.dart';
 
 void main() {
   testWidgets('manage taxa uses outlined tap-driven details and search', (
@@ -124,7 +125,8 @@ void main() {
     );
     expect(find.byKey(const ValueKey('registry-stat-species')), findsOneWidget);
     expect(find.byKey(const ValueKey('registry-stat-taxa')), findsOneWidget);
-    expect(find.text('Registered'), findsOneWidget);
+    expect(find.text('Registered'), findsNothing);
+    expect(find.text('species registered'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(RegisteredTaxa),
@@ -165,6 +167,58 @@ void main() {
         .getSize(find.byKey(const ValueKey('registry-stat-species')))
         .width;
     expect(speciesWidth, greaterThan(ordersWidth));
+  });
+
+  testWidgets('taxon registry uses accessible secondary tile colors', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture(includeGenusTaxon: true);
+    addTearDown(fixture.database.close);
+
+    for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [databaseProvider.overrideWithValue(fixture.database)],
+          child: MaterialApp(
+            theme: theme,
+            home: const Scaffold(body: TaxonRegistryViewer()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      const labels = ['orders', 'families', 'species', 'taxa'];
+      for (final label in labels) {
+        final tile = find.byKey(ValueKey('registry-stat-$label'));
+        final container = tester.widget<Container>(
+          find.descendant(of: tile, matching: find.byType(Container)),
+        );
+        final decoration = container.decoration! as BoxDecoration;
+        final foregroundColor = theme.colorScheme.onSecondaryContainer;
+        final backgroundColor = theme.colorScheme.secondaryContainer.withValues(
+          alpha: 0.16,
+        );
+
+        expect(decoration.color, backgroundColor);
+        final texts = tester
+            .widgetList<Text>(
+              find.descendant(of: tile, matching: find.byType(Text)),
+            )
+            .toList();
+        expect(texts, hasLength(2));
+        expect(texts[0].style?.color, foregroundColor);
+        expect(texts[0].textAlign, TextAlign.center);
+        expect(texts[1].style?.color, foregroundColor);
+        expect(texts[1].textAlign, TextAlign.center);
+        expect(
+          _contrastRatio(
+            foregroundColor,
+            Color.alphaBlend(backgroundColor, theme.colorScheme.surface),
+          ),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+    }
   });
 
   testWidgets('manage taxa category picker filters by selected field', (
@@ -286,6 +340,18 @@ void main() {
       findsOneWidget,
     );
   });
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter = firstLuminance > secondLuminance
+      ? firstLuminance
+      : secondLuminance;
+  final darker = firstLuminance > secondLuminance
+      ? secondLuminance
+      : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 Future<_TaxonFixture> _pumpManageTaxa(

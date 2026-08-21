@@ -97,12 +97,16 @@ class RecordStatisticTotals {
     required this.siteCount,
     required this.eventCount,
     required this.specimenCount,
+    required this.speciesCount,
+    required this.familyCount,
     required this.narrativeCount,
   });
 
   final int siteCount;
   final int eventCount;
   final int specimenCount;
+  final int speciesCount;
+  final int familyCount;
   final int narrativeCount;
 }
 

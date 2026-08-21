@@ -13,6 +13,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/statistics.dart';
+import 'package:nahpu/styles/themes.dart';
 
 void main() {
   testWidgets('record statistics panel shows project record counts', (
@@ -21,28 +22,89 @@ void main() {
     await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
 
     expect(find.text('Record Statistics'), findsOneWidget);
-    expect(find.text('Record counts'), findsOneWidget);
+    expect(find.text('Record counts'), findsNothing);
     expect(find.text('Top species'), findsNothing);
     expect(find.byType(StatisticBarChart), findsNothing);
-    expect(find.text('Sites'), findsOneWidget);
-    expect(find.text('Events'), findsOneWidget);
-    expect(find.text('Specimens'), findsOneWidget);
-    expect(find.text('Narratives'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
-    expect(find.text('3'), findsOneWidget);
-    expect(find.text('4'), findsOneWidget);
-    expect(find.text('5'), findsOneWidget);
+    _expectRecordMetric(tester, 'specimens', label: 'Specimens', count: 4);
+    _expectRecordMetric(tester, 'species', label: 'Species', count: 2);
+    _expectRecordMetric(tester, 'families', label: 'Families', count: 1);
+    _expectRecordMetric(tester, 'sites', label: 'Sites', count: 2);
+    _expectRecordMetric(tester, 'events', label: 'Events', count: 3);
+    _expectRecordMetric(tester, 'narratives', label: 'Narratives', count: 5);
+    expect(find.text('Explore more stats'), findsOneWidget);
+    expect(find.text('Open statistics'), findsNothing);
   });
 
-  testWidgets('record statistics bento stacks on narrow panels', (
+  testWidgets('record statistics preserves its hierarchy on narrow panels', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(280, 600));
 
-    final sites = tester.getRect(find.text('Sites'));
-    final events = tester.getRect(find.text('Events'));
-    expect(events.top, greaterThan(sites.bottom));
+    expect(tester.takeException(), isNull);
+    final hero = tester.getRect(
+      find.byKey(const ValueKey('record-stat-specimens')),
+    );
+    final secondary = tester.getRect(
+      find.byKey(const ValueKey('record-stat-secondary')),
+    );
+    expect(hero.width, secondary.width);
+
+    final specimenCount = _metricTexts(tester, 'specimens').first;
+    final speciesCount = _metricTexts(tester, 'species').first;
+    final siteCount = _metricTexts(tester, 'sites').first;
+    expect(
+      specimenCount.style!.fontSize,
+      greaterThan(speciesCount.style!.fontSize!),
+    );
+    expect(
+      speciesCount.style!.fontSize,
+      greaterThan(siteCount.style!.fontSize!),
+    );
   });
+
+  testWidgets('record statistics opens help and detailed species statistics', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+
+    await tester.tap(find.byTooltip('Show information'));
+    await tester.pumpAndSettle();
+    expect(find.text('Record statistics'), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
+
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Explore more stats'));
+    await tester.pumpAndSettle();
+    expect(find.text('Project Statistics'), findsOneWidget);
+    expect(find.text('Species counts'), findsWidgets);
+  });
+
+  testWidgets(
+    'record statistics uses accessible summary colors in light theme',
+    (tester) async {
+      final theme = NahpuTheme.lightTheme();
+      await _pumpRecordStatisticsPanel(
+        tester,
+        const Size(600, 600),
+        theme: theme,
+      );
+      _expectRecordSummaryColors(tester, theme);
+    },
+  );
+
+  testWidgets(
+    'record statistics uses accessible summary colors in dark theme',
+    (tester) async {
+      final theme = NahpuTheme.darkTheme();
+      await _pumpRecordStatisticsPanel(
+        tester,
+        const Size(600, 600),
+        theme: theme,
+      );
+      _expectRecordSummaryColors(tester, theme);
+    },
+  );
 
   testWidgets('bar chart keeps complete labels available', (tester) async {
     const longLabel = 'Extremely long scientific category label';
@@ -231,7 +293,89 @@ void main() {
   });
 }
 
-Future<void> _pumpRecordStatisticsPanel(WidgetTester tester, Size size) async {
+void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
+  final hero = tester.widget<Container>(
+    find.byKey(const ValueKey('record-stat-specimens')),
+  );
+  final heroDecoration = hero.decoration! as BoxDecoration;
+  final primaryForeground = theme.colorScheme.onPrimaryContainer;
+  final primaryBackground = theme.colorScheme.primaryContainer.withValues(
+    alpha: 0.16,
+  );
+  expect(heroDecoration.color, primaryBackground);
+  for (final text in tester.widgetList<Text>(
+    find.descendant(
+      of: find.byKey(const ValueKey('record-stat-specimens')),
+      matching: find.byType(Text),
+    ),
+  )) {
+    expect(text.style?.color, primaryForeground);
+    expect(text.textAlign, TextAlign.center);
+  }
+  expect(
+    _contrastRatio(
+      primaryForeground,
+      Color.alphaBlend(primaryBackground, theme.colorScheme.surface),
+    ),
+    greaterThanOrEqualTo(4.5),
+  );
+
+  final secondary = tester.widget<Container>(
+    find.byKey(const ValueKey('record-stat-secondary')),
+  );
+  final secondaryDecoration = secondary.decoration! as BoxDecoration;
+  expect(secondaryDecoration.color, theme.colorScheme.surfaceContainerLow);
+  for (final text in tester.widgetList<Text>(
+    find.descendant(
+      of: find.byKey(const ValueKey('record-stat-secondary')),
+      matching: find.byType(Text),
+    ),
+  )) {
+    expect(text.style?.color, theme.colorScheme.onSurface);
+    expect(text.textAlign, TextAlign.center);
+  }
+  expect(
+    _contrastRatio(
+      theme.colorScheme.onSurface,
+      theme.colorScheme.surfaceContainerLow,
+    ),
+    greaterThanOrEqualTo(4.5),
+  );
+}
+
+void _expectRecordMetric(
+  WidgetTester tester,
+  String key, {
+  required String label,
+  required int count,
+}) {
+  final metric = find.byKey(ValueKey('record-stat-$key'));
+  expect(
+    find.descendant(of: metric, matching: find.text(label)),
+    findsOneWidget,
+  );
+  expect(
+    find.descendant(of: metric, matching: find.text(count.toString())),
+    findsOneWidget,
+  );
+}
+
+List<Text> _metricTexts(WidgetTester tester, String key) {
+  return tester
+      .widgetList<Text>(
+        find.descendant(
+          of: find.byKey(ValueKey('record-stat-$key')),
+          matching: find.byType(Text),
+        ),
+      )
+      .toList(growable: false);
+}
+
+Future<void> _pumpRecordStatisticsPanel(
+  WidgetTester tester,
+  Size size, {
+  ThemeData? theme,
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
@@ -251,6 +395,24 @@ Future<void> _pumpRecordStatisticsPanel(WidgetTester tester, Size size) async {
           name: Value('Record Statistics Project'),
         ),
       );
+  final myotis = await database
+      .into(database.taxonomy)
+      .insert(
+        const TaxonomyCompanion(
+          taxonFamily: Value('Vespertilionidae'),
+          genus: Value('Myotis'),
+          specificEpithet: Value('lucifugus'),
+        ),
+      );
+  final eptesicus = await database
+      .into(database.taxonomy)
+      .insert(
+        const TaxonomyCompanion(
+          taxonFamily: Value('Vespertilionidae'),
+          genus: Value('Eptesicus'),
+          specificEpithet: Value('fuscus'),
+        ),
+      );
   await database.batch((batch) {
     batch.insertAll(database.site, [
       SiteCompanion(projectUuid: Value(projectUuid)),
@@ -262,17 +424,20 @@ Future<void> _pumpRecordStatisticsPanel(WidgetTester tester, Size size) async {
       CollEventCompanion(projectUuid: Value(projectUuid)),
     ]);
     batch.insertAll(database.specimen, [
-      const SpecimenCompanion(
-        uuid: Value('record-specimen-1'),
-        projectUuid: Value(projectUuid),
+      SpecimenCompanion(
+        uuid: const Value('record-specimen-1'),
+        projectUuid: const Value(projectUuid),
+        speciesID: Value(myotis),
       ),
-      const SpecimenCompanion(
-        uuid: Value('record-specimen-2'),
-        projectUuid: Value(projectUuid),
+      SpecimenCompanion(
+        uuid: const Value('record-specimen-2'),
+        projectUuid: const Value(projectUuid),
+        speciesID: Value(myotis),
       ),
-      const SpecimenCompanion(
-        uuid: Value('record-specimen-3'),
-        projectUuid: Value(projectUuid),
+      SpecimenCompanion(
+        uuid: const Value('record-specimen-3'),
+        projectUuid: const Value(projectUuid),
+        speciesID: Value(eptesicus),
       ),
       const SpecimenCompanion(
         uuid: Value('record-specimen-4'),
@@ -297,8 +462,23 @@ Future<void> _pumpRecordStatisticsPanel(WidgetTester tester, Size size) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: const MaterialApp(home: Scaffold(body: StatisticViewer())),
+      child: MaterialApp(
+        theme: theme,
+        home: const Scaffold(body: StatisticViewer()),
+      ),
     ),
   );
   await tester.pumpAndSettle();
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter = firstLuminance > secondLuminance
+      ? firstLuminance
+      : secondLuminance;
+  final darker = firstLuminance > secondLuminance
+      ? secondLuminance
+      : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }

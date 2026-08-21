@@ -121,24 +121,67 @@ class AdaptiveMainLayout extends StatelessWidget {
     required this.useHorizontalLayout,
     required this.children,
     required this.height,
+    this.stretchChildren = false,
   });
 
   final List<Widget> children;
   final bool useHorizontalLayout;
   final double height;
+  final bool stretchChildren;
 
   @override
   Widget build(BuildContext context) {
     return useHorizontalLayout
-        ? ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: height,
-            ),
-            child: LayoutRow(
-              withPadding: false,
-              children: children,
-            ))
+        ? stretchChildren
+              ? SizedBox(
+                  height: height,
+                  child: LayoutRow(
+                    withPadding: false,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: children,
+                  ),
+                )
+              : ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: height),
+                  child: LayoutRow(withPadding: false, children: children),
+                )
         : LayoutContainer(children: children);
+  }
+}
+
+class DashboardPanelBody extends StatelessWidget {
+  const DashboardPanelBody({
+    super.key,
+    required this.content,
+    required this.actions,
+    this.contentAlignment = Alignment.topCenter,
+  });
+
+  final Widget content;
+  final Widget actions;
+  final Alignment contentAlignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 360, maxWidth: 460),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Align(
+              alignment: contentAlignment,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: content,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Align(alignment: Alignment.center, child: actions),
+        ],
+      ),
+    );
   }
 }
 
@@ -204,15 +247,17 @@ class LayoutRow extends StatelessWidget {
     super.key,
     required this.children,
     this.withPadding = true,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
   });
 
   final List<Widget> children;
   final bool withPadding;
+  final CrossAxisAlignment crossAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: crossAxisAlignment,
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -22,156 +22,239 @@ class StatisticViewer extends ConsumerWidget {
 
     return FormCard(
       title: 'Record Statistics',
+      infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 360, maxWidth: 460),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: totals.when(
-                data: (value) => Container(
-                  width: double.infinity,
-                  alignment: Alignment.center,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Record counts',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: NahpuSpacing.lg),
-                        _RecordStatisticsBento(totals: value),
-                      ],
-                    ),
-                  ),
+      child: DashboardPanelBody(
+        contentAlignment: Alignment.center,
+        content: totals.when(
+          data: (value) => _RecordStatisticsSummary(totals: value),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Unable to load record statistics: $error'),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () =>
+                      ref.invalidate(recordStatisticTotalsProvider),
+                  child: const Text('Retry'),
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stackTrace) => Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Unable to load record statistics: $error'),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () =>
-                            ref.invalidate(recordStatisticTotalsProvider),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
+              ],
+            ),
+          ),
+        ),
+        actions: FilledButton(
+          key: const ValueKey('record-statistics-actions'),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const StatisticFullScreen(
+                startingStatistic: StatisticKind.species,
               ),
             ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.center,
-              child: FilledButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const StatisticFullScreen(
-                      startingStatistic: StatisticKind.species,
-                    ),
-                  ),
-                ),
-                child: const Text('Open statistics'),
-              ),
-            ),
-          ],
+          ),
+          child: const Text('Explore more stats'),
         ),
       ),
     );
   }
 }
 
-class _RecordStatisticsBento extends StatelessWidget {
-  const _RecordStatisticsBento({required this.totals});
+class _RecordStatisticsSummary extends StatelessWidget {
+  const _RecordStatisticsSummary({required this.totals});
 
   final RecordStatisticTotals totals;
 
   @override
   Widget build(BuildContext context) {
-    final records = [
-      (label: 'Sites', count: totals.siteCount),
-      (label: 'Events', count: totals.eventCount),
-      (label: 'Specimens', count: totals.specimenCount),
-      (label: 'Narratives', count: totals.narrativeCount),
-    ];
+    final colorScheme = Theme.of(context).colorScheme;
+    final primaryForeground = colorScheme.onPrimaryContainer;
+    final primaryBackground = colorScheme.primaryContainer.withValues(
+      alpha: 0.16,
+    );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useTwoColumns = constraints.maxWidth >= 320;
-        final tileWidth = useTwoColumns
-            ? (constraints.maxWidth - NahpuSpacing.lg) / 2
-            : constraints.maxWidth;
-        final spacing = useTwoColumns ? NahpuSpacing.lg : NahpuSpacing.md;
-        final tileHeight = useTwoColumns ? 96.0 : 56.0;
-
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: [
-            for (final record in records)
-              SizedBox(
-                width: tileWidth,
-                height: tileHeight,
-                child: _RecordStatisticTile(
-                  label: record.label,
-                  count: record.count,
-                  compact: !useTwoColumns,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          key: const ValueKey('record-stat-specimens'),
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.lg,
+            NahpuSpacing.xl,
+            NahpuSpacing.lg,
+            NahpuSpacing.lg,
+          ),
+          decoration: BoxDecoration(
+            color: primaryBackground,
+            borderRadius: BorderRadius.circular(NahpuRadius.md),
+            border: Border.all(color: colorScheme.outlineVariant),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                totals.specimenCount.toString(),
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineLarge?.copyWith(color: primaryForeground),
+              ),
+              Text(
+                'Specimens',
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: primaryForeground),
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              Container(
+                width: double.infinity,
+                height: NahpuStroke.thin,
+                color: colorScheme.outlineVariant,
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: _RecordStatisticMetric(
+                      key: const ValueKey('record-stat-species'),
+                      label: 'Species',
+                      count: totals.speciesCount,
+                      countStyle: Theme.of(context).textTheme.titleLarge,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium,
+                      foregroundColor: primaryForeground,
+                    ),
+                  ),
+                  Container(
+                    width: NahpuStroke.thin,
+                    height: NahpuControlSize.touchTarget,
+                    color: colorScheme.outlineVariant,
+                  ),
+                  Expanded(
+                    child: _RecordStatisticMetric(
+                      key: const ValueKey('record-stat-families'),
+                      label: 'Families',
+                      count: totals.familyCount,
+                      countStyle: Theme.of(context).textTheme.titleLarge,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium,
+                      foregroundColor: primaryForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
+        Container(
+          key: const ValueKey('record-stat-secondary'),
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(
+            0,
+            NahpuSpacing.lg,
+            0,
+            NahpuSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(NahpuRadius.md),
+            border: Border.all(color: colorScheme.outlineVariant),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _RecordStatisticMetric(
+                  key: const ValueKey('record-stat-sites'),
+                  label: 'Sites',
+                  count: totals.siteCount,
+                  countStyle: Theme.of(context).textTheme.titleMedium,
+                  labelStyle: Theme.of(context).textTheme.bodySmall,
+                  foregroundColor: colorScheme.onSurface,
                 ),
               ),
-          ],
-        );
-      },
+              Container(
+                width: NahpuStroke.thin,
+                height: NahpuControlSize.control,
+                color: colorScheme.outlineVariant,
+              ),
+              Expanded(
+                child: _RecordStatisticMetric(
+                  key: const ValueKey('record-stat-events'),
+                  label: 'Events',
+                  count: totals.eventCount,
+                  countStyle: Theme.of(context).textTheme.titleMedium,
+                  labelStyle: Theme.of(context).textTheme.bodySmall,
+                  foregroundColor: colorScheme.onSurface,
+                ),
+              ),
+              Container(
+                width: NahpuStroke.thin,
+                height: NahpuControlSize.control,
+                color: colorScheme.outlineVariant,
+              ),
+              Expanded(
+                child: _RecordStatisticMetric(
+                  key: const ValueKey('record-stat-narratives'),
+                  label: 'Narratives',
+                  count: totals.narrativeCount,
+                  countStyle: Theme.of(context).textTheme.titleMedium,
+                  labelStyle: Theme.of(context).textTheme.bodySmall,
+                  foregroundColor: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _RecordStatisticTile extends StatelessWidget {
-  const _RecordStatisticTile({
+class _RecordStatisticMetric extends StatelessWidget {
+  const _RecordStatisticMetric({
+    super.key,
     required this.label,
     required this.count,
-    required this.compact,
+    required this.countStyle,
+    required this.labelStyle,
+    required this.foregroundColor,
   });
 
   final String label;
   final int count;
-  final bool compact;
+  final TextStyle? countStyle;
+  final TextStyle? labelStyle;
+  final Color foregroundColor;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      alignment: Alignment.center,
-      padding: EdgeInsets.all(compact ? NahpuSpacing.xs : NahpuSpacing.lg),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(NahpuRadius.md),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            count.toString(),
-            style: compact
-                ? Theme.of(context).textTheme.titleMedium
-                : Theme.of(context).textTheme.headlineSmall,
-          ),
-          SizedBox(height: compact ? NahpuSpacing.xxs : NahpuSpacing.xs),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: compact
-                ? Theme.of(context).textTheme.bodySmall
-                : Theme.of(context).textTheme.titleSmall,
-          ),
-        ],
+    return Semantics(
+      container: true,
+      label: '$label: $count',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xxs),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              count.toString(),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: countStyle?.copyWith(color: foregroundColor),
+            ),
+            const SizedBox(height: NahpuSpacing.xxs),
+            Text(
+              label,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: labelStyle?.copyWith(color: foregroundColor),
+            ),
+          ],
+        ),
       ),
     );
   }

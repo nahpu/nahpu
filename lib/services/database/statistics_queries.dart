@@ -123,6 +123,24 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           (SELECT COUNT(*) FROM site WHERE projectUuid = ?) AS site_count,
           (SELECT COUNT(*) FROM collEvent WHERE projectUuid = ?) AS event_count,
           (SELECT COUNT(*) FROM specimen WHERE projectUuid = ?) AS specimen_count,
+          (
+            SELECT COUNT(
+              DISTINCT lower(trim(taxonomy.genus)) || ' ' ||
+                lower(trim(taxonomy.specificEpithet))
+            )
+            FROM specimen
+            INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
+            WHERE specimen.projectUuid = ?
+              AND trim(coalesce(taxonomy.genus, '')) != ''
+              AND trim(coalesce(taxonomy.specificEpithet, '')) != ''
+          ) AS species_count,
+          (
+            SELECT COUNT(DISTINCT lower(trim(taxonomy.taxonFamily)))
+            FROM specimen
+            INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
+            WHERE specimen.projectUuid = ?
+              AND trim(coalesce(taxonomy.taxonFamily, '')) != ''
+          ) AS family_count,
           (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count
       ''',
       variables: [
@@ -130,13 +148,23 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         Variable(projectUuid),
         Variable(projectUuid),
         Variable(projectUuid),
+        Variable(projectUuid),
+        Variable(projectUuid),
       ],
-      readsFrom: {db.site, db.collEvent, db.specimen, db.narrative},
+      readsFrom: {
+        db.site,
+        db.collEvent,
+        db.specimen,
+        db.taxonomy,
+        db.narrative,
+      },
     ).watchSingle().map(
       (row) => RecordStatisticTotals(
         siteCount: row.read<int>('site_count'),
         eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
+        speciesCount: row.read<int>('species_count'),
+        familyCount: row.read<int>('family_count'),
         narrativeCount: row.read<int>('narrative_count'),
       ),
     );

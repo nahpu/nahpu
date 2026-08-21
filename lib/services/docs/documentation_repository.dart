@@ -18,6 +18,7 @@ enum InfoTopic {
   projectOverview('project-overview'),
   projectPersonnel('project-personnel'),
   taxonRegistry('taxon-registry'),
+  recordStatistics('record-statistics'),
   siteOverview('site-overview'),
   siteGeography('site-geography'),
   siteHabitat('site-habitat'),

@@ -141,13 +141,54 @@ void main() {
     expect(totals.siteCount, 1);
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
+    expect(totals.speciesCount, 2);
+    expect(totals.familyCount, 1);
     expect(totals.narrativeCount, 1);
 
     final otherProjectTotals = await query.watchRecordTotals('project-b').first;
     expect(otherProjectTotals.siteCount, 0);
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
+    expect(otherProjectTotals.speciesCount, 1);
+    expect(otherProjectTotals.familyCount, 1);
     expect(otherProjectTotals.narrativeCount, 1);
+
+    final normalizedDuplicate = await db
+        .into(db.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonFamily: Value(' vespertilionidae '),
+            genus: Value(' myotis '),
+            specificEpithet: Value(' LUCIFUGUS '),
+          ),
+        );
+    final incompleteSpecies = await db
+        .into(db.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonFamily: Value('Molossidae'),
+            genus: Value('Tadarida'),
+          ),
+        );
+    await db.batch((batch) {
+      batch.insertAll(db.specimen, [
+        SpecimenCompanion(
+          uuid: const Value('a-normalized-duplicate'),
+          projectUuid: const Value('project-a'),
+          speciesID: Value(normalizedDuplicate),
+        ),
+        SpecimenCompanion(
+          uuid: const Value('a-incomplete-species'),
+          projectUuid: const Value('project-a'),
+          speciesID: Value(incompleteSpecies),
+        ),
+      ]);
+    });
+
+    final updatedTotals = await query.watchRecordTotals('project-a').first;
+    expect(updatedTotals.specimenCount, 6);
+    expect(updatedTotals.speciesCount, 2);
+    expect(updatedTotals.familyCount, 2);
   });
 
   test('table rows include stable rank and percentages', () {

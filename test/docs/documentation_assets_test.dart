@@ -6,8 +6,8 @@ import 'package:nahpu/services/docs/documentation_repository.dart';
 void main() {
   final repository = DocumentationRepository();
 
-  test('all 22 info topics exist in every supported language', () {
-    expect(InfoTopic.values, hasLength(22));
+  test('all 23 info topics exist in every supported language', () {
+    expect(InfoTopic.values, hasLength(23));
 
     for (final language in DocsLanguage.values) {
       for (final topic in InfoTopic.values) {

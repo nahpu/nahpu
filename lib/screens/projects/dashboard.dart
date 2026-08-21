@@ -97,6 +97,7 @@ class BottomPanel extends StatelessWidget {
     return AdaptiveMainLayout(
       useHorizontalLayout: useHorizontalLayout,
       height: bottomDashboardHeight,
+      stretchChildren: true,
       children: const [TaxonRegistryViewer(), StatisticViewer()],
     );
   }
