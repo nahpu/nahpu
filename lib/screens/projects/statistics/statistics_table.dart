@@ -16,10 +16,16 @@ class StatisticDataTable extends StatefulWidget {
     super.key,
     required this.rows,
     required this.onExport,
+    this.categoryLabel = 'Category',
+    this.seriesLabel,
+    this.countLabel = 'Count',
   });
 
   final List<StatisticTableRow> rows;
   final VoidCallback? onExport;
+  final String categoryLabel;
+  final String? seriesLabel;
+  final String countLabel;
 
   @override
   State<StatisticDataTable> createState() => _StatisticDataTableState();
@@ -54,12 +60,17 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
         onRowsPerPageChanged: (value) {
           if (value != null) setState(() => _rowsPerPage = value);
         },
-        source: _StatisticDataSource(widget.rows),
-        columns: const [
-          DataColumn(label: Text('Rank'), numeric: true),
-          DataColumn(label: Text('Category')),
-          DataColumn(label: Text('Count'), numeric: true),
-          DataColumn(label: Text('Percent'), numeric: true),
+        source: _StatisticDataSource(
+          widget.rows,
+          hasSeries: widget.seriesLabel != null,
+        ),
+        columns: [
+          const DataColumn(label: Text('Rank'), numeric: true),
+          DataColumn(label: Text(widget.categoryLabel)),
+          if (widget.seriesLabel != null)
+            DataColumn(label: Text(widget.seriesLabel!)),
+          DataColumn(label: Text(widget.countLabel), numeric: true),
+          const DataColumn(label: Text('Percent'), numeric: true),
         ],
       ),
     );
@@ -67,9 +78,10 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
 }
 
 class _StatisticDataSource extends DataTableSource {
-  _StatisticDataSource(this.rows);
+  _StatisticDataSource(this.rows, {required this.hasSeries});
 
   final List<StatisticTableRow> rows;
+  final bool hasSeries;
 
   @override
   DataRow? getRow(int index) {
@@ -85,6 +97,7 @@ class _StatisticDataSource extends DataTableSource {
             child: Text(row.category, overflow: TextOverflow.ellipsis),
           ),
         ),
+        if (hasSeries) DataCell(Text(row.series ?? 'Not recorded')),
         DataCell(Text(row.count.toString())),
         DataCell(Text('${row.percent.toStringAsFixed(1)}%')),
       ],
@@ -105,17 +118,21 @@ Future<void> showStatisticExportDialog({
   required BuildContext context,
   required String defaultFileName,
   required List<StatisticTableRow> rows,
+  String categoryLabel = 'Category',
+  String? seriesLabel,
+  String countLabel = 'Count',
 }) {
   return showTabularExportDialog(
     context: context,
     title: 'Export statistics table',
     defaultFileName: defaultFileName,
-    headers: const ['Rank', 'Category', 'Count', 'Percent (%)'],
+    headers: ['Rank', categoryLabel, ?seriesLabel, countLabel, 'Percent (%)'],
     rows: [
       for (final row in rows)
         [
           row.rank.toString(),
           row.category,
+          if (seriesLabel != null) row.series ?? 'Not recorded',
           row.count.toString(),
           row.percent.toStringAsFixed(2),
         ],

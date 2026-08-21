@@ -13,11 +13,19 @@ final statisticDataProvider = StreamProvider.autoDispose
     });
 
 final statisticFilterOptionsProvider = StreamProvider.autoDispose
-    .family<List<StatisticFilterOption>, StatisticKind>((ref, kind) {
+    .family<List<StatisticFilterOption>, StatisticFilterKind>((ref, kind) {
       final projectUuid = ref.watch(projectUuidProvider);
       return StatisticsQuery(
         ref.watch(databaseProvider),
       ).watchFilterOptions(projectUuid, kind);
+    });
+
+final statisticAvailabilityProvider =
+    StreamProvider.autoDispose<StatisticAvailability>((ref) {
+      final projectUuid = ref.watch(projectUuidProvider);
+      return StatisticsQuery(
+        ref.watch(databaseProvider),
+      ).watchAvailability(projectUuid);
     });
 
 final recordStatisticTotalsProvider =

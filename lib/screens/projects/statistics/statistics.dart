@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
@@ -26,7 +26,7 @@ class StatisticViewer extends ConsumerWidget {
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
-        contentAlignment: Alignment.center,
+        contentAlignment: Alignment.bottomCenter,
         content: totals.when(
           data: (value) => _RecordStatisticsSummary(totals: value),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -51,7 +51,10 @@ class StatisticViewer extends ConsumerWidget {
             context,
             MaterialPageRoute(
               builder: (context) => const StatisticFullScreen(
-                startingStatistic: StatisticKind.species,
+                startingSelection: StatisticSelection(
+                  measure: StatisticMeasure.specimens,
+                  group: StatisticGroup.species,
+                ),
               ),
             ),
           ),
@@ -264,10 +267,13 @@ class _RecordStatisticMetric extends StatelessWidget {
 class StatisticFullScreen extends ConsumerStatefulWidget {
   const StatisticFullScreen({
     super.key,
-    this.startingStatistic = StatisticKind.species,
+    this.startingSelection = const StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.species,
+    ),
   });
 
-  final StatisticKind startingStatistic;
+  final StatisticSelection startingSelection;
 
   @override
   ConsumerState<StatisticFullScreen> createState() =>
@@ -276,28 +282,46 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
 
 class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
   final _detailKey = GlobalKey();
-  final _filters = <StatisticKind, StatisticFilterOption>{};
-  StatisticKind _selectedStatistic = StatisticKind.species;
+  StatisticFilterOption? _siteFilter;
+  StatisticFilterOption? _speciesFilter;
+  late StatisticMeasure _measure;
+  late StatisticGroup _group;
+  StatisticBreakdown? _breakdown;
   _DetailMode _detailMode = _DetailMode.chart;
 
   @override
   void initState() {
     super.initState();
-    _selectedStatistic = widget.startingStatistic;
+    _measure = widget.startingSelection.measure;
+    _group = widget.startingSelection.group;
+    _breakdown = widget.startingSelection.breakdown;
   }
 
   @override
   Widget build(BuildContext context) {
     final projectUuid = ref.watch(projectUuidProvider);
-    final selectedFilter = _filters[_selectedStatistic];
-    final request = StatisticRequest(
-      projectUuid: projectUuid,
-      kind: _selectedStatistic,
-      filterId: selectedFilter?.id,
-    );
-    final details = ref.watch(statisticDataProvider(request));
     final totals = ref.watch(recordStatisticTotalsProvider);
     final projectName = ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
+    final availability = ref.watch(statisticAvailabilityProvider);
+    final hasSex = availability.when(
+      data: (value) => value.hasSex,
+      loading: () => false,
+      error: (error, stackTrace) => false,
+    );
+    final hasLifeStage = availability.when(
+      data: (value) => value.hasLifeStage,
+      loading: () => false,
+      error: (error, stackTrace) => false,
+    );
+    final request = StatisticRequest(
+      projectUuid: projectUuid,
+      measure: _measure,
+      group: _group,
+      breakdown: _breakdown,
+      siteId: _usesSiteFilter ? _siteFilter?.id : null,
+      speciesId: _usesSpeciesFilter ? _speciesFilter?.id : null,
+    );
+    final details = ref.watch(statisticDataProvider(request));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Record Statistics')),
@@ -311,9 +335,19 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CommonPadding(
-                    child: Text(
-                      'Summary',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Summary',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Record totals and top five counts by category.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -324,14 +358,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           ref.invalidate(recordStatisticTotalsProvider),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  CommonPadding(
-                    child: Text(
-                      'Top five',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _StatisticSummary(
                     projectUuid: projectUuid,
                     onExplore: _selectAndReveal,
@@ -349,41 +376,82 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             'Detailed statistics',
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
+                          const SizedBox(height: 16),
+                          _StatisticControl<StatisticMeasure>(
+                            key: const ValueKey('statistics-measure-control'),
+                            label: 'Measure',
+                            values: StatisticMeasure.values,
+                            selected: _measure,
+                            valueLabel: (value) => value.label,
+                            onSelected: (value) =>
+                                _selectMeasure(value, hasLifeStage),
+                          ),
                           const SizedBox(height: 12),
-                          _StatisticKindPicker(
-                            selected: _selectedStatistic,
-                            onSelected: (kind) {
-                              setState(() => _selectedStatistic = kind);
+                          _StatisticControl<StatisticGroup>(
+                            key: const ValueKey('statistics-group-control'),
+                            label: 'Group by',
+                            values: _measure.groups(hasLifeStage: hasLifeStage),
+                            selected: _group,
+                            valueLabel: (value) => value.label,
+                            onSelected: (value) {
+                              setState(() {
+                                _group = value;
+                                _breakdown = null;
+                              });
                             },
                           ),
-                          if (_selectedStatistic.needsSite ||
-                              _selectedStatistic.needsTaxon) ...[
+                          if (_canBreakDown) ...[
+                            const SizedBox(height: 12),
+                            _BreakdownControl(
+                              key: const ValueKey(
+                                'statistics-breakdown-control',
+                              ),
+                              selected: _breakdown,
+                              hasSex: hasSex,
+                              hasLifeStage: hasLifeStage,
+                              onSelected: (value) {
+                                setState(() => _breakdown = value);
+                              },
+                            ),
+                          ],
+                          if (_usesSiteFilter) ...[
                             const SizedBox(height: 12),
                             SearchableStatisticFilterPicker(
                               options: ref.watch(
                                 statisticFilterOptionsProvider(
-                                  _selectedStatistic,
+                                  StatisticFilterKind.site,
                                 ),
                               ),
-                              selected: selectedFilter,
-                              title: _selectedStatistic.needsSite
-                                  ? 'Select a site'
-                                  : 'Select a species',
-                              placeholder: _selectedStatistic.needsSite
-                                  ? 'Select a site'
-                                  : 'Select a species',
+                              selected: _siteFilter,
+                              title: 'Select a site',
+                              placeholder: 'All sites',
                               onChanged: (value) {
-                                setState(() {
-                                  if (value == null) {
-                                    _filters.remove(_selectedStatistic);
-                                  } else {
-                                    _filters[_selectedStatistic] = value;
-                                  }
-                                });
+                                setState(() => _siteFilter = value);
                               },
                               onRetry: () => ref.invalidate(
                                 statisticFilterOptionsProvider(
-                                  _selectedStatistic,
+                                  StatisticFilterKind.site,
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (_usesSpeciesFilter) ...[
+                            const SizedBox(height: 12),
+                            SearchableStatisticFilterPicker(
+                              options: ref.watch(
+                                statisticFilterOptionsProvider(
+                                  StatisticFilterKind.species,
+                                ),
+                              ),
+                              selected: _speciesFilter,
+                              title: 'Select a species',
+                              placeholder: 'All species',
+                              onChanged: (value) {
+                                setState(() => _speciesFilter = value);
+                              },
+                              onRetry: () => ref.invalidate(
+                                statisticFilterOptionsProvider(
+                                  StatisticFilterKind.species,
                                 ),
                               ),
                             ),
@@ -393,7 +461,14 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _selectedStatistic.title,
+                                  request.title(
+                                    siteLabel: _usesSiteFilter
+                                        ? _siteFilter?.label
+                                        : null,
+                                    speciesLabel: _usesSpeciesFilter
+                                        ? _speciesFilter?.label
+                                        : null,
+                                  ),
                                   style: Theme.of(
                                     context,
                                   ).textTheme.titleMedium,
@@ -423,38 +498,42 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          if (!request.isReady)
-                            _FilterPrompt(kind: _selectedStatistic)
-                          else
-                            _StatisticAsyncContent(
-                              value: details,
-                              onRetry: () => ref.invalidate(
-                                statisticDataProvider(request),
-                              ),
-                              builder: (rows) {
-                                if (_detailMode == _DetailMode.chart) {
-                                  return StatisticBarChart(
-                                    data: rows,
-                                    kind: _selectedStatistic,
-                                    height: 420,
-                                  );
-                                }
-                                final tableRows = buildStatisticTableRows(rows);
-                                return StatisticDataTable(
-                                  rows: tableRows,
-                                  onExport: tableRows.isEmpty
-                                      ? null
-                                      : () => showStatisticExportDialog(
-                                          context: context,
-                                          defaultFileName: _defaultFileName(
-                                            projectName,
-                                            selectedFilter,
-                                          ),
-                                          rows: tableRows,
-                                        ),
+                          _StatisticAsyncContent(
+                            value: details,
+                            onRetry: () =>
+                                ref.invalidate(statisticDataProvider(request)),
+                            builder: (rows) {
+                              if (_detailMode == _DetailMode.chart) {
+                                return StatisticBarChart(
+                                  data: rows,
+                                  measure: request.measure,
+                                  group: request.group,
+                                  breakdown: request.breakdown,
+                                  height: 420,
                                 );
-                              },
-                            ),
+                              }
+                              final tableRows = buildStatisticTableRows(rows);
+                              return StatisticDataTable(
+                                rows: tableRows,
+                                categoryLabel: request.group.label,
+                                seriesLabel: request.seriesLabel,
+                                countLabel: request.measure.countLabel,
+                                onExport: tableRows.isEmpty
+                                    ? null
+                                    : () => showStatisticExportDialog(
+                                        context: context,
+                                        defaultFileName: _defaultFileName(
+                                          projectName,
+                                          request,
+                                        ),
+                                        rows: tableRows,
+                                        categoryLabel: request.group.label,
+                                        seriesLabel: request.seriesLabel,
+                                        countLabel: request.measure.countLabel,
+                                      ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -473,8 +552,30 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     );
   }
 
-  void _selectAndReveal(StatisticKind kind) {
-    setState(() => _selectedStatistic = kind);
+  bool get _usesSiteFilter =>
+      _measure == StatisticMeasure.specimens &&
+      _group == StatisticGroup.species;
+
+  bool get _usesSpeciesFilter => _measure == StatisticMeasure.partQuantity;
+
+  bool get _canBreakDown =>
+      _measure == StatisticMeasure.specimens &&
+      _group == StatisticGroup.species;
+
+  void _selectMeasure(StatisticMeasure measure, bool hasLifeStage) {
+    setState(() {
+      _measure = measure;
+      _group = measure.groups(hasLifeStage: hasLifeStage).first;
+      _breakdown = null;
+    });
+  }
+
+  void _selectAndReveal(StatisticSelection selection) {
+    setState(() {
+      _measure = selection.measure;
+      _group = selection.group;
+      _breakdown = selection.breakdown;
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final detailContext = _detailKey.currentContext;
       if (detailContext != null) {
@@ -487,16 +588,17 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     });
   }
 
-  String _defaultFileName(String projectName, StatisticFilterOption? filter) {
+  String _defaultFileName(String projectName, StatisticRequest request) {
     final now = DateTime.now();
     final date =
         '${now.year.toString().padLeft(4, '0')}'
         '${now.month.toString().padLeft(2, '0')}'
         '${now.day.toString().padLeft(2, '0')}';
+    final activeFilter = _usesSiteFilter ? _siteFilter : _speciesFilter;
     final components = [
       projectName,
-      _selectedStatistic.fileSlug,
-      if (filter != null) filter.label,
+      request.fileSlug,
+      if (activeFilter != null) activeFilter.label,
       date,
     ];
     return components
@@ -519,7 +621,7 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return value.when(
-      data: (totals) => _FullScreenRecordStatisticsGrid(totals: totals),
+      data: (totals) => _FullScreenRecordStatisticsCard(totals: totals),
       loading: () => const SizedBox(
         height: 160,
         child: Center(child: CircularProgressIndicator()),
@@ -541,85 +643,93 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
   }
 }
 
-class _FullScreenRecordStatisticsGrid extends StatelessWidget {
-  const _FullScreenRecordStatisticsGrid({required this.totals});
+class _FullScreenRecordStatisticsCard extends StatelessWidget {
+  const _FullScreenRecordStatisticsCard({required this.totals});
 
   final RecordStatisticTotals totals;
 
   @override
   Widget build(BuildContext context) {
-    final metrics = [
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-specimens'),
-        label: 'Specimens',
-        value: totals.specimenCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-species'),
-        label: 'Species',
-        value: totals.speciesCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-families'),
-        label: 'Families',
-        value: totals.familyCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-sites'),
-        label: 'Sites',
-        value: totals.siteCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-events'),
-        label: 'Events',
-        value: totals.eventCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-narratives'),
-        label: 'Narratives',
-        value: totals.narrativeCount.toString(),
-      ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-elevation'),
-        label: 'Site elevational range',
-        value: _formatElevationRange(totals),
-      ),
-      if (totals.totalDays != null)
-        _RecordSummaryMetric(
-          key: const ValueKey('full-screen-record-stat-total-days'),
-          label: 'Total days',
-          value: totals.totalDays.toString(),
-        ),
-      _RecordSummaryMetric(
-        key: const ValueKey('full-screen-record-stat-capture-days'),
-        label: 'Total capture days',
-        value: totals.totalCaptureDays.toString(),
-      ),
-    ];
-
     return Card(
       key: const ValueKey('full-screen-record-stat-summary'),
       child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        padding: const EdgeInsets.all(NahpuSpacing.lg),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final columnCount = switch (constraints.maxWidth) {
-              >= 900 => 4,
-              >= 560 => 3,
-              >= 360 => 2,
-              _ => 1,
-            };
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: metrics.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount,
-                crossAxisSpacing: NahpuSpacing.md,
-                mainAxisSpacing: NahpuSpacing.md,
-                mainAxisExtent: 136,
-              ),
-              itemBuilder: (context, index) => metrics[index],
+            final records = _SummaryGroup(
+              title: 'Records',
+              children: [
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-specimens'),
+                  label: 'Specimens',
+                  value: totals.specimenCount.toString(),
+                  emphasis: true,
+                ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-species'),
+                  label: 'Species',
+                  value: totals.speciesCount.toString(),
+                ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-families'),
+                  label: 'Families',
+                  value: totals.familyCount.toString(),
+                ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-narratives'),
+                  label: 'Narratives',
+                  value: totals.narrativeCount.toString(),
+                ),
+              ],
+            );
+            final sampling = _SummaryGroup(
+              title: 'Sampling',
+              children: [
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-sites'),
+                  label: 'Sites',
+                  value: totals.siteCount.toString(),
+                ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-events'),
+                  label: 'Events',
+                  value: totals.eventCount.toString(),
+                ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-capture-days'),
+                  label: 'Capture days',
+                  value: totals.totalCaptureDays.toString(),
+                ),
+                if (totals.totalDays != null)
+                  _SummaryMetric(
+                    key: const ValueKey('full-screen-record-stat-total-days'),
+                    label: 'Project days',
+                    value: totals.totalDays.toString(),
+                  ),
+                _SummaryMetric(
+                  key: const ValueKey('full-screen-record-stat-elevation'),
+                  label: 'Site elevation',
+                  value: _formatElevationRange(totals),
+                  wide: true,
+                ),
+              ],
+            );
+            if (constraints.maxWidth >= 760) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: records),
+                  const SizedBox(width: NahpuSpacing.md),
+                  Expanded(child: sampling),
+                ],
+              );
+            }
+            return Column(
+              children: [
+                records,
+                const SizedBox(height: NahpuSpacing.md),
+                sampling,
+              ],
             );
           },
         ),
@@ -631,20 +741,70 @@ class _FullScreenRecordStatisticsGrid extends StatelessWidget {
     final minimum = totals.minimumElevationInMeter;
     final maximum = totals.maximumElevationInMeter;
     if (minimum == null || maximum == null) return '—';
-    return '${formatCoordinate(minimum, decimals: 2)}–'
-        '${formatCoordinate(maximum, decimals: 2)} m';
+    final minimumText = formatCoordinate(minimum, decimals: 2);
+    final maximumText = formatCoordinate(maximum, decimals: 2);
+    if (minimum == maximum) return '$minimumText m';
+    return '$minimumText–$maximumText m';
   }
 }
 
-class _RecordSummaryMetric extends StatelessWidget {
-  const _RecordSummaryMetric({
+class _SummaryGroup extends StatelessWidget {
+  const _SummaryGroup({required this.title, required this.children});
+
+  final String title;
+  final List<_SummaryMetric> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: NahpuSpacing.sm),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final spacing = NahpuSpacing.xs;
+              final standardWidth = (constraints.maxWidth - spacing) / 2;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  for (final metric in children)
+                    SizedBox(
+                      width: metric.wide ? constraints.maxWidth : standardWidth,
+                      child: metric,
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryMetric extends StatelessWidget {
+  const _SummaryMetric({
     super.key,
     required this.label,
     required this.value,
+    this.emphasis = false,
+    this.wide = false,
   });
 
   final String label;
   final String value;
+  final bool emphasis;
+  final bool wide;
 
   @override
   Widget build(BuildContext context) {
@@ -653,30 +813,36 @@ class _RecordSummaryMetric extends StatelessWidget {
       container: true,
       label: '$label: $value',
       child: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(NahpuSpacing.lg),
+        constraints: const BoxConstraints(minHeight: 68),
+        padding: const EdgeInsets.symmetric(
+          horizontal: NahpuSpacing.sm,
+          vertical: NahpuSpacing.xs,
+        ),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(NahpuRadius.md),
-          border: Border.all(color: colorScheme.outlineVariant),
+          color: emphasis
+              ? colorScheme.secondaryContainer.withValues(alpha: 0.35)
+              : colorScheme.surface,
+          borderRadius: BorderRadius.circular(NahpuRadius.sm),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               value,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: emphasis
+                  ? Theme.of(context).textTheme.headlineSmall
+                  : Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: NahpuSpacing.xs),
+            const SizedBox(height: NahpuSpacing.xxs),
             Text(
               label,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -689,7 +855,7 @@ class _StatisticSummary extends StatelessWidget {
   const _StatisticSummary({required this.projectUuid, required this.onExplore});
 
   final String projectUuid;
-  final ValueChanged<StatisticKind> onExplore;
+  final ValueChanged<StatisticSelection> onExplore;
 
   @override
   Widget build(BuildContext context) {
@@ -709,13 +875,13 @@ class _StatisticSummary extends StatelessWidget {
           spacing: 16,
           runSpacing: 16,
           children: [
-            for (final kind in summaryStatisticKinds)
+            for (final definition in _summaryDefinitions)
               SizedBox(
                 width: cardWidth,
                 child: _StatisticSummaryCard(
                   projectUuid: projectUuid,
-                  kind: kind,
-                  onExplore: () => onExplore(kind),
+                  definition: definition,
+                  onExplore: () => onExplore(definition.selection),
                 ),
               ),
           ],
@@ -728,20 +894,21 @@ class _StatisticSummary extends StatelessWidget {
 class _StatisticSummaryCard extends ConsumerWidget {
   const _StatisticSummaryCard({
     required this.projectUuid,
-    required this.kind,
+    required this.definition,
     required this.onExplore,
   });
 
   final String projectUuid;
-  final StatisticKind kind;
+  final _SummaryDefinition definition;
   final VoidCallback onExplore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final request = StatisticRequest(
       projectUuid: projectUuid,
-      kind: kind,
-      limit: topStatisticCount,
+      measure: definition.selection.measure,
+      group: definition.selection.group,
+      limit: definition.isPie ? null : topStatisticCount,
     );
     final value = ref.watch(statisticDataProvider(request));
     return Card(
@@ -755,7 +922,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Top ${kind.label.toLowerCase()}',
+                    definition.title,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -765,12 +932,15 @@ class _StatisticSummaryCard extends ConsumerWidget {
             _StatisticAsyncContent(
               value: value,
               onRetry: () => ref.invalidate(statisticDataProvider(request)),
-              builder: (rows) => StatisticBarChart(
-                data: rows,
-                kind: kind,
-                compact: true,
-                height: 280,
-              ),
+              builder: (rows) => definition.isPie
+                  ? StatisticPieChart(data: rows, height: 280)
+                  : StatisticBarChart(
+                      data: rows,
+                      measure: request.measure,
+                      group: request.group,
+                      compact: true,
+                      height: 280,
+                    ),
             ),
           ],
         ),
@@ -779,57 +949,91 @@ class _StatisticSummaryCard extends ConsumerWidget {
   }
 }
 
-class _StatisticKindPicker extends StatelessWidget {
-  const _StatisticKindPicker({
+class _StatisticControl<T> extends StatelessWidget {
+  const _StatisticControl({
+    super.key,
+    required this.label,
+    required this.values,
     required this.selected,
+    required this.valueLabel,
     required this.onSelected,
   });
 
-  final StatisticKind selected;
-  final ValueChanged<StatisticKind> onSelected;
+  final String label;
+  final List<T> values;
+  final T selected;
+  final String Function(T value) valueLabel;
+  final ValueChanged<T> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final chips = [
-      for (final kind in StatisticKind.values)
-        ChoiceChip(
-          label: Text(kind.label),
-          selected: selected == kind,
-          onSelected: (_) => onSelected(kind),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final value in values)
+              ChoiceChip(
+                label: Text(valueLabel(value)),
+                selected: selected == value,
+                onSelected: (_) => onSelected(value),
+              ),
+          ],
         ),
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= 700) {
-          return Wrap(spacing: 8, runSpacing: 8, children: chips);
-        }
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(spacing: 8, children: chips),
-        );
-      },
+      ],
     );
   }
 }
 
-class _FilterPrompt extends StatelessWidget {
-  const _FilterPrompt({required this.kind});
+class _BreakdownControl extends StatelessWidget {
+  const _BreakdownControl({
+    super.key,
+    required this.selected,
+    required this.hasSex,
+    required this.hasLifeStage,
+    required this.onSelected,
+  });
 
-  final StatisticKind kind;
+  final StatisticBreakdown? selected;
+  final bool hasSex;
+  final bool hasLifeStage;
+  final ValueChanged<StatisticBreakdown?> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 280,
-      child: Center(
-        child: Text(
-          kind.needsSite
-              ? 'Select a site to view species counts.'
-              : 'Select a species to view part quantities.',
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Break down by', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              label: const Text('None'),
+              selected: selected == null,
+              onSelected: (_) => onSelected(null),
+            ),
+            if (hasSex)
+              ChoiceChip(
+                label: const Text('Sex'),
+                selected: selected == StatisticBreakdown.sex,
+                onSelected: (_) => onSelected(StatisticBreakdown.sex),
+              ),
+            if (hasLifeStage)
+              ChoiceChip(
+                label: const Text('Life stage'),
+                selected: selected == StatisticBreakdown.lifeStage,
+                onSelected: (_) => onSelected(StatisticBreakdown.lifeStage),
+              ),
+          ],
         ),
-      ),
+      ],
     );
   }
 }
@@ -867,5 +1071,77 @@ class _StatisticAsyncContent extends StatelessWidget {
     );
   }
 }
+
+class _SummaryDefinition {
+  const _SummaryDefinition({
+    required this.title,
+    required this.selection,
+    this.isPie = false,
+  });
+
+  final String title;
+  final StatisticSelection selection;
+  final bool isPie;
+}
+
+const _summaryDefinitions = [
+  _SummaryDefinition(
+    title: 'Specimens by species',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.species,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Specimens by family',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.family,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Specimens by site',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.site,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Specimens by date',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.date,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Specimens by method',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.method,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Part quantity by type',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.partQuantity,
+      group: StatisticGroup.partType,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Part quantity by treatment',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.partQuantity,
+      group: StatisticGroup.partTreatment,
+    ),
+  ),
+  _SummaryDefinition(
+    title: 'Specimens by sex',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.sex,
+    ),
+    isPie: true,
+  ),
+];
 
 enum _DetailMode { chart, table }

@@ -22,7 +22,8 @@ void main() {
         .watchStatistics(
           const StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.species,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
           ),
         )
         .first;
@@ -30,7 +31,8 @@ void main() {
         .watchStatistics(
           const StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.families,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.family,
           ),
         )
         .first;
@@ -51,7 +53,8 @@ void main() {
         .watchStatistics(
           const StatisticRequest(
             projectUuid: 'project-limit',
-            kind: StatisticKind.species,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
             limit: 5,
           ),
         )
@@ -72,7 +75,8 @@ void main() {
         .watchStatistics(
           const StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.partTypes,
+            measure: StatisticMeasure.partQuantity,
+            group: StatisticGroup.partType,
           ),
         )
         .first;
@@ -80,7 +84,8 @@ void main() {
         .watchStatistics(
           const StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.partTreatments,
+            measure: StatisticMeasure.partQuantity,
+            group: StatisticGroup.partTreatment,
           ),
         )
         .first;
@@ -97,17 +102,18 @@ void main() {
 
   test('site and species filters aggregate only matching records', () async {
     final sites = await query
-        .watchFilterOptions('project-a', StatisticKind.speciesBySite)
+        .watchFilterOptions('project-a', StatisticFilterKind.site)
         .first;
     final taxa = await query
-        .watchFilterOptions('project-a', StatisticKind.partTypesBySpecies)
+        .watchFilterOptions('project-a', StatisticFilterKind.species)
         .first;
     final siteRows = await query
         .watchStatistics(
           StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.speciesBySite,
-            filterId: sites.single.id,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
+            siteId: sites.single.id,
           ),
         )
         .first;
@@ -118,8 +124,9 @@ void main() {
         .watchStatistics(
           StatisticRequest(
             projectUuid: 'project-a',
-            kind: StatisticKind.partTypesBySpecies,
-            filterId: myotis.id,
+            measure: StatisticMeasure.partQuantity,
+            group: StatisticGroup.partType,
+            speciesId: myotis.id,
           ),
         )
         .first;
@@ -133,6 +140,234 @@ void main() {
       ('Wing', 5),
       ('No part type', 1),
     ]);
+  });
+
+  test('site, date, and assigned method group specimen counts', () async {
+    final event = await (db.select(
+      db.collEvent,
+    )..where((row) => row.projectUuid.equals('project-a'))).getSingle();
+    final method = await db
+        .into(db.collEffort)
+        .insert(
+          CollEffortCompanion(
+            eventID: Value(event.id),
+            method: const Value('Mist net'),
+          ),
+        );
+    for (final uuid in const ['a-1', 'a-2']) {
+      await (db.update(db.specimen)..where((row) => row.uuid.equals(uuid)))
+          .write(SpecimenCompanion(collMethodID: Value(method)));
+    }
+
+    final sites = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.site,
+          ),
+        )
+        .first;
+    final dates = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.date,
+          ),
+        )
+        .first;
+    final methods = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.method,
+          ),
+        )
+        .first;
+    final speciesBySite = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.species,
+            group: StatisticGroup.site,
+          ),
+        )
+        .first;
+
+    expect(sites.map((row) => (row.label, row.count)), [
+      ('Site Alpha', 3),
+      ('No site', 1),
+    ]);
+    expect(dates.map((row) => (row.label, row.count)), [
+      ('2026-01-10', 2),
+      ('2026-01-11', 1),
+      ('No date', 1),
+    ]);
+    expect(methods.map((row) => (row.label, row.count)), [
+      ('Mist net', 2),
+      ('No method', 2),
+    ]);
+    expect(speciesBySite.map((row) => (row.label, row.count)), [
+      ('Site Alpha', 2),
+    ]);
+  });
+
+  test('sex and life-stage data normalize across attribute tables', () async {
+    final myotis = await (db.select(
+      db.taxonomy,
+    )..where((row) => row.genus.equals('Myotis'))).getSingle();
+    await db.batch((batch) {
+      batch.insertAll(db.specimen, [
+        SpecimenCompanion(
+          uuid: const Value('a-herp'),
+          projectUuid: const Value('project-a'),
+          speciesID: Value(myotis.id),
+        ),
+        SpecimenCompanion(
+          uuid: const Value('a-arthropod'),
+          projectUuid: const Value('project-a'),
+          speciesID: Value(myotis.id),
+        ),
+      ]);
+      batch.insertAll(db.mammalAttribute, const [
+        MammalAttributeCompanion(
+          specimenUuid: Value('a-1'),
+          sex: Value(0),
+          lifeStage: Value('Adult'),
+        ),
+      ]);
+      batch.insertAll(db.birdAttribute, const [
+        BirdAttributeCompanion(
+          specimenUuid: Value('a-2'),
+          sex: Value(1),
+          lifeStage: Value('Adult'),
+        ),
+      ]);
+      batch.insertAll(db.fossilAttribute, const [
+        FossilAttributeCompanion(
+          specimenUuid: Value('a-3'),
+          sex: Value(2),
+          ontogeneticStage: Value('Late'),
+        ),
+      ]);
+      batch.insertAll(db.herpAttribute, const [
+        HerpAttributeCompanion(
+          specimenUuid: Value('a-herp'),
+          sex: Value(3),
+          lifeStage: Value('Juvenile'),
+        ),
+      ]);
+      batch.insertAll(db.arthropodAttribute, const [
+        ArthropodAttributeCompanion(
+          specimenUuid: Value('a-arthropod'),
+          sex: Value(4),
+          lifeStage: Value('Larva'),
+        ),
+      ]);
+    });
+
+    final availability = await query.watchAvailability('project-a').first;
+    final sex = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.sex,
+          ),
+        )
+        .first;
+    final breakdown = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
+            breakdown: StatisticBreakdown.sex,
+          ),
+        )
+        .first;
+    final lifeStages = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: 'project-a',
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.lifeStage,
+          ),
+        )
+        .first;
+
+    expect(availability.hasSex, isTrue);
+    expect(availability.hasLifeStage, isTrue);
+    expect(sex.map((row) => (row.label, row.count)), [
+      ('Female', 1),
+      ('Gynandromorph', 1),
+      ('Hermaphrodite', 1),
+      ('Male', 1),
+      ('Not recorded', 1),
+      ('Unknown', 1),
+    ]);
+    expect(
+      breakdown
+          .where((row) => row.label == 'Myotis lucifugus')
+          .map((row) => (row.seriesLabel, row.count)),
+      [('Female', 1), ('Gynandromorph', 1), ('Hermaphrodite', 1), ('Male', 1)],
+    );
+    expect(lifeStages.map((row) => (row.label, row.count)), [
+      ('Adult', 2),
+      ('Not recorded', 2),
+      ('Juvenile', 1),
+      ('Larva', 1),
+    ]);
+  });
+
+  test('elevation only includes sites with specimen records', () async {
+    final unusedSite = await db
+        .into(db.site)
+        .insert(
+          const SiteCompanion(
+            siteID: Value('Unused'),
+            projectUuid: Value('project-a'),
+          ),
+        );
+    final coordinateSite = await db
+        .into(db.site)
+        .insert(
+          const SiteCompanion(
+            siteID: Value('Coordinate site'),
+            projectUuid: Value('project-a'),
+          ),
+        );
+    await db
+        .into(db.coordinate)
+        .insert(
+          CoordinateCompanion(
+            siteID: Value(unusedSite),
+            elevationInMeter: const Value(-100),
+          ),
+        );
+    final coordinate = await db
+        .into(db.coordinate)
+        .insert(
+          CoordinateCompanion(
+            siteID: Value(coordinateSite),
+            elevationInMeter: const Value(800),
+          ),
+        );
+    await db
+        .into(db.specimen)
+        .insert(
+          SpecimenCompanion(
+            uuid: const Value('coordinate-only'),
+            projectUuid: const Value('project-a'),
+            coordinateID: Value(coordinate),
+          ),
+        );
+
+    final totals = await query.watchRecordTotals('project-a').first;
+    expect(totals.minimumElevationInMeter, 120.5);
+    expect(totals.maximumElevationInMeter, 800);
   });
 
   test('record totals include project summary metrics', () async {
@@ -208,6 +443,28 @@ void main() {
 
     expect(rows.map((row) => row.rank), [1, 2]);
     expect(rows.map((row) => row.percent), [75, 25]);
+  });
+
+  test('statistic titles name measures, groups, and filters accurately', () {
+    const specimens = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.species,
+    );
+    const parts = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.partQuantity,
+      group: StatisticGroup.partType,
+    );
+
+    expect(
+      specimens.title(siteLabel: 'Site Alpha'),
+      'Specimens by species at Site Alpha',
+    );
+    expect(
+      parts.title(speciesLabel: 'Myotis lucifugus'),
+      'Part quantity by part type for Myotis lucifugus',
+    );
   });
 }
 
