@@ -382,7 +382,7 @@ void main() {
     expect(totals.minimumElevationInMeter, 120.5);
     expect(totals.maximumElevationInMeter, 350.25);
     expect(totals.totalDays, 3);
-    expect(totals.totalCaptureDays, 2);
+    expect(totals.totalCaptureDays, 0);
 
     final otherProjectTotals = await query.watchRecordTotals('project-b').first;
     expect(otherProjectTotals.siteCount, 0);
@@ -394,7 +394,7 @@ void main() {
     expect(otherProjectTotals.minimumElevationInMeter, equals(null));
     expect(otherProjectTotals.maximumElevationInMeter, equals(null));
     expect(otherProjectTotals.totalDays, equals(null));
-    expect(otherProjectTotals.totalCaptureDays, 1);
+    expect(otherProjectTotals.totalCaptureDays, 0);
 
     final normalizedDuplicate = await db
         .into(db.taxonomy)
@@ -432,8 +432,77 @@ void main() {
     expect(updatedTotals.specimenCount, 6);
     expect(updatedTotals.speciesCount, 2);
     expect(updatedTotals.familyCount, 2);
-    expect(updatedTotals.totalCaptureDays, 2);
+    expect(updatedTotals.totalCaptureDays, 0);
   });
+
+  test(
+    'capture days expand linked event ranges and deduplicate overlaps',
+    () async {
+      final event = await (db.select(
+        db.collEvent,
+      )..where((row) => row.projectUuid.equals('project-a'))).getSingle();
+      await (db.update(
+        db.collEvent,
+      )..where((row) => row.id.equals(event.id))).write(
+        const CollEventCompanion(
+          startDate: Value(' 2026-01-10T08:00:00 '),
+          endDate: Value('2026-01-12 18:00:00'),
+        ),
+      );
+
+      final overlappingEvent = await db
+          .into(db.collEvent)
+          .insert(
+            const CollEventCompanion(
+              projectUuid: Value('project-a'),
+              startDate: Value('2026-01-12'),
+              endDate: Value('2026-01-14'),
+            ),
+          );
+      final startOnlyEvent = await db
+          .into(db.collEvent)
+          .insert(
+            const CollEventCompanion(
+              projectUuid: Value('project-a'),
+              startDate: Value('2026-01-20'),
+            ),
+          );
+      final invalidEvent = await db
+          .into(db.collEvent)
+          .insert(
+            const CollEventCompanion(
+              projectUuid: Value('project-a'),
+              startDate: Value('2026-01-30'),
+              endDate: Value('2026-01-29'),
+            ),
+          );
+
+      await (db.update(db.specimen)..where((row) => row.uuid.equals('a-3')))
+          .write(SpecimenCompanion(collEventID: Value(overlappingEvent)));
+      await (db.update(
+        db.specimen,
+      )..where((row) => row.uuid.equals('a-unknown'))).write(
+        SpecimenCompanion(
+          collEventID: Value(startOnlyEvent),
+          captureDate: const Value('2099-01-01'),
+        ),
+      );
+      await db
+          .into(db.specimen)
+          .insert(
+            SpecimenCompanion(
+              uuid: const Value('a-invalid-event'),
+              projectUuid: const Value('project-a'),
+              collEventID: Value(invalidEvent),
+              captureDate: const Value('2099-01-02'),
+            ),
+          );
+
+      final totals = await query.watchRecordTotals('project-a').first;
+
+      expect(totals.totalCaptureDays, 6);
+    },
+  );
 
   test('table rows include stable rank and percentages', () {
     final rows = buildStatisticTableRows(const [

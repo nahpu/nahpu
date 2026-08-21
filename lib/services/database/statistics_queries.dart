@@ -222,7 +222,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
   Stream<RecordStatisticTotals> watchRecordTotals(String projectUuid) {
     return customSelect(
       '''
-        WITH recorded_sites AS (
+        WITH RECURSIVE recorded_sites AS (
           SELECT DISTINCT coalesce(collEvent.siteID, specimenCoordinate.siteID) AS id
           FROM specimen
           LEFT JOIN collEvent ON collEvent.id = specimen.collEventID
@@ -230,6 +230,33 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             ON specimenCoordinate.id = specimen.coordinateID
           WHERE specimen.projectUuid = ?
             AND coalesce(collEvent.siteID, specimenCoordinate.siteID) IS NOT NULL
+        ),
+        event_ranges AS (
+          SELECT
+            date(trim(collEvent.startDate)) AS start_date,
+            date(
+              coalesce(
+                nullif(trim(collEvent.endDate), ''),
+                nullif(trim(collEvent.startDate), '')
+              )
+            ) AS end_date
+          FROM specimen
+          INNER JOIN collEvent ON collEvent.id = specimen.collEventID
+          WHERE specimen.projectUuid = ?
+            AND collEvent.projectUuid = ?
+        ),
+        capture_days(day) AS (
+          SELECT start_date
+          FROM event_ranges
+          WHERE start_date IS NOT NULL
+            AND end_date IS NOT NULL
+            AND end_date >= start_date
+          UNION
+          SELECT date(capture_days.day, '+1 day')
+          FROM capture_days
+          INNER JOIN event_ranges
+            ON capture_days.day >= event_ranges.start_date
+            AND capture_days.day < event_ranges.end_date
         )
         SELECT
           (SELECT COUNT(*) FROM site WHERE projectUuid = ?) AS site_count,
@@ -267,13 +294,9 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           ) AS maximum_elevation,
           (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
           (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,
-          (
-            SELECT COUNT(DISTINCT NULLIF(trim(specimen.captureDate), ''))
-            FROM specimen
-            WHERE specimen.projectUuid = ?
-          ) AS total_capture_days
+          (SELECT COUNT(DISTINCT day) FROM capture_days) AS total_capture_days
       ''',
-      variables: List.generate(12, (_) => Variable(projectUuid)),
+      variables: List.generate(13, (_) => Variable(projectUuid)),
       readsFrom: {
         db.project,
         db.site,

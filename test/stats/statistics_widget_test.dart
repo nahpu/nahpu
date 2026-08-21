@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -134,6 +135,29 @@ void main() {
     expect(find.text('Capture days'), findsOneWidget);
   });
 
+  testWidgets('wide summary keeps records and sampling containers equal', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(1000, 1400),
+      includeProjectDates: true,
+    );
+
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final records = tester.getRect(
+      find.byKey(const ValueKey('full-screen-record-stat-records')),
+    );
+    final sampling = tester.getRect(
+      find.byKey(const ValueKey('full-screen-record-stat-sampling')),
+    );
+    expect(records.height, closeTo(sampling.height, 0.1));
+  });
+
   testWidgets(
     'detailed statistics use dependent measures and accurate titles',
     (tester) async {
@@ -256,6 +280,75 @@ void main() {
 
     expect(find.text('Myotis'), findsOneWidget);
     expect(find.text('lucifugus'), findsOneWidget);
+  });
+
+  testWidgets('summary pie plot matches bar plot height', (tester) async {
+    const chartHeight = 280.0;
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: [
+              SizedBox(
+                width: 320,
+                child: StatisticBarChart(
+                  compact: true,
+                  height: chartHeight,
+                  data: [StatisticDatum(label: 'One', count: 3)],
+                ),
+              ),
+              SizedBox(
+                width: 320,
+                child: StatisticPieChart(
+                  height: chartHeight,
+                  data: [StatisticDatum(label: 'One', count: 3)],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final barPlot = tester.getSize(find.byType(BarChart));
+    final piePlot = tester.getSize(find.byType(PieChart));
+    expect(piePlot.height, closeTo(barPlot.height, 0.1));
+  });
+
+  testWidgets('detailed statistics keeps a fixed card and expands its chart', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(1000, 1400));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final measureControl = find.byKey(
+      const ValueKey('statistics-measure-control'),
+    );
+    await tester.ensureVisible(measureControl);
+
+    final initialDetailHeight = tester.getRect(detail).height;
+    final initialChart = find.descendant(
+      of: detail,
+      matching: find.byType(StatisticBarChart),
+    );
+    final initialChartHeight = tester.getRect(initialChart).height;
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Part quantity')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(tester.getRect(detail).height, closeTo(initialDetailHeight, 0.1));
+    expect(
+      tester.getRect(initialChart).height,
+      greaterThan(initialChartHeight),
+    );
   });
 
   testWidgets('compact chart keeps y-axis labels separated', (tester) async {
@@ -597,8 +690,16 @@ Future<void> _pumpRecordStatisticsPanel(
       ),
     ]);
     batch.insertAll(database.collEvent, [
-      CollEventCompanion(projectUuid: Value(projectUuid)),
-      CollEventCompanion(projectUuid: Value(projectUuid)),
+      CollEventCompanion(
+        projectUuid: Value(projectUuid),
+        startDate: const Value('2026-01-10'),
+        endDate: const Value('2026-01-10'),
+      ),
+      CollEventCompanion(
+        projectUuid: Value(projectUuid),
+        startDate: const Value('2026-01-11'),
+        endDate: const Value('2026-01-11'),
+      ),
       CollEventCompanion(projectUuid: Value(projectUuid)),
     ]);
     batch.insertAll(database.specimen, [

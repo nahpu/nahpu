@@ -4,6 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
+const _chartTopPadding = 24.0;
+
 class StatisticBarChart extends StatelessWidget {
   static const _compactSlotWidth = 80.0;
   static const _detailSlotWidth = 112.0;
@@ -19,6 +21,7 @@ class StatisticBarChart extends StatelessWidget {
     this.breakdown,
     this.compact = false,
     this.height = 300,
+    this.fitHeight = false,
   });
 
   final List<StatisticDatum> data;
@@ -27,6 +30,7 @@ class StatisticBarChart extends StatelessWidget {
   final StatisticBreakdown? breakdown;
   final bool compact;
   final double height;
+  final bool fitHeight;
 
   static double minimumWidth({
     required int categoryCount,
@@ -46,6 +50,9 @@ class StatisticBarChart extends StatelessWidget {
     }
 
     final categories = _categories();
+    final chartHeight = fitHeight && breakdown != null
+        ? math.max(0, height - 64).toDouble()
+        : height;
     final chart = LayoutBuilder(
       builder: (context, constraints) {
         final chartWidth = math.max(
@@ -53,7 +60,7 @@ class StatisticBarChart extends StatelessWidget {
           minimumWidth(categoryCount: categories.length, compact: compact),
         );
         return SizedBox(
-          height: height,
+          height: chartHeight,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
@@ -61,7 +68,12 @@ class StatisticBarChart extends StatelessWidget {
               child: Semantics(
                 label: _semanticLabel(),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 24, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    4,
+                    _chartTopPadding,
+                    12,
+                    0,
+                  ),
                   child: BarChart(_chartData(context, categories)),
                 ),
               ),
@@ -71,6 +83,26 @@ class StatisticBarChart extends StatelessWidget {
       },
     );
     if (breakdown == null) return chart;
+    if (fitHeight) {
+      return SizedBox(
+        height: height,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            chart,
+            const SizedBox(height: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                child: _StatisticLegend(
+                  labels: _seriesLabels(categories),
+                  colors: _chartColors(Theme.of(context).colorScheme),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -312,7 +344,7 @@ class StatisticPieChart extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: math.max(160, height - 76),
+            height: math.max(0, height - _chartTopPadding),
             child: PieChart(
               PieChartData(
                 centerSpaceRadius: 38,

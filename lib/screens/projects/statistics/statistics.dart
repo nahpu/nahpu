@@ -26,7 +26,7 @@ class StatisticViewer extends ConsumerWidget {
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
-        contentAlignment: Alignment.bottomCenter,
+        contentAlignment: Alignment.center,
         content: totals.when(
           data: (value) => _RecordStatisticsSummary(totals: value),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -281,6 +281,8 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
 }
 
 class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
+  static const _detailedStatisticsCardHeight = 960.0;
+
   final _detailKey = GlobalKey();
   StatisticFilterOption? _siteFilter;
   StatisticFilterOption? _speciesFilter;
@@ -367,174 +369,194 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                   Card(
                     key: _detailKey,
                     clipBehavior: Clip.antiAlias,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'Detailed statistics',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 16),
-                          _StatisticControl<StatisticMeasure>(
-                            key: const ValueKey('statistics-measure-control'),
-                            label: 'Measure',
-                            values: StatisticMeasure.values,
-                            selected: _measure,
-                            valueLabel: (value) => value.label,
-                            onSelected: (value) =>
-                                _selectMeasure(value, hasLifeStage),
-                          ),
-                          const SizedBox(height: 12),
-                          _StatisticControl<StatisticGroup>(
-                            key: const ValueKey('statistics-group-control'),
-                            label: 'Group by',
-                            values: _measure.groups(hasLifeStage: hasLifeStage),
-                            selected: _group,
-                            valueLabel: (value) => value.label,
-                            onSelected: (value) {
-                              setState(() {
-                                _group = value;
-                                _breakdown = null;
-                              });
-                            },
-                          ),
-                          if (_canBreakDown) ...[
+                    child: SizedBox(
+                      key: const ValueKey('detailed-statistics-content'),
+                      height: _detailedStatisticsCardHeight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Detailed statistics',
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            const SizedBox(height: 16),
+                            _StatisticControl<StatisticMeasure>(
+                              key: const ValueKey('statistics-measure-control'),
+                              label: 'Measure',
+                              values: StatisticMeasure.values,
+                              selected: _measure,
+                              valueLabel: (value) => value.label,
+                              onSelected: (value) =>
+                                  _selectMeasure(value, hasLifeStage),
+                            ),
                             const SizedBox(height: 12),
-                            _BreakdownControl(
-                              key: const ValueKey(
-                                'statistics-breakdown-control',
+                            _StatisticControl<StatisticGroup>(
+                              key: const ValueKey('statistics-group-control'),
+                              label: 'Group by',
+                              values: _measure.groups(
+                                hasLifeStage: hasLifeStage,
                               ),
-                              selected: _breakdown,
-                              hasSex: hasSex,
-                              hasLifeStage: hasLifeStage,
+                              selected: _group,
+                              valueLabel: (value) => value.label,
                               onSelected: (value) {
-                                setState(() => _breakdown = value);
+                                setState(() {
+                                  _group = value;
+                                  _breakdown = null;
+                                });
                               },
                             ),
-                          ],
-                          if (_usesSiteFilter) ...[
-                            const SizedBox(height: 12),
-                            SearchableStatisticFilterPicker(
-                              options: ref.watch(
-                                statisticFilterOptionsProvider(
-                                  StatisticFilterKind.site,
+                            if (_canBreakDown) ...[
+                              const SizedBox(height: 12),
+                              _BreakdownControl(
+                                key: const ValueKey(
+                                  'statistics-breakdown-control',
                                 ),
-                              ),
-                              selected: _siteFilter,
-                              title: 'Select a site',
-                              placeholder: 'All sites',
-                              onChanged: (value) {
-                                setState(() => _siteFilter = value);
-                              },
-                              onRetry: () => ref.invalidate(
-                                statisticFilterOptionsProvider(
-                                  StatisticFilterKind.site,
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (_usesSpeciesFilter) ...[
-                            const SizedBox(height: 12),
-                            SearchableStatisticFilterPicker(
-                              options: ref.watch(
-                                statisticFilterOptionsProvider(
-                                  StatisticFilterKind.species,
-                                ),
-                              ),
-                              selected: _speciesFilter,
-                              title: 'Select a species',
-                              placeholder: 'All species',
-                              onChanged: (value) {
-                                setState(() => _speciesFilter = value);
-                              },
-                              onRetry: () => ref.invalidate(
-                                statisticFilterOptionsProvider(
-                                  StatisticFilterKind.species,
-                                ),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  request.title(
-                                    siteLabel: _usesSiteFilter
-                                        ? _siteFilter?.label
-                                        : null,
-                                    speciesLabel: _usesSpeciesFilter
-                                        ? _speciesFilter?.label
-                                        : null,
-                                  ),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                              ),
-                              SegmentedButton<_DetailMode>(
-                                showSelectedIcon: false,
-                                segments: const [
-                                  ButtonSegment(
-                                    value: _DetailMode.chart,
-                                    icon: Icon(Icons.bar_chart_rounded),
-                                    label: Text('Chart'),
-                                  ),
-                                  ButtonSegment(
-                                    value: _DetailMode.table,
-                                    icon: Icon(Icons.table_rows_outlined),
-                                    label: Text('Table'),
-                                  ),
-                                ],
-                                selected: {_detailMode},
-                                onSelectionChanged: (selection) {
-                                  setState(
-                                    () => _detailMode = selection.single,
-                                  );
+                                selected: _breakdown,
+                                hasSex: hasSex,
+                                hasLifeStage: hasLifeStage,
+                                onSelected: (value) {
+                                  setState(() => _breakdown = value);
                                 },
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          _StatisticAsyncContent(
-                            value: details,
-                            onRetry: () =>
-                                ref.invalidate(statisticDataProvider(request)),
-                            builder: (rows) {
-                              if (_detailMode == _DetailMode.chart) {
-                                return StatisticBarChart(
-                                  data: rows,
-                                  measure: request.measure,
-                                  group: request.group,
-                                  breakdown: request.breakdown,
-                                  height: 420,
-                                );
-                              }
-                              final tableRows = buildStatisticTableRows(rows);
-                              return StatisticDataTable(
-                                rows: tableRows,
-                                categoryLabel: request.group.label,
-                                seriesLabel: request.seriesLabel,
-                                countLabel: request.measure.countLabel,
-                                onExport: tableRows.isEmpty
-                                    ? null
-                                    : () => showStatisticExportDialog(
-                                        context: context,
-                                        defaultFileName: _defaultFileName(
-                                          projectName,
-                                          request,
-                                        ),
+                            if (_usesSiteFilter) ...[
+                              const SizedBox(height: 12),
+                              SearchableStatisticFilterPicker(
+                                options: ref.watch(
+                                  statisticFilterOptionsProvider(
+                                    StatisticFilterKind.site,
+                                  ),
+                                ),
+                                selected: _siteFilter,
+                                title: 'Select a site',
+                                placeholder: 'All sites',
+                                onChanged: (value) {
+                                  setState(() => _siteFilter = value);
+                                },
+                                onRetry: () => ref.invalidate(
+                                  statisticFilterOptionsProvider(
+                                    StatisticFilterKind.site,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (_usesSpeciesFilter) ...[
+                              const SizedBox(height: 12),
+                              SearchableStatisticFilterPicker(
+                                options: ref.watch(
+                                  statisticFilterOptionsProvider(
+                                    StatisticFilterKind.species,
+                                  ),
+                                ),
+                                selected: _speciesFilter,
+                                title: 'Select a species',
+                                placeholder: 'All species',
+                                onChanged: (value) {
+                                  setState(() => _speciesFilter = value);
+                                },
+                                onRetry: () => ref.invalidate(
+                                  statisticFilterOptionsProvider(
+                                    StatisticFilterKind.species,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    request.title(
+                                      siteLabel: _usesSiteFilter
+                                          ? _siteFilter?.label
+                                          : null,
+                                      speciesLabel: _usesSpeciesFilter
+                                          ? _speciesFilter?.label
+                                          : null,
+                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                  ),
+                                ),
+                                SegmentedButton<_DetailMode>(
+                                  showSelectedIcon: false,
+                                  segments: const [
+                                    ButtonSegment(
+                                      value: _DetailMode.chart,
+                                      icon: Icon(Icons.bar_chart_rounded),
+                                      label: Text('Chart'),
+                                    ),
+                                    ButtonSegment(
+                                      value: _DetailMode.table,
+                                      icon: Icon(Icons.table_rows_outlined),
+                                      label: Text('Table'),
+                                    ),
+                                  ],
+                                  selected: {_detailMode},
+                                  onSelectionChanged: (selection) {
+                                    setState(
+                                      () => _detailMode = selection.single,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return _StatisticAsyncContent(
+                                    value: details,
+                                    onRetry: () => ref.invalidate(
+                                      statisticDataProvider(request),
+                                    ),
+                                    builder: (rows) {
+                                      if (_detailMode == _DetailMode.chart) {
+                                        return StatisticBarChart(
+                                          data: rows,
+                                          measure: request.measure,
+                                          group: request.group,
+                                          breakdown: request.breakdown,
+                                          height: constraints.maxHeight,
+                                          fitHeight: true,
+                                        );
+                                      }
+                                      final tableRows = buildStatisticTableRows(
+                                        rows,
+                                      );
+                                      return StatisticDataTable(
                                         rows: tableRows,
                                         categoryLabel: request.group.label,
                                         seriesLabel: request.seriesLabel,
                                         countLabel: request.measure.countLabel,
-                                      ),
-                              );
-                            },
-                          ),
-                        ],
+                                        onExport: tableRows.isEmpty
+                                            ? null
+                                            : () => showStatisticExportDialog(
+                                                context: context,
+                                                defaultFileName:
+                                                    _defaultFileName(
+                                                      projectName,
+                                                      request,
+                                                    ),
+                                                rows: tableRows,
+                                                categoryLabel:
+                                                    request.group.label,
+                                                seriesLabel:
+                                                    request.seriesLabel,
+                                                countLabel:
+                                                    request.measure.countLabel,
+                                              ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -644,6 +666,8 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
 }
 
 class _FullScreenRecordStatisticsCard extends StatelessWidget {
+  static const _wideSummaryGroupHeight = 280.0;
+
   const _FullScreenRecordStatisticsCard({required this.totals});
 
   final RecordStatisticTotals totals;
@@ -657,6 +681,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final records = _SummaryGroup(
+              key: const ValueKey('full-screen-record-stat-records'),
               title: 'Records',
               children: [
                 _SummaryMetric(
@@ -683,6 +708,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
               ],
             );
             final sampling = _SummaryGroup(
+              key: const ValueKey('full-screen-record-stat-sampling'),
               title: 'Sampling',
               children: [
                 _SummaryMetric(
@@ -715,13 +741,16 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
               ],
             );
             if (constraints.maxWidth >= 760) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: records),
-                  const SizedBox(width: NahpuSpacing.md),
-                  Expanded(child: sampling),
-                ],
+              return SizedBox(
+                height: _wideSummaryGroupHeight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: records),
+                    const SizedBox(width: NahpuSpacing.md),
+                    Expanded(child: sampling),
+                  ],
+                ),
               );
             }
             return Column(
@@ -749,7 +778,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
 }
 
 class _SummaryGroup extends StatelessWidget {
-  const _SummaryGroup({required this.title, required this.children});
+  const _SummaryGroup({super.key, required this.title, required this.children});
 
   final String title;
   final List<_SummaryMetric> children;
