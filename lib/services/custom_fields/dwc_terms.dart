@@ -83,6 +83,7 @@ const builtInDwcFieldsByTarget = <String, Set<String>>{
 List<String> dwcTargetsForPlacement(FieldUISection placement) =>
     switch (placement) {
       FieldUISection.siteAttribute => const ['event'],
+      FieldUISection.environmentalData => const ['event'],
       FieldUISection.specimenAttribute => const ['occurrence'],
       FieldUISection.specimenPart => const ['material'],
       FieldUISection.parasite => const ['occurrence', 'organismInteraction'],

@@ -437,6 +437,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
 
   IconData _placementIcon(FieldUISection placement) => switch (placement) {
     FieldUISection.siteAttribute => Icons.place_outlined,
+    FieldUISection.environmentalData => Icons.eco_outlined,
     FieldUISection.specimenAttribute => matchCatFmtToIcon(
       widget.currentCatalog,
     ),

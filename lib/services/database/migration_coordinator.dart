@@ -27,6 +27,7 @@ class _MigrationCoordinator {
       16: (m) => _Version17Migration(db).upgrade(m),
       17: (m) => _Version18Migration(db).upgrade(m),
       18: (m) => _Version19Migration(db).upgrade(m),
+      19: (m) => _Version20Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -38,6 +39,104 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version20Migration {
+  const _Version20Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    for (final name in const [
+      'custom_field_value_validate_insert',
+      'custom_field_value_validate_update',
+    ]) {
+      await db.customStatement('DROP TRIGGER IF EXISTS $name');
+    }
+    for (final name in const [
+      'custom_field_site_value_idx',
+      'custom_field_specimen_value_idx',
+      'custom_field_part_value_idx',
+      'custom_field_parasite_value_idx',
+    ]) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+
+    await db.customStatement(
+      'ALTER TABLE customFieldValue RENAME TO customFieldValueV19',
+    );
+    await migrator.createTable(db.customFieldValue);
+    await db.customStatement('''
+      INSERT INTO customFieldValue (
+        id,
+        fieldDefinitionId,
+        projectUuid,
+        value,
+        unit,
+        siteId,
+        specimenUuid,
+        specimenPartId,
+        parasiteId,
+        isLegacy
+      )
+      SELECT
+        id,
+        fieldDefinitionId,
+        projectUuid,
+        value,
+        unit,
+        siteId,
+        specimenUuid,
+        specimenPartId,
+        parasiteId,
+        isLegacy
+      FROM customFieldValueV19
+    ''');
+    await db.customStatement('DROP TABLE customFieldValueV19');
+
+    for (final statement in const [
+      'CREATE UNIQUE INDEX custom_field_event_value_idx '
+          'ON customFieldValue(fieldDefinitionId, eventId) '
+          'WHERE eventId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_site_value_idx '
+          'ON customFieldValue(fieldDefinitionId, siteId) '
+          'WHERE siteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_specimen_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenUuid) '
+          'WHERE specimenUuid IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_part_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenPartId) '
+          'WHERE specimenPartId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_parasite_value_idx '
+          'ON customFieldValue(fieldDefinitionId, parasiteId) '
+          'WHERE parasiteId IS NOT NULL',
+    ]) {
+      await db.customStatement(statement);
+    }
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+    await _validate();
+  }
+
+  Future<void> _validate() async {
+    final columns = await db
+        .customSelect(
+          'PRAGMA table_info(customFieldValue)',
+          readsFrom: const {},
+        )
+        .get();
+    if (!columns.map((row) => row.read<String>('name')).contains('eventId')) {
+      throw StateError(
+        'Database migration did not add event custom-field ownership.',
+      );
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError('Database migration introduced foreign-key violations.');
     }
   }
 }

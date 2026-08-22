@@ -307,6 +307,7 @@ class CustomFieldService {
               fieldDefinitionId: definitionId,
               projectUuid: Value(ownerInfo.projectUuid),
               value: normalized,
+              eventId: Value(owner.eventId),
               siteId: Value(owner.siteId),
               specimenUuid: Value(owner.specimenUuid),
               specimenPartId: Value(owner.specimenPartId),
@@ -633,6 +634,7 @@ class CustomFieldService {
   Expression<bool> Function(CustomFieldValue row) _ownerPredicate(
     CustomFieldOwner owner,
   ) => (row) {
+    if (owner.eventId != null) return row.eventId.equals(owner.eventId!);
     if (owner.siteId != null) return row.siteId.equals(owner.siteId!);
     if (owner.specimenUuid != null) {
       return row.specimenUuid.equals(owner.specimenUuid!);
@@ -644,6 +646,12 @@ class CustomFieldService {
   };
 
   Future<_OwnerInfo> _ownerInfo(CustomFieldOwner owner) async {
+    if (owner.eventId != null) {
+      final event = await (db.select(
+        db.collEvent,
+      )..where((row) => row.id.equals(owner.eventId!))).getSingle();
+      return _OwnerInfo(projectUuid: event.projectUuid!);
+    }
     if (owner.siteId != null) {
       final site = await (db.select(
         db.site,

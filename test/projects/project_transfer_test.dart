@@ -12,12 +12,14 @@ import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -546,6 +548,21 @@ void main() {
               associatedDataId: Value(dataId),
             ),
           );
+      final customFieldService = CustomFieldService(database);
+      final customField = await customFieldService.createDefinition(
+        const CustomFieldDraft(
+          name: 'Wind direction',
+          type: FieldType.text,
+          placement: FieldUISection.environmentalData,
+          scope: FieldScope.project,
+          projectUuid: 'project-a',
+        ),
+      );
+      await customFieldService.setValue(
+        CustomFieldOwner.environment(eventId),
+        customField.id!,
+        'Northwest',
+      );
 
       final payload = await tester.runAsync(service.buildExport);
 
@@ -555,6 +572,9 @@ void main() {
       expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
       expect(payload.rows('eventAssociatedData'), hasLength(1));
       expect(payload.rows('eventAssociatedData').single['eventID'], eventId);
+      expect(payload.rows('customFieldDefinition'), hasLength(1));
+      expect(payload.rows('customFieldValue'), hasLength(1));
+      expect(payload.rows('customFieldValue').single['eventId'], eventId);
     });
 
     testWidgets('export survives disposal of its originating widget', (
@@ -781,6 +801,26 @@ void main() {
           'collEvent': [
             {'id': 9, 'projectUuid': 'project-b', 'siteID': 8},
           ],
+          'customFieldDefinition': [
+            {
+              'id': 30,
+              'uuid': 'environment-wind-direction',
+              'name': 'Wind direction',
+              'type': 'text',
+              'uiSection': 'environmentalData',
+              'scope': 'project',
+              'projectUuid': 'project-b',
+            },
+          ],
+          'customFieldValue': [
+            {
+              'id': 31,
+              'fieldDefinitionId': 30,
+              'projectUuid': 'project-b',
+              'value': 'Northwest',
+              'eventId': 9,
+            },
+          ],
           'specimen': [
             {
               'uuid': 'remote-specimen',
@@ -823,6 +863,14 @@ void main() {
         (await database.select(database.collEvent).get()).single.projectUuid,
         'project-b',
       );
+      final importedEvent = await database
+          .select(database.collEvent)
+          .getSingle();
+      final customValue = await database
+          .select(database.customFieldValue)
+          .getSingle();
+      expect(customValue.eventId, importedEvent.id);
+      expect(customValue.value, 'Northwest');
       expect(
         (await database.select(database.fossilSite).get()).single.formation,
         'Hell Creek',

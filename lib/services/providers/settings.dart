@@ -35,8 +35,11 @@ const String datumPrefKey = 'datums';
 const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
 const String collMethodFmtPrefKey = 'collEventMethodFmt';
+const String collActivityPrefKey = 'collEventActivities';
+const String collActivityFmtPrefKey = 'collEventActivityFmt';
 const String collRolePrefKey = 'collPersonnelRoles';
 const String collRoleFmtPrefKey = 'collPersonnelRoleFmt';
+const String environmentalDataFieldsPrefKey = 'environmentalDataFields';
 const String specimenTypePrefKey = 'specimenTypes';
 const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
@@ -181,8 +184,12 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultDatums;
     case collMethodPrefKey:
       return defaultCollMethods;
+    case collActivityPrefKey:
+      return defaultCollActivities;
     case collRolePrefKey:
       return defaultCollRoles;
+    case environmentalDataFieldsPrefKey:
+      return defaultVisibleEnvironmentalDataFields;
     case specimenTypePrefKey:
       return defaultSpecimenType;
     case treatmentPrefKey:

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
@@ -36,6 +36,15 @@ void main() {
             id: Value(1),
             siteID: Value('A-1'),
             projectUuid: Value('project-a'),
+          ),
+        );
+    await database
+        .into(database.collEvent)
+        .insert(
+          const CollEventCompanion(
+            id: Value(30),
+            projectUuid: Value('project-a'),
+            siteID: Value(1),
           ),
         );
     await database
@@ -219,6 +228,37 @@ void main() {
       throwsA(isA<CustomFieldValidationException>()),
     );
   });
+
+  test(
+    'environment fields use event ownership without catalog filtering',
+    () async {
+      final definition = await service.createDefinition(
+        const CustomFieldDraft(
+          name: 'Wind direction',
+          type: FieldType.text,
+          placement: FieldUISection.environmentalData,
+          scope: FieldScope.project,
+          projectUuid: 'project-a',
+          catalogFormat: CatalogFmt.birds,
+        ),
+      );
+      expect(definition.catalogFormat, isNull);
+
+      const owner = CustomFieldOwner.environment(30);
+      final context = await service.getCreationContext(owner);
+      expect(context.projectUuid, 'project-a');
+      expect(context.catalogFormat, isNull);
+
+      await service.setValue(owner, definition.id!, 'North');
+      await service.setValue(owner, definition.id!, 'South');
+      final value = await database
+          .select(database.customFieldValue)
+          .getSingle();
+      expect(value.eventId, 30);
+      expect(value.value, 'South');
+      expect(value.siteId, isNull);
+    },
+  );
 
   test('all to a specific catalog requires every value to match', () async {
     final definition = await service.createDefinition(

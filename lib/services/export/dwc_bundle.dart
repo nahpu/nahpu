@@ -334,6 +334,16 @@ class DwcBundleWriter extends AppServices {
             eventId,
             eventAssertionRows,
           );
+          _applyCustomFields(
+            await CustomFieldService(
+              dbAccess,
+            ).getExportEntries(CustomFieldOwner.environment(event.id)),
+            eventRow,
+            assertionRows: eventAssertionRows,
+            assertionOwnerKey: 'eventID',
+            assertionOwnerId: eventId,
+            warnings: warnings,
+          );
           if (site != null) {
             _applyCustomFields(
               await CustomFieldService(

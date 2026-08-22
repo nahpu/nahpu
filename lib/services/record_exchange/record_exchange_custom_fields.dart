@@ -7,6 +7,7 @@ class RecordExchangeCustomFields extends AppServices {
   const RecordExchangeCustomFields({required super.ref});
 
   Future<Map<String, dynamic>> export({
+    int? eventId,
     int? siteId,
     String? specimenUuid,
     List<int> specimenPartIds = const [],
@@ -14,6 +15,10 @@ class RecordExchangeCustomFields extends AppServices {
   }) async {
     final ownerClauses = <String>[];
     final ownerValues = <Object?>[];
+    if (eventId != null) {
+      ownerClauses.add('eventId = ?');
+      ownerValues.add(eventId);
+    }
     if (siteId != null) {
       ownerClauses.add('siteId = ?');
       ownerValues.add(siteId);
@@ -36,6 +41,7 @@ class RecordExchangeCustomFields extends AppServices {
     }
 
     final placements = <String>{
+      if (eventId != null) 'environmentalData',
       if (siteId != null) 'siteAttribute',
       if (specimenUuid != null) 'specimenAttribute',
       if (specimenPartIds.isNotEmpty) 'specimenPart',
@@ -59,13 +65,15 @@ class RecordExchangeCustomFields extends AppServices {
       'SELECT * FROM customFieldDefinition WHERE uiSection IN '
       '(${List.filled(placementValues.length, '?').join(',')}) '
       'AND (scope = ? OR projectUuid = ?) '
-      'AND (uiSection = ? OR catalogFormat IS NULL OR catalogFormat = ?) '
+      'AND (uiSection IN (?, ?) OR catalogFormat IS NULL OR '
+      'catalogFormat = ?) '
       'ORDER BY uiSection, scope, sortOrder',
       [
         ...placementValues,
         'global',
         currentProjectUuid,
         'siteAttribute',
+        'environmentalData',
         catalogFormat,
       ],
     );
@@ -99,6 +107,7 @@ class RecordExchangeCustomFields extends AppServices {
 
   Future<void> import(
     Object? raw, {
+    int? eventId,
     int? siteId,
     String? specimenUuid,
     Map<int, int> specimenPartIds = const {},
@@ -160,13 +169,15 @@ class RecordExchangeCustomFields extends AppServices {
     for (final source in values) {
       final definitionId = definitionMap[source['sourceDefinitionId'] as int?];
       if (definitionId == null) continue;
+      final targetEventId = source['eventId'] == null ? null : eventId;
       final targetSiteId = source['siteId'] == null ? null : siteId;
       final targetSpecimenUuid = source['specimenUuid'] == null
           ? null
           : specimenUuid;
       final targetPartId = specimenPartIds[source['specimenPartId'] as int?];
       final targetParasiteId = parasiteIds[source['parasiteId'] as int?];
-      if (targetSiteId == null &&
+      if (targetEventId == null &&
+          targetSiteId == null &&
           targetSpecimenUuid == null &&
           targetPartId == null &&
           targetParasiteId == null) {
@@ -174,10 +185,11 @@ class RecordExchangeCustomFields extends AppServices {
       }
       await dbAccess.customStatement(
         'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
-        'AND siteId IS ? AND specimenUuid IS ? '
+        'AND eventId IS ? AND siteId IS ? AND specimenUuid IS ? '
         'AND specimenPartId IS ? AND parasiteId IS ?',
         [
           definitionId,
+          targetEventId,
           targetSiteId,
           targetSpecimenUuid,
           targetPartId,
@@ -186,14 +198,15 @@ class RecordExchangeCustomFields extends AppServices {
       );
       await dbAccess.customStatement(
         'INSERT INTO customFieldValue '
-        '(fieldDefinitionId, projectUuid, value, unit, siteId, specimenUuid, '
-        'specimenPartId, parasiteId, isLegacy) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)',
+        '(fieldDefinitionId, projectUuid, value, unit, eventId, siteId, '
+        'specimenUuid, specimenPartId, parasiteId, isLegacy) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)',
         [
           definitionId,
           currentProjectUuid,
           source['value'],
           source['unit'],
+          targetEventId,
           targetSiteId,
           targetSpecimenUuid,
           targetPartId,

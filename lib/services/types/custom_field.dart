@@ -7,7 +7,13 @@ import 'package:uuid/uuid.dart';
 
 enum FieldType { number, text, boolean, dropdown }
 
-enum FieldUISection { specimenAttribute, siteAttribute, specimenPart, parasite }
+enum FieldUISection {
+  specimenAttribute,
+  siteAttribute,
+  environmentalData,
+  specimenPart,
+  parasite,
+}
 
 enum FieldScope { global, project }
 
@@ -125,6 +131,7 @@ class CustomFieldDraftController extends ChangeNotifier {
 class CustomFieldOwner {
   const CustomFieldOwner._({
     required this.placement,
+    this.eventId,
     this.siteId,
     this.specimenUuid,
     this.specimenPartId,
@@ -133,6 +140,9 @@ class CustomFieldOwner {
 
   const CustomFieldOwner.site(int id)
     : this._(placement: FieldUISection.siteAttribute, siteId: id);
+
+  const CustomFieldOwner.environment(int id)
+    : this._(placement: FieldUISection.environmentalData, eventId: id);
 
   const CustomFieldOwner.specimen(String uuid)
     : this._(placement: FieldUISection.specimenAttribute, specimenUuid: uuid);
@@ -144,6 +154,7 @@ class CustomFieldOwner {
     : this._(placement: FieldUISection.parasite, parasiteId: id);
 
   final FieldUISection placement;
+  final int? eventId;
   final int? siteId;
   final String? specimenUuid;
   final int? specimenPartId;
@@ -153,14 +164,21 @@ class CustomFieldOwner {
   bool operator ==(Object other) =>
       other is CustomFieldOwner &&
       other.placement == placement &&
+      other.eventId == eventId &&
       other.siteId == siteId &&
       other.specimenUuid == specimenUuid &&
       other.specimenPartId == specimenPartId &&
       other.parasiteId == parasiteId;
 
   @override
-  int get hashCode =>
-      Object.hash(placement, siteId, specimenUuid, specimenPartId, parasiteId);
+  int get hashCode => Object.hash(
+    placement,
+    eventId,
+    siteId,
+    specimenUuid,
+    specimenPartId,
+    parasiteId,
+  );
 }
 
 class CustomFieldEntry {
@@ -228,11 +246,15 @@ extension FieldUISectionLabel on FieldUISection {
   String get label => switch (this) {
     FieldUISection.specimenAttribute => 'Specimen Attributes',
     FieldUISection.siteAttribute => 'Site Attributes',
+    FieldUISection.environmentalData => 'Environmental Data',
     FieldUISection.specimenPart => 'Specimen Part',
     FieldUISection.parasite => 'Parasite',
   };
 
-  bool get isSpecimenRelated => this != FieldUISection.siteAttribute;
+  bool get isSpecimenRelated =>
+      this == FieldUISection.specimenAttribute ||
+      this == FieldUISection.specimenPart ||
+      this == FieldUISection.parasite;
 }
 
 String encodeCustomFieldOptions(List<CustomFieldOption> options) => jsonEncode(

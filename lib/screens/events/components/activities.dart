@@ -7,13 +7,8 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-
-const List<String> collActivityList = [
-  'Collecting',
-  'Recording',
-  'Observing',
-  'Other',
-];
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 
 class CollActivityFields extends ConsumerWidget {
   const CollActivityFields({
@@ -34,25 +29,42 @@ class CollActivityFields extends ConsumerWidget {
       child: CommonPadding(
         child: Column(
           children: [
-            DropdownButtonFormField(
-              initialValue: collEventCtr.primaryCollMethodCtr,
-              decoration: const InputDecoration(
-                labelText: 'Primary activity',
-                hintText: 'Add activity',
-              ),
-              items: collActivityList.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: CommonDropdownText(text: value),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                CollEventServices(ref: ref).updateCollEvent(
-                  collEventId,
-                  CollEventCompanion(primaryCollMethod: db.Value(newValue)),
-                );
-              },
-            ),
+            ref
+                .watch(effectiveUserDefinedFieldProvider(collActivityPrefKey))
+                .when(
+                  data: (data) {
+                    final options = includeCurrentVocabularyValue(
+                      data,
+                      collEventCtr.primaryCollMethodCtr,
+                    );
+                    return DropdownButtonFormField<String?>(
+                      initialValue: collEventCtr.primaryCollMethodCtr,
+                      decoration: const InputDecoration(
+                        labelText: 'Primary activity',
+                        hintText: 'Select an activity',
+                      ),
+                      items: options
+                          .map(
+                            (value) => DropdownMenuItem<String>(
+                              value: value,
+                              child: CommonDropdownText(text: value),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (newValue) {
+                        CollEventServices(ref: ref).updateCollEvent(
+                          collEventId,
+                          CollEventCompanion(
+                            primaryCollMethod: db.Value(newValue),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const LinearProgressIndicator(),
+                  error: (error, _) =>
+                      Text('Unable to load primary activities: $error'),
+                ),
             TextField(
               maxLines: 5,
               controller: collEventCtr.noteCtr,

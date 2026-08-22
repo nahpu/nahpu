@@ -917,10 +917,12 @@ class ProjectTransferService extends AppServices {
           plan.payload,
           targetProjectUuid,
           siteMap,
+          eventMap,
           specimenMap,
           specimenPartMap,
           parasiteMap,
           sitesUsingImportedChildren,
+          eventsUsingImportedChildren,
           specimensUsingImportedChildren,
         );
 
@@ -1266,10 +1268,12 @@ class ProjectTransferService extends AppServices {
     ProjectTransferPayload payload,
     String targetProjectUuid,
     Map<int, int?> siteMap,
+    Map<int, int?> eventMap,
     Map<String, String?> specimenMap,
     Map<int, int?> specimenPartMap,
     Map<int, int?> parasiteMap,
     Set<int> sitesUsingImportedChildren,
+    Set<int> eventsUsingImportedChildren,
     Set<String> specimensUsingImportedChildren,
   ) async {
     if (payload.version < 6) return;
@@ -1333,11 +1337,13 @@ class ProjectTransferService extends AppServices {
     for (final source in payload.rows('customFieldValue')) {
       final definitionId = definitionMap[source['fieldDefinitionId'] as int?];
       if (definitionId == null) continue;
+      final sourceEventId = source['eventId'] as int?;
       final sourceSiteId = source['siteId'] as int?;
       final sourceSpecimenUuid = source['specimenUuid'] as String?;
       final sourcePartId = source['specimenPartId'] as int?;
       final sourceParasiteId = source['parasiteId'] as int?;
       final isLegacy = source['isLegacy'] == 1;
+      final eventId = sourceEventId == null ? null : eventMap[sourceEventId];
       final siteId = sourceSiteId == null ? null : siteMap[sourceSiteId];
       final specimenUuid = sourceSpecimenUuid == null
           ? null
@@ -1350,6 +1356,9 @@ class ProjectTransferService extends AppServices {
           : parasiteMap[sourceParasiteId];
       final ownerWasImported =
           isLegacy ||
+          (sourceEventId != null &&
+              eventsUsingImportedChildren.contains(sourceEventId) &&
+              eventId != null) ||
           (sourceSiteId != null &&
               sitesUsingImportedChildren.contains(sourceSiteId) &&
               siteId != null) ||
@@ -1361,9 +1370,9 @@ class ProjectTransferService extends AppServices {
       if (!ownerWasImported) continue;
       await dbAccess.customStatement(
         'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
-        'AND siteId IS ? AND specimenUuid IS ? '
+        'AND eventId IS ? AND siteId IS ? AND specimenUuid IS ? '
         'AND specimenPartId IS ? AND parasiteId IS ?',
-        [definitionId, siteId, specimenUuid, partId, parasiteId],
+        [definitionId, eventId, siteId, specimenUuid, partId, parasiteId],
       );
       await _insert(
         'customFieldValue',
@@ -1371,6 +1380,7 @@ class ProjectTransferService extends AppServices {
           ...source,
           'fieldDefinitionId': definitionId,
           'projectUuid': targetProjectUuid,
+          'eventId': eventId,
           'siteId': siteId,
           'specimenUuid': specimenUuid,
           'specimenPartId': partId,

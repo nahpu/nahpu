@@ -11,9 +11,11 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -209,7 +211,7 @@ void main() {
               projectUuid: const Value('project-a'),
               siteID: Value(sourceSite),
               startDate: const Value('2026-07-23'),
-              primaryCollMethod: const Value('Mist net'),
+              primaryCollMethod: const Value('Recording'),
             ),
           );
       await database
@@ -257,6 +259,21 @@ void main() {
       await AssociatedDataQuery(
         database,
       ).linkToEvent(associatedDataId, sourceEvent);
+      final customFieldService = CustomFieldService(database);
+      final windField = await customFieldService.createDefinition(
+        const CustomFieldDraft(
+          name: 'Wind direction',
+          type: FieldType.text,
+          placement: FieldUISection.environmentalData,
+          scope: FieldScope.project,
+          projectUuid: 'project-a',
+        ),
+      );
+      await customFieldService.setValue(
+        CustomFieldOwner.environment(sourceEvent),
+        windField.id!,
+        'Northwest',
+      );
 
       final payload = await service.exportEvent(sourceEvent);
       final result = await service.importPayload(
@@ -269,7 +286,7 @@ void main() {
         database.collEvent,
       )..where((row) => row.id.equals(result.recordId))).getSingle();
       expect(importedEvent.siteID, sourceSite);
-      expect(importedEvent.primaryCollMethod, 'Mist net');
+      expect(importedEvent.primaryCollMethod, 'Recording');
       expect(
         await (database.select(
           database.collEffort,
@@ -291,6 +308,12 @@ void main() {
       expect(environment.rainfallInMm, 12.5);
       expect(environment.ambientHumidity, 88.0);
       expect(environment.pH, 6.8);
+      final importedCustomValues = await customFieldService.getEntries(
+        CustomFieldOwner.environment(result.recordId),
+      );
+      expect(importedCustomValues, hasLength(1));
+      expect(importedCustomValues.single.definition.name, 'Wind direction');
+      expect(importedCustomValues.single.value?.value, 'Northwest');
       final associatedData = await AssociatedDataQuery(
         database,
       ).getAssociatedDataForEvent(result.recordId);

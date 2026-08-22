@@ -7,8 +7,81 @@ import 'package:nahpu/screens/events/components/environment_data.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/events.dart';
 
 void main() {
+  testWidgets('Environmental Data shows only the five default fields', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project'),
+            name: Value('Project'),
+          ),
+        );
+    final eventId = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion(projectUuid: Value('project')));
+    await database
+        .into(database.environment)
+        .insert(
+          EnvironmentCompanion(
+            eventID: Value(eventId),
+            waterTemperature: const Value(22),
+          ),
+        );
+    final data = await database.select(database.environment).getSingle();
+
+    tester.view.physicalSize = const Size(1000, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EnvironmentDataForm(
+                useHorizontalLayout: false,
+                eventID: eventId,
+                environmentCtr: CollEnvironmentCtrModel.fromData(data),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ambient temperature (°C)'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('environment-ambient-humidity')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('environment-cloud-cover')),
+      findsOneWidget,
+    );
+    expect(find.text('Rainfall (mm)'), findsOneWidget);
+    expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('Water temperature (°C)'), findsNothing);
+    expect(find.text('Aquatic Data'), findsNothing);
+    expect(find.text('Add custom field'), findsOneWidget);
+    expect(find.byTooltip('Manage custom fields'), findsOneWidget);
+    expect(
+      (await database.select(database.environment).getSingle())
+          .waterTemperature,
+      22,
+    );
+  });
+
   testWidgets('Environmental Data validates ranges and stores oktas codes', (
     tester,
   ) async {
@@ -38,6 +111,7 @@ void main() {
                 useHorizontalLayout: false,
                 eventID: eventId,
                 environmentCtr: CollEnvironmentCtrModel.fromData(data),
+                visibleFields: environmentalDataFields.toSet(),
               ),
             ),
           ),
@@ -50,13 +124,16 @@ void main() {
     expect(find.text('Water temperature (°C)'), findsOneWidget);
     expect(find.text('Dissolved oxygen (mg/L)'), findsOneWidget);
     expect(find.text('Cloud cover (oktas)'), findsOneWidget);
+    expect(
+      find.text('One okta represents one eighth of the visible sky.'),
+      findsOneWidget,
+    );
     await tester.tap(find.byKey(const ValueKey('environment-cloud-cover')));
     await tester.pumpAndSettle();
-    for (var index = 0; index <= 8; index++) {
-      expect(find.text('$index — $index/8'), findsOneWidget);
+    for (final label in oktaOptionLabels.values) {
+      expect(find.text(label), findsOneWidget);
     }
-    expect(find.text('9 — Sky obscured'), findsOneWidget);
-    await tester.tap(find.text('9 — Sky obscured'));
+    await tester.tap(find.text(oktaOptionLabels['9']!));
     await tester.pumpAndSettle();
 
     await tester.enterText(

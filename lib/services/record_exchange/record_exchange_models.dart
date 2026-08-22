@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-const int recordExchangeVersion = 4;
-const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4};
+const int recordExchangeVersion = 5;
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5};
 
 enum RecordExchangeType { site, event, specimen }
 
@@ -151,6 +151,7 @@ class RecordExchangePayload {
       if (environment != null && environment is! Map) {
         throw const FormatException('Event environmental data is invalid.');
       }
+      _validateCustomFields(data['customFields']);
       final site = data['site'];
       if (site != null && site is! Map) {
         throw const FormatException('Event linked site data is invalid.');

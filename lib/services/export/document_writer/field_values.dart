@@ -256,6 +256,24 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
 
   m.addAll(buildCollPersonnelFieldValues(resolvedCollectingPersonnel));
 
+  try {
+    final environment = await CollEventServices(
+      ref: ref,
+    ).getAllEnvironmentData(s.id);
+    for (final entry in environment.toJson().entries) {
+      m['environment::${entry.key}'] = entry.value?.toString() ?? '';
+    }
+  } catch (_) {}
+
+  final customEnvironment = await CustomFieldService(
+    db,
+  ).getExportEntries(CustomFieldOwner.environment(s.id));
+  for (final entry in customEnvironment) {
+    m['customEnvironment::${entry.definition.uuid}'] = entry.value == null
+        ? ''
+        : entry.definition.displayValue(entry.value!.value);
+  }
+
   return m;
 }
 

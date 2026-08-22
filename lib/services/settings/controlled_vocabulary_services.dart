@@ -12,6 +12,7 @@ const controlledVocabularyPrefKeys = [
   siteTypePrefKey,
   habitatTypePrefKey,
   datumPrefKey,
+  collActivityPrefKey,
   collMethodPrefKey,
   collRolePrefKey,
   specimenTypePrefKey,
@@ -46,6 +47,9 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
           database,
         ).getDistinctHabitatTypes(),
         datumPrefKey => await CoordinateQuery(database).getDistinctDatums(),
+        collActivityPrefKey => await CollEventQuery(
+          database,
+        ).getDistinctPrimaryActivities(),
         collMethodPrefKey => await CollEffortQuery(
           database,
         ).getDistinctMethods(),

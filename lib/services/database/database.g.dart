@@ -23838,6 +23838,17 @@ class CustomFieldValue extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  late final GeneratedColumn<int> eventId = GeneratedColumn<int>(
+    'eventId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _siteIdMeta = const VerificationMeta('siteId');
   late final GeneratedColumn<int> siteId = GeneratedColumn<int>(
     'siteId',
@@ -23899,6 +23910,7 @@ class CustomFieldValue extends Table
     projectUuid,
     value,
     unit,
+    eventId,
     siteId,
     specimenUuid,
     specimenPartId,
@@ -23952,6 +23964,12 @@ class CustomFieldValue extends Table
       context.handle(
         _unitMeta,
         unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('eventId')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['eventId']!, _eventIdMeta),
       );
     }
     if (data.containsKey('siteId')) {
@@ -24019,6 +24037,10 @@ class CustomFieldValue extends Table
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
       ),
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}eventId'],
+      ),
       siteId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}siteId'],
@@ -24051,11 +24073,12 @@ class CustomFieldValue extends Table
   List<String> get customConstraints => const [
     'FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)ON DELETE CASCADE',
     'FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE',
+    'FOREIGN KEY(eventId)REFERENCES collEvent(id)ON DELETE CASCADE',
     'FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE',
     'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE',
     'FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE',
     'FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE',
-    'CHECK((isLegacy = 1 AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))',
+    'CHECK((isLegacy = 1 AND eventId IS NULL AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((eventId IS NOT NULL)+(siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -24070,6 +24093,7 @@ class CustomFieldValueData extends DataClass
   final String? projectUuid;
   final String value;
   final String? unit;
+  final int? eventId;
   final int? siteId;
   final String? specimenUuid;
   final int? specimenPartId;
@@ -24081,6 +24105,7 @@ class CustomFieldValueData extends DataClass
     this.projectUuid,
     required this.value,
     this.unit,
+    this.eventId,
     this.siteId,
     this.specimenUuid,
     this.specimenPartId,
@@ -24100,6 +24125,9 @@ class CustomFieldValueData extends DataClass
     map['value'] = Variable<String>(value);
     if (!nullToAbsent || unit != null) {
       map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || eventId != null) {
+      map['eventId'] = Variable<int>(eventId);
     }
     if (!nullToAbsent || siteId != null) {
       map['siteId'] = Variable<int>(siteId);
@@ -24126,6 +24154,9 @@ class CustomFieldValueData extends DataClass
           : Value(projectUuid),
       value: Value(value),
       unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      eventId: eventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventId),
       siteId: siteId == null && nullToAbsent
           ? const Value.absent()
           : Value(siteId),
@@ -24153,6 +24184,7 @@ class CustomFieldValueData extends DataClass
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       value: serializer.fromJson<String>(json['value']),
       unit: serializer.fromJson<String?>(json['unit']),
+      eventId: serializer.fromJson<int?>(json['eventId']),
       siteId: serializer.fromJson<int?>(json['siteId']),
       specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
       specimenPartId: serializer.fromJson<int?>(json['specimenPartId']),
@@ -24169,6 +24201,7 @@ class CustomFieldValueData extends DataClass
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'value': serializer.toJson<String>(value),
       'unit': serializer.toJson<String?>(unit),
+      'eventId': serializer.toJson<int?>(eventId),
       'siteId': serializer.toJson<int?>(siteId),
       'specimenUuid': serializer.toJson<String?>(specimenUuid),
       'specimenPartId': serializer.toJson<int?>(specimenPartId),
@@ -24183,6 +24216,7 @@ class CustomFieldValueData extends DataClass
     Value<String?> projectUuid = const Value.absent(),
     String? value,
     Value<String?> unit = const Value.absent(),
+    Value<int?> eventId = const Value.absent(),
     Value<int?> siteId = const Value.absent(),
     Value<String?> specimenUuid = const Value.absent(),
     Value<int?> specimenPartId = const Value.absent(),
@@ -24194,6 +24228,7 @@ class CustomFieldValueData extends DataClass
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
     value: value ?? this.value,
     unit: unit.present ? unit.value : this.unit,
+    eventId: eventId.present ? eventId.value : this.eventId,
     siteId: siteId.present ? siteId.value : this.siteId,
     specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
     specimenPartId: specimenPartId.present
@@ -24213,6 +24248,7 @@ class CustomFieldValueData extends DataClass
           : this.projectUuid,
       value: data.value.present ? data.value.value : this.value,
       unit: data.unit.present ? data.unit.value : this.unit,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
       siteId: data.siteId.present ? data.siteId.value : this.siteId,
       specimenUuid: data.specimenUuid.present
           ? data.specimenUuid.value
@@ -24235,6 +24271,7 @@ class CustomFieldValueData extends DataClass
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
           ..write('unit: $unit, ')
+          ..write('eventId: $eventId, ')
           ..write('siteId: $siteId, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('specimenPartId: $specimenPartId, ')
@@ -24251,6 +24288,7 @@ class CustomFieldValueData extends DataClass
     projectUuid,
     value,
     unit,
+    eventId,
     siteId,
     specimenUuid,
     specimenPartId,
@@ -24266,6 +24304,7 @@ class CustomFieldValueData extends DataClass
           other.projectUuid == this.projectUuid &&
           other.value == this.value &&
           other.unit == this.unit &&
+          other.eventId == this.eventId &&
           other.siteId == this.siteId &&
           other.specimenUuid == this.specimenUuid &&
           other.specimenPartId == this.specimenPartId &&
@@ -24279,6 +24318,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
   final Value<String?> projectUuid;
   final Value<String> value;
   final Value<String?> unit;
+  final Value<int?> eventId;
   final Value<int?> siteId;
   final Value<String?> specimenUuid;
   final Value<int?> specimenPartId;
@@ -24290,6 +24330,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     this.projectUuid = const Value.absent(),
     this.value = const Value.absent(),
     this.unit = const Value.absent(),
+    this.eventId = const Value.absent(),
     this.siteId = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.specimenPartId = const Value.absent(),
@@ -24302,6 +24343,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     this.projectUuid = const Value.absent(),
     required String value,
     this.unit = const Value.absent(),
+    this.eventId = const Value.absent(),
     this.siteId = const Value.absent(),
     this.specimenUuid = const Value.absent(),
     this.specimenPartId = const Value.absent(),
@@ -24315,6 +24357,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     Expression<String>? projectUuid,
     Expression<String>? value,
     Expression<String>? unit,
+    Expression<int>? eventId,
     Expression<int>? siteId,
     Expression<String>? specimenUuid,
     Expression<int>? specimenPartId,
@@ -24327,6 +24370,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (value != null) 'value': value,
       if (unit != null) 'unit': unit,
+      if (eventId != null) 'eventId': eventId,
       if (siteId != null) 'siteId': siteId,
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (specimenPartId != null) 'specimenPartId': specimenPartId,
@@ -24341,6 +24385,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     Value<String?>? projectUuid,
     Value<String>? value,
     Value<String?>? unit,
+    Value<int?>? eventId,
     Value<int?>? siteId,
     Value<String?>? specimenUuid,
     Value<int?>? specimenPartId,
@@ -24353,6 +24398,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       projectUuid: projectUuid ?? this.projectUuid,
       value: value ?? this.value,
       unit: unit ?? this.unit,
+      eventId: eventId ?? this.eventId,
       siteId: siteId ?? this.siteId,
       specimenUuid: specimenUuid ?? this.specimenUuid,
       specimenPartId: specimenPartId ?? this.specimenPartId,
@@ -24378,6 +24424,9 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     }
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
+    }
+    if (eventId.present) {
+      map['eventId'] = Variable<int>(eventId.value);
     }
     if (siteId.present) {
       map['siteId'] = Variable<int>(siteId.value);
@@ -24405,6 +24454,7 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
           ..write('unit: $unit, ')
+          ..write('eventId: $eventId, ')
           ..write('siteId: $siteId, ')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('specimenPartId: $specimenPartId, ')
@@ -24471,6 +24521,10 @@ abstract class _$Database extends GeneratedDatabase {
     'custom_field_site_value_idx',
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_site_value_idx ON customFieldValue (fieldDefinitionId, siteId) WHERE siteId IS NOT NULL',
   );
+  late final Index customFieldEventValueIdx = Index(
+    'custom_field_event_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_event_value_idx ON customFieldValue (fieldDefinitionId, eventId) WHERE eventId IS NOT NULL',
+  );
   late final Index customFieldSpecimenValueIdx = Index(
     'custom_field_specimen_value_idx',
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_specimen_value_idx ON customFieldValue (fieldDefinitionId, specimenUuid) WHERE specimenUuid IS NOT NULL',
@@ -24488,11 +24542,11 @@ abstract class _$Database extends GeneratedDatabase {
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
   );
   late final Trigger customFieldValueValidateInsert = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_insert',
   );
   late final Trigger customFieldValueValidateUpdate = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_update',
   );
   late final Index specimenProjectSpeciesIdx = Index(
@@ -24593,6 +24647,7 @@ abstract class _$Database extends GeneratedDatabase {
     customFieldDefinition,
     customFieldValue,
     customFieldSiteValueIdx,
+    customFieldEventValueIdx,
     customFieldSpecimenValueIdx,
     customFieldPartValueIdx,
     customFieldParasiteValueIdx,
@@ -24703,6 +24758,13 @@ abstract class _$Database extends GeneratedDatabase {
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'project',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'collEvent',
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
@@ -36594,6 +36656,7 @@ typedef $CustomFieldValueCreateCompanionBuilder =
       Value<String?> projectUuid,
       required String value,
       Value<String?> unit,
+      Value<int?> eventId,
       Value<int?> siteId,
       Value<String?> specimenUuid,
       Value<int?> specimenPartId,
@@ -36607,6 +36670,7 @@ typedef $CustomFieldValueUpdateCompanionBuilder =
       Value<String?> projectUuid,
       Value<String> value,
       Value<String?> unit,
+      Value<int?> eventId,
       Value<int?> siteId,
       Value<String?> specimenUuid,
       Value<int?> specimenPartId,
@@ -36645,6 +36709,11 @@ class $CustomFieldValueFilterComposer
 
   ColumnFilters<String> get unit => $composableBuilder(
     column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get eventId => $composableBuilder(
+    column: $table.eventId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -36708,6 +36777,11 @@ class $CustomFieldValueOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get siteId => $composableBuilder(
     column: $table.siteId,
     builder: (column) => ColumnOrderings(column),
@@ -36761,6 +36835,9 @@ class $CustomFieldValueAnnotationComposer
 
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<int> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
 
   GeneratedColumn<int> get siteId =>
       $composableBuilder(column: $table.siteId, builder: (column) => column);
@@ -36820,6 +36897,7 @@ class $CustomFieldValueTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String> value = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
+                Value<int?> eventId = const Value.absent(),
                 Value<int?> siteId = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> specimenPartId = const Value.absent(),
@@ -36831,6 +36909,7 @@ class $CustomFieldValueTableManager
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                eventId: eventId,
                 siteId: siteId,
                 specimenUuid: specimenUuid,
                 specimenPartId: specimenPartId,
@@ -36844,6 +36923,7 @@ class $CustomFieldValueTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 required String value,
                 Value<String?> unit = const Value.absent(),
+                Value<int?> eventId = const Value.absent(),
                 Value<int?> siteId = const Value.absent(),
                 Value<String?> specimenUuid = const Value.absent(),
                 Value<int?> specimenPartId = const Value.absent(),
@@ -36855,6 +36935,7 @@ class $CustomFieldValueTableManager
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                eventId: eventId,
                 siteId: siteId,
                 specimenUuid: specimenUuid,
                 specimenPartId: specimenPartId,

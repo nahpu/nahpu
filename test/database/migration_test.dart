@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'generated_migrations/schema.dart';
 
@@ -15,17 +16,81 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]) {
-    test('upgrade from v$version to v19', () async {
+  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]) {
+    test('upgrade from v$version to v20', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
   }
 
-  test('v18 to v19 preserves data and translates legacy ages', () async {
+  test('v19 to v20 preserves values and adds event ownership', () async {
+    final schema = await verifier.schemaAt(19);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO site (id, siteID, projectUuid) "
+      "VALUES (7, 'SITE-7', 'project')",
+    );
+    raw.execute(
+      "INSERT INTO collEvent (id, projectUuid, siteID) "
+      "VALUES (11, 'project', 7)",
+    );
+    raw.execute(
+      'INSERT INTO customFieldDefinition '
+      '(id, uuid, name, type, uiSection, scope) VALUES '
+      "(1, 'site-field', 'Canopy note', 'text', 'siteAttribute', 'global')",
+    );
+    raw.execute(
+      'INSERT INTO customFieldValue '
+      '(id, fieldDefinitionId, projectUuid, value, siteId) VALUES '
+      "(1, 1, 'project', 'Preserved', 7)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 20);
+
+    final preserved = await db.select(db.customFieldValue).getSingle();
+    expect(preserved.value, 'Preserved');
+    expect(preserved.siteId, 7);
+    expect(preserved.eventId, isNull);
+
+    final service = CustomFieldService(db);
+    final definition = await service.createDefinition(
+      const CustomFieldDraft(
+        name: 'Wind direction',
+        type: FieldType.text,
+        placement: FieldUISection.environmentalData,
+        scope: FieldScope.project,
+        projectUuid: 'project',
+      ),
+    );
+    const owner = CustomFieldOwner.environment(11);
+    await service.setValue(owner, definition.id!, 'North');
+    await service.setValue(owner, definition.id!, 'Northeast');
+    final eventValues = await (db.select(
+      db.customFieldValue,
+    )..where((row) => row.eventId.equals(11))).get();
+    expect(eventValues, hasLength(1));
+    expect(eventValues.single.value, 'Northeast');
+
+    await service.setArchived(definition.id!, true);
+    expect(await service.getEntries(owner), isEmpty);
+    expect(await service.getExportEntries(owner), hasLength(1));
+
+    await (db.delete(db.collEvent)..where((row) => row.id.equals(11))).go();
+    expect(
+      await (db.select(
+        db.customFieldValue,
+      )..where((row) => row.eventId.equals(11))).get(),
+      isEmpty,
+    );
+    await db.close();
+  });
+
+  test('v18 to v20 preserves data and translates legacy ages', () async {
     final schema = await verifier.schemaAt(18);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -87,7 +152,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final site = await db.select(db.site).getSingle();
     expect(site.siteID, 'SITE-7');
@@ -187,7 +252,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final definition = await db.select(db.customFieldDefinition).getSingle();
     final value = await db.select(db.customFieldValue).getSingle();
@@ -214,7 +279,7 @@ void main() {
     await db.close();
   });
 
-  test('v16 to v19 preserves determiner and backfills weight units', () async {
+  test('v16 to v20 preserves determiner and backfills weight units', () async {
     final schema = await verifier.schemaAt(16);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -241,7 +306,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final mammal = await (db.select(
       db.specimen,
@@ -272,7 +337,7 @@ void main() {
     await db.close();
   });
 
-  test('v15 to v19 adds catalog and storage location columns', () async {
+  test('v15 to v20 adds catalog and storage location columns', () async {
     final schema = await verifier.schemaAt(15);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -290,7 +355,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -310,7 +375,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
     await db.close();
   });
 
@@ -322,7 +387,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -392,7 +457,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -454,7 +519,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -510,7 +575,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -570,7 +635,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -611,7 +676,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 19);
+    await verifier.migrateAndValidate(db, 20);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

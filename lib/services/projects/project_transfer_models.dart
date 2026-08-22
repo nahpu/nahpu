@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
-const int projectTransferVersion = 7;
-const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5, 6, 7};
+const int projectTransferVersion = 8;
+const Set<int> supportedProjectTransferVersions = {1, 2, 3, 4, 5, 6, 7, 8};
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
 

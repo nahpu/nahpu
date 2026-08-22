@@ -89,7 +89,8 @@ class CatalogSettings extends StatelessWidget {
         CommonSettingTile(
           title: 'Custom fields',
           icon: Icons.dynamic_form_outlined,
-          label: 'Manage fields for sites, specimens, parts, and parasites',
+          label:
+              'Manage fields for sites, environmental data, specimens, parts, and parasites',
           isNavigation: true,
           onTap: () => Navigator.push(
             context,
@@ -209,7 +210,7 @@ class CollEventSection extends StatelessWidget {
       icon: Icons.calendar_month_outlined,
       title: 'Events',
       label:
-          'Manage controlled vocabularies for collection methods and event personnel roles',
+          'Manage activities, collection methods, personnel roles, and environmental fields',
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const CollEventSelection()),

@@ -14,7 +14,63 @@ const List<String> defaultCollMethods = [
   'Other',
 ];
 
+const List<String> defaultCollActivities = [
+  'Collecting',
+  'Recording',
+  'Observing',
+];
+
 const List<String> defaultCollRoles = ['Leader', 'Helper'];
+
+const List<String> environmentalDataFields = [
+  'lowestDayTempC',
+  'highestDayTempC',
+  'lowestNightTempC',
+  'highestNightTempC',
+  'averageHumidity',
+  'dewPointTemp',
+  'cloudCover',
+  'rainfallInMm',
+  'ambientTemperature',
+  'ambientHumidity',
+  'waterTemperature',
+  'pH',
+  'dissolvedOxygen',
+  'flowVelocity',
+  'sunriseTime',
+  'sunsetTime',
+  'moonPhase',
+  'notes',
+];
+
+const List<String> defaultVisibleEnvironmentalDataFields = [
+  'ambientTemperature',
+  'ambientHumidity',
+  'cloudCover',
+  'rainfallInMm',
+  'notes',
+];
+
+const Map<String, String> environmentalDataFieldLabels = {
+  'lowestDayTempC': 'Day lowest temperature',
+  'highestDayTempC': 'Day highest temperature',
+  'lowestNightTempC': 'Night lowest temperature',
+  'highestNightTempC': 'Night highest temperature',
+  'averageHumidity': 'Average humidity',
+  'dewPointTemp': 'Dew point',
+  'cloudCover': 'Cloud cover',
+  'rainfallInMm': 'Rainfall',
+  'ambientTemperature': 'Ambient temperature',
+  'ambientHumidity': 'Ambient humidity',
+  'waterTemperature': 'Water temperature',
+  'pH': 'pH',
+  'dissolvedOxygen': 'Dissolved oxygen',
+  'flowVelocity': 'Flow velocity',
+  'sunriseTime': 'Sunrise',
+  'sunsetTime': 'Sunset',
+  'moonPhase': 'Moon phase',
+  'notes': 'Notes',
+};
 
 /// Icon vocabulary for collecting methods.
 ///

@@ -243,6 +243,7 @@ class ExportHeaderResolver {
 
 String _namespaceForPlacement(FieldUISection placement) => switch (placement) {
   FieldUISection.siteAttribute => 'customSite',
+  FieldUISection.environmentalData => 'customEnvironment',
   FieldUISection.specimenAttribute => 'customSpecimen',
   FieldUISection.specimenPart => 'customSpecimenPart',
   FieldUISection.parasite => 'customParasite',

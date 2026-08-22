@@ -643,14 +643,15 @@ Map<String, List<String>> _availableFieldGroups(
   for (final definition in customDefinitions) {
     final namespace = switch (definition.placement) {
       FieldUISection.siteAttribute => 'customSite',
+      FieldUISection.environmentalData => 'customEnvironment',
       FieldUISection.specimenAttribute => 'customSpecimen',
       FieldUISection.specimenPart => 'customSpecimenPart',
       FieldUISection.parasite => 'customParasite',
     };
     final isAvailable = switch (recordType) {
-      RecordType.site ||
-      RecordType.collEvent ||
-      RecordType.narrative => namespace == 'customSite',
+      RecordType.site || RecordType.narrative => namespace == 'customSite',
+      RecordType.collEvent =>
+        namespace == 'customSite' || namespace == 'customEnvironment',
       RecordType.specimenRecord || RecordType.specimenParts => true,
       RecordType.none => false,
     };
@@ -670,7 +671,7 @@ bool _matchesSpecimenRecordType(
   SpecimenRecordType recordType,
 ) {
   final catalog = definition.applicableCatalog;
-  if (catalog == null || definition.placement == FieldUISection.siteAttribute) {
+  if (catalog == null || !definition.placement.isSpecimenRelated) {
     return true;
   }
   return switch (recordType) {

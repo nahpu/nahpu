@@ -7,14 +7,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/events.dart';
 
 void main() {
-  test('v19 specimen vocabularies keep their canonical default order', () {
+  test('v20 vocabularies keep their canonical default order', () {
     expect(getDefaultOptionsList(idMethodPrefKey), defaultIdMethods);
     expect(getDefaultOptionsList(lifeStagePrefKey), defaultLifeStages);
     expect(defaultIdMethods, [
@@ -24,6 +26,49 @@ void main() {
       'mtDNA',
       'unknown',
     ]);
+  });
+
+  test('primary activities default to three options without Other', () {
+    expect(getDefaultOptionsList(collActivityPrefKey), defaultCollActivities);
+    expect(defaultCollActivities, ['Collecting', 'Recording', 'Observing']);
+    expect(defaultCollActivities, isNot(contains('Other')));
+  });
+
+  test('activity query preserves distinct stored legacy values', () async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    for (final activity in ['Collecting', 'Legacy survey', 'Collecting', '']) {
+      await database
+          .into(database.collEvent)
+          .insert(CollEventCompanion(primaryCollMethod: Value(activity)));
+    }
+
+    final stored = await CollEventQuery(
+      database,
+    ).getDistinctPrimaryActivities();
+    expect(stored.toSet(), {'Collecting', 'Legacy survey'});
+    expect(mergeVocabularyOptions(defaultCollActivities, stored), [
+      'Collecting',
+      'Recording',
+      'Observing',
+      'Legacy survey',
+    ]);
+  });
+
+  test('environmental fields have the five requested defaults', () {
+    expect(defaultVisibleEnvironmentalDataFields, [
+      'ambientTemperature',
+      'ambientHumidity',
+      'cloudCover',
+      'rainfallInMm',
+      'notes',
+    ]);
+    expect(
+      environmentalDataFields,
+      containsAll(defaultVisibleEnvironmentalDataFields),
+    );
   });
 
   test(

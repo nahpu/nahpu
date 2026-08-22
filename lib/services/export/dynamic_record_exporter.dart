@@ -254,6 +254,11 @@ class DynamicRecordExporter {
         } catch (_) {
           // No environmental data found.
         }
+        await _addCustomFieldData(
+          CustomFieldOwner.environment(event.id),
+          'customEnvironment',
+          record,
+        );
       }
     }
   }

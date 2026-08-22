@@ -50,6 +50,13 @@ class CollEventQuery extends DatabaseAccessor<Database>
         .getSingle();
   }
 
+  Future<List<String>> getDistinctPrimaryActivities() async {
+    final data = await select(collEvent).get();
+    return getDistinctList(
+      data.map((event) => event.primaryCollMethod).toList(),
+    );
+  }
+
   Future<void> createEventMedia(EventMediaCompanion form) {
     return into(eventMedia).insert(form);
   }

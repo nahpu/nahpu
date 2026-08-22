@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
@@ -120,6 +121,37 @@ void main() {
     expect(datum.label, 'Datums');
     expect(datum.values, datums);
     expect(datum.isControlledVocabulary, isTrue);
+  });
+
+  test('activity and environmental settings are exportable', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final activities = await container.read(
+      userDefinedFieldProvider(collActivityPrefKey).future,
+    );
+    final environmentalFields = await container.read(
+      userDefinedFieldProvider(environmentalDataFieldsPrefKey).future,
+    );
+    expect(activities, defaultCollActivities);
+    expect(activities, isNot(contains('Other')));
+    expect(environmentalFields, defaultVisibleEnvironmentalDataFields);
+
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
+    final activity = preview.userConfigs.firstWhere(
+      (entry) => entry.key == collActivityPrefKey,
+    );
+    expect(activity.label, 'Primary activities');
+    expect(activity.values, activities);
+    expect(activity.isControlledVocabulary, isTrue);
+    final environmental = preview.userConfigs.firstWhere(
+      (entry) => entry.key == environmentalDataFieldsPrefKey,
+    );
+    expect(environmental.label, 'Environmental data fields');
+    expect(environmental.values, environmentalFields);
+    expect(environmental.isControlledVocabulary, isFalse);
   });
 
   test('user config settings service persists options and formats', () async {

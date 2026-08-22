@@ -239,6 +239,7 @@ Future<void> showCustomFieldQrDialog({
 
 IconData _placementIcon(FieldUISection placement) => switch (placement) {
   FieldUISection.siteAttribute => Icons.place_outlined,
+  FieldUISection.environmentalData => Icons.eco_outlined,
   FieldUISection.specimenAttribute => Icons.sell_outlined,
   FieldUISection.specimenPart => NahpuIcons.vialOutlined,
   FieldUISection.parasite => Icons.bug_report_outlined,

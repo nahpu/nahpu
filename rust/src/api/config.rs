@@ -677,6 +677,7 @@ fn is_controlled_vocabulary(key: &str) -> bool {
         "siteTypes"
             | "habitatTypes"
             | "datums"
+            | "collEventActivities"
             | "collEventMethods"
             | "collPersonnelRoles"
             | "specimenTypes"
@@ -697,6 +698,7 @@ fn config_label(key: &str) -> &str {
         "siteTypes" => "Site types",
         "habitatTypes" => "Habitat types",
         "datums" => "Datums",
+        "collEventActivities" => "Primary activities",
         "collEventMethods" => "Collection methods",
         "collPersonnelRoles" => "Personnel roles",
         "specimenTypes" => "Specimen part types",
@@ -712,6 +714,7 @@ fn config_label(key: &str) -> &str {
         "siteTypeFmt" => "Site type format",
         "habitatTypeFmt" => "Habitat type format",
         "datumFmt" => "Datum format",
+        "collEventActivityFmt" => "Primary activity format",
         "collEventMethodFmt" => "Collection method format",
         "collPersonnelRoleFmt" => "Personnel role format",
         "specimenTypeFmt" => "Specimen part type format",
@@ -727,6 +730,7 @@ fn config_label(key: &str) -> &str {
         "parasiteTreatmentFmt" => "Parasite treatment format",
         "fieldIdMode" => "Field ID mode",
         "projectFieldIdAutoIncrement" => "Auto-increment project field ID",
+        "environmentalDataFields" => "Environmental data fields",
         "pdfExportFont" => "PDF export font",
         _ => key,
     }

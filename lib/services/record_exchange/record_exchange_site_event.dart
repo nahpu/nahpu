@@ -146,6 +146,9 @@ class RecordExchangeSiteEvent extends AppServices {
       'environment': environment == null
           ? null
           : support.portableEnvironment(environment),
+      'customFields': await RecordExchangeCustomFields(
+        ref: ref,
+      ).export(eventId: event.id),
       'associatedData':
           (await AssociatedDataQuery(dbAccess).getAssociatedDataForEvent(
             event.id,
@@ -355,6 +358,9 @@ class RecordExchangeSiteEvent extends AppServices {
             eventId,
           ),
         );
+    await RecordExchangeCustomFields(
+      ref: ref,
+    ).import(payload.data['customFields'], eventId: eventId);
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
