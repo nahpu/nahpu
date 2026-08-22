@@ -101,11 +101,7 @@ class CanvasSizedBox extends SingleChildRenderObjectWidget {
 }
 
 class RenderCanvasSizedBox extends RenderProxyBox {
-  RenderCanvasSizedBox({
-    required double width,
-    required double height,
-  })  : _width = width,
-        _height = height;
+  RenderCanvasSizedBox({required this._width, required this._height});
 
   double _width;
   double get width => _width;

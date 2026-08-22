@@ -30,14 +30,10 @@ class TemplateEditorService {
   }
 
   Future<String?> copyPickedImageToLogos() async {
-    final result = await FilePicker.pickFiles(type: FileType.image);
-    if (result == null || result.files.isEmpty) return null;
-    final filePath = result.files.single.path;
+    final result = await FilePicker.pickFile(type: FileType.image);
+    if (result == null) return null;
+    final filePath = result.path;
     if (filePath == null) return null;
-    final ext = result.files.single.extension;
-    final added = ext != null && ext.isNotEmpty
-        ? await _logoService.addLogoFromFile(filePath)
-        : await _logoService.addLogoFromFileWithExtension(filePath, '.png');
-    return added;
+    return _logoService.addLogoFromFile(filePath);
   }
 }

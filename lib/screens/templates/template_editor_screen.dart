@@ -1162,12 +1162,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   /// Imports a template, synchronizes its size/settings, and makes it active.
   Future<void> _importTemplate() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (result == null || result.files.single.path == null) return;
-    final filePath = result.files.single.path!;
+    final filePath = result?.path;
+    if (filePath == null) return;
     final imported = await _templateService.importFromPath(filePath);
     if (imported != null && mounted) {
       final o = imported.printOptions;

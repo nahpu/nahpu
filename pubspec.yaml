@@ -18,8 +18,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+36
 
 environment:
-  sdk: ">=3.10.0 <=4.1.0"
-  flutter: ">=3.38.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -54,7 +54,7 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
-  file_picker: ^12.0.0-beta.7
+  file_picker: ^12.0.0
   geolocator: ^14.0.0
   flutter_rust_bridge: 2.12.0
   mobile_scanner: ^7.0.0

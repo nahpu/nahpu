@@ -83,7 +83,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   static const double _smallSheetMaxSize = 1.0;
 
   late int _currentIndex;
-  bool _showMetadata = true;
+  bool _showMetadata = false;
   bool _isFullscreen = false;
   int _loadToken = 0;
   bool _isLoading = true;
@@ -108,6 +108,9 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex.clamp(0, widget.mediaList.length - 1);
+    if (!widget._useBottomSheet) {
+      _showMetadata = true;
+    }
     if (widget._useBottomSheet) {
       _sheetController.addListener(_onSheetExtentChanged);
     }
@@ -154,7 +157,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
               width: screenSize.width,
               height: screenSize.height,
               child: _isFullscreen
-                  ? _buildMediaArea(context)
+                  ? _buildFullscreenViewer(context)
                   : _buildWideViewer(context),
             ),
           );
@@ -177,29 +180,17 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
         return Material(
           clipBehavior: Clip.antiAlias,
           color: Theme.of(context).colorScheme.surface,
-          child: DefaultTabController(
-            length: 2,
-            child: SafeArea(
-              top: false,
-              child: Column(
-                children: [
-                  _buildTopBar(context, showMetadataToggle: false),
-                  TabBar(
-                    tabs: const [
-                      Tab(icon: Icon(Icons.image_outlined), text: 'Media'),
-                      Tab(icon: Icon(Icons.info_outline), text: 'Info'),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _buildMediaArea(context),
-                        _MediaMetadataPanel(media: _currentMedia),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                _buildTopBar(context, showCloseButton: false),
+                Expanded(
+                  child: _showMetadata
+                      ? _MediaMetadataPanel(media: _currentMedia)
+                      : _buildMediaArea(context),
+                ),
+              ],
             ),
           ),
         );
@@ -233,7 +224,20 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, {bool showMetadataToggle = true}) {
+  Widget _buildFullscreenViewer(BuildContext context) {
+    return Column(
+      children: [
+        _buildTopBar(context, showCloseButton: false),
+        Expanded(
+          child: _showMetadata
+              ? _MediaMetadataPanel(media: _currentMedia)
+              : _buildMediaArea(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context, {bool showCloseButton = true}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
@@ -245,17 +249,16 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          if (showMetadataToggle)
-            IconButton(
-              tooltip: _showMetadata ? 'Hide details' : 'Show details',
-              icon: Icon(_showMetadata ? Icons.info : Icons.info_outline),
-              onPressed: () {
-                setState(() {
-                  _showMetadata = !_showMetadata;
-                });
-              },
-            ),
-          if (!widget._useBottomSheet)
+          IconButton(
+            tooltip: _showMetadata ? 'Hide details' : 'Show details',
+            icon: Icon(_showMetadata ? Icons.info : Icons.info_outline),
+            onPressed: () {
+              setState(() {
+                _showMetadata = !_showMetadata;
+              });
+            },
+          ),
+          if (showCloseButton && !widget._useBottomSheet)
             IconButton(
               tooltip: 'Close',
               icon: const Icon(Icons.close),
@@ -515,7 +518,14 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
   void _setFullscreen(bool value) {
     final nextValue = value;
     if (_isFullscreen != nextValue) {
-      setState(() => _isFullscreen = nextValue);
+      setState(() {
+        _isFullscreen = nextValue;
+        if (nextValue && !widget._useBottomSheet) {
+          // Fullscreen needs to keep the media controls visible so the user
+          // can leave fullscreen again.
+          _showMetadata = false;
+        }
+      });
     }
     if (!widget._useBottomSheet || !_sheetController.isAttached) return;
     _sheetController.animateTo(

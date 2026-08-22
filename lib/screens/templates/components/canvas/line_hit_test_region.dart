@@ -45,12 +45,10 @@ class LineHitTestRegion extends SingleChildRenderObjectWidget {
 
 class RenderLineHitTestRegion extends RenderProxyBox {
   RenderLineHitTestRegion({
-    required Offset start,
-    required Offset end,
-    required double tolerancePx,
-  })  : _start = start,
-        _end = end,
-        _tolerancePx = tolerancePx;
+    required this._start,
+    required this._end,
+    required this._tolerancePx,
+  });
 
   Offset _start;
   Offset _end;

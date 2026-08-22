@@ -187,7 +187,7 @@ void main() {
     expect(find.byTooltip('Close'), findsOneWidget);
   });
 
-  testWidgets('narrow layout opens a sheet with media and info tabs', (
+  testWidgets('narrow layout toggles between media and info views', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(500, 800);
@@ -209,17 +209,18 @@ void main() {
     expect(find.byType(DraggableScrollableSheet), findsOneWidget);
     expect(find.byTooltip('Close'), findsNothing);
     expect(find.byIcon(Icons.close), findsNothing);
-    expect(find.byType(TabBar), findsOneWidget);
-    expect(find.text('Media'), findsOneWidget);
-    expect(find.text('Info'), findsOneWidget);
+    expect(find.byType(TabBar), findsNothing);
+    expect(find.byTooltip('Show details'), findsOneWidget);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
     expect(find.text('A nice view'), findsNothing);
 
-    await tester.tap(find.text('Info'));
+    await tester.tap(find.byTooltip('Show details'));
     await tester.pumpAndSettle();
     expect(find.byType(MediaDetailsView), findsOneWidget);
     expect(find.text('A nice view'), findsOneWidget);
+    expect(find.byTooltip('Hide details'), findsOneWidget);
 
-    await tester.tap(find.byType(Tab).first);
+    await tester.tap(find.byTooltip('Hide details'));
     await tester.pumpAndSettle();
     expect(find.byType(InteractiveViewer), findsOneWidget);
     expect(find.text('A nice view'), findsNothing);

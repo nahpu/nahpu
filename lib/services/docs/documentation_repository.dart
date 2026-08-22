@@ -84,11 +84,17 @@ class CookbookCategory {
 typedef DocumentationAssetPathsLoader = Future<List<String>> Function();
 
 class DocumentationRepository {
-  DocumentationRepository({
+  factory DocumentationRepository({
     AssetBundle? assetBundle,
     DocumentationAssetPathsLoader? assetPathsLoader,
-  }) : _assetBundle = assetBundle ?? rootBundle,
-       _assetPathsLoader = assetPathsLoader;
+  }) {
+    return DocumentationRepository._(
+      assetBundle ?? rootBundle,
+      assetPathsLoader,
+    );
+  }
+
+  DocumentationRepository._(this._assetBundle, this._assetPathsLoader);
 
   final AssetBundle _assetBundle;
   final DocumentationAssetPathsLoader? _assetPathsLoader;

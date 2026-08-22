@@ -105,8 +105,13 @@ Future<List<XFile>> _defaultOpenFiles({
 }
 
 class FilePickerServices {
-  FilePickerServices({OpenFilesCallback openFiles = _defaultOpenFiles})
-    : _openFiles = openFiles;
+  factory FilePickerServices({
+    OpenFilesCallback openFiles = _defaultOpenFiles,
+  }) {
+    return FilePickerServices._(openFiles);
+  }
+
+  FilePickerServices._(this._openFiles);
 
   final OpenFilesCallback _openFiles;
 
@@ -146,45 +151,32 @@ class FilePickerServices {
   }
 
   Future<XFile?> selectAnyFile() async {
-    FilePickerResult? result = await FilePicker.pickFiles();
-
-    if (result != null) {
-      return XFile(result.files.single.path!);
-    }
-    return null;
+    final result = await FilePicker.pickFile();
+    return result?.xFile;
   }
 
   Future<XFile?> selectJsonFile() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (result != null && result.files.single.path != null) {
-      return XFile(result.files.single.path!);
-    }
-    return null;
+    return result?.xFile;
   }
 
   Future<XFile?> selectRecordFile() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json', 'zip', 'gz'],
     );
-    if (result != null && result.files.single.path != null) {
-      return XFile(result.files.single.path!);
-    }
-    return null;
+    return result?.xFile;
   }
 
   Future<XFile?> selectUserConfigFile() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json', 'gz'],
     );
-    if (result != null && result.files.single.path != null) {
-      return XFile(result.files.single.path!);
-    }
-    return null;
+    return result?.xFile;
   }
 
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
