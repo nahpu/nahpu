@@ -71,10 +71,26 @@ void main() {
     );
     expect(find.text('Rainfall (mm)'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget);
+    expect(find.text('Environmental measurements'), findsNothing);
     expect(find.text('Water temperature (°C)'), findsNothing);
     expect(find.text('Aquatic Data'), findsNothing);
     expect(find.text('Add custom field'), findsOneWidget);
     expect(find.byTooltip('Manage custom fields'), findsOneWidget);
+
+    final customFieldPanel = find
+        .ancestor(
+          of: find.text('Custom fields'),
+          matching: find.byType(Container),
+        )
+        .last;
+    expect(
+      tester.getTopLeft(customFieldPanel).dx,
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('environment-ambient-humidity')),
+          )
+          .dx,
+    );
     expect(
       (await database.select(database.environment).getSingle())
           .waterTemperature,

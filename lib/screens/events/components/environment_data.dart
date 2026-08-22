@@ -257,25 +257,6 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 ),
             ],
           ),
-        if (_hasAny(const [
-          'cloudCover',
-          'rainfallInMm',
-          'ambientTemperature',
-          'ambientHumidity',
-        ]))
-          const SizedBox(height: 8),
-        if (_hasAny(const [
-          'cloudCover',
-          'rainfallInMm',
-          'ambientTemperature',
-          'ambientHumidity',
-        ]))
-          CommonPadding(
-            child: Text(
-              'Environmental measurements',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
         if (_hasAny(const ['cloudCover', 'rainfallInMm']))
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
@@ -551,7 +532,11 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               ),
             ],
           ),
-        CustomFieldForm(owner: CustomFieldOwner.environment(widget.eventID)),
+        CommonPadding(
+          child: CustomFieldForm(
+            owner: CustomFieldOwner.environment(widget.eventID),
+          ),
+        ),
         const SizedBox(height: 30),
       ],
     );

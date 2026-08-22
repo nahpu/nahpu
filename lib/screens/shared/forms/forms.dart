@@ -132,11 +132,13 @@ class FormSection extends StatelessWidget {
     required this.title,
     required this.child,
     this.trailing,
+    this.padding = const EdgeInsets.all(NahpuSpacing.lg),
   });
 
   final String title;
   final Widget child;
   final Widget? trailing;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +146,7 @@ class FormSection extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(NahpuSpacing.lg),
+        padding: padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(NahpuRadius.lg),
           color: Theme.of(

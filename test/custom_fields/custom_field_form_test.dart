@@ -75,6 +75,46 @@ void main() {
     expect(find.byTooltip('Manage custom fields'), findsOneWidget);
   });
 
+  testWidgets('custom field section balances its vertical spacing', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: const CustomFieldForm(owner: CustomFieldOwner.site(1)),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final section = find
+        .ancestor(
+          of: find.text('Custom fields'),
+          matching: find.byType(Container),
+        )
+        .last;
+    final addButton = find.widgetWithText(OutlinedButton, 'Add custom field');
+    final addButtonPadding = find
+        .ancestor(of: addButton, matching: find.byType(Padding))
+        .first;
+
+    final sectionRect = tester.getRect(section);
+    final titleRect = tester.getRect(find.text('Custom fields'));
+    final addButtonRect = tester.getRect(addButton);
+
+    expect(titleRect.top - sectionRect.top, 17);
+    expect(sectionRect.bottom - addButtonRect.bottom, 9);
+    expect(
+      tester.widget<Padding>(addButtonPadding).padding,
+      const EdgeInsets.only(top: 8),
+    );
+  });
+
   testWidgets(
     'unsaved parasite form creates its reusable definition immediately',
     (tester) async {

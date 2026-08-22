@@ -372,6 +372,12 @@ class _CustomFieldSection extends StatelessWidget {
         icon: const Icon(Icons.settings_outlined),
         tooltip: 'Manage custom fields',
       ),
+      padding: const EdgeInsets.fromLTRB(
+        NahpuSpacing.lg,
+        NahpuSpacing.xs,
+        NahpuSpacing.lg,
+        NahpuSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -388,7 +394,7 @@ class _CustomFieldSection extends StatelessWidget {
             ),
           if (showAdd)
             Padding(
-              padding: const EdgeInsets.only(top: NahpuSpacing.xl),
+              padding: const EdgeInsets.only(top: NahpuSpacing.md),
               child: Align(
                 alignment: Alignment.center,
                 child: OutlinedButton.icon(
