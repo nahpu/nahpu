@@ -21,8 +21,9 @@ class SyncedFontSizeFieldState extends State<SyncedFontSizeField> {
   @override
   void initState() {
     super.initState();
-    _controller =
-        TextEditingController(text: widget.fontSizePt.toStringAsFixed(1));
+    _controller = TextEditingController(
+      text: widget.fontSizePt.toStringAsFixed(1),
+    );
     _focus = FocusNode();
     _controller.addListener(_onEdit);
   }

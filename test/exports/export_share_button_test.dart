@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 
 void main() {
-  testWidgets('switches from Export to Share after export completes',
-      (tester) async {
+  testWidgets('switches from Export to Share after export completes', (
+    tester,
+  ) async {
     var exportCount = 0;
     var shareCount = 0;
 

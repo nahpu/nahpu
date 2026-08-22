@@ -47,10 +47,9 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16.0),
-          color: Theme.of(context)
-              .colorScheme
-              .surfaceContainerHighest
-              .withValues(alpha: 0.4),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         ),
         child: Stack(
           children: [
@@ -58,19 +57,19 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
               child: !widget.showPreview
                   ? const Center(child: Text('Preview has not been generated.'))
                   : widget.layout == null
-                      ? const Center(child: Text('No layout loaded.'))
-                      : DocumentPageLivePreview(
-                          key: ValueKey(widget.previewVersion),
-                          selectedUuidList: widget.selectedUuidList,
-                          layout: widget.layout!,
-                          isBlockSelection: widget.isBlockSelection,
-                          onPageChanged: (current, total) {
-                            setState(() {
-                              _currentPage = current;
-                              _totalPages = total;
-                            });
-                          },
-                        ),
+                  ? const Center(child: Text('No layout loaded.'))
+                  : DocumentPageLivePreview(
+                      key: ValueKey(widget.previewVersion),
+                      selectedUuidList: widget.selectedUuidList,
+                      layout: widget.layout!,
+                      isBlockSelection: widget.isBlockSelection,
+                      onPageChanged: (current, total) {
+                        setState(() {
+                          _currentPage = current;
+                          _totalPages = total;
+                        });
+                      },
+                    ),
             ),
             Positioned(
               top: 12,
@@ -102,10 +101,10 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
                     child: Text(
                       'Preview options changed',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer,
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
                     ),
                   ),
                 ),
@@ -122,19 +121,18 @@ class _DocumentPreviewPaneState extends State<DocumentPreviewPane> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer
-                          .withValues(alpha: 0.8),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondaryContainer.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       'Page $_currentPage of $_totalPages',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer,
-                          ),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
                     ),
                   ),
                 ),

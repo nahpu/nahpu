@@ -68,26 +68,25 @@ class _TemplatePresetManagerState extends State<TemplatePresetManager> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _error != null
-                  ? Center(child: Text(_error!))
-                  : visible.isEmpty
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text(
-                              'No templates found. Templates define the content placed in '
-                              'print-layout blocks.',
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                          itemCount: visible.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (context, index) =>
-                              _buildTemplateTile(visible[index]),
-                        ),
+              ? Center(child: Text(_error!))
+              : visible.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'No templates found. Templates define the content placed in '
+                      'print-layout blocks.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                  itemCount: visible.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) =>
+                      _buildTemplateTile(visible[index]),
+                ),
         ),
       ],
     );
@@ -98,7 +97,7 @@ class _TemplatePresetManagerState extends State<TemplatePresetManager> {
     final usageLabel = summary.usages.isEmpty
         ? 'Unused'
         : 'Used by ${summary.usages.length} layout${summary.usages.length == 1 ? '' : 's'} '
-            '· ${summary.blockCount} block${summary.blockCount == 1 ? '' : 's'}';
+              '· ${summary.blockCount} block${summary.blockCount == 1 ? '' : 's'}';
     final deleting = _deletingName == template.name;
 
     return Card(
@@ -238,7 +237,7 @@ class _TemplatePresetManagerState extends State<TemplatePresetManager> {
             result.updatedBlockCount == 0
                 ? 'Deleted "${summary.template.name}"'
                 : 'Deleted "${summary.template.name}" and updated '
-                    '${result.updatedBlockCount} block${result.updatedBlockCount == 1 ? '' : 's'}',
+                      '${result.updatedBlockCount} block${result.updatedBlockCount == 1 ? '' : 's'}',
           ),
         ),
       );

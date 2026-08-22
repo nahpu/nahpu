@@ -45,8 +45,10 @@ void main() {
         kTemplateNestedListTableFormat,
       );
 
-      expect(result,
-          contains('| Name Id | Decimal Latitude | Decimal Longitude |'));
+      expect(
+        result,
+        contains('| Name Id | Decimal Latitude | Decimal Longitude |'),
+      );
       expect(result, contains('| KMHH-L1S | 31 | -110 |'));
       expect(result, contains('| KMHH-PL1 | 28 | -112 |'));
     });

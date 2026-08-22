@@ -17,21 +17,13 @@ class ScrollableConstrainedLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (footer == null) {
-      return SingleChildScrollView(
-        child: ConstrainedLayout(
-          child: child,
-        ),
-      );
+      return SingleChildScrollView(child: ConstrainedLayout(child: child));
     }
 
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            child: ConstrainedLayout(
-              child: child,
-            ),
-          ),
+          child: SingleChildScrollView(child: ConstrainedLayout(child: child)),
         ),
         ConstrainedLayout(child: footer!),
       ],
@@ -40,10 +32,7 @@ class ScrollableConstrainedLayout extends StatelessWidget {
 }
 
 class ConstrainedLayout extends StatelessWidget {
-  const ConstrainedLayout({
-    super.key,
-    required this.child,
-  });
+  const ConstrainedLayout({super.key, required this.child});
 
   final Widget child;
 
@@ -63,19 +52,13 @@ class ConstrainedLayout extends StatelessWidget {
 
 /// A layout that disables the back gesture on Android and iOS.
 class FalseWillPop extends StatelessWidget {
-  const FalseWillPop({
-    super.key,
-    required this.child,
-  });
+  const FalseWillPop({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: child,
-    );
+    return PopScope(canPop: false, child: child);
   }
 }
 
@@ -92,26 +75,25 @@ class CommonScrollbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scrollbar(
-        thumbVisibility: true,
-        controller: scrollController,
-        thickness: NahpuStroke.regular,
-        child: child);
+      thumbVisibility: true,
+      controller: scrollController,
+      thickness: NahpuStroke.regular,
+      child: child,
+    );
   }
 }
 
 class CommonPadding extends StatelessWidget {
-  const CommonPadding({
-    super.key,
-    required this.child,
-  });
+  const CommonPadding({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
-        child: child);
+      padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
+      child: child,
+    );
   }
 }
 
@@ -195,22 +177,18 @@ class DashboardPanelBody extends StatelessWidget {
 }
 
 class FocusDetectedLayout extends StatelessWidget {
-  const FocusDetectedLayout({
-    super.key,
-    required this.children,
-  });
+  const FocusDetectedLayout({super.key, required this.children});
 
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-        onTap: () {
-          FocusManager.instance.primaryFocus?.unfocus();
-        },
-        child: ListView(
-          children: children,
-        ));
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: ListView(children: children),
+    );
   }
 }
 
@@ -226,28 +204,19 @@ class AdaptiveLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return useHorizontalLayout
-        ? LayoutRow(
-            children: children,
-          )
-        : CommonPadding(
-            child: LayoutContainer(children: children),
-          );
+        ? LayoutRow(children: children)
+        : CommonPadding(child: LayoutContainer(children: children));
   }
 }
 
 class LayoutContainer extends StatelessWidget {
-  const LayoutContainer({
-    super.key,
-    required this.children,
-  });
+  const LayoutContainer({super.key, required this.children});
 
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: children,
-    );
+    return Column(children: children);
   }
 }
 
@@ -271,9 +240,7 @@ class LayoutRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var child in children)
-          Expanded(
-            child: withPadding ? CommonPadding(child: child) : child,
-          ),
+          Expanded(child: withPadding ? CommonPadding(child: child) : child),
       ],
     );
   }

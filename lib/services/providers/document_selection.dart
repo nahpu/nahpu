@@ -8,8 +8,8 @@ import 'package:nahpu/services/templates/template_service.dart';
 
 final documentSpecimenSelectionProvider =
     NotifierProvider.autoDispose<DocumentSpecimenSelection, Set<String>>(
-  DocumentSpecimenSelection.new,
-);
+      DocumentSpecimenSelection.new,
+    );
 
 class DocumentSpecimenSelection extends Notifier<Set<String>> {
   bool _hasUserSelection = false;
@@ -36,8 +36,8 @@ class DocumentSpecimenSelection extends Notifier<Set<String>> {
 
 final documentSiteSelectionProvider =
     NotifierProvider.autoDispose<DocumentSiteSelection, Set<int>>(
-  DocumentSiteSelection.new,
-);
+      DocumentSiteSelection.new,
+    );
 
 class DocumentSiteSelection extends Notifier<Set<int>> {
   bool _hasUserSelection = false;
@@ -64,8 +64,8 @@ class DocumentSiteSelection extends Notifier<Set<int>> {
 
 final documentEventSelectionProvider =
     NotifierProvider.autoDispose<DocumentEventSelection, Set<int>>(
-  DocumentEventSelection.new,
-);
+      DocumentEventSelection.new,
+    );
 
 class DocumentEventSelection extends Notifier<Set<int>> {
   bool _hasUserSelection = false;
@@ -92,8 +92,8 @@ class DocumentEventSelection extends Notifier<Set<int>> {
 
 final documentNarrativeSelectionProvider =
     NotifierProvider.autoDispose<DocumentNarrativeSelection, Set<int>>(
-  DocumentNarrativeSelection.new,
-);
+      DocumentNarrativeSelection.new,
+    );
 
 class DocumentNarrativeSelection extends Notifier<Set<int>> {
   bool _hasUserSelection = false;
@@ -139,10 +139,12 @@ class BlockRecordSelectionParam {
   int get hashCode => blockIndex.hashCode ^ recordType.hashCode;
 }
 
-final blockRecordSelectionProvider = NotifierProvider.family<
-    BlockRecordSelection, Set<String>, BlockRecordSelectionParam>(
-  BlockRecordSelection.new,
-);
+final blockRecordSelectionProvider =
+    NotifierProvider.family<
+      BlockRecordSelection,
+      Set<String>,
+      BlockRecordSelectionParam
+    >(BlockRecordSelection.new);
 
 class BlockRecordSelection extends Notifier<Set<String>> {
   BlockRecordSelection(this.arg);
@@ -190,8 +192,10 @@ class BlockRecordSelection extends Notifier<Set<String>> {
   }
 }
 
-final templateRecordTypeProvider =
-    FutureProvider.family<RecordType, String>((ref, templateName) async {
+final templateRecordTypeProvider = FutureProvider.family<RecordType, String>((
+  ref,
+  templateName,
+) async {
   final tmpl = await const TemplateService().getTemplate(templateName);
   return tmpl?.recordType ?? RecordType.specimenRecord;
 });

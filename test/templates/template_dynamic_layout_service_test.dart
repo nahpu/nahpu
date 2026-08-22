@@ -88,21 +88,13 @@ void main() {
       texts: const [growingTable, secondText, thirdText],
       targetYmm: secondText.yMm,
       excludeTextId: secondText.id,
-      contentHeightMmByTextId: const {
-        'table': 18,
-        'second': 10,
-        'third': 6,
-      },
+      contentHeightMmByTextId: const {'table': 18, 'second': 10, 'third': 6},
     );
     final thirdShift = TemplateDynamicLayoutService.verticalShiftMm(
       texts: const [growingTable, secondText, thirdText],
       targetYmm: thirdText.yMm,
       excludeTextId: thirdText.id,
-      contentHeightMmByTextId: const {
-        'table': 18,
-        'second': 10,
-        'third': 6,
-      },
+      contentHeightMmByTextId: const {'table': 18, 'second': 10, 'third': 6},
     );
 
     expect(secondText.yMm + secondShift, 30);

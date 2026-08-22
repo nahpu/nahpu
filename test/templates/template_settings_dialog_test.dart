@@ -4,8 +4,9 @@ import 'package:nahpu/screens/templates/components/dialogs/template_settings_dia
 import 'package:nahpu/screens/templates/template_model.dart';
 
 void main() {
-  testWidgets('settings applies description and sided mode together',
-      (tester) async {
+  testWidgets('settings applies description and sided mode together', (
+    tester,
+  ) async {
     TemplateSettingsResult? result;
     const template = Template(
       name: 'Field tag',

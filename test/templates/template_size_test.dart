@@ -6,10 +6,7 @@ void main() {
   setUp(() {
     // Set a larger screen size so everything is visible and clickable in test runs
     final binding = TestWidgetsFlutterBinding.ensureInitialized();
-    binding.platformDispatcher.views.first.physicalSize = const Size(
-      1024,
-      768,
-    );
+    binding.platformDispatcher.views.first.physicalSize = const Size(1024, 768);
     binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
   });
 
@@ -51,10 +48,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: TemplateSizeDialog(
-              currentWidth: 50.0,
-              currentHeight: 25.0,
-            ),
+            body: TemplateSizeDialog(currentWidth: 50.0, currentHeight: 25.0),
           ),
         ),
       );
@@ -84,10 +78,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: TemplateSizeDialog(
-              currentWidth: 50.0,
-              currentHeight: 25.0,
-            ),
+            body: TemplateSizeDialog(currentWidth: 50.0, currentHeight: 25.0),
           ),
         ),
       );
@@ -101,10 +92,7 @@ void main() {
       expect(find.byKey(const Key('custom-height-field')), findsOneWidget);
 
       // Try typing invalid values
-      await tester.enterText(
-        find.byKey(const Key('custom-width-field')),
-        '5',
-      );
+      await tester.enterText(find.byKey(const Key('custom-width-field')), '5');
       await tester.enterText(
         find.byKey(const Key('custom-height-field')),
         '600',

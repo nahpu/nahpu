@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 
 void main() {
-  testWidgets('exposes the plus button and every preset menu action',
-      (tester) async {
+  testWidgets('exposes the plus button and every preset menu action', (
+    tester,
+  ) async {
     var createCount = 0;
     var scanCount = 0;
     var importCount = 0;

@@ -10,12 +10,12 @@ double templateOutlineStrokeWidthPx(double widthPt, double scaleMmToPx) =>
     widthPt * scaleMmToPx / kTemplateOutlinePdfPointsPerMm;
 
 List<BoxShadow> templateAreaBoxShadows() => [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.12),
-        blurRadius: 8,
-        offset: const Offset(0, 2),
-      ),
-    ];
+  BoxShadow(
+    color: Colors.black.withValues(alpha: 0.12),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
+  ),
+];
 
 /// White fill; when an outline is configured, stroke is drawn by [TemplateOutlineOverlayPainter].
 BoxDecoration templateAreaStackDecoration() {
@@ -59,8 +59,10 @@ class TemplateOutlineOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = templateOutlineStrokeWidthPx(outline.widthPt, scaleMmToPx)
-        .clamp(0.25, 24.0);
+    final w = templateOutlineStrokeWidthPx(
+      outline.widthPt,
+      scaleMmToPx,
+    ).clamp(0.25, 24.0);
     final paint = Paint()
       ..color = Color(outline.colorArgb)
       ..style = PaintingStyle.stroke

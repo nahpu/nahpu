@@ -20,9 +20,11 @@ Future<TemplatePresetDeletionRequest?> showTemplatePresetDeletionDialog({
   required List<TemplatePresetSummary> candidates,
 }) {
   final compatibleCandidates = candidates
-      .where((summary) =>
-          summary.template.name != target.name &&
-          summary.template.recordType == target.recordType)
+      .where(
+        (summary) =>
+            summary.template.name != target.name &&
+            summary.template.recordType == target.recordType,
+      )
       .toList();
 
   return showDialog<TemplatePresetDeletionRequest>(
@@ -77,7 +79,8 @@ class _TemplatePresetDeletionDialogState
               const SizedBox(height: 12),
               if (!hasUsages)
                 const Text(
-                    'This template is unused and will be permanently removed.')
+                  'This template is unused and will be permanently removed.',
+                )
               else ...[
                 Text(
                   'This template is used by $usageCount block${usageCount == 1 ? '' : 's'} '
@@ -149,12 +152,12 @@ class _TemplatePresetDeletionDialogState
           ),
           onPressed: canDelete
               ? () => Navigator.pop(
-                    context,
-                    TemplatePresetDeletionRequest(
-                      name: widget.target.name,
-                      replacementName: _replacementName,
-                    ),
-                  )
+                  context,
+                  TemplatePresetDeletionRequest(
+                    name: widget.target.name,
+                    replacementName: _replacementName,
+                  ),
+                )
               : null,
           child: const Text('Delete'),
         ),

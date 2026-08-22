@@ -58,11 +58,11 @@ class _SpecimenPartSelectionViewState
                       onPressed: filtered.isEmpty
                           ? null
                           : () => widget.onSelectionChanged(
-                                filtered
-                                    .map((e) => e.recordId)
-                                    .whereType<String>()
-                                    .toSet(),
-                              ),
+                              filtered
+                                  .map((e) => e.recordId)
+                                  .whereType<String>()
+                                  .toSet(),
+                            ),
                     ),
                     IconButton(
                       tooltip: 'Clear selection',
@@ -132,8 +132,8 @@ class _SpecimenPartSelectionViewState
     final identifier = part.tissueID?.trim().isNotEmpty == true
         ? part.tissueID!
         : part.barcodeID?.trim().isNotEmpty == true
-            ? part.barcodeID!
-            : 'Part ${part.id}';
+        ? part.barcodeID!
+        : 'Part ${part.id}';
     final type = part.type?.trim();
     return type == null || type.isEmpty ? identifier : '$identifier · $type';
   }

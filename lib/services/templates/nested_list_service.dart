@@ -25,7 +25,11 @@ String expandNestedListTextIfEnabled({
 }) {
   if (textType != kTemplateNestedListTextType) return text;
   return expandNestedListPlaceholders(
-      text, fieldValues, formatOption, caseFormat);
+    text,
+    fieldValues,
+    formatOption,
+    caseFormat,
+  );
 }
 
 /// Expands `[namespace::*]` placeholders into a Markdown table or card list.
@@ -50,17 +54,11 @@ String expandNestedListPlaceholders(
   );
   if (wildcardExpanded != template) return wildcardExpanded;
 
-  final placeholders = RegExp(
-    r'\[([A-Za-z0-9_-]+)::([A-Za-z0-9_-]+)(?:\?\?[^\]]*)?\]',
-  )
-      .allMatches(template)
-      .map(
-        (match) => (
-          namespace: match.group(1)!,
-          field: match.group(2)!,
-        ),
-      )
-      .toList(growable: false);
+  final placeholders =
+      RegExp(r'\[([A-Za-z0-9_-]+)::([A-Za-z0-9_-]+)(?:\?\?[^\]]*)?\]')
+          .allMatches(template)
+          .map((match) => (namespace: match.group(1)!, field: match.group(2)!))
+          .toList(growable: false);
   if (placeholders.isNotEmpty) {
     final namespace = placeholders.first.namespace;
     if (placeholders.any((placeholder) => placeholder.namespace != namespace)) {
@@ -100,24 +98,27 @@ String _formatNamespace({
   final prefix = '${namespace.toLowerCase()}::';
   final fieldEntries = fields == null
       ? (fieldValues.entries
-          .where((entry) => entry.key.toLowerCase().startsWith(prefix))
-          .map(
-            (entry) =>
-                MapEntry(entry.key.substring(prefix.length), entry.value),
-          )
-          .toList()
-        ..sort((a, b) => a.key.compareTo(b.key)))
-      : fields.toSet().map((field) {
-          final key = '$namespace::$field';
-          String? value;
-          for (final entry in fieldValues.entries) {
-            if (entry.key.toLowerCase() == key.toLowerCase()) {
-              value = entry.value;
-              break;
-            }
-          }
-          return MapEntry(field, value ?? '');
-        }).toList(growable: false);
+            .where((entry) => entry.key.toLowerCase().startsWith(prefix))
+            .map(
+              (entry) =>
+                  MapEntry(entry.key.substring(prefix.length), entry.value),
+            )
+            .toList()
+          ..sort((a, b) => a.key.compareTo(b.key)))
+      : fields
+            .toSet()
+            .map((field) {
+              final key = '$namespace::$field';
+              String? value;
+              for (final entry in fieldValues.entries) {
+                if (entry.key.toLowerCase() == key.toLowerCase()) {
+                  value = entry.value;
+                  break;
+                }
+              }
+              return MapEntry(field, value ?? '');
+            })
+            .toList(growable: false);
   if (fieldEntries.isEmpty) return '';
 
   return _formatFields(fieldEntries, formatOption, caseFormat);
@@ -129,11 +130,14 @@ String _formatFields(
   String? caseFormat,
 ]) {
   final values = fields
-      .map((field) =>
-          field.value.split('|').map((value) => value.trim()).toList())
+      .map(
+        (field) => field.value.split('|').map((value) => value.trim()).toList(),
+      )
       .toList(growable: false);
   final rowCount = values.fold<int>(
-      0, (count, field) => field.length > count ? field.length : count);
+    0,
+    (count, field) => field.length > count ? field.length : count,
+  );
   if (rowCount == 0) return '';
 
   final rows = List.generate(
@@ -181,17 +185,18 @@ String _formatCards(
   List<List<String>> rows, [
   String? caseFormat,
 ]) {
-  return rows.asMap().entries.map((entry) {
-    final details = List.generate(
-      fields.length,
-      (column) {
-        final value = entry.value[column];
-        if (value.isEmpty) return null;
-        return '- **${_displayFieldName(fields[column].key, caseFormat)}:** $value';
-      },
-    ).whereType<String>().join('\n');
-    return '**${entry.key + 1}**${details.isEmpty ? '' : '\n$details'}';
-  }).join('\n\n');
+  return rows
+      .asMap()
+      .entries
+      .map((entry) {
+        final details = List.generate(fields.length, (column) {
+          final value = entry.value[column];
+          if (value.isEmpty) return null;
+          return '- **${_displayFieldName(fields[column].key, caseFormat)}:** $value';
+        }).whereType<String>().join('\n');
+        return '**${entry.key + 1}**${details.isEmpty ? '' : '\n$details'}';
+      })
+      .join('\n\n');
 }
 
 String _displayFieldName(String field, [String? caseFormat]) {
@@ -202,8 +207,9 @@ String _displayFieldName(String field, [String? caseFormat]) {
   final result = spaced.replaceAll('_', ' ').trim();
   if (result.isEmpty) return result;
 
-  final cf =
-      (caseFormat == null || caseFormat == 'normal') ? 'title' : caseFormat;
+  final cf = (caseFormat == null || caseFormat == 'normal')
+      ? 'title'
+      : caseFormat;
   switch (cf) {
     case 'uppercase':
       return result.toUpperCase();
@@ -214,10 +220,13 @@ String _displayFieldName(String field, [String? caseFormat]) {
       return '${lower[0].toUpperCase()}${lower.substring(1)}';
     case 'title':
     default:
-      return result.split(' ').map((word) {
-        if (word.isEmpty) return word;
-        return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-      }).join(' ');
+      return result
+          .split(' ')
+          .map((word) {
+            if (word.isEmpty) return word;
+            return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+          })
+          .join(' ');
   }
 }
 

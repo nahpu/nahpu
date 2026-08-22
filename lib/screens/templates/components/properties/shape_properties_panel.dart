@@ -225,10 +225,7 @@ class _ShapePropertiesPanelState extends State<ShapePropertiesPanel> {
 }
 
 class _ShapeTypePicker extends StatelessWidget {
-  const _ShapeTypePicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _ShapeTypePicker({required this.value, required this.onChanged});
 
   static const values = [
     ('rect', 'Rectangle'),
@@ -243,18 +240,16 @@ class _ShapeTypePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveValue =
-        values.any((entry) => entry.$1 == value) ? value : 'rect';
+    final effectiveValue = values.any((entry) => entry.$1 == value)
+        ? value
+        : 'rect';
     return DropdownButton<String>(
       value: effectiveValue,
       isDense: true,
       underline: const SizedBox.shrink(),
       items: [
         for (final entry in values)
-          DropdownMenuItem(
-            value: entry.$1,
-            child: Text(entry.$2),
-          ),
+          DropdownMenuItem(value: entry.$1, child: Text(entry.$2)),
       ],
       onChanged: (value) {
         if (value != null) onChanged(value);
@@ -264,10 +259,7 @@ class _ShapeTypePicker extends StatelessWidget {
 }
 
 class _PolygonSidesControl extends StatelessWidget {
-  const _PolygonSidesControl({
-    required this.value,
-    required this.onChanged,
-  });
+  const _PolygonSidesControl({required this.value, required this.onChanged});
 
   final int value;
   final ValueChanged<int> onChanged;
@@ -348,23 +340,9 @@ class _DimensionControl extends StatelessWidget {
 }
 
 class _StrokePicker extends StatelessWidget {
-  const _StrokePicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StrokePicker({required this.value, required this.onChanged});
 
-  static const values = [
-    0.0,
-    0.25,
-    0.5,
-    1.0,
-    1.5,
-    2.0,
-    3.0,
-    4.0,
-    5.0,
-    6.0,
-  ];
+  static const values = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
 
   final double value;
   final ValueChanged<double> onChanged;
@@ -376,10 +354,12 @@ class _StrokePicker extends StatelessWidget {
       isDense: true,
       underline: const SizedBox.shrink(),
       items: values
-          .map((thickness) => DropdownMenuItem(
-                value: thickness,
-                child: Text('${thickness}pt'),
-              ))
+          .map(
+            (thickness) => DropdownMenuItem(
+              value: thickness,
+              child: Text('${thickness}pt'),
+            ),
+          )
           .toList(),
       onChanged: (value) {
         if (value != null) onChanged(value);
@@ -389,10 +369,7 @@ class _StrokePicker extends StatelessWidget {
 }
 
 class _RotationPicker extends StatelessWidget {
-  const _RotationPicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _RotationPicker({required this.value, required this.onChanged});
 
   final int value;
   final ValueChanged<int> onChanged;
@@ -442,10 +419,7 @@ class _NullableFillSwatch extends StatelessWidget {
 }
 
 class _StylePicker extends StatelessWidget {
-  const _StylePicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StylePicker({required this.value, required this.onChanged});
 
   static const values = ['solid', 'dashed', 'dotted', 'double'];
 
@@ -487,10 +461,7 @@ class _StylePicker extends StatelessWidget {
 }
 
 class _StylePreviewPainter extends CustomPainter {
-  const _StylePreviewPainter({
-    required this.style,
-    required this.color,
-  });
+  const _StylePreviewPainter({required this.style, required this.color});
 
   final String style;
   final Color color;
@@ -532,11 +503,7 @@ class _StylePreviewPainter extends CustomPainter {
     double d = 0.0;
     while (d < width) {
       final end = (d + dashLen).clamp(0.0, width);
-      canvas.drawLine(
-        Offset(d, y),
-        Offset(end, y),
-        paint,
-      );
+      canvas.drawLine(Offset(d, y), Offset(end, y), paint);
       d += dashLen + gapLen;
     }
   }

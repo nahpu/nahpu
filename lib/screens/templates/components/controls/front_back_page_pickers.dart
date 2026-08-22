@@ -52,10 +52,10 @@ class TemplateSideSwitcher extends StatelessWidget {
   }
 
   BoxDecoration _decoration(ColorScheme scheme) => BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: scheme.outlineVariant),
-      );
+    color: scheme.surfaceContainerHigh.withValues(alpha: 0.92),
+    borderRadius: BorderRadius.circular(24),
+    border: Border.all(color: scheme.outlineVariant),
+  );
 }
 
 class _SideButton extends StatelessWidget {
@@ -93,11 +93,11 @@ class _SideButton extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: active
-                          ? scheme.onPrimaryContainer
-                          : scheme.onSurfaceVariant,
-                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    ),
+                  color: active
+                      ? scheme.onPrimaryContainer
+                      : scheme.onSurfaceVariant,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
               if (mirrored) ...[
                 const SizedBox(width: 4),

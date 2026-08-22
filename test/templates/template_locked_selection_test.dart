@@ -8,10 +8,7 @@ import 'package:nahpu/screens/templates/components/canvas/draggable_shape_chip.d
 void main() {
   Offset? panDelta(Offset globalPosition, Offset globalDelta) => globalDelta;
 
-  Future<void> pumpLockedElement(
-    WidgetTester tester,
-    Widget element,
-  ) async {
+  Future<void> pumpLockedElement(WidgetTester tester, Widget element) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

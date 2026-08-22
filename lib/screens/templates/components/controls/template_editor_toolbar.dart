@@ -90,11 +90,7 @@ class TemplateEditorToolbar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Expanded(child: _TemplatePicker(this)),
-              ],
-            ),
+            Row(children: [Expanded(child: _TemplatePicker(this))]),
             const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -104,9 +100,9 @@ class TemplateEditorToolbar extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     'Template size:',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onSurface,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelLarge?.copyWith(color: scheme.onSurface),
                   ),
                   const SizedBox(width: 4),
                   TemplateSizeSelector(
@@ -142,8 +138,9 @@ class TemplateEditorToolbar extends StatelessWidget {
                   const SizedBox(width: 16),
                   MirrorToggleButton(
                     isMirrorActive: isPage1 ? mirrorFront : mirrorBack,
-                    sideLabel:
-                        isDuplex ? (isPage1 ? 'Front' : 'Back') : 'Front',
+                    sideLabel: isDuplex
+                        ? (isPage1 ? 'Front' : 'Back')
+                        : 'Front',
                     onToggle: onMirrorToggled,
                   ),
                   const SizedBox(width: 8),
@@ -285,8 +282,9 @@ class _TemplateEditorIconButton extends StatelessWidget {
       tooltip: tooltip,
       style: IconButton.styleFrom(
         foregroundColor: isActive ? scheme.primary : scheme.onSurfaceVariant,
-        backgroundColor:
-            isActive ? scheme.primaryContainer.withValues(alpha: 0.45) : null,
+        backgroundColor: isActive
+            ? scheme.primaryContainer.withValues(alpha: 0.45)
+            : null,
       ),
       onPressed: onPressed,
       icon: Icon(icon, size: 22),

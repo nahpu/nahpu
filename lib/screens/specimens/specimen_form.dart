@@ -5,11 +5,12 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/specimens/shared/main_forms.dart';
 
 class SpecimenForm extends ConsumerStatefulWidget {
-  const SpecimenForm(
-      {super.key,
-      required this.specimenUuid,
-      required this.specimenCtr,
-      required this.catalogFmt});
+  const SpecimenForm({
+    super.key,
+    required this.specimenUuid,
+    required this.specimenCtr,
+    required this.catalogFmt,
+  });
 
   final String specimenUuid;
   final SpecimenFormCtrModel specimenCtr;
@@ -34,8 +35,9 @@ class SpecimenFormState extends ConsumerState<SpecimenForm> {
   @override
   Widget build(BuildContext context) {
     return MainForms(
-        catalogFmt: widget.catalogFmt,
-        specimenUuid: widget.specimenUuid,
-        specimenCtr: widget.specimenCtr);
+      catalogFmt: widget.catalogFmt,
+      specimenUuid: widget.specimenUuid,
+      specimenCtr: widget.specimenCtr,
+    );
   }
 }

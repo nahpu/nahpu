@@ -14,7 +14,9 @@ void main() {
     expect(matchNahpuFormatFromPath('document.pdf'), NahpuFileFormat.pdf);
     expect(matchNahpuFormatFromPath('image.heic'), NahpuFileFormat.image);
     expect(
-        matchNahpuFormatFromPath('database.sqlite3'), NahpuFileFormat.database);
+      matchNahpuFormatFromPath('database.sqlite3'),
+      NahpuFileFormat.database,
+    );
     expect(matchNahpuFormatFromPath('notes.unknown'), NahpuFileFormat.other);
   });
 
@@ -49,11 +51,7 @@ void main() {
     expect(mediaFmt.label, 'Media files');
     expect(
       mediaFmt.extensions,
-      containsAll([
-        ...imageExtensions,
-        ...audioExtensions,
-        ...videoExtensions,
-      ]),
+      containsAll([...imageExtensions, ...audioExtensions, ...videoExtensions]),
     );
     expect(
       mediaFmt.extensions,
@@ -65,19 +63,11 @@ void main() {
     );
     expect(
       mediaFmt.uniformTypeIdentifiers,
-      containsAll([
-        'public.image',
-        'public.audio',
-        'public.movie',
-      ]),
+      containsAll(['public.image', 'public.audio', 'public.movie']),
     );
     expect(
       mediaFmt.mimeTypes,
-      containsAll([
-        'image/jpeg',
-        'audio/mpeg',
-        'video/mp4',
-      ]),
+      containsAll(['image/jpeg', 'audio/mpeg', 'video/mp4']),
     );
   });
 

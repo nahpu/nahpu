@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 
 void main() {
-  testWidgets('uses the outlined Browse action until a directory is selected',
-      (tester) async {
+  testWidgets('uses the outlined Browse action until a directory is selected', (
+    tester,
+  ) async {
     var browseCount = 0;
     var clearCount = 0;
 

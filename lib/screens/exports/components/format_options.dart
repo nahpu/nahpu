@@ -30,10 +30,9 @@ class FormatOptionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -48,15 +47,15 @@ class FormatOptionsCard extends StatelessWidget {
               visible: recordType == RecordType.specimenRecord && !isPreset,
               child: DropdownButtonFormField<SpecimenExportFmt>(
                 initialValue: specimenExportFmt,
-                decoration: const InputDecoration(
-                  labelText: 'Format options',
-                ),
+                decoration: const InputDecoration(labelText: 'Format options'),
                 items: specimenExportFmtList
-                    .map((e) => DropdownMenuItem(
-                          value: SpecimenExportFmt
-                              .values[specimenExportFmtList.indexOf(e)],
-                          child: CommonDropdownText(text: e),
-                        ))
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: SpecimenExportFmt
+                            .values[specimenExportFmtList.indexOf(e)],
+                        child: CommonDropdownText(text: e),
+                      ),
+                    )
                     .toList(),
                 onChanged: onSpecimenExportFmtChanged,
               ),

@@ -11,10 +11,7 @@ void main() {
       expect(degreesToRadians(0), 0);
       expect(degreesToRadians(180), closeTo(math.pi, 1e-9));
       expect(radiansToDegrees(math.pi / 2), closeTo(90, 1e-9));
-      expect(
-        radiansToDegrees(degreesToRadians(315)),
-        closeTo(315, 1e-9),
-      );
+      expect(radiansToDegrees(degreesToRadians(315)), closeTo(315, 1e-9));
     });
 
     test('normalize radians delta across wrap boundary', () {
@@ -175,10 +172,7 @@ void main() {
         maxHeightMm: 100,
       );
 
-      expectRectClose(
-        resized,
-        const Rect.fromLTWH(10, 15, 25, 20),
-      );
+      expectRectClose(resized, const Rect.fromLTWH(10, 15, 25, 20));
     });
 
     test('keep the opposite rotated corner fixed while resizing', () {
@@ -214,7 +208,9 @@ void main() {
       expect(resized.width, 2);
       expect(resized.height, 2);
       expectOffsetClose(
-          rotatedRectCorner(resized, 45, 'br'), expectedFixedCorner);
+        rotatedRectCorner(resized, 45, 'br'),
+        expectedFixedCorner,
+      );
     });
   });
 }
@@ -228,11 +224,7 @@ void expectOffsetClose(
   expect(actual.dy, closeTo(expected.dy, tolerance));
 }
 
-void expectRectClose(
-  Rect actual,
-  Rect expected, {
-  double tolerance = 1e-9,
-}) {
+void expectRectClose(Rect actual, Rect expected, {double tolerance = 1e-9}) {
   expect(actual.left, closeTo(expected.left, tolerance));
   expect(actual.top, closeTo(expected.top, tolerance));
   expect(actual.width, closeTo(expected.width, tolerance));

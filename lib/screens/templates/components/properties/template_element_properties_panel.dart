@@ -33,12 +33,12 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
   final void Function(bool page1, CustomImageElement element)
-      onUpdateCustomImage;
+  onUpdateCustomImage;
   final void Function(bool page1, String id) onDeleteCustomImage;
   final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
   final void Function(bool page1, String id) onDeleteCustomLine;
   final void Function(bool page1, CustomShapeElement element)
-      onUpdateCustomShape;
+  onUpdateCustomShape;
   final void Function(bool page1, String id) onDeleteCustomShape;
   final ValueChanged<String> onDuplicateElement;
   final ValueChanged<String> onCopyElement;

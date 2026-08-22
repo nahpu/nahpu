@@ -104,10 +104,7 @@ TemplateCanvasOverflowPadding calculateTemplateCanvasOverflowPadding({
   for (final text in page.customTexts) {
     final measuredHeightMm =
         dynamicTextContentHeightMmById[text.id] ?? double.nan;
-    final size = _textElementSize(
-      text,
-      measuredHeightMm: measuredHeightMm,
-    );
+    final size = _textElementSize(text, measuredHeightMm: measuredHeightMm);
     includeBounds(
       xMm: text.xMm,
       yMm: renderedYmm(text.yMm, excludeTextId: text.id),
@@ -139,11 +136,14 @@ TemplateCanvasOverflowPadding calculateTemplateCanvasOverflowPadding({
     );
   }
   final lineHeightMm = math.max(2.0, text.fontSizePt / _kPdfPointsPerMm);
-  final fallbackWidthMm =
-      math.max(10.0, text.text.length * lineHeightMm * 0.45);
+  final fallbackWidthMm = math.max(
+    10.0,
+    text.text.length * lineHeightMm * 0.45,
+  );
   return (
     widthMm: text.maxWidthMm ?? fallbackWidthMm,
-    heightMm: TemplateDynamicLayoutService.isFlowingDynamicText(text) &&
+    heightMm:
+        TemplateDynamicLayoutService.isFlowingDynamicText(text) &&
             measuredHeightMm.isFinite
         ? measuredHeightMm
         : text.heightMm ?? lineHeightMm * 1.4,

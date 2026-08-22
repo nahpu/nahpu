@@ -15,11 +15,9 @@ void main() {
       final String dylibPath = Platform.isMacOS
           ? 'rust/target/debug/librust_lib_nahpu.dylib'
           : Platform.isWindows
-              ? 'rust/target/debug/rust_lib_nahpu.dll'
-              : 'rust/target/debug/librust_lib_nahpu.so';
-      await RustLib.init(
-        externalLibrary: ExternalLibrary.open(dylibPath),
-      );
+          ? 'rust/target/debug/rust_lib_nahpu.dll'
+          : 'rust/target/debug/librust_lib_nahpu.so';
+      await RustLib.init(externalLibrary: ExternalLibrary.open(dylibPath));
     } else {
       await RustLib.init();
     }
@@ -76,18 +74,20 @@ void main() {
     expect(problems, isEmpty);
   });
 
-  test('Parses existing speciesList.xlsx fixture without regressions',
-      () async {
-    final file = File('test/data/taxon_import/speciesList.xlsx');
+  test(
+    'Parses existing speciesList.xlsx fixture without regressions',
+    () async {
+      final file = File('test/data/taxon_import/speciesList.xlsx');
 
-    final parsed = (await parser.parseFileDetailed(file)).data;
-    final problems = findTaxonImportProblems(parsed.headerMap);
+      final parsed = (await parser.parseFileDetailed(file)).data;
+      final problems = findTaxonImportProblems(parsed.headerMap);
 
-    expect(parsed.header.first.toLowerCase(), 'class');
-    expect(parsed.data.length, 4);
-    expect(parsed.data.first[3], 'Crocidura');
-    expect(problems, isEmpty);
-  });
+      expect(parsed.header.first.toLowerCase(), 'class');
+      expect(parsed.data.length, 4);
+      expect(parsed.data.first[3], 'Crocidura');
+      expect(problems, isEmpty);
+    },
+  );
 
   test('Semicolon-delimited CSV needs override', () async {
     final file = _copyFixtureToTemp(tempDir, 'semicolon.csv', 'taxa.csv');
@@ -100,8 +100,7 @@ void main() {
     final parsed = (await parser.parseFileDetailed(
       file,
       options: const TaxonFileParseOptions.delimiter(';'),
-    ))
-        .data;
+    )).data;
 
     expect(parsed.header.length, 7);
     expect(parsed.header[0], 'class');
@@ -118,8 +117,10 @@ void main() {
 
     expect(parsed.data.header.length, 7);
     expect(parsed.data.data.first[2], 'Muridae');
-    expect(parsed.details.resolution,
-        TaxonParseResolution.autoDetectKnownDelimiter);
+    expect(
+      parsed.details.resolution,
+      TaxonParseResolution.autoDetectKnownDelimiter,
+    );
     expect(parsed.details.delimiter, ';');
   });
 
@@ -167,10 +168,7 @@ void main() {
 
     expect(
       () => parser
-          .parseFileDetailed(
-            file,
-            options: const TaxonFileParseOptions.excel(),
-          )
+          .parseFileDetailed(file, options: const TaxonFileParseOptions.excel())
           .then((parsed) => parsed.data),
       throwsA(
         isA<TaxonFileParseException>().having(
@@ -211,33 +209,43 @@ void main() {
     ];
 
     final csvData = parserDataFromRows(data);
-    final problems =
-        findTaxonImportProblems(csvData.headerMap, rows: csvData.data);
+    final problems = findTaxonImportProblems(
+      csvData.headerMap,
+      rows: csvData.data,
+    );
 
     expect(problems, contains('Missing Order values in 1 row(s)'));
     expect(problems, contains('Missing Class values in 1 row(s)'));
   });
 
-  test('Unknown extension with no clear pattern throws friendly error',
-      () async {
-    final file =
-        _copyFixtureToTemp(tempDir, 'ambiguous_unknown.txt', 'taxa.txt');
+  test(
+    'Unknown extension with no clear pattern throws friendly error',
+    () async {
+      final file = _copyFixtureToTemp(
+        tempDir,
+        'ambiguous_unknown.txt',
+        'taxa.txt',
+      );
 
-    expect(
-      () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
-      throwsA(
-        isA<TaxonFileParseException>().having(
-          (e) => e.code,
-          'code',
-          TaxonFileParseErrorCode.autoDetectExhausted,
+      expect(
+        () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
+        throwsA(
+          isA<TaxonFileParseException>().having(
+            (e) => e.code,
+            'code',
+            TaxonFileParseErrorCode.autoDetectExhausted,
+          ),
         ),
-      ),
-    );
-  });
+      );
+    },
+  );
 
   test('Unknown extension auto-detects mined pipe delimiter', () async {
-    final file =
-        _copyFixtureToTemp(tempDir, 'pipe_unknown.txt', 'taxa_unknown.txt');
+    final file = _copyFixtureToTemp(
+      tempDir,
+      'pipe_unknown.txt',
+      'taxa_unknown.txt',
+    );
 
     final parsed = (await parser.parseFileDetailed(file)).data;
 
@@ -246,20 +254,25 @@ void main() {
     expect(parsed.data.first[3], 'Bunomys');
   });
 
-  test('Detailed parse reports mined delimiter for unknown extension',
-      () async {
-    final file =
-        _copyFixtureToTemp(tempDir, 'pipe_unknown.txt', 'taxa_unknown.txt');
+  test(
+    'Detailed parse reports mined delimiter for unknown extension',
+    () async {
+      final file = _copyFixtureToTemp(
+        tempDir,
+        'pipe_unknown.txt',
+        'taxa_unknown.txt',
+      );
 
-    final parsed = await parser.parseFileDetailed(file);
+      final parsed = await parser.parseFileDetailed(file);
 
-    expect(parsed.details.parser, TaxonResolvedParser.delimited);
-    expect(parsed.details.delimiter, '|');
-    expect(
-      parsed.details.resolution,
-      TaxonParseResolution.autoDetectMinedDelimiter,
-    );
-  });
+      expect(parsed.details.parser, TaxonResolvedParser.delimited);
+      expect(parsed.details.delimiter, '|');
+      expect(
+        parsed.details.resolution,
+        TaxonParseResolution.autoDetectMinedDelimiter,
+      );
+    },
+  );
 
   test('Detailed parse reports excel parser for xlsx', () async {
     final file = File('test/data/taxon_import/speciesList.xlsx');
@@ -281,36 +294,40 @@ void main() {
     final parsed = (await parser.parseFileDetailed(
       file,
       options: const TaxonFileParseOptions.delimiter('||'),
-    ))
-        .data;
+    )).data;
 
     expect(parsed.header.length, 7);
     expect(parsed.data.length, 2);
     expect(parsed.data.first[4], 'coelestis');
   });
 
-  test('Auto-detect exhaustion message directs users to custom delimiter',
-      () async {
-    final file =
-        _copyFixtureToTemp(tempDir, 'ambiguous_unknown.txt', 'taxa.txt');
+  test(
+    'Auto-detect exhaustion message directs users to custom delimiter',
+    () async {
+      final file = _copyFixtureToTemp(
+        tempDir,
+        'ambiguous_unknown.txt',
+        'taxa.txt',
+      );
 
-    expect(
-      () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
-      throwsA(
-        isA<TaxonFileParseException>()
-            .having(
-              (e) => e.code,
-              'code',
-              TaxonFileParseErrorCode.autoDetectExhausted,
-            )
-            .having(
-              (e) => e.toString(),
-              'message',
-              contains('Enter a custom delimiter to continue.'),
-            ),
-      ),
-    );
-  });
+      expect(
+        () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
+        throwsA(
+          isA<TaxonFileParseException>()
+              .having(
+                (e) => e.code,
+                'code',
+                TaxonFileParseErrorCode.autoDetectExhausted,
+              )
+              .having(
+                (e) => e.toString(),
+                'message',
+                contains('Enter a custom delimiter to continue.'),
+              ),
+        ),
+      );
+    },
+  );
 
   test('Manual selection failure uses manualSelectionFailed code', () async {
     final file = _copyFixtureToTemp(
@@ -336,22 +353,27 @@ void main() {
     );
   });
 
-  test('Unknown extension with no clear pattern includes friendly message',
-      () async {
-    final file =
-        _copyFixtureToTemp(tempDir, 'ambiguous_unknown.txt', 'taxa.txt');
+  test(
+    'Unknown extension with no clear pattern includes friendly message',
+    () async {
+      final file = _copyFixtureToTemp(
+        tempDir,
+        'ambiguous_unknown.txt',
+        'taxa.txt',
+      );
 
-    expect(
-      () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
-      throwsA(
-        isA<TaxonFileParseException>().having(
-          (e) => e.toString(),
-          'message',
-          contains('Unable to auto-detect file format after trying Excel'),
+      expect(
+        () => parser.parseFileDetailed(file).then((parsed) => parsed.data),
+        throwsA(
+          isA<TaxonFileParseException>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Unable to auto-detect file format after trying Excel'),
+          ),
         ),
-      ),
-    );
-  });
+      );
+    },
+  );
 }
 
 File _copyFixtureToTemp(Directory tempDir, String fixtureName, String outName) {

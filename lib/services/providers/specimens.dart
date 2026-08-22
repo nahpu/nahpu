@@ -9,15 +9,16 @@ import 'package:nahpu/services/database/parasite_queries.dart';
 
 final specimenEntryProvider =
     AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
-  SpecimenEntry.new,
-);
+      SpecimenEntry.new,
+    );
 
 class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
   Future<List<SpecimenData>> _fetchSpecimenEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
 
-    final specimenEntries = await SpecimenQuery(ref.read(databaseProvider))
-        .getAllSpecimens(projectUuid);
+    final specimenEntries = await SpecimenQuery(
+      ref.read(databaseProvider),
+    ).getAllSpecimens(projectUuid);
 
     return specimenEntries;
   }
@@ -29,39 +30,48 @@ class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
 }
 
 final partBySpecimenProvider = FutureProvider.family
-    .autoDispose<List<SpecimenPartData>, String>((ref, specimenUuid) =>
-        SpecimenPartQuery(ref.read(databaseProvider))
-            .getSpecimenParts(specimenUuid));
+    .autoDispose<List<SpecimenPartData>, String>(
+      (ref, specimenUuid) => SpecimenPartQuery(
+        ref.read(databaseProvider),
+      ).getSpecimenParts(specimenUuid),
+    );
 
 final parasiteDetectionProvider = FutureProvider.family
-    .autoDispose<ParasiteDetectionData?, String>((ref, specimenUuid) =>
-        ParasiteQuery(ref.read(databaseProvider)).getDetection(specimenUuid));
+    .autoDispose<ParasiteDetectionData?, String>(
+      (ref, specimenUuid) =>
+          ParasiteQuery(ref.read(databaseProvider)).getDetection(specimenUuid),
+    );
 
 final parasiteBySpecimenProvider = FutureProvider.family
-    .autoDispose<List<ParasiteData>, String>((ref, specimenUuid) =>
-        ParasiteQuery(ref.read(databaseProvider)).getParasites(specimenUuid));
+    .autoDispose<List<ParasiteData>, String>(
+      (ref, specimenUuid) =>
+          ParasiteQuery(ref.read(databaseProvider)).getParasites(specimenUuid),
+    );
 
 /// All printable parts in the active project, paired with their parent
 /// specimen. A part, not a specimen, is the document-record unit.
 final specimenPartEntryProvider =
     FutureProvider.autoDispose<List<SpecimenPartProjectRecord>>((ref) async {
-  final projectUuid = ref.watch(projectUuidProvider);
-  return SpecimenPartQuery(ref.read(databaseProvider))
-      .getSpecimenPartsForProject(projectUuid);
-});
+      final projectUuid = ref.watch(projectUuidProvider);
+      return SpecimenPartQuery(
+        ref.read(databaseProvider),
+      ).getSpecimenPartsForProject(projectUuid);
+    });
 
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
-  List<SpecimenMediaData> mediaList =
-      await SpecimenQuery(ref.read(databaseProvider))
-          .getSpecimenMedia(specimenUuid);
-  List<MediaData> mediaDataList = [];
-  for (SpecimenMediaData media in mediaList) {
-    if (media.mediaId != null) {
-      mediaDataList.add(
-        await MediaDbQuery(ref.read(databaseProvider)).getMedia(media.mediaId!),
-      );
-    }
-  }
-  return mediaDataList;
-});
+      List<SpecimenMediaData> mediaList = await SpecimenQuery(
+        ref.read(databaseProvider),
+      ).getSpecimenMedia(specimenUuid);
+      List<MediaData> mediaDataList = [];
+      for (SpecimenMediaData media in mediaList) {
+        if (media.mediaId != null) {
+          mediaDataList.add(
+            await MediaDbQuery(
+              ref.read(databaseProvider),
+            ).getMedia(media.mediaId!),
+          );
+        }
+      }
+      return mediaDataList;
+    });

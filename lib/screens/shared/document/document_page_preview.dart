@@ -114,9 +114,13 @@ class _DocumentPageLivePreviewState
 
     try {
       double w = _getPageWidth(
-          widget.layout.pageSizeKey, widget.layout.customPageWidthMm);
+        widget.layout.pageSizeKey,
+        widget.layout.customPageWidthMm,
+      );
       double h = _getPageHeight(
-          widget.layout.pageSizeKey, widget.layout.customPageHeightMm);
+        widget.layout.pageSizeKey,
+        widget.layout.customPageHeightMm,
+      );
 
       if (widget.layout.pageOrientation == 'landscape') {
         final tmp = w;

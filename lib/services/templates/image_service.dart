@@ -16,10 +16,7 @@ class TemplateImageService {
 
   Future<String> addLogoFromFile(String sourcePath) async {
     final ext = p.extension(sourcePath).toLowerCase();
-    return addLogoFromFileWithExtension(
-      sourcePath,
-      ext.isEmpty ? '.png' : ext,
-    );
+    return addLogoFromFileWithExtension(sourcePath, ext.isEmpty ? '.png' : ext);
   }
 
   Future<String> addLogoFromFileWithExtension(

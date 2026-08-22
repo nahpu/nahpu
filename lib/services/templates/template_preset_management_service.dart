@@ -5,10 +5,7 @@ import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 class TemplatePresetSummary {
-  const TemplatePresetSummary({
-    required this.template,
-    required this.usages,
-  });
+  const TemplatePresetSummary({required this.template, required this.usages});
 
   final Template template;
   final List<rust_config.TemplatePresetUsage> usages;
@@ -40,14 +37,16 @@ class TemplatePresetManagementService {
 
   Future<List<TemplatePresetSummary>> loadSummaries() async {
     final names = await templateService.listTemplateNames();
-    final summaries = await Future.wait(names.map((name) async {
-      final template = await templateService.getTemplate(name);
-      if (template == null) {
-        throw StateError('Template preset "$name" no longer exists');
-      }
-      final usages = await rust_config.getTemplatePresetUsages(name: name);
-      return TemplatePresetSummary(template: template, usages: usages);
-    }));
+    final summaries = await Future.wait(
+      names.map((name) async {
+        final template = await templateService.getTemplate(name);
+        if (template == null) {
+          throw StateError('Template preset "$name" no longer exists');
+        }
+        final usages = await rust_config.getTemplatePresetUsages(name: name);
+        return TemplatePresetSummary(template: template, usages: usages);
+      }),
+    );
     summaries.sort((a, b) => a.template.name.compareTo(b.template.name));
     return summaries;
   }
@@ -68,8 +67,9 @@ class TemplatePresetManagementService {
       );
       final current = await DocumentSettingsServices().getCurrentTemplateName();
       if (current == name) {
-        await DocumentSettingsServices()
-            .setCurrentTemplateName(replacementName);
+        await DocumentSettingsServices().setCurrentTemplateName(
+          replacementName,
+        );
       }
       return TemplatePresetDeletionResult(
         updatedLayoutCount: result.updatedLayoutCount,

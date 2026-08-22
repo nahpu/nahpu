@@ -51,7 +51,7 @@ class DraggableImageChip extends StatefulWidget {
   final TemplatePanMmDeltaCallback templatePanToMmDelta;
   final void Function(Offset newPosMm) onMoved;
   final void Function(double xMm, double yMm, double widthMm, double heightMm)
-      onBoundsChanged;
+  onBoundsChanged;
   final void Function(int rotationDegrees) onRotationChanged;
   final VoidCallback? onDelete;
   final bool isSelected;
@@ -116,11 +116,11 @@ class DraggableImageChipState extends State<DraggableImageChip> {
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
   Rect get _widgetRect => Rect.fromLTWH(
-        widget.position.dx,
-        widget.position.dy,
-        widget.widthMm,
-        widget.heightMm,
-      );
+    widget.position.dx,
+    widget.position.dy,
+    widget.widthMm,
+    widget.heightMm,
+  );
 
   bool _isSameRect(Rect a, Rect b) {
     const tolerance = 1e-6;
@@ -215,20 +215,26 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     _rotateStartElemDeg = widget.rotationDegrees;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    _rotateStartFingerRad = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
   }
 
   void _onRotatePanUpdate(DragUpdateDetails d) {
     if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    final cur = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
     final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
     final deg = CustomImageElement.normalizeImageRotationDegrees(
       _rotateStartElemDeg! + radiansToDegrees(delta),
@@ -363,8 +369,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
     final borderColor = _moving
         ? scheme.primary
         : widget.isSelected
-            ? scheme.primary
-            : scheme.outline;
+        ? scheme.primary
+        : scheme.outline;
 
     // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
     // does not hit-test children outside a tight w×h Stack).
@@ -402,8 +408,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
-                  onTapDown:
-                      widget.isLocked ? (_) => widget.onTap?.call() : null,
+                  onTapDown: widget.isLocked
+                      ? (_) => widget.onTap?.call()
+                      : null,
                   onTap: widget.isLocked ? null : widget.onTap,
                   onPanStart: widget.isLocked
                       ? null
@@ -426,7 +433,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                           final gDelta = details.globalPosition - last;
                           _imageMovePanLastGlobal = details.globalPosition;
                           final dMm = _mmDeltaFromGlobalDrag(
-                              details.globalPosition, gDelta);
+                            details.globalPosition,
+                            gDelta,
+                          );
                           final origin = _imagePanOriginMm ?? widget.position;
                           _imagePanAccumMm += dMm;
                           final lr = _resizeLiveRect;
@@ -462,8 +471,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                           );
                           setState(() {
                             _imageDragLiveMm = snapResult.position;
-                            _snapResult =
-                                snapResult.hasGuide ? snapResult : null;
+                            _snapResult = snapResult.hasGuide
+                                ? snapResult
+                                : null;
                           });
                         },
                   onPanEnd: widget.isLocked
@@ -488,7 +498,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                         },
                   child: widget.isVisible
                       ? AnimatedContainer(
-                          duration: (_resizeCorner != null ||
+                          duration:
+                              (_resizeCorner != null ||
                                   _rotateStartFingerRad != null ||
                                   _moving)
                               ? Duration.zero
@@ -505,8 +516,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                             boxShadow: _moving
                                 ? [
                                     BoxShadow(
-                                      color: scheme.primary
-                                          .withValues(alpha: 0.25),
+                                      color: scheme.primary.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -529,20 +541,24 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                   ),
                                 )
                               else if (isTemplateImagePathUsable(
-                                  widget.imagePath))
+                                widget.imagePath,
+                              ))
                                 Image.file(
                                   File(widget.imagePath),
                                   fit: BoxFit.contain,
                                   errorBuilder: (_, _, _) => const Center(
-                                    child: Icon(Icons.broken_image_outlined,
-                                        size: 28),
+                                    child: Icon(
+                                      Icons.broken_image_outlined,
+                                      size: 28,
+                                    ),
                                   ),
                                 )
                               else
                                 const Center(
                                   child: Icon(
-                                      Icons.image_not_supported_outlined,
-                                      size: 28),
+                                    Icons.image_not_supported_outlined,
+                                    size: 28,
+                                  ),
                                 ),
                               if (widget.vectorChild == null)
                                 Positioned(
@@ -551,8 +567,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                   child: Icon(
                                     Icons.drag_indicator,
                                     size: 14,
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.5),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -561,7 +578,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                       : Opacity(
                           opacity: 0.35,
                           child: AnimatedContainer(
-                            duration: (_resizeCorner != null ||
+                            duration:
+                                (_resizeCorner != null ||
                                     _rotateStartFingerRad != null ||
                                     _moving)
                                 ? Duration.zero
@@ -571,16 +589,18 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: borderColor,
-                                width:
-                                    (widget.isSelected || _moving) ? 2.0 : 1.0,
+                                width: (widget.isSelected || _moving)
+                                    ? 2.0
+                                    : 1.0,
                               ),
                               borderRadius: BorderRadius.circular(4),
                               color: scheme.surfaceContainerHighest,
                               boxShadow: _moving
                                   ? [
                                       BoxShadow(
-                                        color: scheme.primary
-                                            .withValues(alpha: 0.25),
+                                        color: scheme.primary.withValues(
+                                          alpha: 0.25,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -603,20 +623,24 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                     ),
                                   )
                                 else if (isTemplateImagePathUsable(
-                                    widget.imagePath))
+                                  widget.imagePath,
+                                ))
                                   Image.file(
                                     File(widget.imagePath),
                                     fit: BoxFit.contain,
                                     errorBuilder: (_, _, _) => const Center(
-                                      child: Icon(Icons.broken_image_outlined,
-                                          size: 28),
+                                      child: Icon(
+                                        Icons.broken_image_outlined,
+                                        size: 28,
+                                      ),
                                     ),
                                   )
                                 else
                                   const Center(
                                     child: Icon(
-                                        Icons.image_not_supported_outlined,
-                                        size: 28),
+                                      Icons.image_not_supported_outlined,
+                                      size: 28,
+                                    ),
                                   ),
                                 if (widget.vectorChild == null)
                                   Positioned(
@@ -625,8 +649,9 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                                     child: Icon(
                                       Icons.drag_indicator,
                                       size: 14,
-                                      color: scheme.onSurface
-                                          .withValues(alpha: 0.5),
+                                      color: scheme.onSurface.withValues(
+                                        alpha: 0.5,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -636,14 +661,38 @@ class DraggableImageChipState extends State<DraggableImageChip> {
                 ),
               ),
               if (widget.isSelected && !widget.isLocked) ...[
-                _cornerHandle(scheme, _ImageCorner.tl,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.tr,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.bl,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(scheme, _ImageCorner.br,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _cornerHandle(
+                  scheme,
+                  _ImageCorner.tl,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  scheme,
+                  _ImageCorner.tr,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  scheme,
+                  _ImageCorner.bl,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  scheme,
+                  _ImageCorner.br,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
                 Positioned(
                   left: padL + w / 2 - 24,
                   top: math.max(
@@ -720,7 +769,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
       children: [
         if (snapResult.verticalGuideMm != null)
           Positioned(
-            left: snapResult.verticalGuideMm! * widget.scale +
+            left:
+                snapResult.verticalGuideMm! * widget.scale +
                 widget.canvasInsetXPx -
                 _snapGuideWidthPx / 2,
             top: widget.canvasInsetYPx,
@@ -731,7 +781,8 @@ class DraggableImageChipState extends State<DraggableImageChip> {
         if (snapResult.horizontalGuideMm != null)
           Positioned(
             left: widget.canvasInsetXPx,
-            top: widget.canvasInsetYPx +
+            top:
+                widget.canvasInsetYPx +
                 snapResult.horizontalGuideMm! * widget.scale -
                 _snapGuideWidthPx / 2,
             width: widget.templateWidthMm * widget.scale,

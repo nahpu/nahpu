@@ -104,7 +104,8 @@ class TemplateEditorScaffold extends StatelessWidget {
     Offset globalPosition,
     Offset globalDelta,
     double scale,
-  ) templatePanGlobalDeltaToMm;
+  )
+  templatePanGlobalDeltaToMm;
   final String fieldDisplayOption;
   final bool canDeleteSavedTemplate;
   final VoidCallback onCreateNewTemplate;
@@ -131,23 +132,23 @@ class TemplateEditorScaffold extends StatelessWidget {
   final ValueChanged<String> onSelectElement;
   final ValueChanged<String> onStartInlineEditing;
   final void Function(bool page1, CustomImageElement element)
-      onScheduleTemplateImageUpdate;
+  onScheduleTemplateImageUpdate;
   final void Function(bool page1, String id) onRemoveCustomImage;
   final void Function(bool page1, CustomTextElement element)
-      onScheduleTemplateTextPositionUpdate;
+  onScheduleTemplateTextPositionUpdate;
   final void Function(bool page1, CustomLineElement element)
-      onScheduleTemplateLineUpdate;
+  onScheduleTemplateLineUpdate;
   final void Function(bool page1, String id) onRemoveCustomLine;
   final void Function(bool page1, CustomShapeElement element)
-      onScheduleTemplateShapeUpdate;
+  onScheduleTemplateShapeUpdate;
   final void Function(bool page1, String id) onRemoveCustomShape;
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
   final void Function(bool page1, CustomImageElement element)
-      onUpdateCustomImage;
+  onUpdateCustomImage;
   final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
   final void Function(bool page1, CustomShapeElement element)
-      onUpdateCustomShape;
+  onUpdateCustomShape;
   final VoidCallback onDismissProperties;
   final ValueChanged<double> onZoomChanged;
   final VoidCallback? onUndo;
@@ -292,8 +293,9 @@ class TemplateEditorScaffold extends StatelessWidget {
                 onDuplicateSelectedElement: selected == null
                     ? null
                     : () => onDuplicateElement(selected),
-                onCopySelectedElement:
-                    selected == null ? null : () => onCopyElement(selected),
+                onCopySelectedElement: selected == null
+                    ? null
+                    : () => onCopyElement(selected),
                 onPasteElement: canPasteElement ? onPasteElement : null,
                 onDragStateChanged: onDragStateChanged,
               ),
@@ -303,8 +305,8 @@ class TemplateEditorScaffold extends StatelessWidget {
       ),
       bottomSheet:
           useBottomProperties && (selectedElement != null || isBorderPanelOpen)
-              ? properties
-              : null,
+          ? properties
+          : null,
     );
   }
 
@@ -451,10 +453,7 @@ class _TemplateEditorAppBar extends StatelessWidget
                   children: [
                     Icon(Icons.delete_outline_rounded, color: scheme.error),
                     const SizedBox(width: 8),
-                    Text(
-                      'Delete',
-                      style: TextStyle(color: scheme.error),
-                    ),
+                    Text('Delete', style: TextStyle(color: scheme.error)),
                   ],
                 ),
               ),
@@ -491,38 +490,16 @@ class _TemplatePropertiesStrip extends StatelessWidget {
   final String? selectedElement;
   final bool isPage1;
   final Template template;
-  final void Function(
-    bool page1,
-    CustomTextElement element,
-  ) onUpdateCustomText;
-  final void Function(
-    bool page1,
-    String id,
-  ) onDeleteCustomText;
-  final void Function(
-    bool page1,
-    CustomImageElement element,
-  ) onUpdateCustomImage;
-  final void Function(
-    bool page1,
-    String id,
-  ) onDeleteCustomImage;
-  final void Function(
-    bool page1,
-    CustomLineElement element,
-  ) onUpdateCustomLine;
-  final void Function(
-    bool page1,
-    String id,
-  ) onDeleteCustomLine;
-  final void Function(
-    bool page1,
-    CustomShapeElement element,
-  ) onUpdateCustomShape;
-  final void Function(
-    bool page1,
-    String id,
-  ) onDeleteCustomShape;
+  final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
+  final void Function(bool page1, String id) onDeleteCustomText;
+  final void Function(bool page1, CustomImageElement element)
+  onUpdateCustomImage;
+  final void Function(bool page1, String id) onDeleteCustomImage;
+  final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
+  final void Function(bool page1, String id) onDeleteCustomLine;
+  final void Function(bool page1, CustomShapeElement element)
+  onUpdateCustomShape;
+  final void Function(bool page1, String id) onDeleteCustomShape;
   final VoidCallback onDismiss;
   final bool isBorderPanelOpen;
   final ValueChanged<String> onDuplicateElement;
@@ -568,10 +545,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
       alignment: Alignment.topCenter,
       clipBehavior: Clip.hardEdge,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: activeChild,
       ),
     );

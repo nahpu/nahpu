@@ -165,7 +165,7 @@ class TemplateSizeSelector extends ConsumerStatefulWidget {
 
   /// Called with new width/height after a preset or custom apply (parent should update state).
   final void Function(double widthMm, double heightMm)?
-      onControlledDimensionsApplied;
+  onControlledDimensionsApplied;
 
   @override
   ConsumerState<TemplateSizeSelector> createState() =>
@@ -234,10 +234,8 @@ class _TemplateSizeSelectorState extends ConsumerState<TemplateSizeSelector> {
   Future<void> _showSelectorDialog() async {
     final result = await showDialog<(double, double)>(
       context: context,
-      builder: (context) => TemplateSizeDialog(
-        currentWidth: _w,
-        currentHeight: _h,
-      ),
+      builder: (context) =>
+          TemplateSizeDialog(currentWidth: _w, currentHeight: _h),
     );
 
     if (result != null && mounted) {
@@ -334,9 +332,11 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
 
   void _applyCustom() {
     if (_formKey.currentState?.validate() ?? false) {
-      final w = double.tryParse(_wController.text.replaceAll(',', '.')) ??
+      final w =
+          double.tryParse(_wController.text.replaceAll(',', '.')) ??
           widget.currentWidth;
-      final h = double.tryParse(_hController.text.replaceAll(',', '.')) ??
+      final h =
+          double.tryParse(_hController.text.replaceAll(',', '.')) ??
           widget.currentHeight;
       Navigator.pop(context, (w.clamp(10.0, 500.0), h.clamp(10.0, 500.0)));
     }
@@ -366,8 +366,10 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
               ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
               : null,
           child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
             title: Text(
               preset.name,
               style: theme.textTheme.titleMedium?.copyWith(

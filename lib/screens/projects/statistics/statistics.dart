@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
+import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
@@ -72,142 +73,64 @@ class _RecordStatisticsSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final secondaryForeground = colorScheme.onSecondaryContainer;
-    final secondaryBackground = colorScheme.secondaryContainer.withValues(
-      alpha: 0.16,
-    );
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          key: const ValueKey('record-stat-specimens'),
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(
-            NahpuSpacing.lg,
-            NahpuSpacing.xl,
-            NahpuSpacing.lg,
-            NahpuSpacing.lg,
-          ),
-          decoration: BoxDecoration(
-            color: secondaryBackground,
-            borderRadius: BorderRadius.circular(NahpuRadius.md),
-            border: Border.all(color: colorScheme.outlineVariant),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        _RecordStatisticTile(
+          kind: RecordMetricKind.specimens,
+          count: totals.specimenCount,
+          tier: _RecordTileTier.hero,
+        ),
+        const SizedBox(height: NahpuSpacing.md),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                totals.specimenCount.toString(),
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineLarge?.copyWith(color: secondaryForeground),
+              Expanded(
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.species,
+                  count: totals.speciesCount,
+                  tier: _RecordTileTier.primary,
+                ),
               ),
-              Text(
-                'Specimens',
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: secondaryForeground),
-              ),
-              const SizedBox(height: NahpuSpacing.md),
-              Container(
-                width: double.infinity,
-                height: NahpuStroke.thin,
-                color: colorScheme.outlineVariant,
-              ),
-              const SizedBox(height: NahpuSpacing.md),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: _RecordStatisticMetric(
-                      key: const ValueKey('record-stat-species'),
-                      label: 'Species',
-                      count: totals.speciesCount,
-                      countStyle: Theme.of(context).textTheme.titleLarge,
-                      labelStyle: Theme.of(context).textTheme.bodyMedium,
-                      foregroundColor: secondaryForeground,
-                    ),
-                  ),
-                  Container(
-                    width: NahpuStroke.thin,
-                    height: NahpuControlSize.touchTarget,
-                    color: colorScheme.outlineVariant,
-                  ),
-                  Expanded(
-                    child: _RecordStatisticMetric(
-                      key: const ValueKey('record-stat-families'),
-                      label: 'Families',
-                      count: totals.familyCount,
-                      countStyle: Theme.of(context).textTheme.titleLarge,
-                      labelStyle: Theme.of(context).textTheme.bodyMedium,
-                      foregroundColor: secondaryForeground,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: NahpuSpacing.md),
+              Expanded(
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.families,
+                  count: totals.familyCount,
+                  tier: _RecordTileTier.primary,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: NahpuSpacing.lg),
-        Container(
+        const SizedBox(height: NahpuSpacing.md),
+        IntrinsicHeight(
           key: const ValueKey('record-stat-secondary'),
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(
-            0,
-            NahpuSpacing.lg,
-            0,
-            NahpuSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(NahpuRadius.md),
-            border: Border.all(color: colorScheme.outlineVariant),
-          ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _RecordStatisticMetric(
-                  key: const ValueKey('record-stat-sites'),
-                  label: 'Sites',
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.sites,
                   count: totals.siteCount,
-                  countStyle: Theme.of(context).textTheme.titleMedium,
-                  labelStyle: Theme.of(context).textTheme.bodySmall,
-                  foregroundColor: colorScheme.onSurface,
+                  tier: _RecordTileTier.secondary,
                 ),
               ),
-              Container(
-                width: NahpuStroke.thin,
-                height: NahpuControlSize.control,
-                color: colorScheme.outlineVariant,
-              ),
+              const SizedBox(width: NahpuSpacing.md),
               Expanded(
-                child: _RecordStatisticMetric(
-                  key: const ValueKey('record-stat-events'),
-                  label: 'Events',
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.events,
                   count: totals.eventCount,
-                  countStyle: Theme.of(context).textTheme.titleMedium,
-                  labelStyle: Theme.of(context).textTheme.bodySmall,
-                  foregroundColor: colorScheme.onSurface,
+                  tier: _RecordTileTier.secondary,
                 ),
               ),
-              Container(
-                width: NahpuStroke.thin,
-                height: NahpuControlSize.control,
-                color: colorScheme.outlineVariant,
-              ),
+              const SizedBox(width: NahpuSpacing.md),
               Expanded(
-                child: _RecordStatisticMetric(
-                  key: const ValueKey('record-stat-narratives'),
-                  label: 'Narratives',
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.narratives,
                   count: totals.narrativeCount,
-                  countStyle: Theme.of(context).textTheme.titleMedium,
-                  labelStyle: Theme.of(context).textTheme.bodySmall,
-                  foregroundColor: colorScheme.onSurface,
+                  tier: _RecordTileTier.secondary,
                 ),
               ),
             ],
@@ -218,50 +141,112 @@ class _RecordStatisticsSummary extends StatelessWidget {
   }
 }
 
-class _RecordStatisticMetric extends StatelessWidget {
-  const _RecordStatisticMetric({
-    super.key,
-    required this.label,
+/// Visual weight of a dashboard record statistic tile.
+enum _RecordTileTier { hero, primary, secondary }
+
+class _RecordStatisticTile extends StatelessWidget {
+  const _RecordStatisticTile({
+    required this.kind,
     required this.count,
-    required this.countStyle,
-    required this.labelStyle,
-    required this.foregroundColor,
+    required this.tier,
   });
 
-  final String label;
+  final RecordMetricKind kind;
   final int count;
-  final TextStyle? countStyle;
-  final TextStyle? labelStyle;
-  final Color foregroundColor;
+  final _RecordTileTier tier;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isSecondary = tier == _RecordTileTier.secondary;
+    final countColor = isSecondary
+        ? colorScheme.onSurface
+        : colorScheme.onSecondaryContainer;
+    final labelColor = isSecondary
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.onSecondaryContainer;
+    final countText = Text(
+      count.toString(),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: _countStyle(textTheme)?.copyWith(color: countColor),
+    );
+
     return Semantics(
       container: true,
-      label: '$label: $count',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xxs),
+      label: '${kind.label}: $count',
+      child: Container(
+        key: kind.dashboardKey,
+        width: double.infinity,
+        alignment: Alignment.center,
+        padding: _padding,
+        decoration: BoxDecoration(
+          color: isSecondary
+              ? colorScheme.surfaceContainerLow
+              : colorScheme.secondaryContainer.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(NahpuRadius.md),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              count.toString(),
-              maxLines: 1,
-              textAlign: TextAlign.center,
-              style: countStyle?.copyWith(color: foregroundColor),
-            ),
+            if (kind.hasIcon)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    kind.icon,
+                    size: NahpuControlSize.iconSmall,
+                    color: labelColor,
+                  ),
+                  const SizedBox(width: NahpuSpacing.xs),
+                  Flexible(child: countText),
+                ],
+              )
+            else
+              countText,
             const SizedBox(height: NahpuSpacing.xxs),
             Text(
-              label,
+              kind.label,
               maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: labelStyle?.copyWith(color: foregroundColor),
+              style: _labelStyle(textTheme)?.copyWith(color: labelColor),
             ),
           ],
         ),
       ),
     );
   }
+
+  EdgeInsets get _padding => switch (tier) {
+    _RecordTileTier.hero => const EdgeInsets.symmetric(
+      vertical: NahpuSpacing.md,
+      horizontal: NahpuSpacing.lg,
+    ),
+    _RecordTileTier.primary => const EdgeInsets.symmetric(
+      vertical: NahpuSpacing.md,
+      horizontal: NahpuSpacing.sm,
+    ),
+    _RecordTileTier.secondary => const EdgeInsets.symmetric(
+      vertical: NahpuSpacing.md,
+      horizontal: NahpuSpacing.xxs,
+    ),
+  };
+
+  TextStyle? _countStyle(TextTheme textTheme) => switch (tier) {
+    _RecordTileTier.hero => textTheme.headlineLarge,
+    _RecordTileTier.primary => textTheme.titleLarge,
+    _RecordTileTier.secondary => textTheme.titleMedium,
+  };
+
+  TextStyle? _labelStyle(TextTheme textTheme) => switch (tier) {
+    _RecordTileTier.hero => textTheme.titleMedium,
+    _RecordTileTier.primary => textTheme.bodyMedium,
+    _RecordTileTier.secondary => textTheme.bodySmall,
+  };
 }
 
 class StatisticFullScreen extends ConsumerStatefulWidget {
@@ -666,8 +651,6 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
 }
 
 class _FullScreenRecordStatisticsCard extends StatelessWidget {
-  static const _wideSummaryGroupHeight = 280.0;
-
   const _FullScreenRecordStatisticsCard({required this.totals});
 
   final RecordStatisticTotals totals;
@@ -678,89 +661,71 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
       key: const ValueKey('full-screen-record-stat-summary'),
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.lg),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final records = _SummaryGroup(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _SummaryGroup(
               key: const ValueKey('full-screen-record-stat-records'),
               title: 'Records',
               children: [
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-specimens'),
-                  label: 'Specimens',
+                  key: RecordMetricKind.specimens.fullScreenKey,
+                  kind: RecordMetricKind.specimens,
                   value: totals.specimenCount.toString(),
                   emphasis: true,
                 ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-species'),
-                  label: 'Species',
+                  key: RecordMetricKind.species.fullScreenKey,
+                  kind: RecordMetricKind.species,
                   value: totals.speciesCount.toString(),
                 ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-families'),
-                  label: 'Families',
+                  key: RecordMetricKind.families.fullScreenKey,
+                  kind: RecordMetricKind.families,
                   value: totals.familyCount.toString(),
                 ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-narratives'),
-                  label: 'Narratives',
+                  key: RecordMetricKind.narratives.fullScreenKey,
+                  kind: RecordMetricKind.narratives,
                   value: totals.narrativeCount.toString(),
                 ),
               ],
-            );
-            final sampling = _SummaryGroup(
+            ),
+            const SizedBox(height: NahpuSpacing.md),
+            _SummaryGroup(
               key: const ValueKey('full-screen-record-stat-sampling'),
               title: 'Sampling',
               children: [
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-sites'),
-                  label: 'Sites',
+                  key: RecordMetricKind.sites.fullScreenKey,
+                  kind: RecordMetricKind.sites,
                   value: totals.siteCount.toString(),
                 ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-events'),
-                  label: 'Events',
+                  key: RecordMetricKind.events.fullScreenKey,
+                  kind: RecordMetricKind.events,
                   value: totals.eventCount.toString(),
                 ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-capture-days'),
-                  label: 'Capture days',
+                  key: RecordMetricKind.captureDays.fullScreenKey,
+                  kind: RecordMetricKind.captureDays,
                   value: totals.totalCaptureDays.toString(),
                 ),
                 if (totals.totalDays != null)
                   _SummaryMetric(
-                    key: const ValueKey('full-screen-record-stat-total-days'),
-                    label: 'Project days',
+                    key: RecordMetricKind.projectDays.fullScreenKey,
+                    kind: RecordMetricKind.projectDays,
                     value: totals.totalDays.toString(),
                   ),
                 _SummaryMetric(
-                  key: const ValueKey('full-screen-record-stat-elevation'),
-                  label: 'Site elevation',
+                  key: RecordMetricKind.elevation.fullScreenKey,
+                  kind: RecordMetricKind.elevation,
                   value: _formatElevationRange(totals),
                   wide: true,
                 ),
               ],
-            );
-            if (constraints.maxWidth >= 760) {
-              return SizedBox(
-                height: _wideSummaryGroupHeight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(child: records),
-                    const SizedBox(width: NahpuSpacing.md),
-                    Expanded(child: sampling),
-                  ],
-                ),
-              );
-            }
-            return Column(
-              children: [
-                records,
-                const SizedBox(height: NahpuSpacing.md),
-                sampling,
-              ],
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
@@ -800,8 +765,10 @@ class _SummaryGroup extends StatelessWidget {
           const SizedBox(height: NahpuSpacing.sm),
           LayoutBuilder(
             builder: (context, constraints) {
-              final spacing = NahpuSpacing.xs;
-              final standardWidth = (constraints.maxWidth - spacing) / 2;
+              const spacing = NahpuSpacing.xs;
+              final columns = _columnCount(constraints.maxWidth);
+              final standardWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
@@ -819,18 +786,33 @@ class _SummaryGroup extends StatelessWidget {
       ),
     );
   }
+
+  /// Columns for the standard-width metrics, capped so a group with few
+  /// metrics never leaves a dead trailing column.
+  int _columnCount(double maxWidth) {
+    final limit = maxWidth >= 1000
+        ? 5
+        : maxWidth >= 720
+        ? 4
+        : maxWidth >= 480
+        ? 3
+        : 2;
+    final standardCount = children.where((metric) => !metric.wide).length;
+    if (standardCount < 1) return 1;
+    return standardCount < limit ? standardCount : limit;
+  }
 }
 
 class _SummaryMetric extends StatelessWidget {
   const _SummaryMetric({
     super.key,
-    required this.label,
+    required this.kind,
     required this.value,
     this.emphasis = false,
     this.wide = false,
   });
 
-  final String label;
+  final RecordMetricKind kind;
   final String value;
   final bool emphasis;
   final bool wide;
@@ -838,13 +820,16 @@ class _SummaryMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final foregroundColor = emphasis
+        ? colorScheme.onSecondaryContainer
+        : colorScheme.onSurfaceVariant;
     return Semantics(
       container: true,
-      label: '$label: $value',
+      label: '${kind.label}: $value',
       child: Container(
         constraints: const BoxConstraints(minHeight: 68),
         padding: const EdgeInsets.symmetric(
-          horizontal: NahpuSpacing.sm,
+          horizontal: NahpuSpacing.md,
           vertical: NahpuSpacing.xs,
         ),
         decoration: BoxDecoration(
@@ -853,25 +838,38 @@ class _SummaryMetric extends StatelessWidget {
               : colorScheme.surface,
           borderRadius: BorderRadius.circular(NahpuRadius.sm),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: emphasis
-                  ? Theme.of(context).textTheme.headlineSmall
-                  : Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: NahpuSpacing.xxs),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
+            if (kind.hasIcon) ...[
+              Icon(
+                kind.icon,
+                size: NahpuControlSize.iconMedium,
+                color: foregroundColor,
+              ),
+              const SizedBox(width: NahpuSpacing.sm),
+            ],
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: emphasis
+                        ? Theme.of(context).textTheme.headlineSmall
+                        : Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: NahpuSpacing.xxs),
+                  Text(
+                    kind.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

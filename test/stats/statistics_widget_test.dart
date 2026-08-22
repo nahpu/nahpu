@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
+import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -26,12 +27,27 @@ void main() {
     expect(find.text('Record counts'), findsNothing);
     expect(find.text('Top species'), findsNothing);
     expect(find.byType(StatisticBarChart), findsNothing);
-    _expectRecordMetric(tester, 'specimens', label: 'Specimens', count: 4);
-    _expectRecordMetric(tester, 'species', label: 'Species', count: 2);
-    _expectRecordMetric(tester, 'families', label: 'Families', count: 1);
-    _expectRecordMetric(tester, 'sites', label: 'Sites', count: 2);
-    _expectRecordMetric(tester, 'events', label: 'Events', count: 3);
-    _expectRecordMetric(tester, 'narratives', label: 'Narratives', count: 5);
+    _expectRecordMetric(
+      tester,
+      RecordMetricKind.specimens,
+      count: 4,
+      expectIcon: false,
+    );
+    _expectRecordMetric(
+      tester,
+      RecordMetricKind.species,
+      count: 2,
+      expectIcon: false,
+    );
+    _expectRecordMetric(
+      tester,
+      RecordMetricKind.families,
+      count: 1,
+      expectIcon: false,
+    );
+    _expectRecordMetric(tester, RecordMetricKind.sites, count: 2);
+    _expectRecordMetric(tester, RecordMetricKind.events, count: 3);
+    _expectRecordMetric(tester, RecordMetricKind.narratives, count: 5);
     expect(find.text('Explore more stats'), findsOneWidget);
     expect(find.text('Open statistics'), findsNothing);
   });
@@ -50,9 +66,12 @@ void main() {
     );
     expect(hero.width, secondary.width);
 
-    final specimenCount = _metricTexts(tester, 'specimens').first;
-    final speciesCount = _metricTexts(tester, 'species').first;
-    final siteCount = _metricTexts(tester, 'sites').first;
+    final specimenCount = _metricTexts(
+      tester,
+      RecordMetricKind.specimens,
+    ).first;
+    final speciesCount = _metricTexts(tester, RecordMetricKind.species).first;
+    final siteCount = _metricTexts(tester, RecordMetricKind.sites).first;
     expect(
       specimenCount.style!.fontSize,
       greaterThan(speciesCount.style!.fontSize!),
@@ -61,6 +80,18 @@ void main() {
       speciesCount.style!.fontSize,
       greaterThan(siteCount.style!.fontSize!),
     );
+  });
+
+  testWidgets('record statistics fits the dashboard panel at large text', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(420, 700),
+      textScaler: const TextScaler.linear(1.3),
+    );
+
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('record statistics opens help and detailed species statistics', (
@@ -135,7 +166,7 @@ void main() {
     expect(find.text('Capture days'), findsOneWidget);
   });
 
-  testWidgets('wide summary keeps records and sampling containers equal', (
+  testWidgets('wide summary stacks records above sampling at full width', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(
@@ -155,7 +186,39 @@ void main() {
     final sampling = tester.getRect(
       find.byKey(const ValueKey('full-screen-record-stat-sampling')),
     );
-    expect(records.height, closeTo(sampling.height, 0.1));
+    expect(records.width, closeTo(sampling.width, 0.1));
+    expect(sampling.top, greaterThanOrEqualTo(records.bottom));
+    for (final kind in const [
+      RecordMetricKind.elevation,
+      RecordMetricKind.captureDays,
+      RecordMetricKind.projectDays,
+      RecordMetricKind.sites,
+      RecordMetricKind.events,
+      RecordMetricKind.narratives,
+    ]) {
+      expect(
+        find.descendant(
+          of: find.byKey(kind.fullScreenKey),
+          matching: find.byIcon(kind.icon),
+        ),
+        findsOneWidget,
+        reason: '${kind.label} should keep its icon on the full-screen page',
+      );
+    }
+    for (final kind in const [
+      RecordMetricKind.specimens,
+      RecordMetricKind.species,
+      RecordMetricKind.families,
+    ]) {
+      expect(
+        find.descendant(
+          of: find.byKey(kind.fullScreenKey),
+          matching: find.byIcon(kind.icon),
+        ),
+        findsNothing,
+        reason: '${kind.label} is iconless on the dashboard, so also here',
+      );
+    }
   });
 
   testWidgets(
@@ -552,77 +615,114 @@ void main() {
 }
 
 void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
-  final hero = tester.widget<Container>(
-    find.byKey(const ValueKey('record-stat-specimens')),
-  );
-  final heroDecoration = hero.decoration! as BoxDecoration;
-  final secondaryForeground = theme.colorScheme.onSecondaryContainer;
-  final secondaryBackground = theme.colorScheme.secondaryContainer.withValues(
+  final colorScheme = theme.colorScheme;
+  final emphasisBackground = colorScheme.secondaryContainer.withValues(
     alpha: 0.16,
   );
-  expect(heroDecoration.color, secondaryBackground);
-  for (final text in tester.widgetList<Text>(
-    find.descendant(
-      of: find.byKey(const ValueKey('record-stat-specimens')),
-      matching: find.byType(Text),
-    ),
-  )) {
-    expect(text.style?.color, secondaryForeground);
-    expect(text.textAlign, TextAlign.center);
+  final emphasisForeground = colorScheme.onSecondaryContainer;
+
+  for (final kind in const [
+    RecordMetricKind.specimens,
+    RecordMetricKind.species,
+    RecordMetricKind.families,
+  ]) {
+    _expectTileColors(
+      tester,
+      kind,
+      background: emphasisBackground,
+      countColor: emphasisForeground,
+      labelColor: emphasisForeground,
+      hasIcon: false,
+    );
   }
   expect(
     _contrastRatio(
-      secondaryForeground,
-      Color.alphaBlend(secondaryBackground, theme.colorScheme.surface),
+      emphasisForeground,
+      Color.alphaBlend(emphasisBackground, colorScheme.surface),
     ),
     greaterThanOrEqualTo(4.5),
   );
 
-  final secondary = tester.widget<Container>(
-    find.byKey(const ValueKey('record-stat-secondary')),
-  );
-  final secondaryDecoration = secondary.decoration! as BoxDecoration;
-  expect(secondaryDecoration.color, theme.colorScheme.surfaceContainerLow);
-  for (final text in tester.widgetList<Text>(
-    find.descendant(
-      of: find.byKey(const ValueKey('record-stat-secondary')),
-      matching: find.byType(Text),
-    ),
-  )) {
-    expect(text.style?.color, theme.colorScheme.onSurface);
-    expect(text.textAlign, TextAlign.center);
+  for (final kind in const [
+    RecordMetricKind.sites,
+    RecordMetricKind.events,
+    RecordMetricKind.narratives,
+  ]) {
+    _expectTileColors(
+      tester,
+      kind,
+      background: colorScheme.surfaceContainerLow,
+      countColor: colorScheme.onSurface,
+      labelColor: colorScheme.onSurfaceVariant,
+    );
   }
   expect(
+    _contrastRatio(colorScheme.onSurface, colorScheme.surfaceContainerLow),
+    greaterThanOrEqualTo(4.5),
+  );
+  expect(
     _contrastRatio(
-      theme.colorScheme.onSurface,
-      theme.colorScheme.surfaceContainerLow,
+      colorScheme.onSurfaceVariant,
+      colorScheme.surfaceContainerLow,
     ),
     greaterThanOrEqualTo(4.5),
   );
 }
 
+void _expectTileColors(
+  WidgetTester tester,
+  RecordMetricKind kind, {
+  required Color background,
+  required Color countColor,
+  required Color labelColor,
+  bool hasIcon = true,
+}) {
+  final tile = find.byKey(kind.dashboardKey);
+  final container = tester.widget<Container>(tile);
+  expect((container.decoration! as BoxDecoration).color, background);
+
+  final texts = _metricTexts(tester, kind);
+  expect(texts.first.style?.color, countColor);
+  expect(texts.last.style?.color, labelColor);
+  expect(texts.last.textAlign, TextAlign.center);
+
+  final iconFinder = find.descendant(
+    of: tile,
+    matching: find.byIcon(kind.icon),
+  );
+  if (!hasIcon) {
+    expect(iconFinder, findsNothing);
+    return;
+  }
+  expect(tester.widget<Icon>(iconFinder).color, labelColor);
+}
+
 void _expectRecordMetric(
   WidgetTester tester,
-  String key, {
-  required String label,
+  RecordMetricKind kind, {
   required int count,
+  bool expectIcon = true,
 }) {
-  final metric = find.byKey(ValueKey('record-stat-$key'));
+  final metric = find.byKey(kind.dashboardKey);
   expect(
-    find.descendant(of: metric, matching: find.text(label)),
+    find.descendant(of: metric, matching: find.text(kind.label)),
     findsOneWidget,
   );
   expect(
     find.descendant(of: metric, matching: find.text(count.toString())),
     findsOneWidget,
   );
+  expect(
+    find.descendant(of: metric, matching: find.byIcon(kind.icon)),
+    expectIcon ? findsOneWidget : findsNothing,
+  );
 }
 
-List<Text> _metricTexts(WidgetTester tester, String key) {
+List<Text> _metricTexts(WidgetTester tester, RecordMetricKind kind) {
   return tester
       .widgetList<Text>(
         find.descendant(
-          of: find.byKey(ValueKey('record-stat-$key')),
+          of: find.byKey(kind.dashboardKey),
           matching: find.byType(Text),
         ),
       )
@@ -634,6 +734,7 @@ Future<void> _pumpRecordStatisticsPanel(
   Size size, {
   ThemeData? theme,
   bool includeProjectDates = false,
+  TextScaler textScaler = TextScaler.noScaling,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -814,6 +915,10 @@ Future<void> _pumpRecordStatisticsPanel(
       container: container,
       child: MaterialApp(
         theme: theme,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+          child: child!,
+        ),
         home: const Scaffold(body: StatisticViewer()),
       ),
     ),

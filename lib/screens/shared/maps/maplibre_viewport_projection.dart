@@ -28,10 +28,7 @@ Offset mapLibreViewportScreenLocation({
     delta.dx * cosBearing - delta.dy * sinBearing,
     delta.dx * sinBearing + delta.dy * cosBearing,
   );
-  delta = Offset(
-    delta.dx,
-    delta.dy * math.cos(camera.pitch * math.pi / 180),
-  );
+  delta = Offset(delta.dx, delta.dy * math.cos(camera.pitch * math.pi / 180));
 
   return Offset(
     viewportSize.width / 2 + delta.dx,

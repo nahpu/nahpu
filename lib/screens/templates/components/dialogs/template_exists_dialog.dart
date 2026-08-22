@@ -1,10 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 class TemplateExistsDialog extends StatelessWidget {
-  const TemplateExistsDialog({
-    super.key,
-    required this.templateName,
-  });
+  const TemplateExistsDialog({super.key, required this.templateName});
 
   final String templateName;
 

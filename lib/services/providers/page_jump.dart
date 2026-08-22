@@ -17,7 +17,8 @@ enum RecordViewer { site, collEvent, specimen, narrative }
 /// the record yet simply leaves the request pending.
 final pendingRecordJumpProvider =
     NotifierProvider.family<PendingRecordJumpNotifier, Object?, RecordViewer>(
-        PendingRecordJumpNotifier.new);
+      PendingRecordJumpNotifier.new,
+    );
 
 class PendingRecordJumpNotifier extends Notifier<Object?> {
   PendingRecordJumpNotifier(this.viewer);
