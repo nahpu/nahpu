@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/statistics.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 const _chartTopPadding = 24.0;
 
@@ -405,6 +406,134 @@ class StatisticPieChart extends StatelessWidget {
         color: _bestContrastTextColor(color),
         fontWeight: FontWeight.w700,
       ),
+    );
+  }
+}
+
+/// Compact ranked list of the highest counts in [data].
+///
+/// Each row pairs a category label with its count and a proportional bar. It
+/// keeps long species binomials readable inside the narrow dashboard panel,
+/// where a vertical bar chart would have to scroll horizontally.
+class StatisticRankedBarList extends StatelessWidget {
+  static const _barHeight = 6.0;
+  static const _countColumnWidth = 44.0;
+
+  /// Vertical extent a row is allowed to claim when the list fills its box.
+  ///
+  /// Rows spread to fill the available height so the list sits flush against
+  /// the panel actions, but only up to this much each. Beyond it a short list
+  /// would drift into an airy, accidental-looking layout, so the list centers
+  /// itself instead.
+  static const _maxRowExtent = 52.0;
+
+  const StatisticRankedBarList({
+    super.key,
+    required this.data,
+    this.isSpecies = false,
+  });
+
+  final List<StatisticDatum> data;
+  final bool isSpecies;
+
+  @override
+  Widget build(BuildContext context) {
+    if (data.isEmpty) {
+      return const Center(child: Text('No data to display'));
+    }
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final maximum = data.fold<int>(
+      0,
+      (value, datum) => math.max(value, datum.count),
+    );
+    final labelStyle = textTheme.labelLarge?.copyWith(
+      color: colorScheme.onSurface,
+      fontStyle: isSpecies ? FontStyle.italic : FontStyle.normal,
+    );
+    final countStyle = textTheme.labelLarge?.copyWith(
+      color: colorScheme.onSurface,
+      fontWeight: FontWeight.w700,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+    final rows = [
+      for (final datum in data)
+        Semantics(
+          container: true,
+          label: '${datum.label}: ${datum.count}',
+          child: Tooltip(
+            message: datum.label,
+            child: Column(
+              key: ValueKey('statistic-ranked-bar-${datum.label}'),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        datum.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: labelStyle,
+                      ),
+                    ),
+                    const SizedBox(width: NahpuSpacing.md),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minWidth: _countColumnWidth,
+                      ),
+                      child: Text(
+                        datum.count.toString(),
+                        maxLines: 1,
+                        textAlign: TextAlign.right,
+                        style: countStyle,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: NahpuSpacing.xs),
+                LinearProgressIndicator(
+                  value: maximum == 0 ? 0 : datum.count / maximum,
+                  minHeight: _barHeight,
+                  borderRadius: BorderRadius.circular(NahpuRadius.xs),
+                  color: colorScheme.primary,
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                ),
+              ],
+            ),
+          ),
+        ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedHeight) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < rows.length; index++) ...[
+                if (index > 0) const SizedBox(height: NahpuSpacing.lg),
+                rows[index],
+              ],
+            ],
+          );
+        }
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: rows.length * _maxRowExtent),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
+          ),
+        );
+      },
     );
   }
 }

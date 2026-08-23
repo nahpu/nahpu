@@ -19,38 +19,76 @@ const int _pieChartCategoryThreshold = 5;
 String _formatProjectDays(int? totalDays) =>
     totalDays?.toString() ?? 'Not recorded';
 
-class StatisticViewer extends ConsumerWidget {
+class StatisticViewer extends ConsumerStatefulWidget {
   const StatisticViewer({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final totals = ref.watch(recordStatisticTotalsProvider);
+  ConsumerState<StatisticViewer> createState() => _StatisticViewerState();
+}
+
+/// Which face of the dashboard record statistics panel is showing.
+enum _RecordPanelView { topSpecies, metrics }
+
+class _StatisticViewerState extends ConsumerState<StatisticViewer> {
+  _RecordPanelView _view = _RecordPanelView.topSpecies;
+
+  @override
+  Widget build(BuildContext context) {
+    final isTopSpecies = _view == _RecordPanelView.topSpecies;
 
     return FormCard(
       title: 'Record Statistics',
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
-        contentAlignment: Alignment.center,
-        content: totals.when(
-          data: (value) => SingleChildScrollView(
-            child: _RecordStatisticsSummary(totals: value),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        contentAlignment: Alignment.topCenter,
+        content: Column(
+          key: const ValueKey('record-statistics-content'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                Text('Unable to load record statistics: $error'),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () =>
-                      ref.invalidate(recordStatisticTotalsProvider),
-                  child: const Text('Retry'),
+                Expanded(
+                  child: Text(
+                    isTopSpecies ? 'Top recorded species' : 'Record counts',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Semantics(
+                  label: isTopSpecies
+                      ? 'Show record counts'
+                      : 'Show top recorded species',
+                  child: IconButton(
+                    key: const ValueKey('record-statistics-view-toggle'),
+                    visualDensity: VisualDensity.compact,
+                    tooltip: isTopSpecies
+                        ? 'Show record counts'
+                        : 'Show top recorded species',
+                    icon: Icon(
+                      isTopSpecies
+                          ? Icons.grid_view_rounded
+                          : Icons.leaderboard_outlined,
+                    ),
+                    onPressed: () => setState(
+                      () => _view = isTopSpecies
+                          ? _RecordPanelView.metrics
+                          : _RecordPanelView.topSpecies,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: NahpuSpacing.sm),
+            Expanded(
+              child: isTopSpecies
+                  ? const _TopSpeciesChart()
+                  : const _RecordCountMetrics(),
+            ),
+          ],
         ),
         actions: FilledButton(
           key: const ValueKey('record-statistics-actions'),
@@ -72,6 +110,62 @@ class StatisticViewer extends ConsumerWidget {
   }
 }
 
+class _TopSpeciesChart extends ConsumerWidget {
+  const _TopSpeciesChart();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final request = StatisticRequest(
+      projectUuid: ref.watch(projectUuidProvider),
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.species,
+      limit: topStatisticCount,
+    );
+    return _StatisticAsyncContent(
+      value: ref.watch(statisticDataProvider(request)),
+      onRetry: () => ref.invalidate(statisticDataProvider(request)),
+      builder: (rows) => StatisticRankedBarList(data: rows, isSpecies: true),
+    );
+  }
+}
+
+class _RecordCountMetrics extends ConsumerWidget {
+  const _RecordCountMetrics();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(recordStatisticTotalsProvider)
+        .when(
+          data: (value) => LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: _RecordStatisticsSummary(totals: value),
+                ),
+              ),
+            ),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Unable to load record statistics: $error'),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () =>
+                      ref.invalidate(recordStatisticTotalsProvider),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        );
+  }
+}
+
 class _RecordStatisticsSummary extends StatelessWidget {
   const _RecordStatisticsSummary({required this.totals});
 
@@ -80,74 +174,78 @@ class _RecordStatisticsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _RecordStatisticTile(
           kind: RecordMetricKind.specimens,
           value: totals.specimenCount.toString(),
           tier: _RecordTileTier.hero,
         ),
-        const SizedBox(height: NahpuSpacing.md),
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _RecordStatisticTile(
-                  kind: RecordMetricKind.species,
-                  value: totals.speciesCount.toString(),
-                  tier: _RecordTileTier.primary,
-                ),
-              ),
-              const SizedBox(width: NahpuSpacing.md),
-              Expanded(
-                child: _RecordStatisticTile(
-                  kind: RecordMetricKind.families,
-                  value: totals.familyCount.toString(),
-                  tier: _RecordTileTier.primary,
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: NahpuSpacing.sm),
+        _RecordMetricRow(
+          tier: _RecordTileTier.primary,
+          metrics: [
+            (RecordMetricKind.species, totals.speciesCount.toString()),
+            (RecordMetricKind.families, totals.familyCount.toString()),
+          ],
         ),
-        const SizedBox(height: NahpuSpacing.md),
-        SizedBox(
+        const SizedBox(height: NahpuSpacing.sm),
+        Column(
           key: const ValueKey('record-stat-secondary'),
-          width: double.infinity,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              const spacing = NahpuSpacing.md;
-              final columns = constraints.maxWidth >= 480 ? 3 : 2;
-              final itemWidth =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              final metrics = [
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _RecordMetricRow(
+              tier: _RecordTileTier.secondary,
+              metrics: [
                 (RecordMetricKind.sites, totals.siteCount.toString()),
                 (RecordMetricKind.events, totals.eventCount.toString()),
+              ],
+            ),
+            const SizedBox(height: NahpuSpacing.sm),
+            _RecordMetricRow(
+              tier: _RecordTileTier.secondary,
+              metrics: [
                 (RecordMetricKind.narratives, totals.narrativeCount.toString()),
                 (
                   RecordMetricKind.projectDays,
                   _formatProjectDays(totals.totalDays),
                 ),
-              ];
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: [
-                  for (final metric in metrics)
-                    SizedBox(
-                      width: itemWidth,
-                      child: _RecordStatisticTile(
-                        kind: metric.$1,
-                        value: metric.$2,
-                        tier: _RecordTileTier.secondary,
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
+              ],
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+/// A row of equally sized record tiles that share one height.
+class _RecordMetricRow extends StatelessWidget {
+  const _RecordMetricRow({required this.metrics, required this.tier});
+
+  final List<(RecordMetricKind, String)> metrics;
+  final _RecordTileTier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var index = 0; index < metrics.length; index++) ...[
+            if (index > 0) const SizedBox(width: NahpuSpacing.sm),
+            Expanded(
+              child: _RecordStatisticTile(
+                kind: metrics[index].$1,
+                value: metrics[index].$2,
+                tier: tier,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -234,29 +332,29 @@ class _RecordStatisticTile extends StatelessWidget {
 
   EdgeInsets get _padding => switch (tier) {
     _RecordTileTier.hero => const EdgeInsets.symmetric(
-      vertical: NahpuSpacing.md,
+      vertical: NahpuSpacing.sm,
       horizontal: NahpuSpacing.lg,
     ),
     _RecordTileTier.primary => const EdgeInsets.symmetric(
-      vertical: NahpuSpacing.md,
+      vertical: NahpuSpacing.sm,
       horizontal: NahpuSpacing.sm,
     ),
     _RecordTileTier.secondary => const EdgeInsets.symmetric(
-      vertical: NahpuSpacing.md,
+      vertical: NahpuSpacing.xs,
       horizontal: NahpuSpacing.xxs,
     ),
   };
 
   TextStyle? _countStyle(TextTheme textTheme) => switch (tier) {
-    _RecordTileTier.hero => textTheme.headlineLarge,
-    _RecordTileTier.primary => textTheme.titleLarge,
-    _RecordTileTier.secondary => textTheme.titleMedium,
+    _RecordTileTier.hero => textTheme.headlineMedium,
+    _RecordTileTier.primary => textTheme.titleMedium,
+    _RecordTileTier.secondary => textTheme.titleSmall,
   };
 
   TextStyle? _labelStyle(TextTheme textTheme) => switch (tier) {
-    _RecordTileTier.hero => textTheme.titleMedium,
-    _RecordTileTier.primary => textTheme.bodyMedium,
-    _RecordTileTier.secondary => textTheme.bodySmall,
+    _RecordTileTier.hero => textTheme.titleSmall,
+    _RecordTileTier.primary => textTheme.bodySmall,
+    _RecordTileTier.secondary => textTheme.labelSmall,
   };
 }
 

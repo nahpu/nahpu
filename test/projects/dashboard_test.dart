@@ -40,8 +40,8 @@ void main() {
   ) async {
     await _pumpDashboard(tester, const Size(1600, 1400), includeTaxon: true);
 
-    final recordSecondary = tester.getRect(
-      find.byKey(const ValueKey('record-stat-secondary')),
+    final recordContent = tester.getRect(
+      find.byKey(const ValueKey('record-statistics-content')),
     );
     final registryActions = tester.getRect(
       find.byKey(const ValueKey('taxon-registry-actions')),
@@ -51,7 +51,7 @@ void main() {
     );
 
     expect(registryActions.bottom, closeTo(recordActions.bottom, 0.1));
-    expect(recordActions.top, greaterThan(recordSecondary.bottom));
+    expect(recordActions.top, greaterThan(recordContent.bottom));
   });
 
   testWidgets('stacked dashboard panels keep content before actions', (
@@ -74,7 +74,7 @@ void main() {
           .top,
       greaterThan(
         tester
-            .getRect(find.byKey(const ValueKey('record-stat-secondary')))
+            .getRect(find.byKey(const ValueKey('record-statistics-content')))
             .bottom,
       ),
     );

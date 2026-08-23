@@ -25,12 +25,14 @@ void main() {
       tester,
       const Size(600, 600),
       includeProjectDates: true,
+      showMetrics: true,
     );
 
     expect(find.text('Record Statistics'), findsOneWidget);
-    expect(find.text('Record counts'), findsNothing);
-    expect(find.text('Top species'), findsNothing);
+    expect(find.text('Record counts'), findsOneWidget);
+    expect(find.text('Top recorded species'), findsNothing);
     expect(find.byType(StatisticBarChart), findsNothing);
+    expect(find.byType(StatisticRankedBarList), findsNothing);
     _expectRecordMetric(
       tester,
       RecordMetricKind.specimens,
@@ -60,7 +62,11 @@ void main() {
   testWidgets('record statistics shows not recorded project days', (
     tester,
   ) async {
-    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(600, 600),
+      showMetrics: true,
+    );
 
     _expectRecordMetricValue(
       tester,
@@ -72,7 +78,11 @@ void main() {
   testWidgets('record statistics preserves its hierarchy on narrow panels', (
     tester,
   ) async {
-    await _pumpRecordStatisticsPanel(tester, const Size(280, 600));
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(280, 600),
+      showMetrics: true,
+    );
 
     expect(tester.takeException(), isNull);
     final hero = tester.getRect(
@@ -109,6 +119,36 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+
+    await _toggleRecordPanelView(tester);
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('record statistics opens on the top recorded species chart', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+
+    expect(find.text('Top recorded species'), findsOneWidget);
+    expect(find.byType(StatisticRankedBarList), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('statistic-ranked-bar-Myotis lucifugus')),
+      findsOneWidget,
+    );
+    expect(find.byKey(RecordMetricKind.specimens.dashboardKey), findsNothing);
+    expect(find.text('Explore more stats'), findsOneWidget);
+
+    await _toggleRecordPanelView(tester);
+
+    expect(find.text('Record counts'), findsOneWidget);
+    expect(find.byType(StatisticRankedBarList), findsNothing);
+    expect(find.byKey(RecordMetricKind.specimens.dashboardKey), findsOneWidget);
+
+    await _toggleRecordPanelView(tester);
+
+    expect(find.byType(StatisticRankedBarList), findsOneWidget);
+    expect(find.byKey(RecordMetricKind.specimens.dashboardKey), findsNothing);
   });
 
   testWidgets('record statistics opens help and detailed species statistics', (
@@ -513,6 +553,7 @@ void main() {
         tester,
         const Size(600, 600),
         theme: theme,
+        showMetrics: true,
       );
       _expectRecordSummaryColors(tester, theme);
     },
@@ -526,6 +567,7 @@ void main() {
         tester,
         const Size(600, 600),
         theme: theme,
+        showMetrics: true,
       );
       _expectRecordSummaryColors(tester, theme);
     },
@@ -1043,6 +1085,7 @@ Future<void> _pumpRecordStatisticsPanel(
   bool includeProjectDates = false,
   bool includeAdditionalCategoryValues = false,
   TextScaler textScaler = TextScaler.noScaling,
+  bool showMetrics = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -1288,6 +1331,15 @@ Future<void> _pumpRecordStatisticsPanel(
       ),
     ),
   );
+  await tester.pumpAndSettle();
+
+  if (showMetrics) {
+    await _toggleRecordPanelView(tester);
+  }
+}
+
+Future<void> _toggleRecordPanelView(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('record-statistics-view-toggle')));
   await tester.pumpAndSettle();
 }
 
