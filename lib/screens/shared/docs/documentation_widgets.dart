@@ -18,31 +18,55 @@ class DocsLanguageSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: NahpuSpacing.xs,
-      runSpacing: NahpuSpacing.xs,
+      spacing: NahpuSpacing.md,
+      runSpacing: NahpuSpacing.md,
       children: [
         for (final language in DocsLanguage.values)
-          Semantics(
-            selected: language == selectedLanguage,
-            button: true,
-            child: TextButton(
-              style: language == selectedLanguage
-                  ? TextButton.styleFrom(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.secondaryContainer,
-                      foregroundColor: Theme.of(
-                        context,
-                      ).colorScheme.onSecondaryContainer,
-                    )
-                  : null,
-              onPressed: language == selectedLanguage
-                  ? null
-                  : () => onSelected(language),
-              child: Text(language.nativeLabel),
-            ),
+          _DocsLanguageChip(
+            language: language,
+            isSelected: language == selectedLanguage,
+            onSelected: onSelected,
           ),
       ],
+    );
+  }
+}
+
+class _DocsLanguageChip extends StatelessWidget {
+  const _DocsLanguageChip({
+    required this.language,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  final DocsLanguage language;
+  final bool isSelected;
+  final ValueChanged<DocsLanguage> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ChoiceChip(
+      selected: isSelected,
+      showCheckmark: false,
+      tooltip: language.nativeLabel,
+      label: Text(language.shortLabel, semanticsLabel: language.nativeLabel),
+      labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: isSelected
+            ? colorScheme.onSecondaryContainer
+            : colorScheme.onSurfaceVariant,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+      labelPadding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.sm),
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      selectedColor: colorScheme.secondaryContainer,
+      side: BorderSide(
+        color: isSelected ? colorScheme.secondary : colorScheme.outlineVariant,
+        width: NahpuStroke.thin,
+      ),
+      visualDensity: VisualDensity.compact,
+      onSelected: (_) => onSelected(language),
     );
   }
 }

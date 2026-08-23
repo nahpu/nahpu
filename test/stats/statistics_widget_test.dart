@@ -164,7 +164,7 @@ void main() {
     await tester.tap(find.byTooltip('Show information'));
     await tester.pumpAndSettle();
     expect(find.text('Record statistics'), findsOneWidget);
-    expect(find.text('English'), findsOneWidget);
+    expect(find.text('EN'), findsOneWidget);
 
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();

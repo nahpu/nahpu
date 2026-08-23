@@ -282,42 +282,58 @@ class InfoButton extends StatelessWidget {
   }
 
   Future<void> _showModalSheet(BuildContext context) async {
-    await showModalBottomSheet(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
-      builder: (BuildContext context) {
-        return SizedBox(
-          width: double.infinity,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight:
-                  MediaQuery.sizeOf(context).height * 0.9 -
-                  NahpuControlSize.touchTarget,
+      builder: (BuildContext context) => _InfoBottomSheet(topic: topic),
+    );
+  }
+}
+
+class _InfoBottomSheet extends StatelessWidget {
+  const _InfoBottomSheet({required this.topic});
+
+  final InfoTopic topic;
+
+  @override
+  Widget build(BuildContext context) {
+    // The modal sheet keeps the bottom inset, so the content has to clear the
+    // home indicator itself or its last lines are hidden behind it.
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return SizedBox(
+      width: double.infinity,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight:
+              MediaQuery.sizeOf(context).height * 0.9 -
+              NahpuControlSize.touchTarget -
+              bottomInset,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Info', style: Theme.of(context).textTheme.titleLarge),
+            Divider(
+              thickness: NahpuStroke.thin,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Info', style: Theme.of(context).textTheme.titleLarge),
-                Divider(
-                  thickness: NahpuStroke.thin,
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  NahpuSpacing.xl,
+                  0,
+                  NahpuSpacing.xl,
+                  NahpuSpacing.md + bottomInset,
                 ),
-                Flexible(
-                  fit: FlexFit.loose,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: SingleChildScrollView(
-                      child: _InfoDocumentContent(topic: topic),
-                    ),
-                  ),
-                ),
-              ],
+                child: _InfoDocumentContent(topic: topic),
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
@@ -339,13 +355,14 @@ class _InfoDocumentContentState extends ConsumerState<_InfoDocumentContent> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         DocsLanguageSelector(
           selectedLanguage: _language,
           onSelected: _selectLanguage,
         ),
-        const SizedBox(height: NahpuSpacing.md),
+        const SizedBox(height: NahpuSpacing.lg),
         FutureBuilder<MarkdownDocument>(
           future: _document ??= _loadDocument(),
           builder: (context, snapshot) {
@@ -359,10 +376,7 @@ class _InfoDocumentContentState extends ConsumerState<_InfoDocumentContent> {
             if (snapshot.hasError || document == null) {
               return DocumentationErrorView(onRetry: _retry);
             }
-            return Padding(
-              padding: const EdgeInsets.only(right: NahpuSpacing.md),
-              child: MarkdownDocumentView(document: document),
-            );
+            return MarkdownDocumentView(document: document);
           },
         ),
       ],

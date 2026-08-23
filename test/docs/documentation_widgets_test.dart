@@ -28,12 +28,12 @@ void main() {
     );
     expect(tester.getSize(dialogSurface.first).height, lessThan(600));
     expect(find.text('English info'), findsOneWidget);
-    expect(find.text('English'), findsOneWidget);
-    expect(find.text('Português'), findsOneWidget);
-    expect(find.text('Español'), findsOneWidget);
-    expect(find.text('Bahasa Indonesia'), findsOneWidget);
+    expect(find.text('EN'), findsOneWidget);
+    expect(find.text('BR'), findsOneWidget);
+    expect(find.text('ES'), findsOneWidget);
+    expect(find.text('ID'), findsOneWidget);
 
-    await tester.tap(find.text('Português'));
+    await tester.tap(find.text('BR'));
     await tester.pumpAndSettle();
     expect(find.text('Informação em português'), findsOneWidget);
 
@@ -85,6 +85,75 @@ void main() {
       tester.getSize(find.byType(BottomSheet)).height,
       lessThanOrEqualTo(800 * 0.9),
     );
+  });
+
+  testWidgets('mobile info content clears the bottom safe area', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(390, 844));
+    tester.view.padding = const FakeViewPadding(top: 47, bottom: 34);
+    tester.view.viewPadding = const FakeViewPadding(top: 47, bottom: 34);
+    addTearDown(tester.view.resetPadding);
+    addTearDown(tester.view.resetViewPadding);
+
+    await tester.pumpWidget(
+      _testApp(
+        infoBody: List.generate(
+          40,
+          (index) => 'Long information paragraph $index.',
+        ).join('\n\n'),
+        child: const InfoButton(
+          topic: InfoTopic.projectOverview,
+          platformOverride: PlatformType.mobile,
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Show information'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -4000),
+    );
+    await tester.pumpAndSettle();
+
+    final lastParagraph = find.textContaining('Long information paragraph 39.');
+    expect(lastParagraph, findsOneWidget);
+    expect(tester.getRect(lastParagraph).bottom, lessThanOrEqualTo(844 - 34));
+  });
+
+  testWidgets('language chips show two-letter codes and stay legible', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(600, 800));
+    await tester.pumpWidget(
+      _testApp(child: const InfoButton(topic: InfoTopic.projectOverview)),
+    );
+
+    await tester.tap(find.byTooltip('Show information'));
+    await tester.pumpAndSettle();
+
+    final colorScheme = Theme.of(
+      tester.element(find.byType(ChoiceChip).first),
+    ).colorScheme;
+    final selected = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'EN'),
+    );
+    expect(selected.selected, isTrue);
+    expect(
+      selected.onSelected,
+      isNotNull,
+      reason: 'selected chip stays enabled',
+    );
+    expect(selected.labelStyle?.color, colorScheme.onSecondaryContainer);
+    expect(selected.selectedColor, colorScheme.secondaryContainer);
+
+    final unselected = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'BR'),
+    );
+    expect(unselected.selected, isFalse);
+    expect(unselected.labelStyle?.color, colorScheme.onSurfaceVariant);
+    expect(unselected.tooltip, 'Português');
   });
 
   testWidgets('How-to Recipes categories expand and collapse independently', (
@@ -149,7 +218,7 @@ void main() {
       ).colorScheme.outlineVariant,
     );
 
-    await tester.tap(find.text('Español'));
+    await tester.tap(find.text('ES'));
     await tester.pumpAndSettle();
     expect(find.text('Preparar'), findsOneWidget);
     expect(find.text('Propósito en español.'), findsOneWidget);

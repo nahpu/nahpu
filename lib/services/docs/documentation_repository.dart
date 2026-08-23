@@ -3,15 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaml/yaml.dart';
 
 enum DocsLanguage {
-  english('en', 'English'),
-  portuguese('pt', 'Português'),
-  spanish('es', 'Español'),
-  indonesian('id', 'Bahasa Indonesia');
+  english('en', 'English', 'EN'),
+  portuguese('pt', 'Português', 'BR'),
+  spanish('es', 'Español', 'ES'),
+  indonesian('id', 'Bahasa Indonesia', 'ID');
 
-  const DocsLanguage(this.code, this.nativeLabel);
+  const DocsLanguage(this.code, this.nativeLabel, this.shortLabel);
 
   final String code;
   final String nativeLabel;
+
+  /// Two-letter label shown on the compact language chips.
+  final String shortLabel;
 }
 
 enum InfoTopic {
