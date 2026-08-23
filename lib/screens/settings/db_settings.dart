@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
@@ -5,9 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/export/db_writer.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -29,9 +34,66 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   bool _isLoading = false;
   bool _isSelectingFile = false;
   String? _databaseRelativePath;
+  bool _isCancelling = false;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+
+  @override
+  void dispose() {
+    unawaited(_progressSubscription?.cancel());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      // A restore rewrites the database in place; leaving part way through
+      // would be worse than waiting, so the user has to decide deliberately.
+      canPop: !_isLoading,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
+    final jobProgress = _jobProgress;
+    if (_isLoading && jobProgress != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Replace Database'),
+          automaticallyImplyLeading: false,
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(NahpuSpacing.xl),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: NahpuContentWidth.form,
+                ),
+                child: ExportProgressPanel(
+                  title: 'Restoring database',
+                  progress: jobProgress,
+                  hint:
+                      'Restoring a backup with many photos can take several '
+                      'minutes. Keep NAHPU open until this finishes.',
+                  isCancelling: _isCancelling,
+                  // Cancelling is only offered while the archive is being read.
+                  // Once files start landing in place, stopping half way would
+                  // leave the app in a state the user cannot reason about.
+                  onCancel: _canCancelRestore(jobProgress)
+                      ? _requestCancel
+                      : null,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Replace Database')),
       body: SafeArea(
@@ -128,11 +190,18 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   Future<void> _replaceDb() async {
     Navigator.of(context).pop();
 
+    final reporter = ExportProgressReporter(steps: DbWriter.restorePhases);
+    final cancellation = ExportCancellation();
+    setState(() {
+      _isLoading = true;
+      _isCancelling = false;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
       final backupPath = _isBackup
           ? await AppServices(ref: ref).backupDir
           : null;
@@ -141,21 +210,89 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
         _isBackup,
         _isArchived,
         databaseRelativePath: _databaseRelativePath,
+        progress: reporter,
+        cancel: cancellation,
       );
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
       if (context.mounted) {
         _navigate(backupPath);
       }
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Restore cancelled. The database was not replaced.'),
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
       if (context.mounted) {
         _showError(e.toString());
       }
+    } finally {
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isCancelling = false;
+          _cancellation = null;
+        });
+      }
     }
+  }
+
+  /// Whether stopping now would still leave the app exactly as it was.
+  bool _canCancelRestore(ExportJobProgress progress) =>
+      progress.activeStep?.phase == ExportPhase.extracting;
+
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final progress = _jobProgress;
+    if (progress == null || !_canCancelRestore(progress)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'The restore is replacing your data and cannot be stopped now.',
+          ),
+        ),
+      );
+      return;
+    }
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the restore?'),
+        content: const Text(
+          'The archive is still being read. Leaving now cancels the restore '
+          'and your current data is left untouched.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep restoring'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel restore'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
   }
 
   void _navigate(File? backupPath) {

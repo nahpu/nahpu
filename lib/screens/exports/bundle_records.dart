@@ -1,13 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -41,6 +45,15 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   bool _isLoadingTaxa = true;
   bool _appendDate = false;
   int _planGeneration = 0;
+  bool _isCancelling = false;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+  ExportOutcome? _outcome;
+  String? _runError;
+  String? _failedStepLabel;
+  int? _outputBytes;
+  Duration? _runDuration;
 
   @override
   void initState() {
@@ -54,6 +67,7 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   void dispose() {
     _fileController.dispose();
     _mobileTabs.dispose();
+    unawaited(_progressSubscription?.cancel());
     super.dispose();
   }
 
@@ -92,16 +106,57 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
         onShare: _outputPath != null ? _shareBundle : null,
       ),
     );
+    final jobProgress = _jobProgress;
+    final leftPane = _isWriting && jobProgress != null
+        ? ScrollableConstrainedLayout(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ExportProgressPanel(
+                title: 'Bundling records',
+                progress: jobProgress,
+                hint:
+                    'Packaging writes the records, copies media, compresses '
+                    'the bundle, and then checks it. Keep NAHPU open.',
+                isCancelling: _isCancelling,
+                onCancel: _requestCancel,
+              ),
+            ),
+          )
+        : settings;
     final contents = Padding(
       padding: const EdgeInsets.all(16),
-      child: BundleContentsPane(
-        manifest: _manifest,
-        isLoading: _isPlanning,
-        error: _planningError,
-      ),
+      child: _outcome != null && !_isWriting
+          ? ExportResultPanel(
+              outcome: _outcome!,
+              successTitle: 'Bundle created',
+              output: _outputPath == null ? null : File(_outputPath!),
+              outputBytes: _outputBytes,
+              duration: _runDuration,
+              errorMessage: _runError,
+              failedStepLabel: _failedStepLabel,
+              onShare: _shareBundle,
+              onRetry: _writeBundle,
+            )
+          : BundleContentsPane(
+              manifest: _manifest,
+              isLoading: _isPlanning,
+              error: _planningError,
+            ),
     );
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
 
+    return PopScope(
+      // Leaving mid-bundle would leave a partly written package behind, so the
+      // user has to cancel deliberately.
+      canPop: !_isWriting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(leftPane, contents, isLargeScreen),
+    );
+  }
+
+  Widget _buildScaffold(Widget settings, Widget contents, bool isLargeScreen) {
     return Scaffold(
       appBar: AppBar(title: const Text('Bundle records')),
       body: isLargeScreen
@@ -254,7 +309,27 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   }
 
   Future<void> _writeBundle() async {
-    setState(() => _isWriting = true);
+    final reporter = ExportProgressReporter(
+      steps: DwcBundleWriter.bundlePhases,
+    );
+    final cancellation = ExportCancellation();
+    final stopwatch = Stopwatch()..start();
+    setState(() {
+      _isWriting = true;
+      _isCancelling = false;
+      _outcome = null;
+      _runError = null;
+      _failedStepLabel = null;
+      _outputBytes = null;
+      _runDuration = null;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    // On a phone the panel lives in the settings tab, so show it.
+    if (_mobileTabs.index != 0) _mobileTabs.animateTo(0);
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
       final output = await _getOutputPath();
       final manifest = await DwcBundleWriter(ref: ref).write(
@@ -262,17 +337,84 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
         archiveFormat: _archiveFormat,
         selectedTaxonGroups: _selectedTaxonGroups,
         outputPath: output.path,
+        progress: reporter,
+        cancel: cancellation,
+        expectedFileCount: _manifest?.files.length ?? 0,
       );
+      final bytes = await _outputSize(output);
       if (!mounted) return;
       setState(() {
         _outputPath = output.path;
         _manifest = manifest;
+        _outcome = ExportOutcome.succeeded;
+        _outputBytes = bytes;
+        _runDuration = stopwatch.elapsed;
       });
       _showCompleted(output.path);
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.cancelled;
+        _runDuration = stopwatch.elapsed;
+      });
     } catch (error) {
-      if (mounted) _showError(error.toString());
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.failed;
+        _runError = error.toString();
+        _failedStepLabel = _jobProgress?.activeStep?.label;
+        _runDuration = stopwatch.elapsed;
+      });
+      _showError(error.toString());
     } finally {
-      if (mounted) setState(() => _isWriting = false);
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isWriting = false;
+          _isCancelling = false;
+          _cancellation = null;
+        });
+      }
+    }
+  }
+
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the bundle?'),
+        content: const Text(
+          'The bundle is still being written. Leaving now cancels it and no '
+          'package will be saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep bundling'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel bundle'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
+  }
+
+  /// Reads the size of a finished bundle, which some formats write as a folder.
+  Future<int?> _outputSize(File output) async {
+    try {
+      return await output.length();
+    } on FileSystemException {
+      return null;
     }
   }
 

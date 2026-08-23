@@ -6,7 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Resolves a batch of NAHPU source keys to Darwin Core or Dublin Core terms.
+/// Resolves a batch of NAHPU source keys to Darwin Core or Dublin Core terms
+/// through the published `nahpu_dwc` mapper.
 ///
 /// Unmapped and malformed source keys are intentionally omitted. The caller
 /// uses those omissions to generate the corresponding NAHPU namespace header.

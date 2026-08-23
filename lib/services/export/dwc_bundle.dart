@@ -8,6 +8,8 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
@@ -166,26 +168,66 @@ class DwcBundleWriter extends AppServices {
     );
   }
 
+  /// Describes the stages of writing a bundle, in the order they run.
+  ///
+  /// Packaging happens inside one `nahpu_dwc` or `nahpu_dp` call that stages,
+  /// copies media, compresses, and then verifies by re-extracting. That call
+  /// cannot report its way through those steps yet, so the stage reports the
+  /// contents it handed over and how long it has been running.
+  static const List<ExportPhaseStep> bundlePhases = [
+    ExportPhaseStep(
+      phase: ExportPhase.collecting,
+      label: 'Collect records',
+      weight: 2,
+    ),
+    ExportPhaseStep(phase: ExportPhase.verifying, label: 'Check records'),
+    ExportPhaseStep(
+      phase: ExportPhase.compressing,
+      label: 'Write and compress package',
+      weight: 4,
+    ),
+  ];
+
+  /// Writes the bundle, reporting to [progress] as each stage runs.
+  ///
+  /// Pass [expectedFileCount] from an earlier [plan] so the packaging stage can
+  /// tell the user how much it is working through.
   Future<DwcBundleManifest> write({
     required DwcBundleFormat format,
     required BundleArchiveFormat archiveFormat,
     required Set<String> selectedTaxonGroups,
     required String outputPath,
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+    int expectedFileCount = 0,
   }) async {
+    progress?.beginPhase(ExportPhase.collecting, indeterminate: true);
+    cancel?.throwIfCancelled();
     if (format == DwcBundleFormat.nahpuDataPackage) {
       return _withNahpuRequest(archiveFormat, (request) async {
         final requestJson = jsonEncode(request);
+        cancel?.throwIfCancelled();
+        progress?.beginPhase(ExportPhase.verifying, indeterminate: true);
         final validation = await validateNahpuPackage(requestJson: requestJson);
         final errors = jsonDecode(validation) as List<dynamic>;
         if (errors.isNotEmpty) {
           throw StateError(errors.join('\n'));
         }
-        return DwcBundleManifest.fromJson(
+        cancel?.throwIfCancelled();
+        progress?.beginPhase(
+          ExportPhase.compressing,
+          totalUnits: expectedFileCount,
+          indeterminate: true,
+        );
+        final manifest = DwcBundleManifest.fromJson(
           await writeNahpuPackage(
             requestJson: requestJson,
             outputPath: outputPath,
           ),
         );
+        cancel?.throwIfCancelled();
+        progress?.complete();
+        return manifest;
       });
     }
     final request = await _buildRequest(
@@ -193,6 +235,8 @@ class DwcBundleWriter extends AppServices {
       archiveFormat,
       selectedTaxonGroups,
     );
+    cancel?.throwIfCancelled();
+    progress?.beginPhase(ExportPhase.verifying, indeterminate: true);
     final validation = await validateDwcBundle(
       requestJson: jsonEncode(request),
     );
@@ -200,12 +244,21 @@ class DwcBundleWriter extends AppServices {
     if (errors.isNotEmpty) {
       throw StateError(errors.join('\n'));
     }
-    return DwcBundleManifest.fromJson(
+    cancel?.throwIfCancelled();
+    progress?.beginPhase(
+      ExportPhase.compressing,
+      totalUnits: expectedFileCount,
+      indeterminate: true,
+    );
+    final manifest = DwcBundleManifest.fromJson(
       await writeDwcBundle(
         requestJson: jsonEncode(request),
         outputPath: outputPath,
       ),
     );
+    cancel?.throwIfCancelled();
+    progress?.complete();
+    return manifest;
   }
 
   Future<Map<String, dynamic>> _buildRequest(

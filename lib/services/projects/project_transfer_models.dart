@@ -70,6 +70,7 @@ class ProjectTransferMediaFile {
     required this.archivePath,
     required this.originalFileName,
     this.sourcePath,
+    this.sizeBytes = 0,
   });
 
   final String sourceId;
@@ -77,6 +78,12 @@ class ProjectTransferMediaFile {
   final String archivePath;
   final String originalFileName;
   final String? sourcePath;
+
+  /// Size of the source file, used to weight export progress.
+  ///
+  /// Like [sourcePath] this describes the local file rather than the archive, so
+  /// it is not written to the manifest and is `0` on a parsed payload.
+  final int sizeBytes;
 
   Map<String, dynamic> toJson() => {
     'sourceId': sourceId,
@@ -129,6 +136,10 @@ class ProjectTransferPayload {
   String get sourceProjectUuid => project['uuid'] as String;
   String get projectName => project['name'] as String? ?? 'Unnamed project';
   bool get hasMedia => mediaFiles.isNotEmpty;
+
+  /// Combined size of the media files this payload will copy into an archive.
+  int get mediaBytes =>
+      mediaFiles.fold(0, (total, media) => total + media.sizeBytes);
 
   List<Map<String, dynamic>> rows(String key) =>
       records[canonicalizeSpecimenAttributeTableName(key)] ?? const [];

@@ -8,6 +8,9 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -89,6 +92,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   ProjectTransferProjectMatch? _existingProject;
   XFile? _selectedInput;
   int _nameValidationGeneration = 0;
+  ExportCancellation? _readCancellation;
+  StreamSubscription<ExportJobProgress>? _readSubscription;
+  ExportJobProgress? _readProgress;
+  bool _isCancellingRead = false;
 
   bool get _isNewProject => widget.mode == ProjectTransferImportMode.newProject;
   List<String> get _steps => _isNewProject ? _newProjectSteps : _mergeSteps;
@@ -311,22 +318,30 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 'contains records only; ZIP and TAR.GZ include media.',
               ),
               const SizedBox(height: 20),
-              Center(
-                child: FilledButton.tonalIcon(
-                  onPressed: _isReading ? null : _chooseArchive,
-                  icon: _isReading
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.upload_file_rounded),
-                  label: Text(
-                    _selectedInput == null
-                        ? 'Choose archive'
-                        : 'Choose another archive',
+              if (_isReading && _readProgress != null)
+                // Reading a media-heavy transfer decompresses gigabytes; a
+                // spinner in the button cannot say how far along that is.
+                ExportProgressPanel(
+                  title: 'Reading archive',
+                  progress: _readProgress!,
+                  hint:
+                      'Transfers that include media can take several minutes '
+                      'to unpack. Keep NAHPU open.',
+                  isCancelling: _isCancellingRead,
+                  onCancel: _requestReadCancel,
+                )
+              else
+                Center(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _isReading ? null : _chooseArchive,
+                    icon: const Icon(Icons.upload_file_rounded),
+                    label: Text(
+                      _selectedInput == null
+                          ? 'Choose archive'
+                          : 'Choose another archive',
+                    ),
                   ),
                 ),
-              ),
               if (plan != null) ...[
                 const SizedBox(height: 16),
                 ListTile(
@@ -845,15 +860,27 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Future<void> _loadArchive(XFile input) async {
+    final reporter = ExportProgressReporter(
+      steps: ProjectTransferArchiveService.importPhases,
+    );
+    final cancellation = ExportCancellation();
     setState(() {
       _isReading = true;
+      _isCancellingRead = false;
       _error = null;
       _existingProject = null;
       _selectedInput = input;
+      _readCancellation = cancellation;
+      _readProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _readSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _readProgress = progress);
     });
     ProjectTransferArchiveFile? opened;
     try {
-      opened = await ProjectTransferService(ref: ref).archive.read(input);
+      opened = await ProjectTransferService(
+        ref: ref,
+      ).archive.read(input, progress: reporter, cancel: cancellation);
       final plan = await ProjectTransferService(
         ref: ref,
       ).planImport(opened.payload, mode: widget.mode);
@@ -891,6 +918,14 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _maxVisitedStep = 0;
       });
       _scrollActiveStepChip();
+    } on ExportCancelledException {
+      if (opened != null) await opened.dispose();
+      if (!mounted) return;
+      setState(() {
+        _plan = null;
+        _selectedInput = null;
+        _error = null;
+      });
     } catch (error) {
       if (opened != null) await opened.dispose();
       if (!mounted) return;
@@ -904,8 +939,23 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         }
       });
     } finally {
-      if (mounted) setState(() => _isReading = false);
+      await _readSubscription?.cancel();
+      _readSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isReading = false;
+          _isCancellingRead = false;
+          _readCancellation = null;
+          _readProgress = null;
+        });
+      }
     }
+  }
+
+  void _requestReadCancel() {
+    _readCancellation?.cancel();
+    setState(() => _isCancellingRead = true);
   }
 
   Future<void> _openBackup() async {

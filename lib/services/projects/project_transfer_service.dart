@@ -1061,6 +1061,7 @@ class ProjectTransferService extends AppServices {
           archivePath: archivePath,
           originalFileName: fileName,
           sourcePath: source.path,
+          sizeBytes: source.statSync().size,
         ),
       );
     }
@@ -1115,6 +1116,7 @@ class ProjectTransferService extends AppServices {
           archivePath: archivePath,
           originalFileName: photoPath,
           sourcePath: source.path,
+          sizeBytes: source.statSync().size,
         ),
       );
     }

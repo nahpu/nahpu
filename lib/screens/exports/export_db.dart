@@ -1,13 +1,19 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/export/db_writer.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportDbForm extends ConsumerStatefulWidget {
   const ExportDbForm({super.key});
@@ -28,6 +34,16 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   bool _hasSaved = false;
   bool _isLoading = true;
   bool _isRunning = false;
+  bool _isCancelling = false;
+  ExportProgressReporter? _reporter;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+  ExportOutcome? _outcome;
+  String? _runError;
+  String? _failedStepLabel;
+  int? _outputBytes;
+  Duration? _runDuration;
 
   @override
   void initState() {
@@ -38,11 +54,25 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   @override
   void dispose() {
     _fileNameController.dispose();
+    unawaited(_progressSubscription?.cancel());
+    unawaited(_reporter?.dispose());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      // Leaving mid-backup would orphan the staging directory and the partly
+      // written archive, so the user has to cancel deliberately.
+      canPop: !_isRunning,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Backup database')),
       body: SafeArea(
@@ -79,10 +109,31 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                 _hasSaved = false;
               }),
             );
-            final summary = _BackupSummary(
-              summary: _summary,
-              error: _summaryError,
-            );
+            final jobProgress = _jobProgress;
+            final leftPane = _isRunning && jobProgress != null
+                ? ExportProgressPanel(
+                    title: 'Backing up database',
+                    progress: jobProgress,
+                    hint:
+                        'Large media libraries can take several minutes. '
+                        'Keep NAHPU open until this finishes.',
+                    isCancelling: _isCancelling,
+                    onCancel: _requestCancel,
+                  )
+                : settings;
+            final rightPane = _outcome != null && !_isRunning
+                ? ExportResultPanel(
+                    outcome: _outcome!,
+                    successTitle: 'Backup saved',
+                    output: _savePath,
+                    outputBytes: _outputBytes,
+                    duration: _runDuration,
+                    errorMessage: _runError,
+                    failedStepLabel: _failedStepLabel,
+                    onShare: () => _shareFile(context),
+                    onRetry: _writeDb,
+                  )
+                : _BackupSummary(summary: _summary, error: _summaryError);
             return Column(
               children: [
                 Expanded(
@@ -95,16 +146,16 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                             ? Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(child: settings),
-                                  const SizedBox(width: 20),
-                                  Expanded(child: summary),
+                                  Expanded(child: leftPane),
+                                  const SizedBox(width: NahpuSpacing.xxl),
+                                  Expanded(child: rightPane),
                                 ],
                               )
                             : Column(
                                 children: [
-                                  settings,
-                                  const SizedBox(height: 16),
-                                  summary,
+                                  leftPane,
+                                  const SizedBox(height: NahpuSpacing.xl),
+                                  rightPane,
                                 ],
                               ),
                       ),
@@ -148,7 +199,28 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   }
 
   Future<void> _writeDb() async {
-    setState(() => _isRunning = true);
+    final summary = _summary;
+    if (summary == null) return;
+    final reporter = ExportProgressReporter(
+      steps: DbExport.backupPhases(summary),
+    );
+    final cancellation = ExportCancellation();
+    final stopwatch = Stopwatch()..start();
+    setState(() {
+      _isRunning = true;
+      _isCancelling = false;
+      _outcome = null;
+      _runError = null;
+      _failedStepLabel = null;
+      _outputBytes = null;
+      _runDuration = null;
+      _reporter = reporter;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
       final savePath = await AppIOServices(
         dir: _selectedDir,
@@ -160,18 +232,74 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
       final output = await DbExport(
         ref: ref,
         filePath: savePath,
-      ).write(_format);
+      ).write(_format, progress: reporter, cancel: cancellation);
+      final bytes = await output.length();
       if (!mounted) return;
       setState(() {
         _hasSaved = true;
         _savePath = output;
+        _outcome = ExportOutcome.succeeded;
+        _outputBytes = bytes;
+        _runDuration = stopwatch.elapsed;
       });
       _showSuccess();
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.cancelled;
+        _runDuration = stopwatch.elapsed;
+      });
     } catch (error) {
-      if (mounted) _showError(error.toString());
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.failed;
+        _runError = error.toString();
+        _failedStepLabel = _jobProgress?.activeStep?.label;
+        _runDuration = stopwatch.elapsed;
+      });
+      _showError(error.toString());
     } finally {
-      if (mounted) setState(() => _isRunning = false);
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isRunning = false;
+          _isCancelling = false;
+          _reporter = null;
+          _cancellation = null;
+        });
+      }
     }
+  }
+
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the backup?'),
+        content: const Text(
+          'The backup is still running. Leaving now cancels it and no file '
+          'will be saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep backing up'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel backup'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
   }
 
   void _showSuccess() {
@@ -322,7 +450,7 @@ class _BackupSummary extends StatelessWidget {
               ErrorText(error: error!)
             else if (summary == null)
               const Center(child: CircularProgressIndicator())
-            else
+            else ...[
               for (final entry in summary!.entries.entries)
                 ListTile(
                   dense: true,
@@ -330,6 +458,22 @@ class _BackupSummary extends StatelessWidget {
                   title: Text(entry.key),
                   trailing: Text('${entry.value}'),
                 ),
+              const CommonDivider(),
+              // Knowing the size before pressing Save is what tells the user
+              // whether this is a ten second job or a ten minute one.
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  'Backup size before compression',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                trailing: Text(
+                  formatByteSize(summary!.totalBytes),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -370,14 +514,11 @@ class _BackupActionBar extends StatelessWidget {
                   label: const Text('Share'),
                 ),
               if (hasSaved) const SizedBox(width: 12),
+              // The running state is shown by the progress panel now, so this
+              // button only has to stay out of the way while a backup runs.
               FilledButton.icon(
                 onPressed: canSave && !isRunning ? onSave : null,
-                icon: isRunning
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save_alt_outlined),
+                icon: const Icon(Icons.save_alt_outlined),
                 label: Text(hasSaved ? 'Save another' : 'Save backup'),
               ),
             ],

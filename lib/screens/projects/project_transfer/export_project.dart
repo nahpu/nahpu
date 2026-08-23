@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportProjectScreen extends ConsumerStatefulWidget {
   const ExportProjectScreen({super.key});
@@ -27,6 +32,15 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   String? _error;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isCancelling = false;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+  ExportOutcome? _outcome;
+  String? _runError;
+  String? _failedStepLabel;
+  int? _outputBytes;
+  Duration? _runDuration;
 
   @override
   void initState() {
@@ -37,11 +51,24 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   @override
   void dispose() {
     _fileNameController.dispose();
+    unawaited(_progressSubscription?.cancel());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      // Leaving mid-export would orphan the staging directory and the partly
+      // written archive, so the user has to cancel deliberately.
+      canPop: !_isSaving,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Export project')),
       body: SafeArea(
@@ -80,12 +107,36 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                 _output = null;
               }),
             );
-            final summary = _SummaryCard(
-              payload: _payload,
-              isLoading: _isLoading,
-              error: _error,
-              includeMedia: !_lightExport,
-            );
+            final jobProgress = _jobProgress;
+            final leftPane = _isSaving && jobProgress != null
+                ? ExportProgressPanel(
+                    title: 'Exporting project',
+                    progress: jobProgress,
+                    hint:
+                        'Projects with many photos can take several minutes. '
+                        'Keep NAHPU open until this finishes.',
+                    isCancelling: _isCancelling,
+                    onCancel: _requestCancel,
+                  )
+                : settings;
+            final rightPane = _outcome != null && !_isSaving
+                ? ExportResultPanel(
+                    outcome: _outcome!,
+                    successTitle: 'Project exported',
+                    output: _output,
+                    outputBytes: _outputBytes,
+                    duration: _runDuration,
+                    errorMessage: _runError,
+                    failedStepLabel: _failedStepLabel,
+                    onShare: _share,
+                    onRetry: _save,
+                  )
+                : _SummaryCard(
+                    payload: _payload,
+                    isLoading: _isLoading,
+                    error: _error,
+                    includeMedia: !_lightExport,
+                  );
             return Column(
               children: [
                 Expanded(
@@ -98,16 +149,16 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                             ? Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(child: settings),
-                                  const SizedBox(width: 20),
-                                  Expanded(child: summary),
+                                  Expanded(child: leftPane),
+                                  const SizedBox(width: NahpuSpacing.xxl),
+                                  Expanded(child: rightPane),
                                 ],
                               )
                             : Column(
                                 children: [
-                                  settings,
-                                  const SizedBox(height: 16),
-                                  summary,
+                                  leftPane,
+                                  const SizedBox(height: NahpuSpacing.xl),
+                                  rightPane,
                                 ],
                               ),
                       ),
@@ -160,23 +211,64 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   Future<void> _save() async {
     final payload = _payload;
     if (payload == null) return;
-    setState(() => _isSaving = true);
+    final format = _lightExport
+        ? ProjectTransferArchiveFormat.jsonGzip
+        : _format;
+    final reporter = ExportProgressReporter(
+      steps: ProjectTransferArchiveService.exportPhases(payload, format),
+    );
+    final cancellation = ExportCancellation();
+    final stopwatch = Stopwatch()..start();
+    setState(() {
+      _isSaving = true;
+      _isCancelling = false;
+      _outcome = null;
+      _runError = null;
+      _failedStepLabel = null;
+      _outputBytes = null;
+      _runDuration = null;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
       final output = await ProjectTransferService(ref: ref).archive.save(
         payload,
         fileStem: _appendDate
             ? appendDateToFileStem(_fileNameController.text, DateTime.now())
             : _fileNameController.text,
-        format: _lightExport ? ProjectTransferArchiveFormat.jsonGzip : _format,
+        format: format,
         destinationDirectory: _directory,
+        progress: reporter,
+        cancel: cancellation,
       );
+      final bytes = await output.length();
       if (!mounted) return;
-      setState(() => _output = output);
+      setState(() {
+        _output = output;
+        _outcome = ExportOutcome.succeeded;
+        _outputBytes = bytes;
+        _runDuration = stopwatch.elapsed;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Project transfer saved as ${output.path}')),
       );
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.cancelled;
+        _runDuration = stopwatch.elapsed;
+      });
     } catch (error) {
       if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.failed;
+        _runError = error.toString();
+        _failedStepLabel = _jobProgress?.activeStep?.label;
+        _runDuration = stopwatch.elapsed;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: ErrorText(error: error.toString()),
@@ -184,8 +276,46 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isCancelling = false;
+          _cancellation = null;
+        });
+      }
     }
+  }
+
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the export?'),
+        content: const Text(
+          'The export is still running. Leaving now cancels it and no file '
+          'will be saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep exporting'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel export'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
   }
 
   Future<void> _share() async {
@@ -362,6 +492,24 @@ class _SummaryCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
+              if (includeMedia && payload!.mediaBytes > 0) ...[
+                const Divider(),
+                // Seeing the size up front is what tells the user whether this
+                // is a ten second export or a ten minute one.
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  leading: const Icon(Icons.sd_storage_outlined),
+                  title: Text(
+                    'Media size',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  trailing: Text(
+                    formatByteSize(payload!.mediaBytes),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
               if (includeMedia && payload!.warnings.isNotEmpty) ...[
                 const Divider(),
                 Text(
@@ -416,14 +564,11 @@ class _ExportActionBar extends StatelessWidget {
                   label: const Text('Share'),
                 ),
               if (hasOutput) const SizedBox(width: 12),
+              // The running state is shown by the progress panel now, so this
+              // button only has to stay out of the way while an export runs.
               FilledButton.icon(
                 onPressed: canExport && !isSaving ? onExport : null,
-                icon: isSaving
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.archive_outlined),
+                icon: const Icon(Icons.archive_outlined),
                 label: Text(hasOutput ? 'Export another' : 'Export project'),
               ),
             ],

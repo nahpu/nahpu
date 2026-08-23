@@ -6,6 +6,56 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `from`
+
+/// A snapshot of an archive operation, streamed to Dart while the work runs.
+///
+/// Compressing a media library takes minutes, so the export screens follow this stream
+/// instead of waiting on a single call that reports nothing until it finishes.
+class ArchiveProgress {
+  /// Entries fully processed so far.
+  final BigInt entriesDone;
+
+  /// Entries the operation expects to process, or `0` when the count is unknown.
+  final BigInt entriesTotal;
+
+  /// Bytes processed so far.
+  final BigInt bytesDone;
+
+  /// Bytes the operation expects to process, or `0` when the size is unknown.
+  final BigInt bytesTotal;
+
+  /// Archive-relative path of the entry being processed.
+  final String currentPath;
+
+  const ArchiveProgress({
+    required this.entriesDone,
+    required this.entriesTotal,
+    required this.bytesDone,
+    required this.bytesTotal,
+    required this.currentPath,
+  });
+
+  @override
+  int get hashCode =>
+      entriesDone.hashCode ^
+      entriesTotal.hashCode ^
+      bytesDone.hashCode ^
+      bytesTotal.hashCode ^
+      currentPath.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ArchiveProgress &&
+          runtimeType == other.runtimeType &&
+          entriesDone == other.entriesDone &&
+          entriesTotal == other.entriesTotal &&
+          bytesDone == other.bytesDone &&
+          bytesTotal == other.bytesTotal &&
+          currentPath == other.currentPath;
+}
+
 class GzipExtractor {
   final String archivePath;
   final String outputPath;
@@ -14,6 +64,10 @@ class GzipExtractor {
 
   Future<void> extract() =>
       RustLib.instance.api.crateApiArchiveGzipExtractorExtract(that: this);
+
+  /// Decompresses the file, streaming a progress snapshot as the archive is read.
+  Stream<ArchiveProgress> extractWithProgress() => RustLib.instance.api
+      .crateApiArchiveGzipExtractorExtractWithProgress(that: this);
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<GzipExtractor> newInstance({
@@ -54,6 +108,10 @@ class GzipWriter {
   Future<void> write() =>
       RustLib.instance.api.crateApiArchiveGzipWriterWrite(that: this);
 
+  /// Compresses the file, streaming a progress snapshot as its bytes are read.
+  Stream<ArchiveProgress> writeWithProgress() => RustLib.instance.api
+      .crateApiArchiveGzipWriterWriteWithProgress(that: this);
+
   @override
   int get hashCode => inputPath.hashCode ^ outputPath.hashCode;
 
@@ -74,6 +132,12 @@ class TarGzipExtractor {
 
   Future<void> extract() =>
       RustLib.instance.api.crateApiArchiveTarGzipExtractorExtract(that: this);
+
+  /// Extracts the archive, streaming a progress snapshot as each entry is unpacked.
+  ///
+  /// A tar stream carries no index, so the totals stay `0` until the final snapshot.
+  Stream<ArchiveProgress> extractWithProgress() => RustLib.instance.api
+      .crateApiArchiveTarGzipExtractorExtractWithProgress(that: this);
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<TarGzipExtractor> newInstance({
@@ -121,6 +185,10 @@ class TarGzipWriter {
   Future<void> write() =>
       RustLib.instance.api.crateApiArchiveTarGzipWriterWrite(that: this);
 
+  /// Writes the archive, streaming a progress snapshot as each entry is compressed.
+  Stream<ArchiveProgress> writeWithProgress() => RustLib.instance.api
+      .crateApiArchiveTarGzipWriterWriteWithProgress(that: this);
+
   @override
   int get hashCode => parentDir.hashCode ^ files.hashCode ^ outputPath.hashCode;
 
@@ -142,6 +210,10 @@ class ZipExtractor {
 
   Future<void> extract() =>
       RustLib.instance.api.crateApiArchiveZipExtractorExtract(that: this);
+
+  /// Extracts the archive, streaming a progress snapshot as each entry is written.
+  Stream<ArchiveProgress> extractWithProgress() => RustLib.instance.api
+      .crateApiArchiveZipExtractorExtractWithProgress(that: this);
 
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<ZipExtractor> newInstance({
@@ -190,6 +262,13 @@ class ZipWriter {
 
   Future<void> write() =>
       RustLib.instance.api.crateApiArchiveZipWriterWrite(that: this);
+
+  /// Writes the archive, streaming a progress snapshot as each entry is compressed.
+  ///
+  /// Unlike [`Self::write`], a failure here is delivered to Dart rather than raised as
+  /// a panic across the FFI boundary, so a full disk becomes a message the user reads.
+  Stream<ArchiveProgress> writeWithProgress() => RustLib.instance.api
+      .crateApiArchiveZipWriterWriteWithProgress(that: this);
 
   @override
   int get hashCode =>

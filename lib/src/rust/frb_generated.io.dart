@@ -27,13 +27,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
   Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+
+  @protected
+  RustStreamSink<ArchiveProgress> dco_decode_StreamSink_archive_progress_Sse(
+    dynamic raw,
+  );
 
   @protected
   String dco_decode_String(dynamic raw);
 
   @protected
   AngularCoordinate dco_decode_TraitDef_AngularCoordinate(dynamic raw);
+
+  @protected
+  ArchiveProgress dco_decode_archive_progress(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
@@ -318,12 +329,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter dco_decode_zip_writer(dynamic raw);
 
   @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
   Map<String, String> sse_decode_Map_String_String_None(
     SseDeserializer deserializer,
   );
 
   @protected
+  RustStreamSink<ArchiveProgress> sse_decode_StreamSink_archive_progress_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
+
+  @protected
+  ArchiveProgress sse_decode_archive_progress(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
@@ -680,13 +702,31 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ZipWriter sse_decode_zip_writer(SseDeserializer deserializer);
 
   @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_Map_String_String_None(
     Map<String, String> self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_StreamSink_archive_progress_Sse(
+    RustStreamSink<ArchiveProgress> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_archive_progress(
+    ArchiveProgress self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);

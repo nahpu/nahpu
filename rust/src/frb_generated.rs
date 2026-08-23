@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -862598360;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 936385230;
 
 // Section: executor
 
@@ -1120,6 +1120,45 @@ fn wire__crate__api__archive__gzip_extractor_extract_impl(
         },
     )
 }
+fn wire__crate__api__archive__gzip_extractor_extract_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "gzip_extractor_extract_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::GzipExtractor>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::archive::GzipExtractor::extract_with_progress(
+                        &api_that, api_sink,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__archive__gzip_extractor_new_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1223,6 +1262,44 @@ fn wire__crate__api__archive__gzip_writer_write_impl(
                     let output_ok = Result::<_, ()>::Ok({
                         crate::api::archive::GzipWriter::write(&api_that);
                     })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__archive__gzip_writer_write_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "gzip_writer_write_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::GzipWriter>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok =
+                        crate::api::archive::GzipWriter::write_with_progress(&api_that, api_sink)?;
                     Ok(output_ok)
                 })())
             }
@@ -2098,6 +2175,45 @@ fn wire__crate__api__archive__tar_gzip_extractor_extract_impl(
         },
     )
 }
+fn wire__crate__api__archive__tar_gzip_extractor_extract_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "tar_gzip_extractor_extract_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::TarGzipExtractor>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::archive::TarGzipExtractor::extract_with_progress(
+                        &api_that, api_sink,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__archive__tar_gzip_extractor_new_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2204,6 +2320,45 @@ fn wire__crate__api__archive__tar_gzip_writer_write_impl(
                     let output_ok = Result::<_, ()>::Ok({
                         crate::api::archive::TarGzipWriter::write(&api_that);
                     })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__archive__tar_gzip_writer_write_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "tar_gzip_writer_write_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::TarGzipWriter>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::archive::TarGzipWriter::write_with_progress(
+                        &api_that, api_sink,
+                    )?;
                     Ok(output_ok)
                 })())
             }
@@ -2466,6 +2621,45 @@ fn wire__crate__api__archive__zip_extractor_extract_impl(
         },
     )
 }
+fn wire__crate__api__archive__zip_extractor_extract_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "zip_extractor_extract_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::ZipExtractor>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok = crate::api::archive::ZipExtractor::extract_with_progress(
+                        &api_that, api_sink,
+                    )?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__archive__zip_extractor_new_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2577,8 +2771,54 @@ fn wire__crate__api__archive__zip_writer_write_impl(
         },
     )
 }
+fn wire__crate__api__archive__zip_writer_write_with_progress_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "zip_writer_write_with_progress",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <crate::api::archive::ZipWriter>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::archive::ArchiveProgress,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok =
+                        crate::api::archive::ZipWriter::write_with_progress(&api_that, api_sink)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 
 // Section: dart2rust
+
+impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return flutter_rust_bridge::for_generated::anyhow::anyhow!("{}", inner);
+    }
+}
 
 impl SseDecode for std::collections::HashMap<String, String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2588,11 +2828,42 @@ impl SseDecode for std::collections::HashMap<String, String> {
     }
 }
 
+impl SseDecode
+    for StreamSink<
+        crate::api::archive::ArchiveProgress,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return StreamSink::deserialize(inner);
+    }
+}
+
 impl SseDecode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <Vec<u8>>::sse_decode(deserializer);
         return String::from_utf8(inner).unwrap();
+    }
+}
+
+impl SseDecode for crate::api::archive::ArchiveProgress {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_entriesDone = <u64>::sse_decode(deserializer);
+        let mut var_entriesTotal = <u64>::sse_decode(deserializer);
+        let mut var_bytesDone = <u64>::sse_decode(deserializer);
+        let mut var_bytesTotal = <u64>::sse_decode(deserializer);
+        let mut var_currentPath = <String>::sse_decode(deserializer);
+        return crate::api::archive::ArchiveProgress {
+            entries_done: var_entriesDone,
+            entries_total: var_entriesTotal,
+            bytes_done: var_bytesDone,
+            bytes_total: var_bytesTotal,
+            current_path: var_currentPath,
+        };
     }
 }
 
@@ -3721,117 +3992,153 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        34 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__config__import_config_from_file_impl(
+        34 => wire__crate__api__archive__gzip_extractor_extract_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__config__import_document_layout_from_file_impl(
+        35 => wire__crate__api__archive__gzip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__archive__gzip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__archive__gzip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__archive__gzip_writer_write_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        40 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
-        41 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
-        42 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
-        43 => {
+        39 => wire__crate__api__config__import_config_from_file_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        40 => wire__crate__api__gis__import_coordinates_impl(port, ptr, rust_vec_len, data_len),
+        41 => wire__crate__api__config__import_document_layout_from_file_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        42 => wire__crate__api__common__init_app_impl(port, ptr, rust_vec_len, data_len),
+        43 => wire__crate__api__config__init_config_db_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__config__inspect_config_file_impl(port, ptr, rust_vec_len, data_len),
+        45 => {
             wire__crate__api__config__list_template_presets_impl(port, ptr, rust_vec_len, data_len)
         }
-        44 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__gis__parse_coordinate_input_impl(port, ptr, rust_vec_len, data_len),
-        46 => {
+        46 => wire__crate__api__document__markdown_to_typst_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__gis__parse_coordinate_input_impl(port, ptr, rust_vec_len, data_len),
+        48 => {
             wire__crate__api__gis__parse_coordinate_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        47 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        48 => {
+        49 => wire__crate__api__dwc__plan_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        50 => {
             wire__crate__api__nahpu_dp__plan_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        49 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
+        51 => wire__crate__api__import__record_reader_get_excel_sheet_names_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        50 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
+        52 => wire__crate__api__import__record_reader_import_delimited_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__import__record_reader_import_excel_raw_impl(
+        53 => wire__crate__api__import__record_reader_import_excel_raw_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
-        53 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        54 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
-        55 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__config__set_record_export_preset_impl(
+        54 => wire__crate__api__import__record_reader_new_impl(port, ptr, rust_vec_len, data_len),
+        55 => wire__crate__api__export__record_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__export__record_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__config__set_document_layout_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__config__set_record_export_preset_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__config__set_template_table_preview_columns_impl(
+        59 => wire__crate__api__config__set_template_preset_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__config__set_template_table_preview_columns_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        59 => {
+        61 => {
             wire__crate__api__config__set_user_config_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        60 => {
+        62 => {
             wire__crate__api__config__set_user_config_string_impl(port, ptr, rust_vec_len, data_len)
         }
-        61 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
+        63 => wire__crate__api__archive__tar_gzip_extractor_extract_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+        64 => wire__crate__api__archive__tar_gzip_extractor_extract_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        63 => {
+        65 => wire__crate__api__archive__tar_gzip_extractor_new_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        66 => {
             wire__crate__api__archive__tar_gzip_writer_new_impl(port, ptr, rust_vec_len, data_len)
         }
-        64 => {
+        67 => {
             wire__crate__api__archive__tar_gzip_writer_write_impl(port, ptr, rust_vec_len, data_len)
         }
-        65 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
-        66 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        67 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+        68 => wire__crate__api__archive__tar_gzip_writer_write_with_progress_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        68 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
-        69 => {
+        69 => wire__crate__api__gis__utm_to_dd_impl(port, ptr, rust_vec_len, data_len),
+        70 => wire__crate__api__dwc__validate_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        71 => wire__crate__api__nahpu_dp__validate_nahpu_package_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        72 => wire__crate__api__dwc__write_dwc_bundle_impl(port, ptr, rust_vec_len, data_len),
+        73 => {
             wire__crate__api__nahpu_dp__write_nahpu_package_impl(port, ptr, rust_vec_len, data_len)
         }
-        70 => {
+        74 => {
             wire__crate__api__export__write_tabular_records_impl(port, ptr, rust_vec_len, data_len)
         }
-        71 => {
+        75 => {
             wire__crate__api__archive__zip_extractor_extract_impl(port, ptr, rust_vec_len, data_len)
         }
-        72 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
-        73 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
-        74 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        76 => wire__crate__api__archive__zip_extractor_extract_with_progress_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        77 => wire__crate__api__archive__zip_extractor_new_impl(port, ptr, rust_vec_len, data_len),
+        78 => wire__crate__api__archive__zip_writer_new_impl(port, ptr, rust_vec_len, data_len),
+        79 => wire__crate__api__archive__zip_writer_write_impl(port, ptr, rust_vec_len, data_len),
+        80 => wire__crate__api__archive__zip_writer_write_with_progress_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         _ => unreachable!(),
     }
 }
@@ -3850,6 +4157,30 @@ fn pde_ffi_dispatcher_sync_impl(
 
 // Section: rust2dart
 
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::archive::ArchiveProgress {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.entries_done.into_into_dart().into_dart(),
+            self.entries_total.into_into_dart().into_dart(),
+            self.bytes_done.into_into_dart().into_dart(),
+            self.bytes_total.into_into_dart().into_dart(),
+            self.current_path.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::archive::ArchiveProgress
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::archive::ArchiveProgress>
+    for crate::api::archive::ArchiveProgress
+{
+    fn into_into_dart(self) -> crate::api::archive::ArchiveProgress {
+        self
+    }
+}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::gis::CardinalDirection {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -4699,6 +5030,13 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::archive::ZipWriter>
     }
 }
 
+impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(format!("{:?}", self), serializer);
+    }
+}
+
 impl SseEncode for std::collections::HashMap<String, String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4706,10 +5044,33 @@ impl SseEncode for std::collections::HashMap<String, String> {
     }
 }
 
+impl SseEncode
+    for StreamSink<
+        crate::api::archive::ArchiveProgress,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        unimplemented!("")
+    }
+}
+
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <Vec<u8>>::sse_encode(self.into_bytes(), serializer);
+    }
+}
+
+impl SseEncode for crate::api::archive::ArchiveProgress {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u64>::sse_encode(self.entries_done, serializer);
+        <u64>::sse_encode(self.entries_total, serializer);
+        <u64>::sse_encode(self.bytes_done, serializer);
+        <u64>::sse_encode(self.bytes_total, serializer);
+        <String>::sse_encode(self.current_path, serializer);
     }
 }
 
