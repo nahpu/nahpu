@@ -322,7 +322,7 @@ void main() {
     ]);
   });
 
-  test('elevation only includes sites with specimen records', () async {
+  test('sampled elevation only includes sites with specimen records', () async {
     final unusedSite = await db
         .into(db.site)
         .insert(
@@ -366,8 +366,10 @@ void main() {
         );
 
     final totals = await query.watchRecordTotals('project-a').first;
-    expect(totals.minimumElevationInMeter, 120.5);
-    expect(totals.maximumElevationInMeter, 800);
+    expect(totals.minimumSampledElevationInMeter, 120.5);
+    expect(totals.maximumSampledElevationInMeter, 800);
+    expect(totals.minimumRecordedElevationInMeter, -100);
+    expect(totals.maximumRecordedElevationInMeter, 800);
   });
 
   test('record totals include project summary metrics', () async {
@@ -379,8 +381,10 @@ void main() {
     expect(totals.speciesCount, 2);
     expect(totals.familyCount, 1);
     expect(totals.narrativeCount, 1);
-    expect(totals.minimumElevationInMeter, 120.5);
-    expect(totals.maximumElevationInMeter, 350.25);
+    expect(totals.minimumRecordedElevationInMeter, 120.5);
+    expect(totals.maximumRecordedElevationInMeter, 350.25);
+    expect(totals.minimumSampledElevationInMeter, 120.5);
+    expect(totals.maximumSampledElevationInMeter, 350.25);
     expect(totals.totalDays, 3);
     expect(totals.totalCaptureDays, 0);
 
@@ -391,8 +395,10 @@ void main() {
     expect(otherProjectTotals.speciesCount, 1);
     expect(otherProjectTotals.familyCount, 1);
     expect(otherProjectTotals.narrativeCount, 1);
-    expect(otherProjectTotals.minimumElevationInMeter, equals(null));
-    expect(otherProjectTotals.maximumElevationInMeter, equals(null));
+    expect(otherProjectTotals.minimumRecordedElevationInMeter, equals(null));
+    expect(otherProjectTotals.maximumRecordedElevationInMeter, equals(null));
+    expect(otherProjectTotals.minimumSampledElevationInMeter, equals(null));
+    expect(otherProjectTotals.maximumSampledElevationInMeter, equals(null));
     expect(otherProjectTotals.totalDays, equals(null));
     expect(otherProjectTotals.totalCaptureDays, 0);
 

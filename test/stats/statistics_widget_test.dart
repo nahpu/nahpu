@@ -190,8 +190,9 @@ void main() {
     );
     expect(find.text('Records'), findsOneWidget);
     expect(find.text('Sampling'), findsOneWidget);
-    expect(find.text('Site elevation'), findsOneWidget);
-    expect(find.text('120.5–350.25 m'), findsOneWidget);
+    expect(find.text('Recorded elevation'), findsOneWidget);
+    expect(find.text('Sampled elevation'), findsOneWidget);
+    expect(find.text('120.5–350.25 m'), findsNWidgets(2));
     expect(find.text('Project days'), findsOneWidget);
     expect(find.text('3'), findsWidgets);
     expect(find.text('Capture days'), findsOneWidget);
@@ -309,8 +310,42 @@ void main() {
     );
     expect(records.width, closeTo(sampling.width, 0.1));
     expect(sampling.top, greaterThanOrEqualTo(records.bottom));
+    final specimens = tester.getRect(
+      find.byKey(RecordMetricKind.specimens.fullScreenKey),
+    );
+    final narratives = tester.getRect(
+      find.byKey(RecordMetricKind.narratives.fullScreenKey),
+    );
+    final sites = tester.getRect(
+      find.byKey(RecordMetricKind.sites.fullScreenKey),
+    );
+    final projectDays = tester.getRect(
+      find.byKey(RecordMetricKind.projectDays.fullScreenKey),
+    );
+    final recordedElevation = tester.getRect(
+      find.byKey(RecordMetricKind.recordedElevation.fullScreenKey),
+    );
+    final sampledElevation = tester.getRect(
+      find.byKey(RecordMetricKind.sampledElevation.fullScreenKey),
+    );
+    for (final row in [
+      (sites, projectDays),
+      (recordedElevation, sampledElevation),
+    ]) {
+      expect(
+        row.$1.left,
+        closeTo(specimens.left, 0.1),
+        reason: 'sampling rows should start at the records grid edge',
+      );
+      expect(
+        row.$2.right,
+        closeTo(narratives.right, 0.1),
+        reason: 'sampling rows should fill the group width',
+      );
+    }
     for (final kind in const [
-      RecordMetricKind.elevation,
+      RecordMetricKind.recordedElevation,
+      RecordMetricKind.sampledElevation,
       RecordMetricKind.captureDays,
       RecordMetricKind.projectDays,
       RecordMetricKind.sites,

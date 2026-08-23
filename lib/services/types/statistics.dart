@@ -209,8 +209,10 @@ class RecordStatisticTotals {
     required this.speciesCount,
     required this.familyCount,
     required this.narrativeCount,
-    this.minimumElevationInMeter,
-    this.maximumElevationInMeter,
+    this.minimumRecordedElevationInMeter,
+    this.maximumRecordedElevationInMeter,
+    this.minimumSampledElevationInMeter,
+    this.maximumSampledElevationInMeter,
     this.totalDays,
     this.totalCaptureDays = 0,
   });
@@ -221,8 +223,14 @@ class RecordStatisticTotals {
   final int speciesCount;
   final int familyCount;
   final int narrativeCount;
-  final double? minimumElevationInMeter;
-  final double? maximumElevationInMeter;
+
+  /// Elevation range across every site recorded in the project.
+  final double? minimumRecordedElevationInMeter;
+  final double? maximumRecordedElevationInMeter;
+
+  /// Elevation range limited to sites that yielded specimen records.
+  final double? minimumSampledElevationInMeter;
+  final double? maximumSampledElevationInMeter;
   final int? totalDays;
   final int totalCaptureDays;
 }

@@ -784,82 +784,87 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Column(
       key: const ValueKey('full-screen-record-stat-summary'),
-      child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SummaryGroup(
+          key: const ValueKey('full-screen-record-stat-records'),
+          title: 'Records',
           children: [
-            _SummaryGroup(
-              key: const ValueKey('full-screen-record-stat-records'),
-              title: 'Records',
-              children: [
-                _SummaryMetric(
-                  key: RecordMetricKind.specimens.fullScreenKey,
-                  kind: RecordMetricKind.specimens,
-                  value: totals.specimenCount.toString(),
-                  emphasis: true,
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.species.fullScreenKey,
-                  kind: RecordMetricKind.species,
-                  value: totals.speciesCount.toString(),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.families.fullScreenKey,
-                  kind: RecordMetricKind.families,
-                  value: totals.familyCount.toString(),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.narratives.fullScreenKey,
-                  kind: RecordMetricKind.narratives,
-                  value: totals.narrativeCount.toString(),
-                ),
-              ],
+            _SummaryMetric(
+              key: RecordMetricKind.specimens.fullScreenKey,
+              kind: RecordMetricKind.specimens,
+              value: totals.specimenCount.toString(),
+              emphasis: true,
             ),
-            const SizedBox(height: NahpuSpacing.md),
-            _SummaryGroup(
-              key: const ValueKey('full-screen-record-stat-sampling'),
-              title: 'Sampling',
-              children: [
-                _SummaryMetric(
-                  key: RecordMetricKind.sites.fullScreenKey,
-                  kind: RecordMetricKind.sites,
-                  value: totals.siteCount.toString(),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.events.fullScreenKey,
-                  kind: RecordMetricKind.events,
-                  value: totals.eventCount.toString(),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.captureDays.fullScreenKey,
-                  kind: RecordMetricKind.captureDays,
-                  value: totals.totalCaptureDays.toString(),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.projectDays.fullScreenKey,
-                  kind: RecordMetricKind.projectDays,
-                  value: _formatProjectDays(totals.totalDays),
-                ),
-                _SummaryMetric(
-                  key: RecordMetricKind.elevation.fullScreenKey,
-                  kind: RecordMetricKind.elevation,
-                  value: _formatElevationRange(totals),
-                  wide: true,
-                ),
-              ],
+            _SummaryMetric(
+              key: RecordMetricKind.species.fullScreenKey,
+              kind: RecordMetricKind.species,
+              value: totals.speciesCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.families.fullScreenKey,
+              kind: RecordMetricKind.families,
+              value: totals.familyCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.narratives.fullScreenKey,
+              kind: RecordMetricKind.narratives,
+              value: totals.narrativeCount.toString(),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: NahpuSpacing.md),
+        _SummaryGroup(
+          key: const ValueKey('full-screen-record-stat-sampling'),
+          title: 'Sampling',
+          children: [
+            _SummaryMetric(
+              key: RecordMetricKind.sites.fullScreenKey,
+              kind: RecordMetricKind.sites,
+              value: totals.siteCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.events.fullScreenKey,
+              kind: RecordMetricKind.events,
+              value: totals.eventCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.captureDays.fullScreenKey,
+              kind: RecordMetricKind.captureDays,
+              value: totals.totalCaptureDays.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.projectDays.fullScreenKey,
+              kind: RecordMetricKind.projectDays,
+              value: _formatProjectDays(totals.totalDays),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.recordedElevation.fullScreenKey,
+              kind: RecordMetricKind.recordedElevation,
+              value: _formatElevationRange(
+                totals.minimumRecordedElevationInMeter,
+                totals.maximumRecordedElevationInMeter,
+              ),
+              span: 2,
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.sampledElevation.fullScreenKey,
+              kind: RecordMetricKind.sampledElevation,
+              value: _formatElevationRange(
+                totals.minimumSampledElevationInMeter,
+                totals.maximumSampledElevationInMeter,
+              ),
+              span: 2,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  String _formatElevationRange(RecordStatisticTotals totals) {
-    final minimum = totals.minimumElevationInMeter;
-    final maximum = totals.maximumElevationInMeter;
+  String _formatElevationRange(double? minimum, double? maximum) {
     if (minimum == null || maximum == null) return '—';
     final minimumText = formatCoordinate(minimum, decimals: 2);
     final maximumText = formatCoordinate(maximum, decimals: 2);
@@ -892,18 +897,31 @@ class _SummaryGroup extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               const spacing = NahpuSpacing.xs;
-              final columns = _columnCount(constraints.maxWidth);
-              final standardWidth =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
+              final rows = _packRows(_columnCount(constraints.maxWidth));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final metric in children)
-                    SizedBox(
-                      width: metric.wide ? constraints.maxWidth : standardWidth,
-                      child: metric,
+                  for (var row = 0; row < rows.length; row++) ...[
+                    if (row > 0) const SizedBox(height: spacing),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (
+                            var index = 0;
+                            index < rows[row].length;
+                            index++
+                          ) ...[
+                            if (index > 0) const SizedBox(width: spacing),
+                            Expanded(
+                              flex: rows[row][index].span,
+                              child: rows[row][index],
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
+                  ],
                 ],
               );
             },
@@ -913,8 +931,8 @@ class _SummaryGroup extends StatelessWidget {
     );
   }
 
-  /// Columns for the standard-width metrics, capped so a group with few
-  /// metrics never leaves a dead trailing column.
+  /// Columns for the metric grid, capped so a group with few metrics never
+  /// leaves a dead trailing column.
   int _columnCount(double maxWidth) {
     final limit = maxWidth >= 1000
         ? 5
@@ -923,9 +941,34 @@ class _SummaryGroup extends StatelessWidget {
         : maxWidth >= 480
         ? 3
         : 2;
-    final standardCount = children.where((metric) => !metric.wide).length;
-    if (standardCount < 1) return 1;
-    return standardCount < limit ? standardCount : limit;
+    final spanCount = children.fold<int>(
+      0,
+      (total, metric) => total + metric.span,
+    );
+    if (spanCount < 1) return 1;
+    return spanCount < limit ? spanCount : limit;
+  }
+
+  /// Packs the metrics into rows of at most [columns] spans.
+  ///
+  /// Every row is stretched to the full group width, so a run that cannot
+  /// fill its columns widens its metrics instead of leaving dead space.
+  List<List<_SummaryMetric>> _packRows(int columns) {
+    final rows = <List<_SummaryMetric>>[];
+    var row = <_SummaryMetric>[];
+    var used = 0;
+    for (final metric in children) {
+      final span = metric.span > columns ? columns : metric.span;
+      if (row.isNotEmpty && used + span > columns) {
+        rows.add(row);
+        row = <_SummaryMetric>[];
+        used = 0;
+      }
+      row.add(metric);
+      used += span;
+    }
+    if (row.isNotEmpty) rows.add(row);
+    return rows;
   }
 }
 
@@ -935,13 +978,15 @@ class _SummaryMetric extends StatelessWidget {
     required this.kind,
     required this.value,
     this.emphasis = false,
-    this.wide = false,
+    this.span = 1,
   });
 
   final RecordMetricKind kind;
   final String value;
   final bool emphasis;
-  final bool wide;
+
+  /// Number of grid columns this metric occupies.
+  final int span;
 
   @override
   Widget build(BuildContext context) {

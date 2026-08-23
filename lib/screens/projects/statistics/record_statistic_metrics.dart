@@ -34,10 +34,15 @@ enum RecordMetricKind {
     slug: 'total-days',
     icon: Icons.date_range_outlined,
   ),
-  elevation(
-    label: 'Site elevation',
-    slug: 'elevation',
+  recordedElevation(
+    label: 'Recorded elevation',
+    slug: 'recorded-elevation',
     icon: Icons.terrain_outlined,
+  ),
+  sampledElevation(
+    label: 'Sampled elevation',
+    slug: 'sampled-elevation',
+    icon: Icons.landscape_outlined,
   );
 
   const RecordMetricKind({

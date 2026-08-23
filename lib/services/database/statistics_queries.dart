@@ -280,10 +280,24 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             SELECT MIN(coordinate.elevationInMeter)
             FROM coordinate
             INNER JOIN site ON site.id = coordinate.siteID
+            WHERE site.projectUuid = ?
+              AND coordinate.elevationInMeter IS NOT NULL
+          ) AS minimum_recorded_elevation,
+          (
+            SELECT MAX(coordinate.elevationInMeter)
+            FROM coordinate
+            INNER JOIN site ON site.id = coordinate.siteID
+            WHERE site.projectUuid = ?
+              AND coordinate.elevationInMeter IS NOT NULL
+          ) AS maximum_recorded_elevation,
+          (
+            SELECT MIN(coordinate.elevationInMeter)
+            FROM coordinate
+            INNER JOIN site ON site.id = coordinate.siteID
             INNER JOIN recorded_sites ON recorded_sites.id = site.id
             WHERE site.projectUuid = ?
               AND coordinate.elevationInMeter IS NOT NULL
-          ) AS minimum_elevation,
+          ) AS minimum_sampled_elevation,
           (
             SELECT MAX(coordinate.elevationInMeter)
             FROM coordinate
@@ -291,12 +305,12 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             INNER JOIN recorded_sites ON recorded_sites.id = site.id
             WHERE site.projectUuid = ?
               AND coordinate.elevationInMeter IS NOT NULL
-          ) AS maximum_elevation,
+          ) AS maximum_sampled_elevation,
           (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
           (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,
           (SELECT COUNT(DISTINCT day) FROM capture_days) AS total_capture_days
       ''',
-      variables: List.generate(13, (_) => Variable(projectUuid)),
+      variables: List.generate(15, (_) => Variable(projectUuid)),
       readsFrom: {
         db.project,
         db.site,
@@ -314,8 +328,18 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         speciesCount: row.read<int>('species_count'),
         familyCount: row.read<int>('family_count'),
         narrativeCount: row.read<int>('narrative_count'),
-        minimumElevationInMeter: row.readNullable<double>('minimum_elevation'),
-        maximumElevationInMeter: row.readNullable<double>('maximum_elevation'),
+        minimumRecordedElevationInMeter: row.readNullable<double>(
+          'minimum_recorded_elevation',
+        ),
+        maximumRecordedElevationInMeter: row.readNullable<double>(
+          'maximum_recorded_elevation',
+        ),
+        minimumSampledElevationInMeter: row.readNullable<double>(
+          'minimum_sampled_elevation',
+        ),
+        maximumSampledElevationInMeter: row.readNullable<double>(
+          'maximum_sampled_elevation',
+        ),
         totalDays: _inclusiveDayCount(
           row.readNullable<String>('project_start_date'),
           row.readNullable<String>('project_end_date'),
