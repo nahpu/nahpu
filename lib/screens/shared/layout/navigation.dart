@@ -85,16 +85,21 @@ class ProjectNavigationRail extends ConsumerStatefulWidget {
 }
 
 class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
-  bool _isExtended = false;
+  /// Set once the user works the toggle. Until then the rail follows the
+  /// window, extending itself on laptop-sized screens and wider.
+  bool? _isExtendedByUser;
 
   @override
   Widget build(BuildContext context) {
     final selectedIndex = ref.watch(projectNavbarIndexProvider);
+    final isExtended =
+        _isExtendedByUser ??
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.laptop;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final standardForeground = colorScheme.onSurfaceVariant;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final toggleIcon = _isExtended
+    final toggleIcon = isExtended
         ? (isRtl
               ? Icons.keyboard_double_arrow_right_rounded
               : Icons.keyboard_double_arrow_left_rounded)
@@ -112,8 +117,8 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
         ),
         clipBehavior: Clip.antiAlias,
         child: NavigationRail(
-          extended: _isExtended,
-          labelType: _isExtended
+          extended: isExtended,
+          labelType: isExtended
               ? NavigationRailLabelType.none
               : NavigationRailLabelType.all,
           indicatorColor: colorScheme.primaryContainer,
@@ -129,17 +134,17 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
             children: [
               _RailActionButton(
                 icon: toggleIcon,
-                collapsedLabel: _isExtended ? 'Collapse' : 'Expand',
-                expandedLabel: _isExtended
+                collapsedLabel: isExtended ? 'Collapse' : 'Expand',
+                expandedLabel: isExtended
                     ? 'Collapse navigation'
                     : 'Expand navigation',
-                tooltip: _isExtended
+                tooltip: isExtended
                     ? 'Collapse navigation rail'
                     : 'Expand navigation rail',
                 foregroundColor: standardForeground,
-                isExtended: _isExtended,
+                isExtended: isExtended,
                 onPressed: () {
-                  setState(() => _isExtended = !_isExtended);
+                  setState(() => _isExtendedByUser = !isExtended);
                 },
               ),
               TapRegion(
@@ -154,7 +159,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
                       ? 'Close project menu'
                       : 'Open project menu',
                   foregroundColor: standardForeground,
-                  isExtended: _isExtended,
+                  isExtended: isExtended,
                   onPressed: () =>
                       widget.onMenuVisibilityChanged(!widget.isMenuOpen),
                 ),
@@ -199,7 +204,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
               expandedLabel: 'Close project',
               tooltip: 'Close project',
               foregroundColor: standardForeground,
-              isExtended: _isExtended,
+              isExtended: isExtended,
               onPressed: () =>
                   closeProject(context, ref, ref.read(projectUuidProvider)),
             ),

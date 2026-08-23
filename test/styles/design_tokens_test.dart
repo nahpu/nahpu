@@ -36,6 +36,7 @@ void main() {
         NahpuBreakpoints.compact,
         NahpuBreakpoints.projectWizardRail,
         NahpuBreakpoints.desktop,
+        NahpuBreakpoints.laptop,
         NahpuContentWidth.form,
         NahpuContentWidth.projectForm,
         NahpuContentWidth.projectWizard,

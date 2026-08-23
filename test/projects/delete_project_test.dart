@@ -36,7 +36,7 @@ void main() {
     Text('PAGE-Narrative'),
   ];
 
-  testWidgets('the rail menu deletes the project', (tester) async {
+  Future<Database> pumpShellWithProject(WidgetTester tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 900);
     addTearDown(tester.view.reset);
@@ -70,11 +70,20 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return database;
+  }
 
+  Future<void> openDeleteDialog(WidgetTester tester) async {
     await tester.tap(find.text('Menu'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete project'));
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('the rail menu deletes the project', (tester) async {
+    final database = await pumpShellWithProject(tester);
+
+    await openDeleteDialog(tester);
 
     expect(find.text('Delete project?'), findsOneWidget);
     // The panel — and the tile driving the deletion — outlives the dialog.
@@ -87,5 +96,20 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(await database.select(database.project).get(), isEmpty);
+  });
+
+  testWidgets('the menu closes once its dialog is dismissed', (tester) async {
+    final database = await pumpShellWithProject(tester);
+
+    await openDeleteDialog(tester);
+    expect(find.byType(NavigationDrawer), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    // The menu is held open only for the dialog's lifetime.
+    expect(find.text('Delete project?'), findsNothing);
+    expect(find.byType(NavigationDrawer), findsNothing);
+    expect(await database.select(database.project).get(), hasLength(1));
   });
 }

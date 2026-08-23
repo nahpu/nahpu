@@ -239,6 +239,23 @@ void main() {
     expect(find.text('Close'), findsOneWidget);
   });
 
+  testWidgets('the rail starts extended on laptop-sized screens', (
+    tester,
+  ) async {
+    await _pumpShell(tester, size: const Size(1280, 900));
+
+    var rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+    expect(rail.extended, isTrue);
+    expect(rail.labelType, NavigationRailLabelType.none);
+
+    // An explicit collapse still wins over the size default.
+    await tester.tap(find.text('Collapse navigation'));
+    await tester.pumpAndSettle();
+
+    rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+    expect(rail.extended, isFalse);
+  });
+
   testWidgets('expands and collapses the large-screen rail', (tester) async {
     await _pumpShell(tester, size: const Size(1200, 900));
 

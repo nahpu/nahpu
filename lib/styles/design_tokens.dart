@@ -53,6 +53,10 @@ abstract final class NahpuBreakpoints {
   static const double compact = 600;
   static const double projectWizardRail = 840;
   static const double desktop = 900;
+
+  /// Laptop-sized and wider: enough room for the project rail to show its
+  /// labels without crowding the page beside it.
+  static const double laptop = 1280;
 }
 
 /// Fixed geometry for dashboard panels so every panel lines up.
