@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
+import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/events.dart';
 
 class _EnvironmentalDataFieldCategory {

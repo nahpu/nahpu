@@ -40,10 +40,6 @@ import 'package:file_selector/file_selector.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/media/media_services.dart';
-import 'package:nahpu/services/projects/personnel_services.dart';
-import 'package:nahpu/services/associated_data/associated_data_services.dart';
-import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' as path;
@@ -433,105 +429,4 @@ Future<Directory> get nahpuDocumentDir async {
   final nahpuDir = Directory(path.join(dbDir.path, nahpuAppDir));
   await nahpuDir.create(recursive: true);
   return nahpuDir;
-}
-
-class DataUsageServices extends AppServices {
-  const DataUsageServices({required super.ref});
-
-  Future<String> get appDataUsage async {
-    final nahpuDir = await nahpuDocumentDir;
-    final dirSize = nahpuDir.listSync(recursive: true);
-    int size = 0;
-    for (final file in dirSize) {
-      if (file is File) {
-        size += file.lengthSync();
-      }
-    }
-    return '${(size / 1024 / 1024).toStringAsFixed(2)} MB';
-  }
-
-  Future<int> get fileCount async {
-    final nahpuDir = await nahpuDocumentDir;
-    final dirSize = nahpuDir.listSync(recursive: true);
-    int count = 0;
-    for (final file in dirSize) {
-      if (file is File) {
-        count++;
-      }
-    }
-    return count;
-  }
-
-  Future<int> get mediaCount async {
-    final nahpuDir = await nahpuDocumentDir;
-    final dirSize = nahpuDir.listSync(recursive: true).whereType<File>();
-    int count = 0;
-    for (final file in dirSize) {
-      if (_isSupportedMediaFile(file)) {
-        count++;
-      }
-    }
-    return count;
-  }
-
-  Future<List<NahpuFile>> get fileList async {
-    final nahpuDir = await nahpuDocumentDir;
-    final fileList = nahpuDir.listSync(recursive: true).whereType<File>();
-
-    List<NahpuFile> nahpuFileList = [];
-    for (final file in fileList) {
-      final format = _matchFormat(file);
-      final isDeletable = await _isDeletable(file, format);
-      nahpuFileList.add(
-        NahpuFile(path: file, isDeletable: isDeletable, format: format),
-      );
-    }
-
-    return nahpuFileList;
-  }
-
-  NahpuFileFormat _matchFormat(File file) {
-    return matchNahpuFormatFromPath(file.path);
-  }
-
-  Future<bool> _isDeletable(File file, NahpuFileFormat format) async {
-    if (format == NahpuFileFormat.database) {
-      return false;
-    }
-
-    if (isSupportedMediaFormat(format)) {
-      bool isUsedByMedia = await MediaServices(ref: ref).isMediaUsed(file);
-      bool isUsedByPersonnel = await PersonnelServices(
-        ref: ref,
-      ).isImageUsedInPersonnelPhoto(file);
-      bool isUsedInAssociatedData = await AssociatedDataServices(
-        ref: ref,
-      ).isFileUsed(file);
-      return !(isUsedByMedia || isUsedByPersonnel || isUsedInAssociatedData);
-    }
-
-    if (format == NahpuFileFormat.other) {
-      bool isUsedInAssociatedData = await AssociatedDataServices(
-        ref: ref,
-      ).isFileUsed(file);
-      return !isUsedInAssociatedData;
-    }
-
-    return true;
-  }
-
-  bool _isSupportedMediaFile(File file) {
-    return isSupportedMediaPath(file.path);
-  }
-}
-
-class NahpuFile {
-  const NahpuFile({
-    required this.path,
-    required this.isDeletable,
-    required this.format,
-  });
-  final File path;
-  final bool isDeletable;
-  final NahpuFileFormat format;
 }

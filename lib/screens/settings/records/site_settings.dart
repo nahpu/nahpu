@@ -2,8 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/settings/map_settings.dart';
-import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
+import 'package:nahpu/screens/settings/application/map_settings.dart';
+import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/sites.dart';
 
 class SiteSelection extends StatefulWidget {

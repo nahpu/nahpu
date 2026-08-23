@@ -28,7 +28,7 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
 import 'package:nahpu/services/common/platform_services.dart';
-import 'package:nahpu/screens/settings/document_presets/template_preset_manager.dart';
+import 'package:nahpu/screens/settings/presets/template_preset_manager.dart';
 import 'package:nahpu/services/settings/config_services.dart';
 import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

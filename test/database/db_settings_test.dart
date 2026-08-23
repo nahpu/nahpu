@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/settings/db_settings.dart';
+import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 
 void main() {

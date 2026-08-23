@@ -6,7 +6,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/screens/settings/export_preset_edit.dart';
+import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/io_services.dart';

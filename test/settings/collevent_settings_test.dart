@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/settings/collevent_settings.dart';
+import 'package:nahpu/screens/settings/records/collevent_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 

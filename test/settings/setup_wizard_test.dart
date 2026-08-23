@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/home/components/body.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
-import 'package:nahpu/screens/settings/setup_wizard.dart';
+import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';

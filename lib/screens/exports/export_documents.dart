@@ -14,7 +14,7 @@ import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
-import 'package:nahpu/screens/settings/document_presets.dart';
+import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';

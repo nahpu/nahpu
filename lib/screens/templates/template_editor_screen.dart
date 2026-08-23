@@ -17,7 +17,7 @@ import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
-import 'package:nahpu/screens/settings/document_presets/template_preset_deletion.dart';
+import 'package:nahpu/screens/settings/presets/template_preset_deletion.dart';
 import 'package:nahpu/services/templates/editor_service.dart';
 import 'package:nahpu/services/templates/canvas_placement_service.dart';
 import 'package:nahpu/services/templates/editor_history_service.dart';

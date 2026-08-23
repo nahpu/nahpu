@@ -859,6 +859,14 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
     )..where((row) => row.projectUuid.equals(projectUuid))).get();
   }
 
+  /// Every associated data row, across all projects.
+  ///
+  /// Used by the file explorer to build its reference index in one read
+  /// instead of querying per file.
+  Future<List<AssociatedDataData>> getAllAssociatedRows() {
+    return select(associatedData).get();
+  }
+
   Future<AssociatedDataData?> getAssociatedDataById(int id) {
     return (select(
       associatedData,

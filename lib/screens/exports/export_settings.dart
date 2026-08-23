@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
-import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
+import 'package:nahpu/screens/settings/transfer/user_config_transfer_widgets.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';

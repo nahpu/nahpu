@@ -4,18 +4,18 @@ import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
-import 'package:nahpu/screens/settings/catalog_format.dart';
-import 'package:nahpu/screens/settings/collevent_settings.dart';
-import 'package:nahpu/screens/settings/site_settings.dart';
+import 'package:nahpu/screens/settings/records/catalog_format.dart';
+import 'package:nahpu/screens/settings/records/collevent_settings.dart';
+import 'package:nahpu/screens/settings/records/site_settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/settings/db_settings.dart';
+import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/screens/settings/application_settings.dart';
-import 'package:nahpu/screens/settings/specimen_settings.dart';
-import 'package:nahpu/screens/settings/document_presets.dart';
-import 'package:nahpu/screens/settings/export_presets.dart';
-import 'package:nahpu/screens/settings/custom_fields.dart';
+import 'package:nahpu/screens/settings/application/application_settings.dart';
+import 'package:nahpu/screens/settings/records/specimen_settings.dart';
+import 'package:nahpu/screens/settings/presets/document_presets.dart';
+import 'package:nahpu/screens/settings/presets/export_presets.dart';
+import 'package:nahpu/screens/settings/records/custom_fields.dart';
 
 class AppSettings extends ConsumerStatefulWidget {
   const AppSettings({super.key, this.projectUuid});

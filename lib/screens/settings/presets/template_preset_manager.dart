@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/settings/document_presets/template_preset_deletion.dart';
+import 'package:nahpu/screens/settings/presets/template_preset_deletion.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/services/types/export.dart';
 

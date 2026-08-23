@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/settings/custom_fields.dart';
+import 'package:nahpu/screens/settings/records/custom_fields.dart';
 import 'package:nahpu/screens/shared/forms/custom_field_definition_editor.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';

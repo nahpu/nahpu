@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/settings/custom_field_transfer.dart';
+import 'package:nahpu/screens/settings/transfer/custom_field_transfer.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/forms/custom_field_definition_editor.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';

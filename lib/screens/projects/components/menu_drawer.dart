@@ -11,7 +11,7 @@ import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
-import 'package:nahpu/screens/settings/app_settings_import.dart';
+import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
