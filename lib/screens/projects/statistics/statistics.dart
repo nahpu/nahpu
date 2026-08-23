@@ -174,81 +174,108 @@ class _RecordStatisticsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _RecordStatisticTile(
-          kind: RecordMetricKind.specimens,
-          value: totals.specimenCount.toString(),
-          tier: _RecordTileTier.hero,
-        ),
-        const SizedBox(height: NahpuSpacing.sm),
-        _RecordMetricRow(
-          tier: _RecordTileTier.primary,
-          metrics: [
-            (RecordMetricKind.species, totals.speciesCount.toString()),
-            (RecordMetricKind.families, totals.familyCount.toString()),
-          ],
-        ),
-        const SizedBox(height: NahpuSpacing.sm),
-        Column(
-          key: const ValueKey('record-stat-secondary'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _RecordMetricRow(
-              tier: _RecordTileTier.secondary,
-              metrics: [
-                (
-                  RecordMetricKind.recordedSites,
-                  totals.recordedSiteCount.toString(),
+        Expanded(
+          flex: 5,
+          child: Column(
+            key: const ValueKey('record-stat-taxa'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                flex: 3,
+                child: _RecordStatisticTile(
+                  kind: RecordMetricKind.specimens,
+                  value: totals.specimenCount.toString(),
+                  tier: _RecordTileTier.hero,
                 ),
-                (RecordMetricKind.events, totals.eventCount.toString()),
-              ],
-            ),
-            const SizedBox(height: NahpuSpacing.sm),
-            _RecordMetricRow(
-              tier: _RecordTileTier.secondary,
-              metrics: [
-                (RecordMetricKind.narratives, totals.narrativeCount.toString()),
-                (
-                  RecordMetricKind.projectDays,
-                  _formatProjectDays(totals.totalDays),
+              ),
+              const SizedBox(height: NahpuSpacing.xs),
+              Expanded(
+                flex: 2,
+                child: _RecordMetricRow(
+                  tier: _RecordTileTier.primary,
+                  spacing: NahpuSpacing.xs,
+                  metrics: [
+                    (RecordMetricKind.species, totals.speciesCount.toString()),
+                    (RecordMetricKind.families, totals.familyCount.toString()),
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.md),
+        Expanded(
+          flex: 4,
+          child: Column(
+            key: const ValueKey('record-stat-secondary'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _RecordMetricRow(
+                  tier: _RecordTileTier.secondary,
+                  metrics: [
+                    (
+                      RecordMetricKind.recordedSites,
+                      totals.recordedSiteCount.toString(),
+                    ),
+                    (RecordMetricKind.events, totals.eventCount.toString()),
+                  ],
+                ),
+              ),
+              const SizedBox(height: NahpuSpacing.xs),
+              Expanded(
+                child: _RecordMetricRow(
+                  tier: _RecordTileTier.secondary,
+                  metrics: [
+                    (
+                      RecordMetricKind.narratives,
+                      totals.narrativeCount.toString(),
+                    ),
+                    (
+                      RecordMetricKind.projectDays,
+                      _formatProjectDays(totals.totalDays),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-/// A row of equally sized record tiles that share one height.
+/// A row of equally sized record tiles that fill the height they are given.
 class _RecordMetricRow extends StatelessWidget {
-  const _RecordMetricRow({required this.metrics, required this.tier});
+  const _RecordMetricRow({
+    required this.metrics,
+    required this.tier,
+    this.spacing = NahpuSpacing.sm,
+  });
 
   final List<(RecordMetricKind, String)> metrics;
   final _RecordTileTier tier;
+  final double spacing;
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var index = 0; index < metrics.length; index++) ...[
-            if (index > 0) const SizedBox(width: NahpuSpacing.sm),
-            Expanded(
-              child: _RecordStatisticTile(
-                kind: metrics[index].$1,
-                value: metrics[index].$2,
-                tier: tier,
-              ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < metrics.length; index++) ...[
+          if (index > 0) SizedBox(width: spacing),
+          Expanded(
+            child: _RecordStatisticTile(
+              kind: metrics[index].$1,
+              value: metrics[index].$2,
+              tier: tier,
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }
@@ -295,10 +322,8 @@ class _RecordStatisticTile extends StatelessWidget {
         alignment: Alignment.center,
         padding: _padding,
         decoration: BoxDecoration(
-          color: isSecondary
-              ? colorScheme.surfaceContainerLow
-              : colorScheme.secondaryContainer.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.circular(NahpuRadius.md),
+          color: _fill(colorScheme),
+          borderRadius: BorderRadius.circular(_radius),
           border: Border.all(color: colorScheme.outlineVariant),
         ),
         child: Column(
@@ -333,18 +358,35 @@ class _RecordStatisticTile extends StatelessWidget {
     );
   }
 
+  /// Corner radius grows with the tier so the tiles read as one bento grid.
+  double get _radius => switch (tier) {
+    _RecordTileTier.hero => NahpuRadius.lg,
+    _RecordTileTier.primary => NahpuRadius.md,
+    _RecordTileTier.secondary => NahpuRadius.sm,
+  };
+
+  Color _fill(ColorScheme colorScheme) => switch (tier) {
+    _RecordTileTier.hero => colorScheme.secondaryContainer.withValues(
+      alpha: 0.28,
+    ),
+    _RecordTileTier.primary => colorScheme.secondaryContainer.withValues(
+      alpha: 0.16,
+    ),
+    _RecordTileTier.secondary => colorScheme.surfaceContainerLow,
+  };
+
   EdgeInsets get _padding => switch (tier) {
     _RecordTileTier.hero => const EdgeInsets.symmetric(
-      vertical: NahpuSpacing.sm,
+      vertical: NahpuSpacing.xs,
       horizontal: NahpuSpacing.lg,
     ),
     _RecordTileTier.primary => const EdgeInsets.symmetric(
-      vertical: NahpuSpacing.sm,
+      vertical: NahpuSpacing.xs,
       horizontal: NahpuSpacing.sm,
     ),
     _RecordTileTier.secondary => const EdgeInsets.symmetric(
       vertical: NahpuSpacing.xs,
-      horizontal: NahpuSpacing.xxs,
+      horizontal: NahpuSpacing.xs,
     ),
   };
 

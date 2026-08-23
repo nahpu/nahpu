@@ -1,3 +1,5 @@
+import 'package:nahpu/styles/design_tokens.dart';
+
 double get topSpecimenRecordHeight => double.infinity;
 
 double get bottomSpecimenRecordHeight => 580;
@@ -10,4 +12,4 @@ double get bottomSiteHeight => bottomSpecimenRecordHeight;
 
 double get topDashboardHeight => 470;
 
-double get bottomDashboardHeight => 470;
+double get bottomDashboardHeight => NahpuDashboardPanel.rowHeight;

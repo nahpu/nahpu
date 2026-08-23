@@ -1037,13 +1037,21 @@ void main() {
 
 void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
   final colorScheme = theme.colorScheme;
+  final heroBackground = colorScheme.secondaryContainer.withValues(alpha: 0.28);
   final emphasisBackground = colorScheme.secondaryContainer.withValues(
     alpha: 0.16,
   );
   final emphasisForeground = colorScheme.onSecondaryContainer;
 
-  for (final kind in const [
+  _expectTileColors(
+    tester,
     RecordMetricKind.specimens,
+    background: heroBackground,
+    countColor: emphasisForeground,
+    labelColor: emphasisForeground,
+    hasIcon: false,
+  );
+  for (final kind in const [
     RecordMetricKind.species,
     RecordMetricKind.families,
   ]) {
@@ -1056,13 +1064,15 @@ void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
       hasIcon: false,
     );
   }
-  expect(
-    _contrastRatio(
-      emphasisForeground,
-      Color.alphaBlend(emphasisBackground, colorScheme.surface),
-    ),
-    greaterThanOrEqualTo(4.5),
-  );
+  for (final background in [heroBackground, emphasisBackground]) {
+    expect(
+      _contrastRatio(
+        emphasisForeground,
+        Color.alphaBlend(background, colorScheme.surface),
+      ),
+      greaterThanOrEqualTo(4.5),
+    );
+  }
 
   for (final kind in const [
     RecordMetricKind.recordedSites,

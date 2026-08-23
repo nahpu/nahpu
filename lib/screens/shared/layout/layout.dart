@@ -147,9 +147,9 @@ class DashboardPanelBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(
-        minHeight: 360,
-        maxHeight: 360,
-        maxWidth: 460,
+        minHeight: NahpuDashboardPanel.height,
+        maxHeight: NahpuDashboardPanel.height,
+        maxWidth: NahpuDashboardPanel.maxWidth,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,14 +161,16 @@ class DashboardPanelBody extends StatelessWidget {
                 Align(
                   alignment: contentAlignment,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
+                    constraints: const BoxConstraints(
+                      maxWidth: NahpuDashboardPanel.contentMaxWidth,
+                    ),
                     child: content,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: NahpuSpacing.xl),
           Align(alignment: Alignment.center, child: actions),
         ],
       ),

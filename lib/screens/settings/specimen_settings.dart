@@ -141,35 +141,68 @@ class SpecimenSexSetting extends ConsumerWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 12, 8, 16),
-          child: ref
-              .watch(specimenSexVocabularyProvider)
-              .when(
-                data: (enabled) => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    for (final sex in defaultSpecimenSexes)
-                      Chip(label: Text(specimenSexLabel[sex]!)),
-                    for (final sex in optionalSpecimenSexes)
-                      if (enabled.contains(sex))
-                        InputChip(
-                          label: Text(specimenSexLabel[sex]!),
-                          onDeleted: () => _remove(context, ref, sex),
-                        )
-                      else
-                        ActionChip(
-                          avatar: const Icon(Icons.add, size: 18),
-                          label: Text(specimenSexLabel[sex]!),
-                          onPressed: () => _add(ref, sex),
-                        ),
-                  ],
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ref
+                .watch(specimenSexVocabularyProvider)
+                .when(
+                  data: (enabled) => _SpecimenSexOptions(enabled: enabled),
+                  loading: () => const Center(child: CommonProgressIndicator()),
+                  error: (error, _) =>
+                      Text('Unable to load sex options: $error'),
                 ),
-                loading: () => const Center(child: CommonProgressIndicator()),
-                error: (error, _) => Text('Unable to load sex options: $error'),
-              ),
+          ),
         ),
+      ],
+    );
+  }
+}
+
+/// Sex options split into the terms currently in use and the ones that can
+/// still be added.
+class _SpecimenSexOptions extends ConsumerWidget {
+  const _SpecimenSexOptions({required this.enabled});
+
+  final List<SpecimenSex> enabled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final additional = optionalSpecimenSexes
+        .where((sex) => !enabled.contains(sex))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SpecimenSexGroup(
+          title: 'Selected',
+          children: [
+            for (final sex in defaultSpecimenSexes)
+              Chip(label: Text(specimenSexLabel[sex]!)),
+            for (final sex in optionalSpecimenSexes)
+              if (enabled.contains(sex))
+                InputChip(
+                  label: Text(specimenSexLabel[sex]!),
+                  onDeleted: () => _remove(context, ref, sex),
+                ),
+          ],
+        ),
+        if (additional.isNotEmpty) ...[
+          const SizedBox(height: NahpuSpacing.lg),
+          _SpecimenSexGroup(
+            title: 'Additional options',
+            children: [
+              for (final sex in additional)
+                ActionChip(
+                  avatar: const Icon(Icons.add, size: 18),
+                  label: Text(specimenSexLabel[sex]!),
+                  onPressed: () => _add(ref, sex),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -214,6 +247,32 @@ class SpecimenSexSetting extends ConsumerWidget {
         .removeOption(specimenSexPrefKey, specimenSexLabel[sex]!);
     ref.invalidate(specimenSexVocabularyProvider);
     ref.invalidate(userDefinedFieldProvider(specimenSexPrefKey));
+  }
+}
+
+/// One labeled row of sex chips that fills the section width.
+class _SpecimenSexGroup extends StatelessWidget {
+  const _SpecimenSexGroup({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.md),
+        Wrap(spacing: 8, runSpacing: 8, children: children),
+      ],
+    );
   }
 }
 

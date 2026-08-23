@@ -55,6 +55,16 @@ abstract final class NahpuBreakpoints {
   static const double desktop = 900;
 }
 
+/// Fixed geometry for dashboard panels so every panel lines up.
+abstract final class NahpuDashboardPanel {
+  static const double height = 360;
+  static const double maxWidth = 460;
+  static const double contentMaxWidth = 420;
+
+  /// Height of a dashboard row: one panel plus the card title and padding.
+  static const double rowHeight = 470;
+}
+
 abstract final class NahpuContentWidth {
   static const double form = 600;
   static const double projectForm = 720;
