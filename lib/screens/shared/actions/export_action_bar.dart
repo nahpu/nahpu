@@ -10,12 +10,6 @@ import 'package:path/path.dart' as p;
 
 /// The one place an export says where its file goes, and the only place it
 /// offers to share it.
-///
-/// Every export screen used to answer "where did it go?" differently, and two
-/// of them grew a second Share button. Folding the destination, the result,
-/// and Share into one container keeps the answer in one spot and makes the
-/// mobile story — the file is in app storage, Share is how you get it out —
-/// something the screen actually says rather than something the user guesses.
 class ExportLocationCard extends StatelessWidget {
   ExportLocationCard({
     super.key,
@@ -34,7 +28,6 @@ class ExportLocationCard extends StatelessWidget {
 
   final Directory? selectedDir;
 
-  /// The written file, or null before the first successful export.
   final File? output;
 
   final VoidCallback onSelectDir;
@@ -42,14 +35,12 @@ class ExportLocationCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onOpenFolder;
 
-  /// Clears the result and returns the card to its destination state.
   final VoidCallback onDismiss;
 
   final int? outputBytes;
   final Duration? duration;
   final bool enabled;
 
-  /// Split out from [systemPlatform] so both branches are reachable in tests.
   final bool isDesktop;
 
   @override
@@ -187,11 +178,6 @@ class ExportLocationCard extends StatelessWidget {
   }
 }
 
-/// The footer every export screen ends with: the one button that writes the
-/// file.
-///
-/// The destination sits with the rest of the file settings rather than here,
-/// so the settings column carries its own answer to "where does this go?".
 class ExportActionBar extends StatelessWidget {
   const ExportActionBar({
     super.key,
@@ -204,10 +190,8 @@ class ExportActionBar extends StatelessWidget {
     required this.hasOutput,
   });
 
-  /// Wording before anything has been written, such as `Export project`.
   final String label;
 
-  /// Wording once a file exists, such as `Export another`.
   final String repeatLabel;
 
   final IconData icon;

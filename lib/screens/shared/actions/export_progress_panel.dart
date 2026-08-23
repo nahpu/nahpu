@@ -7,12 +7,6 @@ import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as p;
 
-/// Shows what a long export is doing while it runs.
-///
-/// A spinner on the export button cannot tell a user whether a five minute
-/// backup is copying media, compressing, or stuck. This panel replaces the
-/// settings card for the duration and names the stage, the counts, the bytes,
-/// and the time, so a slow run reads as slow rather than broken.
 class ExportProgressPanel extends StatefulWidget {
   const ExportProgressPanel({
     super.key,
@@ -26,7 +20,6 @@ class ExportProgressPanel extends StatefulWidget {
   final String title;
   final ExportJobProgress progress;
 
-  /// Calm note about how long the job may take, shown under the counters.
   final String? hint;
 
   final VoidCallback? onCancel;
@@ -44,9 +37,6 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
   void initState() {
     super.initState();
     _stopwatch.start();
-    // The elapsed clock runs off its own ticker rather than the progress stream.
-    // A stage that hands its work to one long call emits nothing for minutes,
-    // and a frozen clock is exactly what a hung app looks like.
     _ticker = Timer.periodic(
       const Duration(seconds: 1),
       (_) => setState(() {}),
@@ -148,7 +138,6 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
     );
   }
 
-  /// Joins whichever of the counts, size, and elapsed time are known.
   String _statusLine() {
     final detail = widget.progress.detail;
     final parts = <String>[];
@@ -170,10 +159,6 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
   }
 }
 
-/// Lists the stages of a job and marks which one is running.
-///
-/// Seeing four named steps turns a long wait into "step 3 of 4" instead of an
-/// unexplained pause.
 class ExportPhaseStepper extends StatelessWidget {
   const ExportPhaseStepper({super.key, required this.progress});
 
@@ -278,10 +263,6 @@ class _ExportPhaseTile extends StatelessWidget {
   }
 }
 
-/// The state a finished job leaves behind, in place of a passing snack bar.
-///
-/// A job that ran for minutes deserves a result the user can still read after
-/// looking away, including what was written and how big it turned out.
 class ExportResultPanel extends StatelessWidget {
   const ExportResultPanel({
     super.key,
@@ -297,7 +278,6 @@ class ExportResultPanel extends StatelessWidget {
 
   final ExportOutcome outcome;
 
-  /// Wording for a completed job, such as `Backup saved`.
   final String successTitle;
 
   final File? output;
@@ -305,7 +285,6 @@ class ExportResultPanel extends StatelessWidget {
   final Duration? duration;
   final String? errorMessage;
 
-  /// Stage the job was in when it failed, so the message says where it stopped.
   final String? failedStepLabel;
 
   final VoidCallback? onRetry;
