@@ -19,6 +19,7 @@ import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/styles/themes.dart';
 
 /// A shared, read-only coordinate map. Selecting a marker reports the
 /// corresponding coordinate to the owner; it never creates or edits points.
@@ -330,6 +331,11 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
   final _readiness = MapLibreCameraReadiness();
   CoordinateMapPoint? _tooltipPoint;
 
+  /// Built once per state. [maplibre.MapOptions] compares by identity, so a
+  /// fresh instance on every build makes the web view backend re-apply the
+  /// options, which throws while its controller is still being created.
+  late final maplibre.MapOptions _options = _buildOptions();
+
   bool get _isReady => mounted && _readiness.isReady;
 
   @override
@@ -364,29 +370,13 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
 
   @override
   Widget build(BuildContext context) {
-    final first = widget.points.firstOrNull;
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Stack(
         children: [
           maplibre.MapLibreMap(
             gestureRecognizers: {...mapLibreGestureRecognizers()},
-            options: maplibre.MapOptions(
-              initStyle: widget.style,
-              initCenter: maplibre.Geographic(
-                lon: first?.longitude ?? 0,
-                lat: first?.latitude ?? 18,
-              ),
-              initZoom: widget.points.length == 1 ? 12 : 1.5,
-              minZoom: 1,
-              maxZoom: 16,
-              gestures: const maplibre.MapGestures(
-                pan: true,
-                zoom: true,
-                rotate: false,
-                pitch: false,
-              ),
-            ),
+            options: _options,
             onMapCreated: (controller) {
               if (!mounted) return;
               _controller = controller;
@@ -441,6 +431,26 @@ class _MapLibreCoordinateMapState extends State<_MapLibreCoordinateMap> {
           if (widget.points.isEmpty)
             const Positioned.fill(child: _MapMessage()),
         ],
+      ),
+    );
+  }
+
+  maplibre.MapOptions _buildOptions() {
+    final first = widget.points.firstOrNull;
+    return maplibre.MapOptions(
+      initStyle: widget.style,
+      initCenter: maplibre.Geographic(
+        lon: first?.longitude ?? 0,
+        lat: first?.latitude ?? 18,
+      ),
+      initZoom: widget.points.length == 1 ? 12 : 1.5,
+      minZoom: 1,
+      maxZoom: 16,
+      gestures: const maplibre.MapGestures(
+        pan: true,
+        zoom: true,
+        rotate: false,
+        pitch: false,
       ),
     );
   }
@@ -650,7 +660,7 @@ class _MapMarker extends StatelessWidget {
               ? 28
               : 26,
           color: focused
-              ? _focusedMarkerColor(Theme.of(context).colorScheme)
+              ? NahpuTheme.focusedMapMarker(Theme.of(context).colorScheme)
               : selected
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -659,11 +669,6 @@ class _MapMarker extends StatelessWidget {
     ),
   );
 }
-
-Color _focusedMarkerColor(ColorScheme colorScheme) =>
-    colorScheme.brightness == Brightness.dark
-    ? const Color(0xFF90CAF9)
-    : const Color(0xFF1565C0);
 
 class _NaturalEarthAttribution extends StatelessWidget {
   const _NaturalEarthAttribution();
