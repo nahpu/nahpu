@@ -24,6 +24,22 @@ class _PushCountingObserver extends NavigatorObserver {
   }
 }
 
+/// A page whose [State] carries a value, so a test can tell whether the shell
+/// preserved the page element or rebuilt the subtree from scratch.
+class _StateProbe extends StatefulWidget {
+  const _StateProbe();
+
+  @override
+  State<_StateProbe> createState() => _StateProbeState();
+}
+
+class _StateProbeState extends State<_StateProbe> {
+  int pageCount = 0;
+
+  @override
+  Widget build(BuildContext context) => Text('PROBE-$pageCount');
+}
+
 // Lightweight stand-ins for the five real project screens, which would
 // otherwise pull in the database/provider stack.
 const _pages = [
@@ -37,6 +53,7 @@ const _pages = [
 Future<_PushCountingObserver> _pumpShell(
   WidgetTester tester, {
   Size size = const Size(800, 600),
+  List<Widget> pages = _pages,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -73,7 +90,7 @@ Future<_PushCountingObserver> _pumpShell(
       container: container,
       child: MaterialApp(
         navigatorObservers: [observer],
-        home: const ProjectShell(pages: _pages),
+        home: ProjectShell(pages: pages),
       ),
     ),
   );
@@ -122,6 +139,33 @@ void main() {
     // preserves per-screen state across tab switches.
     expect(find.text('PAGE-Dashboard', skipOffstage: false), findsOneWidget);
     expect(find.text('PAGE-Narrative'), findsOneWidget);
+  });
+
+  testWidgets('resizing across the rail breakpoint keeps page state alive', (
+    tester,
+  ) async {
+    await _pumpShell(
+      tester,
+      size: const Size(1200, 900),
+      pages: const [_StateProbe()],
+    );
+    expect(find.byType(NavigationRail), findsOneWidget);
+
+    // Stands in for state a screen builds up after it loads, such as the
+    // record viewer's page counter.
+    tester.state<_StateProbeState>(find.byType(_StateProbe)).pageCount = 3;
+
+    // Crossing the breakpoint swaps the body between a bare stack and a Row.
+    // The page stack must be reparented, not rebuilt.
+    tester.view.physicalSize = const Size(800, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('PROBE-3'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(1200, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('PROBE-3'), findsOneWidget);
   });
 
   testWidgets('uses a collapsed labeled rail on large screens', (tester) async {

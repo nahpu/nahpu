@@ -44,16 +44,15 @@ class NarrativeEntry extends AsyncNotifier<List<NarrativeData>> {
 
 final narrativeMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, narrativeId) async {
+      final database = ref.read(databaseProvider);
       List<NarrativeMediaData> mediaList = await NarrativeQuery(
-        ref.read(databaseProvider),
+        database,
       ).getNarrativeMedia(narrativeId);
       List<MediaData> mediaDataList = [];
       for (NarrativeMediaData media in mediaList) {
         if (media.mediaId != null) {
           mediaDataList.add(
-            await MediaDbQuery(
-              ref.read(databaseProvider),
-            ).getMedia(media.mediaId!),
+            await MediaDbQuery(database).getMedia(media.mediaId!),
           );
         }
       }

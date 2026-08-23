@@ -207,8 +207,12 @@ List<String> getDefaultOptionsList(String prefKey) {
   }
 }
 
+// App-wide settings notifiers are kept alive, like [themeSettingProvider].
+// They are written by one-off `ref.read`s from transient screens such as the
+// create-project wizard; auto-disposing them tears the notifier down between
+// the read and the write, leaving `set` running on a disposed Ref.
 final catalogFmtNotifierProvider =
-    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
+    AsyncNotifierProvider<CatalogFmtNotifier, CatalogFmt>(
       CatalogFmtNotifier.new,
     );
 
@@ -266,12 +270,15 @@ final textCaseFmtProvider = FutureProvider.family
     });
 
 final fieldIdModeNotifierProvider =
-    AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
+    AsyncNotifierProvider<FieldIdModeNotifier, FieldIdMode>(
       FieldIdModeNotifier.new,
     );
 
 class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
+    // Read the preferences before the first await, so the fetch never reaches
+    // for `ref` across an async gap.
+    final prefs = ref.watch(settingProvider);
     final fieldIdModeString = await rust_config.getUserConfigString(
       key: fieldIdModePrefKey,
     );
@@ -279,7 +286,6 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
     final fieldIdMode = FieldIdMode.values.byName(
       fieldIdModeString ?? FieldIdMode.personnel.name,
     );
-    final prefs = ref.read(settingProvider);
     final defaultMigrated =
         prefs.getBool(fieldIdModeDefaultMigratedPrefKey) ?? false;
     if (!defaultMigrated) {
@@ -329,10 +335,9 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
 }
 
 final projectFieldIdAutoIncrementProvider =
-    AsyncNotifierProvider.autoDispose<
-      ProjectFieldIdAutoIncrementNotifier,
-      bool
-    >(ProjectFieldIdAutoIncrementNotifier.new);
+    AsyncNotifierProvider<ProjectFieldIdAutoIncrementNotifier, bool>(
+      ProjectFieldIdAutoIncrementNotifier.new,
+    );
 
 class ProjectFieldIdAutoIncrementNotifier extends AsyncNotifier<bool> {
   @override

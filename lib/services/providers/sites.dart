@@ -33,9 +33,10 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (state.value == null) return [];
+      final database = ref.read(databaseProvider);
       final sites = await _fetchSiteEntry();
       final attributes = await SiteQuery(
-        ref.read(databaseProvider),
+        database,
       ).getSiteAttributes(sites.map((site) => site.id));
       final filteredSites = SiteSearchServices(
         siteEntries: sites,
@@ -69,13 +70,14 @@ final coordinateByProjectProvider =
 
 final coordinateByEventProvider = FutureProvider.family
     .autoDispose<List<CoordinateData>, int>((ref, collEventId) async {
+      final database = ref.read(databaseProvider);
       final collEvent = await CollEventQuery(
-        ref.read(databaseProvider),
+        database,
       ).getCollEventById(collEventId);
       if (collEvent.siteID != null) {
         final siteId = collEvent.siteID!;
         final coordinates = CoordinateQuery(
-          ref.read(databaseProvider),
+          database,
         ).getCoordinatesBySiteID(siteId);
         return coordinates;
       } else {
@@ -85,16 +87,15 @@ final coordinateByEventProvider = FutureProvider.family
 
 final siteMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, siteId) async {
+      final database = ref.read(databaseProvider);
       List<SiteMediaData> mediaList = await SiteQuery(
-        ref.read(databaseProvider),
+        database,
       ).getSiteMedia(siteId);
       List<MediaData> mediaDataList = [];
       for (SiteMediaData media in mediaList) {
         if (media.mediaId != null) {
           mediaDataList.add(
-            await MediaDbQuery(
-              ref.read(databaseProvider),
-            ).getMedia(media.mediaId!),
+            await MediaDbQuery(database).getMedia(media.mediaId!),
           );
         }
       }
@@ -104,15 +105,14 @@ final siteMediaProvider = FutureProvider.family
 final siteInEventProvider = FutureProvider.autoDispose<List<SiteData>>((
   ref,
 ) async {
+  final database = ref.read(databaseProvider);
   List<int?> siteList = await CollEventQuery(
-    ref.read(databaseProvider),
+    database,
   ).getAllDistinctSites(ref.read(projectUuidProvider));
   List<SiteData> siteDataList = [];
   for (int? siteId in siteList) {
     if (siteId != null) {
-      siteDataList.add(
-        await SiteQuery(ref.read(databaseProvider)).getSiteById(siteId),
-      );
+      siteDataList.add(await SiteQuery(database).getSiteById(siteId));
     }
   }
   return siteDataList;

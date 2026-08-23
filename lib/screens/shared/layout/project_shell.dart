@@ -60,8 +60,20 @@ class ProjectShell extends ConsumerStatefulWidget {
 class _ProjectShellState extends ConsumerState<ProjectShell> {
   bool _isProjectMenuOpen = false;
 
+  /// Keeps the page stack's element — and every screen's [State] under it —
+  /// alive when the rail breakpoint swaps the body between a bare stack and a
+  /// [Row]. Without it the whole subtree is rebuilt from scratch on resize,
+  /// resetting record navigation, search, and scroll state.
+  final GlobalKey _pageStackKey = GlobalKey();
+
+  /// Whether the shell itself is the visible route. A dialog or a pushed page
+  /// takes focus and swallows taps that land outside the panel; neither is the
+  /// user dismissing the menu. Closing it there unmounts the panel — and the
+  /// tile whose `ref` and `context` the running action still depends on.
+  bool get _isShellRouteCurrent => ModalRoute.isCurrentOf(context) ?? true;
+
   void _closeProjectMenu() {
-    if (_isProjectMenuOpen) {
+    if (_isProjectMenuOpen && _isShellRouteCurrent) {
       setState(() => _isProjectMenuOpen = false);
     }
   }
@@ -86,7 +98,11 @@ class _ProjectShellState extends ConsumerState<ProjectShell> {
   }
 
   Widget _buildBody(bool useProjectRail, int index) {
-    final pageStack = IndexedStack(index: index, children: widget.pages);
+    final pageStack = IndexedStack(
+      key: _pageStackKey,
+      index: index,
+      children: widget.pages,
+    );
     if (!useProjectRail) return pageStack;
     return Row(
       children: [

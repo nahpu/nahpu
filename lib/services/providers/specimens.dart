@@ -60,16 +60,15 @@ final specimenPartEntryProvider =
 
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
+      final database = ref.read(databaseProvider);
       List<SpecimenMediaData> mediaList = await SpecimenQuery(
-        ref.read(databaseProvider),
+        database,
       ).getSpecimenMedia(specimenUuid);
       List<MediaData> mediaDataList = [];
       for (SpecimenMediaData media in mediaList) {
         if (media.mediaId != null) {
           mediaDataList.add(
-            await MediaDbQuery(
-              ref.read(databaseProvider),
-            ).getMedia(media.mediaId!),
+            await MediaDbQuery(database).getMedia(media.mediaId!),
           );
         }
       }
