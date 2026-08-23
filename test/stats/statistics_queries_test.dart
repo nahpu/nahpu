@@ -435,6 +435,18 @@ void main() {
     expect(updatedTotals.totalCaptureDays, 0);
   });
 
+  test('record totals treat blank project dates as not recorded', () async {
+    await (db.update(
+      db.project,
+    )..where((project) => project.uuid.equals('project-b'))).write(
+      const ProjectCompanion(startDate: Value(' '), endDate: Value('')),
+    );
+
+    final totals = await query.watchRecordTotals('project-b').first;
+
+    expect(totals.totalDays, equals(null));
+  });
+
   test(
     'capture days expand linked event ranges and deduplicate overlaps',
     () async {

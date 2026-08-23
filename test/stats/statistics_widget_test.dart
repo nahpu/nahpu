@@ -21,7 +21,11 @@ void main() {
   testWidgets('record statistics panel shows project record counts', (
     tester,
   ) async {
-    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(600, 600),
+      includeProjectDates: true,
+    );
 
     expect(find.text('Record Statistics'), findsOneWidget);
     expect(find.text('Record counts'), findsNothing);
@@ -48,8 +52,21 @@ void main() {
     _expectRecordMetric(tester, RecordMetricKind.sites, count: 2);
     _expectRecordMetric(tester, RecordMetricKind.events, count: 3);
     _expectRecordMetric(tester, RecordMetricKind.narratives, count: 5);
+    _expectRecordMetric(tester, RecordMetricKind.projectDays, count: 3);
     expect(find.text('Explore more stats'), findsOneWidget);
     expect(find.text('Open statistics'), findsNothing);
+  });
+
+  testWidgets('record statistics shows not recorded project days', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(600, 600));
+
+    _expectRecordMetricValue(
+      tester,
+      RecordMetricKind.projectDays,
+      value: 'Not recorded',
+    );
   });
 
   testWidgets('record statistics preserves its hierarchy on narrow panels', (
@@ -217,7 +234,7 @@ void main() {
     }
   });
 
-  testWidgets('full-screen summary omits total days without project dates', (
+  testWidgets('full-screen summary shows not recorded without project dates', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(599, 1200));
@@ -225,7 +242,8 @@ void main() {
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Project days'), findsNothing);
+    expect(find.text('Project days'), findsOneWidget);
+    expect(find.text('Not recorded'), findsWidgets);
     expect(find.text('Capture days'), findsOneWidget);
   });
 
@@ -978,13 +996,27 @@ void _expectRecordMetric(
   required int count,
   bool expectIcon = true,
 }) {
+  _expectRecordMetricValue(
+    tester,
+    kind,
+    value: count.toString(),
+    expectIcon: expectIcon,
+  );
+}
+
+void _expectRecordMetricValue(
+  WidgetTester tester,
+  RecordMetricKind kind, {
+  required String value,
+  bool expectIcon = true,
+}) {
   final metric = find.byKey(kind.dashboardKey);
   expect(
     find.descendant(of: metric, matching: find.text(kind.label)),
     findsOneWidget,
   );
   expect(
-    find.descendant(of: metric, matching: find.text(count.toString())),
+    find.descendant(of: metric, matching: find.text(value)),
     findsOneWidget,
   );
   expect(

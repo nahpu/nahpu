@@ -16,6 +16,9 @@ import 'package:nahpu/styles/design_tokens.dart';
 const int topStatisticCount = 5;
 const int _pieChartCategoryThreshold = 5;
 
+String _formatProjectDays(int? totalDays) =>
+    totalDays?.toString() ?? 'Not recorded';
+
 class StatisticViewer extends ConsumerWidget {
   const StatisticViewer({super.key});
 
@@ -30,7 +33,9 @@ class StatisticViewer extends ConsumerWidget {
       child: DashboardPanelBody(
         contentAlignment: Alignment.center,
         content: totals.when(
-          data: (value) => _RecordStatisticsSummary(totals: value),
+          data: (value) => SingleChildScrollView(
+            child: _RecordStatisticsSummary(totals: value),
+          ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stackTrace) => Center(
             child: Column(
@@ -79,7 +84,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
       children: [
         _RecordStatisticTile(
           kind: RecordMetricKind.specimens,
-          count: totals.specimenCount,
+          value: totals.specimenCount.toString(),
           tier: _RecordTileTier.hero,
         ),
         const SizedBox(height: NahpuSpacing.md),
@@ -90,7 +95,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
               Expanded(
                 child: _RecordStatisticTile(
                   kind: RecordMetricKind.species,
-                  count: totals.speciesCount,
+                  value: totals.speciesCount.toString(),
                   tier: _RecordTileTier.primary,
                 ),
               ),
@@ -98,7 +103,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
               Expanded(
                 child: _RecordStatisticTile(
                   kind: RecordMetricKind.families,
-                  count: totals.familyCount,
+                  value: totals.familyCount.toString(),
                   tier: _RecordTileTier.primary,
                 ),
               ),
@@ -106,35 +111,40 @@ class _RecordStatisticsSummary extends StatelessWidget {
           ),
         ),
         const SizedBox(height: NahpuSpacing.md),
-        IntrinsicHeight(
+        SizedBox(
           key: const ValueKey('record-stat-secondary'),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _RecordStatisticTile(
-                  kind: RecordMetricKind.sites,
-                  count: totals.siteCount,
-                  tier: _RecordTileTier.secondary,
+          width: double.infinity,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = NahpuSpacing.md;
+              final columns = constraints.maxWidth >= 480 ? 3 : 2;
+              final itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              final metrics = [
+                (RecordMetricKind.sites, totals.siteCount.toString()),
+                (RecordMetricKind.events, totals.eventCount.toString()),
+                (RecordMetricKind.narratives, totals.narrativeCount.toString()),
+                (
+                  RecordMetricKind.projectDays,
+                  _formatProjectDays(totals.totalDays),
                 ),
-              ),
-              const SizedBox(width: NahpuSpacing.md),
-              Expanded(
-                child: _RecordStatisticTile(
-                  kind: RecordMetricKind.events,
-                  count: totals.eventCount,
-                  tier: _RecordTileTier.secondary,
-                ),
-              ),
-              const SizedBox(width: NahpuSpacing.md),
-              Expanded(
-                child: _RecordStatisticTile(
-                  kind: RecordMetricKind.narratives,
-                  count: totals.narrativeCount,
-                  tier: _RecordTileTier.secondary,
-                ),
-              ),
-            ],
+              ];
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  for (final metric in metrics)
+                    SizedBox(
+                      width: itemWidth,
+                      child: _RecordStatisticTile(
+                        kind: metric.$1,
+                        value: metric.$2,
+                        tier: _RecordTileTier.secondary,
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -148,12 +158,12 @@ enum _RecordTileTier { hero, primary, secondary }
 class _RecordStatisticTile extends StatelessWidget {
   const _RecordStatisticTile({
     required this.kind,
-    required this.count,
+    required this.value,
     required this.tier,
   });
 
   final RecordMetricKind kind;
-  final int count;
+  final String value;
   final _RecordTileTier tier;
 
   @override
@@ -168,7 +178,7 @@ class _RecordStatisticTile extends StatelessWidget {
         ? colorScheme.onSurfaceVariant
         : colorScheme.onSecondaryContainer;
     final countText = Text(
-      count.toString(),
+      value,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.center,
@@ -177,7 +187,7 @@ class _RecordStatisticTile extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: '${kind.label}: $count',
+      label: '${kind.label}: $value',
       child: Container(
         key: kind.dashboardKey,
         width: double.infinity,
@@ -730,12 +740,11 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
                   kind: RecordMetricKind.captureDays,
                   value: totals.totalCaptureDays.toString(),
                 ),
-                if (totals.totalDays != null)
-                  _SummaryMetric(
-                    key: RecordMetricKind.projectDays.fullScreenKey,
-                    kind: RecordMetricKind.projectDays,
-                    value: totals.totalDays.toString(),
-                  ),
+                _SummaryMetric(
+                  key: RecordMetricKind.projectDays.fullScreenKey,
+                  kind: RecordMetricKind.projectDays,
+                  value: _formatProjectDays(totals.totalDays),
+                ),
                 _SummaryMetric(
                   key: RecordMetricKind.elevation.fullScreenKey,
                   kind: RecordMetricKind.elevation,
