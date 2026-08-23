@@ -7,6 +7,7 @@ import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -134,13 +135,16 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                 destination,
               ],
             );
-            final rightPane = _outcome != null && !_isSaving
-                ? ExportResultPanel(
+            // A finished export keeps the archive contents on screen: the
+            // location card already reports the file, so this pane stays on
+            // what the user came here to check.
+            final failed =
+                _outcome != null &&
+                _outcome != ExportOutcome.succeeded &&
+                !_isSaving;
+            final rightPane = failed
+                ? ExportFailurePanel(
                     outcome: _outcome!,
-                    successTitle: 'Project exported',
-                    output: _output,
-                    outputBytes: _outputBytes,
-                    duration: _runDuration,
                     errorMessage: _runError,
                     failedStepLabel: _failedStepLabel,
                     onRetry: _save,
@@ -398,71 +402,67 @@ class _SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Backup and transfer archive',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Use this archive to create a project backup, '
-              'transfer, or merge this project data to another device.',
-            ),
-            const SizedBox(height: 20),
-            if (!lightExport)
-              SegmentedButton<ProjectTransferArchiveFormat>(
-                segments: const [
-                  ButtonSegment(
-                    value: ProjectTransferArchiveFormat.tarGzip,
-                    label: Text('TAR.GZ'),
-                    icon: Icon(Icons.folder_zip_outlined),
-                  ),
-                  ButtonSegment(
-                    value: ProjectTransferArchiveFormat.zip,
-                    label: Text('ZIP'),
-                    icon: Icon(Icons.folder_zip_outlined),
-                  ),
-                ],
-                selected: {format},
-                onSelectionChanged: enabled
-                    ? (values) => onFormatChanged(values.single)
-                    : null,
-              ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Light export'),
-              subtitle: lightExport
-                  ? const Text(
-                      'Export the project without media files for limited-internet uploads. '
-                      'Use TAR.GZ or ZIP for a full project backup.',
-                    )
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Backup and transfer archive',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Use this archive to create a project backup, '
+            'transfer, or merge this project data to another device.',
+          ),
+          const SizedBox(height: 20),
+          if (!lightExport)
+            SegmentedButton<ProjectTransferArchiveFormat>(
+              segments: const [
+                ButtonSegment(
+                  value: ProjectTransferArchiveFormat.tarGzip,
+                  label: Text('TAR.GZ'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+                ButtonSegment(
+                  value: ProjectTransferArchiveFormat.zip,
+                  label: Text('ZIP'),
+                  icon: Icon(Icons.folder_zip_outlined),
+                ),
+              ],
+              selected: {format},
+              onSelectionChanged: enabled
+                  ? (values) => onFormatChanged(values.single)
                   : null,
-              value: lightExport,
-              onChanged: enabled ? onLightExportChanged : null,
             ),
-            const SizedBox(height: 20),
-            FileNameField(
-              controller: controller,
-              extension: lightExport
-                  ? ProjectTransferArchiveFormat.jsonGzip.extension
-                  : format.extension,
-              appendDate: appendDate,
-              enabled: enabled,
-              onChanged: onFileNameChanged,
-            ),
-            AppendDateSwitch(
-              value: appendDate,
-              enabled: enabled,
-              onChanged: onAppendDateChanged,
-            ),
-          ],
-        ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Light export'),
+            subtitle: lightExport
+                ? const Text(
+                    'Export the project without media files for limited-internet uploads. '
+                    'Use TAR.GZ or ZIP for a full project backup.',
+                  )
+                : null,
+            value: lightExport,
+            onChanged: enabled ? onLightExportChanged : null,
+          ),
+          const SizedBox(height: 20),
+          FileNameField(
+            controller: controller,
+            extension: lightExport
+                ? ProjectTransferArchiveFormat.jsonGzip.extension
+                : format.extension,
+            appendDate: appendDate,
+            enabled: enabled,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
+        ],
       ),
     );
   }
@@ -483,75 +483,71 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Archive contents',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            if (isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (error != null)
-              ErrorText(error: error!)
-            else ...[
-              for (final entry in payload!.summary.entries)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Icons.check_circle_outline_rounded),
-                  title: Text(entry.key),
-                  trailing: Text(
-                    entry.key == 'Media' && !includeMedia
-                        ? 'Excluded'
-                        : '${entry.value}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              if (includeMedia && payload!.mediaBytes > 0) ...[
-                const Divider(),
-                // Seeing the size up front is what tells the user whether this
-                // is a ten second export or a ten minute one.
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                  leading: const Icon(Icons.sd_storage_outlined),
-                  title: Text(
-                    'Media size',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  trailing: Text(
-                    formatByteSize(payload!.mediaBytes),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-              if (includeMedia && payload!.warnings.isNotEmpty) ...[
-                const Divider(),
-                Text(
-                  '${payload!.warnings.length} warning(s)',
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Archive contents',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          if (isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (error != null)
+            ErrorText(error: error!)
+          else ...[
+            for (final entry in payload!.summary.entries)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                leading: const Icon(Icons.check_circle_outline_rounded),
+                title: Text(entry.key),
+                trailing: Text(
+                  entry.key == 'Media' && !includeMedia
+                      ? 'Excluded'
+                      : '${entry.value}',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 8),
-                for (final warning in payload!.warnings)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $warning'),
-                  ),
-              ],
+              ),
+            if (includeMedia && payload!.mediaBytes > 0) ...[
+              const Divider(),
+              // Seeing the size up front is what tells the user whether this
+              // is a ten second export or a ten minute one.
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                leading: const Icon(Icons.sd_storage_outlined),
+                title: Text(
+                  'Media size',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                trailing: Text(
+                  formatByteSize(payload!.mediaBytes),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+            if (includeMedia && payload!.warnings.isNotEmpty) ...[
+              const Divider(),
+              Text(
+                '${payload!.warnings.length} warning(s)',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              for (final warning in payload!.warnings)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text('• $warning'),
+                ),
             ],
           ],
-        ),
+        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -149,7 +150,7 @@ class _RecordSelectionSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsPaneCard(
+    return NahpuPanel(
       child: Row(
         children: [
           Expanded(
@@ -193,7 +194,7 @@ class _FileSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsPaneCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -213,25 +214,6 @@ class _FileSettingsSection extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SettingsPaneCard extends StatelessWidget {
-  const _SettingsPaneCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: child,
     );
   }
 }
@@ -321,13 +303,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   Widget build(BuildContext context) {
     const isContinuous = false;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/settings/export_presets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
@@ -352,41 +353,32 @@ class _PresetPicker extends StatelessWidget {
         ),
       );
     }
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<String>(
-              initialValue: selectedPresetName,
-              decoration: const InputDecoration(
-                labelText: 'Export preset',
-                helperText:
-                    'Record type, headers, and field mappings are set by the preset.',
-              ),
-              items: presets.keys
-                  .map(
-                    (name) => DropdownMenuItem(value: name, child: Text(name)),
-                  )
-                  .toList(growable: false),
-              onChanged: onPresetChanged,
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedPresetName,
+            decoration: const InputDecoration(
+              labelText: 'Export preset',
+              helperText:
+                  'Record type, headers, and field mappings are set by the preset.',
             ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: onManagePresets,
-                icon: const Icon(Icons.settings_outlined, size: 16),
-                label: const Text('Manage presets'),
-              ),
+            items: presets.keys
+                .map((name) => DropdownMenuItem(value: name, child: Text(name)))
+                .toList(growable: false),
+            onChanged: onPresetChanged,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onManagePresets,
+              icon: const Icon(Icons.settings_outlined, size: 16),
+              label: const Text('Manage presets'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -181,14 +182,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     final colors = Theme.of(context).colorScheme;
     return Container(
       key: const ValueKey('project-transfer-step-rail'),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withAlpha(80),
-        border: Border.all(
-          color: colors.outlineVariant,
-          width: NahpuStroke.thin,
-        ),
-        borderRadius: BorderRadius.circular(NahpuRadius.lg),
-      ),
+      decoration: NahpuPanel.decorationOf(context),
       child: ListView.builder(
         padding: const EdgeInsets.all(NahpuSpacing.lg),
         itemCount: _steps.length,
@@ -304,7 +298,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _RoundedCard(
+        NahpuPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -371,7 +365,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           _existingProjectCard(_existingProject!),
         ],
         const SizedBox(height: 16),
-        _RoundedCard(
+        NahpuPanel(
           color: Theme.of(context).colorScheme.tertiaryContainer,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,7 +423,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _newProjectIdentityCard(ProjectTransferImportPlan plan) {
-    return _RoundedCard(
+    return NahpuPanel(
       color: _nameConflict == null
           ? null
           : Theme.of(context).colorScheme.errorContainer,
@@ -471,7 +465,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _existingProjectCard(ProjectTransferProjectMatch project) {
-    return _RoundedCard(
+    return NahpuPanel(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +494,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Widget _forceMergeCard(ProjectTransferImportPlan plan) {
     final confirmed =
         _forceConfirmationController.text.trim() == plan.activeProjectName;
-    return _RoundedCard(
+    return NahpuPanel(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +726,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               'committed together; a failure rolls them all back.',
         ),
         const SizedBox(height: 16),
-        _RoundedCard(
+        NahpuPanel(
           child: Column(
             children: [
               _ReviewRow(
@@ -769,7 +763,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         ),
         if (plan.warnings.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _RoundedCard(
+          NahpuPanel(
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -801,7 +795,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 : 'Return to Review and merge and try again.'),
       );
     }
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         children: [
           Icon(
@@ -1169,7 +1163,7 @@ class _ConflictCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1256,7 +1250,7 @@ class _ProjectFieldChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1291,22 +1285,6 @@ class _ProjectFieldChoice extends StatelessWidget {
       value == null || value.isEmpty ? 'Not set' : value;
 }
 
-class _RoundedCard extends StatelessWidget {
-  const _RoundedCard({required this.child, this.color});
-
-  final Widget child;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: color,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
-    );
-  }
-}
-
 class _StepHeading extends StatelessWidget {
   const _StepHeading({required this.title, required this.message});
 
@@ -1339,7 +1317,7 @@ class _MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         children: [
           Icon(icon, size: 44),
@@ -1361,13 +1339,8 @@ class _ComparisonPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NahpuPanel(
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

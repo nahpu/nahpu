@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as p;
 
-/// The one place an export says where its file goes, and the only place it
-/// offers to share it.
 class ExportLocationCard extends StatelessWidget {
   ExportLocationCard({
     super.key,
@@ -46,19 +45,10 @@ class ExportLocationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      elevation: NahpuElevation.none,
-      color: theme.colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(NahpuRadius.lg),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
-        child: output == null
-            ? _destination(context, theme)
-            : _result(context, theme),
-      ),
+    return NahpuPanel(
+      child: output == null
+          ? _destination(context, theme)
+          : _result(context, theme),
     );
   }
 

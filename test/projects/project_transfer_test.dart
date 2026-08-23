@@ -1237,6 +1237,12 @@ void main() {
       final firstStep = tester.widget<ListTile>(find.byType(ListTile).first);
 
       expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.lg));
+      // The rail carries the standard panel look: same fill and same border as
+      // the file settings card.
+      expect(
+        decoration.color,
+        theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      );
       expect(decoration.border, isA<Border>());
       expect(find.byType(VerticalDivider), findsNothing);
       expect(firstStep.selectedTileColor, theme.colorScheme.primaryContainer);

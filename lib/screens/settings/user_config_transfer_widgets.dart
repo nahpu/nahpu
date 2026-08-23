@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 const userConfigSectionOrder = [
@@ -53,59 +54,52 @@ class UserConfigSectionSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Config sections',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Config sections',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                TextButton(
-                  onPressed: enabled
-                      ? () => onChanged(Set.of(availableSections))
-                      : null,
-                  child: const Text('Select all'),
-                ),
-                TextButton(
-                  onPressed: enabled && selectedSections.isNotEmpty
-                      ? () => onChanged({})
-                      : null,
-                  child: const Text('Clear'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            for (final section in userConfigSectionOrder)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: Icon(section.icon),
-                title: Text(section.label),
-                value: selectedSections.contains(section),
-                onChanged: enabled && availableSections.contains(section)
-                    ? (selected) {
-                        final next = Set.of(selectedSections);
-                        if (selected ?? false) {
-                          next.add(section);
-                        } else {
-                          next.remove(section);
-                        }
-                        onChanged(next);
-                      }
-                    : null,
               ),
-          ],
-        ),
+              TextButton(
+                onPressed: enabled
+                    ? () => onChanged(Set.of(availableSections))
+                    : null,
+                child: const Text('Select all'),
+              ),
+              TextButton(
+                onPressed: enabled && selectedSections.isNotEmpty
+                    ? () => onChanged({})
+                    : null,
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          for (final section in userConfigSectionOrder)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Icon(section.icon),
+              title: Text(section.label),
+              value: selectedSections.contains(section),
+              onChanged: enabled && availableSections.contains(section)
+                  ? (selected) {
+                      final next = Set.of(selectedSections);
+                      if (selected ?? false) {
+                        next.add(section);
+                      } else {
+                        next.remove(section);
+                      }
+                      onChanged(next);
+                    }
+                  : null,
+            ),
+        ],
       ),
     );
   }

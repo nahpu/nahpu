@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -48,65 +49,55 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'File Settings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<T>(
-              key: ValueKey(format),
-              initialValue: format,
-              isExpanded: true,
-              decoration: InputDecoration(labelText: formatFieldLabel),
-              items: [
-                for (final value in formats)
-                  DropdownMenuItem(
-                    value: value,
-                    child: CommonDropdownText(text: formatLabel(value)),
-                  ),
-              ],
-              onChanged: enabled
-                  ? (value) {
-                      if (value != null) onFormatChanged(value);
-                    }
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            FileNameField(
-              controller: exportCtr.fileNameCtr,
-              extension: extensionForFormat(format),
-              appendDate: appendDate,
-              enabled: enabled,
-              onChanged: onFileNameChanged,
-            ),
-            AppendDateSwitch(
-              value: appendDate,
-              enabled: enabled,
-              onChanged: onAppendDateChanged,
-            ),
-            if (onSelectDir != null &&
-                onClearDir != null &&
-                systemPlatform == PlatformType.desktop)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: FileSettingsDirectoryPicker(
-                  selectedDir: selectedDir,
-                  onSelectDir: enabled ? onSelectDir! : () {},
-                  onClearDir: enabled ? onClearDir! : () {},
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<T>(
+            key: ValueKey(format),
+            initialValue: format,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: formatFieldLabel),
+            items: [
+              for (final value in formats)
+                DropdownMenuItem(
+                  value: value,
+                  child: CommonDropdownText(text: formatLabel(value)),
                 ),
+            ],
+            onChanged: enabled
+                ? (value) {
+                    if (value != null) onFormatChanged(value);
+                  }
+                : null,
+          ),
+          const SizedBox(height: 16),
+          FileNameField(
+            controller: exportCtr.fileNameCtr,
+            extension: extensionForFormat(format),
+            appendDate: appendDate,
+            enabled: enabled,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
+          if (onSelectDir != null &&
+              onClearDir != null &&
+              systemPlatform == PlatformType.desktop)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: FileSettingsDirectoryPicker(
+                selectedDir: selectedDir,
+                onSelectDir: enabled ? onSelectDir! : () {},
+                onClearDir: enabled ? onClearDir! : () {},
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -185,80 +176,66 @@ class BundleFileSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<DwcBundleFormat>(
+            initialValue: format,
+            decoration: const InputDecoration(labelText: 'Bundle format'),
+            items: DwcBundleFormat.values
+                .map(
+                  (value) =>
+                      DropdownMenuItem(value: value, child: Text(value.label)),
+                )
+                .toList(growable: false),
+            onChanged: enabled
+                ? (value) {
+                    if (value != null) onFormatChanged(value);
+                  }
+                : null,
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<BundleArchiveFormat>(
+            key: ValueKey('${format.name}-${archiveFormat.name}'),
+            initialValue: archiveFormat,
+            decoration: const InputDecoration(labelText: 'Archive format'),
+            items: format.allowedArchives
+                .map(
+                  (value) =>
+                      DropdownMenuItem(value: value, child: Text(value.label)),
+                )
+                .toList(growable: false),
+            onChanged: !enabled || format.allowedArchives.length == 1
+                ? null
+                : (value) {
+                    if (value != null) onArchiveFormatChanged(value);
+                  },
+          ),
+          if (format == DwcBundleFormat.darwinCoreDataPackage &&
+              archiveFormat == BundleArchiveFormat.zip) ...[
+            const SizedBox(height: 8),
             Text(
-              'File Settings',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<DwcBundleFormat>(
-              initialValue: format,
-              decoration: const InputDecoration(labelText: 'Bundle format'),
-              items: DwcBundleFormat.values
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: Text(value.label),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: enabled
-                  ? (value) {
-                      if (value != null) onFormatChanged(value);
-                    }
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<BundleArchiveFormat>(
-              key: ValueKey('${format.name}-${archiveFormat.name}'),
-              initialValue: archiveFormat,
-              decoration: const InputDecoration(labelText: 'Archive format'),
-              items: format.allowedArchives
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: Text(value.label),
-                    ),
-                  )
-                  .toList(growable: false),
-              onChanged: !enabled || format.allowedArchives.length == 1
-                  ? null
-                  : (value) {
-                      if (value != null) onArchiveFormatChanged(value);
-                    },
-            ),
-            if (format == DwcBundleFormat.darwinCoreDataPackage &&
-                archiveFormat == BundleArchiveFormat.zip) ...[
-              const SizedBox(height: 8),
-              Text(
-                'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 16),
-            FileNameField(
-              controller: exportCtr.fileNameCtr,
-              extension: format.outputExtension(archiveFormat),
-              appendDate: appendDate,
-              enabled: enabled,
-              onChanged: onFileNameChanged,
-            ),
-            AppendDateSwitch(
-              value: appendDate,
-              enabled: enabled,
-              onChanged: onAppendDateChanged,
+              'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
-        ),
+          const SizedBox(height: 16),
+          FileNameField(
+            controller: exportCtr.fileNameCtr,
+            extension: format.outputExtension(archiveFormat),
+            appendDate: appendDate,
+            enabled: enabled,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
+        ],
       ),
     );
   }

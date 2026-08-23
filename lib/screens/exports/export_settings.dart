@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
@@ -357,66 +358,59 @@ class _CustomFieldDefinitionPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Custom field templates',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Custom field templates',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                TextButton(
-                  onPressed: enabled
-                      ? () => onChanged(
-                          definitions.map((field) => field.id!).toSet(),
-                        )
-                      : null,
-                  child: const Text('Select all'),
+              ),
+              TextButton(
+                onPressed: enabled
+                    ? () => onChanged(
+                        definitions.map((field) => field.id!).toSet(),
+                      )
+                    : null,
+                child: const Text('Select all'),
+              ),
+              TextButton(
+                onPressed: enabled && selectedIds.isNotEmpty
+                    ? () => onChanged({})
+                    : null,
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+          if (definitions.isEmpty)
+            const ListTile(title: Text('No custom fields available'))
+          else
+            for (final definition in definitions)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(definition.name),
+                subtitle: Text(
+                  '${definition.placement.label} • '
+                  '${definition.fieldScope.name}',
                 ),
-                TextButton(
-                  onPressed: enabled && selectedIds.isNotEmpty
-                      ? () => onChanged({})
-                      : null,
-                  child: const Text('Clear'),
-                ),
-              ],
-            ),
-            if (definitions.isEmpty)
-              const ListTile(title: Text('No custom fields available'))
-            else
-              for (final definition in definitions)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(definition.name),
-                  subtitle: Text(
-                    '${definition.placement.label} • '
-                    '${definition.fieldScope.name}',
-                  ),
-                  value: selectedIds.contains(definition.id),
-                  onChanged: enabled
-                      ? (selected) {
-                          final next = Set<int>.of(selectedIds);
-                          if (selected ?? false) {
-                            next.add(definition.id!);
-                          } else {
-                            next.remove(definition.id);
-                          }
-                          onChanged(next);
+                value: selectedIds.contains(definition.id),
+                onChanged: enabled
+                    ? (selected) {
+                        final next = Set<int>.of(selectedIds);
+                        if (selected ?? false) {
+                          next.add(definition.id!);
+                        } else {
+                          next.remove(definition.id);
                         }
-                      : null,
-                ),
-          ],
-        ),
+                        onChanged(next);
+                      }
+                    : null,
+              ),
+        ],
       ),
     );
   }

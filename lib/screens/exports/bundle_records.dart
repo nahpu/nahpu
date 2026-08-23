@@ -9,6 +9,7 @@ import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -128,13 +129,12 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
         : settings;
     final contents = Padding(
       padding: const EdgeInsets.all(16),
-      child: _outcome != null && !_isWriting
-          ? ExportResultPanel(
+      // A finished bundle keeps its contents on screen: the location card
+      // already reports the file.
+      child:
+          _outcome != null && _outcome != ExportOutcome.succeeded && !_isWriting
+          ? ExportFailurePanel(
               outcome: _outcome!,
-              successTitle: 'Bundle created',
-              output: _outputPath == null ? null : File(_outputPath!),
-              outputBytes: _outputBytes,
-              duration: _runDuration,
               errorMessage: _runError,
               failedStepLabel: _failedStepLabel,
               onRetry: _writeBundle,
@@ -575,27 +575,20 @@ class _NahpuPackageScopeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: double.infinity,
-      child: Card(
-        elevation: 0,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Complete NAHPU data'),
-              SizedBox(height: 8),
-              Text(
-                'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
-              ),
-              SizedBox(height: 8),
-              Text('Export is in Frictionless Data Format.'),
-            ],
-          ),
+      child: NahpuPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Complete NAHPU data'),
+            SizedBox(height: 8),
+            Text(
+              'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
+            ),
+            SizedBox(height: 8),
+            Text('Export is in Frictionless Data Format.'),
+          ],
         ),
       ),
     );
@@ -624,83 +617,75 @@ class BundleTaxonSelectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Card(
-        elevation: 0,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      child: NahpuPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Recorded Taxa',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: SegmentedButton<BundleTaxonSelectionMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: BundleTaxonSelectionMode.all,
+                    label: Text('All taxa'),
+                    icon: Icon(Icons.select_all_outlined),
+                  ),
+                  ButtonSegment(
+                    value: BundleTaxonSelectionMode.selected,
+                    label: Text('Selected taxa'),
+                    icon: Icon(Icons.filter_alt_outlined),
+                  ),
+                ],
+                selected: {selectionMode},
+                onSelectionChanged: (selection) =>
+                    onModeChanged(selection.single),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (availableTaxonGroups.isEmpty)
+              const Text('No specimen taxa have been recorded yet.')
+            else if (selectionMode == BundleTaxonSelectionMode.all)
               Text(
-                'Recorded Taxa',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: SegmentedButton<BundleTaxonSelectionMode>(
-                  segments: const [
-                    ButtonSegment(
-                      value: BundleTaxonSelectionMode.all,
-                      label: Text('All taxa'),
-                      icon: Icon(Icons.select_all_outlined),
-                    ),
-                    ButtonSegment(
-                      value: BundleTaxonSelectionMode.selected,
-                      label: Text('Selected taxa'),
-                      icon: Icon(Icons.filter_alt_outlined),
-                    ),
-                  ],
-                  selected: {selectionMode},
-                  onSelectionChanged: (selection) =>
-                      onModeChanged(selection.single),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (availableTaxonGroups.isEmpty)
-                const Text('No specimen taxa have been recorded yet.')
-              else if (selectionMode == BundleTaxonSelectionMode.all)
-                Text(
-                  '${availableTaxonGroups.length} recorded taxon groups will be included.',
-                )
-              else
-                ...availableTaxonGroups.map((group) {
-                  final isRequiredBat =
-                      group == 'Bats' &&
-                      selectedTaxonGroups.contains('Mammals');
-                  return CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: isRequiredBat || selectedTaxonGroups.contains(group),
-                    title: Text(
-                      group == 'Mammals' ? 'Mammals (includes bats)' : group,
-                    ),
-                    subtitle: group == 'Mammals'
-                        ? const Text('Bats are always included with mammals.')
-                        : isRequiredBat
-                        ? const Text('Included with Mammals')
-                        : null,
-                    onChanged: isRequiredBat
-                        ? null
-                        : (selected) {
-                            final next = selectedTaxonGroups.toSet();
-                            if (selected == true) {
-                              next.add(group);
-                            } else {
-                              next.remove(group);
-                            }
-                            if (group == 'Mammals' && selected == true) {
-                              next.add('Bats');
-                            }
-                            onChanged(next);
-                          },
-                  );
-                }),
-            ],
-          ),
+                '${availableTaxonGroups.length} recorded taxon groups will be included.',
+              )
+            else
+              ...availableTaxonGroups.map((group) {
+                final isRequiredBat =
+                    group == 'Bats' && selectedTaxonGroups.contains('Mammals');
+                return CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: isRequiredBat || selectedTaxonGroups.contains(group),
+                  title: Text(
+                    group == 'Mammals' ? 'Mammals (includes bats)' : group,
+                  ),
+                  subtitle: group == 'Mammals'
+                      ? const Text('Bats are always included with mammals.')
+                      : isRequiredBat
+                      ? const Text('Included with Mammals')
+                      : null,
+                  onChanged: isRequiredBat
+                      ? null
+                      : (selected) {
+                          final next = selectedTaxonGroups.toSet();
+                          if (selected == true) {
+                            next.add(group);
+                          } else {
+                            next.remove(group);
+                          }
+                          if (group == 'Mammals' && selected == true) {
+                            next.add('Bats');
+                          }
+                          onChanged(next);
+                        },
+                );
+              }),
+          ],
         ),
       ),
     );

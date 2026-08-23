@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -136,13 +137,15 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                 destination,
               ],
             );
-            final rightPane = _outcome != null && !_isRunning
-                ? ExportResultPanel(
+            // A finished backup keeps the contents summary on screen: the
+            // location card already reports the file.
+            final failed =
+                _outcome != null &&
+                _outcome != ExportOutcome.succeeded &&
+                !_isRunning;
+            final rightPane = failed
+                ? ExportFailurePanel(
                     outcome: _outcome!,
-                    successTitle: 'Backup saved',
-                    output: _savePath,
-                    outputBytes: _outputBytes,
-                    duration: _runDuration,
                     errorMessage: _runError,
                     failedStepLabel: _failedStepLabel,
                     onRetry: _writeDb,
@@ -391,57 +394,50 @@ class _BackupSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Backup archive',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'This creates a full NAHPU backup, including all projects, '
-              'records, media, and app settings. For a project-only backup, '
-              'use Project export.',
-            ),
-            const SizedBox(height: 20),
-            SegmentedButton<DbArchiveFormat>(
-              segments: const [
-                ButtonSegment(
-                  value: DbArchiveFormat.tarGzip,
-                  label: Text('TAR.GZ'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-                ButtonSegment(
-                  value: DbArchiveFormat.zip,
-                  label: Text('ZIP'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-              ],
-              selected: {format},
-              onSelectionChanged: enabled
-                  ? (values) => onFormatChanged(values.single)
-                  : null,
-            ),
-            const SizedBox(height: 20),
-            FileNameField(
-              controller: controller,
-              enabled: enabled,
-              extension: format.extension,
-              appendDate: appendDate,
-              onChanged: onFileNameChanged,
-            ),
-            AppendDateSwitch(
-              value: appendDate,
-              enabled: enabled,
-              onChanged: onAppendDateChanged,
-            ),
-          ],
-        ),
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Backup archive', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          const Text(
+            'This creates a full NAHPU backup, including all projects, '
+            'records, media, and app settings. For a project-only backup, '
+            'use Project export.',
+          ),
+          const SizedBox(height: 20),
+          SegmentedButton<DbArchiveFormat>(
+            segments: const [
+              ButtonSegment(
+                value: DbArchiveFormat.tarGzip,
+                label: Text('TAR.GZ'),
+                icon: Icon(Icons.folder_zip_outlined),
+              ),
+              ButtonSegment(
+                value: DbArchiveFormat.zip,
+                label: Text('ZIP'),
+                icon: Icon(Icons.folder_zip_outlined),
+              ),
+            ],
+            selected: {format},
+            onSelectionChanged: enabled
+                ? (values) => onFormatChanged(values.single)
+                : null,
+          ),
+          const SizedBox(height: 20),
+          FileNameField(
+            controller: controller,
+            enabled: enabled,
+            extension: format.extension,
+            appendDate: appendDate,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
+        ],
       ),
     );
   }
@@ -455,47 +451,44 @@ class _BackupSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Entire database contents',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            if (error != null)
-              ErrorText(error: error!)
-            else if (summary == null)
-              const Center(child: CircularProgressIndicator())
-            else ...[
-              for (final entry in summary!.entries.entries)
-                ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(entry.key),
-                  trailing: Text('${entry.value}'),
-                ),
-              const CommonDivider(),
-              // Knowing the size before pressing Save is what tells the user
-              // whether this is a ten second job or a ten minute one.
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Entire database contents',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          if (error != null)
+            ErrorText(error: error!)
+          else if (summary == null)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            for (final entry in summary!.entries.entries)
               ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: Text(
-                  'Backup size before compression',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                trailing: Text(
-                  formatByteSize(summary!.totalBytes),
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                title: Text(entry.key),
+                trailing: Text('${entry.value}'),
               ),
-            ],
+            const CommonDivider(),
+            // Knowing the size before pressing Save is what tells the user
+            // whether this is a ten second job or a ten minute one.
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Backup size before compression',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              trailing: Text(
+                formatByteSize(summary!.totalBytes),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

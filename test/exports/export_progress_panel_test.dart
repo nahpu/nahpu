@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
@@ -199,54 +197,27 @@ void main() {
     });
   });
 
-  group('ExportResultPanel', () {
-    testWidgets('keeps the result on screen with size and duration', (
-      tester,
-    ) async {
-      await _pumpPanel(
-        tester,
-        ExportResultPanel(
-          outcome: ExportOutcome.succeeded,
-          successTitle: 'Backup saved',
-          output: File('/tmp/nahpu/backup-2026-08-22.tar.gz'),
-          outputBytes: 1717986918,
-          duration: const Duration(minutes: 3, seconds: 42),
-        ),
-      );
-
-      expect(find.text('Backup saved'), findsOneWidget);
-      expect(find.text('backup-2026-08-22.tar.gz'), findsOneWidget);
-      expect(find.text('1.6 GB in 3 min 42 s'), findsOneWidget);
-      // Share and the saved path live in the location card above the export
-      // button now, so the result panel must not offer a second one.
-      expect(find.text('Share'), findsNothing);
-      expect(find.text('/tmp/nahpu/backup-2026-08-22.tar.gz'), findsNothing);
-    });
-
+  group('ExportFailurePanel', () {
     testWidgets('says plainly that a cancelled run saved nothing', (
       tester,
     ) async {
       await _pumpPanel(
         tester,
-        ExportResultPanel(
-          outcome: ExportOutcome.cancelled,
-          successTitle: 'Backup saved',
-          onRetry: () {},
-        ),
+        ExportFailurePanel(outcome: ExportOutcome.cancelled, onRetry: () {}),
       );
 
       expect(find.text('Export cancelled'), findsOneWidget);
       expect(find.textContaining('No file was saved'), findsOneWidget);
       expect(find.text('Try again'), findsOneWidget);
+      // Success is the location card's job, so nothing here offers Share.
       expect(find.text('Share'), findsNothing);
     });
 
     testWidgets('names the stage a failure stopped in', (tester) async {
       await _pumpPanel(
         tester,
-        const ExportResultPanel(
+        const ExportFailurePanel(
           outcome: ExportOutcome.failed,
-          successTitle: 'Backup saved',
           errorMessage: 'No space left on device',
           failedStepLabel: 'Compress archive',
         ),
@@ -258,6 +229,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.textContaining('No space left on device'), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
     });
   });
 }
