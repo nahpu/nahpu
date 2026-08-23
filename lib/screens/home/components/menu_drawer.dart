@@ -5,6 +5,7 @@ import 'package:nahpu/screens/home/components/how_to_recipes.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
+import 'package:nahpu/screens/settings/setup_wizard.dart';
 import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -109,6 +110,8 @@ class HomeMenuDrawer extends StatelessWidget {
           },
         ),
         const CommonLineDivider(),
+        const SetupWizardTile(),
+        const CommonLineDivider(),
         const HowToRecipesTile(),
         const CommonLineDivider(),
         ListTile(
@@ -175,6 +178,24 @@ class AppAbout extends StatelessWidget {
         );
       },
       future: PackageInfo.fromPlatform(),
+    );
+  }
+}
+
+class SetupWizardTile extends StatelessWidget {
+  const SetupWizardTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.auto_fix_high_outlined),
+      title: const Text('Setup NAHPU'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SetupWizardScreen()),
+        );
+      },
     );
   }
 }

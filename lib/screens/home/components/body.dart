@@ -6,6 +6,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
+import 'package:nahpu/screens/settings/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
@@ -133,6 +134,17 @@ class ProjectNotFound extends StatelessWidget {
           Text(
             'Create or import a project to get started.',
             style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: NahpuSpacing.xxl),
+          FilledButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SetupWizardScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.auto_fix_high_outlined),
+            label: const Text('Setup NAHPU'),
           ),
         ],
       ),

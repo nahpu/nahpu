@@ -284,8 +284,8 @@ class IDMethod extends ConsumerWidget {
               child: DropdownButtonFormField<String?>(
                 initialValue: specimenCtr.idMethodCtr,
                 decoration: const InputDecoration(
-                  labelText: 'IdMethod',
-                  hintText: 'Choose an IdMethod',
+                  labelText: 'Identification Method',
+                  hintText: 'Choose an identification method',
                 ),
                 items: [
                   const DropdownMenuItem<String?>(

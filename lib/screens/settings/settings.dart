@@ -74,7 +74,8 @@ class CatalogSettings extends StatelessWidget {
       isDivided: true,
       children: [
         CatalogFmtSection(selectedFmt: catalogFmt),
-        const CollEventSection(),
+        // Sites precede events: a collecting event happens at a site, so the
+        // settings follow the order the records are created in.
         CommonSettingTile(
           title: 'Sites',
           icon: Icons.place_outlined,
@@ -85,6 +86,7 @@ class CatalogSettings extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const SiteSelection()),
           ),
         ),
+        const CollEventSection(),
         SpecimenSection(catalogFmt: catalogFmt),
         CommonSettingTile(
           title: 'Custom fields',

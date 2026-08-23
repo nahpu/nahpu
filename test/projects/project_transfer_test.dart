@@ -1226,13 +1226,11 @@ void main() {
       await tester.pump();
 
       final rail = tester.widget<Container>(
-        find.byKey(const ValueKey('project-transfer-step-rail')),
+        find.byKey(const ValueKey('nahpu-wizard-step-rail')),
       );
       final decoration = rail.decoration! as BoxDecoration;
       final theme = Theme.of(
-        tester.element(
-          find.byKey(const ValueKey('project-transfer-step-rail')),
-        ),
+        tester.element(find.byKey(const ValueKey('nahpu-wizard-step-rail'))),
       );
       final firstStep = tester.widget<ListTile>(find.byType(ListTile).first);
 
@@ -1271,10 +1269,7 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ChoiceChip), findsWidgets);
-    expect(
-      find.byKey(const ValueKey('project-transfer-step-rail')),
-      findsNothing,
-    );
+    expect(find.byKey(const ValueKey('nahpu-wizard-step-rail')), findsNothing);
   });
 
   testWidgets(

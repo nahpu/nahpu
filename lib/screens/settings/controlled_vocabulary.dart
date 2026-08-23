@@ -13,6 +13,7 @@ class ControlledVocabularySetting extends ConsumerWidget {
     required this.fmtPrefKey,
     required this.typeName,
     this.pluralName,
+    this.showCard = true,
   });
 
   final String title;
@@ -20,6 +21,10 @@ class ControlledVocabularySetting extends ConsumerWidget {
   final String fmtPrefKey;
   final String typeName;
   final String? pluralName;
+
+  /// Set false where the caller already supplies the card and the heading, so
+  /// the field does not draw a second card inside the first.
+  final bool showCard;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +38,7 @@ class ControlledVocabularySetting extends ConsumerWidget {
           onCaseFormatPressed: () {
             _showCaseFormatPicker(context, ref, fmtPrefKey);
           },
-          sectionTitle: title.toTitleCase(),
+          sectionTitle: showCard ? title.toTitleCase() : null,
           pluralName: pluralName,
         ),
       ],

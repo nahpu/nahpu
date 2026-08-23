@@ -907,6 +907,12 @@ class SpecimenPartServices extends AppServices {
 const String collectorFieldKey = 'isCollectorFieldAlwaysShown';
 const String batFieldsKey = 'isBatFieldsAlwaysShown';
 
+/// Records whether tissues are numbered separately from the specimen field ID.
+///
+/// The setup wizard asks this so it knows whether to collect a tissue prefix
+/// and starting number. Specimen forms still offer tissue IDs either way.
+const String separateTissueIdKey = 'usesSeparateTissueId';
+
 class SpecimenSettingServices {
   SpecimenSettingServices({required this.ref});
 

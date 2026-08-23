@@ -7,6 +7,7 @@ import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
+import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
@@ -73,8 +74,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   final _forceConfirmationController = TextEditingController();
   final _destinationNameController = TextEditingController();
-  final _stepChipScrollController = ScrollController();
-  final _stepChipKeys = List<GlobalKey>.generate(10, (_) => GlobalKey());
   final Map<String, ProjectTransferConflictAction> _actions = {};
   final Map<String, bool> _importedProjectFields = {};
   ProjectTransferArchiveFile? _archiveFile;
@@ -120,7 +119,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   void dispose() {
     _forceConfirmationController.dispose();
     _destinationNameController.dispose();
-    _stepChipScrollController.dispose();
     final archive = _archiveFile;
     if (archive != null) unawaited(archive.dispose());
     super.dispose();
@@ -128,8 +126,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wide =
-        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.projectWizardRail;
     return Scaffold(
       appBar: AppBar(
         title: Text(_isNewProject ? 'Import project' : 'Merge project'),
@@ -138,26 +134,15 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         child: Column(
           children: [
             Expanded(
-              child: wide
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
-                          child: SizedBox(width: 248, child: _buildStepRail()),
-                        ),
-                        Expanded(child: _buildStepBody()),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        SizedBox(height: 64, child: _buildStepChips()),
-                        const Divider(height: 2),
-                        Expanded(child: _buildStepBody()),
-                      ],
-                    ),
+              child: NahpuWizardScaffold(
+                steps: _steps,
+                currentStep: _step,
+                maxVisitedStep: _maxVisitedStep,
+                onStepSelected: (index) => setState(() => _step = index),
+                child: _stepContent(),
+              ),
             ),
-            _WizardActionBar(
+            NahpuWizardActionBar(
               step: _step,
               lastStep: _steps.length - 1,
               isRunning: _isImporting,
@@ -173,103 +158,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               onClose: _close,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepRail() {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: const ValueKey('project-transfer-step-rail'),
-      decoration: NahpuPanel.decorationOf(context),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(NahpuSpacing.lg),
-        itemCount: _steps.length,
-        itemBuilder: (context, index) {
-          final selected = index == _step;
-          final enabled = index <= _maxVisitedStep;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: NahpuSpacing.sm),
-            child: Material(
-              color: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(NahpuRadius.md),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: ListTile(
-                selected: selected,
-                selectedTileColor: colors.primaryContainer,
-                selectedColor: colors.onPrimaryContainer,
-                enabled: enabled,
-                leading: _StepNumber(
-                  number: index + 1,
-                  selected: selected,
-                  complete: index < _step,
-                ),
-                title: Text(
-                  _steps[index],
-                  style: selected
-                      ? const TextStyle(fontWeight: FontWeight.w600)
-                      : null,
-                ),
-                onTap: enabled ? () => setState(() => _step = index) : null,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStepChips() {
-    return ListView.separated(
-      controller: _stepChipScrollController,
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      itemCount: _steps.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemBuilder: (context, index) {
-        final enabled = index <= _maxVisitedStep;
-        return ChoiceChip(
-          key: _stepChipKeys[index],
-          selected: index == _step,
-          label: Text('${index + 1}. ${_steps[index]}'),
-          onSelected: enabled
-              ? (_) {
-                  setState(() => _step = index);
-                  _scrollActiveStepChip();
-                }
-              : null,
-        );
-      },
-    );
-  }
-
-  void _scrollActiveStepChip() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final chipContext = _stepChipKeys[_step].currentContext;
-      if (chipContext == null) return;
-      Scrollable.ensureVisible(
-        chipContext,
-        alignment: 0.5,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
-  Widget _buildStepBody() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 960),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: KeyedSubtree(key: ValueKey(_step), child: _stepContent()),
-          ),
         ),
       ),
     );
@@ -556,7 +444,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: 'Project info',
           message:
               'Current values are kept by default. Select individual imported '
@@ -625,7 +513,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: section.label,
           message:
               'Review matches before continuing. “Keep current” maps imported '
@@ -719,7 +607,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: _isNewProject ? 'Review and import' : 'Review and merge',
           message:
               'Nothing has been written yet. The database changes will be '
@@ -911,7 +799,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _forceConfirmationController.clear();
         _maxVisitedStep = 0;
       });
-      _scrollActiveStepChip();
     } on ExportCancelledException {
       if (opened != null) await opened.dispose();
       if (!mounted) return;
@@ -962,7 +849,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   void _back() {
     if (_step > 0) {
       setState(() => _step--);
-      _scrollActiveStepChip();
     }
   }
 
@@ -977,7 +863,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _step++;
         _maxVisitedStep = _maxVisitedStep < _step ? _step : _maxVisitedStep;
       });
-      _scrollActiveStepChip();
     }
   }
 
@@ -1012,7 +897,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _step = _resultStep;
         _maxVisitedStep = _resultStep;
       });
-      _scrollActiveStepChip();
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error.toString());
@@ -1080,73 +964,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     }
     Navigator.of(context).popUntil((route) => route.isFirst);
     Navigator.of(context).push(ProjectShell.route());
-  }
-}
-
-class _WizardActionBar extends StatelessWidget {
-  const _WizardActionBar({
-    required this.step,
-    required this.lastStep,
-    required this.isRunning,
-    required this.canContinue,
-    required this.finalActionLabel,
-    required this.finalActionIcon,
-    required this.onBack,
-    required this.onContinue,
-    required this.onClose,
-  });
-
-  final int step;
-  final int lastStep;
-  final bool isRunning;
-  final bool canContinue;
-  final String finalActionLabel;
-  final IconData finalActionIcon;
-  final VoidCallback onBack;
-  final VoidCallback onContinue;
-  final VoidCallback onClose;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              if (step > 0 && step < lastStep)
-                OutlinedButton.icon(
-                  onPressed: isRunning ? null : onBack,
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Back'),
-                ),
-              const Spacer(),
-              if (step == lastStep)
-                FilledButton(onPressed: onClose, child: const Text('Done'))
-              else
-                FilledButton.icon(
-                  onPressed: canContinue ? onContinue : null,
-                  icon: isRunning
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          step == lastStep - 1
-                              ? finalActionIcon
-                              : Icons.arrow_forward_rounded,
-                        ),
-                  label: Text(
-                    step == lastStep - 1 ? finalActionLabel : 'Continue',
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -1285,25 +1102,6 @@ class _ProjectFieldChoice extends StatelessWidget {
       value == null || value.isEmpty ? 'Not set' : value;
 }
 
-class _StepHeading extends StatelessWidget {
-  const _StepHeading({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 6),
-        Text(message),
-      ],
-    );
-  }
-}
-
 class _MessageCard extends StatelessWidget {
   const _MessageCard({
     required this.icon,
@@ -1375,33 +1173,6 @@ class _StatusChip extends StatelessWidget {
         ),
       ),
       label: Text(label),
-    );
-  }
-}
-
-class _StepNumber extends StatelessWidget {
-  const _StepNumber({
-    required this.number,
-    required this.selected,
-    required this.complete,
-  });
-
-  final int number;
-  final bool selected;
-  final bool complete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: NahpuRadius.md,
-      backgroundColor: selected
-          ? colors.primary
-          : colors.surfaceContainerHighest,
-      foregroundColor: selected ? colors.onPrimary : colors.onSurfaceVariant,
-      child: complete
-          ? const Icon(Icons.check_rounded, size: 16)
-          : Text('$number', style: TextStyle(fontSize: 12)),
     );
   }
 }

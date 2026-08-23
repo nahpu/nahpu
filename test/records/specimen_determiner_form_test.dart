@@ -127,7 +127,7 @@ void main() {
   );
 
   testWidgets(
-    'IdMethod follows ID Confidence and preserves a hidden legacy value',
+    'Identification Method follows ID Confidence and preserves a hidden legacy value',
     (tester) async {
       final harness = await _SpecimenFormHarness.create();
       addTearDown(harness.dispose);
@@ -149,16 +149,16 @@ void main() {
       );
 
       expect(find.text('ID Confidence'), findsOneWidget);
-      expect(find.text('IdMethod'), findsNothing);
+      expect(find.text('Identification Method'), findsNothing);
 
       await tester.tap(find.byType(DropdownButtonFormField<int?>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('High').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('IdMethod'), findsOneWidget);
+      expect(find.text('Identification Method'), findsOneWidget);
       expect(
-        tester.getTopLeft(find.text('IdMethod')).dy,
+        tester.getTopLeft(find.text('Identification Method')).dy,
         greaterThan(tester.getTopLeft(find.text('ID Confidence')).dy),
       );
 
@@ -175,7 +175,7 @@ void main() {
       await tester.tap(find.text('Not assigned').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('IdMethod'), findsNothing);
+      expect(find.text('Identification Method'), findsNothing);
       expect(controller.idMethodCtr, 'legacy microscopy');
       expect((await harness.getSpecimen()).iDMethod, 'legacy microscopy');
     },
