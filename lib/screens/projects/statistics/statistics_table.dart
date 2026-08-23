@@ -43,35 +43,38 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
       _rowsPerPage = availableRows.last;
     }
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: PaginatedDataTable(
-        header: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            tooltip: 'Export table',
-            onPressed: widget.onExport,
-            icon: const Icon(Icons.file_upload_outlined),
+    return SingleChildScrollView(
+      primary: false,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: PaginatedDataTable(
+          header: const SizedBox.shrink(),
+          actions: [
+            IconButton(
+              tooltip: 'Export table',
+              onPressed: widget.onExport,
+              icon: const Icon(Icons.file_upload_outlined),
+            ),
+          ],
+          showEmptyRows: false,
+          rowsPerPage: _rowsPerPage,
+          availableRowsPerPage: availableRows,
+          onRowsPerPageChanged: (value) {
+            if (value != null) setState(() => _rowsPerPage = value);
+          },
+          source: _StatisticDataSource(
+            widget.rows,
+            hasSeries: widget.seriesLabel != null,
           ),
-        ],
-        showEmptyRows: false,
-        rowsPerPage: _rowsPerPage,
-        availableRowsPerPage: availableRows,
-        onRowsPerPageChanged: (value) {
-          if (value != null) setState(() => _rowsPerPage = value);
-        },
-        source: _StatisticDataSource(
-          widget.rows,
-          hasSeries: widget.seriesLabel != null,
+          columns: [
+            const DataColumn(label: Text('Rank'), numeric: true),
+            DataColumn(label: Text(widget.categoryLabel)),
+            if (widget.seriesLabel != null)
+              DataColumn(label: Text(widget.seriesLabel!)),
+            DataColumn(label: Text(widget.countLabel), numeric: true),
+            const DataColumn(label: Text('Percent'), numeric: true),
+          ],
         ),
-        columns: [
-          const DataColumn(label: Text('Rank'), numeric: true),
-          DataColumn(label: Text(widget.categoryLabel)),
-          if (widget.seriesLabel != null)
-            DataColumn(label: Text(widget.seriesLabel!)),
-          DataColumn(label: Text(widget.countLabel), numeric: true),
-          const DataColumn(label: Text('Percent'), numeric: true),
-        ],
       ),
     );
   }

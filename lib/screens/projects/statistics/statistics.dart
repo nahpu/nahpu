@@ -14,6 +14,7 @@ import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 const int topStatisticCount = 5;
+const int _pieChartCategoryThreshold = 5;
 
 class StatisticViewer extends ConsumerWidget {
   const StatisticViewer({super.key});
@@ -500,6 +501,24 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                     ),
                                     builder: (rows) {
                                       if (_detailMode == _DetailMode.chart) {
+                                        if (_isPieChartGroup(request.group) &&
+                                            request.breakdown == null) {
+                                          return StatisticChartSwitcher(
+                                            data: rows,
+                                            measure: request.measure,
+                                            group: request.group,
+                                            usePieByDefault:
+                                                _shouldUseStandalonePieChart(
+                                                  request,
+                                                  rows,
+                                                ),
+                                            height: constraints.maxHeight,
+                                            fitHeight: true,
+                                            toggleKey: const ValueKey(
+                                              'statistics-detail-chart-toggle',
+                                            ),
+                                          );
+                                        }
                                         return StatisticBarChart(
                                           data: rows,
                                           measure: request.measure,
@@ -931,11 +950,12 @@ class _StatisticSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isAdaptiveChart = _isPieChartGroup(definition.selection.group);
     final request = StatisticRequest(
       projectUuid: projectUuid,
       measure: definition.selection.measure,
       group: definition.selection.group,
-      limit: definition.isPie ? null : topStatisticCount,
+      limit: isAdaptiveChart ? null : topStatisticCount,
     );
     final value = ref.watch(statisticDataProvider(request));
     return Card(
@@ -959,15 +979,31 @@ class _StatisticSummaryCard extends ConsumerWidget {
             _StatisticAsyncContent(
               value: value,
               onRetry: () => ref.invalidate(statisticDataProvider(request)),
-              builder: (rows) => definition.isPie
-                  ? StatisticPieChart(data: rows, height: 280)
-                  : StatisticBarChart(
-                      data: rows,
-                      measure: request.measure,
-                      group: request.group,
-                      compact: true,
-                      height: 280,
+              builder: (rows) {
+                if (_isPieChartGroup(request.group)) {
+                  return StatisticChartSwitcher(
+                    data: rows.take(topStatisticCount).toList(growable: false),
+                    measure: request.measure,
+                    group: request.group,
+                    usePieByDefault: _shouldUseStandalonePieChart(
+                      request,
+                      rows,
                     ),
+                    compact: true,
+                    height: 280,
+                    toggleKey: ValueKey(
+                      'statistics-summary-chart-toggle-${request.group.name}',
+                    ),
+                  );
+                }
+                return StatisticBarChart(
+                  data: rows.take(topStatisticCount).toList(growable: false),
+                  measure: request.measure,
+                  group: request.group,
+                  compact: true,
+                  height: 280,
+                );
+              },
             ),
           ],
         ),
@@ -1100,15 +1136,10 @@ class _StatisticAsyncContent extends StatelessWidget {
 }
 
 class _SummaryDefinition {
-  const _SummaryDefinition({
-    required this.title,
-    required this.selection,
-    this.isPie = false,
-  });
+  const _SummaryDefinition({required this.title, required this.selection});
 
   final String title;
   final StatisticSelection selection;
-  final bool isPie;
 }
 
 const _summaryDefinitions = [
@@ -1148,6 +1179,13 @@ const _summaryDefinitions = [
     ),
   ),
   _SummaryDefinition(
+    title: 'Specimens by sex',
+    selection: StatisticSelection(
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.sex,
+    ),
+  ),
+  _SummaryDefinition(
     title: 'Part quantity by type',
     selection: StatisticSelection(
       measure: StatisticMeasure.partQuantity,
@@ -1161,14 +1199,24 @@ const _summaryDefinitions = [
       group: StatisticGroup.partTreatment,
     ),
   ),
-  _SummaryDefinition(
-    title: 'Specimens by sex',
-    selection: StatisticSelection(
-      measure: StatisticMeasure.specimens,
-      group: StatisticGroup.sex,
-    ),
-    isPie: true,
-  ),
 ];
 
 enum _DetailMode { chart, table }
+
+bool _isPieChartGroup(StatisticGroup group) => switch (group) {
+  StatisticGroup.method ||
+  StatisticGroup.sex ||
+  StatisticGroup.lifeStage => true,
+  _ => false,
+};
+
+bool _shouldUseStandalonePieChart(
+  StatisticRequest request,
+  List<StatisticDatum> rows,
+) {
+  if (request.breakdown != null || !_isPieChartGroup(request.group)) {
+    return false;
+  }
+  final categoryCount = rows.map((datum) => datum.label).toSet().length;
+  return categoryCount < _pieChartCategoryThreshold;
+}

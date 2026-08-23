@@ -151,7 +151,70 @@ void main() {
     ]) {
       expect(find.text(title), findsWidgets);
     }
-    expect(find.byType(StatisticPieChart), findsOneWidget);
+    expect(find.byType(StatisticPieChart), findsNWidgets(2));
+    final methodTitle = tester.getRect(find.text('Specimens by method'));
+    final sexTitle = tester.getRect(find.text('Specimens by sex'));
+    final partTypeTitle = tester.getRect(find.text('Part quantity by type'));
+    expect(methodTitle.bottom, lessThan(sexTitle.top));
+    expect(sexTitle.bottom, lessThan(partTypeTitle.top));
+  });
+
+  testWidgets('summary pie charts can switch between pie and bar', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(599, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    for (final group in const ['method', 'sex']) {
+      final card = find.ancestor(
+        of: find.text('Specimens by $group'),
+        matching: find.byType(Card),
+      );
+      final toggle = find.byKey(
+        ValueKey('statistics-summary-chart-toggle-$group'),
+      );
+      expect(find.descendant(of: card, matching: toggle), findsOneWidget);
+      await tester.ensureVisible(toggle);
+      expect(
+        find.descendant(of: card, matching: find.byType(StatisticPieChart)),
+        findsOneWidget,
+      );
+
+      expect(
+        find.descendant(
+          of: toggle,
+          matching: find.byIcon(Icons.bar_chart_rounded),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(
+        find.descendant(of: card, matching: find.byType(StatisticBarChart)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.byType(StatisticPieChart)),
+        findsNothing,
+      );
+
+      expect(
+        find.descendant(
+          of: toggle,
+          matching: find.byIcon(Icons.pie_chart_outline),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(
+        find.descendant(of: card, matching: find.byType(StatisticPieChart)),
+        findsOneWidget,
+      );
+    }
   });
 
   testWidgets('full-screen summary omits total days without project dates', (
@@ -260,6 +323,30 @@ void main() {
       );
       expect(find.text('All sites'), findsOneWidget);
 
+      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+      final breakdownControl = find.byKey(
+        const ValueKey('statistics-breakdown-control'),
+      );
+      await tester.tap(
+        find.descendant(of: breakdownControl, matching: find.text('Sex')),
+      );
+      for (var index = 0; index < 4; index++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+      expect(
+        find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: detail,
+          matching: find.byKey(
+            const ValueKey('statistics-detail-chart-toggle'),
+          ),
+        ),
+        findsNothing,
+      );
+
       await tester.tap(
         find.descendant(
           of: measureControl,
@@ -274,6 +361,129 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('All species'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'detailed standalone category charts use pies below five categories',
+    (tester) async {
+      await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+      await tester.tap(find.text('Explore more stats'));
+      for (var index = 0; index < 4; index++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+
+      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+      final groupControl = find.byKey(
+        const ValueKey('statistics-group-control'),
+      );
+      await tester.ensureVisible(groupControl);
+
+      for (final group in const ['Method', 'Sex', 'Life stage']) {
+        await tester.tap(
+          find.descendant(of: groupControl, matching: find.text(group)),
+        );
+        for (var index = 0; index < 4; index++) {
+          await tester.pump(const Duration(milliseconds: 500));
+        }
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticPieChart)),
+          findsOneWidget,
+          reason: '$group should use a pie chart below five categories',
+        );
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
+          findsNothing,
+          reason: '$group should not use a bar chart below five categories',
+        );
+
+        final toggle = find.byKey(
+          const ValueKey('statistics-detail-chart-toggle'),
+        );
+        expect(find.descendant(of: detail, matching: toggle), findsOneWidget);
+        await tester.tap(toggle);
+        await tester.pump();
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
+          findsOneWidget,
+        );
+        await tester.tap(toggle);
+        await tester.pump();
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticPieChart)),
+          findsOneWidget,
+        );
+      }
+    },
+  );
+
+  testWidgets(
+    'detailed standalone category charts use bars at five or more categories',
+    (tester) async {
+      await _pumpRecordStatisticsPanel(
+        tester,
+        const Size(800, 1200),
+        includeAdditionalCategoryValues: true,
+      );
+      await tester.tap(find.text('Explore more stats'));
+      for (var index = 0; index < 4; index++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+
+      expect(
+        find.byKey(const ValueKey('statistics-summary-chart-toggle-method')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('statistics-summary-chart-toggle-sex')),
+        findsNothing,
+      );
+
+      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+      final groupControl = find.byKey(
+        const ValueKey('statistics-group-control'),
+      );
+      await tester.ensureVisible(groupControl);
+
+      for (final group in const ['Method', 'Sex', 'Life stage']) {
+        await tester.tap(
+          find.descendant(of: groupControl, matching: find.text(group)),
+        );
+        for (var index = 0; index < 4; index++) {
+          await tester.pump(const Duration(milliseconds: 500));
+        }
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
+          findsOneWidget,
+          reason: '$group should use a bar chart at five or more categories',
+        );
+        expect(
+          find.descendant(of: detail, matching: find.byType(StatisticPieChart)),
+          findsNothing,
+          reason:
+              '$group should not use a pie chart at five or more categories',
+        );
+      }
+
+      await tester.tap(
+        find.descendant(of: groupControl, matching: find.text('Method')),
+      );
+      for (var index = 0; index < 4; index++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+      for (final label in const [
+        'Mist net',
+        'No method',
+        'Hand capture',
+        'Light trap',
+        'Cage trap',
+        'Malaise trap',
+      ]) {
+        expect(
+          find.descendant(of: detail, matching: find.text(label)),
+          findsWidgets,
+        );
+      }
     },
   );
 
@@ -498,6 +708,39 @@ void main() {
     expect(find.text('Not recorded: 1 (25.0%)'), findsOneWidget);
   });
 
+  testWidgets('pie percentage labels keep contrast in both themes', (
+    tester,
+  ) async {
+    for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: const Scaffold(
+            body: StatisticPieChart(
+              data: [
+                StatisticDatum(label: 'One', count: 4),
+                StatisticDatum(label: 'Two', count: 3),
+                StatisticDatum(label: 'Three', count: 2),
+                StatisticDatum(label: 'Four', count: 1),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<PieChart>(find.byType(PieChart));
+      for (final section in chart.data.sections) {
+        final textColor = section.titleStyle?.color;
+        expect(textColor, isNotNull);
+        expect(
+          _contrastRatio(textColor!, section.color),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+    }
+  });
+
   testWidgets('statistics table shows fields and invokes export', (
     tester,
   ) async {
@@ -533,6 +776,38 @@ void main() {
 
     await tester.tap(find.byTooltip('Export table'));
     expect(exported, isTrue);
+  });
+
+  testWidgets('statistics table scrolls within a short viewport', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 314);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatisticDataTable(
+            rows: [
+              for (var index = 0; index < 10; index++)
+                StatisticTableRow(
+                  rank: index + 1,
+                  category: 'Category ${index + 1}',
+                  count: index + 1,
+                  percent: 10,
+                ),
+            ],
+            onExport: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Category 1'), findsOneWidget);
   });
 
   testWidgets('statistics export uses shared file settings and supports JSON', (
@@ -734,6 +1009,7 @@ Future<void> _pumpRecordStatisticsPanel(
   Size size, {
   ThemeData? theme,
   bool includeProjectDates = false,
+  bool includeAdditionalCategoryValues = false,
   TextScaler textScaler = TextScaler.noScaling,
 }) async {
   tester.view.physicalSize = size;
@@ -903,6 +1179,63 @@ Future<void> _pumpRecordStatisticsPanel(
       ),
     ]);
   });
+
+  if (includeAdditionalCategoryValues) {
+    final additionalMethods = <int>[];
+    for (final methodName in const [
+      'Hand capture',
+      'Light trap',
+      'Cage trap',
+      'Malaise trap',
+    ]) {
+      additionalMethods.add(
+        await database
+            .into(database.collEffort)
+            .insert(
+              CollEffortCompanion(
+                eventID: Value(projectEvents.first.id),
+                method: Value(methodName),
+              ),
+            ),
+      );
+    }
+    await database.batch((batch) {
+      for (var index = 0; index < additionalMethods.length; index++) {
+        batch.insert(
+          database.specimen,
+          SpecimenCompanion(
+            uuid: Value('record-statistics-extra-${index + 1}'),
+            projectUuid: const Value(projectUuid),
+            speciesID: Value(myotis),
+            collEventID: Value(projectEvents.first.id),
+            collMethodID: Value(additionalMethods[index]),
+          ),
+        );
+      }
+      batch.insertAll(database.mammalAttribute, const [
+        MammalAttributeCompanion(
+          specimenUuid: Value('record-statistics-extra-1'),
+          sex: Value(3),
+          lifeStage: Value('Larva'),
+        ),
+        MammalAttributeCompanion(
+          specimenUuid: Value('record-statistics-extra-2'),
+          sex: Value(4),
+          lifeStage: Value('Pupa'),
+        ),
+        MammalAttributeCompanion(
+          specimenUuid: Value('record-statistics-extra-3'),
+          sex: Value(5),
+          lifeStage: Value('Egg'),
+        ),
+        MammalAttributeCompanion(
+          specimenUuid: Value('record-statistics-extra-4'),
+          sex: Value(6),
+          lifeStage: Value('Nymph'),
+        ),
+      ]);
+    });
+  }
 
   final container = ProviderContainer(
     overrides: [databaseProvider.overrideWithValue(database)],

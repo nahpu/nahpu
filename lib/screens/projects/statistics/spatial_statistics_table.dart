@@ -32,29 +32,32 @@ class _SpatialStatisticsTableState extends State<SpatialStatisticsTable> {
 
     final hasCounts = widget.kind.hasCounts;
     final total = spatialStatisticTotal(widget.rows);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: PaginatedDataTable(
-        header: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            tooltip: 'Export table',
-            onPressed: widget.onExport,
-            icon: const Icon(Icons.file_upload_outlined),
+    return SingleChildScrollView(
+      primary: false,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: PaginatedDataTable(
+          header: const SizedBox.shrink(),
+          actions: [
+            IconButton(
+              tooltip: 'Export table',
+              onPressed: widget.onExport,
+              icon: const Icon(Icons.file_upload_outlined),
+            ),
+          ],
+          showEmptyRows: false,
+          rowsPerPage: _rowsPerPage,
+          availableRowsPerPage: availableRows,
+          onRowsPerPageChanged: (value) {
+            if (value != null) setState(() => _rowsPerPage = value);
+          },
+          source: _SpatialStatisticsDataSource(
+            rows: widget.rows,
+            hasCounts: hasCounts,
+            total: total,
           ),
-        ],
-        showEmptyRows: false,
-        rowsPerPage: _rowsPerPage,
-        availableRowsPerPage: availableRows,
-        onRowsPerPageChanged: (value) {
-          if (value != null) setState(() => _rowsPerPage = value);
-        },
-        source: _SpatialStatisticsDataSource(
-          rows: widget.rows,
-          hasCounts: hasCounts,
-          total: total,
+          columns: hasCounts ? _metricColumns : _coordinateColumns,
         ),
-        columns: hasCounts ? _metricColumns : _coordinateColumns,
       ),
     );
   }

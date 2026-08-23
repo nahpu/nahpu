@@ -233,8 +233,11 @@ class StatisticBarChart extends StatelessWidget {
           fitInsideHorizontally: true,
           fitInsideVertically: true,
           getTooltipColor: (_) => colorScheme.surfaceContainerHighest,
-          getTooltipItem: (group, groupIndex, rod, rodIndex) {
-            final category = categories[group.x];
+          getTooltipItem: (_, groupIndex, _, _) {
+            if (groupIndex < 0 || groupIndex >= categories.length) {
+              return null;
+            }
+            final category = categories[groupIndex];
             return BarTooltipItem(
               category.total.toString(),
               TextStyle(
@@ -351,18 +354,11 @@ class StatisticPieChart extends StatelessWidget {
                 sectionsSpace: 2,
                 sections: [
                   for (var index = 0; index < data.length; index++)
-                    PieChartSectionData(
-                      value: data[index].count.toDouble(),
-                      color: colors[index % colors.length],
-                      radius: 66,
-                      title: total == 0
-                          ? '0%'
-                          : '${(data[index].count * 100 / total).toStringAsFixed(0)}%',
-                      titleStyle: Theme.of(context).textTheme.labelMedium
-                          ?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                    _pieSection(
+                      context,
+                      data[index],
+                      colors[index % colors.length],
+                      total,
                     ),
                 ],
               ),
@@ -391,6 +387,176 @@ class StatisticPieChart extends StatelessWidget {
     final percent = total == 0 ? 0 : datum.count * 100 / total;
     return '${datum.label}: ${datum.count} (${percent.toStringAsFixed(1)}%)';
   }
+
+  PieChartSectionData _pieSection(
+    BuildContext context,
+    StatisticDatum datum,
+    Color color,
+    int total,
+  ) {
+    return PieChartSectionData(
+      value: datum.count.toDouble(),
+      color: color,
+      radius: 66,
+      title: total == 0
+          ? '0%'
+          : '${(datum.count * 100 / total).toStringAsFixed(0)}%',
+      titleStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: _bestContrastTextColor(color),
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+class StatisticChartSwitcher extends StatefulWidget {
+  const StatisticChartSwitcher({
+    super.key,
+    required this.data,
+    required this.measure,
+    required this.group,
+    this.breakdown,
+    required this.usePieByDefault,
+    this.compact = false,
+    this.height = 300,
+    this.fitHeight = false,
+    this.toggleKey,
+  });
+
+  final List<StatisticDatum> data;
+  final StatisticMeasure measure;
+  final StatisticGroup group;
+  final StatisticBreakdown? breakdown;
+  final bool usePieByDefault;
+  final bool compact;
+  final double height;
+  final bool fitHeight;
+  final Key? toggleKey;
+
+  @override
+  State<StatisticChartSwitcher> createState() => _StatisticChartSwitcherState();
+}
+
+enum _StatisticChartView { pie, bar }
+
+class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
+  _StatisticChartView _view = _StatisticChartView.pie;
+
+  @override
+  void didUpdateWidget(covariant StatisticChartSwitcher oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.measure != widget.measure ||
+        oldWidget.group != widget.group ||
+        oldWidget.breakdown != widget.breakdown ||
+        oldWidget.usePieByDefault != widget.usePieByDefault ||
+        !_sameData(oldWidget.data, widget.data)) {
+      _view = _StatisticChartView.pie;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showToggle = widget.usePieByDefault && widget.data.isNotEmpty;
+    final toggle = showToggle
+        ? Align(
+            alignment: Alignment.centerRight,
+            child: Semantics(
+              label: _view == _StatisticChartView.pie
+                  ? 'Show bar chart'
+                  : 'Show pie chart',
+              child: IconButton(
+                key: widget.toggleKey,
+                tooltip: _view == _StatisticChartView.pie
+                    ? 'Show bar chart'
+                    : 'Show pie chart',
+                icon: Icon(
+                  _view == _StatisticChartView.pie
+                      ? Icons.bar_chart_rounded
+                      : Icons.pie_chart_outline,
+                ),
+                onPressed: () {
+                  setState(
+                    () => _view = _view == _StatisticChartView.pie
+                        ? _StatisticChartView.bar
+                        : _StatisticChartView.pie,
+                  );
+                },
+              ),
+            ),
+          )
+        : null;
+
+    if (widget.fitHeight) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (toggle != null) ...[toggle, const SizedBox(height: 8)],
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) =>
+                  _buildChart(constraints.maxHeight),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (toggle != null) ...[toggle, const SizedBox(height: 8)],
+        _buildChart(widget.height),
+      ],
+    );
+  }
+
+  Widget _buildChart(double height) {
+    if (widget.usePieByDefault && _view == _StatisticChartView.pie) {
+      final pieHeight = widget.fitHeight && height > 32 ? height - 32 : height;
+      return StatisticPieChart(data: widget.data, height: pieHeight);
+    }
+    return StatisticBarChart(
+      data: widget.data,
+      measure: widget.measure,
+      group: widget.group,
+      breakdown: widget.breakdown,
+      compact: widget.compact,
+      height: height,
+      fitHeight: widget.fitHeight,
+    );
+  }
+}
+
+bool _sameData(List<StatisticDatum> first, List<StatisticDatum> second) {
+  if (first.length != second.length) return false;
+  for (var index = 0; index < first.length; index++) {
+    final firstDatum = first[index];
+    final secondDatum = second[index];
+    if (firstDatum.label != secondDatum.label ||
+        firstDatum.count != secondDatum.count ||
+        firstDatum.seriesLabel != secondDatum.seriesLabel) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Color _bestContrastTextColor(Color background) {
+  final whiteContrast = _contrastRatio(Colors.white, background);
+  final blackContrast = _contrastRatio(Colors.black, background);
+  return whiteContrast >= blackContrast ? Colors.white : Colors.black;
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter = firstLuminance > secondLuminance
+      ? firstLuminance
+      : secondLuminance;
+  final darker = firstLuminance > secondLuminance
+      ? secondLuminance
+      : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 class _StatisticCategory {
