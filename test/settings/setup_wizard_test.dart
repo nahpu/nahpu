@@ -60,7 +60,12 @@ void main() {
   /// way a user reaches them.
   Future<void> advance(WidgetTester tester, int steps) async {
     for (var i = 0; i < steps; i++) {
-      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      final next = find.widgetWithText(FilledButton, 'Continue');
+      await tester.tap(
+        next.evaluate().isEmpty
+            ? find.widgetWithText(FilledButton, 'Review setup')
+            : next,
+      );
       await tester.pumpAndSettle();
     }
   }
@@ -112,6 +117,35 @@ void main() {
 
     expect(find.text('Set up NAHPU'), findsNothing);
     expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('welcome offers importing a colleague\'s settings', (
+    tester,
+  ) async {
+    await pumpWizard(tester);
+
+    expect(
+      find.textContaining('A team only needs to set this up once'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(OutlinedButton, 'Import settings'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('finish offers exporting the setup for the team', (tester) async {
+    await pumpWizard(tester);
+    await advance(tester, 7);
+
+    expect(
+      find.textContaining('Your team only needs to do this once'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(OutlinedButton, 'Export settings'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a parasite-capable format keeps the parasite step', (

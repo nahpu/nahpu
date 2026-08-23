@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nahpu/screens/exports/export_settings.dart';
+import 'package:nahpu/screens/settings/app_settings_import.dart';
 import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
 import 'package:nahpu/screens/settings/specimen_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -183,6 +185,23 @@ class _WelcomeStep extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
+        _SetupActionPanel(
+          title: 'Already have settings from your team?',
+          message:
+              'A team only needs to set this up once. If a colleague has '
+              'already configured NAHPU, import their settings file and you '
+              'can skip the rest of this wizard. You can export yours for '
+              'everyone else at the end.',
+          icon: Icons.download_outlined,
+          label: 'Import settings',
+          onPressed: (context) => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const AppSettingsImport(),
+            ),
           ),
         ),
       ],
@@ -887,6 +906,22 @@ class _FinishStep extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
+        _SetupActionPanel(
+          title: 'Share this setup with your team',
+          message:
+              'Your team only needs to do this once. Export these settings '
+              'and colleagues can import them to work from the same '
+              'controlled vocabularies and identifier scheme.',
+          icon: Icons.ios_share_outlined,
+          label: 'Export settings',
+          onPressed: (context) => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const ExportSettingsForm(),
+            ),
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
         const _SetupNote(
           'Nothing here is locked in. Change any individual setting under '
           'Settings, or run Setup NAHPU again from the menu to walk through '
@@ -1046,6 +1081,47 @@ class _VocabularyPanels extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// A panel that pairs a short explanation with one action, used for the
+/// settings hand-off between colleagues at either end of the wizard.
+class _SetupActionPanel extends StatelessWidget {
+  const _SetupActionPanel({
+    required this.title,
+    required this.message,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String title;
+  final String message;
+  final IconData icon;
+  final String label;
+  final void Function(BuildContext context) onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: NahpuSpacing.md),
+          Text(message, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: NahpuSpacing.lg),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: () => onPressed(context),
+              icon: Icon(icon),
+              label: Text(label),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
