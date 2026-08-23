@@ -203,7 +203,8 @@ class StatisticAvailability {
 
 class RecordStatisticTotals {
   const RecordStatisticTotals({
-    required this.siteCount,
+    required this.recordedSiteCount,
+    required this.sampledSiteCount,
     required this.eventCount,
     required this.specimenCount,
     required this.speciesCount,
@@ -217,7 +218,12 @@ class RecordStatisticTotals {
     this.totalCaptureDays = 0,
   });
 
-  final int siteCount;
+  /// Sites recorded in the project.
+  final int recordedSiteCount;
+
+  /// Sites that yielded specimen records.
+  final int sampledSiteCount;
+
   final int eventCount;
   final int specimenCount;
   final int speciesCount;

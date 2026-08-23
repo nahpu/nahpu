@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -51,7 +53,7 @@ void main() {
       count: 1,
       expectIcon: false,
     );
-    _expectRecordMetric(tester, RecordMetricKind.sites, count: 2);
+    _expectRecordMetric(tester, RecordMetricKind.recordedSites, count: 2);
     _expectRecordMetric(tester, RecordMetricKind.events, count: 3);
     _expectRecordMetric(tester, RecordMetricKind.narratives, count: 5);
     _expectRecordMetric(tester, RecordMetricKind.projectDays, count: 3);
@@ -98,7 +100,10 @@ void main() {
       RecordMetricKind.specimens,
     ).first;
     final speciesCount = _metricTexts(tester, RecordMetricKind.species).first;
-    final siteCount = _metricTexts(tester, RecordMetricKind.sites).first;
+    final siteCount = _metricTexts(
+      tester,
+      RecordMetricKind.recordedSites,
+    ).first;
     expect(
       specimenCount.style!.fontSize,
       greaterThan(speciesCount.style!.fontSize!),
@@ -316,31 +321,29 @@ void main() {
     final narratives = tester.getRect(
       find.byKey(RecordMetricKind.narratives.fullScreenKey),
     );
-    final sites = tester.getRect(
-      find.byKey(RecordMetricKind.sites.fullScreenKey),
-    );
-    final projectDays = tester.getRect(
-      find.byKey(RecordMetricKind.projectDays.fullScreenKey),
-    );
-    final recordedElevation = tester.getRect(
-      find.byKey(RecordMetricKind.recordedElevation.fullScreenKey),
-    );
-    final sampledElevation = tester.getRect(
-      find.byKey(RecordMetricKind.sampledElevation.fullScreenKey),
-    );
-    for (final row in [
-      (sites, projectDays),
-      (recordedElevation, sampledElevation),
+    final samplingRows = <double, List<Rect>>{};
+    for (final kind in const [
+      RecordMetricKind.recordedSites,
+      RecordMetricKind.sampledSites,
+      RecordMetricKind.events,
+      RecordMetricKind.captureDays,
+      RecordMetricKind.projectDays,
+      RecordMetricKind.recordedElevation,
+      RecordMetricKind.sampledElevation,
     ]) {
+      final rect = tester.getRect(find.byKey(kind.fullScreenKey));
+      samplingRows.putIfAbsent(rect.top, () => <Rect>[]).add(rect);
+    }
+    for (final row in samplingRows.values) {
       expect(
-        row.$1.left,
+        row.map((rect) => rect.left).reduce(min),
         closeTo(specimens.left, 0.1),
-        reason: 'sampling rows should start at the records grid edge',
+        reason: 'every sampling row should start at the records grid edge',
       );
       expect(
-        row.$2.right,
+        row.map((rect) => rect.right).reduce(max),
         closeTo(narratives.right, 0.1),
-        reason: 'sampling rows should fill the group width',
+        reason: 'every sampling row should fill the group width',
       );
     }
     for (final kind in const [
@@ -348,7 +351,8 @@ void main() {
       RecordMetricKind.sampledElevation,
       RecordMetricKind.captureDays,
       RecordMetricKind.projectDays,
-      RecordMetricKind.sites,
+      RecordMetricKind.recordedSites,
+      RecordMetricKind.sampledSites,
       RecordMetricKind.events,
       RecordMetricKind.narratives,
     ]) {
@@ -456,6 +460,53 @@ void main() {
       expect(find.text('All species'), findsOneWidget);
     },
   );
+
+  testWidgets('detailed pie chart fills its card', (tester) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final groupControl = find.byKey(const ValueKey('statistics-group-control'));
+    await tester.ensureVisible(groupControl);
+    await tester.tap(
+      find.descendant(of: groupControl, matching: find.text('Method')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final detailPie = find.descendant(
+      of: detail,
+      matching: find.byType(PieChart),
+    );
+    final summaryPie = find
+        .byType(PieChart)
+        .evaluate()
+        .map((element) => element.widget as PieChart)
+        .firstWhere((chart) => chart != tester.widget<PieChart>(detailPie));
+    final detailChart = tester.widget<PieChart>(detailPie);
+    final detailBox = tester.getRect(detailPie);
+    final detailRadius =
+        detailChart.data.centerSpaceRadius +
+        detailChart.data.sections.first.radius;
+    final summaryRadius =
+        summaryPie.data.centerSpaceRadius +
+        summaryPie.data.sections.first.radius;
+
+    expect(
+      detailRadius * 2,
+      closeTo(min(detailBox.width, detailBox.height), 12),
+      reason: 'the detailed pie should span its available box',
+    );
+    expect(
+      detailRadius,
+      greaterThan(summaryRadius),
+      reason: 'the detailed pie should outgrow the compact summary pie',
+    );
+  });
 
   testWidgets(
     'detailed standalone category charts use pies below five categories',
@@ -1014,7 +1065,7 @@ void _expectRecordSummaryColors(WidgetTester tester, ThemeData theme) {
   );
 
   for (final kind in const [
-    RecordMetricKind.sites,
+    RecordMetricKind.recordedSites,
     RecordMetricKind.events,
     RecordMetricKind.narratives,
   ]) {

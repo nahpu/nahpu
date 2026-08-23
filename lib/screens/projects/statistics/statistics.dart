@@ -199,7 +199,10 @@ class _RecordStatisticsSummary extends StatelessWidget {
             _RecordMetricRow(
               tier: _RecordTileTier.secondary,
               metrics: [
-                (RecordMetricKind.sites, totals.siteCount.toString()),
+                (
+                  RecordMetricKind.recordedSites,
+                  totals.recordedSiteCount.toString(),
+                ),
                 (RecordMetricKind.events, totals.eventCount.toString()),
               ],
             ),
@@ -821,9 +824,14 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
           title: 'Sampling',
           children: [
             _SummaryMetric(
-              key: RecordMetricKind.sites.fullScreenKey,
-              kind: RecordMetricKind.sites,
-              value: totals.siteCount.toString(),
+              key: RecordMetricKind.recordedSites.fullScreenKey,
+              kind: RecordMetricKind.recordedSites,
+              value: totals.recordedSiteCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.sampledSites.fullScreenKey,
+              kind: RecordMetricKind.sampledSites,
+              value: totals.sampledSiteCount.toString(),
             ),
             _SummaryMetric(
               key: RecordMetricKind.events.fullScreenKey,

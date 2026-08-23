@@ -17,7 +17,16 @@ enum RecordMetricKind {
     slug: 'families',
     icon: Icons.account_tree_outlined,
   ),
-  sites(label: 'Sites', slug: 'sites', icon: Icons.place_outlined),
+  recordedSites(
+    label: 'Recorded sites',
+    slug: 'recorded-sites',
+    icon: Icons.place_outlined,
+  ),
+  sampledSites(
+    label: 'Sampled sites',
+    slug: 'sampled-sites',
+    icon: Icons.pin_drop_outlined,
+  ),
   events(label: 'Events', slug: 'events', icon: Icons.event_outlined),
   narratives(
     label: 'Narratives',

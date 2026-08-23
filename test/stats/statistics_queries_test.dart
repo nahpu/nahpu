@@ -366,6 +366,8 @@ void main() {
         );
 
     final totals = await query.watchRecordTotals('project-a').first;
+    expect(totals.recordedSiteCount, 3);
+    expect(totals.sampledSiteCount, 2);
     expect(totals.minimumSampledElevationInMeter, 120.5);
     expect(totals.maximumSampledElevationInMeter, 800);
     expect(totals.minimumRecordedElevationInMeter, -100);
@@ -375,7 +377,8 @@ void main() {
   test('record totals include project summary metrics', () async {
     final totals = await query.watchRecordTotals('project-a').first;
 
-    expect(totals.siteCount, 1);
+    expect(totals.recordedSiteCount, 1);
+    expect(totals.sampledSiteCount, 1);
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
     expect(totals.speciesCount, 2);
@@ -389,7 +392,8 @@ void main() {
     expect(totals.totalCaptureDays, 0);
 
     final otherProjectTotals = await query.watchRecordTotals('project-b').first;
-    expect(otherProjectTotals.siteCount, 0);
+    expect(otherProjectTotals.recordedSiteCount, 0);
+    expect(otherProjectTotals.sampledSiteCount, 0);
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
     expect(otherProjectTotals.speciesCount, 1);

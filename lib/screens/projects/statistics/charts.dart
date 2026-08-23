@@ -330,6 +330,12 @@ class StatisticBarChart extends StatelessWidget {
 class StatisticPieChart extends StatelessWidget {
   const StatisticPieChart({super.key, required this.data, this.height = 280});
 
+  /// Share of the pie radius left open in the middle, matching the compact
+  /// dashboard proportions at every size.
+  static const _centerSpaceRatio = 0.36;
+  static const _minOuterRadius = 60.0;
+  static const _pieEdgeInset = 4.0;
+
   final List<StatisticDatum> data;
   final double height;
 
@@ -349,20 +355,27 @@ class StatisticPieChart extends StatelessWidget {
         children: [
           SizedBox(
             height: math.max(0, height - _chartTopPadding),
-            child: PieChart(
-              PieChartData(
-                centerSpaceRadius: 38,
-                sectionsSpace: 2,
-                sections: [
-                  for (var index = 0; index < data.length; index++)
-                    _pieSection(
-                      context,
-                      data[index],
-                      colors[index % colors.length],
-                      total,
-                    ),
-                ],
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final outerRadius = _outerRadius(constraints);
+                final centerSpaceRadius = outerRadius * _centerSpaceRatio;
+                return PieChart(
+                  PieChartData(
+                    centerSpaceRadius: centerSpaceRadius,
+                    sectionsSpace: 2,
+                    sections: [
+                      for (var index = 0; index < data.length; index++)
+                        _pieSection(
+                          context,
+                          data[index],
+                          colors[index % colors.length],
+                          total,
+                          outerRadius - centerSpaceRadius,
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 8),
@@ -389,16 +402,30 @@ class StatisticPieChart extends StatelessWidget {
     return '${datum.label}: ${datum.count} (${percent.toStringAsFixed(1)}%)';
   }
 
+  /// Radius of the whole pie, so it grows into the space the card gives it
+  /// instead of staying at the compact dashboard size.
+  double _outerRadius(BoxConstraints constraints) {
+    final width = constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : _minOuterRadius * 2;
+    final height = constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : _minOuterRadius * 2;
+    final radius = math.min(width, height) / 2 - _pieEdgeInset;
+    return math.max(radius, _minOuterRadius);
+  }
+
   PieChartSectionData _pieSection(
     BuildContext context,
     StatisticDatum datum,
     Color color,
     int total,
+    double radius,
   ) {
     return PieChartSectionData(
       value: datum.count.toDouble(),
       color: color,
-      radius: 66,
+      radius: radius,
       title: total == 0
           ? '0%'
           : '${(datum.count * 100 / total).toStringAsFixed(0)}%',

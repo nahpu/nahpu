@@ -259,7 +259,10 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             AND capture_days.day < event_ranges.end_date
         )
         SELECT
-          (SELECT COUNT(*) FROM site WHERE projectUuid = ?) AS site_count,
+          (
+            SELECT COUNT(*) FROM site WHERE projectUuid = ?
+          ) AS recorded_site_count,
+          (SELECT COUNT(*) FROM recorded_sites) AS sampled_site_count,
           (SELECT COUNT(*) FROM collEvent WHERE projectUuid = ?) AS event_count,
           (SELECT COUNT(*) FROM specimen WHERE projectUuid = ?) AS specimen_count,
           (
@@ -322,7 +325,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       },
     ).watchSingle().map(
       (row) => RecordStatisticTotals(
-        siteCount: row.read<int>('site_count'),
+        recordedSiteCount: row.read<int>('recorded_site_count'),
+        sampledSiteCount: row.read<int>('sampled_site_count'),
         eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
         speciesCount: row.read<int>('species_count'),
