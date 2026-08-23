@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
@@ -15,6 +15,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportSettingsForm extends ConsumerStatefulWidget {
   const ExportSettingsForm({super.key});
@@ -59,7 +60,8 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
 
   @override
   Widget build(BuildContext context) {
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
     final settingsPane = ScrollableConstrainedLayout(
       child: Column(
         children: [
@@ -99,7 +101,6 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
           const SizedBox(height: 8),
           GenericFileSettingsCard<UserConfigFileFormat>(
             exportCtr: _exportController,
-            selectedDir: _selectedDirectory,
             format: _format,
             formats: UserConfigFileFormat.values,
             formatLabel: (format) => format.label,
@@ -116,18 +117,17 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
               _appendDate = value;
               _savedFile = null;
             }),
-            onSelectDir: _selectDirectory,
-            onClearDir: () => setState(() {
-              _selectedDirectory = null;
-              _savedFile = null;
-            }),
           ),
-          const SizedBox(height: 24),
-          ExportShareButton(
-            hasExported: _savedFile != null,
-            isRunning: _isRunning,
-            onExport: _canExport ? _export : null,
+          const SizedBox(height: 8),
+          ExportLocationCard(
+            selectedDir: _selectedDirectory,
+            output: _savedFile,
+            enabled: !_isRunning,
+            onSelectDir: _selectDirectory,
+            onClearDir: _clearDestination,
             onShare: _share,
+            onOpenFolder: _openFolder,
+            onDismiss: _clearDestination,
           ),
         ],
       ),
@@ -143,37 +143,49 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
       ),
     );
 
+    final body = isLargeScreen
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: settingsPane),
+              Expanded(child: previewPane),
+            ],
+          )
+        : Column(
+            children: [
+              TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                  Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [settingsPane, previewPane],
+                ),
+              ),
+            ],
+          );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Export user configs')),
       body: SafeArea(
-        child: isLargeScreen
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: settingsPane),
-                  Expanded(child: previewPane),
-                ],
-              )
-            : Column(
-                children: [
-                  TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(
-                        icon: Icon(Icons.settings_outlined),
-                        text: 'Settings',
-                      ),
-                      Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [settingsPane, previewPane],
-                    ),
-                  ),
-                ],
-              ),
+        child: Column(
+          children: [
+            Expanded(child: body),
+            ExportActionBar(
+              label: 'Export settings',
+              repeatLabel: 'Export another',
+              icon: Icons.file_upload_outlined,
+              canExport: _canExport,
+              isRunning: _isRunning,
+              hasOutput: _savedFile != null,
+              onExport: _export,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -290,6 +302,29 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
       );
     } finally {
       if (mounted) setState(() => _isRunning = false);
+    }
+  }
+
+  /// Closing the result also drops the directory, so one tap lands back on the
+  /// directory input rather than on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDirectory = null;
+      _savedFile = null;
+    });
+  }
+
+  Future<void> _openFolder() async {
+    final file = _savedFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(file);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
     }
   }
 

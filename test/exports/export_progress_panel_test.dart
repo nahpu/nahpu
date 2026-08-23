@@ -211,14 +211,16 @@ void main() {
           output: File('/tmp/nahpu/backup-2026-08-22.tar.gz'),
           outputBytes: 1717986918,
           duration: const Duration(minutes: 3, seconds: 42),
-          onShare: () {},
         ),
       );
 
       expect(find.text('Backup saved'), findsOneWidget);
       expect(find.text('backup-2026-08-22.tar.gz'), findsOneWidget);
       expect(find.text('1.6 GB in 3 min 42 s'), findsOneWidget);
-      expect(find.text('Share'), findsOneWidget);
+      // Share and the saved path live in the location card above the export
+      // button now, so the result panel must not offer a second one.
+      expect(find.text('Share'), findsNothing);
+      expect(find.text('/tmp/nahpu/backup-2026-08-22.tar.gz'), findsNothing);
     });
 
     testWidgets('says plainly that a cancelled run saved nothing', (

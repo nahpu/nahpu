@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
@@ -11,7 +12,6 @@ import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -78,11 +78,10 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 760;
+            final wide = constraints.maxWidth >= NahpuBreakpoints.compact;
             final settings = _BackupSettingsCard(
               controller: _fileNameController,
               format: _format,
-              directory: _selectedDir,
               appendDate: _appendDate,
               enabled: !_isLoading && !_isRunning,
               onFormatChanged: (value) {
@@ -103,14 +102,21 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                   _hasSaved = false;
                 });
               },
-              onSelectDirectory: _getDir,
-              onClearDirectory: () => setState(() {
-                _selectedDir = null;
-                _hasSaved = false;
-              }),
             );
             final jobProgress = _jobProgress;
-            final leftPane = _isRunning && jobProgress != null
+            final destination = ExportLocationCard(
+              selectedDir: _selectedDir,
+              output: _hasSaved ? _savePath : null,
+              outputBytes: _outputBytes,
+              duration: _runDuration,
+              enabled: !_isLoading && !_isRunning,
+              onSelectDir: _getDir,
+              onClearDir: _clearDestination,
+              onShare: () => _shareFile(context),
+              onOpenFolder: _openFolder,
+              onDismiss: _clearDestination,
+            );
+            final settingsPane = _isRunning && jobProgress != null
                 ? ExportProgressPanel(
                     title: 'Backing up database',
                     progress: jobProgress,
@@ -121,6 +127,15 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                     onCancel: _requestCancel,
                   )
                 : settings;
+            // The destination belongs with the file settings it configures.
+            final leftPane = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                settingsPane,
+                const SizedBox(height: NahpuSpacing.xl),
+                destination,
+              ],
+            );
             final rightPane = _outcome != null && !_isRunning
                 ? ExportResultPanel(
                     outcome: _outcome!,
@@ -130,7 +145,6 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                     duration: _runDuration,
                     errorMessage: _runError,
                     failedStepLabel: _failedStepLabel,
-                    onShare: () => _shareFile(context),
                     onRetry: _writeDb,
                   )
                 : _BackupSummary(summary: _summary, error: _summaryError);
@@ -162,16 +176,18 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                     ),
                   ),
                 ),
-                _BackupActionBar(
-                  isRunning: _isRunning,
-                  canSave:
+                ExportActionBar(
+                  label: 'Save backup',
+                  repeatLabel: 'Save another',
+                  icon: Icons.save_alt_outlined,
+                  canExport:
                       !_isLoading &&
                       _summary != null &&
                       _summaryError == null &&
                       _fileNameController.text.trim().isNotEmpty,
-                  hasSaved: _hasSaved,
-                  onSave: _writeDb,
-                  onShare: () => _shareFile(context),
+                  isRunning: _isRunning,
+                  hasOutput: _hasSaved,
+                  onExport: _writeDb,
                 ),
               ],
             );
@@ -242,7 +258,6 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
         _outputBytes = bytes;
         _runDuration = stopwatch.elapsed;
       });
-      _showSuccess();
     } on ExportCancelledException {
       if (!mounted) return;
       setState(() {
@@ -302,12 +317,6 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     if (leave == true && mounted) _requestCancel();
   }
 
-  void _showSuccess() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('File saved as ${_savePath!.path}')));
-  }
-
   void _showError(String error) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -327,6 +336,30 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     }
   }
 
+  Future<void> _openFolder() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(savePath);
+    } catch (error) {
+      if (mounted) _showError('Unable to open the folder: $error');
+    }
+  }
+
+  /// Closing the result puts the screen back where it was before the backup,
+  /// directory included, so one tap lands on the directory input rather than
+  /// on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDir = null;
+      _hasSaved = false;
+      _savePath = null;
+      _outcome = null;
+      _outputBytes = null;
+      _runDuration = null;
+    });
+  }
+
   Future<void> _getDir() async {
     final selected = await FilePickerServices().selectDir();
     if (selected == null || !mounted) return;
@@ -341,26 +374,20 @@ class _BackupSettingsCard extends StatelessWidget {
   const _BackupSettingsCard({
     required this.controller,
     required this.format,
-    required this.directory,
     required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
     required this.onFileNameChanged,
     required this.onAppendDateChanged,
-    required this.onSelectDirectory,
-    required this.onClearDirectory,
   });
 
   final TextEditingController controller;
   final DbArchiveFormat format;
-  final Directory? directory;
   final bool appendDate;
   final bool enabled;
   final ValueChanged<DbArchiveFormat> onFormatChanged;
   final ValueChanged<String> onFileNameChanged;
   final ValueChanged<bool> onAppendDateChanged;
-  final VoidCallback onSelectDirectory;
-  final VoidCallback onClearDirectory;
 
   @override
   Widget build(BuildContext context) {
@@ -413,13 +440,6 @@ class _BackupSettingsCard extends StatelessWidget {
               enabled: enabled,
               onChanged: onAppendDateChanged,
             ),
-            const SizedBox(height: 16),
-            if (systemPlatform == PlatformType.desktop)
-              FileSettingsDirectoryPicker(
-                selectedDir: directory,
-                onSelectDir: enabled ? onSelectDirectory : () {},
-                onClearDir: enabled ? onClearDirectory : () {},
-              ),
           ],
         ),
       ),
@@ -475,54 +495,6 @@ class _BackupSummary extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BackupActionBar extends StatelessWidget {
-  const _BackupActionBar({
-    required this.isRunning,
-    required this.canSave,
-    required this.hasSaved,
-    required this.onSave,
-    required this.onShare,
-  });
-
-  final bool isRunning;
-  final bool canSave;
-  final bool hasSaved;
-  final VoidCallback onSave;
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (hasSaved)
-                OutlinedButton.icon(
-                  onPressed: onShare,
-                  icon: Icon(Icons.adaptive.share_rounded),
-                  label: const Text('Share'),
-                ),
-              if (hasSaved) const SizedBox(width: 12),
-              // The running state is shown by the progress panel now, so this
-              // button only has to stay out of the way while a backup runs.
-              FilledButton.icon(
-                onPressed: canSave && !isRunning ? onSave : null,
-                icon: const Icon(Icons.save_alt_outlined),
-                label: Text(hasSaved ? 'Save another' : 'Save backup'),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -292,7 +292,6 @@ class ExportResultPanel extends StatelessWidget {
     this.duration,
     this.errorMessage,
     this.failedStepLabel,
-    this.onShare,
     this.onRetry,
   });
 
@@ -309,7 +308,6 @@ class ExportResultPanel extends StatelessWidget {
   /// Stage the job was in when it failed, so the message says where it stopped.
   final String? failedStepLabel;
 
-  final VoidCallback? onShare;
   final VoidCallback? onRetry;
 
   @override
@@ -339,23 +337,19 @@ class ExportResultPanel extends StatelessWidget {
             ),
             const SizedBox(height: NahpuSpacing.xl),
             ..._body(theme),
-            const SizedBox(height: NahpuSpacing.xl),
-            Row(
-              children: [
-                if (outcome == ExportOutcome.succeeded && onShare != null)
-                  OutlinedButton.icon(
-                    onPressed: onShare,
-                    icon: Icon(Icons.adaptive.share_rounded),
-                    label: const Text('Share'),
-                  ),
-                if (outcome != ExportOutcome.succeeded && onRetry != null)
-                  FilledButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Try again'),
-                  ),
-              ],
-            ),
+            // Share and the saved path belong to the location card above the
+            // export button, so a finished job states its result once.
+            if (outcome != ExportOutcome.succeeded && onRetry != null) ...[
+              const SizedBox(height: NahpuSpacing.xl),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Try again'),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -378,16 +372,6 @@ class ExportResultPanel extends StatelessWidget {
               padding: const EdgeInsets.only(top: NahpuSpacing.xs),
               child: Text(
                 _sizeAndDuration()!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          if (output != null)
-            Padding(
-              padding: const EdgeInsets.only(top: NahpuSpacing.md),
-              child: Text(
-                output!.path,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

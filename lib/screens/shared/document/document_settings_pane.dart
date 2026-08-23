@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -31,18 +29,13 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.selectedSetupName,
     required this.templateNames,
     required this.exportCtr,
-    required this.selectedDir,
     required this.isRunning,
-    required this.hasExported,
     required this.appendDate,
     required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onFileNameChanged,
     required this.onAppendDateChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
-    required this.onExportPressed,
-    required this.onSharePressed,
+    required this.locationCard,
     this.selectedCount = 0,
     this.totalCount = 0,
     this.onSelectSpecimens,
@@ -58,9 +51,7 @@ class DocumentSettingsPane extends StatelessWidget {
   final List<String> templateNames;
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final bool isRunning;
-  final bool hasExported;
   final bool appendDate;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
@@ -68,10 +59,10 @@ class DocumentSettingsPane extends StatelessWidget {
 
   final ValueChanged<String?> onFileNameChanged;
   final ValueChanged<bool> onAppendDateChanged;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
-  final VoidCallback? onExportPressed;
-  final VoidCallback onSharePressed;
+
+  /// The destination, shown directly under the file settings it belongs to.
+  final Widget locationCard;
+
   final int selectedCount;
   final int totalCount;
   final VoidCallback? onSelectSpecimens;
@@ -113,21 +104,13 @@ class DocumentSettingsPane extends StatelessWidget {
               const SizedBox(height: 16),
               _FileSettingsSection(
                 exportCtr: exportCtr,
-                selectedDir: selectedDir,
                 appendDate: appendDate,
                 enabled: !isRunning,
                 onFileNameChanged: onFileNameChanged,
                 onAppendDateChanged: onAppendDateChanged,
-                onSelectDir: onSelectDir,
-                onClearDir: onClearDir,
               ),
               const SizedBox(height: 16),
-              _ExportActions(
-                isRunning: isRunning,
-                hasExported: hasExported,
-                onExportPressed: onExportPressed,
-                onSharePressed: onSharePressed,
-              ),
+              locationCard,
             ],
           ),
         ],
@@ -196,23 +179,17 @@ class _RecordSelectionSummary extends StatelessWidget {
 class _FileSettingsSection extends StatelessWidget {
   const _FileSettingsSection({
     required this.exportCtr,
-    required this.selectedDir,
     required this.appendDate,
     required this.enabled,
     required this.onFileNameChanged,
     required this.onAppendDateChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
   });
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final bool appendDate;
   final bool enabled;
   final ValueChanged<String?> onFileNameChanged;
   final ValueChanged<bool> onAppendDateChanged;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
 
   @override
   Widget build(BuildContext context) {
@@ -234,46 +211,8 @@ class _FileSettingsSection extends StatelessWidget {
             enabled: enabled,
             onChanged: onAppendDateChanged,
           ),
-          if (!Platform.isIOS && !Platform.isAndroid) ...[
-            const SizedBox(height: 16),
-            FileSettingsDirectoryPicker(
-              selectedDir: selectedDir,
-              onSelectDir: enabled ? onSelectDir : () {},
-              onClearDir: enabled ? onClearDir : () {},
-            ),
-          ],
         ],
       ),
-    );
-  }
-}
-
-class _ExportActions extends StatelessWidget {
-  const _ExportActions({
-    required this.isRunning,
-    required this.hasExported,
-    required this.onExportPressed,
-    required this.onSharePressed,
-  });
-
-  final bool isRunning;
-  final bool hasExported;
-  final VoidCallback? onExportPressed;
-  final VoidCallback onSharePressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        ExportShareButton(
-          hasExported: hasExported,
-          isRunning: isRunning,
-          onExport: onExportPressed,
-          onShare: onSharePressed,
-        ),
-      ],
     );
   }
 }

@@ -178,17 +178,28 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.isRunning = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
 
+  /// Swaps the icon for a spinner and blocks a second press while work runs.
+  final bool isRunning;
+
   @override
   Widget build(BuildContext context) {
     return FilledButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
+      onPressed: isRunning ? null : onPressed,
+      icon: isRunning
+          ? const SizedBox.square(
+              dimension: NahpuControlSize.indicator,
+              child: CircularProgressIndicator(
+                strokeWidth: NahpuStroke.regular,
+              ),
+            )
+          : Icon(icon),
       label: Text(label),
     );
   }

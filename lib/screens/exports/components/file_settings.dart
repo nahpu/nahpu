@@ -12,7 +12,6 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
   const GenericFileSettingsCard({
     super.key,
     required this.exportCtr,
-    required this.selectedDir,
     required this.format,
     required this.formats,
     required this.formatLabel,
@@ -21,14 +20,14 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
     required this.extensionForFormat,
     required this.appendDate,
     required this.onAppendDateChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
+    this.selectedDir,
+    this.onSelectDir,
+    this.onClearDir,
     this.formatFieldLabel = 'File format',
     this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final T format;
   final List<T> formats;
   final String Function(T) formatLabel;
@@ -37,8 +36,13 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
   final ValueChanged<String?> onFileNameChanged;
   final bool appendDate;
   final ValueChanged<bool> onAppendDateChanged;
-  final VoidCallback onSelectDir;
-  final VoidCallback onClearDir;
+
+  /// Supplied only by callers that keep the destination inside this card. The
+  /// export screens show it in the location card above their export button.
+  final Directory? selectedDir;
+  final VoidCallback? onSelectDir;
+  final VoidCallback? onClearDir;
+
   final String formatFieldLabel;
   final bool enabled;
 
@@ -90,13 +94,15 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
               enabled: enabled,
               onChanged: onAppendDateChanged,
             ),
-            if (systemPlatform == PlatformType.desktop)
+            if (onSelectDir != null &&
+                onClearDir != null &&
+                systemPlatform == PlatformType.desktop)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: FileSettingsDirectoryPicker(
                   selectedDir: selectedDir,
-                  onSelectDir: enabled ? onSelectDir : () {},
-                  onClearDir: enabled ? onClearDir : () {},
+                  onSelectDir: enabled ? onSelectDir! : () {},
+                  onClearDir: enabled ? onClearDir! : () {},
                 ),
               ),
           ],
@@ -110,24 +116,24 @@ class FileSettingsCard extends StatelessWidget {
   const FileSettingsCard({
     super.key,
     required this.exportCtr,
-    required this.selectedDir,
     required this.onExportFmtChanged,
     required this.onFileNameChanged,
     required this.appendDate,
     required this.onAppendDateChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
+    this.selectedDir,
+    this.onSelectDir,
+    this.onClearDir,
     this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final void Function(ExportFmt?) onExportFmtChanged;
   final void Function(String?) onFileNameChanged;
   final bool appendDate;
   final ValueChanged<bool> onAppendDateChanged;
-  final VoidCallback onSelectDir;
-  final VoidCallback onClearDir;
+  final Directory? selectedDir;
+  final VoidCallback? onSelectDir;
+  final VoidCallback? onClearDir;
   final bool enabled;
 
   @override
@@ -157,7 +163,6 @@ class BundleFileSettingsCard extends StatelessWidget {
   const BundleFileSettingsCard({
     super.key,
     required this.exportCtr,
-    required this.selectedDir,
     required this.format,
     required this.archiveFormat,
     required this.onFormatChanged,
@@ -165,13 +170,10 @@ class BundleFileSettingsCard extends StatelessWidget {
     required this.onFileNameChanged,
     required this.appendDate,
     required this.onAppendDateChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
     this.enabled = true,
   });
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final DwcBundleFormat format;
   final BundleArchiveFormat archiveFormat;
   final ValueChanged<DwcBundleFormat> onFormatChanged;
@@ -179,8 +181,6 @@ class BundleFileSettingsCard extends StatelessWidget {
   final ValueChanged<String?> onFileNameChanged;
   final bool appendDate;
   final ValueChanged<bool> onAppendDateChanged;
-  final VoidCallback onSelectDir;
-  final VoidCallback onClearDir;
   final bool enabled;
 
   @override
@@ -256,17 +256,6 @@ class BundleFileSettingsCard extends StatelessWidget {
               value: appendDate,
               enabled: enabled,
               onChanged: onAppendDateChanged,
-            ),
-            Visibility(
-              visible: !Platform.isIOS,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: FileSettingsDirectoryPicker(
-                  selectedDir: selectedDir,
-                  onSelectDir: enabled ? onSelectDir : () {},
-                  onClearDir: enabled ? onClearDir : () {},
-                ),
-              ),
             ),
           ],
         ),

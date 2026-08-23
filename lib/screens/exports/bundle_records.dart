@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -16,6 +16,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
 
 /// Creates third-party specimen record packages.
@@ -76,18 +77,12 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     final settings = ScrollableConstrainedLayout(
       child: _BundleSettingsPane(
         fileController: _fileController,
-        selectedDirectory: _selectedDirectory,
         format: _format,
         archiveFormat: _archiveFormat,
         availableTaxonGroups: _availableTaxonGroups,
         selectedTaxonGroups: _selectedTaxonGroups,
         taxonSelectionMode: _taxonSelectionMode,
         isLoadingTaxa: _isLoadingTaxa,
-        isWriting: _isWriting,
-        canWrite:
-            _fileController.isValid &&
-            (!_format.usesTaxonSelection || _selectedTaxonGroups.isNotEmpty) &&
-            !_isPlanning,
         onFormatChanged: _changeFormat,
         onArchiveFormatChanged: _changeArchiveFormat,
         onTaxonGroupsChanged: _changeTaxonGroups,
@@ -100,10 +95,18 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
             _outputPath = null;
           });
         },
-        onSelectDirectory: _selectDirectory,
-        onClearDirectory: _clearDirectory,
-        onBundle: _writeBundle,
-        onShare: _outputPath != null ? _shareBundle : null,
+        locationCard: ExportLocationCard(
+          selectedDir: _selectedDirectory,
+          output: _outputPath == null ? null : File(_outputPath!),
+          outputBytes: _outputBytes,
+          duration: _runDuration,
+          enabled: !_isWriting,
+          onSelectDir: _selectDirectory,
+          onClearDir: _clearDestination,
+          onShare: _shareBundle,
+          onOpenFolder: _openFolder,
+          onDismiss: _clearDestination,
+        ),
       ),
     );
     final jobProgress = _jobProgress;
@@ -134,7 +137,6 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
               duration: _runDuration,
               errorMessage: _runError,
               failedStepLabel: _failedStepLabel,
-              onShare: _shareBundle,
               onRetry: _writeBundle,
             )
           : BundleContentsPane(
@@ -143,7 +145,8 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
               error: _planningError,
             ),
     );
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
 
     return PopScope(
       // Leaving mid-bundle would leave a partly written package behind, so the
@@ -157,36 +160,53 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   }
 
   Widget _buildScaffold(Widget settings, Widget contents, bool isLargeScreen) {
+    final body = isLargeScreen
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: settings),
+              Expanded(child: contents),
+            ],
+          )
+        : Column(
+            children: [
+              TabBar(
+                controller: _mobileTabs,
+                tabs: const [
+                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                  Tab(icon: Icon(Icons.inventory_2_outlined), text: 'Contents'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _mobileTabs,
+                  children: [settings, contents],
+                ),
+              ),
+            ],
+          );
     return Scaffold(
       appBar: AppBar(title: const Text('Bundle records')),
-      body: isLargeScreen
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: settings),
-                Expanded(child: contents),
-              ],
-            )
-          : Column(
-              children: [
-                TabBar(
-                  controller: _mobileTabs,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
-                    Tab(
-                      icon: Icon(Icons.inventory_2_outlined),
-                      text: 'Contents',
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _mobileTabs,
-                    children: [settings, contents],
-                  ),
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(child: body),
+            ExportActionBar(
+              label: 'Create bundle',
+              repeatLabel: 'Bundle another',
+              icon: Icons.inventory_2_outlined,
+              canExport:
+                  _fileController.isValid &&
+                  (!_format.usesTaxonSelection ||
+                      _selectedTaxonGroups.isNotEmpty) &&
+                  !_isPlanning,
+              isRunning: _isWriting,
+              hasOutput: _outputPath != null,
+              onExport: _writeBundle,
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -263,13 +283,6 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     if (directory == null || !mounted) return;
     setState(() {
       _selectedDirectory = directory;
-      _outputPath = null;
-    });
-  }
-
-  void _clearDirectory() {
-    setState(() {
-      _selectedDirectory = null;
       _outputPath = null;
     });
   }
@@ -439,6 +452,29 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     }
   }
 
+  Future<void> _openFolder() async {
+    final outputPath = _outputPath;
+    if (outputPath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(File(outputPath));
+    } catch (error) {
+      if (mounted) _showError('Unable to open the folder: $error');
+    }
+  }
+
+  /// Closing the result puts the screen back where it was before the bundle,
+  /// directory included, so one tap lands on the directory input rather than
+  /// on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDirectory = null;
+      _outputPath = null;
+      _outcome = null;
+      _outputBytes = null;
+      _runDuration = null;
+    });
+  }
+
   void _showCompleted(String outputPath) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -459,15 +495,12 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
 class _BundleSettingsPane extends StatelessWidget {
   const _BundleSettingsPane({
     required this.fileController,
-    required this.selectedDirectory,
     required this.format,
     required this.archiveFormat,
     required this.availableTaxonGroups,
     required this.selectedTaxonGroups,
     required this.taxonSelectionMode,
     required this.isLoadingTaxa,
-    required this.isWriting,
-    required this.canWrite,
     required this.onFormatChanged,
     required this.onArchiveFormatChanged,
     required this.onTaxonGroupsChanged,
@@ -475,22 +508,16 @@ class _BundleSettingsPane extends StatelessWidget {
     required this.onFileNameChanged,
     required this.appendDate,
     required this.onAppendDateChanged,
-    required this.onSelectDirectory,
-    required this.onClearDirectory,
-    required this.onBundle,
-    required this.onShare,
+    required this.locationCard,
   });
 
   final FileOpCtrModel fileController;
-  final Directory? selectedDirectory;
   final DwcBundleFormat format;
   final BundleArchiveFormat archiveFormat;
   final Set<String> availableTaxonGroups;
   final Set<String> selectedTaxonGroups;
   final BundleTaxonSelectionMode taxonSelectionMode;
   final bool isLoadingTaxa;
-  final bool isWriting;
-  final bool canWrite;
   final ValueChanged<DwcBundleFormat> onFormatChanged;
   final ValueChanged<BundleArchiveFormat> onArchiveFormatChanged;
   final ValueChanged<Set<String>> onTaxonGroupsChanged;
@@ -498,10 +525,9 @@ class _BundleSettingsPane extends StatelessWidget {
   final ValueChanged<String?> onFileNameChanged;
   final bool appendDate;
   final ValueChanged<bool> onAppendDateChanged;
-  final Future<void> Function() onSelectDirectory;
-  final VoidCallback onClearDirectory;
-  final Future<void> Function() onBundle;
-  final Future<void> Function()? onShare;
+
+  /// The destination, shown directly under the file settings it belongs to.
+  final Widget locationCard;
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +553,6 @@ class _BundleSettingsPane extends StatelessWidget {
         const SizedBox(height: 8),
         BundleFileSettingsCard(
           exportCtr: fileController,
-          selectedDir: selectedDirectory,
           format: format,
           archiveFormat: archiveFormat,
           onFormatChanged: onFormatChanged,
@@ -535,16 +560,9 @@ class _BundleSettingsPane extends StatelessWidget {
           onFileNameChanged: onFileNameChanged,
           appendDate: appendDate,
           onAppendDateChanged: onAppendDateChanged,
-          onSelectDir: onSelectDirectory,
-          onClearDir: onClearDirectory,
         ),
-        const SizedBox(height: 24),
-        ExportShareButton(
-          hasExported: onShare != null,
-          isRunning: isWriting,
-          onExport: canWrite ? onBundle : null,
-          onShare: () => onShare?.call(),
-        ),
+        const SizedBox(height: 8),
+        locationCard,
       ],
     );
   }

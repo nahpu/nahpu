@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
@@ -74,12 +74,11 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 760;
+            final wide = constraints.maxWidth >= NahpuBreakpoints.compact;
             final settings = _SettingsCard(
               controller: _fileNameController,
               format: _format,
               lightExport: _lightExport,
-              directory: _directory,
               appendDate: _appendDate,
               enabled: !_isLoading && !_isSaving,
               onFormatChanged: (value) {
@@ -101,14 +100,21 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                   _output = null;
                 });
               },
-              onSelectDirectory: _selectDirectory,
-              onClearDirectory: () => setState(() {
-                _directory = null;
-                _output = null;
-              }),
             );
             final jobProgress = _jobProgress;
-            final leftPane = _isSaving && jobProgress != null
+            final destination = ExportLocationCard(
+              selectedDir: _directory,
+              output: _output,
+              outputBytes: _outputBytes,
+              duration: _runDuration,
+              enabled: !_isLoading && !_isSaving,
+              onSelectDir: _selectDirectory,
+              onClearDir: _clearDestination,
+              onShare: _share,
+              onOpenFolder: _openFolder,
+              onDismiss: _clearDestination,
+            );
+            final settingsPane = _isSaving && jobProgress != null
                 ? ExportProgressPanel(
                     title: 'Exporting project',
                     progress: jobProgress,
@@ -119,6 +125,15 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                     onCancel: _requestCancel,
                   )
                 : settings;
+            // The destination belongs with the file settings it configures.
+            final leftPane = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                settingsPane,
+                const SizedBox(height: NahpuSpacing.xl),
+                destination,
+              ],
+            );
             final rightPane = _outcome != null && !_isSaving
                 ? ExportResultPanel(
                     outcome: _outcome!,
@@ -128,7 +143,6 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                     duration: _runDuration,
                     errorMessage: _runError,
                     failedStepLabel: _failedStepLabel,
-                    onShare: _share,
                     onRetry: _save,
                   )
                 : _SummaryCard(
@@ -165,12 +179,14 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                     ),
                   ),
                 ),
-                _ExportActionBar(
-                  isSaving: _isSaving,
+                ExportActionBar(
+                  label: 'Export project',
+                  repeatLabel: 'Export another',
+                  icon: Icons.archive_outlined,
                   canExport: _payload != null && _error == null,
+                  isRunning: _isSaving,
                   hasOutput: _output != null,
                   onExport: _save,
-                  onShare: _share,
                 ),
               ],
             );
@@ -252,9 +268,6 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
         _outputBytes = bytes;
         _runDuration = stopwatch.elapsed;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Project transfer saved as ${output.path}')),
-      );
     } on ExportCancelledException {
       if (!mounted) return;
       setState(() {
@@ -324,6 +337,32 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
     await FilePickerServices().shareFile(context, output);
   }
 
+  Future<void> _openFolder() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(output);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to open the folder: $error')),
+      );
+    }
+  }
+
+  /// Closing the result puts the screen back where it was before the export,
+  /// directory included, so one tap lands on the directory input rather than
+  /// on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _directory = null;
+      _output = null;
+      _outcome = null;
+      _outputBytes = null;
+      _runDuration = null;
+    });
+  }
+
   String _safeStem(String value) {
     final cleaned = value
         .trim()
@@ -339,29 +378,23 @@ class _SettingsCard extends StatelessWidget {
     required this.controller,
     required this.format,
     required this.lightExport,
-    required this.directory,
     required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
     required this.onAppendDateChanged,
     required this.onFileNameChanged,
     required this.onLightExportChanged,
-    required this.onSelectDirectory,
-    required this.onClearDirectory,
   });
 
   final TextEditingController controller;
   final ProjectTransferArchiveFormat format;
   final bool lightExport;
-  final Directory? directory;
   final bool appendDate;
   final bool enabled;
   final ValueChanged<ProjectTransferArchiveFormat> onFormatChanged;
   final ValueChanged<bool> onAppendDateChanged;
   final ValueChanged<String> onFileNameChanged;
   final ValueChanged<bool> onLightExportChanged;
-  final VoidCallback onSelectDirectory;
-  final VoidCallback onClearDirectory;
 
   @override
   Widget build(BuildContext context) {
@@ -428,13 +461,6 @@ class _SettingsCard extends StatelessWidget {
               enabled: enabled,
               onChanged: onAppendDateChanged,
             ),
-            const SizedBox(height: 16),
-            if (systemPlatform == PlatformType.desktop)
-              FileSettingsDirectoryPicker(
-                selectedDir: directory,
-                onSelectDir: enabled ? onSelectDirectory : () {},
-                onClearDir: enabled ? onClearDirectory : () {},
-              ),
           ],
         ),
       ),
@@ -525,54 +551,6 @@ class _SummaryCard extends StatelessWidget {
               ],
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExportActionBar extends StatelessWidget {
-  const _ExportActionBar({
-    required this.isSaving,
-    required this.canExport,
-    required this.hasOutput,
-    required this.onExport,
-    required this.onShare,
-  });
-
-  final bool isSaving;
-  final bool canExport;
-  final bool hasOutput;
-  final VoidCallback onExport;
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (hasOutput)
-                OutlinedButton.icon(
-                  onPressed: onShare,
-                  icon: Icon(Icons.adaptive.share_rounded),
-                  label: const Text('Share'),
-                ),
-              if (hasOutput) const SizedBox(width: 12),
-              // The running state is shown by the progress panel now, so this
-              // button only has to stay out of the way while an export runs.
-              FilledButton.icon(
-                onPressed: canExport && !isSaving ? onExport : null,
-                icon: const Icon(Icons.archive_outlined),
-                label: Text(hasOutput ? 'Export another' : 'Export project'),
-              ),
-            ],
-          ),
         ),
       ),
     );

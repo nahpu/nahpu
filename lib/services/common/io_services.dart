@@ -52,6 +52,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuBackupDir = 'backup';
 const String nahpuAppDir = 'nahpu';
@@ -120,9 +121,22 @@ class FilePickerServices {
     await SharePlus.instance.share(
       ShareParams(
         files: [XFile(file.path)],
-        sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+        sharePositionOrigin: box == null
+            ? null
+            : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
+  }
+
+  /// Opens the folder a saved file went into, in the system file browser.
+  ///
+  /// Telling a desktop user the path is not the same as getting them to the
+  /// file, and every platform names this action differently.
+  Future<void> openContainingDirectory(File file) async {
+    final uri = Uri.file(path.dirname(file.path), windows: Platform.isWindows);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw FormatException('Could not open $uri');
+    }
   }
 
   Future<void> shareText(BuildContext context, String text) async {
