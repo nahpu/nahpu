@@ -1,6 +1,7 @@
 ---
 title: "Prepare"
 sidebar:
+  hidden: true
   order: 1
 ---
 

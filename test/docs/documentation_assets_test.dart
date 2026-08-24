@@ -29,6 +29,10 @@ void main() {
     final english = _cookbookMetadata(DocsLanguage.english, repository);
     expect(english.recipePaths, hasLength(29));
     expect(english.categoryPaths, hasLength(4));
+    expect(english.orders['prepare/index.md'], 1);
+    expect(english.orders['collect/index.md'], 2);
+    expect(english.orders['protect-and-collaborate/index.md'], 3);
+    expect(english.orders['export-and-print/index.md'], 4);
 
     for (final language in DocsLanguage.values.skip(1)) {
       final localized = _cookbookMetadata(language, repository);
@@ -68,7 +72,7 @@ void main() {
           .listSync(recursive: true)
           .whereType<File>()
           .where(
-            (file) => file.path.endsWith('.md') && !_isIndexFile(file.path),
+            (file) => file.path.endsWith('.mdoc') && !_isIndexFile(file.path),
           );
 
       for (final file in recipes) {
@@ -88,19 +92,36 @@ void main() {
           contains(learnMoreHeadings[language]!),
           reason: file.path,
         );
+        expect(document.markdown, contains('{% steps %}'), reason: file.path);
+        expect(document.markdown, contains('{% /steps %}'), reason: file.path);
+        final stepsBlock = RegExp(
+          r'{% steps %}([\s\S]*?){% /steps %}',
+        ).firstMatch(document.markdown);
+        expect(stepsBlock, isNotNull, reason: file.path);
         final steps = RegExp(
           r'^\d+\.\s',
           multiLine: true,
-        ).allMatches(document.markdown);
+        ).allMatches(stepsBlock!.group(1)!);
         expect(steps.length, inInclusiveRange(3, 8), reason: file.path);
-        expect(document.markdown, isNot(contains('{%')), reason: file.path);
         expect(document.markdown, isNot(contains('<Tabs')), reason: file.path);
 
-        final tips = RegExp(
-          r'^> \*\*(Tip|Caution|Dica|Cuidado|Consejo|Precaución|Perhatian):\*\*',
+        final asides = RegExp(
+          r'{% aside type="(note|caution|tip)"(?: title="[^"]+")? %}',
           multiLine: true,
         ).allMatches(document.markdown);
-        expect(tips.length, lessThanOrEqualTo(1), reason: file.path);
+        expect(asides.length, lessThanOrEqualTo(1), reason: file.path);
+        expect(
+          RegExp(
+            r'^> \*\*.+?:\*\*',
+            multiLine: true,
+          ).hasMatch(document.markdown),
+          isFalse,
+          reason: file.path,
+        );
+        final tagNames = RegExp(
+          r'{%\s+/?([a-z-]+)',
+        ).allMatches(document.markdown).map((match) => match.group(1)).toSet();
+        expect(tagNames.difference({'steps', 'aside'}), isEmpty);
         expect(
           document.markdown,
           contains('https://nahpu.app/${language.code}/'),
@@ -123,7 +144,7 @@ _CookbookMetadata _cookbookMetadata(
   final titles = <String, String>{};
 
   for (final file in root.listSync(recursive: true).whereType<File>()) {
-    if (!file.path.endsWith('.md')) continue;
+    if (!file.path.endsWith('.md') && !file.path.endsWith('.mdoc')) continue;
     final relativePath = file.path.substring(root.path.length + 1);
     final document = repository.parseDocument(
       assetPath: file.path,

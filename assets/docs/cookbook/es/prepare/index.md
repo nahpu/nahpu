@@ -1,6 +1,7 @@
 ---
 title: "Preparar"
 sidebar:
+  hidden: true
   order: 1
 ---
 

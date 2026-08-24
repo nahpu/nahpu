@@ -1,6 +1,7 @@
 ---
 title: "Pengumpulan"
 sidebar:
+  hidden: true
   order: 2
 ---
 

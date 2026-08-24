@@ -1,6 +1,7 @@
 ---
 title: "Ekspor dan cetak"
 sidebar:
+  hidden: true
   order: 4
 ---
 

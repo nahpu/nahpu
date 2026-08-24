@@ -1,0 +1,28 @@
+---
+title: "Restaure ou substitua um banco de dados"
+sidebar:
+  order: 3
+---
+
+Substitua os dados ativos da instalação por um backup verificado do NAHPU.
+
+## Etapas
+
+{% steps %}
+
+1. Crie um backup atual do banco de dados ativo.
+2. Abra `Settings` > `Database` e escolha `Replace database`.
+3. Selecione o banco SQLite ou o arquivo de backup do NAHPU compatível.
+4. Revise o aviso e confirme somente depois de verificar o arquivo de origem.
+5. Reinicie ou reabra o NAHPU se solicitado e verifique projetos, contagens e arquivos gerenciados.
+{% /steps %}
+
+{% aside type="caution" %}
+
+A substituição sobrescreve o banco de dados ativo; ela não combina projetos.
+
+{% /aside %}
+
+## Saiba mais
+
+[Abra o guia completo](https://nahpu.app/pt/curatorial-guideline/backup-restore/#restoring-a-database)

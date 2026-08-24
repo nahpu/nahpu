@@ -1,6 +1,7 @@
 ---
 title: "Protect and collaborate"
 sidebar:
+  hidden: true
   order: 3
 ---
 

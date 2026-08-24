@@ -7,10 +7,10 @@ Supported locale directories use alpha-2 codes: `en`, `pt`, `es`, and `id`.
 Portuguese content follows Brazilian usage. Matching document paths must exist
 in every locale.
 
-Every Markdown document starts with YAML front matter containing `title` and
+Every documentation file starts with YAML front matter containing `title` and
 `sidebar.order`. Cookbook category metadata lives in each category's
-`index.md`. Recipe files use the same path and identical bytes in both
-repositories.
+`index.md`. Recipes use `.mdoc` for the supported Markdoc components. Recipe
+files use the same relative path and identical bytes in both repositories.
 
 To check Cookbook parity from the app repository:
 

@@ -1,6 +1,7 @@
 ---
 title: "Panduan praktis"
 sidebar:
+  hidden: true
   order: 1
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: "Exportar e imprimir"
 sidebar:
+  hidden: true
   order: 4
 ---
 

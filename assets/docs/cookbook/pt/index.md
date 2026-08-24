@@ -1,6 +1,7 @@
 ---
 title: "Guias práticos"
 sidebar:
+  hidden: true
   order: 1
 ---
 

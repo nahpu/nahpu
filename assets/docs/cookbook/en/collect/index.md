@@ -1,6 +1,7 @@
 ---
 title: "Collect"
 sidebar:
+  hidden: true
   order: 2
 ---
 

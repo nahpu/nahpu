@@ -1,6 +1,7 @@
 ---
 title: "Melindungi dan berkolaborasi"
 sidebar:
+  hidden: true
   order: 3
 ---
 

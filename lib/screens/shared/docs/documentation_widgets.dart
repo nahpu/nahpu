@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/docs/mdoc_body.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -87,11 +90,9 @@ class MarkdownDocumentView extends StatelessWidget {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: NahpuSpacing.md),
-          MarkdownBody(
+          MdocBody(
             data: document.markdown,
-            selectable: false,
-            listItemCrossAxisAlignment:
-                MarkdownListItemCrossAxisAlignment.start,
+            language: document.language,
             styleSheet: documentationMarkdownStyleSheet(context),
             onTapLink: (text, href, title) => _openLink(href),
           ),
@@ -113,9 +114,14 @@ MarkdownStyleSheet documentationMarkdownStyleSheet(BuildContext context) {
   final bodyStyle = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
     color: colorScheme.onSurface,
   );
+  final linkColor = _accessibleDocumentationLinkColor(colorScheme);
 
   return MarkdownStyleSheet(
-    a: bodyStyle.copyWith(color: colorScheme.primary),
+    a: bodyStyle.copyWith(
+      color: linkColor,
+      decoration: TextDecoration.underline,
+      decorationColor: linkColor,
+    ),
     p: bodyStyle,
     pPadding: EdgeInsets.zero,
     code: bodyStyle.copyWith(
@@ -180,6 +186,26 @@ MarkdownStyleSheet documentationMarkdownStyleSheet(BuildContext context) {
       border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
     ),
   );
+}
+
+Color _accessibleDocumentationLinkColor(ColorScheme colorScheme) {
+  final backgrounds = [
+    colorScheme.surface,
+    colorScheme.surfaceContainerLow,
+    colorScheme.surfaceContainer,
+    colorScheme.surfaceContainerHigh,
+    colorScheme.surfaceContainerHighest,
+  ];
+  final primaryMeetsContrast = backgrounds.every(
+    (background) => _contrastRatio(colorScheme.primary, background) >= 4.5,
+  );
+  return primaryMeetsContrast ? colorScheme.primary : colorScheme.onSurface;
+}
+
+double _contrastRatio(Color first, Color second) {
+  final lighter = math.max(first.computeLuminance(), second.computeLuminance());
+  final darker = math.min(first.computeLuminance(), second.computeLuminance());
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 class DocumentationErrorView extends StatelessWidget {

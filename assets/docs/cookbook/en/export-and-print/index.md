@@ -1,6 +1,7 @@
 ---
 title: "Export and print"
 sidebar:
+  hidden: true
   order: 4
 ---
 

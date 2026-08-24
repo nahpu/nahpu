@@ -1,6 +1,7 @@
 ---
 title: "Persiapan"
 sidebar:
+  hidden: true
   order: 1
 ---
 

@@ -54,6 +54,7 @@ class MarkdownDocument {
     required this.markdown,
     required this.assetPath,
     required this.order,
+    this.language = DocsLanguage.english,
   });
 
   final String id;
@@ -61,6 +62,7 @@ class MarkdownDocument {
   final String markdown;
   final String assetPath;
   final int order;
+  final DocsLanguage language;
 }
 
 class CookbookRecipe {
@@ -158,9 +160,19 @@ class DocumentationRepository {
     final sidebar = frontMatter['sidebar'];
     final rawOrder = sidebar is YamlMap ? sidebar['order'] : null;
     final order = rawOrder is num ? rawOrder.toInt() : 0;
-    final filename = assetPath.split('/').last;
-    final id = filename.substring(0, filename.length - '.md'.length);
+    final normalizedPath = assetPath.replaceAll('\\', '/');
+    final filename = normalizedPath.split('/').last;
+    final extensionIndex = filename.lastIndexOf('.');
+    if (extensionIndex <= 0) {
+      throw FormatException('Missing document extension in $assetPath');
+    }
+    final id = filename.substring(0, extensionIndex);
     final markdown = normalized.substring(closingIndex + 5).trim();
+    final pathParts = normalizedPath.split('/');
+    final language = DocsLanguage.values.firstWhere(
+      (language) => pathParts.contains(language.code),
+      orElse: () => DocsLanguage.english,
+    );
 
     return MarkdownDocument(
       id: id,
@@ -168,6 +180,7 @@ class DocumentationRepository {
       markdown: markdown,
       assetPath: assetPath,
       order: order,
+      language: language,
     );
   }
 
@@ -186,9 +199,9 @@ class DocumentationRepository {
     final assets = await _loadAssetPaths();
     final prefix = 'assets/docs/cookbook/${language.code}/';
     final recipePaths = assets.where((path) {
-      if (!path.startsWith(prefix) || !path.endsWith('.md')) return false;
+      if (!path.startsWith(prefix) || !path.endsWith('.mdoc')) return false;
       final relativeParts = path.substring(prefix.length).split('/');
-      return relativeParts.length == 2 && relativeParts.last != 'index.md';
+      return relativeParts.length == 2;
     }).toList()..sort();
     if (recipePaths.isEmpty) {
       throw StateError('No cookbook recipes found for ${language.code}');

@@ -7,7 +7,7 @@ void main() {
   test('front matter parses and is removed from rendered Markdown', () {
     final repository = DocumentationRepository();
     final document = repository.parseDocument(
-      assetPath: 'assets/docs/cookbook/en/prepare/test-recipe.md',
+      assetPath: 'assets/docs/cookbook/en/prepare/test-recipe.mdoc',
       source:
           '''
 ---
@@ -29,8 +29,19 @@ Do the useful thing.
     expect(document.id, 'test-recipe');
     expect(document.title, 'Test recipe');
     expect(document.order, 7);
+    expect(document.language, DocsLanguage.english);
     expect(document.markdown, startsWith('Do the useful thing.'));
     expect(document.markdown, isNot(contains('sidebar:')));
+  });
+
+  test('document locale and ID are derived from an mdoc asset path', () {
+    final document = DocumentationRepository().parseDocument(
+      assetPath: 'assets/docs/cookbook/pt/prepare/test-recipe.mdoc',
+      source: _document('Receita', 1),
+    );
+
+    expect(document.id, 'test-recipe');
+    expect(document.language, DocsLanguage.portuguese);
   });
 
   test('localized info falls back to English', () async {
@@ -55,10 +66,10 @@ Do the useful thing.
     () async {
       final assets = {
         'assets/docs/cookbook/en/second/index.md': _document('Second', 2),
-        'assets/docs/cookbook/en/second/later.md': _document('Later', 8),
+        'assets/docs/cookbook/en/second/later.mdoc': _document('Later', 8),
         'assets/docs/cookbook/en/first/index.md': _document('First', 1),
-        'assets/docs/cookbook/en/first/b.md': _document('B recipe', 2),
-        'assets/docs/cookbook/en/first/a.md': _document('A recipe', 1),
+        'assets/docs/cookbook/en/first/b.mdoc': _document('B recipe', 2),
+        'assets/docs/cookbook/en/first/a.mdoc': _document('A recipe', 1),
       };
       final repository = DocumentationRepository(
         assetBundle: _MapAssetBundle(assets),
@@ -78,7 +89,7 @@ Do the useful thing.
   test('missing localized Cookbook falls back to English', () async {
     final assets = {
       'assets/docs/cookbook/en/prepare/index.md': _document('Prepare', 1),
-      'assets/docs/cookbook/en/prepare/first.md': _document(
+      'assets/docs/cookbook/en/prepare/first.mdoc': _document(
         'English recipe',
         1,
       ),

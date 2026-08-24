@@ -27,15 +27,15 @@ void main(List<String> arguments) {
   final appRoot = Directory.current.absolute.path;
   final differences = <String>[];
   for (final locale in _locales) {
-    final source = Directory('${canonicalRoot.path}/$locale/cookbook');
+    final source = Directory('${canonicalRoot.path}/$locale/how-to-recipes');
     final destination = Directory('$appRoot/assets/docs/cookbook/$locale');
     if (!source.existsSync()) {
       differences.add('Missing canonical directory: ${source.path}');
       continue;
     }
-    final sourceFiles = _markdownFiles(source);
+    final sourceFiles = _documentationFiles(source);
     final destinationFiles = destination.existsSync()
-        ? _markdownFiles(destination)
+        ? _documentationFiles(destination)
         : <String, File>{};
 
     for (final entry in sourceFiles.entries) {
@@ -84,10 +84,13 @@ String? _optionValue(List<String> arguments, String option) {
   return arguments[index + 1];
 }
 
-Map<String, File> _markdownFiles(Directory root) {
+Map<String, File> _documentationFiles(Directory root) {
   final result = <String, File>{};
   for (final entity in root.listSync(recursive: true)) {
-    if (entity is! File || !entity.path.endsWith('.md')) continue;
+    if (entity is! File ||
+        (!entity.path.endsWith('.md') && !entity.path.endsWith('.mdoc'))) {
+      continue;
+    }
     final relativePath = entity.path.substring(root.path.length + 1);
     result[relativePath] = entity;
   }

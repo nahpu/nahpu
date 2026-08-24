@@ -1,6 +1,7 @@
 ---
 title: "Recolectar"
 sidebar:
+  hidden: true
   order: 2
 ---
 

@@ -224,7 +224,7 @@ void main() {
     expect(find.text('Propósito en español.'), findsOneWidget);
   });
 
-  testWidgets('Cookbook Markdown links use the text button color', (
+  testWidgets('documentation links meet WCAG AA in both themes', (
     tester,
   ) async {
     const document = MarkdownDocument(
@@ -234,18 +234,33 @@ void main() {
       assetPath: 'test/link.md',
       order: 1,
     );
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: NahpuTheme.lightTheme(),
-        home: const Scaffold(body: MarkdownDocumentView(document: document)),
-      ),
-    );
+    for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: const Scaffold(body: MarkdownDocumentView(document: document)),
+        ),
+      );
 
-    final markdown = tester.widget<MarkdownBody>(find.byType(MarkdownBody));
-    expect(
-      markdown.styleSheet?.a?.color,
-      Theme.of(tester.element(find.byType(MarkdownBody))).colorScheme.primary,
-    );
+      final markdown = tester.widget<MarkdownBody>(find.byType(MarkdownBody));
+      final linkStyle = markdown.styleSheet!.a!;
+      final colorScheme = Theme.of(
+        tester.element(find.byType(MarkdownBody)),
+      ).colorScheme;
+      for (final background in [
+        colorScheme.surface,
+        colorScheme.surfaceContainerLow,
+        colorScheme.surfaceContainer,
+        colorScheme.surfaceContainerHigh,
+        colorScheme.surfaceContainerHighest,
+      ]) {
+        expect(
+          _contrastRatio(linkStyle.color!, background),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+      expect(linkStyle.decoration, TextDecoration.underline);
+    }
   });
 
   testWidgets('documentation Markdown uses dark theme colors', (tester) async {
@@ -272,7 +287,10 @@ void main() {
     expect(style.p!.color, theme.colorScheme.onSurface);
     expect(style.h2!.color, theme.colorScheme.onSurface);
     expect(blockquote.color, theme.colorScheme.surfaceContainerHighest);
-    expect(style.a!.color, theme.colorScheme.primary);
+    expect(
+      _contrastRatio(style.a!.color!, theme.colorScheme.surface),
+      greaterThanOrEqualTo(4.5),
+    );
   });
 
   testWidgets('phone Cookbook opens recipe content in a bottom sheet', (
@@ -326,18 +344,20 @@ Widget _testApp({required Widget child, String infoBody = 'Helpful details.'}) {
       1,
       'Category purpose.',
     );
-    assets['assets/docs/cookbook/${language.key}/prepare/first.md'] = _markdown(
-      values.$2,
-      1,
-      '${values.$3}\n\n## ${values.$4}\n\n1. Start.\n2. Continue.\n3. Finish.',
-    );
+    assets['assets/docs/cookbook/${language.key}/prepare/first.mdoc'] =
+        _markdown(
+          values.$2,
+          1,
+          '${values.$3}\n\n## ${values.$4}\n\n{% steps %}\n\n'
+          '1. Start.\n2. Continue.\n3. Finish.\n{% /steps %}',
+        );
     final collect = collectTitles[language.key]!;
     assets['assets/docs/cookbook/${language.key}/collect/index.md'] = _markdown(
       collect.$1,
       2,
       'Collection purpose.',
     );
-    assets['assets/docs/cookbook/${language.key}/collect/collect.md'] =
+    assets['assets/docs/cookbook/${language.key}/collect/collect.mdoc'] =
         _markdown(collect.$2, 1, 'Collection steps.');
     assets['assets/docs/info/${language.key}/project-overview.md'] = _markdown(
       infoTitles[language.key]!,
@@ -374,6 +394,18 @@ sidebar:
 $body
 '''
         .trimLeft();
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter = firstLuminance > secondLuminance
+      ? firstLuminance
+      : secondLuminance;
+  final darker = firstLuminance > secondLuminance
+      ? secondLuminance
+      : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
+}
 
 class _MapAssetBundle extends CachingAssetBundle {
   _MapAssetBundle(this.assets);

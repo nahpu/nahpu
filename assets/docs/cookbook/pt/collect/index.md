@@ -1,6 +1,7 @@
 ---
 title: "Coletar"
 sidebar:
+  hidden: true
   order: 2
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: "Proteger e colaborar"
 sidebar:
+  hidden: true
   order: 3
 ---
 

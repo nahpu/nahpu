@@ -1,6 +1,7 @@
 ---
-title: "How-to Recipes"
+title: "How-to recipes"
 sidebar:
+  hidden: true
   order: 1
 ---
 
