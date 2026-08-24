@@ -113,7 +113,10 @@ class NahpuDirectoryNode extends NahpuTreeNode {
     required this.danglingCount,
     required this.danglingBytes,
     required this.unmanagedCount,
+    required this.deletableCount,
+    required this.deletableBytes,
     required this.isEntirelyDangling,
+    required this.isStructural,
     this.subtitle,
   });
 
@@ -125,15 +128,40 @@ class NahpuDirectoryNode extends NahpuTreeNode {
   final int danglingBytes;
   final int unmanagedCount;
 
+  /// Files in this subtree the user may remove by hand.
+  ///
+  /// Drives whether the row offers a checkbox at all: a folder holding only the
+  /// database and linked media has nothing to select, and showing a box the
+  /// user cannot act on would be a lie.
+  final int deletableCount;
+  final int deletableBytes;
+
   /// True when every file below is dangling and the directory is not
   /// structural, so the whole subtree can be offered as one action instead of
   /// making the user remove an abandoned project folder file by file.
   final bool isEntirelyDangling;
 
-  /// Secondary line, used to show a project UUID under its resolved name.
+  /// Secondary line: the file count, and the project name for a project folder.
   final String? subtitle;
 
+  /// True for a folder NAHPU creates and re-creates on demand.
+  ///
+  /// Removing one of these accomplishes nothing — the next export or import
+  /// puts it straight back — so they are never offered for deletion even when
+  /// they are empty.
+  final bool isStructural;
+
   bool get isEmpty => children.isEmpty;
+
+  /// Whether the row offers a selection checkbox.
+  bool get isSelectable => deletableCount > 0;
+
+  /// Whether the user may remove this folder outright.
+  ///
+  /// Only empty folders qualify. A folder with contents is cleared by removing
+  /// its files, which keeps one rule — nothing disappears that the user has not
+  /// seen listed.
+  bool get isRemovableWhenEmpty => isEmpty && !isStructural;
 }
 
 /// A file, already classified.

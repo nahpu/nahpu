@@ -18,6 +18,12 @@ class AppFileTreeNotifier extends AsyncNotifier<AppFileTree> {
   AppFileReferenceIndex? _index;
   String? _root;
 
+  /// Canonical application directory the current tree was scanned from.
+  ///
+  /// Exposed so the export can hand the archive writer the same root the paths
+  /// are relative to, rather than resolving it a second time.
+  String? get rootPath => _root;
+
   @override
   Future<AppFileTree> build() => _scan();
 
@@ -55,6 +61,16 @@ class AppFileTreeNotifier extends AsyncNotifier<AppFileTree> {
       return const PruneResult(deletedCount: 0, freedBytes: 0, failedPaths: []);
     }
     final result = await _pruner().deleteSelected(paths);
+    await refresh();
+    return result;
+  }
+
+  /// Removes empty folders the user picked out, then rescans.
+  Future<PruneResult> deleteDirectories(List<String> paths) async {
+    if (paths.isEmpty) {
+      return const PruneResult(deletedCount: 0, freedBytes: 0, failedPaths: []);
+    }
+    final result = await _pruner().deleteDirectories(paths);
     await refresh();
     return result;
   }
@@ -108,6 +124,39 @@ List<FileTreeRow> flattenVisibleRows(
     visit(child, 0);
   }
   return rows;
+}
+
+/// Every file under [node] the user may remove by hand.
+///
+/// Selection always stores file paths, never directory paths, so deletion and
+/// the review summary need no special case for a folder.
+List<String> collectDeletablePaths(NahpuTreeNode node) {
+  final paths = <String>[];
+  void visit(NahpuTreeNode current) {
+    switch (current) {
+      case NahpuFileNode():
+        if (current.isManuallyDeletable) paths.add(current.path);
+      case NahpuDirectoryNode():
+        current.children.forEach(visit);
+    }
+  }
+
+  visit(node);
+  return paths;
+}
+
+/// Checkbox state for a directory row: all, none, or some of its deletable
+/// files are selected. Null renders the indeterminate box.
+bool? directorySelectionState(NahpuDirectoryNode node, Set<String> selected) {
+  final paths = collectDeletablePaths(node);
+  if (paths.isEmpty) return false;
+  var chosen = 0;
+  for (final path in paths) {
+    if (selected.contains(path)) chosen += 1;
+  }
+  if (chosen == 0) return false;
+  if (chosen == paths.length) return true;
+  return null;
 }
 
 class FileTreeRow {

@@ -364,6 +364,12 @@ class DbExport extends AppServices {
 }
 
 /// Replaces the current database from a raw SQLite file or full backup archive.
+/// Format of the safety archive taken before a database replace.
+///
+/// tar.gz rather than zip: these are written unattended on every restore, and
+/// the smaller output matters more here than opening without extra tools.
+const DbArchiveFormat preReplaceBackupFormat = DbArchiveFormat.tarGzip;
+
 class DbWriter extends AppServices {
   const DbWriter({required super.ref, required this.filePath});
 
@@ -378,6 +384,13 @@ class DbWriter extends AppServices {
     ExportPhaseStep(
       phase: ExportPhase.copyingFiles,
       label: 'Restore media and files',
+    ),
+    // The safety archive copies the whole media library, so it carries real
+    // weight rather than flashing past as a formality.
+    ExportPhaseStep(
+      phase: ExportPhase.collecting,
+      label: 'Back up current data',
+      weight: 2,
     ),
     ExportPhaseStep(
       phase: ExportPhase.finalizing,
@@ -412,11 +425,11 @@ class DbWriter extends AppServices {
             )
           : filePath.path;
       cancel?.throwIfCancelled();
-      progress?.beginPhase(ExportPhase.finalizing);
       if (backup) {
-        final backupPath = await backupDir;
-        await _backUpBeforeDelete(backupPath);
+        await _backUpBeforeDelete(progress: progress, cancel: cancel);
       }
+      cancel?.throwIfCancelled();
+      progress?.beginPhase(ExportPhase.finalizing);
       await _writeDb(dbImportPath);
       progress?.complete();
     } finally {
@@ -569,9 +582,37 @@ class DbWriter extends AppServices {
     newDb.close();
   }
 
-  Future<void> _backUpBeforeDelete(File backupPath) async {
-    if (backupPath.existsSync()) backupPath.deleteSync();
-    await dbAccess.exportInto(backupPath);
+  /// Writes a full archive before the database is overwritten.
+  ///
+  /// This used to be a bare `.sqlite3` snapshot, which meant the safety net
+  /// under the most destructive operation in the app held no media at all — a
+  /// user who restored the wrong archive got their records back and their
+  /// photos never. It now goes through [DbExport], so the fallback is the same
+  /// zip or tar.gz with every media file that the backup window produces.
+  Future<File> _backUpBeforeDelete({
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
+    final documentDir = await nahpuDocumentDir;
+    final directory = Directory(p.join(documentDir.path, nahpuBackupDir));
+    await directory.create(recursive: true);
+    final target = await AppIOServices(
+      dir: directory,
+      fileStem: 'nahpu_backup-$dateTimeStamp',
+      ext: preReplaceBackupFormat.extension,
+    ).getSavePath();
+
+    // [DbExport] reports against its own stages, which are not part of a
+    // restore job, so this stage runs indeterminate and names the file instead
+    // of forwarding a reporter that would assert on unknown phases.
+    progress?.beginPhase(ExportPhase.collecting, indeterminate: true);
+    progress?.setCurrentItem(p.basename(target.path));
+
+    await DbExport(
+      ref: ref,
+      filePath: target,
+    ).write(preReplaceBackupFormat, cancel: cancel);
+    return target;
   }
 
   Future<void> _deleteTempDir() async {

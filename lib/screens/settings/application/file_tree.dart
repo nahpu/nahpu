@@ -5,6 +5,20 @@ import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
+/// Left inset of a top-level row.
+///
+/// Matches the effective text inset of [CommonSettingTile], whose `ListTile`
+/// adds 16 inside an 8 padding, so tree rows line up with the summary tiles
+/// above them instead of starting their own margin.
+const double _rowInset = NahpuSpacing.xxl;
+
+/// One indent step per depth level.
+const double _indentStep = NahpuSpacing.xl;
+
+/// Width of the chevron column. File rows reserve it so their format icons sit
+/// directly under the folder icons above them.
+const double _chevronGutter = NahpuControlSize.iconMedium + NahpuSpacing.lg;
+
 /// Expandable tree of the application directory.
 ///
 /// Rows are flattened to the currently visible set and rendered through a
@@ -19,6 +33,8 @@ class NahpuFileTreeView extends StatefulWidget {
     this.isSelecting = false,
     this.selected = const <String>{},
     this.onSelectionChanged,
+    this.onDirectorySelectionChanged,
+    this.onDeleteDirectory,
   });
 
   final NahpuDirectoryNode root;
@@ -31,6 +47,12 @@ class NahpuFileTreeView extends StatefulWidget {
   final bool isSelecting;
   final Set<String> selected;
   final ValueChanged<NahpuFileNode>? onSelectionChanged;
+
+  /// Toggles every removable file in a folder's subtree at once.
+  final ValueChanged<NahpuDirectoryNode>? onDirectorySelectionChanged;
+
+  /// Removes an empty folder.
+  final ValueChanged<NahpuDirectoryNode>? onDeleteDirectory;
 
   @override
   State<NahpuFileTreeView> createState() => _NahpuFileTreeViewState();
@@ -64,6 +86,8 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      // Keeps the last row off the section's bottom border.
+      padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
       itemCount: rows.length,
       itemBuilder: (context, index) {
         final row = rows[index];
@@ -73,6 +97,14 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
             node: node,
             depth: row.depth,
             isExpanded: _expanded.contains(node.path),
+            isSelecting: widget.isSelecting,
+            selectionState: directorySelectionState(node, widget.selected),
+            onSelectionChanged: widget.onDirectorySelectionChanged == null
+                ? null
+                : () => widget.onDirectorySelectionChanged!(node),
+            onDelete: widget.onDeleteDirectory == null
+                ? null
+                : () => widget.onDeleteDirectory!(node),
             onToggle: () => setState(() {
               if (!_expanded.remove(node.path)) _expanded.add(node.path);
             }),
@@ -97,97 +129,187 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
   }
 }
 
+/// Wraps a row so every line in the tree is the same height and inset.
+///
+/// Directory and file rows used to set their own padding, which left the list
+/// visibly ragged and out of line with the settings tiles above it.
+class _TreeRow extends StatelessWidget {
+  const _TreeRow({required this.depth, required this.children, this.onTap});
+
+  final int depth;
+  final List<Widget> children;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final row = ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: NahpuControlSize.touchTarget,
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          _rowInset + depth * _indentStep,
+          NahpuSpacing.xs,
+          // A trailing gutter, so row buttons and checkboxes keep clear of the
+          // section's rounded border.
+          NahpuSpacing.lg,
+          NahpuSpacing.xs,
+        ),
+        child: Row(children: children),
+      ),
+    );
+    if (onTap == null) return row;
+    // Self-contained Material so the row keeps its ink response wherever the
+    // tree is embedded.
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(onTap: onTap, child: row),
+    );
+  }
+}
+
 class _DirectoryRow extends StatelessWidget {
   const _DirectoryRow({
     required this.node,
     required this.depth,
     required this.isExpanded,
+    required this.isSelecting,
+    required this.selectionState,
+    required this.onSelectionChanged,
+    required this.onDelete,
     required this.onToggle,
   });
 
   final NahpuDirectoryNode node;
   final int depth;
   final bool isExpanded;
+  final bool isSelecting;
+
+  /// True, false, or null for a folder only partly selected.
+  final bool? selectionState;
+  final VoidCallback? onSelectionChanged;
+  final VoidCallback? onDelete;
   final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    // Self-contained Material so the row keeps its ink response wherever the
-    // tree is embedded.
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: onToggle,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            NahpuSpacing.md + depth * NahpuSpacing.xl,
-            NahpuSpacing.md,
-            NahpuSpacing.md,
-            NahpuSpacing.md,
+    return _TreeRow(
+      depth: depth,
+      onTap: onToggle,
+      children: [
+        AnimatedRotation(
+          turns: isExpanded ? 0.25 : 0,
+          duration: const Duration(milliseconds: 150),
+          child: Icon(
+            Icons.chevron_right,
+            size: NahpuControlSize.iconMedium,
+            color: colors.onSurfaceVariant,
           ),
-          child: Row(
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        Icon(
+          isExpanded ? Icons.folder_open_outlined : Icons.folder_outlined,
+          size: NahpuControlSize.iconMedium,
+          color: colors.primary,
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AnimatedRotation(
-                turns: isExpanded ? 0.25 : 0,
-                duration: const Duration(milliseconds: 150),
-                child: Icon(
-                  Icons.chevron_right,
-                  size: NahpuControlSize.iconMedium,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: NahpuSpacing.md),
-              Icon(
-                isExpanded ? Icons.folder_open_outlined : Icons.folder_outlined,
-                size: NahpuControlSize.iconMedium,
-                color: colors.primary,
-              ),
-              const SizedBox(width: NahpuSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      node.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    Text(
-                      _subtitle(),
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: NahpuSpacing.md),
               Text(
-                formatByteSize(node.sizeBytes),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                ),
+                node.name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Text(
+                _subtitle(),
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(width: NahpuSpacing.lg),
+        Text(
+          formatByteSize(node.sizeBytes),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        _DirectoryAffordance(
+          node: node,
+          isSelecting: isSelecting,
+          selectionState: selectionState,
+          onSelectionChanged: onSelectionChanged,
+          onDelete: onDelete,
+        ),
+      ],
     );
   }
 
   String _subtitle() {
-    final parts = <String>[];
-    // A project folder already carries its file count in the title, so the
-    // second line shows the UUID instead of repeating it.
-    if (node.subtitle != null) {
-      parts.add(node.subtitle!);
-    } else {
-      parts.add('${node.fileCount} ${node.fileCount == 1 ? 'file' : 'files'}');
-    }
+    // The scanner already puts the file count, and the project name for a
+    // project folder, on this line.
+    final parts = <String>[node.subtitle ?? ''];
     if (node.danglingCount > 0) parts.add('${node.danglingCount} unlinked');
-    return parts.join(' · ');
+    return parts.where((part) => part.isNotEmpty).join(' · ');
+  }
+}
+
+/// A folder's trailing slot: a checkbox while selecting, otherwise nothing.
+///
+/// The box appears only when the subtree actually holds something removable,
+/// and goes indeterminate when only part of it is selected, so its state always
+/// matches what tapping it would do.
+class _DirectoryAffordance extends StatelessWidget {
+  const _DirectoryAffordance({
+    required this.node,
+    required this.isSelecting,
+    required this.selectionState,
+    required this.onSelectionChanged,
+    required this.onDelete,
+  });
+
+  final NahpuDirectoryNode node;
+  final bool isSelecting;
+  final bool? selectionState;
+  final VoidCallback? onSelectionChanged;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isSelecting && node.isRemovableWhenEmpty && onDelete != null) {
+      return IconButton(
+        tooltip: 'Remove this empty folder',
+        visualDensity: VisualDensity.compact,
+        iconSize: NahpuControlSize.iconMedium,
+        color: Theme.of(context).colorScheme.error,
+        icon: const Icon(Icons.delete_outline_rounded),
+        onPressed: onDelete,
+      );
+    }
+    if (!isSelecting || !node.isSelectable) {
+      return const SizedBox(width: NahpuControlSize.touchTarget);
+    }
+    return Tooltip(
+      message: node.deletableCount == node.fileCount
+          ? 'Select this folder'
+          : 'Select the ${node.deletableCount} removable '
+                '${node.deletableCount == 1 ? 'file' : 'files'} here',
+      child: Checkbox(
+        tristate: true,
+        value: selectionState,
+        onChanged: onSelectionChanged == null
+            ? null
+            : (_) => onSelectionChanged!(),
+      ),
+    );
   }
 }
 
@@ -213,48 +335,41 @@ class _FileRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        NahpuSpacing.md + depth * NahpuSpacing.xl,
-        NahpuSpacing.sm,
-        NahpuSpacing.md,
-        NahpuSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: NahpuControlSize.iconMedium),
-          const SizedBox(width: NahpuSpacing.md),
-          Icon(
-            _formatIcon(node.format),
-            size: NahpuControlSize.iconMedium,
-            color: colors.onSurfaceVariant,
+    return _TreeRow(
+      depth: depth,
+      children: [
+        // Reserve the chevron column so file icons align with folder icons.
+        const SizedBox(width: _chevronGutter),
+        Icon(
+          _formatIcon(node.format),
+          size: NahpuControlSize.iconMedium,
+          color: colors.onSurfaceVariant,
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        Expanded(
+          child: Text(
+            node.name,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(width: NahpuSpacing.lg),
-          Expanded(
-            child: Text(
-              node.name,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(width: NahpuSpacing.md),
-          Text(
-            formatByteSize(node.sizeBytes),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(width: NahpuSpacing.lg),
-          _StatusAffordance(
-            node: node,
-            isSelecting: isSelecting,
-            isSelected: isSelected,
-            onSelectionChanged: onSelectionChanged,
-            onSaveCopy: onSaveCopy,
-            onDelete: onDelete,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        Text(
+          formatByteSize(node.sizeBytes),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+        ),
+        const SizedBox(width: NahpuSpacing.lg),
+        _StatusAffordance(
+          node: node,
+          isSelecting: isSelecting,
+          isSelected: isSelected,
+          onSelectionChanged: onSelectionChanged,
+          onSaveCopy: onSaveCopy,
+          onDelete: onDelete,
+        ),
+      ],
     );
   }
 }
@@ -290,11 +405,14 @@ class _StatusAffordance extends StatelessWidget {
       if (!node.isManuallyDeletable) {
         return _LockBadge(node: node);
       }
-      return Checkbox(
-        value: isSelected,
-        onChanged: onSelectionChanged == null
-            ? null
-            : (_) => onSelectionChanged!(),
+      return SizedBox(
+        width: NahpuControlSize.touchTarget,
+        child: Checkbox(
+          value: isSelected,
+          onChanged: onSelectionChanged == null
+              ? null
+              : (_) => onSelectionChanged!(),
+        ),
       );
     }
 
@@ -304,10 +422,13 @@ class _StatusAffordance extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (node.isDangling)
-          Icon(
-            Icons.link_off,
-            size: NahpuControlSize.iconSmall,
-            color: colors.error,
+          Padding(
+            padding: const EdgeInsets.only(right: NahpuSpacing.xs),
+            child: Icon(
+              Icons.link_off,
+              size: NahpuControlSize.iconSmall,
+              color: colors.error,
+            ),
           ),
         if (onSaveCopy != null)
           IconButton(
@@ -338,10 +459,12 @@ class _LockBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same width as the checkbox that replaces it, so a row does not shift
+    // sideways when selection mode turns on.
     return Tooltip(
       message: node.lockReason?.label ?? 'Kept',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+      child: SizedBox(
+        width: NahpuControlSize.touchTarget,
         child: Icon(
           Icons.lock_outline,
           size: NahpuControlSize.iconSmall,

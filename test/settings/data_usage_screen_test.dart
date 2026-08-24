@@ -115,8 +115,10 @@ void main() {
 
     expect(find.text('Total usage'), findsOneWidget);
     expect(find.text('Reclaimable'), findsOneWidget);
-    // Project directories are labelled by name and file count, not by UUID.
-    expect(find.textContaining('Test Project · 2 files'), findsOneWidget);
+    // The folder keeps the name it has on disk — a UUID — and the project it
+    // belongs to moves to the description line.
+    expect(find.text(projectUuid), findsOneWidget);
+    expect(find.textContaining('2 files · Test Project'), findsOneWidget);
     expect(find.text('Remove unlinked files'), findsOneWidget);
     expect(find.textContaining('Remove 1 unlinked file'), findsOneWidget);
   });
@@ -160,5 +162,49 @@ void main() {
 
     expect(find.text('Nothing to reclaim.'), findsOneWidget);
     expect(find.textContaining('Remove 1 unlinked'), findsNothing);
+  });
+
+  testWidgets('the review action appears beside Select once something is '
+      'selected', (tester) async {
+    await seed();
+    writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+    writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
+
+    await pumpScreen(tester);
+
+    // Nothing selected yet: Select is offered, the action is not.
+    expect(find.text('Select'), findsOneWidget);
+    expect(find.textContaining('Review'), findsNothing);
+
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+    expect(find.text('Done'), findsOneWidget);
+    expect(find.textContaining('Review'), findsNothing);
+
+    await tester.tap(find.byType(Checkbox).last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review 1'), findsOneWidget);
+    // The old separate strip is gone.
+    expect(find.text('Remove selected'), findsNothing);
+  });
+
+  testWidgets('selecting a folder picks up only its removable files', (
+    tester,
+  ) async {
+    await seed();
+    writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+    writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
+
+    await pumpScreen(tester);
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+
+    // The first checkbox belongs to the outermost folder.
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pumpAndSettle();
+
+    // Only the orphan is removable; the linked photo is skipped.
+    expect(find.text('Review 1'), findsOneWidget);
   });
 }

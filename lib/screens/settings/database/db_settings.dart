@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -355,28 +356,35 @@ class DbFileInputField extends StatelessWidget {
             maxWidth: 460,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: NahpuSpacing.xs),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
             child: SwitchField(
-              label: 'Backup current database',
+              label: 'Back up current data first',
               value: isBackup,
               onPressed: onBackupChosen,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'Database backup restores the entire NAHPU application. '
-            'For a project-only backup, use Project export.',
-            textAlign: TextAlign.center,
+        const SizedBox(height: NahpuSpacing.md),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.lg),
+            child: Text(
+              'Replacing overwrites every record and every media file in '
+              'NAHPU. Backing up first writes a full archive of your current '
+              'data, including all media, to the backup folder — it can take '
+              'several minutes on a large library.',
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: NahpuSpacing.md),
+        const _BackupWindowLink(),
+        const SizedBox(height: NahpuSpacing.xl),
         DbReplaceButtons(
           hasSelected: hasSelected,
           isRunning: isLoading,
@@ -384,6 +392,29 @@ class DbFileInputField extends StatelessWidget {
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+/// Sends the user to the backup window before they overwrite anything.
+///
+/// The switch above takes a safety copy, but a user who came here to protect
+/// their data wants the real backup screen, where they choose the destination
+/// and keep the archive.
+class _BackupWindowLink extends StatelessWidget {
+  const _BackupWindowLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton.icon(
+        icon: const Icon(Icons.backup_outlined),
+        label: const Text('Open the backup window'),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ExportDbForm()),
+        ),
+      ),
     );
   }
 }

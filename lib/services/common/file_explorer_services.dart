@@ -467,7 +467,10 @@ class AppFileTreeScanner {
 
   Future<AppFileTree> scan() async {
     final now = DateTime.now();
-    final rootNode = await _scanDirectory(root, <String>[], now);
+    // Built once and shared with every folder node, so the tree and the pruner
+    // agree on which folders NAHPU re-creates.
+    final structural = buildStructuralDirs(root, index.knownProjectUuids);
+    final rootNode = await _scanDirectory(root, <String>[], now, structural);
 
     final prunable = <String>[];
     _collectPrunable(rootNode, prunable);
@@ -506,6 +509,7 @@ class AppFileTreeScanner {
     String absolutePath,
     List<String> segments,
     DateTime now,
+    Set<String> structural,
   ) async {
     final children = <NahpuTreeNode>[];
 
@@ -531,7 +535,12 @@ class AppFileTreeScanner {
       if (type == FileSystemEntityType.directory) {
         if (segments.isEmpty && excludedRootDirs.contains(name)) continue;
         children.add(
-          await _scanDirectory(entity.path, [...segments, name], now),
+          await _scanDirectory(
+            entity.path,
+            [...segments, name],
+            now,
+            structural,
+          ),
         );
         continue;
       }
@@ -567,19 +576,22 @@ class AppFileTreeScanner {
       if (children.length % 128 == 0) await Future<void>.delayed(Duration.zero);
     }
 
-    return _foldDirectory(absolutePath, segments, children);
+    return _foldDirectory(absolutePath, segments, children, structural);
   }
 
   NahpuDirectoryNode _foldDirectory(
     String absolutePath,
     List<String> segments,
     List<NahpuTreeNode> children,
+    Set<String> structural,
   ) {
     var size = 0;
     var files = 0;
     var dangling = 0;
     var reclaimable = 0;
     var unmanaged = 0;
+    var deletable = 0;
+    var deletableBytes = 0;
 
     for (final child in children) {
       size += child.sizeBytes;
@@ -592,11 +604,17 @@ class AppFileTreeScanner {
           } else if (child.status == NahpuFileStatus.unmanaged) {
             unmanaged += 1;
           }
+          if (child.isManuallyDeletable) {
+            deletable += 1;
+            deletableBytes += child.sizeBytes;
+          }
         case NahpuDirectoryNode():
           files += child.fileCount;
           dangling += child.danglingCount;
           reclaimable += child.danglingBytes;
           unmanaged += child.unmanagedCount;
+          deletable += child.deletableCount;
+          deletableBytes += child.deletableBytes;
       }
     }
 
@@ -607,21 +625,25 @@ class AppFileTreeScanner {
         ? (index.projectNames[segments.first] ?? segments.first)
         : null;
 
+    // Every directory shows its real name on disk. A project folder is named
+    // with a v4 UUID, so the project it belongs to goes on the second line
+    // rather than replacing the name the user would see in a file browser.
+    final fileLabel = '$files ${files == 1 ? 'file' : 'files'}';
+
     return NahpuDirectoryNode(
       path: absolutePath,
-      // A project folder is named for its project, with its file count on the
-      // same line: the UUID alone tells the user nothing.
-      name: projectName != null
-          ? '$projectName · $files ${files == 1 ? 'file' : 'files'}'
-          : (segments.isEmpty ? nahpuAppDir : segments.last),
-      subtitle: isProjectDir ? segments.first : null,
+      name: segments.isEmpty ? nahpuAppDir : segments.last,
+      subtitle: projectName == null ? fileLabel : '$fileLabel · $projectName',
       sizeBytes: size,
       children: children,
       fileCount: files,
       danglingCount: dangling,
       danglingBytes: reclaimable,
       unmanagedCount: unmanaged,
+      deletableCount: deletable,
+      deletableBytes: deletableBytes,
       isEntirelyDangling: files > 0 && dangling == files,
+      isStructural: structural.contains(absolutePath),
     );
   }
 
@@ -741,6 +763,82 @@ class AppFilePruner {
       freedBytes: freed,
       failedPaths: failed,
     );
+  }
+
+  /// Removes empty folders the user picked out.
+  ///
+  /// Only folders that are already empty qualify. A folder with contents is
+  /// emptied by removing its files first, so nothing ever disappears that the
+  /// user has not seen listed. Structural folders are refused because NAHPU
+  /// re-creates them on demand.
+  Future<PruneResult> deleteDirectories(List<String> paths) async {
+    var deleted = 0;
+    final failed = <String>[];
+
+    // Deepest first, so removing a nested folder can leave its parent
+    // removable in the same pass.
+    final ordered = paths.toList()
+      ..sort((a, b) => path.split(b).length.compareTo(path.split(a).length));
+
+    for (final target in ordered) {
+      final resolved = _resolveDirectory(target);
+      if (resolved == null) {
+        failed.add(target);
+        continue;
+      }
+      try {
+        final directory = Directory(resolved);
+        // The tree hides `.DS_Store` and friends, so a folder the user was
+        // shown as empty may still hold them. Refusing here would be baffling;
+        // they go with the folder.
+        for (final entity in directory.listSync(followLinks: false)) {
+          if (entity is File && _isNoiseFile(path.basename(entity.path))) {
+            entity.deleteSync();
+          }
+        }
+        if (directory.listSync(followLinks: false).isNotEmpty) {
+          failed.add(target);
+          continue;
+        }
+        directory.deleteSync();
+        deleted += 1;
+      } on FileSystemException catch (error) {
+        if (kDebugMode) debugPrint('Could not remove $target: $error');
+        failed.add(target);
+      }
+    }
+
+    return PruneResult(
+      deletedCount: deleted,
+      freedBytes: 0,
+      failedPaths: failed,
+    );
+  }
+
+  /// Re-checks a folder against the live filesystem, returning its canonical
+  /// path, or null when it must not be removed.
+  ///
+  /// The caller may hold a path spelled through an unresolved symlink, the same
+  /// way file deletion does, so the containment check runs against the resolved
+  /// form rather than the string it was given.
+  String? _resolveDirectory(String target) {
+    if (FileSystemEntity.typeSync(target, followLinks: false) !=
+        FileSystemEntityType.directory) {
+      return null;
+    }
+    String normalized;
+    try {
+      normalized = Directory(target).resolveSymbolicLinksSync();
+    } on FileSystemException {
+      normalized = path.normalize(target);
+    }
+    if (!path.isWithin(root, normalized)) return null;
+    if (structuralDirs.contains(normalized)) return null;
+    final segments = path.split(path.relative(normalized, from: root));
+    if (segments.isNotEmpty && excludedRootDirs.contains(segments.first)) {
+      return null;
+    }
+    return normalized;
   }
 
   /// Maps [target] onto the canonical root, or null if it is not inside it.

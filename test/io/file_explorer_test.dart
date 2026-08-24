@@ -404,6 +404,224 @@ void main() {
     });
   });
 
+  group('directory rollups', () {
+    test('deletableCount counts only removable files', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
+
+      final tree = await scan();
+      final specimenDir = _findDir(tree.root, 'specimen');
+
+      expect(specimenDir.fileCount, 2);
+      // The linked photo is not selectable; the orphan is.
+      expect(specimenDir.deletableCount, 1);
+      expect(specimenDir.isSelectable, isTrue);
+    });
+
+    test('a folder holding only the database is not selectable', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+
+      final tree = await scan();
+      final root = tree.root;
+      final databaseFiles = root.children.whereType<NahpuFileNode>();
+
+      expect(databaseFiles.every((f) => !f.isManuallyDeletable), isTrue);
+      final specimenDir = _findDir(root, 'specimen');
+      expect(specimenDir.deletableCount, 0);
+      expect(specimenDir.isSelectable, isFalse);
+    });
+
+    test(
+      'a project folder keeps its UUID name and names the project',
+      () async {
+        await insertProject();
+        await db
+            .into(db.media)
+            .insert(
+              MediaCompanion.insert(
+                projectUuid: const Value(projectUuid),
+                fileName: const Value('kept.jpg'),
+                category: const Value('specimen'),
+              ),
+            );
+        writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+
+        final tree = await scan();
+        final projectDir = _findDir(tree.root, projectUuid);
+
+        // The folder is named with a v4 UUID on disk, so that is what shows.
+        expect(projectDir.name, projectUuid);
+        expect(projectDir.subtitle, '1 file · Test Project');
+      },
+    );
+  });
+
+  group('empty directories', () {
+    test('an empty non-structural folder is removable', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      final stale = Directory(
+        path.join(nahpuDir.path, projectUuid, mediaDir, 'site', 'old'),
+      )..createSync(recursive: true);
+
+      final tree = await scan();
+      final node = _findDir(tree.root, 'old');
+
+      expect(node.isEmpty, isTrue);
+      expect(node.isStructural, isFalse);
+      expect(node.isRemovableWhenEmpty, isTrue);
+
+      final result = await _prunerFor(
+        db,
+      ).then((pruner) => pruner.deleteDirectories([stale.path]));
+      expect(result.deletedCount, 1);
+      expect(stale.existsSync(), isFalse);
+      // Its structural parent stays.
+      expect(
+        Directory(
+          path.join(nahpuDir.path, projectUuid, mediaDir, 'site'),
+        ).existsSync(),
+        isTrue,
+      );
+    });
+
+    test('a structural folder is never removable, even when empty', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      final structural = Directory(
+        path.join(nahpuDir.path, projectUuid, mediaDir, 'site'),
+      )..createSync(recursive: true);
+
+      final tree = await scan();
+      final node = _findDir(tree.root, 'site');
+      expect(node.isEmpty, isTrue);
+      expect(node.isStructural, isTrue);
+      expect(node.isRemovableWhenEmpty, isFalse);
+
+      final pruner = await _prunerFor(db);
+      final result = await pruner.deleteDirectories([structural.path]);
+      expect(result.deletedCount, 0);
+      expect(result.failedPaths, [structural.path]);
+      expect(structural.existsSync(), isTrue);
+    });
+
+    test('a folder holding files is refused', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      final occupied = File(
+        path.join(nahpuDir.path, projectUuid, mediaDir, 'site', 'a', 'x.jpg'),
+      )..createSync(recursive: true);
+
+      final pruner = await _prunerFor(db);
+      final result = await pruner.deleteDirectories([occupied.parent.path]);
+
+      expect(result.deletedCount, 0);
+      expect(occupied.existsSync(), isTrue);
+    });
+
+    test('a folder holding only bookkeeping files still goes', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      // The tree hides these, so the folder is shown as empty; refusing would
+      // contradict what the user was told.
+      final noisy = Directory(
+        path.join(nahpuDir.path, projectUuid, mediaDir, 'site', 'b'),
+      )..createSync(recursive: true);
+      File(path.join(noisy.path, '.DS_Store')).writeAsStringSync('x');
+
+      final tree = await scan();
+      expect(_findDir(tree.root, 'b').isRemovableWhenEmpty, isTrue);
+
+      final pruner = await _prunerFor(db);
+      final result = await pruner.deleteDirectories([noisy.path]);
+
+      expect(result.deletedCount, 1);
+      expect(noisy.existsSync(), isFalse);
+    });
+
+    test('nested empty folders go deepest first in one pass', () async {
+      await insertProject();
+      await db
+          .into(db.media)
+          .insert(
+            MediaCompanion.insert(
+              projectUuid: const Value(projectUuid),
+              fileName: const Value('kept.jpg'),
+              category: const Value('specimen'),
+            ),
+          );
+      writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+      final outer = Directory(
+        path.join(nahpuDir.path, projectUuid, mediaDir, 'site', 'outer'),
+      );
+      final inner = Directory(path.join(outer.path, 'inner'))
+        ..createSync(recursive: true);
+
+      final pruner = await _prunerFor(db);
+      final result = await pruner.deleteDirectories([outer.path, inner.path]);
+
+      expect(result.deletedCount, 2);
+      expect(inner.existsSync(), isFalse);
+      expect(outer.existsSync(), isFalse);
+    });
+  });
+
   group('manual deletion', () {
     test('a backup can be deleted by hand but is never pruned', () async {
       await insertProject();
@@ -533,4 +751,35 @@ void main() {
       expect(tree.pruneBlockedReason, isNotNull);
     });
   });
+}
+
+/// Finds the first directory named [name] anywhere in the tree.
+NahpuDirectoryNode _findDir(NahpuDirectoryNode root, String name) {
+  if (root.name == name) return root;
+  for (final child in root.children.whereType<NahpuDirectoryNode>()) {
+    final found = _tryFindDir(child, name);
+    if (found != null) return found;
+  }
+  throw StateError('No directory named $name in the tree.');
+}
+
+NahpuDirectoryNode? _tryFindDir(NahpuDirectoryNode node, String name) {
+  if (node.name == name) return node;
+  for (final child in node.children.whereType<NahpuDirectoryNode>()) {
+    final found = _tryFindDir(child, name);
+    if (found != null) return found;
+  }
+  return null;
+}
+
+/// Builds a pruner against the current database state.
+Future<AppFilePruner> _prunerFor(Database db) async {
+  final services = FileExplorerServices(db: db);
+  final index = await services.buildIndex();
+  final root = await services.canonicalRoot();
+  return AppFilePruner(
+    index: index,
+    root: root,
+    structuralDirs: buildStructuralDirs(root, index.knownProjectUuids),
+  );
 }

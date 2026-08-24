@@ -7,6 +7,7 @@ import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/records/catalog_format.dart';
 import 'package:nahpu/screens/settings/records/collevent_settings.dart';
 import 'package:nahpu/screens/settings/records/site_settings.dart';
+import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -144,8 +145,19 @@ class DatabaseSettingSections extends StatelessWidget {
         ),
         CommonSettingTile(
           isNavigation: true,
+          icon: Icons.backup_outlined,
+          title: 'Back up database',
+          label: 'Full archive with all media (.zip or .tar.gz)',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ExportDbForm()),
+          ),
+        ),
+        CommonSettingTile(
+          isNavigation: true,
           icon: Icons.storage_outlined,
           title: 'Replace database',
+          label: 'Overwrites everything. Back up first.',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const DatabaseSettings()),

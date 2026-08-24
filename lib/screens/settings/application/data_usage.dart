@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/application/file_tree.dart';
+import 'package:nahpu/screens/settings/application/selection_review.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -55,6 +58,7 @@ class DataUsageSettings extends ConsumerStatefulWidget {
 
 class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   bool _isSelecting = false;
+  bool _isExporting = false;
   final Set<String> _selected = <String>{};
 
   @override
@@ -83,48 +87,49 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
             CommonSettingSection(
               title: 'Files',
               children: [
-                SelectItemsInterface(
-                  isSelecting: _isSelecting,
-                  onClearPressed: _selected.isEmpty
-                      ? null
-                      : () => setState(_selected.clear),
-                  onSelectAllPressed: () => setState(() {
-                    _selected
-                      ..clear()
-                      ..addAll(_deletablePaths(data.root));
-                  }),
-                  onSelectPressed: () => setState(() {
-                    _isSelecting = !_isSelecting;
-                    if (!_isSelecting) _selected.clear();
-                  }),
-                ),
-                if (_isSelecting && _selected.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: NahpuSpacing.xl,
-                      vertical: NahpuSpacing.md,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${_selected.length} selected',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        TextButton.icon(
-                          style: TextButton.styleFrom(
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
-                          ),
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          label: const Text('Remove selected'),
-                          onPressed: _confirmDeleteSelection,
-                        ),
-                      ],
-                    ),
+                Padding(
+                  // Keeps the Select bar and its action clear of the section's
+                  // rounded border instead of sitting on it.
+                  padding: const EdgeInsets.fromLTRB(
+                    NahpuSpacing.xl,
+                    NahpuSpacing.md,
+                    NahpuSpacing.xl,
+                    NahpuSpacing.xs,
                   ),
+                  child: SelectItemsInterface(
+                    isSelecting: _isSelecting,
+                    onClearPressed: _selected.isEmpty
+                        ? null
+                        : () => setState(_selected.clear),
+                    onSelectAllPressed: () => setState(() {
+                      _selected
+                        ..clear()
+                        ..addAll(collectDeletablePaths(data.root));
+                    }),
+                    onSelectPressed: () => setState(() {
+                      _isSelecting = !_isSelecting;
+                      if (!_isSelecting) _selected.clear();
+                    }),
+                    // The one filled button in this section, and it sits where
+                    // the selection was made rather than in its own strip.
+                    selectionAction: _selected.isEmpty
+                        ? null
+                        : FilledButton.icon(
+                            icon: _isExporting
+                                ? const SizedBox.square(
+                                    dimension: NahpuControlSize.indicator,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: NahpuStroke.regular,
+                                    ),
+                                  )
+                                : const Icon(Icons.fact_check_outlined),
+                            label: Text('Review ${_selected.length}'),
+                            onPressed: _isExporting
+                                ? null
+                                : () => _reviewSelection(data),
+                          ),
+                  ),
+                ),
                 NahpuFileTreeView(
                   root: data.root,
                   isSelecting: _isSelecting,
@@ -132,6 +137,8 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                   onSelectionChanged: (node) => setState(() {
                     if (!_selected.remove(node.path)) _selected.add(node.path);
                   }),
+                  onDirectorySelectionChanged: _toggleDirectory,
+                  onDeleteDirectory: _confirmDeleteDirectory,
                   onSaveCopy: _saveCopy,
                   onDeleteFile: _confirmDeleteFile,
                 ),
@@ -143,20 +150,114 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
     );
   }
 
-  /// Every file in the tree the user is allowed to remove by hand.
-  List<String> _deletablePaths(NahpuDirectoryNode root) {
-    final paths = <String>[];
-    void visit(NahpuTreeNode node) {
-      switch (node) {
-        case NahpuFileNode():
-          if (node.isManuallyDeletable) paths.add(node.path);
-        case NahpuDirectoryNode():
-          node.children.forEach(visit);
+  /// Selects or clears every removable file in a folder.
+  ///
+  /// Locked files in the subtree are skipped rather than blocking the folder,
+  /// so a project with one linked photo is still selectable; the child rows
+  /// keep their lock icons to show what was left behind.
+  void _toggleDirectory(NahpuDirectoryNode node) {
+    final paths = collectDeletablePaths(node);
+    if (paths.isEmpty) return;
+    final allSelected = paths.every(_selected.contains);
+    setState(() {
+      if (allSelected) {
+        _selected.removeAll(paths);
+      } else {
+        _selected.addAll(paths);
       }
-    }
+    });
+  }
 
-    visit(root);
-    return paths;
+  /// Summarises the selection, then routes to export or delete.
+  Future<void> _reviewSelection(AppFileTree tree) async {
+    final paths = _selected.toList();
+    if (paths.isEmpty) return;
+    final root = ref.read(appFileTreeProvider.notifier).rootPath;
+    if (root == null) return;
+
+    final groups = summarizeSelection(
+      root: root,
+      paths: paths,
+      tree: tree.root,
+    );
+    final totalBytes = groups.fold<int>(0, (sum, g) => sum + g.sizeBytes);
+
+    final action = await showSelectionReview(
+      context: context,
+      groups: groups,
+      fileCount: paths.length,
+      sizeBytes: totalBytes,
+    );
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case SelectionAction.delete:
+        await _confirmDeleteSelection();
+      case SelectionAction.export:
+        await _exportSelection(root, paths);
+    }
+  }
+
+  /// Writes the selection to an archive, then offers to reclaim the space.
+  ///
+  /// The removal prompt is only reached once the archive is on disk and
+  /// non-empty, so a failed or cancelled export never costs the user a file.
+  Future<void> _exportSelection(String root, List<String> paths) async {
+    final format = await _chooseFormat();
+    if (!mounted || format == null) return;
+
+    final destination = await FilePickerServices().selectDir();
+    if (!mounted || destination == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _isExporting = true);
+    try {
+      final result = await const SelectionExportService().export(
+        root: root,
+        paths: paths,
+        destination: destination,
+        format: format,
+      );
+      if (!mounted) return;
+      setState(() => _isExporting = false);
+
+      final removeOriginals = await _confirm(
+        title: 'Remove the originals?',
+        body:
+            '${result.fileCount} '
+            '${result.fileCount == 1 ? 'file was' : 'files were'} written to '
+            '${result.archive.path.split(Platform.pathSeparator).last} '
+            '(${formatByteSize(result.sizeBytes)}).\n\n'
+            'Removing them from NAHPU frees the space. The archive keeps your '
+            'copy, and this cannot be undone.',
+      );
+      if (removeOriginals) {
+        await _delete(result.exportedPaths);
+      } else {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Exported to ${result.archive.path}')),
+        );
+      }
+    } catch (error) {
+      if (mounted) setState(() => _isExporting = false);
+      messenger.showSnackBar(SnackBar(content: Text('Export failed: $error')));
+    }
+  }
+
+  Future<DbArchiveFormat?> _chooseFormat() {
+    return showDialog<DbArchiveFormat>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Archive format'),
+        children: [
+          for (final format in DbArchiveFormat.values)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, format),
+              child: Text(format.label),
+            ),
+        ],
+      ),
+    );
   }
 
   /// Saves a copy out of the app folder, so a file can be kept before it goes.
@@ -179,6 +280,38 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
           'any record. This cannot be undone.',
     );
     if (confirmed) await _delete([node.path]);
+  }
+
+  /// Removes a folder the tree showed as empty.
+  ///
+  /// Only reachable for folders with nothing in them, so there is no content to
+  /// enumerate in the prompt — the question is just whether the folder goes.
+  Future<void> _confirmDeleteDirectory(NahpuDirectoryNode node) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await _confirm(
+      title: 'Remove this empty folder?',
+      body:
+          '${node.name} holds no files. Removing it does not affect any '
+          'record.',
+    );
+    if (!confirmed) return;
+
+    try {
+      final result = await ref
+          .read(appFileTreeProvider.notifier)
+          .deleteDirectories([node.path]);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            result.deletedCount > 0
+                ? 'Removed ${node.name}.'
+                : 'Could not remove ${node.name}.',
+          ),
+        ),
+      );
+    } catch (error) {
+      messenger.showSnackBar(SnackBar(content: Text('$error')));
+    }
   }
 
   Future<void> _confirmDeleteSelection() async {
