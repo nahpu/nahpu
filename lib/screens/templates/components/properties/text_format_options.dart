@@ -4,6 +4,7 @@ typedef TextFormatOption = ({String value, String label});
 
 const kTextTypeOptions = <TextFormatOption>[
   (value: 'normal', label: 'Normal Text'),
+  (value: 'picture', label: 'Picture'),
   (value: 'markdown', label: 'Markdown'),
   (value: 'coordinates', label: 'Coordinates'),
   (value: 'list', label: 'List Values'),

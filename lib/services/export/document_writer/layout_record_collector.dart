@@ -108,7 +108,7 @@ class _DocumentLayoutRecordCollector {
               final joined = jsonList
                   .map((json) => json[key]?.toString() ?? '')
                   .where((v) => v.isNotEmpty)
-                  .join(' | ');
+                  .join(writerSeparator);
               m['personnel::$key'] = joined;
             }
           }

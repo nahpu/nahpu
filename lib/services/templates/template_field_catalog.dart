@@ -77,5 +77,8 @@ Map<String, List<String>> availableTemplateFieldGroups(
           .toList(growable: false);
     }
   }
+  if (recordType != RecordType.none) {
+    groups['media'] = const ['media::media'];
+  }
   return groups;
 }

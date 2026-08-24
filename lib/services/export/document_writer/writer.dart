@@ -255,6 +255,16 @@ class DocumentWriter {
   }
 
   @visibleForTesting
+  static Future<Map<String, String>> mediaValuesForTesting({
+    required WidgetRef ref,
+    required Iterable<int> mediaIds,
+  }) async {
+    final values = <String, String>{};
+    await _addDocumentMediaValues(values, mediaIds, ref);
+    return values;
+  }
+
+  @visibleForTesting
   static List<Map<String, String>> sortRecordDataForTesting({
     required List<Map<String, String>> records,
     required rust_config.DocumentLayoutBlock block,
@@ -274,15 +284,16 @@ class DocumentWriter {
     double templatePadRightMm = 0,
     double templatePadBottomMm = 0,
   }) {
+    final renderPage = _formatPageForRenderingTest(page);
     final typst = StringBuffer();
     const renderer = _DocumentTypstRenderer();
     if (autoHeight &&
-        page.customTexts.any(
+        renderPage.customTexts.any(
           TemplateDynamicLayoutService.isFlowingDynamicText,
         )) {
       renderer.writeBreakableAutoHeightDocumentCell(
         typst: typst,
-        page: page,
+        page: renderPage,
         data: data,
         wPt: wPt,
         hPt: hPt,
@@ -294,7 +305,7 @@ class DocumentWriter {
     } else {
       renderer.writeSingleDocumentCell(
         typst: typst,
-        page: page,
+        page: renderPage,
         data: data,
         wPt: wPt,
         hPt: hPt,
@@ -309,6 +320,28 @@ class DocumentWriter {
     return typst.toString();
   }
 
+  static TemplatePage _formatPageForRenderingTest(TemplatePage page) {
+    return page.copyWith(
+      customTexts: page.customTexts
+          .map(
+            (text) => text.isQrCode || isTemplatePictureTextType(text.textType)
+                ? text
+                : text.copyWith(
+                    text: applyTextReplacementRules(
+                      formatExportTemplateText(
+                        text.text,
+                        text.textType,
+                        text.formatOption,
+                        text.caseFormat,
+                      ),
+                      text.replacementRules,
+                    ),
+                  ),
+          )
+          .toList(growable: false),
+    );
+  }
+
   @visibleForTesting
   static double estimateTemplatePageContentHeightPtForTesting({
     required TemplatePage page,
@@ -316,7 +349,7 @@ class DocumentWriter {
     required double hPt,
   }) {
     return _DocumentPdfLayoutMetrics.estimateTemplatePageContentHeightPt(
-      page: page,
+      page: _formatPageForRenderingTest(page),
       wPt: wPt,
       hPt: hPt,
     );
@@ -333,7 +366,7 @@ class DocumentWriter {
     required double templatePadBottomMm,
   }) {
     return _DocumentPdfLayoutMetrics.estimateAutoFillCellHeightPt(
-      page: page,
+      page: _formatPageForRenderingTest(page),
       wPt: wPt,
       hPt: hPt,
       templatePadTopMm: templatePadTopMm,

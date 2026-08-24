@@ -1,11 +1,48 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/birds.dart' as birds;
 import 'package:nahpu/services/types/specimens.dart' as specimens;
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
+
+const String kTemplatePictureTextType = 'picture';
+const String kTemplateMediaField = 'media::media';
+const String kTemplatePicturePathsDataKey = '__templatePicturePaths';
+
+bool isTemplatePictureTextType(String textType) =>
+    textType == kTemplatePictureTextType;
+
+/// Returns the image paths attached to a direct `[media::media]`/`[media]`
+/// picture expression. Mixed text expressions deliberately do not resolve.
+List<String> resolveTemplatePicturePaths(
+  String text,
+  Map<String, String> data,
+) {
+  final match = RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(text);
+  if (match == null) return const [];
+  final key = match.group(1)!.trim().toLowerCase();
+  if (key != kTemplateMediaField && key != 'media') return const [];
+  final encoded = data[kTemplatePicturePathsDataKey];
+  if (encoded == null || encoded.isEmpty) return const [];
+  try {
+    return (jsonDecode(encoded) as List)
+        .whereType<String>()
+        .where(isTemplateImagePathUsable)
+        .toList(growable: false);
+  } catch (_) {
+    return const [];
+  }
+}
+
+({int columns, int rows}) templatePictureGridDimensions(int imageCount) {
+  if (imageCount <= 0) return (columns: 0, rows: 0);
+  final columns = math.sqrt(imageCount).ceil();
+  return (columns: columns, rows: (imageCount / columns).ceil());
+}
 
 /// Non-empty path that exists on disk (safe for file-based image widgets).
 bool isTemplateImagePathUsable(String path) {
@@ -311,39 +348,8 @@ String formatTimeText(String text, String formatOption) {
   return formatDateTimeText(text, formatOption);
 }
 
-String formatListText(String text, String formatOption) {
-  List<String> items;
-  if (text.contains(' | ')) {
-    items = text.split(' | ').map((s) => s.trim()).toList();
-  } else if (text.contains('; ')) {
-    items = text.split('; ').map((s) => s.trim()).toList();
-  } else {
-    items = [text];
-  }
-
-  items = items.where((item) => item.isNotEmpty).toList();
-  if (items.isEmpty) return text;
-
-  if (formatOption.startsWith('custom:')) {
-    final customSep = formatOption.substring(7);
-    return items.join(customSep);
-  }
-
-  switch (formatOption) {
-    case 'comma':
-      return items.join(', ');
-    case 'semicolon':
-      return items.join('; ');
-    case 'slash':
-      return items.join(' / ');
-    case 'newline':
-      return items.join('\n');
-    case 'bullet':
-      return items.map((e) => '• $e').join('\n');
-    default:
-      return text;
-  }
-}
+String formatListText(String text, String formatOption) =>
+    formatTemplateListValue(text, formatOption);
 
 String? getEncodedDefaultValue(String key, String value) {
   final cleanKey = key.toLowerCase();
@@ -625,6 +631,9 @@ class CustomTextElement {
     this.qrSizeMm = 15.0,
     this.qrBgColorArgb = 0xFFFFFFFF,
     this.qrShape = 'square',
+    this.pictureWidthMm = 20.0,
+    this.pictureHeightMm = 20.0,
+    this.resolvedPicturePaths = const [],
     this.tempPath,
     this.isDynamic = false,
     this.isLocked = false,
@@ -672,6 +681,12 @@ class CustomTextElement {
   final double qrSizeMm;
   final int qrBgColorArgb;
   final String qrShape;
+  final double pictureWidthMm;
+  final double pictureHeightMm;
+
+  /// Resolved record image paths used while previewing/exporting only.
+  /// This list is intentionally excluded from template JSON.
+  final List<String> resolvedPicturePaths;
   final String? tempPath;
   final bool isDynamic;
   final bool isLocked;
@@ -716,6 +731,9 @@ class CustomTextElement {
     double? qrSizeMm,
     int? qrBgColorArgb,
     String? qrShape,
+    double? pictureWidthMm,
+    double? pictureHeightMm,
+    List<String>? resolvedPicturePaths,
     String? tempPath,
     bool clearTempPath = false,
     bool? isDynamic,
@@ -762,6 +780,9 @@ class CustomTextElement {
       qrSizeMm: qrSizeMm ?? this.qrSizeMm,
       qrBgColorArgb: qrBgColorArgb ?? this.qrBgColorArgb,
       qrShape: qrShape ?? this.qrShape,
+      pictureWidthMm: pictureWidthMm ?? this.pictureWidthMm,
+      pictureHeightMm: pictureHeightMm ?? this.pictureHeightMm,
+      resolvedPicturePaths: resolvedPicturePaths ?? this.resolvedPicturePaths,
       tempPath: clearTempPath ? null : (tempPath ?? this.tempPath),
       isDynamic: isDynamic ?? this.isDynamic,
       isLocked: isLocked ?? this.isLocked,
@@ -805,6 +826,8 @@ class CustomTextElement {
     'qrSizeMm': qrSizeMm,
     'qrBgColorArgb': qrBgColorArgb,
     'qrShape': qrShape,
+    'pictureWidthMm': pictureWidthMm,
+    'pictureHeightMm': pictureHeightMm,
     'isDynamic': isDynamic,
     'isLocked': isLocked,
     'isVisible': isVisible,
@@ -816,6 +839,11 @@ class CustomTextElement {
 
   factory CustomTextElement.fromJson(Map<String, dynamic> json) {
     final rawText = json['text'] as String? ?? '';
+    final textType = json['textType'] as String? ?? 'normal';
+    final rawFormatOption = json['formatOption'] as String? ?? 'normal';
+    final formatOption = textType == 'list'
+        ? normalizeTemplateListFormatOption(rawFormatOption)
+        : rawFormatOption;
     final legacyNullFallbackOption = inferTemplateNullFallbackOption(rawText);
     final nullFallbackOption =
         json['nullFallbackOption'] as String? ?? legacyNullFallbackOption;
@@ -850,14 +878,16 @@ class CustomTextElement {
       borderStrokeStyle: json['borderStrokeStyle'] as String? ?? 'solid',
       cornerRadiusPt: (json['cornerRadiusPt'] as num?)?.toDouble() ?? 0.0,
       paddingPt: (json['paddingPt'] as num?)?.toDouble() ?? 2.0,
-      textType: json['textType'] as String? ?? 'normal',
-      formatOption: json['formatOption'] as String? ?? 'normal',
+      textType: textType,
+      formatOption: formatOption,
       nullFallbackOption: nullFallbackOption,
       customNullFallbackText: customNullFallbackText,
       isQrCode: json['isQrCode'] as bool? ?? false,
       qrSizeMm: (json['qrSizeMm'] as num?)?.toDouble() ?? 15.0,
       qrBgColorArgb: (json['qrBgColorArgb'] as num?)?.toInt() ?? 0xFFFFFFFF,
       qrShape: json['qrShape'] as String? ?? 'square',
+      pictureWidthMm: (json['pictureWidthMm'] as num?)?.toDouble() ?? 20.0,
+      pictureHeightMm: (json['pictureHeightMm'] as num?)?.toDouble() ?? 20.0,
       isDynamic: json['isDynamic'] as bool? ?? false,
       isLocked: json['isLocked'] as bool? ?? false,
       isVisible: json['isVisible'] as bool? ?? true,

@@ -1,5 +1,9 @@
 part of '../document_writer.dart';
 
+/// Renders pages whose text was already substituted and formatted.
+///
+/// Keeping formatting in [_DocumentTemplateSubstitutor] prevents custom list
+/// separators from being interpreted as source delimiters a second time.
 class _DocumentTypstRenderer {
   const _DocumentTypstRenderer();
 
@@ -558,6 +562,7 @@ class _DocumentTypstRenderer {
                   t.isVisible &&
                   t.isDynamic &&
                   !t.isQrCode &&
+                  !isTemplatePictureTextType(t.textType) &&
                   templateSpecimenSexIconFieldKeyFromBracketText(t.text) ==
                       null,
             )
@@ -615,6 +620,7 @@ class _DocumentTypstRenderer {
         if (el is CustomTextElement &&
             el.isDynamic &&
             !el.isQrCode &&
+            !isTemplatePictureTextType(el.textType) &&
             templateSpecimenSexIconFieldKeyFromBracketText(el.text) == null) {
           final varSuffix = _typstVarSuffix(el.id);
           typst.writeln(
@@ -782,6 +788,10 @@ class _DocumentTypstRenderer {
   }) {
     final alignment = dyOverridePt == null ? 'top + left' : 'left';
     final dy = dyOverridePt ?? _dyPt(t.yMm, dyShift);
+    if (isTemplatePictureTextType(t.textType)) {
+      _writePictureGrid(typst, t, alignment: alignment, dy: dy);
+      return;
+    }
     if (t.isQrCode) {
       if (t.tempPath == null || t.tempPath!.isEmpty) return;
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
@@ -812,13 +822,37 @@ class _DocumentTypstRenderer {
     );
   }
 
-  String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
-    final formatted = formatExportTemplateText(
-      t.text,
-      t.textType,
-      t.formatOption,
-      t.caseFormat,
+  void _writePictureGrid(
+    StringBuffer typst,
+    CustomTextElement text, {
+    required String alignment,
+    required String dy,
+  }) {
+    final paths = text.resolvedPicturePaths
+        .where(isTemplateImagePathUsable)
+        .toList(growable: false);
+    if (paths.isEmpty) return;
+    final dimensions = templatePictureGridDimensions(paths.length);
+    final widthPt = documentPdfMmToPt(text.pictureWidthMm);
+    final heightPt = documentPdfMmToPt(text.pictureHeightMm);
+    final cellWidthPt = widthPt / dimensions.columns;
+    final cellHeightPt = heightPt / dimensions.rows;
+    typst.writeln(
+      '  #place($alignment, dx: ${documentPdfMmToPt(text.xMm)}pt, dy: $dy)[#rotate(${text.rotationDegrees}deg, origin: center)[#block(width: ${widthPt}pt, height: ${heightPt}pt)[',
     );
+    for (var index = 0; index < paths.length; index++) {
+      final cleanPath = paths[index].replaceAll(r'\', r'\\');
+      final dx = (index % dimensions.columns) * cellWidthPt;
+      final imageDy = (index ~/ dimensions.columns) * cellHeightPt;
+      typst.writeln(
+        '    #place(top + left, dx: ${dx}pt, dy: ${imageDy}pt)[#image("$cleanPath", width: ${cellWidthPt}pt, height: ${cellHeightPt}pt, fit: "contain")]',
+      );
+    }
+    typst.writeln('  ]]]');
+  }
+
+  String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
+    final formatted = t.text;
     final isMarkdown = t.textType == 'markdown';
     final content = isMarkdown ? formatted : _escapeTypstMarkup(formatted);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
@@ -990,7 +1024,15 @@ class _DocumentTypstRenderer {
       final specimenSexIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
         text.text,
       );
-      if (text.isDynamic && !text.isQrCode && specimenSexIconKey == null) {
+      if (text.isDynamic &&
+          !text.isQrCode &&
+          !isTemplatePictureTextType(text.textType) &&
+          specimenSexIconKey == null) {
+        continue;
+      }
+
+      if (isTemplatePictureTextType(text.textType)) {
+        height = math.max(height, _pictureBottomPt(text));
         continue;
       }
 
@@ -1053,6 +1095,9 @@ class _DocumentTypstRenderer {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is CustomTextElement) {
+      if (isTemplatePictureTextType(element.textType)) {
+        return _pictureBottomPt(element);
+      }
       final specimenSexIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
         element.text,
       );
@@ -1108,6 +1153,15 @@ class _DocumentTypstRenderer {
           widthPt: documentPdfMmToPt(image.widthMm),
           heightPt: documentPdfMmToPt(image.heightMm),
           rotationDegrees: image.rotationDegrees,
+        );
+  }
+
+  double _pictureBottomPt(CustomTextElement picture) {
+    return documentPdfMmToPt(picture.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(picture.pictureWidthMm),
+          heightPt: documentPdfMmToPt(picture.pictureHeightMm),
+          rotationDegrees: picture.rotationDegrees,
         );
   }
 

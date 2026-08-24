@@ -1,3 +1,5 @@
+import 'package:nahpu/services/export/list_value_formatter.dart';
+
 /// Text type used to render grouped template fields as rich Markdown content.
 const String kTemplateNestedListTextType = 'nestedList';
 
@@ -130,9 +132,7 @@ String _formatFields(
   String? caseFormat,
 ]) {
   final values = fields
-      .map(
-        (field) => field.value.split('|').map((value) => value.trim()).toList(),
-      )
+      .map((field) => splitNahpuRepeatedValue(field.value))
       .toList(growable: false);
   final rowCount = values.fold<int>(
     0,

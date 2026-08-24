@@ -28,7 +28,7 @@ class MediaWriterServices {
         mediaDataList.add(mediaData);
       }
     }
-    return await _getConcatenateMediaData(mediaDataList);
+    return await formatMediaData(mediaDataList);
   }
 
   Future<String> getSiteMedias(int? siteID) async {
@@ -47,7 +47,7 @@ class MediaWriterServices {
         mediaDataList.add(mediaData);
       }
     }
-    return await _getConcatenateMediaData(mediaDataList);
+    return await formatMediaData(mediaDataList);
   }
 
   Future<String> getNarrativeMedias(int? narrativeId) async {
@@ -67,10 +67,10 @@ class MediaWriterServices {
       }
     }
 
-    return await _getConcatenateMediaData(mediaDataList);
+    return await formatMediaData(mediaDataList);
   }
 
-  Future<String> _getConcatenateMediaData(List<MediaData> data) async {
+  Future<String> formatMediaData(List<MediaData> data) async {
     List<String> mediaDetails = await Future.wait(
       data.map((e) async {
         List<String> mediaList = await _getMedia(e);

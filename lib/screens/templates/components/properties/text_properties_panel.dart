@@ -9,6 +9,7 @@ import 'package:nahpu/screens/templates/components/properties/synced_font_size_f
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
 import 'package:nahpu/services/templates/template_field_catalog.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
@@ -234,8 +235,11 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
   @override
   void initState() {
     super.initState();
-    final initialSep = widget.ct.formatOption.startsWith('custom:')
-        ? widget.ct.formatOption.substring(7)
+    final initialOption = widget.ct.textType == 'list'
+        ? normalizeTemplateListFormatOption(widget.ct.formatOption)
+        : widget.ct.formatOption;
+    final initialSep = initialOption.startsWith('custom:')
+        ? initialOption.substring(7)
         : '';
     _separatorController = TextEditingController(text: initialSep);
   }
@@ -245,9 +249,10 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
     super.didUpdateWidget(oldWidget);
     if (widget.ct.id != oldWidget.ct.id ||
         widget.ct.formatOption != oldWidget.ct.formatOption) {
-      final sep = widget.ct.formatOption.startsWith('custom:')
-          ? widget.ct.formatOption.substring(7)
-          : '';
+      final option = widget.ct.textType == 'list'
+          ? normalizeTemplateListFormatOption(widget.ct.formatOption)
+          : widget.ct.formatOption;
+      final sep = option.startsWith('custom:') ? option.substring(7) : '';
       if (_separatorController.text != sep) {
         _separatorController.text = sep;
       }
@@ -277,12 +282,84 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
     return parts.length > 1 ? parts[1] : 'unknown';
   }
 
+  Widget _buildPicturePrimaryRow(
+    BuildContext context,
+    CustomTextElement text,
+    bool page1,
+    void Function(bool page1, CustomTextElement element) onUpdate,
+  ) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          widget.actionControls,
+          const SizedBox(width: 12),
+          Text('Width (mm)', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 64,
+            child: SyncedMaxWidthField(
+              key: ValueKey('pw_${text.id}'),
+              maxWidthMm: text.pictureWidthMm,
+              onValidSize: (value) {
+                if (value != null && value > 0) {
+                  onUpdate(page1, text.copyWith(pictureWidthMm: value));
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text('Height (mm)', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 64,
+            child: SyncedMaxHeightField(
+              key: ValueKey('ph_${text.id}'),
+              maxHeightMm: text.pictureHeightMm,
+              onValidSize: (value) {
+                if (value != null && value > 0) {
+                  onUpdate(page1, text.copyWith(pictureHeightMm: value));
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.tune, size: 24),
+            isSelected: _showFormattingRow,
+            tooltip: 'Picture type options',
+            onPressed: () {
+              setState(() => _showFormattingRow = !_showFormattingRow);
+            },
+          ),
+          const SizedBox(width: 12),
+          Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(width: 8),
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 0, label: Text('0°')),
+              ButtonSegment(value: 90, label: Text('90°')),
+              ButtonSegment(value: -90, label: Text('-90°')),
+              ButtonSegment(value: 180, label: Text('180°')),
+            ],
+            selected: {text.rotationDegrees},
+            onSelectionChanged: (next) {
+              if (next.isEmpty) return;
+              onUpdate(page1, text.copyWith(rotationDegrees: next.first));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ct = widget.ct;
     final page1 = widget.page1;
     final onUpdateCustomText = widget.onUpdateCustomText;
     final scheme = Theme.of(context).colorScheme;
+    final isPicture = isTemplatePictureTextType(ct.textType);
 
     final fontKey = normalizeTemplateFontFamily(ct.fontFamily);
     final fontDropdownIds = List<String>.from(kTemplateFontDropdownKeys);
@@ -290,246 +367,271 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
       fontDropdownIds.add(fontKey);
     }
 
-    final row1 = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          widget.actionControls,
-          const SizedBox(width: 8),
-          FilterChip(
-            label: const Text('QR Code'),
-            selected: ct.isQrCode,
-            onSelected: (selected) {
-              onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
-            },
-          ),
-          const SizedBox(width: 8),
-          if (ct.isQrCode) ...[
-            Text(
-              'QR Size (mm)',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 100,
-              child: widget.buildOptionSlider(
-                context,
-                value: ct.qrSizeMm,
-                min: 5.0,
-                max: 100.0,
-                divisions: 95,
-                label: '${ct.qrSizeMm.toStringAsFixed(1)} mm',
-                onChanged: (v) {
-                  onUpdateCustomText(page1, ct.copyWith(qrSizeMm: v));
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.palette_outlined, size: 24),
-              isSelected: _showFormattingRow,
-              tooltip: 'Content formatting options',
-              onPressed: () {
-                setState(() {
-                  _showFormattingRow = !_showFormattingRow;
-                });
-              },
-            ),
-            const SizedBox(width: 8),
-            Text('Shape', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'square', label: Text('Square')),
-                ButtonSegment(value: 'circle', label: Text('Circle')),
-              ],
-              selected: {ct.qrShape},
-              onSelectionChanged: (next) {
-                if (next.isEmpty) return;
-                onUpdateCustomText(page1, ct.copyWith(qrShape: next.first));
-              },
-            ),
-            const SizedBox(width: 12),
-            Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('0°')),
-                ButtonSegment(value: 90, label: Text('90°')),
-                ButtonSegment(value: -90, label: Text('-90°')),
-                ButtonSegment(value: 180, label: Text('180°')),
-              ],
-              selected: {ct.rotationDegrees},
-              onSelectionChanged: (next) {
-                if (next.isEmpty) return;
-                onUpdateCustomText(
-                  page1,
-                  ct.copyWith(rotationDegrees: next.first),
-                );
-              },
-            ),
-          ] else ...[
-            FilterChip(
-              label: const Text('Dynamic'),
-              selected: ct.isDynamic,
-              onSelected: (selected) {
-                onUpdateCustomText(page1, ct.copyWith(isDynamic: selected));
-              },
-            ),
-            const SizedBox(width: 8),
-            Text('Size (pt)', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 64,
-              child: SyncedFontSizeField(
-                key: ValueKey('fs_${ct.id}'),
-                fontSizePt: ct.fontSizePt,
-                onValidSize: (p) =>
-                    onUpdateCustomText(page1, ct.copyWith(fontSizePt: p)),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.remove, size: 20),
-              tooltip: 'Decrease font size',
-              onPressed: ct.fontSizePt > 4
-                  ? () => onUpdateCustomText(
-                      page1,
-                      ct.copyWith(
-                        fontSizePt: (ct.fontSizePt - 0.5).clamp(4.0, 72.0),
-                      ),
-                    )
-                  : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.add, size: 20),
-              tooltip: 'Increase font size',
-              onPressed: ct.fontSizePt < 72
-                  ? () => onUpdateCustomText(
-                      page1,
-                      ct.copyWith(
-                        fontSizePt: (ct.fontSizePt + 0.5).clamp(4.0, 72.0),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.text_format, size: 24),
-              isSelected: _showFormattingRow,
-              tooltip: 'Text formatting options',
-              onPressed: () {
-                setState(() {
-                  _showFormattingRow = !_showFormattingRow;
-                });
-              },
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.palette_outlined, size: 24),
-              isSelected: _showStylingRow,
-              tooltip: 'Text styling options',
-              onPressed: () {
-                setState(() {
-                  _showStylingRow = !_showStylingRow;
-                });
-              },
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Max Width (mm)',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 64,
-              child: SyncedMaxWidthField(
-                key: ValueKey('mw_${ct.id}'),
-                maxWidthMm: ct.maxWidthMm,
-                onValidSize: (p) =>
-                    onUpdateCustomText(page1, ct.copyWith(maxWidthMm: p)),
-              ),
-            ),
-            SizedBox(
-              width: 100,
-              child: widget.buildOptionSlider(
-                context,
-                value: ct.maxWidthMm ?? 0.0,
-                min: 0.0,
-                max: TextPropertiesPanel._textDimensionSliderMaxMm,
-                divisions: 200,
-                label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
-                    ? 'Auto'
-                    : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
-                onChanged: (v) {
-                  onUpdateCustomText(
-                    page1,
-                    ct.copyWith(maxWidthMm: v == 0.0 ? null : v),
-                  );
-                },
-              ),
-            ),
-            if (!ct.isDynamic) ...[
-              const SizedBox(width: 12),
-              Text(
-                'Max Height (mm)',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 64,
-                child: SyncedMaxHeightField(
-                  key: ValueKey('mh_${ct.id}'),
-                  maxHeightMm: ct.heightMm,
-                  onValidSize: (p) =>
-                      onUpdateCustomText(page1, ct.copyWith(heightMm: p)),
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: widget.buildOptionSlider(
-                  context,
-                  value: ct.heightMm ?? 0.0,
-                  min: 0.0,
-                  max: TextPropertiesPanel._textDimensionSliderMaxMm,
-                  divisions: 200,
-                  label: ct.heightMm == null || ct.heightMm! == 0.0
-                      ? 'Auto'
-                      : '${ct.heightMm!.toStringAsFixed(1)} mm',
-                  onChanged: (v) {
-                    onUpdateCustomText(
-                      page1,
-                      ct.copyWith(heightMm: v == 0.0 ? null : v),
-                    );
+    final row1 = isPicture
+        ? _buildPicturePrimaryRow(context, ct, page1, onUpdateCustomText)
+        : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                widget.actionControls,
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('QR Code'),
+                  selected: ct.isQrCode,
+                  onSelected: (selected) {
+                    onUpdateCustomText(page1, ct.copyWith(isQrCode: selected));
                   },
                 ),
-              ),
-            ],
-            const SizedBox(width: 12),
-            Text('Rotation', style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(width: 8),
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('0°')),
-                ButtonSegment(value: 90, label: Text('90°')),
-                ButtonSegment(value: -90, label: Text('-90°')),
-                ButtonSegment(value: 180, label: Text('180°')),
+                const SizedBox(width: 8),
+                if (ct.isQrCode) ...[
+                  Text(
+                    'QR Size (mm)',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 100,
+                    child: widget.buildOptionSlider(
+                      context,
+                      value: ct.qrSizeMm,
+                      min: 5.0,
+                      max: 100.0,
+                      divisions: 95,
+                      label: '${ct.qrSizeMm.toStringAsFixed(1)} mm',
+                      onChanged: (v) {
+                        onUpdateCustomText(page1, ct.copyWith(qrSizeMm: v));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.palette_outlined, size: 24),
+                    isSelected: _showFormattingRow,
+                    tooltip: 'Content formatting options',
+                    onPressed: () {
+                      setState(() {
+                        _showFormattingRow = !_showFormattingRow;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Shape', style: Theme.of(context).textTheme.labelMedium),
+                  const SizedBox(width: 8),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'square', label: Text('Square')),
+                      ButtonSegment(value: 'circle', label: Text('Circle')),
+                    ],
+                    selected: {ct.qrShape},
+                    onSelectionChanged: (next) {
+                      if (next.isEmpty) return;
+                      onUpdateCustomText(
+                        page1,
+                        ct.copyWith(qrShape: next.first),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Rotation',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('0°')),
+                      ButtonSegment(value: 90, label: Text('90°')),
+                      ButtonSegment(value: -90, label: Text('-90°')),
+                      ButtonSegment(value: 180, label: Text('180°')),
+                    ],
+                    selected: {ct.rotationDegrees},
+                    onSelectionChanged: (next) {
+                      if (next.isEmpty) return;
+                      onUpdateCustomText(
+                        page1,
+                        ct.copyWith(rotationDegrees: next.first),
+                      );
+                    },
+                  ),
+                ] else ...[
+                  FilterChip(
+                    label: const Text('Dynamic'),
+                    selected: ct.isDynamic,
+                    onSelected: (selected) {
+                      onUpdateCustomText(
+                        page1,
+                        ct.copyWith(isDynamic: selected),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Size (pt)',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 64,
+                    child: SyncedFontSizeField(
+                      key: ValueKey('fs_${ct.id}'),
+                      fontSizePt: ct.fontSizePt,
+                      onValidSize: (p) =>
+                          onUpdateCustomText(page1, ct.copyWith(fontSizePt: p)),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.remove, size: 20),
+                    tooltip: 'Decrease font size',
+                    onPressed: ct.fontSizePt > 4
+                        ? () => onUpdateCustomText(
+                            page1,
+                            ct.copyWith(
+                              fontSizePt: (ct.fontSizePt - 0.5).clamp(
+                                4.0,
+                                72.0,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add, size: 20),
+                    tooltip: 'Increase font size',
+                    onPressed: ct.fontSizePt < 72
+                        ? () => onUpdateCustomText(
+                            page1,
+                            ct.copyWith(
+                              fontSizePt: (ct.fontSizePt + 0.5).clamp(
+                                4.0,
+                                72.0,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.text_format, size: 24),
+                    isSelected: _showFormattingRow,
+                    tooltip: 'Text formatting options',
+                    onPressed: () {
+                      setState(() {
+                        _showFormattingRow = !_showFormattingRow;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.palette_outlined, size: 24),
+                    isSelected: _showStylingRow,
+                    tooltip: 'Text styling options',
+                    onPressed: () {
+                      setState(() {
+                        _showStylingRow = !_showStylingRow;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Max Width (mm)',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 64,
+                    child: SyncedMaxWidthField(
+                      key: ValueKey('mw_${ct.id}'),
+                      maxWidthMm: ct.maxWidthMm,
+                      onValidSize: (p) =>
+                          onUpdateCustomText(page1, ct.copyWith(maxWidthMm: p)),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: widget.buildOptionSlider(
+                      context,
+                      value: ct.maxWidthMm ?? 0.0,
+                      min: 0.0,
+                      max: TextPropertiesPanel._textDimensionSliderMaxMm,
+                      divisions: 200,
+                      label: ct.maxWidthMm == null || ct.maxWidthMm! == 0.0
+                          ? 'Auto'
+                          : '${ct.maxWidthMm!.toStringAsFixed(1)} mm',
+                      onChanged: (v) {
+                        onUpdateCustomText(
+                          page1,
+                          ct.copyWith(maxWidthMm: v == 0.0 ? null : v),
+                        );
+                      },
+                    ),
+                  ),
+                  if (!ct.isDynamic) ...[
+                    const SizedBox(width: 12),
+                    Text(
+                      'Max Height (mm)',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 64,
+                      child: SyncedMaxHeightField(
+                        key: ValueKey('mh_${ct.id}'),
+                        maxHeightMm: ct.heightMm,
+                        onValidSize: (p) =>
+                            onUpdateCustomText(page1, ct.copyWith(heightMm: p)),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: widget.buildOptionSlider(
+                        context,
+                        value: ct.heightMm ?? 0.0,
+                        min: 0.0,
+                        max: TextPropertiesPanel._textDimensionSliderMaxMm,
+                        divisions: 200,
+                        label: ct.heightMm == null || ct.heightMm! == 0.0
+                            ? 'Auto'
+                            : '${ct.heightMm!.toStringAsFixed(1)} mm',
+                        onChanged: (v) {
+                          onUpdateCustomText(
+                            page1,
+                            ct.copyWith(heightMm: v == 0.0 ? null : v),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 12),
+                  Text(
+                    'Rotation',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('0°')),
+                      ButtonSegment(value: 90, label: Text('90°')),
+                      ButtonSegment(value: -90, label: Text('-90°')),
+                      ButtonSegment(value: 180, label: Text('180°')),
+                    ],
+                    selected: {ct.rotationDegrees},
+                    onSelectionChanged: (next) {
+                      if (next.isEmpty) return;
+                      onUpdateCustomText(
+                        page1,
+                        ct.copyWith(rotationDegrees: next.first),
+                      );
+                    },
+                  ),
+                ],
               ],
-              selected: {ct.rotationDegrees},
-              onSelectionChanged: (next) {
-                if (next.isEmpty) return;
-                onUpdateCustomText(
-                  page1,
-                  ct.copyWith(rotationDegrees: next.first),
-                );
-              },
             ),
-          ],
-        ],
-      ),
-    );
+          );
 
-    final isCustomSep =
-        ct.formatOption.startsWith('custom:') || ct.formatOption == 'custom';
+    final effectiveFormatOption = ct.textType == 'list'
+        ? normalizeTemplateListFormatOption(ct.formatOption)
+        : ct.formatOption;
+    final isCustomSep = effectiveFormatOption.startsWith('custom:');
     final isCustomMap =
         ct.formatOption.startsWith('custom_map:') ||
         ct.formatOption == 'custom_map';
@@ -560,7 +662,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        if (!ct.isQrCode) ...[
+                        if (!ct.isQrCode && !isPicture) ...[
                           Text(
                             'Font',
                             style: Theme.of(context).textTheme.labelMedium,
@@ -723,214 +825,226 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               ct.copyWith(
                                 textType: v,
                                 formatOption: defaultOpt,
+                                isQrCode: v == kTemplatePictureTextType
+                                    ? false
+                                    : ct.isQrCode,
+                                isDynamic: v == kTemplatePictureTextType
+                                    ? false
+                                    : ct.isDynamic,
                               ),
                             );
                           },
                         ),
                         const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.data_object_outlined),
-                          tooltip: 'Conditional output',
-                          onPressed: _hasTextPlaceholder(ct.text)
-                              ? () async {
-                                  final updated = await showDialog<String>(
+                        if (!isPicture) ...[
+                          IconButton(
+                            icon: const Icon(Icons.data_object_outlined),
+                            tooltip: 'Conditional output',
+                            onPressed: _hasTextPlaceholder(ct.text)
+                                ? () async {
+                                    final updated = await showDialog<String>(
+                                      context: context,
+                                      builder: (context) =>
+                                          _ConditionalBracketTextDialog(
+                                            text: ct.text,
+                                            fieldGroups:
+                                                availableTemplateFieldGroups(
+                                                  ref.read(databaseProvider),
+                                                  widget.recordType,
+                                                ),
+                                          ),
+                                    );
+                                    if (updated != null) {
+                                      onUpdateCustomText(
+                                        page1,
+                                        ct.copyWith(text: updated),
+                                      );
+                                    }
+                                  }
+                                : null,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.find_replace),
+                            selectedIcon: Icon(
+                              Icons.find_replace,
+                              color: scheme.primary,
+                            ),
+                            isSelected: ct.replacementRules.isNotEmpty,
+                            tooltip: 'Find and replace',
+                            onPressed: () async {
+                              final updated =
+                                  await showDialog<List<TextReplacementRule>>(
                                     context: context,
                                     builder: (context) =>
-                                        _ConditionalBracketTextDialog(
-                                          text: ct.text,
-                                          fieldGroups:
-                                              availableTemplateFieldGroups(
-                                                ref.read(databaseProvider),
-                                                widget.recordType,
-                                              ),
+                                        TextReplacementRulesDialog(
+                                          rules: ct.replacementRules,
                                         ),
                                   );
-                                  if (updated != null) {
-                                    onUpdateCustomText(
-                                      page1,
-                                      ct.copyWith(text: updated),
-                                    );
-                                  }
-                                }
-                              : null,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.find_replace),
-                          selectedIcon: Icon(
-                            Icons.find_replace,
-                            color: scheme.primary,
-                          ),
-                          isSelected: ct.replacementRules.isNotEmpty,
-                          tooltip: 'Find and replace',
-                          onPressed: () async {
-                            final updated =
-                                await showDialog<List<TextReplacementRule>>(
-                                  context: context,
-                                  builder: (context) =>
-                                      TextReplacementRulesDialog(
-                                        rules: ct.replacementRules,
-                                      ),
-                                );
-                            if (!context.mounted || updated == null) return;
-                            onUpdateCustomText(
-                              page1,
-                              ct.copyWith(replacementRules: updated),
-                            );
-                          },
-                        ),
-                        if (ct.textType != 'sex') ...[
-                          const SizedBox(width: 16),
-                          Text(
-                            'Format',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: isCustomSep
-                                ? 'custom'
-                                : (isCustomMap ? 'custom' : ct.formatOption),
-                            isDense: true,
-                            underline: const SizedBox.shrink(),
-                            items: textFormatDropdownItems(ct.textType),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              String nextOpt = v;
-                              if (v == 'custom') {
-                                if (ct.textType == 'encoded') {
-                                  final placeholder = _detectPlaceholderKey(
-                                    ct.text,
-                                  );
-                                  if (placeholder != null) {
-                                    final defaultMap =
-                                        _getDefaultEnumMapForPlaceholder(
-                                          placeholder,
-                                        );
-                                    final pairs = defaultMap.entries
-                                        .map((e) => '${e.key}=${e.value}')
-                                        .join(',');
-                                    nextOpt = 'custom_map:$pairs';
-                                  } else {
-                                    nextOpt = 'custom_map:';
-                                  }
-                                } else {
-                                  nextOpt = 'custom:';
-                                }
-                              }
+                              if (!context.mounted || updated == null) return;
                               onUpdateCustomText(
                                 page1,
-                                ct.copyWith(formatOption: nextOpt),
+                                ct.copyWith(replacementRules: updated),
                               );
                             },
                           ),
-                          if (ct.textType == 'encoded' && isCustomMap) ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.edit_note, size: 24),
-                              tooltip: 'Map encoded values',
-                              onPressed: () async {
-                                final result = await showDialog<String>(
-                                  context: context,
-                                  builder: (context) => MapEncodedValuesDialog(
-                                    placeholderKey:
-                                        _detectPlaceholderKey(ct.text) ?? '',
-                                    currentOption: ct.formatOption,
-                                  ),
-                                );
-                                if (result != null) {
-                                  onUpdateCustomText(
-                                    page1,
-                                    ct.copyWith(formatOption: result),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                          nullFallbackControls,
-                          if (ct.textType == 'nestedList' &&
-                              ct.formatOption == 'table') ...[
+                          if (ct.textType != 'sex') ...[
                             const SizedBox(width: 16),
                             Text(
-                              'Header Case',
+                              'Format',
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
                             DropdownButton<String>(
-                              value: ct.caseFormat == 'normal'
-                                  ? 'title'
-                                  : ct.caseFormat,
+                              value: isCustomSep
+                                  ? 'custom'
+                                  : (isCustomMap
+                                        ? 'custom'
+                                        : effectiveFormatOption),
                               isDense: true,
                               underline: const SizedBox.shrink(),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'title',
-                                  child: Text('Title Case'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'sentence',
-                                  child: Text('Sentence Case'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'uppercase',
-                                  child: Text('Uppercase'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'lowercase',
-                                  child: Text('Lowercase'),
-                                ),
-                              ],
+                              items: textFormatDropdownItems(ct.textType),
                               onChanged: (v) {
                                 if (v == null) return;
+                                String nextOpt = v;
+                                if (v == 'custom') {
+                                  if (ct.textType == 'encoded') {
+                                    final placeholder = _detectPlaceholderKey(
+                                      ct.text,
+                                    );
+                                    if (placeholder != null) {
+                                      final defaultMap =
+                                          _getDefaultEnumMapForPlaceholder(
+                                            placeholder,
+                                          );
+                                      final pairs = defaultMap.entries
+                                          .map((e) => '${e.key}=${e.value}')
+                                          .join(',');
+                                      nextOpt = 'custom_map:$pairs';
+                                    } else {
+                                      nextOpt = 'custom_map:';
+                                    }
+                                  } else {
+                                    nextOpt = 'custom:';
+                                  }
+                                }
                                 onUpdateCustomText(
                                   page1,
-                                  ct.copyWith(caseFormat: v),
+                                  ct.copyWith(formatOption: nextOpt),
+                                );
+                              },
+                            ),
+                            if (ct.textType == 'encoded' && isCustomMap) ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.edit_note, size: 24),
+                                tooltip: 'Map encoded values',
+                                onPressed: () async {
+                                  final result = await showDialog<String>(
+                                    context: context,
+                                    builder: (context) =>
+                                        MapEncodedValuesDialog(
+                                          placeholderKey:
+                                              _detectPlaceholderKey(ct.text) ??
+                                              '',
+                                          currentOption: ct.formatOption,
+                                        ),
+                                  );
+                                  if (result != null) {
+                                    onUpdateCustomText(
+                                      page1,
+                                      ct.copyWith(formatOption: result),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                            nullFallbackControls,
+                            if (ct.textType == 'nestedList' &&
+                                ct.formatOption == 'table') ...[
+                              const SizedBox(width: 16),
+                              Text(
+                                'Header Case',
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              const SizedBox(width: 8),
+                              DropdownButton<String>(
+                                value: ct.caseFormat == 'normal'
+                                    ? 'title'
+                                    : ct.caseFormat,
+                                isDense: true,
+                                underline: const SizedBox.shrink(),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'title',
+                                    child: Text('Title Case'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'sentence',
+                                    child: Text('Sentence Case'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'uppercase',
+                                    child: Text('Uppercase'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'lowercase',
+                                    child: Text('Lowercase'),
+                                  ),
+                                ],
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  onUpdateCustomText(
+                                    page1,
+                                    ct.copyWith(caseFormat: v),
+                                  );
+                                },
+                              ),
+                            ],
+                          ] else ...[
+                            const SizedBox(width: 16),
+                            Text(
+                              'Format',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _getSexPresentation(ct.formatOption),
+                              isDense: true,
+                              underline: const SizedBox.shrink(),
+                              items: textDropdownItems(kSexPresentationOptions),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                final missing = _getSexMissing(ct.formatOption);
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(formatOption: '$v:$missing'),
+                                );
+                              },
+                            ),
+                            nullFallbackControls,
+                            const SizedBox(width: 16),
+                            Text(
+                              'Missing',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _getSexMissing(ct.formatOption),
+                              isDense: true,
+                              underline: const SizedBox.shrink(),
+                              items: textDropdownItems(kSexMissingOptions),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                final presentation = _getSexPresentation(
+                                  ct.formatOption,
+                                );
+                                onUpdateCustomText(
+                                  page1,
+                                  ct.copyWith(formatOption: '$presentation:$v'),
                                 );
                               },
                             ),
                           ],
-                        ] else ...[
-                          const SizedBox(width: 16),
-                          Text(
-                            'Format',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: _getSexPresentation(ct.formatOption),
-                            isDense: true,
-                            underline: const SizedBox.shrink(),
-                            items: textDropdownItems(kSexPresentationOptions),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              final missing = _getSexMissing(ct.formatOption);
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(formatOption: '$v:$missing'),
-                              );
-                            },
-                          ),
-                          nullFallbackControls,
-                          const SizedBox(width: 16),
-                          Text(
-                            'Missing',
-                            style: Theme.of(context).textTheme.labelMedium,
-                          ),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: _getSexMissing(ct.formatOption),
-                            isDense: true,
-                            underline: const SizedBox.shrink(),
-                            items: textDropdownItems(kSexMissingOptions),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              final presentation = _getSexPresentation(
-                                ct.formatOption,
-                              );
-                              onUpdateCustomText(
-                                page1,
-                                ct.copyWith(formatOption: '$presentation:$v'),
-                              );
-                            },
-                          ),
                         ],
                         if (ct.textType == 'list' && isCustomSep) ...[
                           const SizedBox(width: 12),
@@ -942,6 +1056,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                           SizedBox(
                             width: 60,
                             child: TextField(
+                              key: ValueKey('list-custom-separator-${ct.id}'),
                               controller: _separatorController,
                               decoration: const InputDecoration(
                                 isDense: true,
@@ -963,7 +1078,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                     ),
                   ),
                 ],
-                if (_showStylingRow && !ct.isQrCode) ...[
+                if (_showStylingRow && !ct.isQrCode && !isPicture) ...[
                   const SizedBox(height: 8),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,

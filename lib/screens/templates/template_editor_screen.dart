@@ -13,6 +13,7 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -501,7 +502,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
                 final joined = jsonList
                     .map((json) => json[key]?.toString() ?? '')
                     .where((v) => v.isNotEmpty)
-                    .join(' | ');
+                    .join(writerSeparator);
                 m['personnel::$key'] = joined;
               }
             }

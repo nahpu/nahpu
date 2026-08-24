@@ -6,6 +6,7 @@ import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -91,6 +92,7 @@ class _ExportPresetFieldsScreenState
               itemBuilder: (context, index) => _ExportMappingCard(
                 key: ValueKey('mapping-$index'),
                 mapping: _preset.mappings[index],
+                headerFormat: _preset.headerFormat,
                 onRemove: () => _remove(index),
                 onCustomize: () => _customizeMapping(index),
               ),
@@ -1047,11 +1049,13 @@ class _ExportMappingCard extends StatelessWidget {
   const _ExportMappingCard({
     super.key,
     required this.mapping,
+    required this.headerFormat,
     required this.onRemove,
     required this.onCustomize,
   });
 
   final ExportFieldMapping mapping;
+  final ExportHeaderFormat headerFormat;
   final VoidCallback onRemove;
   final VoidCallback onCustomize;
 
@@ -1073,7 +1077,11 @@ class _ExportMappingCard extends StatelessWidget {
       title = 'List: ${mapping.expression}';
       subtitle = mapping.listMode == ListExportMode.spreadColumns
           ? 'Indexed columns · ${_indexedStyleLabel(mapping.indexedHeaderStyle)}'
-          : 'One column · ${mapping.formatOption} separator';
+          : headerFormat == ExportHeaderFormat.darwinCore
+          ? 'One column · Darwin Core " | " separator'
+          : 'One column · '
+                '${normalizeTemplateListFormatOption(mapping.formatOption)} '
+                'separator';
       icon = Icons.view_column_outlined;
     } else {
       title = isDirectExportSourceExpression(mapping.expression)
@@ -1192,7 +1200,13 @@ class _MappingCustomizerFormState
   @override
   void initState() {
     super.initState();
-    _localMapping = widget.mapping;
+    _localMapping = widget.mapping.textType == 'list'
+        ? widget.mapping.copyWith(
+            formatOption: normalizeTemplateListFormatOption(
+              widget.mapping.formatOption,
+            ),
+          )
+        : widget.mapping;
     _mappingKind =
         widget.initialMappingKind ??
         (_localMapping.isNested
@@ -1357,43 +1371,61 @@ class _MappingCustomizerFormState
               ),
             ),
             if (_localMapping.listMode == ListExportMode.concatenate) ...[
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                key: ValueKey(
-                  'separator-${_listSeparatorOption(_localMapping.formatOption)}',
+              if (widget.headerFormat == ExportHeaderFormat.darwinCore)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Darwin Core list values are separated with " | ".',
+                  ),
+                )
+              else
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  key: ValueKey(
+                    'separator-${_listSeparatorOption(_localMapping.formatOption)}',
+                  ),
+                  initialValue: _listSeparatorOption(
+                    _localMapping.formatOption,
+                  ),
+                  decoration: const InputDecoration(labelText: 'Separator'),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'pipe',
+                      child: Text('Pipe (A | B)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'comma',
+                      child: Text('Comma (A, B)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'semicolon',
+                      child: Text('Semicolon (A; B)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'slash',
+                      child: Text('Slash (A / B)'),
+                    ),
+                    DropdownMenuItem(value: 'newline', child: Text('New line')),
+                    DropdownMenuItem(value: 'bullet', child: Text('Bulleted')),
+                    DropdownMenuItem(value: 'custom', child: Text('Custom')),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      final option = value == 'custom' ? 'custom:' : value;
+                      _localMapping = _localMapping.copyWith(
+                        formatOption: option,
+                      );
+                      _formatOptionController.text = option;
+                    });
+                  },
                 ),
-                initialValue: _listSeparatorOption(_localMapping.formatOption),
-                decoration: const InputDecoration(labelText: 'Separator'),
-                items: const [
-                  DropdownMenuItem(value: 'pipe', child: Text('Pipe (A | B)')),
-                  DropdownMenuItem(value: 'comma', child: Text('Comma (A, B)')),
-                  DropdownMenuItem(
-                    value: 'semicolon',
-                    child: Text('Semicolon (A; B)'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'slash',
-                    child: Text('Slash (A / B)'),
-                  ),
-                  DropdownMenuItem(value: 'newline', child: Text('New line')),
-                  DropdownMenuItem(value: 'bullet', child: Text('Bulleted')),
-                  DropdownMenuItem(value: 'custom', child: Text('Custom')),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    final option = value == 'custom' ? 'custom:' : value;
-                    _localMapping = _localMapping.copyWith(
-                      formatOption: option,
-                    );
-                    _formatOptionController.text = option;
-                  });
-                },
-              ),
-              if (_localMapping.formatOption.startsWith('custom:')) ...[
+              if (widget.headerFormat != ExportHeaderFormat.darwinCore &&
+                  _localMapping.formatOption.startsWith('custom:')) ...[
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _localMapping.formatOption.substring(7),
+                  key: const ValueKey('list-custom-separator'),
                   decoration: const InputDecoration(
                     labelText: 'Custom separator',
                   ),
@@ -1818,7 +1850,9 @@ class _MappingCustomizerFormState
         clearNestedNamespace: true,
         headerOverride: _headerController.text.trim(),
         clearHeaderOverride: _headerController.text.trim().isEmpty,
-        formatOption: _formatOptionController.text.trim(),
+        formatOption: _mappingKind == 'list'
+            ? _formatOptionController.text
+            : _formatOptionController.text.trim(),
         customNullFallbackText: _customNullTextController.text.trim(),
         conditionalText: _conditionalTextController.text,
       );
@@ -1843,8 +1877,8 @@ class _MappingCustomizerFormState
         );
         if (kind == 'list' &&
             !_isListFormatOption(_localMapping.formatOption)) {
-          _localMapping = _localMapping.copyWith(formatOption: 'comma');
-          _formatOptionController.text = 'comma';
+          _localMapping = _localMapping.copyWith(formatOption: 'pipe');
+          _formatOptionController.text = 'pipe';
         }
       }
     });
@@ -1992,20 +2026,11 @@ class _MappingCustomizerFormState
       : 'normal';
 
   String _listSeparatorOption(String value) {
-    if (value.startsWith('custom:')) return 'custom';
-    return _isListFormatOption(value) ? value : 'pipe';
+    final normalized = normalizeTemplateListFormatOption(value);
+    return normalized.startsWith('custom:') ? 'custom' : normalized;
   }
 
-  bool _isListFormatOption(String value) =>
-      {
-        'pipe',
-        'comma',
-        'semicolon',
-        'slash',
-        'newline',
-        'bullet',
-      }.contains(value) ||
-      value.startsWith('custom:');
+  bool _isListFormatOption(String value) => isTemplateListFormatOption(value);
 
   String? _exactSourceField(String expression) {
     final match = RegExp(r'^\s*\[([^\]]+)\]\s*$').firstMatch(expression);

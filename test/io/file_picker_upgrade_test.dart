@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/templates/editor_service.dart';
+import 'package:nahpu/services/templates/image_service.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -85,7 +87,36 @@ void main() {
 
     expect(copiedPath, isNotNull);
     expect(copiedPath, endsWith('.jpg'));
-    expect(File(copiedPath!).readAsBytesSync(), [1, 2, 3]);
+    expect(
+      path.dirname(copiedPath!),
+      path.join(
+        appDocumentsDirectory.path,
+        nahpuAppDir,
+        appMediaDirName,
+        templateMediaDirName,
+      ),
+    );
+    expect(File(copiedPath).readAsBytesSync(), [1, 2, 3]);
+  });
+
+  test('template media preserves names and suffixes collisions', () async {
+    final source = File('${appDocumentsDirectory.path}/logo.jpg')
+      ..writeAsBytesSync([1, 2, 3]);
+    picker.result = _FakePlatformFile(source.path);
+
+    final first = await TemplateEditorService().copyPickedImageToLogos();
+    final second = await TemplateEditorService().copyPickedImageToLogos();
+    final listed = await const TemplateImageService().listLogoPaths();
+
+    expect(path.basename(first!), 'logo.jpg');
+    expect(path.basename(second!), 'logo_1.jpg');
+    expect(listed, [first, second]);
+    expect(
+      Directory(
+        path.join(appDocumentsDirectory.path, 'template_images'),
+      ).existsSync(),
+      isFalse,
+    );
   });
 
   test(

@@ -166,6 +166,28 @@ void main() {
       expect(files['tiles.pmtiles']?.status, NahpuFileStatus.locked);
       expect(files['catalog.json']?.status, NahpuFileStatus.locked);
     });
+
+    test(
+      'global template media is locked without a template reference',
+      () async {
+        await insertProject();
+        writeFile([appMediaDirName, templateMediaDirName, 'shared-logo.png']);
+
+        final files = filesByName(await scan());
+
+        expect(files['shared-logo.png']?.status, NahpuFileStatus.locked);
+        expect(
+          files['shared-logo.png']?.lockReason,
+          NahpuLockReason.templateMedia,
+        );
+        expect(
+          buildStructuralDirs(nahpuDir.path, const {}).contains(
+            path.join(nahpuDir.path, appMediaDirName, templateMediaDirName),
+          ),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('linked files', () {

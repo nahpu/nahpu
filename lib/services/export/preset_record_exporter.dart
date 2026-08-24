@@ -7,6 +7,7 @@ import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/sites/site_services.dart';
@@ -28,8 +29,7 @@ class PresetExportPreviewData {
 
 /// Splits NAHPU's pipe-delimited repeated values without losing empty slots.
 List<String> splitExportListValue(String value) {
-  if (value.isEmpty) return const [];
-  return value.split('|').map((item) => item.trim()).toList(growable: false);
+  return splitNahpuRepeatedValue(value);
 }
 
 /// Executes a versioned record export preset without relying on screen state.
@@ -616,12 +616,14 @@ class PresetRecordExporter {
   }
 
   String _formatScalar(Map<String, String> source, ExportFieldMapping mapping) {
-    if (preset.headerFormat == ExportHeaderFormat.darwinCore &&
-        mapping.textType == 'list' &&
+    if (mapping.textType == 'list' &&
         mapping.listMode == ListExportMode.concatenate) {
+      final values = _listValues(source, mapping);
       return _applyReplacements(
         mapping,
-        formatDarwinCoreList(_listValues(source, mapping)),
+        preset.headerFormat == ExportHeaderFormat.darwinCore
+            ? formatDarwinCoreList(values)
+            : formatTemplateListItems(values, mapping.formatOption),
       );
     }
     final isConditional =

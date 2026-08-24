@@ -353,8 +353,18 @@ NahpuLocationVerdict classifyLocation(
     return const NahpuLocationVerdict(NahpuFileLocation.unmanaged);
   }
 
-  // appMedia/personnel/<file>
-  if (first == 'appMedia') {
+  // appMedia/personnel/<file> is database-managed. Template media is a global
+  // user library and must remain protected even while no template references
+  // one of its files.
+  if (first == appMediaDirName) {
+    final isTemplateMedia =
+        segments.length >= 2 && segments[1] == templateMediaDirName;
+    if (isTemplateMedia) {
+      return const NahpuLocationVerdict(
+        NahpuFileLocation.locked,
+        NahpuLockReason.templateMedia,
+      );
+    }
     final isPersonnel = segments.length >= 3 && segments[1] == 'personnel';
     return NahpuLocationVerdict(
       isPersonnel ? NahpuFileLocation.managed : NahpuFileLocation.unmanaged,
@@ -945,8 +955,9 @@ Set<String> buildStructuralDirs(String root, Set<String> projectUuids) {
   final dirs = <String>{
     root,
     path.join(root, nahpuBackupDir),
-    path.join(root, 'appMedia'),
-    path.join(root, 'appMedia', 'personnel'),
+    path.join(root, appMediaDirName),
+    path.join(root, appMediaDirName, 'personnel'),
+    path.join(root, appMediaDirName, templateMediaDirName),
     path.join(root, userConfigDirName),
     path.join(root, userConfigDirName, userFontDirName),
     path.join(root, userConfigDirName, userMapDirName),

@@ -126,6 +126,9 @@ TemplateCanvasOverflowPadding calculateTemplateCanvasOverflowPadding({
   CustomTextElement text, {
   required double measuredHeightMm,
 }) {
+  if (isTemplatePictureTextType(text.textType)) {
+    return (widthMm: text.pictureWidthMm, heightMm: text.pictureHeightMm);
+  }
   if (text.isQrCode) {
     return (widthMm: text.qrSizeMm, heightMm: text.qrSizeMm);
   }

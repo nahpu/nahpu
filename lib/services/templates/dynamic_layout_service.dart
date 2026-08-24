@@ -120,6 +120,7 @@ class TemplateDynamicLayoutService {
     return text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
+        !isTemplatePictureTextType(text.textType) &&
         templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null;
   }
 }

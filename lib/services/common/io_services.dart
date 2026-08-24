@@ -52,6 +52,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 const String nahpuBackupDir = 'backup';
 const String nahpuAppDir = 'nahpu';
+const String appMediaDirName = 'appMedia';
+const String templateMediaDirName = 'template';
 const String mediaDir = 'media';
 const String associatedDataDir = 'associatedData';
 const String associatedDataSitesDir = 'sites';
@@ -413,6 +415,10 @@ class AppServices {
   Future<Directory> get userMapDir async {
     return getUserMapDirectory();
   }
+
+  Future<Directory> get templateMediaDir async {
+    return getTemplateMediaDirectory();
+  }
 }
 
 Future<Directory> getUserMapDirectory() async {
@@ -422,6 +428,15 @@ Future<Directory> getUserMapDirectory() async {
   );
   await userMapDir.create(recursive: true);
   return userMapDir;
+}
+
+Future<Directory> getTemplateMediaDirectory() async {
+  final documentDir = await nahpuDocumentDir;
+  final templateMediaDir = Directory(
+    path.join(documentDir.path, appMediaDirName, templateMediaDirName),
+  );
+  await templateMediaDir.create(recursive: true);
+  return templateMediaDir;
 }
 
 Future<Directory> get nahpuDocumentDir async {

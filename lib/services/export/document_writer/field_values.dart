@@ -23,6 +23,13 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
     }
   } catch (_) {}
 
+  final links = await SpecimenServices(ref: ref).getSpecimenMedia(s.uuid);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
+
   return m;
 }
 
@@ -39,7 +46,17 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
   ).getRecord(record.specimen);
   final partId = record.part.id?.toString();
   for (final fields in records) {
-    if (fields['specimenPart::id'] == partId) return fields;
+    if (fields['specimenPart::id'] == partId) {
+      final links = await SpecimenServices(
+        ref: ref,
+      ).getSpecimenMedia(record.specimen.uuid);
+      await _addDocumentMediaValues(
+        fields,
+        links.map((link) => link.mediaId).whereType<int>(),
+        ref,
+      );
+      return fields;
+    }
   }
   return const <String, String>{};
 }
@@ -103,6 +120,12 @@ Future<Map<String, String>> documentFieldValuesForSite(
       }
     } catch (_) {}
   }
+  final links = await SiteServices(ref: ref).getSiteMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
   return m;
 }
 
@@ -249,7 +272,7 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     for (var key in effortKeys) {
       final combined = effortJsons
           .map((e) => e[key]?.toString() ?? '')
-          .join(' | ');
+          .join(writerSeparator);
       m['collEffort::$key'] = combined;
     }
   }
@@ -273,6 +296,13 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
         ? ''
         : entry.definition.displayValue(entry.value!.value);
   }
+
+  final links = await CollEventQuery(db).getEventMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
 
   return m;
 }
@@ -388,5 +418,71 @@ Future<Map<String, String>> documentFieldValuesForNarrative(
     } catch (_) {}
   }
 
+  final links = await NarrativeServices(ref: ref).getNarrativeMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
+
   return m;
+}
+
+Future<void> _addDocumentMediaValues(
+  Map<String, String> values,
+  Iterable<int> mediaIds,
+  WidgetRef ref,
+) async {
+  final query = MediaDbQuery(ref.read(databaseProvider));
+  final rows = <MediaData>[];
+  for (final id in mediaIds.toSet()) {
+    try {
+      rows.add(await query.getMedia(id));
+    } catch (_) {
+      // A stale relation must not prevent the rest of the document rendering.
+    }
+  }
+  rows.sort((a, b) => a.primaryId.compareTo(b.primaryId));
+  try {
+    values[kTemplateMediaField] = await MediaWriterServices(
+      ref: ref,
+    ).formatMediaData(rows);
+  } catch (_) {
+    // Picture rendering is independent of optional descriptive metadata.
+    values[kTemplateMediaField] = '';
+  }
+
+  final imagePaths = <String>[];
+  for (final row in rows) {
+    final fileName = row.fileName?.trim();
+    final category = row.category?.trim();
+    final projectUuid = row.projectUuid?.trim();
+    if (fileName == null ||
+        fileName.isEmpty ||
+        category == null ||
+        category.isEmpty ||
+        projectUuid == null ||
+        projectUuid.isEmpty) {
+      continue;
+    }
+    try {
+      final file = await MediaFinder(ref: ref).getPathForProjectMedia(
+        fileName,
+        projectUuid,
+        matchMediaCategoryString(category),
+      );
+      if (!await file.exists()) continue;
+      final header = await file
+          .openRead(0, 64)
+          .fold<List<int>>(<int>[], (bytes, chunk) => bytes..addAll(chunk));
+      final mimeType = lookupMimeType(file.path, headerBytes: header);
+      if (mimeType?.startsWith('image/') ?? false) {
+        imagePaths.add(file.path);
+      }
+    } catch (_) {
+      // Unsupported categories, unreadable files, and unknown MIME types are
+      // intentionally omitted from Picture output.
+    }
+  }
+  values[kTemplatePicturePathsDataKey] = jsonEncode(imagePaths);
 }

@@ -1,17 +1,13 @@
 import 'dart:io';
 
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
 
 class TemplateImageService {
   const TemplateImageService();
 
   Future<Directory> _logosDir() async {
-    final root = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(root.path, 'template_images'));
-    if (!dir.existsSync()) dir.createSync(recursive: true);
-    return dir;
+    return getTemplateMediaDirectory();
   }
 
   Future<String> addLogoFromFile(String sourcePath) async {
@@ -24,14 +20,33 @@ class TemplateImageService {
     String extension,
   ) async {
     final dir = await _logosDir();
-    final id = const Uuid().v4();
-    final dest = p.join(dir.path, '$id$extension');
+    final sourceName = p.basenameWithoutExtension(sourcePath).trim();
+    final stem = sourceName.isEmpty ? 'image' : sourceName;
+    final normalizedExtension = extension.startsWith('.')
+        ? extension.toLowerCase()
+        : '.${extension.toLowerCase()}';
+    var dest = p.join(dir.path, '$stem$normalizedExtension');
+    var suffix = 1;
+    while (await File(dest).exists()) {
+      dest = p.join(dir.path, '${stem}_$suffix$normalizedExtension');
+      suffix++;
+    }
     await File(sourcePath).copy(dest);
     return dest;
   }
 
   Future<List<String>> listLogoPaths() async {
     final dir = await _logosDir();
-    return dir.listSync().whereType<File>().map((f) => f.path).toList()..sort();
+    final paths = await dir
+        .list()
+        .where((entity) => entity is File)
+        .cast<File>()
+        .map((file) => file.path)
+        .toList();
+    paths.sort(
+      (a, b) =>
+          p.basename(a).toLowerCase().compareTo(p.basename(b).toLowerCase()),
+    );
+    return paths;
   }
 }

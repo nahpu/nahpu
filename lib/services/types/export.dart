@@ -1,5 +1,6 @@
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
@@ -601,13 +602,17 @@ class ExportFieldMapping {
   }
 
   factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
+    final textType = json['textType'] as String? ?? 'normal';
+    final rawFormatOption = json['formatOption'] as String? ?? 'normal';
     return ExportFieldMapping(
       expression: canonicalizeSpecimenAttributeExpression(
         json['expression'] as String? ?? '',
       ),
       headerOverride: json['headerOverride'] as String?,
-      textType: json['textType'] as String? ?? 'normal',
-      formatOption: json['formatOption'] as String? ?? 'normal',
+      textType: textType,
+      formatOption: textType == 'list'
+          ? normalizeTemplateListFormatOption(rawFormatOption)
+          : rawFormatOption,
       caseFormat: json['caseFormat'] as String? ?? 'normal',
       nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
       customNullFallbackText: json['customNullFallbackText'] as String? ?? '',

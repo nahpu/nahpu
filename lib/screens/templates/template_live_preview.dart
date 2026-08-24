@@ -9,6 +9,7 @@ import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/screens/templates/template_picture_grid.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 
@@ -166,7 +167,23 @@ class _PreviewPage extends StatelessWidget {
                 ),
               ),
             for (final ct in page.customTexts)
-              if (templateSpecimenSexIconFieldKeyFromBracketText(ct.text)
+              if (isTemplatePictureTextType(ct.textType))
+                Positioned(
+                  left: ct.xMm * scale,
+                  top: ct.yMm * scale,
+                  width: math.max(1.0, ct.pictureWidthMm * scale),
+                  height: math.max(1.0, ct.pictureHeightMm * scale),
+                  child: Transform.rotate(
+                    angle: degreesToRadians(ct.rotationDegrees),
+                    child: TemplatePictureGrid(
+                      imagePaths: resolveTemplatePicturePaths(
+                        ct.text,
+                        placeholderValues,
+                      ),
+                    ),
+                  ),
+                )
+              else if (templateSpecimenSexIconFieldKeyFromBracketText(ct.text)
                   case final gKey?)
                 Positioned(
                   left: ct.xMm * scale,

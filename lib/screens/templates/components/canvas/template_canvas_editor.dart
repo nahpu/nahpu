@@ -6,6 +6,7 @@ import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'
 import 'package:nahpu/services/export/document_writer.dart'
     show resolveDocumentTemplatePlaceholders;
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/screens/templates/template_picture_grid.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_line_chip.dart';
@@ -431,7 +432,20 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                           yMm: rendered.dy,
                                         ),
                                       );
-                                      if (other.maxWidthMm != null ||
+                                      if (isTemplatePictureTextType(
+                                        other.textType,
+                                      )) {
+                                        targets.add(
+                                          CanvasSnapTarget(
+                                            xMm:
+                                                other.xMm +
+                                                other.pictureWidthMm / 2,
+                                            yMm:
+                                                rendered.dy +
+                                                other.pictureHeightMm / 2,
+                                          ),
+                                        );
+                                      } else if (other.maxWidthMm != null ||
                                           other.heightMm != null) {
                                         final measuredHeightMm =
                                             _dynamicTextContentHeightMmById[other
@@ -635,6 +649,84 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
                                               xMm: saved.dx,
                                               yMm: saved.dy,
                                               qrSizeMm: w,
+                                            ),
+                                          );
+                                        },
+                                        onRotationChanged: (deg) {
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              rotationDegrees: deg,
+                                            ),
+                                          );
+                                        },
+                                        onDelete: null,
+                                      );
+                                    } else if (isTemplatePictureTextType(
+                                      element.textType,
+                                    )) {
+                                      final imagePaths = isPreviewMode
+                                          ? resolveTemplatePicturePaths(
+                                              element.text,
+                                              editorTemplateFieldPreview,
+                                            )
+                                          : const <String>[];
+                                      return DraggableImageChip(
+                                        key: ValueKey(
+                                          'p${page1 ? '1' : '2'}_picture_${element.id}',
+                                        ),
+                                        imagePath: '',
+                                        vectorChild: SizedBox.expand(
+                                          child: TemplatePictureGrid(
+                                            imagePaths: imagePaths,
+                                            showPlaceholder: !isPreviewMode,
+                                          ),
+                                        ),
+                                        position: renderedPosition(element),
+                                        widthMm: element.pictureWidthMm,
+                                        heightMm: element.pictureHeightMm,
+                                        rotationDegrees:
+                                            element.rotationDegrees,
+                                        scale: scale,
+                                        templateWidthMm: templateWidthMm,
+                                        templateHeightMm: templateHeightMm,
+                                        canvasInsetXPx: canvasInsetX,
+                                        canvasInsetYPx: canvasInsetY,
+                                        templatePanToMmDelta:
+                                            templatePanToMmDelta,
+                                        isSelected:
+                                            selectedElement ==
+                                            'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        onTap: () => onSelectElement(
+                                          'custom:${page1 ? '1' : '2'}:${element.id}',
+                                        ),
+                                        onDragStateChanged: onDragStateChanged,
+                                        isLocked: element.isLocked,
+                                        isVisible: element.isVisible,
+                                        snapEnabled: snapEnabled,
+                                        snapTargets: snapTargetsFor(element),
+                                        onMoved: (pos) {
+                                          final saved = savedPosition(
+                                            pos,
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                            ),
+                                          );
+                                        },
+                                        onBoundsChanged: (x, y, w, h) {
+                                          final saved = savedPosition(
+                                            Offset(x, y),
+                                            element,
+                                          );
+                                          onScheduleTemplateTextPositionUpdate(
+                                            element.copyWith(
+                                              xMm: saved.dx,
+                                              yMm: saved.dy,
+                                              pictureWidthMm: w,
+                                              pictureHeightMm: h,
                                             ),
                                           );
                                         },

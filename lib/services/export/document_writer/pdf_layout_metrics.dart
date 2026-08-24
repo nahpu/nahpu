@@ -71,6 +71,7 @@ class _DocumentPdfLayoutMetrics {
           text.isVisible &&
           text.isDynamic &&
           !text.isQrCode &&
+          !isTemplatePictureTextType(text.textType) &&
           templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null,
     );
     if (hasDynamicText) {
@@ -85,7 +86,9 @@ class _DocumentPdfLayoutMetrics {
       final genderIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
         text.text,
       );
-      if (text.isQrCode) {
+      if (isTemplatePictureTextType(text.textType)) {
+        height = math.max(height, _pictureBottomPt(text));
+      } else if (text.isQrCode) {
         height = math.max(height, documentPdfMmToPt(text.yMm + text.qrSizeMm));
       } else if (genderIconKey != null) {
         height = math.max(
@@ -137,6 +140,7 @@ class _DocumentPdfLayoutMetrics {
                   text.isVisible &&
                   text.isDynamic &&
                   !text.isQrCode &&
+                  !isTemplatePictureTextType(text.textType) &&
                   templateSpecimenSexIconFieldKeyFromBracketText(text.text) ==
                       null,
             )
@@ -201,12 +205,7 @@ class _DocumentPdfLayoutMetrics {
 
   static double _dynamicTextHeightPt(CustomTextElement text, double wPt) {
     return _estimateTextHeightPt(
-          formatTemplateText(
-            text.text,
-            text.textType,
-            text.formatOption,
-            text.caseFormat,
-          ),
+          text.text,
           text.fontSizePt,
           _textContentWidthPt(text, wPt),
         ) +
@@ -235,6 +234,9 @@ class _DocumentPdfLayoutMetrics {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is! CustomTextElement) return 0;
+    if (isTemplatePictureTextType(element.textType)) {
+      return _pictureBottomPt(element);
+    }
     final genderIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
       element.text,
     );
@@ -250,12 +252,7 @@ class _DocumentPdfLayoutMetrics {
     final heightPt = element.heightMm != null
         ? documentPdfMmToPt(element.heightMm!)
         : _estimateTextHeightPt(
-                formatTemplateText(
-                  element.text,
-                  element.textType,
-                  element.formatOption,
-                  element.caseFormat,
-                ),
+                element.text,
                 element.fontSizePt,
                 _textContentWidthPt(element, wPt),
               ) +
@@ -269,6 +266,15 @@ class _DocumentPdfLayoutMetrics {
           widthPt: documentPdfMmToPt(image.widthMm),
           heightPt: documentPdfMmToPt(image.heightMm),
           rotationDegrees: image.rotationDegrees,
+        );
+  }
+
+  static double _pictureBottomPt(CustomTextElement picture) {
+    return documentPdfMmToPt(picture.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(picture.pictureWidthMm),
+          heightPt: documentPdfMmToPt(picture.pictureHeightMm),
+          rotationDegrees: picture.rotationDegrees,
         );
   }
 

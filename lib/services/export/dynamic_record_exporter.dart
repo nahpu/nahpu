@@ -223,7 +223,7 @@ class DynamicRecordExporter {
           for (var key in effortKeys) {
             final combined = effortJsons
                 .map((e) => e[key]?.toString() ?? '')
-                .join(' | ');
+                .join(writerSeparator);
             record['collEffort::$key'] = combined;
           }
         }

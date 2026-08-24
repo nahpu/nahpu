@@ -87,6 +87,15 @@ bool isAssociatedBackupArchivePath(String relative) {
           (segments[1] == 'media' || segments[1] == 'associateddata'));
 }
 
+@visibleForTesting
+List<String> globalBackupDirectoryPaths(String root) {
+  return [
+    p.join(root, userConfigDirName, userMapDirName),
+    p.join(root, userConfigDirName, userFontDirName),
+    p.join(root, appMediaDirName, templateMediaDirName),
+  ];
+}
+
 /// Creates a complete NAHPU backup archive.
 class DbExport extends AppServices {
   const DbExport({required super.ref, required this.filePath});
@@ -211,8 +220,12 @@ class DbExport extends AppServices {
   Future<List<File>> _collectAssociatedFiles() async {
     final files = <File>[...await MediaFinder(ref: ref).getAllMedia()];
     files.addAll(await _collectAssociatedDataFiles());
-    files.addAll(await _collectDirectoryFiles(await userMapDir));
-    files.addAll(await _collectDirectoryFiles(await userFontDir));
+    final root = await nahpuDocumentDir;
+    for (final directoryPath in globalBackupDirectoryPaths(root.path)) {
+      final directory = Directory(directoryPath);
+      await directory.create(recursive: true);
+      files.addAll(await _collectDirectoryFiles(directory));
+    }
     return files.where((file) => file.existsSync()).toList();
   }
 
