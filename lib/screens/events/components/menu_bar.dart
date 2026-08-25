@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
@@ -94,6 +95,14 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
               ? null
               : () async => await _duplicateEvent(),
           child: const DuplicateMenuButton(text: 'Duplicate event'),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.collEvent,
+          ),
+          child: const SortMenuButton(),
         ),
         const PopupMenuDivider(height: 8),
         PopupMenuItem(

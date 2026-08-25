@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 
 part 'site_queries.g.dart';
 
@@ -47,12 +49,45 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     return bySite;
   }
 
-  /// Returns sites oldest-first so new records are the final form page.
-  Future<List<SiteData>> getAllSites(String projectUuid) {
-    return (select(site)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
-        .get();
+  /// Returns sites in [sort] order. The default keeps insertion order, so new
+  /// records are the final form page.
+  Future<List<SiteData>> getAllSites(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+  }) async {
+    if (sort.isDefault) {
+      return (select(site)
+            ..where((t) => t.projectUuid.equals(projectUuid))
+            ..orderBy([(row) => OrderingTerm.asc(row.id)]))
+          .get();
+    }
+    // Every site sort field lives on the row itself, so the empty join only
+    // buys the list-of-terms `orderBy` overload.
+    final query = select(site).join([])
+      ..where(site.projectUuid.equals(projectUuid))
+      ..orderBy(_orderingTerms(sort));
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(site)).toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(RecordSort sort) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        RecordSortField.siteName => textSortTerms(site.siteID, direction),
+        RecordSortField.stateProvince => textSortTerms(
+          site.stateProvince,
+          direction,
+        ),
+        RecordSortField.locality => textSortTerms(site.locality, direction),
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(expression: site.id, mode: orderingModeFor(direction)),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(site.id),
+    ];
   }
 
   Future<void> createSiteMedia(SiteMediaCompanion form) {

@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/common/utility_services.dart';
@@ -15,12 +17,68 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createSpecimen(SpecimenCompanion form) =>
       into(specimen).insert(form);
 
-  /// Returns specimens oldest-first so new records are the final form page.
-  Future<List<SpecimenData>> getAllSpecimens(String projectUuid) {
-    return (select(specimen)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..orderBy([(row) => OrderingTerm.asc(row.rowId)]))
-        .get();
+  /// Returns specimens in [sort] order. The default keeps insertion order, so
+  /// new records are the final form page.
+  ///
+  /// [fieldIdMode] picks which column [RecordSortField.fieldId] reads —
+  /// coalescing the two would silently interleave two numbering schemes.
+  Future<List<SpecimenData>> getAllSpecimens(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+    FieldIdMode fieldIdMode = FieldIdMode.personnel,
+  }) async {
+    if (sort.isDefault) {
+      return (select(specimen)
+            ..where((t) => t.projectUuid.equals(projectUuid))
+            ..orderBy([(row) => OrderingTerm.asc(row.rowId)]))
+          .get();
+    }
+    final cataloger = alias(personnel, 'cataloger');
+    final query =
+        select(specimen).join([
+            leftOuterJoin(
+              cataloger,
+              specimen.catalogerID.equalsExp(cataloger.uuid),
+            ),
+            leftOuterJoin(taxonomy, specimen.speciesID.equalsExp(taxonomy.id)),
+          ])
+          ..where(specimen.projectUuid.equals(projectUuid))
+          ..orderBy(_orderingTerms(sort, cataloger.name, fieldIdMode));
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(specimen)).toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(
+    RecordSort sort,
+    Expression<String> catalogerName,
+    FieldIdMode fieldIdMode,
+  ) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        RecordSortField.fieldId => valueSortTerms(
+          fieldIdMode == FieldIdMode.project
+              ? specimen.projectFieldNumber
+              : specimen.fieldNumber,
+          direction,
+        ),
+        RecordSortField.cataloger => textSortTerms(catalogerName, direction),
+        RecordSortField.species => [
+          ...textSortTerms(taxonomy.genus, direction),
+          ...textSortTerms(taxonomy.specificEpithet, direction),
+          ...textSortTerms(taxonomy.subspecificEpithet, direction),
+        ],
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(
+            expression: specimen.rowId,
+            mode: orderingModeFor(direction),
+          ),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(specimen.rowId),
+    ];
   }
 
   Future<List<SpecimenData>> searchSpecimens(

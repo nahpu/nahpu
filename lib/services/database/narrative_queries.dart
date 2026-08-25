@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 
 part 'narrative_queries.g.dart';
 
@@ -22,12 +24,64 @@ class NarrativeQuery extends DatabaseAccessor<Database>
         .get();
   }
 
-  /// Returns narratives oldest-first so new records are the final form page.
-  Future<List<NarrativeData>> getAllNarrative(String projectUuid) {
-    return (select(narrative)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
-        .get();
+  /// Returns narratives in [sort] order. The default keeps insertion order, so
+  /// new records are the final form page.
+  Future<List<NarrativeData>> getAllNarrative(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+  }) async {
+    if (sort.isDefault) {
+      return (select(narrative)
+            ..where((t) => t.projectUuid.equals(projectUuid))
+            ..orderBy([(row) => OrderingTerm.asc(row.id)]))
+          .get();
+    }
+    // `writerId` carries no foreign key in the schema, but the join is still
+    // valid — it is a plain personnel uuid.
+    final query =
+        select(narrative).join([
+            leftOuterJoin(site, narrative.siteID.equalsExp(site.id)),
+            leftOuterJoin(
+              personnel,
+              narrative.writerId.equalsExp(personnel.uuid),
+            ),
+          ])
+          ..where(narrative.projectUuid.equals(projectUuid))
+          ..orderBy(_orderingTerms(sort));
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(narrative)).toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(RecordSort sort) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        // Dates are ISO `yyyy-MM-dd` text, so lexicographic is chronological.
+        RecordSortField.narrativeDate => textSortTerms(
+          narrative.date,
+          direction,
+        ),
+        // Order by the site id the user reads on the form, not by the raw
+        // integer foreign key, which means nothing to them.
+        RecordSortField.narrativeSite => [
+          ...textSortTerms(site.siteID, direction),
+          OrderingTerm(
+            expression: narrative.siteID,
+            mode: orderingModeFor(direction),
+          ),
+        ],
+        RecordSortField.writer => textSortTerms(personnel.name, direction),
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(
+            expression: narrative.id,
+            mode: orderingModeFor(direction),
+          ),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(narrative.id),
+    ];
   }
 
   Future<NarrativeData> getNarrativeById(int id) async {

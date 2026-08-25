@@ -6,12 +6,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late Database database;
 
-  setUp(() {
+  late SharedPreferences preferences;
+
+  setUp(() async {
     database = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    SharedPreferences.setMockInitialValues({});
+    preferences = await SharedPreferences.getInstance();
   });
 
   tearDown(() => database.close());
@@ -32,7 +38,9 @@ void main() {
           ),
         );
 
-    await tester.pumpWidget(_harness(database, siteId: siteId));
+    await tester.pumpWidget(
+      _harness(database, siteId: siteId, preferences: preferences),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Site name'), findsOneWidget);
@@ -56,24 +64,38 @@ void main() {
         .into(database.site)
         .insert(const SiteCompanion(projectUuid: Value('')));
 
-    await tester.pumpWidget(_harness(database, siteId: null));
+    await tester.pumpWidget(
+      _harness(database, siteId: null, preferences: preferences),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Site name'), findsNothing);
 
-    await tester.pumpWidget(_harness(database, siteId: 999));
+    await tester.pumpWidget(
+      _harness(database, siteId: 999, preferences: preferences),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Site name'), findsNothing);
 
-    await tester.pumpWidget(_harness(database, siteId: emptySiteId));
+    await tester.pumpWidget(
+      _harness(database, siteId: emptySiteId, preferences: preferences),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Site name'), findsNothing);
     expect(find.byType(SelectableText), findsNothing);
   });
 }
 
-Widget _harness(Database database, {required int? siteId}) {
+Widget _harness(
+  Database database, {
+  required int? siteId,
+  required SharedPreferences preferences,
+}) {
   return ProviderScope(
-    overrides: [databaseProvider.overrideWithValue(database)],
+    overrides: [
+      databaseProvider.overrideWithValue(database),
+      // The site list reads its sort from shared preferences.
+      settingProvider.overrideWithValue(preferences),
+    ],
     child: MaterialApp(
       home: Scaffold(body: SiteNameDisplay(siteId: siteId)),
     ),

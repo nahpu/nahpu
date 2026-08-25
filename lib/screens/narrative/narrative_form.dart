@@ -12,6 +12,74 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
+MarkdownStyleSheet _narrativeMarkdownStyleSheet(BuildContext context) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  final bodyStyle = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+    color: colorScheme.onSurface,
+  );
+  final linkColor = colorScheme.primary;
+
+  return MarkdownStyleSheet(
+    a: bodyStyle.copyWith(
+      color: linkColor,
+      decoration: TextDecoration.underline,
+      decorationColor: linkColor,
+    ),
+    p: bodyStyle,
+    pPadding: EdgeInsets.zero,
+    code: bodyStyle.copyWith(
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      fontFamily: 'monospace',
+      fontSize: (bodyStyle.fontSize ?? 14) * 0.85,
+    ),
+    h1: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+    h1Padding: EdgeInsets.zero,
+    h2: theme.textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+    h6Padding: EdgeInsets.zero,
+    em: bodyStyle.copyWith(fontStyle: FontStyle.italic),
+    strong: bodyStyle.copyWith(fontWeight: FontWeight.bold),
+    del: bodyStyle.copyWith(decoration: TextDecoration.lineThrough),
+    blockquote: bodyStyle,
+    img: bodyStyle,
+    checkbox: bodyStyle.copyWith(color: colorScheme.primary),
+    blockSpacing: 8,
+    listIndent: 24,
+    listBullet: bodyStyle,
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: bodyStyle.copyWith(fontWeight: FontWeight.w600),
+    tableBody: bodyStyle,
+    tableHeadAlign: TextAlign.center,
+    tablePadding: const EdgeInsets.only(bottom: 4),
+    tableBorder: TableBorder.all(color: colorScheme.outlineVariant),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    blockquoteDecoration: BoxDecoration(
+      color: colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(3),
+      border: Border(left: BorderSide(color: colorScheme.primary, width: 3)),
+    ),
+    codeblockPadding: const EdgeInsets.all(8),
+    codeblockDecoration: BoxDecoration(
+      color: colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(2),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+    ),
+  );
+}
+
 class NarrativeForm extends ConsumerStatefulWidget {
   const NarrativeForm({
     super.key,
@@ -182,6 +250,7 @@ class NarrativeTextState extends ConsumerState<NarrativeText> {
                         ? '*No narrative. Use the Edit button above to start writing.*'
                         : widget.narrativeCtr.narrativeCtr.text,
                     selectable: true,
+                    styleSheet: _narrativeMarkdownStyleSheet(context),
                   ),
                 ),
         ),

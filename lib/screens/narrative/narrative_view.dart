@@ -4,6 +4,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
@@ -20,14 +21,37 @@ class NarrativeViewer extends ConsumerStatefulWidget {
   NarrativeViewerState createState() => NarrativeViewerState();
 }
 
-class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
-  bool isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class NarrativeViewerState extends ConsumerState<NarrativeViewer>
+    with RecordPageReconciler<NarrativeData, NarrativeEntry, NarrativeViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _narrativeId;
-  bool _loadedOnce = false;
   bool _isSearching = false;
   late FocusNode _focus;
+
+  @override
+  RecordViewer get recordViewer => RecordViewer.narrative;
+
+  @override
+  AsyncNotifierProvider<NarrativeEntry, List<NarrativeData>>
+  get entryProvider => narrativeEntryProvider;
+
+  @override
+  Object recordIdOf(NarrativeData entry) => entry.id;
+
+  @override
+  void selectRecord(NarrativeData? entry) => _narrativeId = entry?.id;
+
+  @override
+  void invalidateEntries() => NarrativeServices(ref: ref).invalidateNarrative();
+
+  @override
+  bool get isSearching => _isSearching;
+
+  @override
+  void cancelSearch() {
+    _isSearching = false;
+    _searchController.clear();
+  }
 
   @override
   void initState() {
@@ -37,7 +61,6 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -45,12 +68,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   @override
   Widget build(BuildContext context) {
     final narrativeServices = NarrativeServices(ref: ref);
-    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
-    ref.listen(narrativeEntryProvider, (_, next) {
-      // Skip refresh emissions (see site_view.dart).
-      if (next.isLoading) return;
-      next.whenData(_reconcile);
-    });
+    listenEntries();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Narrative"),
@@ -117,14 +135,10 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                   }
                   return NarrativePages(
                     narrativeEntries: narrativeEntries,
-                    isNavButtonVisible: isVisible,
-                    pageNav: _pageNav,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _narrativeId = narrativeEntries[index].id;
-                        _updatePageNav(index);
-                      });
-                    },
+                    isNavButtonVisible: isNavVisible,
+                    pageNav: pageNav,
+                    onPageChanged: (index) =>
+                        handlePageChanged(index, narrativeEntries[index]),
                   );
                 },
                 loading: () => const CommonProgressIndicator(),
@@ -133,74 +147,10 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
         ),
       ),
       bottomSheet: Visibility(
-        visible: isVisible,
-        child: PageNavButton(pageNav: _pageNav),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
     );
-  }
-
-  void _reconcile(List<NarrativeData> narrativeEntries) {
-    if (!mounted) return;
-    final count = narrativeEntries.length;
-    final landIndex = _landingIndex(narrativeEntries);
-    if (landIndex != null) {
-      _pageNav.currentPage = landIndex + 1;
-    }
-    final index = _pageNav.clampToCount(count);
-    setState(() {
-      if (landIndex != null && _isSearching) {
-        _isSearching = false;
-        _searchController.clear();
-      }
-      isVisible = count >= 2;
-      if (count == 0) {
-        _narrativeId = null;
-      } else if (landIndex != null ||
-          _narrativeId == null ||
-          !narrativeEntries.any((narrative) => narrative.id == _narrativeId)) {
-        _narrativeId = narrativeEntries[index].id;
-      }
-    });
-    if (landIndex != null) {
-      // Keyed controller swap (see site_view.dart).
-      _pageNav.openControllerAt(index);
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pageNav.clampController(index);
-      });
-    }
-  }
-
-  /// One-shot landing target for this refresh (see site_view.dart).
-  int? _landingIndex(List<NarrativeData> narrativeEntries) {
-    final firstLoad = !_loadedOnce;
-    _loadedOnce = true;
-    final pendingJump = ref.read(
-      pendingRecordJumpProvider(RecordViewer.narrative),
-    );
-    if (pendingJump != null) {
-      final target = narrativeEntries.indexWhere(
-        (narrative) => narrative.id == pendingJump,
-      );
-      if (target != -1) {
-        ref
-            .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
-            .updateState(null);
-        return target;
-      }
-    }
-    if (firstLoad && narrativeEntries.isNotEmpty) {
-      return narrativeEntries.length - 1;
-    }
-    return null;
-  }
-
-  void _updatePageNav(int value) {
-    _pageNav.currentPage = value + 1;
-    _pageNav.updatePageNavigation();
-    if (!_isSearching) {
-      NarrativeServices(ref: ref).invalidateNarrative();
-    }
   }
 }
 

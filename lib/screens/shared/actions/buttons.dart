@@ -357,6 +357,18 @@ class FindMenuButton extends StatelessWidget {
   }
 }
 
+class SortMenuButton extends StatelessWidget {
+  const SortMenuButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ListTile(
+      leading: Icon(Icons.sort_rounded),
+      title: Text('Sort records'),
+    );
+  }
+}
+
 class ListCheckBox extends StatelessWidget {
   const ListCheckBox({
     super.key,

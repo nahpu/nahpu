@@ -22,6 +22,10 @@ const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 
+/// Prefix for the per-viewer record sort. Each record viewer stores its own
+/// field and direction, so sorting sites does not reorder specimens.
+const String recordSortPrefKey = 'recordSort';
+
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
 // Required for research reproducibility. Can be exported/imported.

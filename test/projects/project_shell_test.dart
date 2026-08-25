@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
+import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -54,6 +56,7 @@ Future<_PushCountingObserver> _pumpShell(
   WidgetTester tester, {
   Size size = const Size(800, 600),
   List<Widget> pages = _pages,
+  Future<void> Function(Database database)? seed,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -74,6 +77,7 @@ Future<_PushCountingObserver> _pumpShell(
           name: Value('Project shell'),
         ),
       );
+  await seed?.call(database);
   final container = ProviderContainer(
     overrides: [
       databaseProvider.overrideWithValue(database),
@@ -379,5 +383,62 @@ void main() {
     expect(container.read(projectNavbarIndexProvider), 4);
     expect(find.text('PAGE-Narrative'), findsOneWidget);
     expect(observer.pushCount, pushesAfterInitialRoute);
+  });
+
+  testWidgets('resizing across the breakpoint keeps the real viewer in place', (
+    tester,
+  ) async {
+    // End-to-end companion to the _StateProbe case above, which proves only
+    // that a provider-free State survives. This drives the real viewer, so a
+    // reparent that silently dropped the reconcile path would show up as a
+    // wrong page counter rather than as an intact probe value. The State-loss
+    // case itself is pinned in site_view_reconcile_test.dart, which recreates
+    // the State directly — the GlobalKey reparent holds up under test.
+    const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathChannel, (call) async => '/tmp');
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(pathChannel, null),
+    );
+
+    await _pumpShell(
+      tester,
+      size: const Size(1200, 900),
+      pages: const [SiteViewer()],
+      seed: (database) async {
+        for (var i = 0; i < 3; i++) {
+          await database
+              .into(database.site)
+              .insert(const SiteCompanion(projectUuid: Value('project-shell')));
+        }
+      },
+    );
+    expect(find.byType(NavigationRail), findsOneWidget);
+
+    // First load opens on 3 of 3; swipe back so the assertion below cannot
+    // pass by accident on the default landing page.
+    final pageView = find.byWidgetPredicate(
+      (widget) => widget is PageView && widget.key is ObjectKey,
+      description: 'site record PageView',
+    );
+    await tester.fling(pageView, const Offset(600, 0), 2000);
+    await tester.pumpAndSettle();
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+
+    tester.view.physicalSize = const Size(800, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Page 0 of 0'), findsNothing);
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+
+    tester.view.physicalSize = const Size(1200, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+    expect(tester.takeException(), isNull);
+
+    // PageViewer's one-shot overlay timer must not outlive the tree.
+    await tester.pump(const Duration(seconds: 6));
   });
 }

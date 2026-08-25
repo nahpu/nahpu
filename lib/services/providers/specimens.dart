@@ -2,7 +2,12 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/record_sort.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
@@ -15,10 +20,18 @@ final specimenEntryProvider =
 class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
   Future<List<SpecimenData>> _fetchSpecimenEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.specimen));
+    // Which column the field-id sort reads follows the active mode. Resolved
+    // only for that sort: the mode lives in the Rust config store, and every
+    // other ordering would pay for a round trip it never reads.
+    final fieldIdMode = sort.field == RecordSortField.fieldId
+        ? await ref.watch(fieldIdModeNotifierProvider.future)
+        : FieldIdMode.personnel;
 
     final specimenEntries = await SpecimenQuery(
       ref.read(databaseProvider),
-    ).getAllSpecimens(projectUuid);
+    ).getAllSpecimens(projectUuid, sort: sort, fieldIdMode: fieldIdMode);
 
     return specimenEntries;
   }

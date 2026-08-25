@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/sites.dart';
@@ -21,14 +22,37 @@ class SiteViewer extends ConsumerStatefulWidget {
   SiteViewerState createState() => SiteViewerState();
 }
 
-class SiteViewerState extends ConsumerState<SiteViewer> {
-  bool _isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class SiteViewerState extends ConsumerState<SiteViewer>
+    with RecordPageReconciler<SiteData, SiteEntry, SiteViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _siteId;
-  bool _loadedOnce = false;
   bool _isSearching = false;
   late FocusNode _focus;
+
+  @override
+  RecordViewer get recordViewer => RecordViewer.site;
+
+  @override
+  AsyncNotifierProvider<SiteEntry, List<SiteData>> get entryProvider =>
+      siteEntryProvider;
+
+  @override
+  Object recordIdOf(SiteData entry) => entry.id;
+
+  @override
+  void selectRecord(SiteData? entry) => _siteId = entry?.id;
+
+  @override
+  void invalidateEntries() => ref.invalidate(siteEntryProvider);
+
+  @override
+  bool get isSearching => _isSearching;
+
+  @override
+  void cancelSearch() {
+    _isSearching = false;
+    _searchController.clear();
+  }
 
   @override
   void initState() {
@@ -38,7 +62,6 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -46,14 +69,7 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
   @override
   Widget build(BuildContext context) {
     final siteEntries = ref.watch(siteEntryProvider);
-    // Reconcile page/selection bookkeeping outside build, so setState is
-    // legal and the always-mounted viewer survives an invalidate.
-    ref.listen(siteEntryProvider, (_, next) {
-      // An in-progress refresh still carries the previous list; reconciling
-      // against it would consume landing requests with stale data.
-      if (next.isLoading) return;
-      next.whenData(_reconcile);
-    });
+    listenEntries();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Sites"),
@@ -118,14 +134,10 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
               }
               return SitePages(
                 siteEntries: siteEntries,
-                pageNav: _pageNav,
-                isNavButtonVisible: _isVisible,
-                onPageChanged: (index) {
-                  setState(() {
-                    _siteId = siteEntries[index].id;
-                    _updatePageNav(index);
-                  });
-                },
+                pageNav: pageNav,
+                isNavButtonVisible: isNavVisible,
+                onPageChanged: (index) =>
+                    handlePageChanged(index, siteEntries[index]),
               );
             },
             loading: () {
@@ -138,74 +150,10 @@ class SiteViewerState extends ConsumerState<SiteViewer> {
         ),
       ),
       bottomSheet: Visibility(
-        visible: _isVisible,
-        child: PageNavButton(pageNav: _pageNav),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
     );
-  }
-
-  void _reconcile(List<SiteData> siteEntries) {
-    if (!mounted) return;
-    final count = siteEntries.length;
-    final landIndex = _landingIndex(siteEntries);
-    if (landIndex != null) {
-      _pageNav.currentPage = landIndex + 1;
-    }
-    final index = _pageNav.clampToCount(count);
-    setState(() {
-      if (landIndex != null && _isSearching) {
-        _isSearching = false;
-        _searchController.clear();
-      }
-      _isVisible = count >= 2;
-      if (count == 0) {
-        _siteId = null;
-      } else if (landIndex != null ||
-          _siteId == null ||
-          !siteEntries.any((site) => site.id == _siteId)) {
-        // Landed on a one-shot target, no selection yet, or the selected
-        // record was deleted; point the menu at the visible page.
-        _siteId = siteEntries[index].id;
-      }
-    });
-    if (landIndex != null) {
-      // Keyed controller swap; a jump on the live controller would race the
-      // refreshed list's layout (see openControllerAt).
-      _pageNav.openControllerAt(index);
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pageNav.clampController(index);
-      });
-    }
-  }
-
-  /// One-shot landing target for this refresh: a just-created record, or the
-  /// last record on first load (matching the old land-at-the-end behavior).
-  int? _landingIndex(List<SiteData> siteEntries) {
-    final firstLoad = !_loadedOnce;
-    _loadedOnce = true;
-    final pendingJump = ref.read(pendingRecordJumpProvider(RecordViewer.site));
-    if (pendingJump != null) {
-      final target = siteEntries.indexWhere((site) => site.id == pendingJump);
-      if (target != -1) {
-        ref
-            .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
-            .updateState(null);
-        return target;
-      }
-    }
-    if (firstLoad && siteEntries.isNotEmpty) {
-      return siteEntries.length - 1;
-    }
-    return null;
-  }
-
-  void _updatePageNav(int value) {
-    _pageNav.currentPage = value + 1;
-    _pageNav.updatePageNavigation();
-    if (!_isSearching) {
-      ref.invalidate(siteEntryProvider);
-    }
   }
 }
 

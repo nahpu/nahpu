@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -105,6 +106,12 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
             leading: Icon(Icons.content_copy_outlined),
             title: Text('Copy from project ...'),
           ),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          onTap: () =>
+              showRecordSortDialog(context: context, viewer: RecordViewer.site),
+          child: const SortMenuButton(),
         ),
         const PopupMenuDivider(height: 8),
         PopupMenuItem(

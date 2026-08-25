@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
@@ -15,10 +17,12 @@ final siteEntryProvider =
 class SiteEntry extends AsyncNotifier<List<SiteData>> {
   Future<List<SiteData>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.site));
 
     final siteEntries = SiteQuery(
       ref.read(databaseProvider),
-    ).getAllSites(projectUuid);
+    ).getAllSites(projectUuid, sort: sort);
 
     return siteEntries;
   }

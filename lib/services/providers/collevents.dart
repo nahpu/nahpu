@@ -5,7 +5,9 @@ import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final collEventEntryProvider =
@@ -16,10 +18,12 @@ final collEventEntryProvider =
 class CollEventEntry extends AsyncNotifier<List<CollEventData>> {
   Future<List<CollEventData>> _fetchCollEventEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.collEvent));
 
     final collEvents = CollEventQuery(
       ref.read(databaseProvider),
-    ).getAllCollEvents(projectUuid);
+    ).getAllCollEvents(projectUuid, sort: sort);
 
     return collEvents;
   }
