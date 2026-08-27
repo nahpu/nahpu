@@ -74,6 +74,91 @@ class _DocsLanguageChip extends StatelessWidget {
   }
 }
 
+/// Tells the reader that a document was machine-translated.
+///
+/// Translations are produced with AI assistance, so every non-English document
+/// carries this label. Naming reviewers in the `authors` front matter switches
+/// it to the checked state.
+class AiTranslationNotice extends StatelessWidget {
+  const AiTranslationNotice({super.key, this.authors = const []});
+
+  final List<String> authors;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isReviewed = authors.isNotEmpty;
+    final background = isReviewed
+        ? colorScheme.secondaryContainer
+        : colorScheme.tertiaryContainer;
+    final foreground = isReviewed
+        ? colorScheme.onSecondaryContainer
+        : colorScheme.onTertiaryContainer;
+    final labelStyle = (theme.textTheme.bodySmall ?? const TextStyle())
+        .copyWith(color: foreground);
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        key: ValueKey(
+          'ai-translation-notice-${isReviewed ? 'reviewed' : 'unreviewed'}',
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: NahpuSpacing.lg,
+          vertical: NahpuSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(NahpuRadius.xl),
+          border: Border.all(color: foreground, width: NahpuStroke.thin),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isReviewed ? Icons.verified_outlined : Icons.translate_rounded,
+              color: foreground,
+              size: NahpuControlSize.iconMedium,
+            ),
+            const SizedBox(width: NahpuSpacing.sm),
+            Flexible(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'AI-assisted translation.',
+                      style: labelStyle.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    TextSpan(
+                      text: ' ${_detail(isReviewed)}',
+                      style: labelStyle,
+                    ),
+                  ],
+                ),
+                style: labelStyle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _detail(bool isReviewed) {
+    if (!isReviewed) return 'Check for accuracy';
+    return 'Human-checked and revised by ${_reviewers()}.';
+  }
+
+  String _reviewers() {
+    if (authors.length == 1) return authors.single;
+    if (authors.length == 2) return '${authors.first} and ${authors.last}';
+    final leading = authors.sublist(0, authors.length - 1).join(', ');
+    return '$leading, and ${authors.last}';
+  }
+}
+
 class MarkdownDocumentView extends StatelessWidget {
   const MarkdownDocumentView({super.key, required this.document});
 
@@ -89,6 +174,10 @@ class MarkdownDocumentView extends StatelessWidget {
             document.title,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
+          if (document.language != DocsLanguage.english) ...[
+            const SizedBox(height: NahpuSpacing.md),
+            AiTranslationNotice(authors: document.authors),
+          ],
           const SizedBox(height: NahpuSpacing.md),
           MdocBody(
             data: document.markdown,

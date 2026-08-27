@@ -1,11 +1,11 @@
 ---
-title: "Koordinat site"
+title: "Koordinat lokasi"
 sidebar:
   order: 0
 ---
 
-Satu site dapat memiliki beberapa coordinate record. Setiap record sebaiknya menjelaskan posisi terdokumentasi beserta sistem koordinat, geodetic datum, elevation, uncertainty, dan catatan sumber.
+Satu lokasi dapat memiliki beberapa catatan koordinat. Masing-masing sebaiknya menjelaskan posisi terdokumentasi beserta sistem koordinat, datum geodetik, ketinggian, ketidakpastian, dan catatan sumbernya.
 
-Entri manual mendukung decimal degrees (DD), degrees and decimal minutes (DDM), degrees-minutes-seconds (DMS), serta WGS84 UTM. Impor mendukung GeoJSON/JSON, KML, zipped Shapefile, GPX, dan QR code koordinat NAHPU.
+Masukan manual mendukung derajat desimal (DD), derajat dan menit desimal (DDM), derajat-menit-detik (DMS), serta UTM WGS84. Impor mendukung GeoJSON/JSON, KML, Shapefile terkompresi, GPX, dan kode QR koordinat NAHPU.
 
-Coordinate uncertainty adalah jarak horizontal dalam meter tempat lokasi diperkirakan berada. Laporkan uncertainty yang realistis dan pertahankan representasi koordinat yang dimasukkan; ekspor memetakan nilai normal ke `dwc:decimalLatitude`, `dwc:decimalLongitude`, `dwc:geodeticDatum`, dan `dwc:coordinateUncertaintyInMeters`.
+Ketidakpastian koordinat adalah jarak horizontal, dalam meter, yang diperkirakan mencakup lokasi sebenarnya. Laporkan ketidakpastian yang realistis dan pertahankan bentuk koordinat sebagaimana dimasukkan; hasil ekspor memetakan nilai yang dibakukan ke `dwc:decimalLatitude`, `dwc:decimalLongitude`, `dwc:geodeticDatum`, dan `dwc:coordinateUncertaintyInMeters`.

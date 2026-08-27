@@ -157,6 +157,73 @@ void main() {
     expect(find.text('Peru'), findsNothing);
   });
 
+  testWidgets('the lookup is bordered while the fields below it are not', (
+    tester,
+  ) async {
+    await GeographyQuery(
+      database,
+    ).resolve(const GeographyDraft(country: 'Indonesia'));
+    await mount(tester, await seedSite());
+
+    InputBorder? borderFor(String label) {
+      final decorator = tester.widget<InputDecorator>(
+        find
+            .ancestor(
+              of: find.text(label),
+              matching: find.byType(InputDecorator),
+            )
+            .first,
+      );
+      return decorator.decoration.border;
+    }
+
+    // The lookup takes the full border so it does not read as one more value
+    // to type; the geography fields keep the form default.
+    expect(borderFor('Find existing locality'), isA<OutlineInputBorder>());
+    expect(borderFor('Country'), isNot(isA<OutlineInputBorder>()));
+  });
+
+  testWidgets('offers both records when two render the same text', (
+    tester,
+  ) async {
+    // "A, B" as one field and as two fields display identically. Keying options
+    // by their label would drop one of them.
+    final first = await GeographyQuery(
+      database,
+    ).resolve(const GeographyDraft(country: 'A, B'));
+    final second = await GeographyQuery(
+      database,
+    ).resolve(const GeographyDraft(country: 'A', islandGroup: 'B'));
+    expect(second, isNot(first));
+
+    final siteId = await seedSite();
+    await mount(
+      tester,
+      siteId,
+      visibleFields: const ['country', 'islandGroup'],
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Find existing locality'),
+      'A, B',
+    );
+    await tester.pumpAndSettle();
+    // Both are offered. Keying options by their label would have dropped one.
+    // Scoped to the options list; the field itself also holds the query text.
+    expect(find.widgetWithText(ListTile, 'A, B'), findsNWidgets(2));
+
+    // The option carries its record, so the two-field one fills two fields.
+    await tester.tap(find.widgetWithText(ListTile, 'A, B').last);
+    await tester.pumpAndSettle();
+    expect(controllers.countryCtr.text, 'A, B');
+    expect(controllers.islandGroupCtr.text, '');
+
+    final site = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(siteId))).getSingle();
+    expect(site.geographyId, first);
+  });
+
   testWidgets('hides fields the user turned off', (tester) async {
     await mount(
       tester,

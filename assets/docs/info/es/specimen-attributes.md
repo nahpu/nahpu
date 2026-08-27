@@ -4,6 +4,6 @@ sidebar:
   order: 0
 ---
 
-Attributes contiene mediciones y observaciones biológicas realizadas sobre el espécimen, incluidos sexo, etapa de vida o edad, condición reproductiva, morfometría y campos específicos del taxón.
+Los atributos contienen mediciones y observaciones biológicas hechas para el espécimen, incluidos sexo, estadio de vida o edad, condición reproductiva, morfometría y campos propios del taxón.
 
-Introduzca solo valores observados o documentados y conserve la unidad mostrada. Use `Unknown` o deje el campo vacío según el protocolo del proyecto, sin adivinar. Las mediciones pueden convertirse en datos Darwin Core `MeasurementOrFact`, mientras que sexo, etapa de vida y condición reproductiva pueden asignarse a sus términos Darwin Core correspondientes. Las notas deben explicar calificadores, daños, incertidumbre o métodos que afecten la interpretación.
+Ingrese solo valores observados o documentados y conserve la unidad mostrada. Use `Unknown` o deje un campo vacío según el protocolo del proyecto, en lugar de adivinar. Las mediciones pueden convertirse en datos `MeasurementOrFact` de Darwin Core, mientras que el sexo, el estadio de vida y la condición reproductiva pueden asignarse a sus términos correspondientes de Darwin Core. Las notas deben explicar calificadores, daños, incertidumbre o un método que afecte la interpretación.

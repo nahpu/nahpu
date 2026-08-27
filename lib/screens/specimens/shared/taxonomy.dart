@@ -140,7 +140,7 @@ class SpeciesAutoComplete extends ConsumerStatefulWidget {
 
   final String specimenUuid;
   final TextEditingController speciesCtr;
-  final List<String> options;
+  final List<TaxonomyData> options;
 
   @override
   SpeciesAutoCompleteState createState() => SpeciesAutoCompleteState();
@@ -150,53 +150,46 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Type taxon name and select from list',
+      child: AutoCompleteField<TaxonomyData>(
+        focusNode: _focusNode,
+        controller: widget.speciesCtr,
+        options: widget.options,
+        displayStringFor: getTaxonDisplayName,
+        labelText: 'Taxon',
+        hintText: 'Type taxon name',
+        onSelected: _inputTaxon,
+      ),
+    );
+  }
+
+  @override
   void dispose() {
     _focusNode.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Type taxon name and select from list',
-      child: AutoCompleteField(
-        focusNode: _focusNode,
-        controller: widget.speciesCtr,
-        options: widget.options,
-        labelText: 'Taxon',
-        hintText: 'Type taxon name',
-        onSelected: (String selection) {
-          setState(() {
-            _inputTaxon(selection);
-          });
-          _focusNode.unfocus();
-        },
-      ),
+  /// Stores the selected taxon's id.
+  ///
+  /// The option carries the record, so the id is taken straight from it. Looking
+  /// the taxon back up by genus and epithet would be ambiguous whenever two
+  /// records share them -- a species and its nominate subspecies always do.
+  void _inputTaxon(TaxonomyData taxon) {
+    SpecimenServices(ref: ref).updateSpecimen(
+      widget.specimenUuid,
+      SpecimenCompanion(speciesID: db.Value(taxon.id)),
     );
-  }
-
-  void _inputTaxon(String selection) {
-    _copyTaxon(selection);
-    var taxon = widget.speciesCtr.text.split(' ');
-    TaxonomyServices(ref: ref).getTaxonBySpecies(taxon[0], taxon[1]).then((
-      data,
-    ) {
-      SpecimenServices(ref: ref).updateSpecimen(
-        widget.specimenUuid,
-        SpecimenCompanion(speciesID: db.Value(data?.id)),
-      );
-    });
-  }
-
-  void _copyTaxon(String selection) {
-    widget.speciesCtr.value = widget.speciesCtr.value.copyWith(
-      text: selection,
-      selection: TextSelection.collapsed(offset: selection.length),
-    );
+    _focusNode.unfocus();
   }
 }
 
-class SpeciesInputField extends StatelessWidget {
+/// The taxon field, holding the text as the user types it.
+///
+/// Owns its controller so a rebuild cannot replace it mid-edit; the text is
+/// only re-derived when the stored taxon actually changes.
+class SpeciesInputField extends StatefulWidget {
   const SpeciesInputField({
     super.key,
     required this.specimenUuid,
@@ -209,33 +202,54 @@ class SpeciesInputField extends StatelessWidget {
   final List<TaxonomyData> taxonList;
 
   @override
+  State<SpeciesInputField> createState() => _SpeciesInputFieldState();
+}
+
+class _SpeciesInputFieldState extends State<SpeciesInputField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: _storedTaxonName,
+  );
+
+  @override
   Widget build(BuildContext context) {
     return CommonPadding(
       child: SpeciesAutoComplete(
-        specimenUuid: specimenUuid,
-        speciesCtr: _getSpeciesCtr,
-        options: _options,
+        specimenUuid: widget.specimenUuid,
+        speciesCtr: _controller,
+        options: widget.taxonList,
       ),
     );
   }
 
-  TextEditingController get _getSpeciesCtr {
-    if (speciesCtr == null) {
-      return TextEditingController();
+  @override
+  void didUpdateWidget(SpeciesInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only follow a change to the stored taxon. Rewriting the text on every
+    // rebuild would discard what the user is typing.
+    if (oldWidget.speciesCtr != widget.speciesCtr) {
+      final name = _storedTaxonName;
+      _controller.value = TextEditingValue(
+        text: name,
+        selection: TextSelection.collapsed(offset: name.length),
+      );
     }
-    var data = taxonList.firstWhere((taxon) => taxon.id == speciesCtr);
-    TextEditingController ctr = TextEditingController(
-      text: '${data.genus} ${data.specificEpithet}',
-    );
-    ctr.selection = TextSelection.fromPosition(
-      TextPosition(offset: ctr.text.length),
-    );
-    return ctr;
   }
 
-  List<String> get _options => taxonList
-      .map((taxon) => '${taxon.genus} ${taxon.specificEpithet}')
-      .toList();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// The display name of the taxon this specimen references, if it is loaded.
+  String get _storedTaxonName {
+    final id = widget.speciesCtr;
+    if (id == null) return '';
+    for (final taxon in widget.taxonList) {
+      if (taxon.id == id) return getTaxonDisplayName(taxon);
+    }
+    return '';
+  }
 }
 
 /// Taxon field that is disabled

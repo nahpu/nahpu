@@ -1,9 +1,11 @@
 ---
-title: "Taksonomi specimen"
+title: "Taksonomi spesimen"
 sidebar:
   order: 0
 ---
 
-Field taksonomi diisi dari taxon yang dipilih pada specimen record. Field ini menjelaskan taxonomic identification, bukan specimen fisiknya.
+Kolom taksonomi diisi dari takson yang dipilih pada catatan spesimen. Kolom ini menjelaskan identifikasi taksonominya, bukan spesimen fisiknya.
 
-Class, order, family, genus, dan specific epithet mengikuti taxon terdaftar. Edit registry taxon bila nama bersama salah; ubah taxon yang dipilih pada specimen bila hanya identification tersebut yang salah. Pertahankan scientific-name authorship dan catatan identification bila tersedia, serta catat Determiner yang bertanggung jawab tanpa menebak.
+Registri takson memuat catatan pada tingkat mana pun, sehingga spesimen yang belum teridentifikasi sampai spesies dapat dihubungkan dengan famili atau genusnya lalu diperinci kemudian. Kelas, ordo, famili, genus, epitet spesifik, dan epitet subspesifik mengikuti takson terdaftar, sampai tingkat yang diwakili catatan tersebut. Kerajaan dan filum diambil dari registri bila tercatat, dan bila tidak, disimpulkan dari kelas.
+
+Sunting registri takson bila nama bersama itu keliru; ubah takson yang dipilih pada spesimen bila hanya identifikasi tersebut yang keliru. Pertahankan kepengarangan nama ilmiah dan catatan identifikasi bila tersedia, serta catat Determiner yang bertanggung jawab alih-alih menebaknya.

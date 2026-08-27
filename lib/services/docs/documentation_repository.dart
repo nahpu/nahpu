@@ -55,6 +55,7 @@ class MarkdownDocument {
     required this.assetPath,
     required this.order,
     this.language = DocsLanguage.english,
+    this.authors = const [],
   });
 
   final String id;
@@ -63,6 +64,12 @@ class MarkdownDocument {
   final String assetPath;
   final int order;
   final DocsLanguage language;
+
+  /// Contributors who authored or revised this document.
+  ///
+  /// A translation with authors has been checked by a person; one without them
+  /// is machine output that nobody has reviewed yet.
+  final List<String> authors;
 }
 
 class CookbookRecipe {
@@ -181,7 +188,21 @@ class DocumentationRepository {
       assetPath: assetPath,
       order: order,
       language: language,
+      authors: _parseAuthors(frontMatter['authors']),
     );
+  }
+
+  /// Accepts a single name or a list, matching the website front matter.
+  List<String> _parseAuthors(Object? value) {
+    final names = switch (value) {
+      final String author => [author],
+      final YamlList authors => authors.whereType<String>().toList(),
+      _ => const <String>[],
+    };
+    return [
+      for (final name in names)
+        if (name.trim().isNotEmpty) name.trim(),
+    ];
   }
 
   Future<List<CookbookCategory>> _loadCookbookWithFallback(

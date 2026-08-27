@@ -16,6 +16,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 /// The site geography card.
 ///
@@ -71,11 +72,16 @@ class _SiteGeographyState extends ConsumerState<SiteGeography> {
               title: 'Geography',
               infoTopic: InfoTopic.siteGeography,
               child: Column(
+                spacing: NahpuSpacing.md,
                 children: [
-                  LocalityLookup(
-                    id: widget.id,
-                    siteFormCtr: widget.siteFormCtr,
-                    onSelected: _applyGeography,
+                  // Padded like the fields below so the lookup lines up with
+                  // them; everything else here is inset by AdaptiveLayout.
+                  CommonPadding(
+                    child: LocalityLookup(
+                      id: widget.id,
+                      siteFormCtr: widget.siteFormCtr,
+                      onSelected: _applyGeography,
+                    ),
                   ),
                   MainSiteLocality(
                     id: widget.id,
@@ -169,23 +175,20 @@ class _LocalityLookupState extends ConsumerState<LocalityLookup> {
         .when(
           data: (records) {
             if (records.isEmpty) return const SizedBox.shrink();
-            final byLabel = <String, GeographyData>{
-              for (final record in records)
-                GeographyDraft.fromData(record).displayName: record,
-            };
             return Tooltip(
               message:
                   'Type a locality and select a saved one to fill '
                   'every geography field',
-              child: AutoCompleteField(
+              child: AutoCompleteField<GeographyData>(
                 focusNode: _focusNode,
                 controller: _controller,
-                options: byLabel.keys.toList(growable: false),
+                options: records,
+                displayStringFor: (record) =>
+                    GeographyDraft.fromData(record).displayName,
                 labelText: 'Find existing locality',
                 hintText: 'Type to reuse a saved locality',
-                onSelected: (selection) {
-                  final record = byLabel[selection];
-                  if (record == null) return;
+                isProminent: true,
+                onSelected: (record) {
                   widget.onSelected(record);
                   _controller.clear();
                 },
@@ -295,10 +298,11 @@ class _GeographyValueFieldState extends ConsumerState<GeographyValueField> {
           data: (records) => _optionsFrom(records),
           orElse: () => const <String>[],
         );
-    return AutoCompleteField(
+    return AutoCompleteField<String>(
       focusNode: _focusNode,
       controller: widget.controller,
       options: options,
+      displayStringFor: (value) => value,
       labelText: widget.labelText,
       hintText: widget.hintText,
       // The card resolves the whole draft on focus loss, so selecting a value

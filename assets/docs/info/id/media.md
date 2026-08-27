@@ -4,6 +4,6 @@ sidebar:
   order: 0
 ---
 
-Media menyimpan gambar, audio, dan video yang didukung dan terkait dengan record proyek. Gunakan `Add` untuk mengimpor berkas atau, bila tersedia, mengambil foto atau video maupun merekam audio.
+Media menyimpan gambar, audio, dan video yang didukung dan terkait dengan sebuah catatan proyek. Gunakan `Add` untuk mengimpor berkas atau, bila tersedia, mengambil foto, merekam video, atau merekam audio.
 
-Catat judul yang jelas, jenis media, creator atau photographer, tanggal, dan notes bila diketahui. Data ini menjelaskan media resource dan dapat mendukung metadata Audiovisual Core `ac:Media`; data ini tidak menggantikan data specimen, event, atau lokasi. Pastikan managed file dapat dibuka sebelum meninggalkan lapangan dan sertakan media dalam backup atau full project transfer bila perlu dipindahkan.
+Catat judul yang jelas, jenis media, pembuat atau juru foto, tanggal, dan catatan bila diketahui. Data ini menjelaskan sumber daya medianya dan dapat mengisi metadata `ac:Media` Audiovisual Core; data ini tidak menggantikan data spesimen, kegiatan, atau lokalitas. Pastikan berkas terkelola dapat dibuka sebelum meninggalkan lapangan, dan sertakan media dalam cadangan atau transfer proyek lengkap bila media harus ikut berpindah ke perangkat lain.

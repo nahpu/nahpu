@@ -4,10 +4,10 @@ sidebar:
   order: 0
 ---
 
-Proyek mengelompokkan personnel, taxon, site, collecting event, specimen record, narrative, dan media untuk satu pekerjaan. Gunakan `Edit` untuk memperbarui metadata deskriptif dan `Export info` atau `Show QR` untuk membagikan identitas saja.
+Sebuah proyek mengelompokkan personel, takson, lokasi, kegiatan pengumpulan, catatan spesimen, narasi, dan media yang dibuat untuk satu rangkaian pekerjaan. Gunakan `Edit` untuk memperbarui metadata deskriptifnya, serta `Export info` atau `Show QR` untuk membagikan identitasnya saja.
 
 ## UUID proyek
 
-NAHPU memberikan universally unique identifier (UUID) pada setiap proyek baru. Impor informasi proyek mempertahankan UUID tersebut agar perangkat kolaborator mengenali salinan proyek yang sama. Informasi proyek tidak berisi record atau media; gunakan transfer proyek bila keduanya juga perlu dipindahkan.
+NAHPU memberi setiap proyek baru sebuah pengenal unik universal (UUID). Mengimpor informasi proyek mempertahankan UUID tersebut, sehingga perangkat kolaborator dapat mengenali salinan proyek yang sama. Informasi proyek tidak memuat catatan atau media; gunakan transfer proyek bila keduanya juga harus dipindahkan.
 
-Buat deskripsi proyek ringkas. Catat konteks harian terperinci dalam Narratives.
+Buat deskripsi proyek tetap ringkas. Catat konteks harian yang rinci pada Narasi.

@@ -1,9 +1,9 @@
 ---
-title: "Capture specimen"
+title: "Tangkapan spesimen"
 sidebar:
   order: 0
 ---
 
-Informasi capture menghubungkan specimen dengan collecting event yang menyediakan site, konteks sampling, rentang tanggal, dan personnel. Catat tanggal, waktu, metode, collector, dan pilihan koordinat khusus specimen bila berbeda atau memperinci event.
+Informasi tangkapan menghubungkan spesimen dengan kegiatan pengumpulan yang menyediakan lokasi, konteks pengambilan sampel, rentang tanggal, dan personel yang terlibat. Catat tanggal, waktu, metode, pengumpul, dan pilihan koordinat khusus spesimen bila berbeda dari kegiatan tersebut atau memperincinya.
 
-Mengubah collecting event akan mengubah konteks sampling record. NAHPU mengosongkan field capture yang bergantung pada event, kecuali tanggal dan waktu, agar nilai event sebelumnya tidak dipertahankan diam-diam. Tinjau semua field setelah mengganti event dan jangan menebak koordinat bila bukti tidak menunjukkannya.
+Mengubah kegiatan pengumpulan akan mengubah konteks pengambilan sampel catatan itu. NAHPU mengosongkan kolom tangkapan yang bergantung padanya, kecuali tanggal dan waktu, agar nilai dari kegiatan sebelumnya tidak diam-diam tertinggal. Tinjau setiap kolom setelah mengubah kegiatan, dan jangan pernah menebak koordinat bila bukti yang ada tidak menunjukkannya.

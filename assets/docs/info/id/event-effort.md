@@ -1,9 +1,9 @@
 ---
-title: "Sampling effort"
+title: "Upaya kegiatan"
 sidebar:
   order: 0
 ---
 
-Effort record menjelaskan cara sampling dilakukan. Tambahkan setiap metode secara terpisah dan catat merek atau model alat, jumlah unit, ukuran atau dimensi, durasi, serta notes yang relevan.
+Catatan upaya menjelaskan bagaimana pengambilan sampel dilakukan. Tambahkan setiap metode secara terpisah, lalu catat merek atau model peralatan yang relevan, jumlah unit, ukuran atau dimensi, durasi, dan catatan.
 
-Gunakan satuan dan nama metode terkontrol yang sama di seluruh proyek. Metode dapat mendukung `dwc:samplingProtocol`; jumlah, durasi, area, atau besaran sampling lain mendukung `dwc:samplingEffort`. Berikan konteks yang cukup agar orang lain dapat memahami dan membandingkan effort tanpa menebak detail yang hilang.
+Gunakan satuan dan nama metode terkontrol yang sama di seluruh proyek. Metode dapat mengisi `dwc:samplingProtocol`; jumlah, durasi, luas, atau besaran pengambilan sampel lainnya mengisi `dwc:samplingEffort`. Sampaikan konteks yang cukup agar orang lain dapat memahami dan membandingkan upaya tersebut tanpa harus menebak detail yang hilang.

@@ -4,13 +4,13 @@ sidebar:
   order: 0
 ---
 
-Personnel record mewakili orang yang berpartisipasi dalam proyek. Satu orang disimpan sekali di basis data dan dapat ditugaskan ke beberapa proyek. Menghapus orang dari panel ini hanya menghapus penugasan proyek; penghapusan permanen dikelola di Settings.
+Catatan personel mewakili orang-orang yang terlibat dalam proyek. Seseorang disimpan satu kali di basis data dan dapat ditugaskan ke beberapa proyek. Mengeluarkan seseorang dari panel ini hanya menghapus penugasannya pada proyek; penghapusan permanen dikelola di Settings.
 
-## Peran NAHPU
+## Peran di NAHPU
 
-- **Cataloger:** mencatat data specimen dan dapat memberikan inisial serta nomor lapangan pribadi untuk Field ID.
-- **Determiner only:** mengidentifikasi specimen tetapi tidak mengatalog atau menyiapkannya.
-- **Preparator only:** menyiapkan specimen tetapi tidak mengatalognya.
-- **None:** berpartisipasi di lapangan tanpa peran perawatan specimen.
+- **Cataloger:** mencatat data spesimen dan dapat memberikan inisial serta nomor lapangan pribadi untuk Field ID.
+- **Determiner only:** mengidentifikasi spesimen, tetapi tidak mengatalog atau mempreparasinya.
+- **Preparator only:** mempreparasi spesimen, tetapi tidak mengatalognya.
+- **None:** ikut dalam kerja lapangan tanpa peran perawatan spesimen.
 
-Ini adalah peran alur kerja NAHPU. Field agen yang diekspor, seperti `dwc:recordedBy` dan `dwc:identifiedBy`, diisi menurut relasi sebenarnya pada setiap record.
+Ini adalah peran alur kerja NAHPU. Kolom agen pada hasil ekspor, seperti `dwc:recordedBy` dan `dwc:identifiedBy`, diisi menurut hubungan yang sebenarnya pada setiap catatan.

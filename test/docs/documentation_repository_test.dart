@@ -44,6 +44,32 @@ Do the useful thing.
     expect(document.language, DocsLanguage.portuguese);
   });
 
+  test('authors front matter accepts a single name or a list', () {
+    final repository = DocumentationRepository();
+
+    final none = repository.parseDocument(
+      assetPath: 'assets/docs/info/id/project-overview.md',
+      source: '---\ntitle: "Ikhtisar"\nsidebar:\n  order: 1\n---\n\nIsi.\n',
+    );
+    expect(none.authors, isEmpty);
+
+    final single = repository.parseDocument(
+      assetPath: 'assets/docs/info/id/project-overview.md',
+      source:
+          '---\ntitle: "Ikhtisar"\nauthors: Heru Handika\n'
+          'sidebar:\n  order: 1\n---\n\nIsi.\n',
+    );
+    expect(single.authors, ['Heru Handika']);
+
+    final several = repository.parseDocument(
+      assetPath: 'assets/docs/info/pt/tag-printing.md',
+      source:
+          '---\ntitle: "Etiquetas"\nauthors:\n  - Andre Moncrieff\n'
+          '  - Heru Handika\nsidebar:\n  order: 1\n---\n\nCorpo.\n',
+    );
+    expect(several.authors, ['Andre Moncrieff', 'Heru Handika']);
+  });
+
   test('localized info falls back to English', () async {
     const englishPath = 'assets/docs/info/en/project-overview.md';
     final repository = DocumentationRepository(

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/pickers.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -385,89 +386,138 @@ class SwitchField extends StatelessWidget {
   }
 }
 
-class AutoCompleteField extends StatelessWidget {
+/// A text field that suggests entries from [options] as the user types.
+///
+/// Generic over the option type so a selection carries its record. Matching an
+/// option back to its record by display string would be ambiguous whenever two
+/// records render the same text.
+class AutoCompleteField<T extends Object> extends StatelessWidget {
   const AutoCompleteField({
     super.key,
     required this.focusNode,
     required this.controller,
     required this.options,
+    required this.displayStringFor,
     required this.onSelected,
     required this.labelText,
     required this.hintText,
+    this.isProminent = false,
   });
 
   final FocusNode focusNode;
   final TextEditingController controller;
-  final List<String> options;
-  final void Function(String) onSelected;
+  final List<T> options;
+
+  /// The text shown for an option, and the text matched against as they type.
+  final String Function(T) displayStringFor;
+  final void Function(T) onSelected;
   final String labelText;
   final String hintText;
 
+  /// Draws a full border instead of the form default underline.
+  ///
+  /// Use for a lookup that fills other fields, so it does not read as one more
+  /// value to type.
+  final bool isProminent;
+
+  /// Caps the overlay so a long list scrolls instead of covering the form.
+  static const double _maxOptionsHeight = 320;
+
   @override
   Widget build(BuildContext context) {
-    return RawAutocomplete<String>(
-      focusNode: focusNode,
-      textEditingController: controller,
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text == '') {
-          return const Iterable<String>.empty();
-        }
-        return options.where((String option) {
-          return option.toLowerCase().contains(
-            textEditingValue.text.toLowerCase(),
-          );
-        });
-      },
-      onSelected: onSelected,
-      fieldViewBuilder:
-          (
-            BuildContext context,
-            TextEditingController controller,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            return AutoCompleteText(
-              controller: controller,
-              enable: true,
-              focusNode: focusNode,
-              labelText: labelText,
-              hintText: hintText,
-              onFieldSubmitted: (String value) {
-                onFieldSubmitted();
+    // The overlay is positioned over the field but sized independently, so the
+    // field's width has to be measured and handed to the options view.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fieldWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : null;
+        return RawAutocomplete<T>(
+          focusNode: focusNode,
+          textEditingController: controller,
+          displayStringForOption: displayStringFor,
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            final query = textEditingValue.text.trim().toLowerCase();
+            if (query.isEmpty) return const Iterable.empty();
+            return options.where(
+              (option) =>
+                  displayStringFor(option).toLowerCase().contains(query),
+            );
+          },
+          onSelected: onSelected,
+          fieldViewBuilder:
+              (
+                BuildContext context,
+                TextEditingController controller,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted,
+              ) {
+                return AutoCompleteText(
+                  controller: controller,
+                  enable: true,
+                  focusNode: focusNode,
+                  labelText: labelText,
+                  hintText: hintText,
+                  isProminent: isProminent,
+                  onFieldSubmitted: (String value) {
+                    onFieldSubmitted();
+                  },
+                );
               },
-            );
-          },
-      optionsViewBuilder:
-          (
-            BuildContext context,
-            AutocompleteOnSelected<String> onSelected,
-            Iterable<String> options,
-          ) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: Container(
-                  width: 300,
-                  constraints: const BoxConstraints(maxHeight: 350),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final String option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
+          optionsViewBuilder:
+              (
+                BuildContext context,
+                AutocompleteOnSelected<T> onSelected,
+                Iterable<T> options,
+              ) {
+                final colors = Theme.of(context).colorScheme;
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    // Opaque so the form does not show through, and bordered
+                    // rather than shadowed to match every other NAHPU surface
+                    // (see the card theme in themes.dart).
+                    color: colors.surfaceContainerHighest,
+                    elevation: NahpuElevation.none,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(NahpuRadius.lg),
+                      side: BorderSide(
+                        color: colors.outlineVariant,
+                        width: NahpuStroke.thin,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      width: fieldWidth,
+                      constraints: const BoxConstraints(
+                        maxHeight: _maxOptionsHeight,
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: NahpuSpacing.md,
+                        ),
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final option = options.elementAt(index);
+                          return ListTile(
+                            dense: true,
+                            title: Text(
+                              displayStringFor(option),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () => onSelected(option),
+                          );
                         },
-                        child: ListTile(title: Text(option)),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+        );
+      },
     );
   }
 }
@@ -481,6 +531,7 @@ class AutoCompleteText extends StatelessWidget {
     required this.hintText,
     required this.onFieldSubmitted,
     required this.enable,
+    this.isProminent = false,
   });
 
   final TextEditingController controller;
@@ -489,13 +540,26 @@ class AutoCompleteText extends StatelessWidget {
   final String labelText;
   final String hintText;
   final bool enable;
+  final bool isProminent;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       enabled: enable,
       controller: controller,
-      decoration: InputDecoration(labelText: labelText, hintText: hintText),
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        // Record-entry fields keep the theme underline; a prominent lookup
+        // takes the full border used elsewhere for non-entry controls.
+        border: isProminent
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
+              )
+            : null,
+        isDense: isProminent,
+        prefixIcon: isProminent ? const Icon(Icons.travel_explore) : null,
+      ),
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: TextInputType.text,

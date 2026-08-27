@@ -1,9 +1,9 @@
 ---
-title: "Personel event"
+title: "Personel kegiatan"
 sidebar:
   order: 0
 ---
 
-Tambahkan semua orang yang berpartisipasi atau memberi dukungan penting pada collecting event, lalu tetapkan peran event yang menjelaskan pekerjaannya. Ini dapat mencakup field collector, personel jalur perangkap, pemandu, pengemudi, atau kontributor lain bila partisipasinya perlu dicatat.
+Tambahkan setiap orang yang ikut serta atau memberi dukungan berarti pada kegiatan pengumpulan, lalu tetapkan peran kegiatan yang telah didefinisikan di proyek untuk menggambarkan pekerjaannya. Ini dapat mencakup pengumpul lapangan, personel jalur perangkap, pemandu, pengemudi, atau kontributor lain bila pencatatan keikutsertaan mereka memang layak.
 
-Partisipasi event berbeda dari peran perawatan specimen NAHPU seperti Cataloger, Preparator, dan Determiner. Relasi agen yang diekspor harus mencerminkan pekerjaan sebenarnya; nama yang terkait dengan pelaksanaan atau pencatatan event dapat mengisi field Darwin Core seperti `dwc:eventConductedBy` atau `dwc:recordedBy`.
+Keikutsertaan dalam kegiatan berbeda dari peran perawatan spesimen di NAHPU, seperti Cataloger, Preparator, dan Determiner. Hubungan agen yang diekspor harus mencerminkan apa yang benar-benar dilakukan setiap orang; nama yang terkait dengan pelaksanaan atau pencatatan kegiatan dapat mengisi kolom agen Darwin Core seperti `dwc:eventConductedBy` atau `dwc:recordedBy`.

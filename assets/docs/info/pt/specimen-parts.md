@@ -4,6 +4,6 @@ sidebar:
   order: 0
 ---
 
-Specimen parts documenta material físico derivado ou associado ao espécime, como pele, crânio, esqueleto, tecido, órgão, lâmina ou outra preparação. Cada parte deve ter os identificadores necessários para corresponder à etiqueta ou ao recipiente.
+As partes do espécime documentam material físico derivado do espécime ou associado a ele, como pele, crânio, esqueleto, tecido, órgão, lâmina ou outra preparação. Cada parte deve ter os identificadores necessários para corresponder à sua etiqueta ou ao seu recipiente.
 
-Registre tipo de material, preparação ou tratamento, código de barras ou tissue ID, Preparator responsável e observações. Em exportações estruturadas, uma parte pode ser representada como Darwin Core `dwc:MaterialEntity`; informações de preparação são mapeadas para `dwc:preparations`. Configure tipos e tratamentos controlados em Settings e use-os consistentemente.
+Registre o tipo de material, a preparação ou o tratamento, o código de barras ou o tissue ID, o Preparator responsável e as observações. Em exportações estruturadas, uma parte pode ser representada como um `dwc:MaterialEntity` do Darwin Core; a informação de preparação é mapeada para `dwc:preparations`. Configure em Settings os tipos de parte e os tratamentos controlados e use-os de forma consistente.

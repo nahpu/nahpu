@@ -293,6 +293,96 @@ void main() {
     );
   });
 
+  testWidgets('only translated documents carry the AI translation notice', (
+    tester,
+  ) async {
+    const english = MarkdownDocument(
+      id: 'english',
+      title: 'English info',
+      markdown: 'Body.',
+      assetPath: 'assets/docs/info/en/project-overview.md',
+      order: 1,
+    );
+    await tester.pumpWidget(
+      _documentApp(document: english, theme: NahpuTheme.lightTheme()),
+    );
+    expect(find.byType(AiTranslationNotice), findsNothing);
+
+    const translated = MarkdownDocument(
+      id: 'translated',
+      title: 'Informasi Indonesia',
+      markdown: 'Isi.',
+      assetPath: 'assets/docs/info/id/project-overview.md',
+      order: 1,
+      language: DocsLanguage.indonesian,
+    );
+    await tester.pumpWidget(
+      _documentApp(document: translated, theme: NahpuTheme.lightTheme()),
+    );
+    expect(find.byType(AiTranslationNotice), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('ai-translation-notice-unreviewed')),
+      findsOneWidget,
+    );
+    expect(_noticeText(tester), 'AI-assisted translation. Check for accuracy');
+  });
+
+  testWidgets('reviewed translations name their reviewers', (tester) async {
+    const reviewed = MarkdownDocument(
+      id: 'reviewed',
+      title: 'Impressão de Etiquetas',
+      markdown: 'Corpo.',
+      assetPath: 'assets/docs/info/pt/tag-printing.md',
+      order: 1,
+      language: DocsLanguage.portuguese,
+      authors: ['Andre Moncrieff', 'Heru Handika'],
+    );
+    await tester.pumpWidget(
+      _documentApp(document: reviewed, theme: NahpuTheme.lightTheme()),
+    );
+
+    expect(
+      find.byKey(const ValueKey('ai-translation-notice-reviewed')),
+      findsOneWidget,
+    );
+    expect(
+      _noticeText(tester),
+      'AI-assisted translation. Human-checked and revised by '
+      'Andre Moncrieff and Heru Handika.',
+    );
+  });
+
+  testWidgets('translation notice colors meet WCAG AA in both themes', (
+    tester,
+  ) async {
+    for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+      for (final authors in [
+        const <String>[],
+        const ['Heru Handika'],
+      ]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(body: AiTranslationNotice(authors: authors)),
+          ),
+        );
+
+        final container = tester.widget<Container>(
+          find.descendant(
+            of: find.byType(AiTranslationNotice),
+            matching: find.byType(Container),
+          ),
+        );
+        final decoration = container.decoration! as BoxDecoration;
+        final icon = tester.widget<Icon>(find.byType(Icon));
+        expect(
+          _contrastRatio(icon.color!, decoration.color!),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+    }
+  });
+
   testWidgets('phone Cookbook opens recipe content in a bottom sheet', (
     tester,
   ) async {
@@ -374,6 +464,26 @@ Widget _testApp({required Widget child, String infoBody = 'Helpful details.'}) {
     overrides: [documentationRepositoryProvider.overrideWithValue(repository)],
     child: MaterialApp(home: Scaffold(body: child)),
   );
+}
+
+Widget _documentApp({
+  required MarkdownDocument document,
+  required ThemeData theme,
+}) {
+  return MaterialApp(
+    theme: theme,
+    home: Scaffold(body: MarkdownDocumentView(document: document)),
+  );
+}
+
+String _noticeText(WidgetTester tester) {
+  final text = tester.widget<Text>(
+    find.descendant(
+      of: find.byType(AiTranslationNotice),
+      matching: find.byType(Text),
+    ),
+  );
+  return text.textSpan!.toPlainText();
 }
 
 void _setSize(WidgetTester tester, Size size) {

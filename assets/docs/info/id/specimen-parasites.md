@@ -1,9 +1,9 @@
 ---
-title: "Parasite record"
+title: "Parasit spesimen"
 sidebar:
   order: 0
 ---
 
-Parasite record mendokumentasikan material parasite atau organism interaction yang diamati dan terkait dengan host specimen. Catat apa yang benar-benar diamati atau dikumpulkan, termasuk taxon atau kategori, anatomical location, collection method, preparation atau preservation, identifier, dan notes.
+Catatan parasit mendokumentasikan material parasit atau interaksi organisme yang teramati dan terkait dengan spesimen inang. Catat apa yang benar-benar diamati atau dikumpulkan, meliputi takson atau kategori, letak anatomis, metode pengumpulan, preparasi atau pengawetan, pengenal, dan catatan.
 
-Jangan memperlakukan deteksi parasite yang belum dikonfirmasi sebagai taxonomic identification. Ekspor terstruktur dapat merepresentasikan parasite sebagai occurrence dan relasi host melalui istilah Darwin Core `OrganismInteraction`. Selaraskan identifier dengan wadah fisik parasite dan dokumentasikan uncertainty secara jelas.
+Jangan memperlakukan deteksi parasit yang belum terkonfirmasi sebagai identifikasi taksonomi. Ekspor terstruktur dapat menyajikan parasit sebagai sebuah kejadian dan hubungan dengan inangnya melalui istilah `OrganismInteraction` Darwin Core. Jaga agar pengenal tetap selaras dengan wadah fisik parasitnya, dan dokumentasikan ketidakpastian secara tersurat.

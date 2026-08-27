@@ -1,9 +1,9 @@
 ---
-title: "Presets de documentos"
+title: "Predefinições de documento"
 sidebar:
   order: 0
 ---
 
-As configurações de documentos separam templates reutilizáveis de layouts de impressão. Um template define uma etiqueta, tag, folha ou bloco de documento. Um layout define tamanho da página, margens, blocos, cópias, ordenação e paginação.
+As configurações de documento separam os modelos reutilizáveis dos layouts de impressão. Um modelo define uma etiqueta, uma tag, uma folha ou um bloco de documento. Um layout de impressão define o tamanho da página, as margens, os blocos de modelo, as cópias, a ordenação e a paginação.
 
-Crie layouts separados para fluxos distintos e use `Save as` antes de experimentar com um preset confiável. Visualize com registros representativos, texto longo, valores ausentes e ambos os lados de templates duplex. Uma exportação PDF serve para impressão ou apresentação; não é exportação de dados estruturados nem backup restaurável. Transfira templates e layouts correspondentes juntos pelas user configs.
+Crie layouts separados para fluxos de trabalho distintos e use `Save as` antes de experimentar em uma predefinição que já funciona. Pré-visualize com registros representativos, textos longos, valores ausentes e os dois lados dos modelos em duplex. Uma exportação de documento em PDF serve para impressão ou apresentação; não é uma exportação estruturada de dados nem um backup restaurável. Transfira juntos os modelos e os layouts correspondentes por meio das configurações de usuário.

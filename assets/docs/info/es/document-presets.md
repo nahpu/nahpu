@@ -1,9 +1,9 @@
 ---
-title: "Presets de documentos"
+title: "Preajustes de documento"
 sidebar:
   order: 0
 ---
 
-La configuración de documentos separa templates reutilizables de diseños de impresión. Un template define una etiqueta, tag, hoja o bloque de documento. Un diseño define tamaño de página, márgenes, bloques, copias, orden y paginación.
+La configuración de documentos separa las plantillas reutilizables de los diseños de impresión. Una plantilla define una etiqueta, un marbete, una hoja o un bloque de documento. Un diseño de impresión define el tamaño de página, los márgenes, los bloques de plantilla, las copias, el orden y la paginación.
 
-Cree diseños separados para flujos distintos y use `Save as` antes de experimentar con un preset confiable. Previsualice con registros representativos, texto largo, valores ausentes y ambas caras de templates dúplex. Una exportación PDF sirve para impresión o presentación; no es una exportación de datos estructurados ni una copia restaurable. Transfiera juntos los templates y diseños correspondientes mediante user configs.
+Cree diseños separados para flujos de trabajo distintos y use `Save as` antes de experimentar con un preajuste que ya funciona. Haga la vista previa con registros representativos, textos largos, valores faltantes y ambos lados de las plantillas a doble cara. Una exportación de documento en PDF sirve para imprimir o presentar; no es una exportación estructurada de datos ni una copia de seguridad restaurable. Transfiera juntas las plantillas y los diseños correspondientes mediante las configuraciones de usuario.

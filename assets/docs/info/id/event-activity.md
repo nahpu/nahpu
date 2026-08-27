@@ -1,9 +1,9 @@
 ---
-title: "Activity event"
+title: "Aktivitas kegiatan"
 sidebar:
   order: 0
 ---
 
-Pilih activity utama yang paling menggambarkan collecting event. Catat activity sekunder, keadaan tidak biasa, atau pekerjaan yang diwakili `Other` pada notes.
+Pilih aktivitas utama yang paling menggambarkan kegiatan pengumpulan. Catat aktivitas sekunder, keadaan tidak biasa, atau pekerjaan yang diwakili `Other` pada bagian catatan.
 
-Activity adalah kategorisasi tingkat proyek untuk filter dan pelaporan yang konsisten. Prosedur sampling sebenarnya berada pada effort record dan dapat diekspor sebagai `dwc:samplingProtocol`. Jangan gunakan label activity sebagai pengganti alat, durasi, jumlah, atau detail sampling effort lainnya.
+Aktivitas adalah pengelompokan pada tingkat proyek, agar penyaringan dan pelaporan tetap konsisten. Prosedur pengambilan sampel yang sebenarnya berada pada catatan upaya dan dapat diekspor sebagai `dwc:samplingProtocol`. Jangan memakai label aktivitas sebagai pengganti peralatan, durasi, jumlah, atau detail upaya pengambilan sampel lainnya.

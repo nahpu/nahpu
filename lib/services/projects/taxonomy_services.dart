@@ -18,12 +18,6 @@ class TaxonomyServices extends AppServices {
     return results.map((e) => e.id).toList();
   }
 
-  Future<TaxonomyData?> getTaxonBySpecies(String genus, String epithet) async {
-    return await TaxonomyQuery(
-      dbAccess,
-    ).getTaxonIdByGenusEpithet(genus, epithet);
-  }
-
   Future<List<int>> getUsedTaxa() async {
     return await TaxonomyQuery(dbAccess).getAllUniqueTaxonInUse();
   }

@@ -4,6 +4,6 @@ sidebar:
   order: 0
 ---
 
-Associated Data conecta un registro con enlaces de apoyo y archivos que no sean medios, como referencias de accession, datasets, permisos, protocolos, registros de secuencias o documentos.
+Los datos asociados conectan un registro con enlaces de apoyo y archivos que no son medios, como referencias de acceso, conjuntos de datos, permisos, protocolos, registros de secuencias o documentos.
 
-Elija un tipo de recurso que describa la relación, proporcione una URI estable o un archivo administrado y añada título y notas suficientes para comprenderlo. Use Media para imágenes, audio y video compatibles, de modo que los metadatos audiovisuales sean coherentes. Verifique cada enlace o archivo y no adjunte datos sensibles sin autorización de acceso e intercambio.
+Elija un tipo de recurso que describa la relación, indique una URI estable o un archivo gestionado, y agregue título y notas suficientes para que otra persona lo entienda. Use Multimedia para imágenes, audio y video compatibles, de modo que los metadatos audiovisuales se registren de forma consistente. Verifique cada enlace o archivo después de agregarlo y evite adjuntar datos sensibles sin autorización de acceso y uso compartido.

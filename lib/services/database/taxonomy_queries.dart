@@ -94,13 +94,6 @@ class TaxonomyQuery extends DatabaseAccessor<Database>
         .get();
   }
 
-  Future<TaxonomyData?> getTaxonIdByGenusEpithet(String genus, String epithet) {
-    return (select(taxonomy)
-          ..where((t) => t.genus.equals(genus))
-          ..where((t) => t.specificEpithet.equals(epithet)))
-        .getSingleOrNull();
-  }
-
   Future<List<TaxonomyData>> getTaxonList() async {
     // Get all taxon order by genus and species
     return (select(taxonomy)..orderBy([

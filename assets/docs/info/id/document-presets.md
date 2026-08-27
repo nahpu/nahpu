@@ -1,9 +1,9 @@
 ---
-title: "Preset dokumen"
+title: "Prasetel dokumen"
 sidebar:
   order: 0
 ---
 
-Pengaturan dokumen memisahkan template yang dapat digunakan ulang dari print layout. Template mendefinisikan satu label, tag, lembar, atau blok dokumen. Print layout mendefinisikan ukuran halaman, margin, template block, copies, ordering, dan pagination.
+Pengaturan dokumen memisahkan templat yang dapat digunakan ulang dari tata letak cetak. Sebuah templat mendefinisikan satu label, tag, lembar, atau blok dokumen. Tata letak cetak mendefinisikan ukuran halaman, margin, blok templat, jumlah salinan, urutan, dan penomoran halaman.
 
-Buat layout terpisah untuk alur berbeda dan gunakan `Save as` sebelum bereksperimen dengan preset yang sudah baik. Pratinjau dengan record representatif, teks panjang, nilai kosong, dan kedua sisi template duplex. Ekspor dokumen PDF untuk pencetakan atau presentasi; bukan structured data export atau backup yang dapat dipulihkan. Transfer template dan layout yang cocok bersama-sama melalui user configs.
+Buat tata letak terpisah untuk alur kerja yang berbeda, dan gunakan `Save as` sebelum bereksperimen pada prasetel yang sudah terbukti baik. Buat pratinjau dengan catatan yang representatif, teks panjang, nilai yang kosong, dan kedua sisi templat dupleks. Ekspor dokumen PDF ditujukan untuk pencetakan atau penyajian; ini bukan ekspor data terstruktur maupun cadangan yang dapat dipulihkan. Pindahkan templat dan tata letak yang berpasangan secara bersamaan melalui konfigurasi pengguna.

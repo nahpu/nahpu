@@ -1,11 +1,11 @@
 ---
-title: "Ikhtisar collecting event"
+title: "Ikhtisar kegiatan"
 sidebar:
   order: 0
 ---
 
-Collecting event mencatat sampling effort yang terdefinisi pada site dan waktu tertentu. Konsep ini sesuai dengan Darwin Core `dwc:Event` atau sampling event dan dapat dihubungkan ke beberapa specimen record.
+Kegiatan pengumpulan mencatat satu upaya pengambilan sampel yang terdefinisi pada suatu lokasi dan waktu. Ini setara dengan `dwc:Event` Darwin Core, atau kegiatan pengambilan sampel, dan dapat dihubungkan dengan banyak catatan spesimen.
 
-NAHPU membuat Event ID dari Site ID dan tanggal mulai; tambahkan akhiran hanya bila event lain akan memiliki identifier yang sama. Buat event terpisah bila site, rentang waktu, sampling protocol, effort, atau tim berubah secara berarti.
+NAHPU menurunkan Event ID dari Site ID dan tanggal mulai; tambahkan akhiran hanya bila kegiatan lain akan memperoleh pengenal yang sama. Buat kegiatan terpisah bila lokasi, rentang waktu, protokol pengambilan sampel, upaya, atau tim yang terlibat berubah secara berarti.
 
-Duplikasi event menggunakan kembali pengaturan yang sesuai, tetapi memajukan tanggal dan mengosongkan weather data. Tinjau setiap nilai salinan sebelum digunakan.
+Menduplikasi kegiatan akan memakai ulang penyiapan yang relevan, tetapi memajukan tanggal dan mengosongkan data cuaca. Tinjau setiap nilai hasil salinan sebelum digunakan.
