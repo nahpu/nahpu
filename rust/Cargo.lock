@@ -2247,12 +2247,12 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dwc"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daaecb3123587d6ef129e2fc2d16b7551d11e8251e4aa0bd04fae510bc6467c4"
+checksum = "cab1e81f57a20aeed0fa37a5509a9ec58fa76ec24a5a85ff9ec08e677b9b7354"
 dependencies = [
  "csv",
- "nahpu_archive 0.2.0",
+ "nahpu_archive 0.3.0",
  "nahpu_db",
  "quick-xml 0.36.2",
  "serde",
