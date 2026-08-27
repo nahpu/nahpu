@@ -224,6 +224,36 @@ void main() {
     expect(find.text('Propósito en español.'), findsOneWidget);
   });
 
+  testWidgets('wide Cookbook keeps an opaque title above the scrolling list', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(900, 600));
+    await tester.pumpWidget(
+      _testApp(child: const HowToRecipesScreen(), recipeCount: 20),
+    );
+    await tester.pumpAndSettle();
+
+    final header = find.byKey(const ValueKey('cookbook-list-header'));
+    final list = find.byType(ListView);
+    final headerTop = tester.getTopLeft(header).dy;
+    final headerMaterial = tester.widget<Material>(header);
+
+    expect(headerMaterial.color?.a, 1);
+    expect(
+      tester.getRect(list).top,
+      greaterThanOrEqualTo(tester.getRect(header).bottom),
+    );
+
+    await tester.fling(list, const Offset(0, -1200), 1800);
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(header).dy, headerTop);
+    expect(
+      tester.getRect(list).top,
+      greaterThanOrEqualTo(tester.getRect(header).bottom),
+    );
+  });
+
   testWidgets('documentation links meet WCAG AA in both themes', (
     tester,
   ) async {
@@ -401,7 +431,11 @@ void main() {
   });
 }
 
-Widget _testApp({required Widget child, String infoBody = 'Helpful details.'}) {
+Widget _testApp({
+  required Widget child,
+  String infoBody = 'Helpful details.',
+  int recipeCount = 1,
+}) {
   final assets = <String, String>{};
   const localized = {
     'en': ('Prepare', 'English recipe', 'English purpose.', 'Steps'),
@@ -441,6 +475,15 @@ Widget _testApp({required Widget child, String infoBody = 'Helpful details.'}) {
           '${values.$3}\n\n## ${values.$4}\n\n{% steps %}\n\n'
           '1. Start.\n2. Continue.\n3. Finish.\n{% /steps %}',
         );
+    for (var index = 2; index <= recipeCount; index++) {
+      assets['assets/docs/cookbook/${language.key}/prepare/recipe-$index.mdoc'] =
+          _markdown(
+            '${values.$2} $index',
+            index,
+            '${values.$3}\n\n## ${values.$4}\n\n{% steps %}\n\n'
+                '1. Start.\n2. Continue.\n3. Finish.\n{% /steps %}',
+          );
+    }
     final collect = collectTitles[language.key]!;
     assets['assets/docs/cookbook/${language.key}/collect/index.md'] = _markdown(
       collect.$1,

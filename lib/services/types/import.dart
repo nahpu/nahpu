@@ -1,9 +1,11 @@
 enum TaxonEntryHeader {
+  taxonRank,
   taxonClass,
   taxonOrder,
   taxonFamily,
   genus,
   specificEpithet,
+  subspecificEpithet,
   authors,
   commonName,
   redListCategory,
@@ -16,6 +18,8 @@ enum TaxonEntryHeader {
 
 String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
   switch (headerEnum) {
+    case TaxonEntryHeader.taxonRank:
+      return 'Taxon rank';
     case TaxonEntryHeader.taxonClass:
       return 'Class';
     case TaxonEntryHeader.taxonOrder:
@@ -26,6 +30,8 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
       return 'Genus';
     case TaxonEntryHeader.specificEpithet:
       return 'Specific epithet';
+    case TaxonEntryHeader.subspecificEpithet:
+      return 'Subspecific epithet';
     case TaxonEntryHeader.authors:
       return 'Authors';
     case TaxonEntryHeader.commonName:
@@ -46,6 +52,8 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
 }
 
 const Map<String, TaxonEntryHeader> knownTaxonHeader = {
+  'taxonrank': TaxonEntryHeader.taxonRank,
+  'rank': TaxonEntryHeader.taxonRank,
   'taxonclass': TaxonEntryHeader.taxonClass,
   'class': TaxonEntryHeader.taxonClass,
   'taxonorder': TaxonEntryHeader.taxonOrder,
@@ -56,6 +64,9 @@ const Map<String, TaxonEntryHeader> knownTaxonHeader = {
   'specificepithet': TaxonEntryHeader.specificEpithet,
   'epithet': TaxonEntryHeader.specificEpithet,
   'species': TaxonEntryHeader.specificEpithet,
+  'subspecificepithet': TaxonEntryHeader.subspecificEpithet,
+  'infraspecificepithet': TaxonEntryHeader.subspecificEpithet,
+  'subspecies': TaxonEntryHeader.subspecificEpithet,
   'author': TaxonEntryHeader.authors,
   'authors': TaxonEntryHeader.authors,
   'commonname': TaxonEntryHeader.commonName,
@@ -79,6 +90,15 @@ const List<TaxonEntryHeader> requiredTaxonImportHeaders = [
   TaxonEntryHeader.taxonFamily,
   TaxonEntryHeader.genus,
   TaxonEntryHeader.specificEpithet,
+];
+
+const List<TaxonEntryHeader> taxonImportRankHeaders = [
+  TaxonEntryHeader.taxonClass,
+  TaxonEntryHeader.taxonOrder,
+  TaxonEntryHeader.taxonFamily,
+  TaxonEntryHeader.genus,
+  TaxonEntryHeader.specificEpithet,
+  TaxonEntryHeader.subspecificEpithet,
 ];
 
 enum MediaCategory { site, event, narrative, specimen, personnel, all }

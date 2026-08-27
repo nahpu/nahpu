@@ -150,16 +150,25 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
           child: OutlinedSurface(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(NahpuSpacing.lg),
-                  child: Text(
-                    'Recipes',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium,
+                Material(
+                  key: const ValueKey('cookbook-list-header'),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(NahpuSpacing.lg),
+                        child: Text(
+                          'Recipes',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      const Divider(height: NahpuStroke.thin),
+                    ],
                   ),
                 ),
-                const Divider(height: NahpuStroke.thin),
-                Expanded(child: _recipeList(context, true)),
+                Expanded(child: ClipRect(child: _recipeList(context, true))),
               ],
             ),
           ),

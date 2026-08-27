@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class CsvData {
@@ -84,6 +85,9 @@ class TaxonParser {
       String value = values[index];
       TaxonEntryHeader header = headerMap[index] ?? TaxonEntryHeader.ignore;
       switch (header) {
+        case TaxonEntryHeader.taxonRank:
+          taxonEntryCsv.taxonRank = value;
+          break;
         case TaxonEntryHeader.taxonClass:
           taxonEntryCsv.taxonClass = value;
           break;
@@ -98,6 +102,9 @@ class TaxonParser {
           break;
         case TaxonEntryHeader.specificEpithet:
           taxonEntryCsv.specificEpithet = value;
+          break;
+        case TaxonEntryHeader.subspecificEpithet:
+          taxonEntryCsv.subspecificEpithet = value;
           break;
         case TaxonEntryHeader.authors:
           taxonEntryCsv.authors = value;
@@ -131,11 +138,13 @@ class TaxonParser {
 
 class TaxonEntryData {
   TaxonEntryData({
+    this.taxonRank,
     required this.taxonClass,
     required this.taxonOrder,
     required this.taxonFamily,
     required this.genus,
     required this.specificEpithet,
+    required this.subspecificEpithet,
     this.authors,
     this.commonName,
     this.redListCategory,
@@ -145,11 +154,13 @@ class TaxonEntryData {
     this.notes,
   });
 
+  String? taxonRank;
   String taxonClass;
   String taxonOrder;
   String taxonFamily;
   String genus;
   String specificEpithet;
+  String subspecificEpithet;
   String? authors;
   String? commonName;
   String? redListCategory;
@@ -160,11 +171,13 @@ class TaxonEntryData {
 
   factory TaxonEntryData.empty() {
     return TaxonEntryData(
+      taxonRank: null,
       taxonClass: '',
       taxonOrder: '',
       taxonFamily: '',
       genus: '',
       specificEpithet: '',
+      subspecificEpithet: '',
       authors: null,
       commonName: null,
       redListCategory: null,
@@ -176,11 +189,13 @@ class TaxonEntryData {
   }
 
   TaxonEntryData copyWith({
+    String? taxonRank,
     String? taxonClass,
     String? taxonOrder,
     String? taxonFamily,
     String? genus,
     String? specificEpithet,
+    String? subspecificEpithet,
     String? authors,
     String? commonName,
     String? redListCategory,
@@ -190,11 +205,13 @@ class TaxonEntryData {
     String? notes,
   }) {
     return TaxonEntryData(
+      taxonRank: taxonRank ?? this.taxonRank,
       taxonClass: taxonClass ?? this.taxonClass,
       taxonOrder: taxonOrder ?? this.taxonOrder,
       taxonFamily: taxonFamily ?? this.taxonFamily,
       genus: genus ?? this.genus,
       specificEpithet: specificEpithet ?? this.specificEpithet,
+      subspecificEpithet: subspecificEpithet ?? this.subspecificEpithet,
       authors: authors ?? this.authors,
       commonName: commonName ?? this.commonName,
       redListCategory: redListCategory ?? this.redListCategory,
@@ -221,7 +238,20 @@ class TaxonImportCandidate {
 
   bool get isSelectable => status == TaxonImportStatus.ready;
 
-  String get scientificName => '${data.genus} ${data.specificEpithet}'.trim();
+  TaxonRank get rank =>
+      taxonRankFromString(data.taxonRank) ?? TaxonRank.species;
+
+  String get displayName => switch (rank) {
+    TaxonRank.taxonClass => data.taxonClass,
+    TaxonRank.order => data.taxonOrder,
+    TaxonRank.family => data.taxonFamily,
+    TaxonRank.genus => data.genus,
+    TaxonRank.species => '${data.genus} ${data.specificEpithet}'.trim(),
+    TaxonRank.subspecies =>
+      '${data.genus} ${data.specificEpithet} ${data.subspecificEpithet}'.trim(),
+  };
+
+  bool get usesItalicName => rank.index >= TaxonRank.genus.index;
 }
 
 class TaxonImportReview {

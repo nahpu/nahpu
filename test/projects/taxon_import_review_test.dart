@@ -65,15 +65,164 @@ void main() {
 
       expect(result.importedTaxaCount, 1);
       expect(result.importedFamilyCount, 1);
-      expect(await database.select(database.taxonomy).get(), hasLength(1));
+      final imported = await database.select(database.taxonomy).getSingle();
+      expect(imported.taxonRank, 'species');
     },
   );
+
+  testWidgets('ranked import writes all six ranks and clears lower fields', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final csv = _rankedCsv([
+      [
+        'class',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+      [
+        'order',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+      [
+        'family',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+      [
+        'genus',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+      [
+        'species',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+      [
+        'SubSpecies',
+        'Mammalia',
+        'Rodentia',
+        'Muridae',
+        'Rattus',
+        'rattus',
+        'rattus',
+      ],
+    ]);
+
+    final review = await _run(tester, database, (ref) {
+      return TaxonEntryReader(ref: ref).reviewData(csv);
+    });
+    final result = await _run(tester, database, (ref) {
+      return TaxonEntryReader(
+        ref: ref,
+      ).importSelected(review, {0, 1, 2, 3, 4, 5});
+    });
+    final imported = await database.select(database.taxonomy).get();
+
+    expect(result.importedTaxaCount, 6);
+    expect(imported.map((taxon) => taxon.taxonRank), [
+      'class',
+      'order',
+      'family',
+      'genus',
+      'species',
+      'subspecies',
+    ]);
+    expect(imported[0].taxonOrder, isNull);
+    expect(imported[2].genus, isNull);
+    expect(imported[4].subspecificEpithet, isNull);
+    expect(imported[5].subspecificEpithet, 'rattus');
+    expect(review.candidates.map((candidate) => candidate.displayName), [
+      'Mammalia',
+      'Rodentia',
+      'Muridae',
+      'Rattus',
+      'Rattus rattus',
+      'Rattus rattus rattus',
+    ]);
+  });
+
+  testWidgets('rank-aware review detects existing and repeated taxa', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonRank: Value('family'),
+            taxonClass: Value('Mammalia'),
+            taxonOrder: Value('Rodentia'),
+            taxonFamily: Value('Muridae'),
+          ),
+        );
+    final csv = _rankedCsv([
+      ['family', 'Mammalia', 'Rodentia', 'Muridae', '', '', ''],
+      ['genus', 'Mammalia', 'Rodentia', 'Muridae', 'Rattus', '', ''],
+      ['genus', 'Mammalia', 'Rodentia', 'Muridae', 'Rattus', '', ''],
+    ]);
+
+    final review = await _run(tester, database, (ref) {
+      return TaxonEntryReader(ref: ref).reviewData(csv);
+    });
+
+    expect(review.candidates.map((candidate) => candidate.status), [
+      TaxonImportStatus.alreadyRegistered,
+      TaxonImportStatus.ready,
+      TaxonImportStatus.duplicateInFile,
+    ]);
+  });
 }
 
 CsvData _csv(List<List<String>> rows) {
   final csv = CsvData.empty();
   csv.parseTaxonEntryFromList([
     ['Class', 'Order', 'Family', 'Genus', 'Specific epithet'],
+    ...rows,
+  ]);
+  return csv;
+}
+
+CsvData _rankedCsv(List<List<String>> rows) {
+  final csv = CsvData.empty();
+  csv.parseTaxonEntryFromList([
+    [
+      'Taxon rank',
+      'Class',
+      'Order',
+      'Family',
+      'Genus',
+      'Specific epithet',
+      'Subspecific epithet',
+    ],
     ...rows,
   ]);
   return csv;

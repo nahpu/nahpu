@@ -11,6 +11,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:path/path.dart' as p;
@@ -332,6 +333,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                 TaxonImportStatus.duplicateInFile => 'Duplicate in file',
               };
               final details = [
+                candidate.rank.label,
                 if (candidate.data.taxonFamily.trim().isNotEmpty)
                   candidate.data.taxonFamily,
                 if (candidate.data.commonName?.trim().isNotEmpty == true)
@@ -350,8 +352,10 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                       })
                     : null,
                 title: Text(
-                  candidate.scientificName,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
+                  candidate.displayName,
+                  style: candidate.usesItalicName
+                      ? const TextStyle(fontStyle: FontStyle.italic)
+                      : null,
                 ),
                 subtitle: details.isEmpty ? null : Text(details),
               );

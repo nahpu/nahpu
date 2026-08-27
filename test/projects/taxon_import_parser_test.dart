@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
+import 'package:nahpu/services/types/import.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
 
@@ -189,7 +190,7 @@ void main() {
     expect(parsed.data.first[3], 'Crocidura');
   });
 
-  test('Missing required headers still reported by problem finder', () {
+  test('Missing rank is required when species headers are incomplete', () {
     final data = [
       ['Class', 'Family', 'Genus', 'Specific epithet'],
       ['Mammalia', 'Muridae', 'Bunomys', 'coelestis'],
@@ -198,10 +199,15 @@ void main() {
     final csvData = parserDataFromRows(data);
     final problems = findTaxonImportProblems(csvData.headerMap);
 
-    expect(problems, contains('Missing Order'));
+    expect(
+      problems,
+      contains(
+        'Add Taxon rank when the complete species columns are not available',
+      ),
+    );
   });
 
-  test('Missing required values are reported by problem finder', () {
+  test('Missing rank is required when species values are incomplete', () {
     final data = [
       ['Class', 'Order', 'Family', 'Genus', 'Specific epithet'],
       ['Mammalia', '', 'Muridae', 'Bunomys', 'coelestis'],
@@ -214,8 +220,108 @@ void main() {
       rows: csvData.data,
     );
 
+    expect(
+      problems,
+      contains(
+        'Add Taxon rank for rows without a complete species classification: '
+        '2, 3',
+      ),
+    );
+  });
+
+  test('Maps rank and subspecific epithet header aliases', () {
+    final csvData = parserDataFromRows([
+      ['rank', 'class', 'infraspecificEpithet'],
+      ['subspecies', 'Mammalia', 'rattus'],
+    ]);
+
+    expect(csvData.headerMap[0], TaxonEntryHeader.taxonRank);
+    expect(csvData.headerMap[2], TaxonEntryHeader.subspecificEpithet);
+  });
+
+  test('Rank-aware validation requires the full path through each rank', () {
+    final csvData = parserDataFromRows([
+      [
+        'Taxon rank',
+        'Class',
+        'Order',
+        'Family',
+        'Genus',
+        'Specific epithet',
+        'Subspecific epithet',
+      ],
+      ['class', 'Mammalia', '', '', '', '', ''],
+      ['family', 'Mammalia', 'Rodentia', 'Muridae', '', '', ''],
+      ['subspecies', 'Mammalia', 'Rodentia', 'Muridae', 'Rattus', 'rattus', ''],
+    ]);
+
+    final problems = findTaxonImportProblems(
+      csvData.headerMap,
+      rows: csvData.data,
+    );
+
+    expect(
+      problems,
+      contains('Missing Subspecific epithet values in 1 row(s)'),
+    );
+    expect(problems, isNot(contains('Missing Genus values in 2 row(s)')));
+  });
+
+  test('Missing or blank rank defaults to species validation', () {
+    final csvData = parserDataFromRows([
+      ['Taxon rank', 'Class', 'Order', 'Family', 'Genus', 'Specific epithet'],
+      ['', 'Mammalia', 'Rodentia', 'Muridae', 'Rattus', 'rattus'],
+    ]);
+
+    expect(
+      findTaxonImportProblems(csvData.headerMap, rows: csvData.data),
+      isEmpty,
+    );
+  });
+
+  test('Explicit species rank reports incomplete species fields', () {
+    final csvData = parserDataFromRows([
+      ['Taxon rank', 'Class', 'Order', 'Family', 'Genus', 'Specific epithet'],
+      ['species', 'Mammalia', '', 'Muridae', 'Rattus', 'rattus'],
+    ]);
+
+    final problems = findTaxonImportProblems(
+      csvData.headerMap,
+      rows: csvData.data,
+    );
+
     expect(problems, contains('Missing Order values in 1 row(s)'));
-    expect(problems, contains('Missing Class values in 1 row(s)'));
+  });
+
+  test('Blank rank with incomplete species fields requires a rank value', () {
+    final csvData = parserDataFromRows([
+      ['Taxon rank', 'Class', 'Order', 'Family', 'Genus', 'Specific epithet'],
+      ['', 'Mammalia', 'Rodentia', 'Muridae', '', ''],
+    ]);
+
+    final problems = findTaxonImportProblems(
+      csvData.headerMap,
+      rows: csvData.data,
+    );
+
+    expect(
+      problems.single,
+      'Add Taxon rank for rows without a complete species classification: 2',
+    );
+  });
+
+  test('Invalid rank values report their source rows', () {
+    final csvData = parserDataFromRows([
+      ['Taxon rank', 'Class'],
+      ['tribe', 'Mammalia'],
+    ]);
+
+    final problems = findTaxonImportProblems(
+      csvData.headerMap,
+      rows: csvData.data,
+    );
+
+    expect(problems.single, contains('tribe (row 2)'));
   });
 
   test(

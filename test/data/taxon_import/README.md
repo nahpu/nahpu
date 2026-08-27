@@ -2,10 +2,14 @@
 
 Use these files in the **Import Taxon** screen to verify parser behavior manually.
 
+Legacy species fixtures omit rank to verify that complete species rows default
+to species. Rows without every required species field must provide a rank.
 Canonical column format for tabular fixtures:
 
 - `class`, `Order`, `family`, `genus`, `epithet`, `scientific name`, `common name`
-- Required import fields are the first five columns.
+- Ranked files may add `taxon rank` and `subspecific epithet` columns.
+- Accepted ranks are class, order, family, genus, species, and subspecies.
+- Each row requires every classification field from class through its rank.
 
 - `comma.csv`: Standard CSV (`.csv` should parse as comma automatically).
 - `speciesList.csv`: Baseline comma-delimited fixture with canonical columns.
