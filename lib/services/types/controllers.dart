@@ -3,6 +3,7 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/types/arthropods.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/projects/coordinate_input.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:uuid/uuid.dart';
@@ -203,7 +204,7 @@ class SiteFormCtrModel {
   );
 
   factory SiteFormCtrModel.fromData(
-    SiteData site,
+    SiteRecord site,
     SiteAttributeData? attribute,
   ) => SiteFormCtrModel(
     siteIDCtr: TextEditingController(text: site.siteID),
@@ -225,6 +226,26 @@ class SiteFormCtrModel {
     ),
     canopyCoverCtr: TextEditingController(text: attribute?.canopyCover),
   );
+
+  /// The geography fields as typed, for resolving to a shared locality record.
+  GeographyDraft get geographyDraft => GeographyDraft(
+    country: countryCtr.text,
+    islandGroup: islandGroupCtr.text,
+    stateProvince: stateProvinceCtr.text,
+    county: countyCtr.text,
+    municipality: municipalityCtr.text,
+    locality: localityCtr.text,
+  );
+
+  /// Replaces the geography fields with [draft], for autocomplete selection.
+  void applyGeography(GeographyDraft draft) {
+    countryCtr.text = draft.country ?? '';
+    islandGroupCtr.text = draft.islandGroup ?? '';
+    stateProvinceCtr.text = draft.stateProvince ?? '';
+    countyCtr.text = draft.county ?? '';
+    municipalityCtr.text = draft.municipality ?? '';
+    localityCtr.text = draft.locality ?? '';
+  }
 
   void dispose() {
     siteIDCtr.dispose();

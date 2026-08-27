@@ -81,7 +81,7 @@ class DocumentWriter {
   /// Each selected site in [picked] is converted to document field values before
   /// rendering.
   Future<File> writeSites({
-    required List<SiteData> picked,
+    required List<SiteRecord> picked,
     required Directory selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
@@ -168,7 +168,7 @@ class DocumentWriter {
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
   Future<Uint8List> generateSitesPdf(
-    List<SiteData> sites, {
+    List<SiteRecord> sites, {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,

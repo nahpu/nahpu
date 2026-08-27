@@ -5,6 +5,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/statistics_queries.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
+import '../data/site_fixture.dart';
+
 void main() {
   late Database db;
   late StatisticsQuery query;
@@ -191,17 +193,14 @@ Future<void> _seedSpatialStatistics(Database db) async {
           specificEpithet: Value('fuscus'),
         ),
       );
-  final siteA = await db
-      .into(db.site)
-      .insert(
-        const SiteCompanion(
-          projectUuid: Value('project-a'),
-          stateProvince: Value(' Minnesota '),
-          county: Value('Hennepin'),
-          municipality: Value('Minneapolis'),
-          locality: Value('Riverbank'),
-        ),
-      );
+  final siteA = await insertSiteWithGeography(
+    db,
+    projectUuid: 'project-a',
+    stateProvince: ' Minnesota ',
+    county: 'Hennepin',
+    municipality: 'Minneapolis',
+    locality: 'Riverbank',
+  );
   final siteB = await db
       .into(db.site)
       .insert(const SiteCompanion(projectUuid: Value('project-b')));

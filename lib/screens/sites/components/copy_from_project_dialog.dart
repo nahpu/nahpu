@@ -1,9 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/sites/site_copy_services.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 Future<SiteCopyResult?> showCopyFromProjectDialog({
   required BuildContext context,
@@ -32,8 +32,8 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
   String? _blockingTitle;
   List<ProjectSummary> _projects = [];
   ProjectSummary? _project;
-  List<SiteData> _sites = [];
-  SiteData? _site;
+  List<SiteRecord> _sites = [];
+  SiteRecord? _site;
   SiteCopySource? _source;
   Set<SiteCopyField> _selectedFields = {};
 
@@ -397,12 +397,12 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     return value ?? '';
   }
 
-  String _siteLabel(SiteData site) {
+  String _siteLabel(SiteRecord site) {
     final value = site.siteID?.trim();
     return value == null || value.isEmpty ? 'Unnamed site #${site.id}' : value;
   }
 
-  String _siteSubtitle(SiteData site) {
+  String _siteSubtitle(SiteRecord site) {
     return [
       site.siteType,
       site.locality,

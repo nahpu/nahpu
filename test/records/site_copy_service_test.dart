@@ -12,6 +12,8 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/sites.dart';
 
+import '../data/site_fixture.dart';
+
 void main() {
   late Database database;
   late WidgetRef widgetRef;
@@ -67,17 +69,14 @@ void main() {
     final targetId = await database
         .into(database.site)
         .insert(const SiteCompanion(projectUuid: Value('target-project')));
-    final sourceId = await database
-        .into(database.site)
-        .insert(
-          const SiteCompanion(
-            projectUuid: Value('source-project'),
-            siteID: Value('SOURCE-1'),
-            country: Value('Canada'),
-            locality: Value('North field'),
-            remark: Value('Keep this note'),
-          ),
-        );
+    final sourceId = await insertSiteWithGeography(
+      database,
+      projectUuid: 'source-project',
+      siteID: 'SOURCE-1',
+      country: 'Canada',
+      locality: 'North field',
+      remark: 'Keep this note',
+    );
     await CoordinateQuery(database).createCoordinate(
       CoordinateCompanion(
         nameId: const Value('A'),
@@ -107,8 +106,8 @@ void main() {
     expect(result.fieldCount, 1);
     expect(result.coordinateCount, 1);
     expect(target.siteID, 'SOURCE-1');
-    expect(target.country, isNull);
-    expect(target.locality, isNull);
+    // No geography field was selected, so the target keeps no locality.
+    expect(target.geographyId, isNull);
     expect(coordinates, hasLength(1));
     expect(coordinates.single.siteID, targetId);
     expect(coordinates.single.id, isNot(1));

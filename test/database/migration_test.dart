@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
@@ -16,15 +16,88 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]) {
-    test('upgrade from v$version to v20', () async {
+  for (final version in [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+  ]) {
+    test('upgrade from v$version to v21', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 20);
+      await verifier.migrateAndValidate(db, 21);
       await db.close();
     });
   }
+
+  test('v20 to v21 deduplicates localities into shared geography', () async {
+    final schema = await verifier.schemaAt(20);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    // Two sites whose localities differ only by case and spacing, one that is
+    // genuinely different, and one with no locality at all.
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince, county, '
+      'municipality, locality) VALUES '
+      "(1, 'S1', 'project', 'Indonesia', 'Sulawesi Selatan', 'Gowa', "
+      "'Tinggimoncong', 'Mt. Bawakaraeng')",
+    );
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince, county, '
+      'municipality, locality) VALUES '
+      "(2, 'S2', 'project', '  indonesia ', 'SULAWESI  SELATAN', 'gowa', "
+      "'tinggimoncong', 'mt. bawakaraeng')",
+    );
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince) VALUES '
+      "(3, 'S3', 'project', 'Indonesia', 'Papua')",
+    );
+    raw.execute(
+      "INSERT INTO site (id, siteID, projectUuid) VALUES (4, 'S4', 'project')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 21);
+
+    final localities = await db.select(db.geography).get();
+    expect(localities, hasLength(2));
+
+    final sites = await (db.select(
+      db.site,
+    )..orderBy([(row) => OrderingTerm.asc(row.id)])).get();
+    // The duplicate pair collapses onto one record.
+    expect(sites[0].geographyId, isNotNull);
+    expect(sites[1].geographyId, sites[0].geographyId);
+    // The distinct locality keeps its own, and the blank site gets none.
+    expect(sites[2].geographyId, isNot(sites[0].geographyId));
+    expect(sites[2].geographyId, isNotNull);
+    expect(sites[3].geographyId, isNull);
+
+    // The surviving record keeps the casing that was entered first.
+    final shared = localities.firstWhere(
+      (row) => row.id == sites[0].geographyId,
+    );
+    expect(shared.country, 'Indonesia');
+    expect(shared.stateProvince, 'Sulawesi Selatan');
+    expect(shared.locality, 'Mt. Bawakaraeng');
+
+    await db.close();
+  });
 
   test('v19 to v20 preserves values and adds event ownership', () async {
     final schema = await verifier.schemaAt(19);
@@ -50,7 +123,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final preserved = await db.select(db.customFieldValue).getSingle();
     expect(preserved.value, 'Preserved');
@@ -152,12 +225,15 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final site = await db.select(db.site).getSingle();
     expect(site.siteID, 'SITE-7');
-    expect(site.country, 'ID');
-    expect(site.islandGroup, isNull);
+    // Geography moved to its own table in v21.
+    final geography = await db.select(db.geography).getSingle();
+    expect(site.geographyId, geography.id);
+    expect(geography.country, 'ID');
+    expect(geography.islandGroup, isNull);
     final siteAttribute = await db.select(db.siteAttribute).getSingle();
     expect(siteAttribute.siteID, 7);
     expect(siteAttribute.habitatType, 'Forest');
@@ -252,7 +328,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final definition = await db.select(db.customFieldDefinition).getSingle();
     final value = await db.select(db.customFieldValue).getSingle();
@@ -306,7 +382,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final mammal = await (db.select(
       db.specimen,
@@ -355,7 +431,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -375,7 +451,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
     await db.close();
   });
 
@@ -387,7 +463,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -457,7 +533,7 @@ void main() {
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -519,7 +595,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 20);
+      await verifier.migrateAndValidate(db, 21);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -575,7 +651,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -635,7 +711,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -676,7 +752,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 20);
+    await verifier.migrateAndValidate(db, 21);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

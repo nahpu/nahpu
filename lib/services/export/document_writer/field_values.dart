@@ -63,18 +63,23 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
 
 /// Builds template field values for a site document record.
 ///
-/// The returned map includes `site::` values, derived locality/coordinate
-/// fields, and lead personnel fields when a lead staff member is set.
+/// The returned map includes `site::` and `geography::` values, derived
+/// locality/coordinate fields, and lead personnel fields when a lead staff
+/// member is set.
 Future<Map<String, String>> documentFieldValuesForSite(
   Database db,
-  SiteData s,
+  SiteRecord s,
   WidgetRef ref,
 ) async {
   final m = <String, String>{};
   final writer = SiteWriterServices(ref: ref);
 
-  for (var entry in s.toJson().entries) {
+  for (var entry in s.site.toJson().entries) {
     m['site::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+  // Geography moved to its own table, so its keys come from the joined row.
+  for (var entry in s.draft.toJson().entries) {
+    m['geography::${entry.key}'] = entry.value?.toString() ?? '';
   }
   final attribute = await SiteServices(ref: ref).getSiteAttribute(s.id);
   if (attribute != null) {
@@ -87,13 +92,14 @@ Future<Map<String, String>> documentFieldValuesForSite(
   m['site::site'] = s.siteID ?? '';
   m['siteAttribute::habitatType'] = attribute?.habitatType ?? '';
   m['site::habitatType'] = attribute?.habitatType ?? '';
-  m['site::country'] = s.country ?? '';
-  m['site::stateProvince'] = s.stateProvince ?? '';
-  m['site::county'] = s.county ?? '';
-  m['site::municipality'] = s.municipality ?? '';
-  m['site::specificLocality'] = s.locality ?? '';
+  m['geography::country'] = s.country ?? '';
+  m['geography::islandGroup'] = s.islandGroup ?? '';
+  m['geography::stateProvince'] = s.stateProvince ?? '';
+  m['geography::county'] = s.county ?? '';
+  m['geography::municipality'] = s.municipality ?? '';
+  m['geography::specificLocality'] = s.locality ?? '';
   m['site::siteNotes'] = s.remark ?? '';
-  m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
+  m['geography::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
 
   final customEntries = await CustomFieldService(

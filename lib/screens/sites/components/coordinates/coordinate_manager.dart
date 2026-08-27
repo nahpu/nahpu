@@ -559,7 +559,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
-  final AsyncValue<List<SiteData>> sites;
+  final AsyncValue<List<SiteRecord>> sites;
   final int? siteFilterId;
   final Set<int> selectedCoordinateIds;
   final int? focusedCoordinateId;
@@ -578,7 +578,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .where((coordinate) => selectedCoordinateIds.contains(coordinate.id))
         .toList(growable: false);
     final siteLabels = {
-      for (final site in sites.value ?? const <SiteData>[])
+      for (final site in sites.value ?? const <SiteRecord>[])
         site.id: _siteLabel(site),
     };
     return Padding(
@@ -657,7 +657,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .toList();
   }
 
-  String _siteLabel(SiteData site) {
+  String _siteLabel(SiteRecord site) {
     final name = site.siteID?.trim();
     if (name != null && name.isNotEmpty) return name;
     final locality = site.locality?.trim();

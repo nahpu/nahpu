@@ -9,13 +9,14 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart';
 
-String formatSiteName(SiteData site) {
+String formatSiteName(SiteRecord site) {
   return [
         site.country,
         site.islandGroup,
@@ -51,7 +52,7 @@ class SiteServices extends AppServices {
 
   /// Returns the new site's id, or null when the origin no longer exists.
   Future<int?> duplicateSite(int originID) async {
-    SiteData? siteData = await getSite(originID);
+    SiteRecord? siteData = await getSite(originID);
     if (siteData == null) {
       return null;
     }
@@ -62,12 +63,8 @@ class SiteServices extends AppServices {
           projectUuid: db.Value(currentProjectUuid),
           leadStaffId: db.Value(siteData.leadStaffId),
           siteType: db.Value(siteData.siteType),
-          country: db.Value(siteData.country),
-          islandGroup: db.Value(siteData.islandGroup),
-          stateProvince: db.Value(siteData.stateProvince),
-          county: db.Value(siteData.county),
-          municipality: db.Value(siteData.municipality),
-          locality: db.Value(siteData.locality),
+          // Localities are shared records, so the copy points at the same row.
+          geographyId: db.Value(siteData.geographyId),
           remark: db.Value(siteData.remark),
         ),
       );
@@ -86,7 +83,7 @@ class SiteServices extends AppServices {
     return newSiteId;
   }
 
-  Future<SiteData?> getSite(int? id) async {
+  Future<SiteRecord?> getSite(int? id) async {
     if (id == null) {
       return null;
     } else {
@@ -94,7 +91,7 @@ class SiteServices extends AppServices {
     }
   }
 
-  Future<List<SiteData>> getAllSites() async {
+  Future<List<SiteRecord>> getAllSites() async {
     return SiteQuery(dbAccess).getAllSites(currentProjectUuid);
   }
 
@@ -178,9 +175,11 @@ class SiteServices extends AppServices {
 
   Future<void> deleteAllSites(String projectUuid) async {
     try {
-      List<SiteData> sites = await SiteQuery(dbAccess).getAllSites(projectUuid);
+      List<SiteRecord> sites = await SiteQuery(
+        dbAccess,
+      ).getAllSites(projectUuid);
 
-      for (SiteData site in sites) {
+      for (SiteRecord site in sites) {
         await CoordinateServices(ref: ref).deleteCoordinateBySiteID(site.id);
         await SiteQuery(dbAccess).deleteAllSiteMedias(site.id);
         await AssociatedDataServices(
@@ -205,10 +204,10 @@ class SiteSearchServices {
     required this.siteEntries,
     this.attributesBySite = const {},
   });
-  final List<SiteData> siteEntries;
+  final List<SiteRecord> siteEntries;
   final Map<int, SiteAttributeData> attributesBySite;
 
-  List<SiteData> search(String query) {
+  List<SiteRecord> search(String query) {
     final filteredSites = siteEntries.where((site) {
       final attribute = attributesBySite[site.id];
       return _isMatch(site.siteID, query) ||

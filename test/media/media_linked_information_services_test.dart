@@ -9,6 +9,8 @@ import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
 
+import '../data/site_fixture.dart';
+
 void main() {
   late Database database;
   late MediaLinkedInformationServices services;
@@ -51,19 +53,16 @@ void main() {
             initial: Value('NW'),
           ),
         );
-    siteId = await database
-        .into(database.site)
-        .insert(
-          const SiteCompanion(
-            siteID: Value('SITE-01'),
-            projectUuid: Value('project-1'),
-            country: Value('Indonesia'),
-            stateProvince: Value('West Java'),
-            county: Value('Bogor'),
-            municipality: Value('Cibodas'),
-            locality: Value('Forest plot 7'),
-          ),
-        );
+    siteId = await insertSiteWithGeography(
+      database,
+      siteID: 'SITE-01',
+      projectUuid: 'project-1',
+      country: 'Indonesia',
+      stateProvince: 'West Java',
+      county: 'Bogor',
+      municipality: 'Cibodas',
+      locality: 'Forest plot 7',
+    );
     eventId = await database
         .into(database.collEvent)
         .insert(

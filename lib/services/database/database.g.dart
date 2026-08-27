@@ -872,6 +872,530 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }
 }
 
+class Geography extends Table with TableInfo<Geography, GeographyData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Geography(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _countryMeta = const VerificationMeta(
+    'country',
+  );
+  late final GeneratedColumn<String> country = GeneratedColumn<String>(
+    'country',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _islandGroupMeta = const VerificationMeta(
+    'islandGroup',
+  );
+  late final GeneratedColumn<String> islandGroup = GeneratedColumn<String>(
+    'islandGroup',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _stateProvinceMeta = const VerificationMeta(
+    'stateProvince',
+  );
+  late final GeneratedColumn<String> stateProvince = GeneratedColumn<String>(
+    'stateProvince',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _countyMeta = const VerificationMeta('county');
+  late final GeneratedColumn<String> county = GeneratedColumn<String>(
+    'county',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _municipalityMeta = const VerificationMeta(
+    'municipality',
+  );
+  late final GeneratedColumn<String> municipality = GeneratedColumn<String>(
+    'municipality',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _localityMeta = const VerificationMeta(
+    'locality',
+  );
+  late final GeneratedColumn<String> locality = GeneratedColumn<String>(
+    'locality',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _matchKeyMeta = const VerificationMeta(
+    'matchKey',
+  );
+  late final GeneratedColumn<String> matchKey = GeneratedColumn<String>(
+    'matchKey',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    country,
+    islandGroup,
+    stateProvince,
+    county,
+    municipality,
+    locality,
+    matchKey,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geography';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeographyData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('country')) {
+      context.handle(
+        _countryMeta,
+        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
+      );
+    }
+    if (data.containsKey('islandGroup')) {
+      context.handle(
+        _islandGroupMeta,
+        islandGroup.isAcceptableOrUnknown(
+          data['islandGroup']!,
+          _islandGroupMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stateProvince')) {
+      context.handle(
+        _stateProvinceMeta,
+        stateProvince.isAcceptableOrUnknown(
+          data['stateProvince']!,
+          _stateProvinceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('county')) {
+      context.handle(
+        _countyMeta,
+        county.isAcceptableOrUnknown(data['county']!, _countyMeta),
+      );
+    }
+    if (data.containsKey('municipality')) {
+      context.handle(
+        _municipalityMeta,
+        municipality.isAcceptableOrUnknown(
+          data['municipality']!,
+          _municipalityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('locality')) {
+      context.handle(
+        _localityMeta,
+        locality.isAcceptableOrUnknown(data['locality']!, _localityMeta),
+      );
+    }
+    if (data.containsKey('matchKey')) {
+      context.handle(
+        _matchKeyMeta,
+        matchKey.isAcceptableOrUnknown(data['matchKey']!, _matchKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_matchKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GeographyData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeographyData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      country: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country'],
+      ),
+      islandGroup: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}islandGroup'],
+      ),
+      stateProvince: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stateProvince'],
+      ),
+      county: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}county'],
+      ),
+      municipality: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}municipality'],
+      ),
+      locality: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locality'],
+      ),
+      matchKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matchKey'],
+      )!,
+    );
+  }
+
+  @override
+  Geography createAlias(String alias) {
+    return Geography(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class GeographyData extends DataClass implements Insertable<GeographyData> {
+  final int id;
+  final String? country;
+  final String? islandGroup;
+  final String? stateProvince;
+  final String? county;
+  final String? municipality;
+  final String? locality;
+
+  /// precise locality; verbatim locality in DWC
+  final String matchKey;
+  const GeographyData({
+    required this.id,
+    this.country,
+    this.islandGroup,
+    this.stateProvince,
+    this.county,
+    this.municipality,
+    this.locality,
+    required this.matchKey,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || country != null) {
+      map['country'] = Variable<String>(country);
+    }
+    if (!nullToAbsent || islandGroup != null) {
+      map['islandGroup'] = Variable<String>(islandGroup);
+    }
+    if (!nullToAbsent || stateProvince != null) {
+      map['stateProvince'] = Variable<String>(stateProvince);
+    }
+    if (!nullToAbsent || county != null) {
+      map['county'] = Variable<String>(county);
+    }
+    if (!nullToAbsent || municipality != null) {
+      map['municipality'] = Variable<String>(municipality);
+    }
+    if (!nullToAbsent || locality != null) {
+      map['locality'] = Variable<String>(locality);
+    }
+    map['matchKey'] = Variable<String>(matchKey);
+    return map;
+  }
+
+  GeographyCompanion toCompanion(bool nullToAbsent) {
+    return GeographyCompanion(
+      id: Value(id),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
+      islandGroup: islandGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(islandGroup),
+      stateProvince: stateProvince == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stateProvince),
+      county: county == null && nullToAbsent
+          ? const Value.absent()
+          : Value(county),
+      municipality: municipality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(municipality),
+      locality: locality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locality),
+      matchKey: Value(matchKey),
+    );
+  }
+
+  factory GeographyData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeographyData(
+      id: serializer.fromJson<int>(json['id']),
+      country: serializer.fromJson<String?>(json['country']),
+      islandGroup: serializer.fromJson<String?>(json['islandGroup']),
+      stateProvince: serializer.fromJson<String?>(json['stateProvince']),
+      county: serializer.fromJson<String?>(json['county']),
+      municipality: serializer.fromJson<String?>(json['municipality']),
+      locality: serializer.fromJson<String?>(json['locality']),
+      matchKey: serializer.fromJson<String>(json['matchKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'country': serializer.toJson<String?>(country),
+      'islandGroup': serializer.toJson<String?>(islandGroup),
+      'stateProvince': serializer.toJson<String?>(stateProvince),
+      'county': serializer.toJson<String?>(county),
+      'municipality': serializer.toJson<String?>(municipality),
+      'locality': serializer.toJson<String?>(locality),
+      'matchKey': serializer.toJson<String>(matchKey),
+    };
+  }
+
+  GeographyData copyWith({
+    int? id,
+    Value<String?> country = const Value.absent(),
+    Value<String?> islandGroup = const Value.absent(),
+    Value<String?> stateProvince = const Value.absent(),
+    Value<String?> county = const Value.absent(),
+    Value<String?> municipality = const Value.absent(),
+    Value<String?> locality = const Value.absent(),
+    String? matchKey,
+  }) => GeographyData(
+    id: id ?? this.id,
+    country: country.present ? country.value : this.country,
+    islandGroup: islandGroup.present ? islandGroup.value : this.islandGroup,
+    stateProvince: stateProvince.present
+        ? stateProvince.value
+        : this.stateProvince,
+    county: county.present ? county.value : this.county,
+    municipality: municipality.present ? municipality.value : this.municipality,
+    locality: locality.present ? locality.value : this.locality,
+    matchKey: matchKey ?? this.matchKey,
+  );
+  GeographyData copyWithCompanion(GeographyCompanion data) {
+    return GeographyData(
+      id: data.id.present ? data.id.value : this.id,
+      country: data.country.present ? data.country.value : this.country,
+      islandGroup: data.islandGroup.present
+          ? data.islandGroup.value
+          : this.islandGroup,
+      stateProvince: data.stateProvince.present
+          ? data.stateProvince.value
+          : this.stateProvince,
+      county: data.county.present ? data.county.value : this.county,
+      municipality: data.municipality.present
+          ? data.municipality.value
+          : this.municipality,
+      locality: data.locality.present ? data.locality.value : this.locality,
+      matchKey: data.matchKey.present ? data.matchKey.value : this.matchKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeographyData(')
+          ..write('id: $id, ')
+          ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
+          ..write('stateProvince: $stateProvince, ')
+          ..write('county: $county, ')
+          ..write('municipality: $municipality, ')
+          ..write('locality: $locality, ')
+          ..write('matchKey: $matchKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    country,
+    islandGroup,
+    stateProvince,
+    county,
+    municipality,
+    locality,
+    matchKey,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeographyData &&
+          other.id == this.id &&
+          other.country == this.country &&
+          other.islandGroup == this.islandGroup &&
+          other.stateProvince == this.stateProvince &&
+          other.county == this.county &&
+          other.municipality == this.municipality &&
+          other.locality == this.locality &&
+          other.matchKey == this.matchKey);
+}
+
+class GeographyCompanion extends UpdateCompanion<GeographyData> {
+  final Value<int> id;
+  final Value<String?> country;
+  final Value<String?> islandGroup;
+  final Value<String?> stateProvince;
+  final Value<String?> county;
+  final Value<String?> municipality;
+  final Value<String?> locality;
+  final Value<String> matchKey;
+  const GeographyCompanion({
+    this.id = const Value.absent(),
+    this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
+    this.stateProvince = const Value.absent(),
+    this.county = const Value.absent(),
+    this.municipality = const Value.absent(),
+    this.locality = const Value.absent(),
+    this.matchKey = const Value.absent(),
+  });
+  GeographyCompanion.insert({
+    this.id = const Value.absent(),
+    this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
+    this.stateProvince = const Value.absent(),
+    this.county = const Value.absent(),
+    this.municipality = const Value.absent(),
+    this.locality = const Value.absent(),
+    required String matchKey,
+  }) : matchKey = Value(matchKey);
+  static Insertable<GeographyData> custom({
+    Expression<int>? id,
+    Expression<String>? country,
+    Expression<String>? islandGroup,
+    Expression<String>? stateProvince,
+    Expression<String>? county,
+    Expression<String>? municipality,
+    Expression<String>? locality,
+    Expression<String>? matchKey,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (country != null) 'country': country,
+      if (islandGroup != null) 'islandGroup': islandGroup,
+      if (stateProvince != null) 'stateProvince': stateProvince,
+      if (county != null) 'county': county,
+      if (municipality != null) 'municipality': municipality,
+      if (locality != null) 'locality': locality,
+      if (matchKey != null) 'matchKey': matchKey,
+    });
+  }
+
+  GeographyCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? country,
+    Value<String?>? islandGroup,
+    Value<String?>? stateProvince,
+    Value<String?>? county,
+    Value<String?>? municipality,
+    Value<String?>? locality,
+    Value<String>? matchKey,
+  }) {
+    return GeographyCompanion(
+      id: id ?? this.id,
+      country: country ?? this.country,
+      islandGroup: islandGroup ?? this.islandGroup,
+      stateProvince: stateProvince ?? this.stateProvince,
+      county: county ?? this.county,
+      municipality: municipality ?? this.municipality,
+      locality: locality ?? this.locality,
+      matchKey: matchKey ?? this.matchKey,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
+    }
+    if (islandGroup.present) {
+      map['islandGroup'] = Variable<String>(islandGroup.value);
+    }
+    if (stateProvince.present) {
+      map['stateProvince'] = Variable<String>(stateProvince.value);
+    }
+    if (county.present) {
+      map['county'] = Variable<String>(county.value);
+    }
+    if (municipality.present) {
+      map['municipality'] = Variable<String>(municipality.value);
+    }
+    if (locality.present) {
+      map['locality'] = Variable<String>(locality.value);
+    }
+    if (matchKey.present) {
+      map['matchKey'] = Variable<String>(matchKey.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeographyCompanion(')
+          ..write('id: $id, ')
+          ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
+          ..write('stateProvince: $stateProvince, ')
+          ..write('county: $county, ')
+          ..write('municipality: $municipality, ')
+          ..write('locality: $locality, ')
+          ..write('matchKey: $matchKey')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2420,56 +2944,14 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _countryMeta = const VerificationMeta(
-    'country',
+  static const VerificationMeta _geographyIdMeta = const VerificationMeta(
+    'geographyId',
   );
-  late final GeneratedColumn<String> country = GeneratedColumn<String>(
-    'country',
+  late final GeneratedColumn<int> geographyId = GeneratedColumn<int>(
+    'geographyId',
     aliasedName,
     true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _islandGroupMeta = const VerificationMeta(
-    'islandGroup',
-  );
-  late final GeneratedColumn<String> islandGroup = GeneratedColumn<String>(
-    'islandGroup',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _stateProvinceMeta = const VerificationMeta(
-    'stateProvince',
-  );
-  late final GeneratedColumn<String> stateProvince = GeneratedColumn<String>(
-    'stateProvince',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _countyMeta = const VerificationMeta('county');
-  late final GeneratedColumn<String> county = GeneratedColumn<String>(
-    'county',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _municipalityMeta = const VerificationMeta(
-    'municipality',
-  );
-  late final GeneratedColumn<String> municipality = GeneratedColumn<String>(
-    'municipality',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -2478,17 +2960,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
   );
   late final GeneratedColumn<String> mediaID = GeneratedColumn<String>(
     'mediaID',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _localityMeta = const VerificationMeta(
-    'locality',
-  );
-  late final GeneratedColumn<String> locality = GeneratedColumn<String>(
-    'locality',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -2511,13 +2982,8 @@ class Site extends Table with TableInfo<Site, SiteData> {
     projectUuid,
     leadStaffId,
     siteType,
-    country,
-    islandGroup,
-    stateProvince,
-    county,
-    municipality,
+    geographyId,
     mediaID,
-    locality,
     remark,
   ];
   @override
@@ -2565,42 +3031,12 @@ class Site extends Table with TableInfo<Site, SiteData> {
         siteType.isAcceptableOrUnknown(data['siteType']!, _siteTypeMeta),
       );
     }
-    if (data.containsKey('country')) {
+    if (data.containsKey('geographyId')) {
       context.handle(
-        _countryMeta,
-        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
-      );
-    }
-    if (data.containsKey('islandGroup')) {
-      context.handle(
-        _islandGroupMeta,
-        islandGroup.isAcceptableOrUnknown(
-          data['islandGroup']!,
-          _islandGroupMeta,
-        ),
-      );
-    }
-    if (data.containsKey('stateProvince')) {
-      context.handle(
-        _stateProvinceMeta,
-        stateProvince.isAcceptableOrUnknown(
-          data['stateProvince']!,
-          _stateProvinceMeta,
-        ),
-      );
-    }
-    if (data.containsKey('county')) {
-      context.handle(
-        _countyMeta,
-        county.isAcceptableOrUnknown(data['county']!, _countyMeta),
-      );
-    }
-    if (data.containsKey('municipality')) {
-      context.handle(
-        _municipalityMeta,
-        municipality.isAcceptableOrUnknown(
-          data['municipality']!,
-          _municipalityMeta,
+        _geographyIdMeta,
+        geographyId.isAcceptableOrUnknown(
+          data['geographyId']!,
+          _geographyIdMeta,
         ),
       );
     }
@@ -2608,12 +3044,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
       context.handle(
         _mediaIDMeta,
         mediaID.isAcceptableOrUnknown(data['mediaID']!, _mediaIDMeta),
-      );
-    }
-    if (data.containsKey('locality')) {
-      context.handle(
-        _localityMeta,
-        locality.isAcceptableOrUnknown(data['locality']!, _localityMeta),
       );
     }
     if (data.containsKey('remark')) {
@@ -2651,33 +3081,13 @@ class Site extends Table with TableInfo<Site, SiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}siteType'],
       ),
-      country: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}country'],
-      ),
-      islandGroup: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}islandGroup'],
-      ),
-      stateProvince: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}stateProvince'],
-      ),
-      county: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}county'],
-      ),
-      municipality: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}municipality'],
+      geographyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}geographyId'],
       ),
       mediaID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}mediaID'],
-      ),
-      locality: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}locality'],
       ),
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -2693,6 +3103,7 @@ class Site extends Table with TableInfo<Site, SiteData> {
 
   @override
   List<String> get customConstraints => const [
+    'FOREIGN KEY(geographyId)REFERENCES geography(id)',
     'FOREIGN KEY(mediaID)REFERENCES media(primaryId)',
     'FOREIGN KEY(leadStaffId)REFERENCES personnel(uuid)',
   ];
@@ -2706,15 +3117,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
   final String? projectUuid;
   final String? leadStaffId;
   final String? siteType;
-  final String? country;
-  final String? islandGroup;
-  final String? stateProvince;
-  final String? county;
-  final String? municipality;
+  final int? geographyId;
   final String? mediaID;
-  final String? locality;
-
-  /// verbatim locality in DWC
   final String? remark;
   const SiteData({
     required this.id,
@@ -2722,13 +3126,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     this.projectUuid,
     this.leadStaffId,
     this.siteType,
-    this.country,
-    this.islandGroup,
-    this.stateProvince,
-    this.county,
-    this.municipality,
+    this.geographyId,
     this.mediaID,
-    this.locality,
     this.remark,
   });
   @override
@@ -2747,26 +3146,11 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     if (!nullToAbsent || siteType != null) {
       map['siteType'] = Variable<String>(siteType);
     }
-    if (!nullToAbsent || country != null) {
-      map['country'] = Variable<String>(country);
-    }
-    if (!nullToAbsent || islandGroup != null) {
-      map['islandGroup'] = Variable<String>(islandGroup);
-    }
-    if (!nullToAbsent || stateProvince != null) {
-      map['stateProvince'] = Variable<String>(stateProvince);
-    }
-    if (!nullToAbsent || county != null) {
-      map['county'] = Variable<String>(county);
-    }
-    if (!nullToAbsent || municipality != null) {
-      map['municipality'] = Variable<String>(municipality);
+    if (!nullToAbsent || geographyId != null) {
+      map['geographyId'] = Variable<int>(geographyId);
     }
     if (!nullToAbsent || mediaID != null) {
       map['mediaID'] = Variable<String>(mediaID);
-    }
-    if (!nullToAbsent || locality != null) {
-      map['locality'] = Variable<String>(locality);
     }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
@@ -2789,27 +3173,12 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       siteType: siteType == null && nullToAbsent
           ? const Value.absent()
           : Value(siteType),
-      country: country == null && nullToAbsent
+      geographyId: geographyId == null && nullToAbsent
           ? const Value.absent()
-          : Value(country),
-      islandGroup: islandGroup == null && nullToAbsent
-          ? const Value.absent()
-          : Value(islandGroup),
-      stateProvince: stateProvince == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stateProvince),
-      county: county == null && nullToAbsent
-          ? const Value.absent()
-          : Value(county),
-      municipality: municipality == null && nullToAbsent
-          ? const Value.absent()
-          : Value(municipality),
+          : Value(geographyId),
       mediaID: mediaID == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaID),
-      locality: locality == null && nullToAbsent
-          ? const Value.absent()
-          : Value(locality),
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
@@ -2827,13 +3196,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       leadStaffId: serializer.fromJson<String?>(json['leadStaffId']),
       siteType: serializer.fromJson<String?>(json['siteType']),
-      country: serializer.fromJson<String?>(json['country']),
-      islandGroup: serializer.fromJson<String?>(json['islandGroup']),
-      stateProvince: serializer.fromJson<String?>(json['stateProvince']),
-      county: serializer.fromJson<String?>(json['county']),
-      municipality: serializer.fromJson<String?>(json['municipality']),
+      geographyId: serializer.fromJson<int?>(json['geographyId']),
       mediaID: serializer.fromJson<String?>(json['mediaID']),
-      locality: serializer.fromJson<String?>(json['locality']),
       remark: serializer.fromJson<String?>(json['remark']),
     );
   }
@@ -2846,13 +3210,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'leadStaffId': serializer.toJson<String?>(leadStaffId),
       'siteType': serializer.toJson<String?>(siteType),
-      'country': serializer.toJson<String?>(country),
-      'islandGroup': serializer.toJson<String?>(islandGroup),
-      'stateProvince': serializer.toJson<String?>(stateProvince),
-      'county': serializer.toJson<String?>(county),
-      'municipality': serializer.toJson<String?>(municipality),
+      'geographyId': serializer.toJson<int?>(geographyId),
       'mediaID': serializer.toJson<String?>(mediaID),
-      'locality': serializer.toJson<String?>(locality),
       'remark': serializer.toJson<String?>(remark),
     };
   }
@@ -2863,13 +3222,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     Value<String?> projectUuid = const Value.absent(),
     Value<String?> leadStaffId = const Value.absent(),
     Value<String?> siteType = const Value.absent(),
-    Value<String?> country = const Value.absent(),
-    Value<String?> islandGroup = const Value.absent(),
-    Value<String?> stateProvince = const Value.absent(),
-    Value<String?> county = const Value.absent(),
-    Value<String?> municipality = const Value.absent(),
+    Value<int?> geographyId = const Value.absent(),
     Value<String?> mediaID = const Value.absent(),
-    Value<String?> locality = const Value.absent(),
     Value<String?> remark = const Value.absent(),
   }) => SiteData(
     id: id ?? this.id,
@@ -2877,15 +3231,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
     leadStaffId: leadStaffId.present ? leadStaffId.value : this.leadStaffId,
     siteType: siteType.present ? siteType.value : this.siteType,
-    country: country.present ? country.value : this.country,
-    islandGroup: islandGroup.present ? islandGroup.value : this.islandGroup,
-    stateProvince: stateProvince.present
-        ? stateProvince.value
-        : this.stateProvince,
-    county: county.present ? county.value : this.county,
-    municipality: municipality.present ? municipality.value : this.municipality,
+    geographyId: geographyId.present ? geographyId.value : this.geographyId,
     mediaID: mediaID.present ? mediaID.value : this.mediaID,
-    locality: locality.present ? locality.value : this.locality,
     remark: remark.present ? remark.value : this.remark,
   );
   SiteData copyWithCompanion(SiteCompanion data) {
@@ -2899,19 +3246,10 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ? data.leadStaffId.value
           : this.leadStaffId,
       siteType: data.siteType.present ? data.siteType.value : this.siteType,
-      country: data.country.present ? data.country.value : this.country,
-      islandGroup: data.islandGroup.present
-          ? data.islandGroup.value
-          : this.islandGroup,
-      stateProvince: data.stateProvince.present
-          ? data.stateProvince.value
-          : this.stateProvince,
-      county: data.county.present ? data.county.value : this.county,
-      municipality: data.municipality.present
-          ? data.municipality.value
-          : this.municipality,
+      geographyId: data.geographyId.present
+          ? data.geographyId.value
+          : this.geographyId,
       mediaID: data.mediaID.present ? data.mediaID.value : this.mediaID,
-      locality: data.locality.present ? data.locality.value : this.locality,
       remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
@@ -2924,13 +3262,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ..write('projectUuid: $projectUuid, ')
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
-          ..write('country: $country, ')
-          ..write('islandGroup: $islandGroup, ')
-          ..write('stateProvince: $stateProvince, ')
-          ..write('county: $county, ')
-          ..write('municipality: $municipality, ')
+          ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
-          ..write('locality: $locality, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -2943,13 +3276,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     projectUuid,
     leadStaffId,
     siteType,
-    country,
-    islandGroup,
-    stateProvince,
-    county,
-    municipality,
+    geographyId,
     mediaID,
-    locality,
     remark,
   );
   @override
@@ -2961,13 +3289,8 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           other.projectUuid == this.projectUuid &&
           other.leadStaffId == this.leadStaffId &&
           other.siteType == this.siteType &&
-          other.country == this.country &&
-          other.islandGroup == this.islandGroup &&
-          other.stateProvince == this.stateProvince &&
-          other.county == this.county &&
-          other.municipality == this.municipality &&
+          other.geographyId == this.geographyId &&
           other.mediaID == this.mediaID &&
-          other.locality == this.locality &&
           other.remark == this.remark);
 }
 
@@ -2977,13 +3300,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
   final Value<String?> projectUuid;
   final Value<String?> leadStaffId;
   final Value<String?> siteType;
-  final Value<String?> country;
-  final Value<String?> islandGroup;
-  final Value<String?> stateProvince;
-  final Value<String?> county;
-  final Value<String?> municipality;
+  final Value<int?> geographyId;
   final Value<String?> mediaID;
-  final Value<String?> locality;
   final Value<String?> remark;
   const SiteCompanion({
     this.id = const Value.absent(),
@@ -2991,13 +3309,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.projectUuid = const Value.absent(),
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
-    this.country = const Value.absent(),
-    this.islandGroup = const Value.absent(),
-    this.stateProvince = const Value.absent(),
-    this.county = const Value.absent(),
-    this.municipality = const Value.absent(),
+    this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
-    this.locality = const Value.absent(),
     this.remark = const Value.absent(),
   });
   SiteCompanion.insert({
@@ -3006,13 +3319,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.projectUuid = const Value.absent(),
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
-    this.country = const Value.absent(),
-    this.islandGroup = const Value.absent(),
-    this.stateProvince = const Value.absent(),
-    this.county = const Value.absent(),
-    this.municipality = const Value.absent(),
+    this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
-    this.locality = const Value.absent(),
     this.remark = const Value.absent(),
   });
   static Insertable<SiteData> custom({
@@ -3021,13 +3329,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Expression<String>? projectUuid,
     Expression<String>? leadStaffId,
     Expression<String>? siteType,
-    Expression<String>? country,
-    Expression<String>? islandGroup,
-    Expression<String>? stateProvince,
-    Expression<String>? county,
-    Expression<String>? municipality,
+    Expression<int>? geographyId,
     Expression<String>? mediaID,
-    Expression<String>? locality,
     Expression<String>? remark,
   }) {
     return RawValuesInsertable({
@@ -3036,13 +3339,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (leadStaffId != null) 'leadStaffId': leadStaffId,
       if (siteType != null) 'siteType': siteType,
-      if (country != null) 'country': country,
-      if (islandGroup != null) 'islandGroup': islandGroup,
-      if (stateProvince != null) 'stateProvince': stateProvince,
-      if (county != null) 'county': county,
-      if (municipality != null) 'municipality': municipality,
+      if (geographyId != null) 'geographyId': geographyId,
       if (mediaID != null) 'mediaID': mediaID,
-      if (locality != null) 'locality': locality,
       if (remark != null) 'remark': remark,
     });
   }
@@ -3053,13 +3351,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Value<String?>? projectUuid,
     Value<String?>? leadStaffId,
     Value<String?>? siteType,
-    Value<String?>? country,
-    Value<String?>? islandGroup,
-    Value<String?>? stateProvince,
-    Value<String?>? county,
-    Value<String?>? municipality,
+    Value<int?>? geographyId,
     Value<String?>? mediaID,
-    Value<String?>? locality,
     Value<String?>? remark,
   }) {
     return SiteCompanion(
@@ -3068,13 +3361,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       projectUuid: projectUuid ?? this.projectUuid,
       leadStaffId: leadStaffId ?? this.leadStaffId,
       siteType: siteType ?? this.siteType,
-      country: country ?? this.country,
-      islandGroup: islandGroup ?? this.islandGroup,
-      stateProvince: stateProvince ?? this.stateProvince,
-      county: county ?? this.county,
-      municipality: municipality ?? this.municipality,
+      geographyId: geographyId ?? this.geographyId,
       mediaID: mediaID ?? this.mediaID,
-      locality: locality ?? this.locality,
       remark: remark ?? this.remark,
     );
   }
@@ -3097,26 +3385,11 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     if (siteType.present) {
       map['siteType'] = Variable<String>(siteType.value);
     }
-    if (country.present) {
-      map['country'] = Variable<String>(country.value);
-    }
-    if (islandGroup.present) {
-      map['islandGroup'] = Variable<String>(islandGroup.value);
-    }
-    if (stateProvince.present) {
-      map['stateProvince'] = Variable<String>(stateProvince.value);
-    }
-    if (county.present) {
-      map['county'] = Variable<String>(county.value);
-    }
-    if (municipality.present) {
-      map['municipality'] = Variable<String>(municipality.value);
+    if (geographyId.present) {
+      map['geographyId'] = Variable<int>(geographyId.value);
     }
     if (mediaID.present) {
       map['mediaID'] = Variable<String>(mediaID.value);
-    }
-    if (locality.present) {
-      map['locality'] = Variable<String>(locality.value);
     }
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
@@ -3132,13 +3405,8 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
           ..write('projectUuid: $projectUuid, ')
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
-          ..write('country: $country, ')
-          ..write('islandGroup: $islandGroup, ')
-          ..write('stateProvince: $stateProvince, ')
-          ..write('county: $county, ')
-          ..write('municipality: $municipality, ')
+          ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
-          ..write('locality: $locality, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -24469,6 +24737,7 @@ abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
   late final Project project = Project(this);
+  late final Geography geography = Geography(this);
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
   late final Site site = Site(this);
@@ -24561,6 +24830,10 @@ abstract class _$Database extends GeneratedDatabase {
     'site_project_idx',
     'CREATE INDEX IF NOT EXISTS site_project_idx ON site (projectUuid)',
   );
+  late final Index siteGeographyIdx = Index(
+    'site_geography_idx',
+    'CREATE INDEX IF NOT EXISTS site_geography_idx ON site (geographyId)',
+  );
   late final Index coordinateSiteIdx = Index(
     'coordinate_site_idx',
     'CREATE INDEX IF NOT EXISTS coordinate_site_idx ON coordinate (siteID)',
@@ -24611,6 +24884,7 @@ abstract class _$Database extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     project,
+    geography,
     personnel,
     media,
     site,
@@ -24657,6 +24931,7 @@ abstract class _$Database extends GeneratedDatabase {
     specimenProjectSpeciesIdx,
     specimenProjectEventIdx,
     siteProjectIdx,
+    siteGeographyIdx,
     coordinateSiteIdx,
     specimenProjectCoordinateIdx,
     collEventProjectSiteIdx,
@@ -25291,6 +25566,254 @@ typedef $ProjectProcessedTableManager =
       (ProjectData, $ProjectReferences),
       ProjectData,
       PrefetchHooks Function({bool associatedDataRefs})
+    >;
+typedef $GeographyCreateCompanionBuilder =
+    GeographyCompanion Function({
+      Value<int> id,
+      Value<String?> country,
+      Value<String?> islandGroup,
+      Value<String?> stateProvince,
+      Value<String?> county,
+      Value<String?> municipality,
+      Value<String?> locality,
+      required String matchKey,
+    });
+typedef $GeographyUpdateCompanionBuilder =
+    GeographyCompanion Function({
+      Value<int> id,
+      Value<String?> country,
+      Value<String?> islandGroup,
+      Value<String?> stateProvince,
+      Value<String?> county,
+      Value<String?> municipality,
+      Value<String?> locality,
+      Value<String> matchKey,
+    });
+
+class $GeographyFilterComposer extends Composer<_$Database, Geography> {
+  $GeographyFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get county => $composableBuilder(
+    column: $table.county,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locality => $composableBuilder(
+    column: $table.locality,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matchKey => $composableBuilder(
+    column: $table.matchKey,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $GeographyOrderingComposer extends Composer<_$Database, Geography> {
+  $GeographyOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get county => $composableBuilder(
+    column: $table.county,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locality => $composableBuilder(
+    column: $table.locality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get matchKey => $composableBuilder(
+    column: $table.matchKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $GeographyAnnotationComposer extends Composer<_$Database, Geography> {
+  $GeographyAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get country =>
+      $composableBuilder(column: $table.country, builder: (column) => column);
+
+  GeneratedColumn<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get county =>
+      $composableBuilder(column: $table.county, builder: (column) => column);
+
+  GeneratedColumn<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locality =>
+      $composableBuilder(column: $table.locality, builder: (column) => column);
+
+  GeneratedColumn<String> get matchKey =>
+      $composableBuilder(column: $table.matchKey, builder: (column) => column);
+}
+
+class $GeographyTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          Geography,
+          GeographyData,
+          $GeographyFilterComposer,
+          $GeographyOrderingComposer,
+          $GeographyAnnotationComposer,
+          $GeographyCreateCompanionBuilder,
+          $GeographyUpdateCompanionBuilder,
+          (GeographyData, BaseReferences<_$Database, Geography, GeographyData>),
+          GeographyData,
+          PrefetchHooks Function()
+        > {
+  $GeographyTableManager(_$Database db, Geography table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $GeographyFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $GeographyOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $GeographyAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
+                Value<String?> stateProvince = const Value.absent(),
+                Value<String?> county = const Value.absent(),
+                Value<String?> municipality = const Value.absent(),
+                Value<String?> locality = const Value.absent(),
+                Value<String> matchKey = const Value.absent(),
+              }) => GeographyCompanion(
+                id: id,
+                country: country,
+                islandGroup: islandGroup,
+                stateProvince: stateProvince,
+                county: county,
+                municipality: municipality,
+                locality: locality,
+                matchKey: matchKey,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
+                Value<String?> stateProvince = const Value.absent(),
+                Value<String?> county = const Value.absent(),
+                Value<String?> municipality = const Value.absent(),
+                Value<String?> locality = const Value.absent(),
+                required String matchKey,
+              }) => GeographyCompanion.insert(
+                id: id,
+                country: country,
+                islandGroup: islandGroup,
+                stateProvince: stateProvince,
+                county: county,
+                municipality: municipality,
+                locality: locality,
+                matchKey: matchKey,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $GeographyProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      Geography,
+      GeographyData,
+      $GeographyFilterComposer,
+      $GeographyOrderingComposer,
+      $GeographyAnnotationComposer,
+      $GeographyCreateCompanionBuilder,
+      $GeographyUpdateCompanionBuilder,
+      (GeographyData, BaseReferences<_$Database, Geography, GeographyData>),
+      GeographyData,
+      PrefetchHooks Function()
     >;
 typedef $PersonnelCreateCompanionBuilder =
     PersonnelCompanion Function({
@@ -26171,13 +26694,8 @@ typedef $SiteCreateCompanionBuilder =
       Value<String?> projectUuid,
       Value<String?> leadStaffId,
       Value<String?> siteType,
-      Value<String?> country,
-      Value<String?> islandGroup,
-      Value<String?> stateProvince,
-      Value<String?> county,
-      Value<String?> municipality,
+      Value<int?> geographyId,
       Value<String?> mediaID,
-      Value<String?> locality,
       Value<String?> remark,
     });
 typedef $SiteUpdateCompanionBuilder =
@@ -26187,13 +26705,8 @@ typedef $SiteUpdateCompanionBuilder =
       Value<String?> projectUuid,
       Value<String?> leadStaffId,
       Value<String?> siteType,
-      Value<String?> country,
-      Value<String?> islandGroup,
-      Value<String?> stateProvince,
-      Value<String?> county,
-      Value<String?> municipality,
+      Value<int?> geographyId,
       Value<String?> mediaID,
-      Value<String?> locality,
       Value<String?> remark,
     });
 
@@ -26252,38 +26765,13 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get country => $composableBuilder(
-    column: $table.country,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get islandGroup => $composableBuilder(
-    column: $table.islandGroup,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get county => $composableBuilder(
-    column: $table.county,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  ColumnFilters<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get mediaID => $composableBuilder(
     column: $table.mediaID,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get locality => $composableBuilder(
-    column: $table.locality,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -26351,38 +26839,13 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get country => $composableBuilder(
-    column: $table.country,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get islandGroup => $composableBuilder(
-    column: $table.islandGroup,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get county => $composableBuilder(
-    column: $table.county,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  ColumnOrderings<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get mediaID => $composableBuilder(
     column: $table.mediaID,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get locality => $composableBuilder(
-    column: $table.locality,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -26419,32 +26882,13 @@ class $SiteAnnotationComposer extends Composer<_$Database, Site> {
   GeneratedColumn<String> get siteType =>
       $composableBuilder(column: $table.siteType, builder: (column) => column);
 
-  GeneratedColumn<String> get country =>
-      $composableBuilder(column: $table.country, builder: (column) => column);
-
-  GeneratedColumn<String> get islandGroup => $composableBuilder(
-    column: $table.islandGroup,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get county =>
-      $composableBuilder(column: $table.county, builder: (column) => column);
-
-  GeneratedColumn<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  GeneratedColumn<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => column,
   );
 
   GeneratedColumn<String> get mediaID =>
       $composableBuilder(column: $table.mediaID, builder: (column) => column);
-
-  GeneratedColumn<String> get locality =>
-      $composableBuilder(column: $table.locality, builder: (column) => column);
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
@@ -26508,13 +26952,8 @@ class $SiteTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
-                Value<String?> country = const Value.absent(),
-                Value<String?> islandGroup = const Value.absent(),
-                Value<String?> stateProvince = const Value.absent(),
-                Value<String?> county = const Value.absent(),
-                Value<String?> municipality = const Value.absent(),
+                Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
-                Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
               }) => SiteCompanion(
                 id: id,
@@ -26522,13 +26961,8 @@ class $SiteTableManager
                 projectUuid: projectUuid,
                 leadStaffId: leadStaffId,
                 siteType: siteType,
-                country: country,
-                islandGroup: islandGroup,
-                stateProvince: stateProvince,
-                county: county,
-                municipality: municipality,
+                geographyId: geographyId,
                 mediaID: mediaID,
-                locality: locality,
                 remark: remark,
               ),
           createCompanionCallback:
@@ -26538,13 +26972,8 @@ class $SiteTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
-                Value<String?> country = const Value.absent(),
-                Value<String?> islandGroup = const Value.absent(),
-                Value<String?> stateProvince = const Value.absent(),
-                Value<String?> county = const Value.absent(),
-                Value<String?> municipality = const Value.absent(),
+                Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
-                Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
               }) => SiteCompanion.insert(
                 id: id,
@@ -26552,13 +26981,8 @@ class $SiteTableManager
                 projectUuid: projectUuid,
                 leadStaffId: leadStaffId,
                 siteType: siteType,
-                country: country,
-                islandGroup: islandGroup,
-                stateProvince: stateProvince,
-                county: county,
-                municipality: municipality,
+                geographyId: geographyId,
                 mediaID: mediaID,
-                locality: locality,
                 remark: remark,
               ),
           withReferenceMapper: (p0) => p0
@@ -36972,6 +37396,8 @@ class $DatabaseManager {
   final _$Database _db;
   $DatabaseManager(this._db);
   $ProjectTableManager get project => $ProjectTableManager(_db, _db.project);
+  $GeographyTableManager get geography =>
+      $GeographyTableManager(_db, _db.geography);
   $PersonnelTableManager get personnel =>
       $PersonnelTableManager(_db, _db.personnel);
   $MediaTableManager get media => $MediaTableManager(_db, _db.media);

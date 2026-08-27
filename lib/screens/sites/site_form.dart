@@ -44,7 +44,7 @@ class SiteFormState extends ConsumerState<SiteForm> {
               useHorizontalLayout: useHorizontalLayout,
               siteFormCtr: widget.siteFormCtr,
             ),
-            Geography(
+            SiteGeography(
               id: widget.id,
               useHorizontalLayout: useHorizontalLayout,
               siteFormCtr: widget.siteFormCtr,

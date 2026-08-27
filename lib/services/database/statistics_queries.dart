@@ -576,10 +576,10 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       coordinate.uncertaintyInMeters AS uncertainty,
       coordinate.gpsUnit AS gps_unit,
       coordinate.notes AS notes,
-      site.stateProvince AS state_province,
-      site.county AS county,
-      site.municipality AS municipality,
-      site.locality AS locality
+      geography.stateProvince AS state_province,
+      geography.county AS county,
+      geography.municipality AS municipality,
+      geography.locality AS locality
     ''';
     final variables = <Variable>[Variable(request.projectUuid)];
     late String sql;
@@ -588,21 +588,33 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     switch (request.kind) {
       case SpatialStatisticKind.specimens:
         sql = _spatialCountSql('COUNT(specimen.uuid)', coordinateColumns);
-        tables = {db.coordinate, db.site, db.specimen};
+        tables = {db.coordinate, db.site, db.geography, db.specimen};
       case SpatialStatisticKind.species:
         sql = _spatialCountSql(
           'COUNT(DISTINCT $_speciesLabel)',
           coordinateColumns,
           taxonomy: true,
         );
-        tables = {db.coordinate, db.site, db.specimen, db.taxonomy};
+        tables = {
+          db.coordinate,
+          db.site,
+          db.geography,
+          db.specimen,
+          db.taxonomy,
+        };
       case SpatialStatisticKind.family:
         sql = _spatialCountSql(
           'COUNT(DISTINCT $_familyLabel)',
           coordinateColumns,
           taxonomy: true,
         );
-        tables = {db.coordinate, db.site, db.specimen, db.taxonomy};
+        tables = {
+          db.coordinate,
+          db.site,
+          db.geography,
+          db.specimen,
+          db.taxonomy,
+        };
       case SpatialStatisticKind.coordinatesBySpecies:
         variables.add(Variable(request.speciesId!));
         sql = _spatialCountSql(
@@ -610,7 +622,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           coordinateColumns,
           specimenCondition: 'AND specimen.speciesID = ?',
         );
-        tables = {db.coordinate, db.site, db.specimen};
+        tables = {db.coordinate, db.site, db.geography, db.specimen};
     }
 
     variables.add(Variable(request.projectUuid));
@@ -627,6 +639,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         SELECT $coordinateColumns, $countExpression AS count
         FROM coordinate
         INNER JOIN site ON site.id = coordinate.siteID
+        LEFT JOIN geography ON geography.id = site.geographyId
         INNER JOIN specimen
           ON specimen.coordinateID = coordinate.id
           AND specimen.projectUuid = ?

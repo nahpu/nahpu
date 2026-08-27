@@ -14,6 +14,7 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/associated_data.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeActions {
   const RecordExchangeActions({required this.context, required this.ref});
@@ -275,6 +276,7 @@ class RecordExchangeActions {
     try {
       final service = RecordExchangeService(ref: ref);
       final sites = await service.getCurrentProjectSites();
+      final matched = await service.matchedGeography(payload);
       if (!context.mounted) return;
       final choice = await showRecordImportTargetDialog(
         context: context,
@@ -282,6 +284,9 @@ class RecordExchangeActions {
         sites: sites,
         events: const [],
         initialTargetId: initialTargetId,
+        matchedLocality: matched == null
+            ? null
+            : GeographyDraft.fromData(matched).displayName,
       );
       if (choice == null) return;
       final result = await service.importPayload(

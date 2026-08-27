@@ -5,6 +5,7 @@ part of 'project_queries.dart';
 // ignore_for_file: type=lint
 mixin _$ProjectQueryMixin on DatabaseAccessor<Database> {
   Project get project => attachedDatabase.project;
+  Geography get geography => attachedDatabase.geography;
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
   Site get site => attachedDatabase.site;
@@ -50,6 +51,8 @@ class ProjectQueryManager {
   ProjectQueryManager(this._db);
   $ProjectTableManager get project =>
       $ProjectTableManager(_db.attachedDatabase, _db.project);
+  $GeographyTableManager get geography =>
+      $GeographyTableManager(_db.attachedDatabase, _db.geography);
   $PersonnelTableManager get personnel =>
       $PersonnelTableManager(_db.attachedDatabase, _db.personnel);
   $MediaTableManager get media =>

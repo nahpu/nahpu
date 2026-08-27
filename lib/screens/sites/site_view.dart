@@ -11,7 +11,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/sites/components/menu_bar.dart';
 import 'package:nahpu/screens/sites/site_form.dart';
-import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 enum MenuSelection { newSite, pdfExport, deleteRecords, deleteAllRecords }
 
@@ -23,7 +23,7 @@ class SiteViewer extends ConsumerStatefulWidget {
 }
 
 class SiteViewerState extends ConsumerState<SiteViewer>
-    with RecordPageReconciler<SiteData, SiteEntry, SiteViewer> {
+    with RecordPageReconciler<SiteRecord, SiteEntry, SiteViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _siteId;
   bool _isSearching = false;
@@ -33,14 +33,14 @@ class SiteViewerState extends ConsumerState<SiteViewer>
   RecordViewer get recordViewer => RecordViewer.site;
 
   @override
-  AsyncNotifierProvider<SiteEntry, List<SiteData>> get entryProvider =>
+  AsyncNotifierProvider<SiteEntry, List<SiteRecord>> get entryProvider =>
       siteEntryProvider;
 
   @override
-  Object recordIdOf(SiteData entry) => entry.id;
+  Object recordIdOf(SiteRecord entry) => entry.id;
 
   @override
-  void selectRecord(SiteData? entry) => _siteId = entry?.id;
+  void selectRecord(SiteRecord? entry) => _siteId = entry?.id;
 
   @override
   void invalidateEntries() => ref.invalidate(siteEntryProvider);
@@ -166,7 +166,7 @@ class SitePages extends ConsumerWidget {
     required this.onPageChanged,
   });
 
-  final List<SiteData> siteEntries;
+  final List<SiteRecord> siteEntries;
   final PageNavigation pageNav;
   final bool isNavButtonVisible;
   final void Function(int) onPageChanged;

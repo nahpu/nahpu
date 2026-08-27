@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
@@ -13,6 +14,7 @@ import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_custom_fields.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
@@ -29,6 +31,7 @@ class RecordExchangeSiteEvent extends AppServices {
               ..where((row) => row.projectUuid.equals(currentProjectUuid)))
             .getSingleOrNull();
     if (site == null) throw const FormatException('Site could not be found.');
+    final siteRecord = await _withGeography(site);
 
     final coordinates = await CoordinateQuery(
       dbAccess,
@@ -45,7 +48,7 @@ class RecordExchangeSiteEvent extends AppServices {
     return RecordExchangePayload(
       type: RecordExchangeType.site,
       data: {
-        'site': support.portableSite(site),
+        'site': support.portableSite(siteRecord),
         'siteAttribute': siteAttribute == null
             ? null
             : support.portableSiteAttribute(siteAttribute),
@@ -107,7 +110,7 @@ class RecordExchangeSiteEvent extends AppServices {
           dbAccess,
         ).getSiteAttribute(site.id);
         linkedSite = {
-          'site': support.portableSite(site),
+          'site': support.portableSite(await _withGeography(site)),
           'siteAttribute': siteAttribute == null
               ? null
               : support.portableSiteAttribute(siteAttribute),
@@ -183,7 +186,12 @@ class RecordExchangeSiteEvent extends AppServices {
       siteJson['leadStaffId'],
     );
     support.validatePersonnelReference(leadStaffId, personnelIds);
-    final companion = support.siteCompanion(siteJson);
+    final companion = support
+        .siteCompanion(siteJson)
+        .copyWith(
+          // Reuses the matching locality when this site's geography already exists.
+          geographyId: db.Value(await support.resolveGeography(siteJson)),
+        );
     if (targetId != null) {
       final target =
           await (dbAccess.select(dbAccess.site)
@@ -386,7 +394,15 @@ class RecordExchangeSiteEvent extends AppServices {
     );
   }
 
-  Future<List<SiteData>> getCurrentProjectSites() {
+  /// Joins a site row with its shared locality for export.
+  Future<SiteRecord> _withGeography(SiteData site) async {
+    return SiteRecord(
+      site: site,
+      geography: await GeographyQuery(dbAccess).getById(site.geographyId),
+    );
+  }
+
+  Future<List<SiteRecord>> getCurrentProjectSites() {
     return SiteQuery(dbAccess).getAllSites(currentProjectUuid);
   }
 

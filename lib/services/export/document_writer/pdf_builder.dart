@@ -73,12 +73,12 @@ class _DocumentPdfBuilder {
   }
 
   Future<Uint8List> generateSitesPdf(
-    List<SiteData> sites, {
+    List<SiteRecord> sites, {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
   }) {
-    return _generateRecordsPdfGeneric<SiteData>(
+    return _generateRecordsPdfGeneric<SiteRecord>(
       sites,
       sheetWidthPt: sheetWidthPt,
       sheetHeightPt: sheetHeightPt,

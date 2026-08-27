@@ -155,6 +155,15 @@ class ProjectTransferService extends AppServices {
     }.toList();
     records['taxonomy'] = await _rowsForIds('taxonomy', 'id', taxonomyIds);
 
+    // Geography is shared across projects like taxonomy, so the referenced
+    // localities travel with the project and are matched on the way back in.
+    final geographyIds = records['site']!
+        .map((row) => row['geographyId'])
+        .whereType<int>()
+        .toSet()
+        .toList();
+    records['geography'] = await _rowsForIds('geography', 'id', geographyIds);
+
     final personnelIds = <String>{};
     final projectPersonnel = await _query(
       'SELECT personnelUuid FROM personnelList WHERE projectUuid = ?',
@@ -330,6 +339,10 @@ class ProjectTransferService extends AppServices {
     final localSites = mode == ProjectTransferImportMode.merge
         ? await _projectRows('site', projectUuid: destinationProjectUuid)
         : <Map<String, dynamic>>[];
+    // Site summaries read their locality through the geography table now, so
+    // both sides need a lookup keyed by geography id.
+    final localGeography = _rowsById(await _query('SELECT * FROM geography'));
+    final importedGeography = _rowsById(payload.rows('geography'));
     final sourceSiteMatches = <int, int>{};
     for (final imported in payload.rows('site')) {
       final current = _findSite(localSites, imported);
@@ -345,9 +358,9 @@ class ProjectTransferService extends AppServices {
           ProjectTransferConflict(
             id: _conflictId('site', sourceId),
             section: ProjectTransferSection.sites,
-            label: _siteName(imported),
-            currentSummary: _siteSummary(current),
-            importedSummary: _siteSummary(imported),
+            label: _siteName(imported, importedGeography),
+            currentSummary: _siteSummary(current, localGeography),
+            importedSummary: _siteSummary(imported, importedGeography),
           ),
         );
       }
@@ -589,6 +602,24 @@ class ProjectTransferService extends AppServices {
           }
         }
 
+        // Localities are shared and matched exactly, so they never conflict:
+        // an incoming locality either already exists or is inserted.
+        final geographyMap = <int, int>{};
+        for (final row in plan.payload.rows('geography')) {
+          final sourceId = row['id'] as int?;
+          final matchKey = row['matchKey'] as String?;
+          if (sourceId == null || matchKey == null) continue;
+          final existing = await _query(
+            'SELECT id FROM geography WHERE matchKey = ?',
+            [matchKey],
+          );
+          geographyMap[sourceId] = existing.isNotEmpty
+              ? existing.first['id'] as int
+              : await _insert('geography', row, omit: {'id'});
+        }
+        int? mappedGeography(Map<String, dynamic> row) =>
+            geographyMap[row['geographyId'] as int?];
+
         final siteMap = <int, int?>{};
         final coordinateMap = <int, int?>{};
         final sitesUsingImportedChildren = <int>{};
@@ -614,7 +645,12 @@ class ProjectTransferService extends AppServices {
             await _update(
               'site',
               _remapPersonnel(
-                {...row, 'id': targetId, 'projectUuid': targetProjectUuid},
+                {
+                  ...row,
+                  'id': targetId,
+                  'projectUuid': targetProjectUuid,
+                  'geographyId': mappedGeography(row),
+                },
                 'leadStaffId',
                 personnelMap,
               ),
@@ -631,6 +667,7 @@ class ProjectTransferService extends AppServices {
               {
                 ...row,
                 'projectUuid': targetProjectUuid,
+                'geographyId': mappedGeography(row),
                 if (current != null)
                   'siteID': await _uniqueSiteId(
                     row['siteID'] as String?,
@@ -2056,14 +2093,38 @@ class ProjectTransferService extends AppServices {
   static String _taxonName(Map<String, dynamic> row) =>
       '${row['genus'] ?? ''} ${row['specificEpithet'] ?? ''}'.trim();
 
-  static String _siteName(Map<String, dynamic> row) =>
-      row['siteID'] as String? ?? row['locality'] as String? ?? 'Unnamed site';
+  /// Indexes rows by their integer `id`, for resolving foreign keys in memory.
+  static Map<int, Map<String, dynamic>> _rowsById(
+    List<Map<String, dynamic>> rows,
+  ) => {
+    for (final row in rows)
+      if (row['id'] is int) row['id'] as int: row,
+  };
 
-  static String _siteSummary(Map<String, dynamic> row) => [
-    row['locality'],
-    row['stateProvince'],
-    row['country'],
-  ].whereType<String>().where((value) => value.isNotEmpty).join(', ');
+  static String _siteName(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) =>
+      row['siteID'] as String? ??
+      _geographyFor(row, geography)?['locality'] as String? ??
+      'Unnamed site';
+
+  static String _siteSummary(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) {
+    final locality = _geographyFor(row, geography);
+    return [
+      locality?['locality'],
+      locality?['stateProvince'],
+      locality?['country'],
+    ].whereType<String>().where((value) => value.isNotEmpty).join(', ');
+  }
+
+  static Map<String, dynamic>? _geographyFor(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) => geography[row['geographyId'] as int?];
 
   static String _eventName(Map<String, dynamic> row) => [
     row['startDate'],

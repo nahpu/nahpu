@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/migration_utilities.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -25,7 +26,7 @@ part 'migration_coordinator.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 20;
+const int kSchemaVersion = 21;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {

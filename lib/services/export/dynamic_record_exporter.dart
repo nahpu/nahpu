@@ -231,7 +231,9 @@ class DynamicRecordExporter {
         if (event.siteID != null) {
           final site = await SiteServices(ref: ref).getSite(event.siteID!);
           if (site != null) {
-            _addData(record, 'site', site.toJson());
+            _addData(record, 'site', site.site.toJson());
+            // Geography is a shared record now, so it gets its own namespace.
+            _addData(record, 'geography', site.draft.toJson());
             final siteAttribute = await SiteServices(
               ref: ref,
             ).getSiteAttribute(site.id);

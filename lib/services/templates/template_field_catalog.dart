@@ -14,15 +14,22 @@ Map<String, List<String>> availableTemplateFieldGroups(
       allowedTables = {'personnel', 'project'};
       break;
     case RecordType.narrative:
-      allowedTables = {'narrative', 'site', 'personnel'};
+      allowedTables = {'narrative', 'site', 'geography', 'personnel'};
       break;
     case RecordType.site:
-      allowedTables = {'site', 'siteAttribute', 'personnel', 'coordinate'};
+      allowedTables = {
+        'site',
+        'geography',
+        'siteAttribute',
+        'personnel',
+        'coordinate',
+      };
       break;
     case RecordType.collEvent:
       allowedTables = {
         'collEvent',
         'site',
+        'geography',
         'siteAttribute',
         'environment',
         'coordinate',
@@ -39,6 +46,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'project',
         'collEvent',
         'site',
+        'geography',
         'siteAttribute',
         'coordinate',
         'environment',

@@ -1,9 +1,9 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'taxonomy_queries.dart';
+part of 'geography_queries.dart';
 
 // ignore_for_file: type=lint
-mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
+mixin _$GeographyQueryMixin on DatabaseAccessor<Database> {
   Project get project => attachedDatabase.project;
   Geography get geography => attachedDatabase.geography;
   Personnel get personnel => attachedDatabase.personnel;
@@ -43,12 +43,12 @@ mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   CustomFieldDefinition get customFieldDefinition =>
       attachedDatabase.customFieldDefinition;
   CustomFieldValue get customFieldValue => attachedDatabase.customFieldValue;
-  TaxonomyQueryManager get managers => TaxonomyQueryManager(this);
+  GeographyQueryManager get managers => GeographyQueryManager(this);
 }
 
-class TaxonomyQueryManager {
-  final _$TaxonomyQueryMixin _db;
-  TaxonomyQueryManager(this._db);
+class GeographyQueryManager {
+  final _$GeographyQueryMixin _db;
+  GeographyQueryManager(this._db);
   $ProjectTableManager get project =>
       $ProjectTableManager(_db.attachedDatabase, _db.project);
   $GeographyTableManager get geography =>

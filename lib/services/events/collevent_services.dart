@@ -10,12 +10,13 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
 
-String formatCollEventId(CollEventData event, SiteData? site) {
+String formatCollEventId(CollEventData event, SiteRecord? site) {
   final siteId = site?.siteID ?? '';
   final startDate = event.startDate ?? '';
   final suffix = event.idSuffix?.trim().isNotEmpty ?? false

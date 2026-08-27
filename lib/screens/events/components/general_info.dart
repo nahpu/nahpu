@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/types/geography.dart';
 
 class EventInfoField extends ConsumerStatefulWidget {
   const EventInfoField({
@@ -30,7 +31,7 @@ class EventInfoField extends ConsumerStatefulWidget {
 }
 
 class EventInfoFieldState extends ConsumerState<EventInfoField> {
-  List<SiteData> data = [];
+  List<SiteRecord> data = [];
   String? siteID;
 
   @override

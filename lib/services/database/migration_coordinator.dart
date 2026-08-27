@@ -28,6 +28,7 @@ class _MigrationCoordinator {
       17: (m) => _Version18Migration(db).upgrade(m),
       18: (m) => _Version19Migration(db).upgrade(m),
       19: (m) => _Version20Migration(db).upgrade(m),
+      20: (m) => _Version21Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -39,6 +40,166 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version21Migration {
+  const _Version21Migration(this.db);
+
+  final Database db;
+
+  /// Columns moved off `site` and onto the shared `geography` table.
+  static const List<String> _geographyColumns = [
+    'country',
+    'islandGroup',
+    'stateProvince',
+    'county',
+    'municipality',
+    'locality',
+  ];
+
+  Future<void> upgrade(Migrator migrator) async {
+    await migrator.createTable(db.geography);
+    final geographyBySite = await _createGeography();
+    await _migrateSite(migrator, geographyBySite);
+    await _validate();
+  }
+
+  /// Inserts one geography row per distinct locality and returns the site to
+  /// geography mapping.
+  ///
+  /// The match keys are built in Dart rather than SQL so migration-time
+  /// deduplication folds case exactly the way the running app does. SQLite's
+  /// `lower()` only folds ASCII, which would leave accented duplicates behind.
+  Future<Map<int, int>> _createGeography() async {
+    final rows = await db
+        .customSelect(
+          'SELECT id, ${_geographyColumns.join(', ')} FROM site ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+
+    final idsByMatchKey = <String, int>{};
+    final geographyBySite = <int, int>{};
+    for (final row in rows) {
+      final draft = GeographyDraft(
+        country: row.readNullable<String>('country'),
+        islandGroup: row.readNullable<String>('islandGroup'),
+        stateProvince: row.readNullable<String>('stateProvince'),
+        county: row.readNullable<String>('county'),
+        municipality: row.readNullable<String>('municipality'),
+        locality: row.readNullable<String>('locality'),
+      );
+      if (draft.isEmpty) continue;
+
+      final siteId = row.read<int>('id');
+      final existing = idsByMatchKey[draft.matchKey];
+      if (existing != null) {
+        geographyBySite[siteId] = existing;
+        continue;
+      }
+      final geographyId = await db
+          .into(db.geography)
+          .insert(draft.toCompanion());
+      idsByMatchKey[draft.matchKey] = geographyId;
+      geographyBySite[siteId] = geographyId;
+    }
+    return geographyBySite;
+  }
+
+  Future<void> _migrateSite(
+    Migrator migrator,
+    Map<int, int> geographyBySite,
+  ) async {
+    await db.customStatement('PRAGMA legacy_alter_table = ON');
+    try {
+      await db.customStatement('DROP INDEX IF EXISTS site_project_idx');
+      await db.customStatement('ALTER TABLE site RENAME TO siteV20');
+      await migrator.createTable(db.site);
+      await db.customStatement('''
+        INSERT INTO site (
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          mediaID,
+          remark
+        )
+        SELECT
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          mediaID,
+          remark
+        FROM siteV20
+      ''');
+      for (final entry in geographyBySite.entries) {
+        await db.customStatement(
+          'UPDATE site SET geographyId = ? WHERE id = ?',
+          [entry.value, entry.key],
+        );
+      }
+      await db.customStatement('DROP TABLE siteV20');
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
+      );
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_geography_idx ON site(geographyId)',
+      );
+    } finally {
+      await db.customStatement('PRAGMA legacy_alter_table = OFF');
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    await db._requireTable('geography');
+
+    final siteColumns = await _columnNames('site');
+    if (!siteColumns.contains('geographyId')) {
+      throw StateError('Database migration did not add site.geographyId.');
+    }
+    final retained = siteColumns.intersection(_geographyColumns.toSet());
+    if (retained.isNotEmpty) {
+      throw StateError(
+        'Database migration retained site geography column(s): '
+        '${retained.join(', ')}.',
+      );
+    }
+
+    final duplicates = await db.customSelect('''
+      SELECT COUNT(*) AS count FROM (
+        SELECT matchKey FROM geography GROUP BY matchKey HAVING COUNT(*) > 1
+      )
+    ''', readsFrom: const {}).getSingle();
+    if (duplicates.read<int>('count') != 0) {
+      throw StateError('Database migration left duplicate geography records.');
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v21 migration.');
     }
   }
 }
@@ -161,7 +322,28 @@ class _Version19Migration {
     await db.customStatement('PRAGMA legacy_alter_table = ON');
     try {
       await db.customStatement('ALTER TABLE site RENAME TO siteV18');
-      await migrator.createTable(db.site);
+      // Spelled out rather than `migrator.createTable(db.site)` so this step
+      // keeps producing the v19 shape. The generated table has since moved
+      // geography to its own table, and v21 performs that move in turn.
+      await db.customStatement('''
+        CREATE TABLE site (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          siteID TEXT,
+          projectUuid TEXT,
+          leadStaffId TEXT,
+          siteType TEXT,
+          country TEXT,
+          islandGroup TEXT,
+          stateProvince TEXT,
+          county TEXT,
+          municipality TEXT,
+          mediaID TEXT,
+          locality TEXT,
+          remark TEXT,
+          FOREIGN KEY(mediaID) REFERENCES media(primaryId),
+          FOREIGN KEY(leadStaffId) REFERENCES personnel(uuid)
+        )
+      ''');
       await db.customStatement('''
         INSERT INTO site (
           id,

@@ -16,6 +16,9 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
+
+import '../data/site_fixture.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -322,6 +325,77 @@ void main() {
       expect(associatedData.single.uri, 'https://example.org/event-notes');
     },
   );
+
+  testWidgets('site import reuses a locality the project already has', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceSite = await insertSiteWithGeography(
+      database,
+      projectUuid: 'project-a',
+      siteID: 'Camp A',
+      country: 'Indonesia',
+      stateProvince: 'Sulawesi Selatan',
+      county: 'Gowa',
+      locality: 'Mt. Bawakaraeng',
+    );
+
+    final payload = await service.exportSite(sourceSite);
+    final parsed = RecordExchangePayload.parse(
+      payload.compactEncoded,
+      expectedType: 'site',
+    );
+    final result = await service.importPayload(parsed);
+
+    final localities = await GeographyQuery(database).getAll();
+    expect(localities, hasLength(1), reason: 'the locality must be reused');
+    final imported = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(result.recordId))).getSingle();
+    final source = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(sourceSite))).getSingle();
+    expect(imported.geographyId, source.geographyId);
+    expect(localities.single.locality, 'Mt. Bawakaraeng');
+  });
+
+  testWidgets('site import creates a locality the project lacks', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceSite = await insertSiteWithGeography(
+      database,
+      projectUuid: 'project-a',
+      siteID: 'Camp A',
+      country: 'Indonesia',
+      locality: 'Mt. Bawakaraeng',
+    );
+    final payload = await service.exportSite(sourceSite);
+
+    // Drop the source side entirely, so the payload carries the only copy.
+    await (database.delete(
+      database.site,
+    )..where((row) => row.id.equals(sourceSite))).go();
+    await GeographyQuery(database).deleteUnreferenced();
+    expect(await GeographyQuery(database).getAll(), isEmpty);
+
+    final parsed = RecordExchangePayload.parse(
+      payload.compactEncoded,
+      expectedType: 'site',
+    );
+    final result = await service.importPayload(parsed);
+
+    final localities = await GeographyQuery(database).getAll();
+    expect(localities, hasLength(1));
+    final imported = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(result.recordId))).getSingle();
+    final linked = await GeographyQuery(database).getById(imported.geographyId);
+    expect(linked!.locality, 'Mt. Bawakaraeng');
+    expect(linked.country, 'Indonesia');
+  });
 
   testWidgets('legacy v3 event imports weather as environmental data', (
     tester,

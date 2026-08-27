@@ -8,14 +8,26 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final siteEntryProvider =
-    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(SiteEntry.new);
+    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteRecord>>(
+      SiteEntry.new,
+    );
 
-class SiteEntry extends AsyncNotifier<List<SiteData>> {
-  Future<List<SiteData>> _fetchSiteEntry() async {
+/// Every shared locality, for the site form's geography autocomplete.
+///
+/// The table is small and read on every keystroke, so it is loaded once and
+/// filtered in memory, matching how the taxon provider backs the taxon field.
+final geographyListProvider = FutureProvider.autoDispose<List<GeographyData>>(
+  (ref) => GeographyQuery(ref.read(databaseProvider)).getAll(),
+);
+
+class SiteEntry extends AsyncNotifier<List<SiteRecord>> {
+  Future<List<SiteRecord>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
     // Watched, not read: changing the sort has to refetch the list.
     final sort = ref.watch(recordSortProvider(RecordViewer.site));
@@ -28,7 +40,7 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
   }
 
   @override
-  FutureOr<List<SiteData>> build() async {
+  FutureOr<List<SiteRecord>> build() async {
     return await _fetchSiteEntry();
   }
 
@@ -106,14 +118,14 @@ final siteMediaProvider = FutureProvider.family
       return mediaDataList;
     });
 
-final siteInEventProvider = FutureProvider.autoDispose<List<SiteData>>((
+final siteInEventProvider = FutureProvider.autoDispose<List<SiteRecord>>((
   ref,
 ) async {
   final database = ref.read(databaseProvider);
   List<int?> siteList = await CollEventQuery(
     database,
   ).getAllDistinctSites(ref.read(projectUuidProvider));
-  List<SiteData> siteDataList = [];
+  List<SiteRecord> siteDataList = [];
   for (int? siteId in siteList) {
     if (siteId != null) {
       siteDataList.add(await SiteQuery(database).getSiteById(siteId));

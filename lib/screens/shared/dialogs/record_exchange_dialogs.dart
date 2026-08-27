@@ -8,6 +8,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordImportTargetChoice {
   const RecordImportTargetChoice({required this.targetId});
@@ -18,9 +19,10 @@ class RecordImportTargetChoice {
 Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
   required BuildContext context,
   required RecordExchangePayload payload,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
   required List<CollEventData> events,
   int? initialTargetId,
+  String? matchedLocality,
 }) {
   final isSite = payload.type == RecordExchangeType.site;
   final selectedRecords = isSite
@@ -54,6 +56,15 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
                   ),
                   const SizedBox(height: 8),
                   Text(_summary(payload)),
+                  if (matchedLocality != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Reuses a saved locality: $matchedLocality',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   RadioGroup<int?>(
                     groupValue: selected,
@@ -118,7 +129,7 @@ class LinkedSiteChoice {
 
 Future<LinkedSiteChoice?> showLinkedSiteDialog({
   required BuildContext context,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
 }) {
   var selected = -1;
   return showDialog<LinkedSiteChoice>(
@@ -554,7 +565,7 @@ Future<SpecimenImportReferences?> chooseSpecimenReferences({
   required BuildContext context,
   required RecordExchangePayload payload,
   required List<CollEventData> events,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
   required List<TaxonomyData> taxa,
 }) async {
   int? eventId;

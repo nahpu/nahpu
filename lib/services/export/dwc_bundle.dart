@@ -31,6 +31,7 @@ import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/api/nahpu_dp.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 enum DwcBundleFormat {
   darwinCoreArchive,
@@ -678,7 +679,7 @@ class DwcBundleWriter extends AppServices {
     required TaxonomyData? taxon,
     required CollEventData? event,
     required String? eventId,
-    required SiteData? site,
+    required SiteRecord? site,
     required SiteAttributeData? siteAttribute,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
@@ -788,7 +789,7 @@ class DwcBundleWriter extends AppServices {
 
   Map<String, dynamic> _eventRow(
     CollEventData event,
-    SiteData? site,
+    SiteRecord? site,
     SiteAttributeData? siteAttribute,
     String eventId,
     List<_ResolvedAgent> agents,
@@ -1317,7 +1318,7 @@ class DwcBundleWriter extends AppServices {
     return '$currentProjectUuid:event:$localId';
   }
 
-  String _locationId(SiteData site) =>
+  String _locationId(SiteRecord site) =>
       '$currentProjectUuid:site:${site.siteID ?? site.id}';
 
   String? _eventDate(String? start, String? end) {

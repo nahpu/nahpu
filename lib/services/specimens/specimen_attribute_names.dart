@@ -11,6 +11,21 @@ const Map<String, String> specimenAttributeFieldAliases = {
   'footHex': 'toeHex',
 };
 
+/// Site geography fields that moved to the shared `geography` table in v21.
+///
+/// Rewriting them here migrates every saved export preset and document template
+/// on load, so nothing stored has to be rewritten.
+const Map<String, String> _geographySourceFields = {
+  'country': 'country',
+  'islandGroup': 'islandGroup',
+  'stateProvince': 'stateProvince',
+  'county': 'county',
+  'municipality': 'municipality',
+  'locality': 'locality',
+  'specificLocality': 'specificLocality',
+  'verbatimLocality': 'verbatimLocality',
+};
+
 const Map<String, String> _v19SourceAliases = {
   'arthropodAttribute::canopyCover': 'siteAttribute::canopyCover',
   'arthropodAttribute::ambientTemperature': 'environment::ambientTemperature',
@@ -43,6 +58,9 @@ String canonicalizeSpecimenAttributeSourceKey(String sourceKey) {
       }.contains(field)) {
     return 'siteAttribute::$field';
   }
+  if (table == 'site' && _geographySourceFields.containsKey(field)) {
+    return 'geography::${_geographySourceFields[field]}';
+  }
   if (const {
         'mammalMeasurement',
         'mammalAttribute',
@@ -74,6 +92,12 @@ String canonicalizeSpecimenAttributeExpression(String expression) {
       )
       .replaceAll('mammalAttribute::age', 'mammalAttribute::lifeStage')
       .replaceAll('herpAttribute::age', 'herpAttribute::lifeStage');
+  for (final entry in _geographySourceFields.entries) {
+    canonical = canonical.replaceAll(
+      'site::${entry.key}',
+      'geography::${entry.value}',
+    );
+  }
   for (final entry in _v19SourceAliases.entries) {
     canonical = canonical.replaceAll(entry.key, entry.value);
   }

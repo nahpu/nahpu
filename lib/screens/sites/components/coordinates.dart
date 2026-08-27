@@ -35,6 +35,7 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/src/rust/api/gis.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 part 'coordinates/coordinate_list.dart';
 part 'coordinates/coordinate_details.dart';

@@ -9,6 +9,8 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/site_fixture.dart';
+
 void main() {
   late Database database;
 
@@ -25,18 +27,14 @@ void main() {
   testWidgets('shows a read-only site name with label and content hierarchy', (
     tester,
   ) async {
-    final siteId = await database
-        .into(database.site)
-        .insert(
-          const SiteCompanion(
-            projectUuid: Value(''),
-            country: Value(' Indonesia '),
-            stateProvince: Value('West Java'),
-            county: Value(''),
-            municipality: Value('Bogor'),
-            locality: Value('Cibodas'),
-          ),
-        );
+    final siteId = await insertSiteWithGeography(
+      database,
+      country: ' Indonesia ',
+      stateProvince: 'West Java',
+      county: '',
+      municipality: 'Bogor',
+      locality: 'Cibodas',
+    );
 
     await tester.pumpWidget(
       _harness(database, siteId: siteId, preferences: preferences),

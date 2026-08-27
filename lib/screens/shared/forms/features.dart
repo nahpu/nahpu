@@ -2,9 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
-import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class SpecimenSearchChips extends StatelessWidget {
   const SpecimenSearchChips({
@@ -47,7 +47,7 @@ class SiteIdField extends ConsumerWidget {
   });
 
   final void Function(int?) onChanges;
-  final List<SiteData> siteData;
+  final List<SiteRecord> siteData;
   final int? value;
 
   @override

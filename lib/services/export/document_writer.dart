@@ -12,6 +12,7 @@ import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';

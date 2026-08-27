@@ -374,6 +374,12 @@ void main() {
         written.files.any((file) => file.path == 'tables/fossilSite.csv'),
         isTrue,
       );
+      // Localities are their own table, so the package carries them as their
+      // own resource rather than repeating them on every site row.
+      expect(
+        written.files.any((file) => file.path == 'tables/geography.csv'),
+        isTrue,
+      );
     }
   });
 }

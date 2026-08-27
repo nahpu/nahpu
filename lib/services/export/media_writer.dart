@@ -9,6 +9,7 @@ import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class MediaWriterServices {
   MediaWriterServices({required this.ref});
@@ -161,7 +162,9 @@ class MediaCategoryServices extends AppServices {
     SiteMediaData siteMediaData = await SiteServices(
       ref: ref,
     ).getSiteMediaByMediaId(mediaId);
-    SiteData? site = await SiteServices(ref: ref).getSite(siteMediaData.siteId);
+    SiteRecord? site = await SiteServices(
+      ref: ref,
+    ).getSite(siteMediaData.siteId);
     if (site == null) {
       return '';
     }

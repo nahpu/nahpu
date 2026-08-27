@@ -9,6 +9,8 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
+import '../data/site_fixture.dart';
+
 /// Covers the sort-aware `getAll*` queries behind the record viewers' "Sort
 /// records" action: every offered field in both directions, blanks last in
 /// both, and a total order so a refetch never reshuffles the pages.
@@ -37,16 +39,13 @@ void main() {
   ]) => RecordSort(field: field, direction: direction);
 
   Future<int> insertSite({String? siteId, String? state, String? locality}) {
-    return database
-        .into(database.site)
-        .insert(
-          SiteCompanion(
-            projectUuid: const Value(projectUuid),
-            siteID: Value(siteId),
-            stateProvince: Value(state),
-            locality: Value(locality),
-          ),
-        );
+    return insertSiteWithGeography(
+      database,
+      projectUuid: projectUuid,
+      siteID: siteId,
+      stateProvince: state,
+      locality: locality,
+    );
   }
 
   group('sites', () {

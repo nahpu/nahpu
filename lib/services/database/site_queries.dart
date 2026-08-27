@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/record_sort.dart';
 
 part 'site_queries.g.dart';
@@ -49,25 +50,31 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     return bySite;
   }
 
-  /// Returns sites in [sort] order. The default keeps insertion order, so new
-  /// records are the final form page.
-  Future<List<SiteData>> getAllSites(
+  /// Returns sites in [sort] order, each joined with its shared geography row.
+  ///
+  /// The default sort keeps insertion order, so new records are the final form
+  /// page.
+  Future<List<SiteRecord>> getAllSites(
     String projectUuid, {
     RecordSort sort = RecordSort.defaultSort,
   }) async {
-    if (sort.isDefault) {
-      return (select(site)
-            ..where((t) => t.projectUuid.equals(projectUuid))
-            ..orderBy([(row) => OrderingTerm.asc(row.id)]))
-          .get();
-    }
-    // Every site sort field lives on the row itself, so the empty join only
-    // buys the list-of-terms `orderBy` overload.
-    final query = select(site).join([])
-      ..where(site.projectUuid.equals(projectUuid))
-      ..orderBy(_orderingTerms(sort));
+    // Geography lives in its own table now, so every read joins it rather than
+    // fetching one row per site.
+    final query = select(site).join([
+      leftOuterJoin(geography, geography.id.equalsExp(site.geographyId)),
+    ])..where(site.projectUuid.equals(projectUuid));
+    query.orderBy(
+      sort.isDefault ? [OrderingTerm.asc(site.id)] : _orderingTerms(sort),
+    );
     final rows = await query.get();
-    return rows.map((row) => row.readTable(site)).toList(growable: false);
+    return rows
+        .map(
+          (row) => SiteRecord(
+            site: row.readTable(site),
+            geography: row.readTableOrNull(geography),
+          ),
+        )
+        .toList(growable: false);
   }
 
   List<OrderingTerm> _orderingTerms(RecordSort sort) {
@@ -76,10 +83,13 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
       ...switch (sort.field) {
         RecordSortField.siteName => textSortTerms(site.siteID, direction),
         RecordSortField.stateProvince => textSortTerms(
-          site.stateProvince,
+          geography.stateProvince,
           direction,
         ),
-        RecordSortField.locality => textSortTerms(site.locality, direction),
+        RecordSortField.locality => textSortTerms(
+          geography.locality,
+          direction,
+        ),
         // Insertion order, and any field this viewer does not offer.
         _ => [
           OrderingTerm(expression: site.id, mode: orderingModeFor(direction)),
@@ -130,8 +140,14 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     )..where((table) => table.siteID.equals(siteId))).go();
   }
 
-  Future<SiteData> getSiteById(int id) async {
-    return await (select(site)..where((t) => t.id.equals(id))).getSingle();
+  Future<SiteRecord> getSiteById(int id) async {
+    final row = await (select(site).join([
+      leftOuterJoin(geography, geography.id.equalsExp(site.geographyId)),
+    ])..where(site.id.equals(id))).getSingle();
+    return SiteRecord(
+      site: row.readTable(site),
+      geography: row.readTableOrNull(geography),
+    );
   }
 
   Future<void> deleteAllSites(String projectUuid) {

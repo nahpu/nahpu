@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/database.dart' as nahpu_db;
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeDatabase extends AppServices {
   const RecordExchangeDatabase({required super.ref});
@@ -63,12 +65,14 @@ class RecordExchangeDatabase extends AppServices {
   ) async {
     final leadStaffId = optionalString(siteJson['leadStaffId']);
     validatePersonnelReference(leadStaffId, personnelIds);
+    final geographyId = await resolveGeography(siteJson);
     final siteId = await dbAccess
         .into(dbAccess.site)
         .insert(
-          siteCompanion(
-            siteJson,
-          ).copyWith(projectUuid: db.Value(currentProjectUuid)),
+          siteCompanion(siteJson).copyWith(
+            projectUuid: db.Value(currentProjectUuid),
+            geographyId: db.Value(geographyId),
+          ),
         );
     await dbAccess
         .into(dbAccess.siteAttribute)
@@ -81,8 +85,28 @@ class RecordExchangeDatabase extends AppServices {
     return siteId;
   }
 
-  Map<String, dynamic> portableSite(SiteData value) =>
-      without(value.toJson(), {'id', 'projectUuid', 'mediaID'});
+  /// Writes a site with its geography inlined.
+  ///
+  /// The payload stays flat so records exported before geography moved into its
+  /// own table still import, and so a scanned QR code carries the locality
+  /// itself rather than an id that means nothing on the receiving device.
+  Map<String, dynamic> portableSite(SiteRecord value) => {
+    ...without(value.site.toJson(), {
+      'id',
+      'projectUuid',
+      'mediaID',
+      'geographyId',
+    }),
+    ...value.draft.toJson(),
+  };
+
+  /// Returns the shared locality for an imported site, creating it when new.
+  ///
+  /// An incoming locality that already exists reuses that record, which is what
+  /// keeps QR and file imports from duplicating localities.
+  Future<int?> resolveGeography(Map<String, dynamic> siteJson) {
+    return GeographyQuery(dbAccess).resolve(GeographyDraft.fromJson(siteJson));
+  }
 
   Map<String, dynamic> portableSiteAttribute(SiteAttributeData value) =>
       without(value.toJson(), {'siteID'});
@@ -124,17 +148,13 @@ class RecordExchangeDatabase extends AppServices {
     return json;
   }
 
+  /// Builds the site row. Geography is resolved separately by
+  /// [resolveGeography] because it lives in a shared table.
   nahpu_db.SiteCompanion siteCompanion(Map<String, dynamic> json) =>
       nahpu_db.SiteCompanion(
         siteID: db.Value(optionalString(json['siteID'])),
         leadStaffId: db.Value(optionalString(json['leadStaffId'])),
         siteType: db.Value(optionalString(json['siteType'])),
-        country: db.Value(optionalString(json['country'])),
-        islandGroup: db.Value(optionalString(json['islandGroup'])),
-        stateProvince: db.Value(optionalString(json['stateProvince'])),
-        county: db.Value(optionalString(json['county'])),
-        municipality: db.Value(optionalString(json['municipality'])),
-        locality: db.Value(optionalString(json['locality'])),
         remark: db.Value(optionalString(json['remark'])),
       );
 
