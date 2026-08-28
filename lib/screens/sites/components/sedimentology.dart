@@ -24,14 +24,13 @@ class Sedimentology extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Natural-height card: the site form stacks Sedimentology and Stratigraphy
+    // in one scrolling pane, so the scroll lives there rather than here.
     return FormCard(
       title: 'Sedimentology',
       infoContent: const SedimentologyInfoContent(),
       mainAxisAlignment: MainAxisAlignment.start,
-      // In the horizontal layout the card is height-capped, so its content
-      // must scroll within an Expanded region. In the vertical layout the
-      // whole form already scrolls, so keep the content unconstrained.
-      isExpanded: useHorizontalLayout,
+      mainAxisSize: MainAxisSize.min,
       child: ref
           .watch(fossilSiteProvider(id))
           .when(
@@ -46,11 +45,7 @@ class Sedimentology extends ConsumerWidget {
   }
 
   Widget _buildContent(Widget child) {
-    final content = Padding(padding: const EdgeInsets.all(6), child: child);
-
-    return useHorizontalLayout
-        ? SingleChildScrollView(child: content)
-        : content;
+    return Padding(padding: const EdgeInsets.all(6), child: child);
   }
 }
 
