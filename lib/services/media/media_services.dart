@@ -345,7 +345,9 @@ class MediaFinder extends AppServices {
   ) async {
     Directory mediaDir = getMediaDir(category);
     Directory appDir = await nahpuDocumentDir;
-    String fullPath = path.join(appDir.path, mediaDir.path, filePath);
+    String fullPath = path.normalize(
+      path.join(appDir.path, mediaDir.path, filePath),
+    );
     return File(fullPath);
   }
 
@@ -378,7 +380,9 @@ class MediaFinder extends AppServices {
     MediaCategory category,
   ) {
     Directory mediaDir = getMediaDir(category);
-    String fullPath = path.join(projectDir.path, mediaDir.path, filePath);
+    String fullPath = path.normalize(
+      path.join(projectDir.path, mediaDir.path, filePath),
+    );
     return File(fullPath);
   }
 

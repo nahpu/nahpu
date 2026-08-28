@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   final repository = DocumentationRepository();
@@ -29,10 +30,13 @@ void main() {
     final english = _cookbookMetadata(DocsLanguage.english, repository);
     expect(english.recipePaths, hasLength(29));
     expect(english.categoryPaths, hasLength(4));
-    expect(english.orders['prepare/index.md'], 1);
-    expect(english.orders['collect/index.md'], 2);
-    expect(english.orders['protect-and-collaborate/index.md'], 3);
-    expect(english.orders['export-and-print/index.md'], 4);
+    expect(english.orders[path.join('prepare', 'index.md')], 1);
+    expect(english.orders[path.join('collect', 'index.md')], 2);
+    expect(
+      english.orders[path.join('protect-and-collaborate', 'index.md')],
+      3,
+    );
+    expect(english.orders[path.join('export-and-print', 'index.md')], 4);
 
     for (final language in DocsLanguage.values.skip(1)) {
       final localized = _cookbookMetadata(language, repository);
