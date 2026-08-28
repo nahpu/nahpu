@@ -108,7 +108,8 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
               textAlign: TextAlign.center,
             ),
             content: SizedBox(
-              width: 480,
+              width: 880,
+              height: 460,
               child: CoordinateDetails(coordinate: widget.coordinate),
             ),
             actions: [
@@ -202,6 +203,50 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final map = _CoordinateDetailMap(coordinate: widget.coordinate);
+        final details = _buildDetails(context);
+        if (constraints.maxWidth >= NahpuBreakpoints.compact) {
+          final columns = Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: details),
+              const SizedBox(width: NahpuSpacing.xl),
+              Expanded(child: map),
+            ],
+          );
+          return Padding(
+            padding: const EdgeInsets.all(NahpuSpacing.md),
+            child: constraints.hasBoundedHeight
+                ? columns
+                : SizedBox(height: _wideMapHeight, child: columns),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                NahpuSpacing.xl,
+                NahpuSpacing.md,
+                NahpuSpacing.xl,
+                0,
+              ),
+              child: SizedBox(height: _mapHeight, child: map),
+            ),
+            if (constraints.hasBoundedHeight)
+              Expanded(child: details)
+            else
+              details,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetails(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -397,5 +442,33 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
       case CardinalDirection.west:
         return 'W';
     }
+  }
+}
+
+/// Height of the detail map when the layout stacks it above the details.
+const double _mapHeight = 220;
+
+/// Height of the two-column layout when its parent leaves the height unbounded.
+const double _wideMapHeight = 320;
+
+class _CoordinateDetailMap extends StatelessWidget {
+  const _CoordinateDetailMap({required this.coordinate});
+
+  final CoordinateData coordinate;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = coordinate.nameId?.trim() ?? '';
+    final point = CoordinateMapPoint(
+      id: coordinate.id ?? 0,
+      name: name.isNotEmpty ? name : 'Unnamed coordinate',
+      latitude: coordinate.decimalLatitude,
+      longitude: coordinate.decimalLongitude,
+    );
+    return CoordinateLocationMap(
+      points: [point],
+      selectedPointId: point.id,
+      onPointSelected: (_) {},
+    );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// App-bar actions shared by document and tabular preset management screens.
 class PresetAppBarActions extends StatelessWidget {
@@ -8,12 +8,14 @@ class PresetAppBarActions extends StatelessWidget {
     required this.onScanQr,
     required this.onImport,
     required this.onExport,
+    this.itemName = 'preset',
   });
 
   final VoidCallback onCreate;
   final VoidCallback onScanQr;
   final VoidCallback onImport;
   final VoidCallback onExport;
+  final String itemName;
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +25,11 @@ class PresetAppBarActions extends StatelessWidget {
         IconButton(
           onPressed: onCreate,
           icon: const Icon(Icons.add_circle_outline_rounded),
-          tooltip: 'Create new preset',
+          tooltip: 'Create new $itemName',
         ),
         PopupMenuButton<_PresetMenuAction>(
-          tooltip: 'Preset options',
+          tooltip:
+              '${itemName[0].toUpperCase()}${itemName.substring(1)} options',
           onSelected: (action) {
             switch (action) {
               case _PresetMenuAction.create:
@@ -86,12 +89,6 @@ class _PresetMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon),
-        const SizedBox(width: 8),
-        Text(label),
-      ],
-    );
+    return Row(children: [Icon(icon), const SizedBox(width: 8), Text(label)]);
   }
 }

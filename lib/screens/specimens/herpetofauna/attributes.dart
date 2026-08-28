@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -9,8 +8,9 @@ import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
-import 'package:nahpu/services/types/herps.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class HerpAttributeForms extends ConsumerStatefulWidget {
   const HerpAttributeForms({
@@ -28,7 +28,7 @@ class HerpAttributeForms extends ConsumerStatefulWidget {
 
 class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
   HerpAttributeCtrModel ctr = HerpAttributeCtrModel.empty();
-  Key _sexDropdownKey = UniqueKey();
+  final Key _sexDropdownKey = UniqueKey();
 
   @override
   void initState() {
@@ -51,49 +51,19 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            DropdownButtonFormField<SpecimenSex>(
+            SpecimenSexDropdown(
               key: _sexDropdownKey,
-              initialValue: getSpecimenSex(ctr.sexCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Sex',
-                hintText: 'Select specimen sex',
-              ),
-              items: specimenSexList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenSex.values[specimenSexList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
+              currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
-            DropdownButtonFormField<SpecimenAge>(
-              initialValue: getSpecimenAge(ctr.ageCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                hintText: 'Select specimen age',
-              ),
-              items: specimenAgeList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenAge.values[specimenAgeList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (SpecimenAge? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.ageCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateHerpAttribute(
-                      widget.specimenUuid,
-                      HerpAttributeCompanion(age: db.Value(newValue.index)),
-                    );
-                  });
-                }
+            LifeStageDropdown(
+              currentValue: ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => ctr.lifeStageCtr = value);
+                SpecimenServices(ref: ref).updateHerpAttribute(
+                  widget.specimenUuid,
+                  HerpAttributeCompanion(lifeStage: db.Value(value)),
+                );
               },
             ),
           ],
@@ -168,6 +138,7 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
           ],
         ),
         ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
+        CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );
   }
@@ -182,51 +153,18 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
     });
   }
 
-  Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
-    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
-    // No change in selected sex, no action needed
-    if (newSex == null || newSex == currentSex) return;
-
-    // Change from blank or unknown sex, no clearing needed
-    if (currentSex == null || currentSex == SpecimenSex.unknown) {
-      _updateSex(newSex);
-      return;
-    }
-
-    // Otherwise, we're changing from male/female to something else
-    // Prompt the user and clear the prior data if confirmed
-    showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return CommonAlertDialog(
-          titleText: 'Change sex?',
-          descText:
-              'Changing the sex will clear previously '
-              'entered sex data.',
-          confirmFunction: () {
-            ctr.clearSexControllers();
-            SpecimenServices(
-              ref: ref,
-            ).clearHerpSexAttributes(widget.specimenUuid);
-            _updateSex(newSex);
-          },
-          cancelFunction: () {
-            setState(() {
-              // Trigger a rebuild of the dropdown to revert the displayed value
-              _sexDropdownKey = UniqueKey();
-            });
-          },
-        );
-      },
-    );
+  void _handleSexUpdate(SpecimenSex? newSex) {
+    if (newSex == null || newSex == getSpecimenSex(ctr.sexCtr)) return;
+    _updateSex(newSex);
   }
 
   void _updateSex(SpecimenSex newSex) {
+    final code = getSpecimenSexCode(newSex);
     setState(() {
-      ctr.sexCtr = newSex.index;
+      ctr.sexCtr = code;
       SpecimenServices(ref: ref).updateHerpAttribute(
         widget.specimenUuid,
-        HerpAttributeCompanion(sex: db.Value(newSex.index)),
+        HerpAttributeCompanion(sex: db.Value(code)),
       );
     });
   }

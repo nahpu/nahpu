@@ -1,13 +1,20 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
+import 'package:drift/native.dart';
 import 'package:nahpu/screens/settings/common.dart';
-import 'package:nahpu/screens/settings/controlled_vocabulary.dart';
-import 'package:nahpu/screens/settings/site_settings.dart';
+import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
+import 'package:nahpu/screens/settings/records/specimen_settings.dart';
+import 'package:nahpu/screens/settings/records/site_settings.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/sites.dart';
 
 void main() {
   testWidgets('site settings include the default datum vocabulary', (
@@ -41,6 +48,9 @@ void main() {
           effectiveUserDefinedFieldProvider(
             datumPrefKey,
           ).overrideWith((ref) async => const ['WGS84', 'NAD83', 'NAD27']),
+          userDefinedFieldProvider(
+            siteGeographyFieldsPrefKey,
+          ).overrideWith((ref) async => defaultVisibleSiteGeographyFields),
         ],
         child: const MaterialApp(home: SiteSelection()),
       ),
@@ -52,6 +62,22 @@ void main() {
     expect(find.text('NAD83'), findsOneWidget);
     expect(find.text('NAD27'), findsOneWidget);
     expect(find.text('Other'), findsNothing);
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.widgetWithText(CheckboxListTile, 'Country'),
+          )
+          .value,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<CheckboxListTile>(
+            find.widgetWithText(CheckboxListTile, 'Island group'),
+          )
+          .value,
+      isFalse,
+    );
   });
 
   testWidgets(
@@ -83,6 +109,29 @@ void main() {
         ),
         findsOneWidget,
       );
+
+      await tester.tap(find.text('Match database'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SegmentedButton<DatabaseMatchMode>), findsOneWidget);
+      expect(
+        find.text(
+          'Add values found in the database without changing your existing '
+          'Specimen Types.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Override all'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Replace all configured Specimen Types with the values currently '
+          'found in the database.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('Set case format'));
       await tester.pumpAndSettle();
@@ -209,6 +258,77 @@ void main() {
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.text('Title Case'), findsOneWidget);
   });
+
+  testWidgets(
+    'sex settings restrict choices and protect values used in records',
+    (tester) async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+      await database
+          .into(database.project)
+          .insert(
+            const ProjectCompanion(
+              uuid: Value('project'),
+              name: Value('Project'),
+            ),
+          );
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('arthropod'),
+              projectUuid: Value('project'),
+              taxonGroup: Value('Arthropods'),
+            ),
+          );
+      await database
+          .into(database.arthropodAttribute)
+          .insert(
+            const ArthropodAttributeCompanion(
+              specimenUuid: Value('arthropod'),
+              sex: Value(3),
+            ),
+          );
+      final settings = _RecordingUserConfigSettingsService();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(database),
+            userConfigSettingsServiceProvider.overrideWithValue(settings),
+            specimenSexVocabularyProvider.overrideWith(
+              (ref) async => allowedSpecimenSexes,
+            ),
+          ],
+          child: const MaterialApp(home: Scaffold(body: SpecimenSexSetting())),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsNothing);
+      expect(find.widgetWithText(Chip, 'Male'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'Gynandromorph'), findsOneWidget);
+
+      tester
+          .widget<InputChip>(find.widgetWithText(InputChip, 'Gynandromorph'))
+          .onDeleted!();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cannot remove sex'), findsOneWidget);
+      expect(settings.removed, isEmpty);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      tester
+          .widget<InputChip>(find.widgetWithText(InputChip, 'Hermaphrodite'))
+          .onDeleted!();
+      await tester.pumpAndSettle();
+
+      expect(settings.removed, ['Hermaphrodite']);
+    },
+  );
 }
 
 Widget _settingsHarness(
@@ -241,4 +361,13 @@ class _FakeUserConfigSettingsService extends UserConfigSettingsService {
 
   @override
   Future<void> setTextCaseFormat(String prefKey, String format) async {}
+}
+
+class _RecordingUserConfigSettingsService extends UserConfigSettingsService {
+  final List<String> removed = [];
+
+  @override
+  Future<void> removeOption(String prefKey, String option) async {
+    removed.add(option);
+  }
 }

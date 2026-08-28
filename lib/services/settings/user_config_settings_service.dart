@@ -1,4 +1,5 @@
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/services/types/specimens.dart';
 
 class UserConfigSettingsService {
   const UserConfigSettingsService();
@@ -19,6 +20,10 @@ class UserConfigSettingsService {
 
   Future<void> addOption(String prefKey, String newOption) async {
     if (newOption.isEmpty) return;
+    if (prefKey == 'specimenSexes' &&
+        specimenSexFromConfigValue(newOption) == null) {
+      throw ArgumentError.value(newOption, 'newOption', 'Unsupported sex');
+    }
     final optionList = await rust_config.getUserConfigList(key: prefKey);
     final containsOption =
         optionList?.any(
@@ -34,6 +39,12 @@ class UserConfigSettingsService {
   }
 
   Future<void> replaceOptions(String prefKey, List<String> newOptions) {
+    if (prefKey == 'specimenSexes' &&
+        newOptions.any(
+          (option) => specimenSexFromConfigValue(option) == null,
+        )) {
+      throw ArgumentError.value(newOptions, 'newOptions', 'Unsupported sex');
+    }
     return rust_config.setUserConfigList(key: prefKey, value: newOptions);
   }
 

@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
@@ -91,7 +91,7 @@ class DraggableChip extends StatefulWidget {
   final ValueChanged<double>? onMaxWidthChanged;
   final ValueChanged<double>? onHeightChanged;
   final void Function(Offset newPosMm, double maxWidthMm, double heightMm)?
-      onResizeChanged;
+  onResizeChanged;
   final int colorArgb;
   final ValueChanged<bool>? onDragStateChanged;
   final bool isDynamic;
@@ -204,9 +204,11 @@ class DraggableChipState extends State<DraggableChip> {
       ).copyWith(color: Color(widget.colorArgb));
 
       final activeWidthMm = _resizeLiveWidthMm ?? widget.maxWidthMm;
-      final activeHeightMm =
-          widget.isDynamic ? null : (_resizeLiveHeightMm ?? widget.heightMm);
-      final hasTextBoxStyle = widget.backgroundColorArgb != null ||
+      final activeHeightMm = widget.isDynamic
+          ? null
+          : (_resizeLiveHeightMm ?? widget.heightMm);
+      final hasTextBoxStyle =
+          widget.backgroundColorArgb != null ||
           (widget.borderColorArgb != null && widget.borderWidthPt > 0);
       final textBoxPaddingPx = hasTextBoxStyle
           ? widget.paddingPt * widget.scale / _kPdfPointsPerMm
@@ -224,18 +226,19 @@ class DraggableChipState extends State<DraggableChip> {
           child: SizedBox(
             key: _contentSizeKey,
             width: activeWidthMm != null ? activeWidthMm * widget.scale : null,
-            height:
-                activeHeightMm != null ? activeHeightMm * widget.scale : null,
+            height: activeHeightMm != null
+                ? activeHeightMm * widget.scale
+                : null,
             child: CustomPaint(
               foregroundPainter:
                   widget.borderColorArgb == null || widget.borderWidthPt <= 0
-                      ? null
-                      : _TextBoxStrokePainter(
-                          color: Color(widget.borderColorArgb!),
-                          width: textBoxBorderWidthPx,
-                          style: widget.borderStrokeStyle,
-                          radius: textBoxRadiusPx,
-                        ),
+                  ? null
+                  : _TextBoxStrokePainter(
+                      color: Color(widget.borderColorArgb!),
+                      width: textBoxBorderWidthPx,
+                      style: widget.borderStrokeStyle,
+                      radius: textBoxRadiusPx,
+                    ),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: widget.backgroundColorArgb == null
@@ -245,28 +248,31 @@ class DraggableChipState extends State<DraggableChip> {
                 ),
                 child: Padding(
                   padding: EdgeInsets.all(textBoxPaddingPx),
-                  child: Builder(builder: (context) {
-                    final hasNewlines = widget.label.contains('\n');
-                    if (widget.isMarkdown) {
-                      return TemplateMarkdownBody(
-                        data: widget.label,
-                        textStyle: textStyle,
+                  child: Builder(
+                    builder: (context) {
+                      final hasNewlines = widget.label.contains('\n');
+                      if (widget.isMarkdown) {
+                        return TemplateMarkdownBody(
+                          data: widget.label,
+                          textStyle: textStyle,
+                          textAlign: widget.textAlign,
+                          clipOverflow: true,
+                        );
+                      }
+                      return Text(
+                        widget.label,
+                        style: textStyle,
+                        softWrap: activeWidthMm != null || hasNewlines,
+                        maxLines: (activeWidthMm != null || hasNewlines)
+                            ? null
+                            : 1,
+                        overflow: (activeWidthMm != null || hasNewlines)
+                            ? TextOverflow.clip
+                            : TextOverflow.visible,
                         textAlign: widget.textAlign,
-                        clipOverflow: true,
                       );
-                    }
-                    return Text(
-                      widget.label,
-                      style: textStyle,
-                      softWrap: activeWidthMm != null || hasNewlines,
-                      maxLines:
-                          (activeWidthMm != null || hasNewlines) ? null : 1,
-                      overflow: (activeWidthMm != null || hasNewlines)
-                          ? TextOverflow.clip
-                          : TextOverflow.visible,
-                      textAlign: widget.textAlign,
-                    );
-                  }),
+                    },
+                  ),
                 ),
               ),
             ),
@@ -311,15 +317,16 @@ class DraggableChipState extends State<DraggableChip> {
                               ),
                             )
                           : (widget.isDynamic
-                              ? BoxDecoration(
-                                  border: Border.all(
-                                    color:
-                                        scheme.secondary.withValues(alpha: 0.5),
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(2),
-                                )
-                              : null),
+                                ? BoxDecoration(
+                                    border: Border.all(
+                                      color: scheme.secondary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      width: 2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(2),
+                                  )
+                                : null),
                       child: text,
                     ),
                   ),
@@ -360,7 +367,7 @@ class DraggableChipState extends State<DraggableChip> {
                       bottom: 0,
                       child: _cornerHandle(_TextCorner.br, scheme),
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),
@@ -377,7 +384,8 @@ class DraggableChipState extends State<DraggableChip> {
         children: [
           if (snapResult.verticalGuideMm != null)
             Positioned(
-              left: snapResult.verticalGuideMm! * widget.scale +
+              left:
+                  snapResult.verticalGuideMm! * widget.scale +
                   widget.canvasInsetXPx -
                   _snapGuideWidthPx / 2,
               top: widget.canvasInsetYPx,
@@ -388,7 +396,8 @@ class DraggableChipState extends State<DraggableChip> {
           if (snapResult.horizontalGuideMm != null)
             Positioned(
               left: widget.canvasInsetXPx,
-              top: widget.canvasInsetYPx +
+              top:
+                  widget.canvasInsetYPx +
                   snapResult.horizontalGuideMm! * widget.scale -
                   _snapGuideWidthPx / 2,
               width: widget.templateWidthMm * widget.scale,
@@ -453,8 +462,10 @@ class DraggableChipState extends State<DraggableChip> {
           const SizedBox(width: 4),
           Text(
             '${widget.fontSize.toStringAsFixed(0)}pt',
-            style:
-                TextStyle(fontSize: 9, color: fgColor.withValues(alpha: 0.7)),
+            style: TextStyle(
+              fontSize: 9,
+              color: fgColor.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),
@@ -605,7 +616,8 @@ class DraggableChipState extends State<DraggableChip> {
           );
           final appliedDeltaMm = _resizeStartWidthMm! - newWidth;
           final radians = degreesToRadians(widget.rotationDegrees);
-          newPos = _resizeStartPosMm! +
+          newPos =
+              _resizeStartPosMm! +
               Offset(
                 appliedDeltaMm * math.cos(radians),
                 appliedDeltaMm * math.sin(radians),
@@ -782,8 +794,9 @@ class DraggableChipState extends State<DraggableChip> {
 
   void _scheduleCanvasGoogleFontPrime() {
     if (!templateCanvasFontUsesGoogle(widget.fontFamily)) return;
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _loadCanvasGoogleFontIfNeeded());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _loadCanvasGoogleFontIfNeeded(),
+    );
   }
 
   Future<void> _loadCanvasGoogleFontIfNeeded() async {

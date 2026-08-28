@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -14,6 +14,8 @@ import 'package:nahpu/services/specimens/measurement_outlier_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class MammalAttributeForms extends ConsumerStatefulWidget {
   const MammalAttributeForms({
@@ -356,49 +358,19 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
-            DropdownButtonFormField<SpecimenSex>(
+            SpecimenSexDropdown(
               key: _sexDropdownKey,
-              initialValue: getSpecimenSex(ctr.sexCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Sex',
-                hintText: 'Select specimen sex',
-              ),
-              items: specimenSexList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenSex.values[specimenSexList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
+              currentCode: ctr.sexCtr,
               onChanged: _handleSexUpdate,
             ),
-            DropdownButtonFormField<SpecimenAge>(
-              initialValue: getSpecimenAge(ctr.ageCtr),
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Age',
-                hintText: 'Select specimen age',
-              ),
-              items: specimenAgeList
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: SpecimenAge.values[specimenAgeList.indexOf(e)],
-                      child: CommonDropdownText(text: e),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (SpecimenAge? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    ctr.ageCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(age: db.Value(newValue.index)),
-                    );
-                  });
-                }
+            LifeStageDropdown(
+              currentValue: ctr.lifeStageCtr,
+              onChanged: (value) {
+                setState(() => ctr.lifeStageCtr = value);
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(lifeStage: db.Value(value)),
+                );
               },
             ),
           ],
@@ -412,14 +384,14 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
         OvaryOpeningField(
           specimenUuid: widget.specimenUuid,
           specimenSex: getSpecimenSex(ctr.sexCtr),
-          specimenAge: getSpecimenAge(ctr.ageCtr),
+          lifeStage: ctr.lifeStageCtr,
           useHorizontalLayout: widget.useHorizontalLayout,
           ctr: ctr,
         ),
         FemaleGonadForm(
           specimenUuid: widget.specimenUuid,
           specimenSex: getSpecimenSex(ctr.sexCtr),
-          specimenAge: getSpecimenAge(ctr.ageCtr),
+          lifeStage: ctr.lifeStageCtr,
           useHorizontalLayout: widget.useHorizontalLayout,
           ctr: ctr,
         ),
@@ -440,6 +412,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           ),
         ),
         ParasiteDetectionForm(specimenUuid: widget.specimenUuid),
+        CustomFieldForm(owner: CustomFieldOwner.specimen(widget.specimenUuid)),
       ],
     );
   }
@@ -639,31 +612,35 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   }
 
   Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
-    SpecimenSex? currentSex = getSpecimenSex(ctr.sexCtr);
-    // No change in selected sex, no action needed
+    final currentSex = getSpecimenSex(ctr.sexCtr);
     if (newSex == null || newSex == currentSex) return;
 
-    // Change from blank or unknown sex, no clearing needed
-    if (currentSex == null || currentSex == SpecimenSex.unknown) {
+    final clearMale =
+        currentSex?.supportsMaleAttributes == true &&
+        !newSex.supportsMaleAttributes;
+    final clearFemale =
+        currentSex?.supportsFemaleAttributes == true &&
+        !newSex.supportsFemaleAttributes;
+    if (!clearMale && !clearFemale) {
       _updateSex(newSex);
       return;
     }
 
-    // Otherwise, we're changing from male/female to something else
-    // Prompt the user and clear the prior data if confirmed
-    showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return CommonAlertDialog(
           titleText: 'Change sex?',
           descText:
-              'Changing the sex will clear previously '
-              'entered sex data.',
+              'Changing the sex will clear reproductive data that does not '
+              'apply to the new selection.',
           confirmFunction: () {
-            ctr.clearSexControllers();
-            SpecimenServices(
-              ref: ref,
-            ).clearMammalSexAttributes(widget.specimenUuid);
+            ctr.clearSexControllers(male: clearMale, female: clearFemale);
+            SpecimenServices(ref: ref).clearMammalSexAttributes(
+              widget.specimenUuid,
+              male: clearMale,
+              female: clearFemale,
+            );
             _updateSex(newSex);
           },
           cancelFunction: () {
@@ -678,11 +655,12 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   }
 
   void _updateSex(SpecimenSex newSex) {
+    final code = getSpecimenSexCode(newSex);
     setState(() {
-      ctr.sexCtr = newSex.index;
+      ctr.sexCtr = code;
       SpecimenServices(ref: ref).updateMammalAttribute(
         widget.specimenUuid,
-        MammalAttributeCompanion(sex: db.Value(newSex.index)),
+        MammalAttributeCompanion(sex: db.Value(code)),
       );
     });
   }
@@ -890,11 +868,11 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: widget.specimenSex == SpecimenSex.male,
+      visible: widget.specimenSex?.supportsMaleAttributes == true,
       child: Column(
         children: [
           const CommonDivider(),
-          Text('Testes', style: Theme.of(context).textTheme.titleLarge),
+          const SpecimenAttributeSectionLabel(text: 'Testes'),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<TestisPosition>(
@@ -1048,14 +1026,14 @@ class OvaryOpeningField extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenSex,
-    required this.specimenAge,
+    required this.lifeStage,
     required this.useHorizontalLayout,
     required this.ctr,
   });
 
   final String specimenUuid;
   final SpecimenSex? specimenSex;
-  final SpecimenAge? specimenAge;
+  final String? lifeStage;
   final bool useHorizontalLayout;
   final MammalAttributeCtrModel ctr;
 
@@ -1065,7 +1043,7 @@ class OvaryOpeningField extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       children: [
         Visibility(
-          visible: specimenSex == SpecimenSex.female,
+          visible: specimenSex?.supportsFemaleAttributes == true,
           child: DropdownButtonFormField<VaginaOpening>(
             isExpanded: true,
             initialValue: _getVaginaOpening(),
@@ -1095,8 +1073,8 @@ class OvaryOpeningField extends ConsumerWidget {
         ),
         Visibility(
           visible:
-              specimenSex == SpecimenSex.female &&
-              specimenAge == SpecimenAge.adult,
+              specimenSex?.supportsFemaleAttributes == true &&
+              lifeStage?.toLowerCase() == 'adult',
           child: DropdownButtonFormField<PubicSymphysis>(
             initialValue: _getPubicSymphysis(),
             isExpanded: true,
@@ -1148,24 +1126,28 @@ class FemaleGonadForm extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenSex,
-    required this.specimenAge,
+    required this.lifeStage,
     required this.useHorizontalLayout,
     required this.ctr,
   });
 
   final String specimenUuid;
   final SpecimenSex? specimenSex;
-  final SpecimenAge? specimenAge;
+  final String? lifeStage;
   final bool useHorizontalLayout;
   final MammalAttributeCtrModel ctr;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Visibility(
       visible:
-          specimenSex == SpecimenSex.female && specimenAge == SpecimenAge.adult,
+          specimenSex?.supportsFemaleAttributes == true &&
+          lifeStage?.toLowerCase() == 'adult',
       child: Column(
         children: [
           const CommonDivider(),
+          const SpecimenAttributeSectionLabel(
+            text: 'Female reproductive attributes',
+          ),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<ReproductiveStage>(
@@ -1196,10 +1178,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          Text(
-            'Mammae Counts (pairs)',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          const SpecimenAttributeSectionLabel(text: 'Mammae counts (pairs)'),
           MammaeForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1235,7 +1214,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          Text('Embryo', style: Theme.of(context).textTheme.titleLarge),
+          const SpecimenAttributeSectionLabel(text: 'Embryo'),
           EmbryoForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1261,10 +1240,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          Text(
-            'Placental Scars',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          const SpecimenAttributeSectionLabel(text: 'Placental scars'),
           PlacentalScarForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,

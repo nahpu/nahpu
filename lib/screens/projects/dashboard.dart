@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -97,6 +97,7 @@ class BottomPanel extends StatelessWidget {
     return AdaptiveMainLayout(
       useHorizontalLayout: useHorizontalLayout,
       height: bottomDashboardHeight,
+      stretchChildren: true,
       children: const [TaxonRegistryViewer(), StatisticViewer()],
     );
   }

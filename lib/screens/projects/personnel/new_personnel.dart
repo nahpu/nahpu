@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
-import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -30,17 +29,10 @@ class EditPersonnelForm extends ConsumerWidget {
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: ScrollableConstrainedLayout(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PersonnelFormPage(
-                ctr: ctr,
-                personnelUuid: personnelData.uuid,
-                isEditing: true,
-              ),
-            ],
-          ),
+        child: PersonnelFormPage(
+          ctr: ctr,
+          personnelUuid: personnelData.uuid,
+          isEditing: true,
         ),
       ),
     );

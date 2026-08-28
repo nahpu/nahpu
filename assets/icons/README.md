@@ -2,8 +2,14 @@
 
 Every SVG directly in this directory is bundled with the app (`pubspec.yaml` →
 `flutter: assets: - assets/icons/`) and loaded by path through `SvgPicture.asset`.
-The `nahpu_legacy_icons/` subdirectory is **not** bundled — Flutter's directory
-asset entries are not recursive. See its own README for what lives there.
+
+These are separate from the **icon font**. `NahpuIcons`
+(`assets/fonts/nahpu_font.ttf`, `lib/services/types/nahpu_icons.dart`) is built
+from its own 24-grid sources in the
+[nahpu-icon-generator](https://github.com/nahpu/nahpu-icon-generator) repo and
+rendered with `Icon(...)` rather than `SvgPicture`. Only the built `.ttf` and the
+generated Dart class live here — never the font's SVG sources. The two grids are
+not interchangeable: the font is 24x24 at stroke 2, these are 48x48 at stroke 3.
 
 `test/icon_asset_test.dart` enforces most of what follows. Run `flutter test` after
 adding or editing an icon.
@@ -56,7 +62,7 @@ wasted work, so **budget 3–4 interior detail strokes** for anything reachable 
 ## Adding an icon
 
 1. Draw on the 48 grid with the two weights above.
-2. Add it directly in this directory — never in `nahpu_legacy_icons/`.
+2. Add it directly in this directory.
 3. Reference it from Dart by path. If it is a specimen part, add it to
    `partIconPath` or `preparationIconPath` in `lib/services/types/specimens.dart`
    rather than hardcoding the string at the call site. If it is a collecting

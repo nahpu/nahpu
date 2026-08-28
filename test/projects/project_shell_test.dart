@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
+import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -24,6 +26,22 @@ class _PushCountingObserver extends NavigatorObserver {
   }
 }
 
+/// A page whose [State] carries a value, so a test can tell whether the shell
+/// preserved the page element or rebuilt the subtree from scratch.
+class _StateProbe extends StatefulWidget {
+  const _StateProbe();
+
+  @override
+  State<_StateProbe> createState() => _StateProbeState();
+}
+
+class _StateProbeState extends State<_StateProbe> {
+  int pageCount = 0;
+
+  @override
+  Widget build(BuildContext context) => Text('PROBE-$pageCount');
+}
+
 // Lightweight stand-ins for the five real project screens, which would
 // otherwise pull in the database/provider stack.
 const _pages = [
@@ -37,6 +55,8 @@ const _pages = [
 Future<_PushCountingObserver> _pumpShell(
   WidgetTester tester, {
   Size size = const Size(800, 600),
+  List<Widget> pages = _pages,
+  Future<void> Function(Database database)? seed,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -57,6 +77,7 @@ Future<_PushCountingObserver> _pumpShell(
           name: Value('Project shell'),
         ),
       );
+  await seed?.call(database);
   final container = ProviderContainer(
     overrides: [
       databaseProvider.overrideWithValue(database),
@@ -73,7 +94,7 @@ Future<_PushCountingObserver> _pumpShell(
       container: container,
       child: MaterialApp(
         navigatorObservers: [observer],
-        home: const ProjectShell(pages: _pages),
+        home: ProjectShell(pages: pages),
       ),
     ),
   );
@@ -124,6 +145,33 @@ void main() {
     expect(find.text('PAGE-Narrative'), findsOneWidget);
   });
 
+  testWidgets('resizing across the rail breakpoint keeps page state alive', (
+    tester,
+  ) async {
+    await _pumpShell(
+      tester,
+      size: const Size(1200, 900),
+      pages: const [_StateProbe()],
+    );
+    expect(find.byType(NavigationRail), findsOneWidget);
+
+    // Stands in for state a screen builds up after it loads, such as the
+    // record viewer's page counter.
+    tester.state<_StateProbeState>(find.byType(_StateProbe)).pageCount = 3;
+
+    // Crossing the breakpoint swaps the body between a bare stack and a Row.
+    // The page stack must be reparented, not rebuilt.
+    tester.view.physicalSize = const Size(800, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('PROBE-3'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(1200, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('PROBE-3'), findsOneWidget);
+  });
+
   testWidgets('uses a collapsed labeled rail on large screens', (tester) async {
     await _pumpShell(tester, size: const Size(1200, 900));
 
@@ -152,7 +200,7 @@ void main() {
     expect(railSurface.shape, isA<RoundedRectangleBorder>());
     expect(
       (railSurface.shape! as RoundedRectangleBorder).borderRadius,
-      BorderRadius.circular(NahpuRadius.large),
+      BorderRadius.circular(NahpuRadius.lg),
     );
     expect(railSurface.clipBehavior, Clip.antiAlias);
     final surfaceElement = tester.element(railSurfaceFinder);
@@ -193,6 +241,23 @@ void main() {
     expect(eventsY, lessThan(specimensY));
     expect(specimensY, lessThan(narrativeY));
     expect(find.text('Close'), findsOneWidget);
+  });
+
+  testWidgets('the rail starts extended on laptop-sized screens', (
+    tester,
+  ) async {
+    await _pumpShell(tester, size: const Size(1280, 900));
+
+    var rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+    expect(rail.extended, isTrue);
+    expect(rail.labelType, NavigationRailLabelType.none);
+
+    // An explicit collapse still wins over the size default.
+    await tester.tap(find.text('Collapse navigation'));
+    await tester.pumpAndSettle();
+
+    rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
+    expect(rail.extended, isFalse);
   });
 
   testWidgets('expands and collapses the large-screen rail', (tester) async {
@@ -318,5 +383,62 @@ void main() {
     expect(container.read(projectNavbarIndexProvider), 4);
     expect(find.text('PAGE-Narrative'), findsOneWidget);
     expect(observer.pushCount, pushesAfterInitialRoute);
+  });
+
+  testWidgets('resizing across the breakpoint keeps the real viewer in place', (
+    tester,
+  ) async {
+    // End-to-end companion to the _StateProbe case above, which proves only
+    // that a provider-free State survives. This drives the real viewer, so a
+    // reparent that silently dropped the reconcile path would show up as a
+    // wrong page counter rather than as an intact probe value. The State-loss
+    // case itself is pinned in site_view_reconcile_test.dart, which recreates
+    // the State directly — the GlobalKey reparent holds up under test.
+    const pathChannel = MethodChannel('plugins.flutter.io/path_provider');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathChannel, (call) async => '/tmp');
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(pathChannel, null),
+    );
+
+    await _pumpShell(
+      tester,
+      size: const Size(1200, 900),
+      pages: const [SiteViewer()],
+      seed: (database) async {
+        for (var i = 0; i < 3; i++) {
+          await database
+              .into(database.site)
+              .insert(const SiteCompanion(projectUuid: Value('project-shell')));
+        }
+      },
+    );
+    expect(find.byType(NavigationRail), findsOneWidget);
+
+    // First load opens on 3 of 3; swipe back so the assertion below cannot
+    // pass by accident on the default landing page.
+    final pageView = find.byWidgetPredicate(
+      (widget) => widget is PageView && widget.key is ObjectKey,
+      description: 'site record PageView',
+    );
+    await tester.fling(pageView, const Offset(600, 0), 2000);
+    await tester.pumpAndSettle();
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+
+    tester.view.physicalSize = const Size(800, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Page 0 of 0'), findsNothing);
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+
+    tester.view.physicalSize = const Size(1200, 900);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+    expect(tester.takeException(), isNull);
+
+    // PageViewer's one-shot overlay timer must not outlive the tree.
+    await tester.pump(const Duration(seconds: 6));
   });
 }

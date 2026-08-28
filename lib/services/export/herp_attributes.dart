@@ -1,5 +1,4 @@
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
@@ -15,10 +14,10 @@ class HerpAttributes extends AppServices {
   Future<List<String>> getAttributes() async {
     data = await SpecimenServices(ref: ref).getHerpAttributeData(specimenUuid);
     List<String> sexData = _getSexData();
-    String age = data.age != null ? specimenAgeList[data.age!] : '';
+    String lifeStage = data.lifeStage ?? '';
     List<String> measurement = _getStdMeasurement();
     String remarks = data.remark ?? '';
-    return [...sexData, age, ...measurement, remarks];
+    return [...sexData, lifeStage, ...measurement, remarks];
   }
 
   List<String> _getStdMeasurement() {
@@ -39,7 +38,7 @@ class HerpAttributes extends AppServices {
   }
 
   List<String> _getSexData() {
-    String sex = data.sex != null ? specimenSexList[data.sex!] : '';
+    String sex = getSpecimenSexLabel(data.sex) ?? '';
     return [sex];
   }
 }

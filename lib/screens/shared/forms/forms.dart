@@ -1,18 +1,24 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/decoration.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+
+export 'package:nahpu/services/docs/documentation_repository.dart'
+    show InfoTopic;
 
 class FormCard extends StatelessWidget {
   const FormCard({
     super.key,
     required this.child,
-    this.infoContent,
+    this.infoTopic,
     this.title = '',
     this.mainAxisAlignment = MainAxisAlignment.spaceBetween,
     this.mainAxisSize = MainAxisSize.max,
@@ -25,7 +31,7 @@ class FormCard extends StatelessWidget {
 
   final Widget child;
   final String title;
-  final Widget? infoContent;
+  final InfoTopic? infoTopic;
   final MainAxisAlignment mainAxisAlignment;
   final MainAxisSize mainAxisSize;
   final bool isPrimary;
@@ -40,7 +46,7 @@ class FormCard extends StatelessWidget {
       padding: const EdgeInsets.all(NahpuSpacing.xs),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
           color: isPrimary
               ? Color.lerp(
                   Theme.of(context).colorScheme.secondaryContainer,
@@ -61,10 +67,7 @@ class FormCard extends StatelessWidget {
           mainAxisSize: mainAxisSize,
           children: [
             isWithTitle
-                ? TitleForm(
-                    text: title,
-                    infoContent: infoContent ?? const SizedBox.shrink(),
-                  )
+                ? TitleForm(text: title, infoTopic: infoTopic)
                 : const SizedBox.shrink(),
             isWithTitle && !isPrimary
                 ? Divider(
@@ -115,7 +118,7 @@ class CommonIDForm extends StatelessWidget {
             color: Theme.of(context).disabledColor,
             width: NahpuStroke.thin,
           ),
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
         ),
         child: child,
       ),
@@ -124,10 +127,18 @@ class CommonIDForm extends StatelessWidget {
 }
 
 class FormSection extends StatelessWidget {
-  const FormSection({super.key, required this.title, required this.child});
+  const FormSection({
+    super.key,
+    required this.title,
+    required this.child,
+    this.trailing,
+    this.padding = const EdgeInsets.all(NahpuSpacing.lg),
+  });
 
   final String title;
   final Widget child;
+  final Widget? trailing;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +146,9 @@ class FormSection extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        padding: padding,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(NahpuRadius.large),
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
           color: Theme.of(
             context,
           ).colorScheme.surfaceContainerHighest.withAlpha(80),
@@ -149,7 +160,20 @@ class FormSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                ...switch (trailing) {
+                  null => const <Widget>[],
+                  final trailing => <Widget>[trailing],
+                },
+              ],
+            ),
             const SizedBox(height: NahpuSpacing.md),
             child,
           ],
@@ -164,12 +188,12 @@ class TitleForm extends StatelessWidget {
     super.key,
     required this.text,
     this.isCentered = true,
-    required this.infoContent,
+    this.infoTopic,
   });
 
   final String text;
   final bool isCentered;
-  final Widget infoContent;
+  final InfoTopic? infoTopic;
 
   @override
   Widget build(BuildContext context) {
@@ -177,36 +201,49 @@ class TitleForm extends StatelessWidget {
       padding: isCentered
           ? const EdgeInsets.fromLTRB(46, 0, 0, 4)
           : const EdgeInsets.only(right: NahpuSpacing.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.values[1],
-        children: [
-          Text(text, style: Theme.of(context).textTheme.titleLarge),
-          InfoButton(content: infoContent),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final title = Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge,
+          );
+          return Row(
+            mainAxisSize: constraints.hasBoundedWidth
+                ? MainAxisSize.max
+                : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (constraints.hasBoundedWidth)
+                Flexible(child: title)
+              else
+                title,
+              if (infoTopic case final topic?) InfoButton(topic: topic),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class InfoButton extends StatefulWidget {
-  const InfoButton({super.key, required this.content});
+class InfoButton extends StatelessWidget {
+  const InfoButton({super.key, required this.topic, this.platformOverride});
 
-  final Widget content;
+  final InfoTopic topic;
+  final PlatformType? platformOverride;
 
-  @override
-  State<InfoButton> createState() => _InfoButtonState();
-}
-
-class _InfoButtonState extends State<InfoButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: () {
-        systemPlatform == PlatformType.mobile
-            ? showModalSheet()
-            : showInfoDialog();
+        (platformOverride ?? systemPlatform) == PlatformType.mobile
+            ? _showModalSheet(context)
+            : _showInfoDialog(context);
       },
+      tooltip: 'Show information',
       padding: EdgeInsets.zero,
       icon: Icon(
         Icons.info_outline_rounded,
@@ -216,18 +253,20 @@ class _InfoButtonState extends State<InfoButton> {
     );
   }
 
-  void showInfoDialog() async {
+  Future<void> _showInfoDialog(BuildContext context) async {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Info'),
-          content: Container(
-            width: 400,
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.75,
-            ),
-            child: InfoContainer(content: [widget.content]),
+          constraints: BoxConstraints(
+            maxWidth: 600,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+          ),
+          scrollable: true,
+          content: SizedBox(
+            width: 520,
+            child: _InfoDocumentContent(topic: topic),
           ),
           actions: [
             TextButton(
@@ -242,123 +281,123 @@ class _InfoButtonState extends State<InfoButton> {
     );
   }
 
-  void showModalSheet() {
-    showModalBottomSheet(
+  Future<void> _showModalSheet(BuildContext context) async {
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (BuildContext context) {
-        return Container(
-          width: double.infinity,
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Info', style: Theme.of(context).textTheme.titleLarge),
-              Divider(
-                thickness: NahpuStroke.thin,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.sizeOf(context).height * 0.75,
-                  ),
-                  child: widget.content,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      useSafeArea: true,
+      builder: (BuildContext context) => _InfoBottomSheet(topic: topic),
     );
   }
 }
 
-class InfoContainer extends StatefulWidget {
-  const InfoContainer({super.key, required this.content});
+class _InfoBottomSheet extends StatelessWidget {
+  const _InfoBottomSheet({required this.topic});
 
-  final List<Widget> content;
-
-  @override
-  State<InfoContainer> createState() => _InfoContainerState();
-}
-
-class _InfoContainerState extends State<InfoContainer> {
-  final ScrollController _scrollController = ScrollController();
-  final ScrollPhysics _scrollPhysics = const ClampingScrollPhysics();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  final InfoTopic topic;
 
   @override
   Widget build(BuildContext context) {
-    return CommonScrollbar(
-      scrollController: _scrollController,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: _scrollPhysics,
-        shrinkWrap: true,
-        itemCount: widget.content.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: EdgeInsets.only(top: index == 0 ? 0 : 4),
-            child: widget.content[index],
-          );
-        },
+    // The modal sheet keeps the bottom inset, so the content has to clear the
+    // home indicator itself or its last lines are hidden behind it.
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
+    return SizedBox(
+      width: double.infinity,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight:
+              MediaQuery.sizeOf(context).height * 0.9 -
+              NahpuControlSize.touchTarget -
+              bottomInset,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Info', style: Theme.of(context).textTheme.titleLarge),
+            Divider(
+              thickness: NahpuStroke.thin,
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
+            ),
+            Flexible(
+              fit: FlexFit.loose,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  NahpuSpacing.xl,
+                  0,
+                  NahpuSpacing.xl,
+                  NahpuSpacing.md + bottomInset,
+                ),
+                child: _InfoDocumentContent(topic: topic),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class InfoContent extends StatelessWidget {
-  const InfoContent({
-    super.key,
-    this.header,
-    this.richContent,
-    required this.content,
-  });
+class _InfoDocumentContent extends ConsumerStatefulWidget {
+  const _InfoDocumentContent({required this.topic});
 
-  final String? header;
-  final Widget? richContent;
-  final String? content;
+  final InfoTopic topic;
+
+  @override
+  ConsumerState<_InfoDocumentContent> createState() =>
+      _InfoDocumentContentState();
+}
+
+class _InfoDocumentContentState extends ConsumerState<_InfoDocumentContent> {
+  DocsLanguage _language = DocsLanguage.english;
+  Future<MarkdownDocument>? _document;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 4),
-        header != null
-            ? Text(
-                header!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(160),
-                ),
-              )
-            : const SizedBox.shrink(),
-        const SizedBox(height: 4),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Theme.of(context).colorScheme.primary.withAlpha(16),
-          ),
-          child:
-              richContent ??
-              Text(content ?? '', style: Theme.of(context).textTheme.bodyLarge),
+        DocsLanguageSelector(
+          selectedLanguage: _language,
+          onSelected: _selectLanguage,
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
+        FutureBuilder<MarkdownDocument>(
+          future: _document ??= _loadDocument(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const SizedBox(
+                height: NahpuControlSize.prominent,
+                child: Center(child: CommonProgressIndicator()),
+              );
+            }
+            final document = snapshot.data;
+            if (snapshot.hasError || document == null) {
+              return DocumentationErrorView(onRetry: _retry);
+            }
+            return MarkdownDocumentView(document: document);
+          },
         ),
       ],
     );
+  }
+
+  Future<MarkdownDocument> _loadDocument() {
+    return ref
+        .read(documentationRepositoryProvider)
+        .loadInfo(widget.topic, _language);
+  }
+
+  void _selectLanguage(DocsLanguage language) {
+    setState(() {
+      _language = language;
+      _document = _loadDocument();
+    });
+  }
+
+  void _retry() {
+    setState(() => _document = _loadDocument());
   }
 }
 

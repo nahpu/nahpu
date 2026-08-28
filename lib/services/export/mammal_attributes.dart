@@ -47,8 +47,8 @@ class MammalAttributes extends AppServices {
       data.weight?.truncateZero() ?? '',
       data.accuracy ?? '',
       data.accuracySpecify ?? '',
-      data.sex != null ? specimenSexList[data.sex!] : '',
-      data.age != null ? specimenAgeList[data.age!] : '',
+      getSpecimenSexLabel(data.sex) ?? '',
+      data.lifeStage ?? '',
       ..._getSexData(), // 16 items
       data.remark ?? '',
     ];
@@ -66,15 +66,13 @@ class MammalAttributes extends AppServices {
     List<String> emptyMale = List.filled(4, '');
     List<String> emptyFemale = List.filled(12, '');
 
-    switch (sexEnum) {
-      case SpecimenSex.male:
-        return [..._getMaleGonad(), ...emptyFemale];
-      case SpecimenSex.female:
-        return [...emptyMale, ..._getFemaleGonad()];
-      case SpecimenSex.unknown:
-      default:
-        return [...emptyMale, ...emptyFemale];
-    }
+    final male = sexEnum?.supportsMaleAttributes == true
+        ? _getMaleGonad()
+        : emptyMale;
+    final female = sexEnum?.supportsFemaleAttributes == true
+        ? _getFemaleGonad()
+        : emptyFemale;
+    return [...male, ...female];
   }
 
   List<String> _getFemaleGonad() {

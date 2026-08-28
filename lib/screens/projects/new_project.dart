@@ -1,9 +1,10 @@
 import 'package:drift/drift.dart' as db;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/projects/components/project_form.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -146,14 +147,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     final colors = Theme.of(context).colorScheme;
     return Container(
       key: const ValueKey('create-project-step-rail'),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withAlpha(80),
-        border: Border.all(
-          color: colors.outlineVariant,
-          width: NahpuStroke.thin,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: NahpuPanel.decorationOf(context),
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: _steps.length,
@@ -165,7 +159,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             child: Material(
               color: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(NahpuRadius.medium),
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
               ),
               clipBehavior: Clip.antiAlias,
               child: ListTile(
@@ -173,7 +167,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                 selectedTileColor: colors.primaryContainer,
                 selectedColor: colors.onPrimaryContainer,
                 leading: CircleAvatar(
-                  radius: NahpuRadius.medium,
+                  radius: NahpuRadius.md,
                   backgroundColor: selected
                       ? colors.primary
                       : colors.surfaceContainerHighest,

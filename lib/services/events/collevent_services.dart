@@ -10,10 +10,13 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
 
-String formatCollEventId(CollEventData event, SiteData? site) {
+String formatCollEventId(CollEventData event, SiteRecord? site) {
   final siteId = site?.siteID ?? '';
   final startDate = event.startDate ?? '';
   final suffix = event.idSuffix?.trim().isNotEmpty ?? false
@@ -29,18 +32,15 @@ class CollEventServices extends AppServices {
     int eventID = await CollEventQuery(dbAccess).createCollEvent(
       CollEventCompanion(projectUuid: db.Value(currentProjectUuid)),
     );
-    // Weather data used collecting event id as a foreign key
-    // so we need to create a new weather data entry
-    // for the new collecting event
-    createWeatherData(eventID);
+    await createEnvironmentData(eventID);
     invalidateCollEvent();
     return eventID;
   }
 
-  Future<void> createWeatherData(int eventID) async {
-    await WeatherDataQuery(
+  Future<void> createEnvironmentData(int eventID) async {
+    await EnvironmentDataQuery(
       dbAccess,
-    ).createWeatherData(WeatherCompanion(eventID: db.Value(eventID)));
+    ).createEnvironmentData(EnvironmentCompanion(eventID: db.Value(eventID)));
   }
 
   Future<String> getCollEventID(CollEventData collEventData) async {
@@ -92,8 +92,10 @@ class CollEventServices extends AppServices {
     return CollEffortQuery(dbAccess).getCollEffortById(id);
   }
 
-  Future<WeatherData> getAllWeatherData(int collEventId) async {
-    return WeatherDataQuery(dbAccess).getWeatherDataByEventId(collEventId);
+  Future<EnvironmentData> getAllEnvironmentData(int collEventId) async {
+    return EnvironmentDataQuery(
+      dbAccess,
+    ).getEnvironmentDataByEventId(collEventId);
   }
 
   Future<CollEventData?> getCollEvent(int? eventID) async {
@@ -155,8 +157,13 @@ class CollEventServices extends AppServices {
     CollEventQuery(dbAccess).updateCollEventEntry(id, entries);
   }
 
-  void updateWeatherData(int eventID, WeatherCompanion weatherData) {
-    WeatherDataQuery(dbAccess).updateWeatherDataEntry(eventID, weatherData);
+  void updateEnvironmentData(
+    int eventID,
+    EnvironmentCompanion environmentData,
+  ) {
+    EnvironmentDataQuery(
+      dbAccess,
+    ).updateEnvironmentDataEntry(eventID, environmentData);
   }
 
   Future<void> updateCollEffortEntry(int id, CollEffortCompanion entry) async {
@@ -169,11 +176,14 @@ class CollEventServices extends AppServices {
         collEvenId,
       )).map((entry) => entry.mediaId).whereType<int>().toList();
       await MediaServices(ref: ref).deleteMediaFromList(mediaIds, 'event');
-      await WeatherDataQuery(dbAccess).deleteWeatherData(collEvenId);
+      await EnvironmentDataQuery(dbAccess).deleteEnvironmentData(collEvenId);
       await CollPersonnelQuery(
         dbAccess,
       ).deleteCollPersonnelByEventId(collEvenId);
       await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvenId);
+      await AssociatedDataServices(
+        ref: ref,
+      ).detachAllFromTarget(AssociatedDataTarget.event(collEvenId));
       await CollEventQuery(dbAccess).deleteCollEvent(collEvenId);
       invalidateCollEvent();
     } catch (e) {
@@ -203,11 +213,16 @@ class CollEventServices extends AppServices {
           collEvent.id,
         )).map((entry) => entry.mediaId).whereType<int>().toList();
         await MediaServices(ref: ref).deleteMediaFromList(mediaIds, 'event');
-        await WeatherDataQuery(dbAccess).deleteWeatherData(collEvent.id);
+        await EnvironmentDataQuery(
+          dbAccess,
+        ).deleteEnvironmentData(collEvent.id);
         await CollPersonnelQuery(
           dbAccess,
         ).deleteCollPersonnelByEventId(collEvent.id);
         await CollEffortQuery(dbAccess).deleteCollEffortByEventId(collEvent.id);
+        await AssociatedDataServices(
+          ref: ref,
+        ).detachAllFromTarget(AssociatedDataTarget.event(collEvent.id));
       }
       await CollEventQuery(dbAccess).deleteAllCollEvents(projectUuid);
       invalidateCollEvent();
@@ -229,7 +244,7 @@ class CollEventServices extends AppServices {
 
   void invalidateCollEvent() {
     // ref.invalidate(collEventEntryProvider);
-    // ref.invalidate(weatherDataProvider);
+    // ref.invalidate(environmentDataProvider);
     // ref.invalidate(collPersonnelProvider);
   }
 
@@ -270,7 +285,7 @@ class EventDuplicateService extends AppServices {
     );
     await _duplicateCollEffort(originEventID, destinationEventId);
     await _duplicateCollPersonnel(originEventID, destinationEventId);
-    collEventServices.createWeatherData(destinationEventId);
+    collEventServices.createEnvironmentData(destinationEventId);
     collEventServices.invalidateCollEvent();
     return destinationEventId;
   }

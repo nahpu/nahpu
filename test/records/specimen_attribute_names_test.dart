@@ -45,4 +45,78 @@ void main() {
       'measurement::toeHex',
     );
   });
+
+  test('moves legacy arthropod environment and canopy sources', () {
+    expect(
+      canonicalizeSpecimenAttributeSourceKey(
+        'arthropodAttribute::ambientHumidity',
+      ),
+      'environment::ambientHumidity',
+    );
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('arthropodAttribute::canopyCover'),
+      'siteAttribute::canopyCover',
+    );
+    expect(
+      canonicalizeSpecimenAttributeExpression(
+        r'${arthropodAttribute::flowVelocity}',
+      ),
+      r'${environment::flowVelocity}',
+    );
+  });
+
+  test('rewrites v21 site geography keys to the geography namespace', () {
+    for (final field in const [
+      'country',
+      'islandGroup',
+      'stateProvince',
+      'county',
+      'municipality',
+      'locality',
+      'specificLocality',
+      'verbatimLocality',
+    ]) {
+      expect(
+        canonicalizeSpecimenAttributeSourceKey('site::$field'),
+        'geography::$field',
+        reason: 'site::$field should move to the geography namespace',
+      );
+    }
+
+    // Fields that stayed on the site row must not be rewritten.
+    for (final key in const [
+      'site::siteID',
+      'site::siteType',
+      'site::remark',
+      'site::mediaID',
+    ]) {
+      expect(canonicalizeSpecimenAttributeSourceKey(key), key);
+    }
+
+    // Habitat fields still resolve to siteAttribute, not geography.
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('site::habitatType'),
+      'siteAttribute::habitatType',
+    );
+  });
+
+  test('migrates saved preset expressions to the geography namespace', () {
+    expect(
+      canonicalizeSpecimenAttributeExpression(
+        '[site::siteID]: [site::country]; [site::stateProvince]; '
+        '[site::county], [site::locality]',
+      ),
+      '[site::siteID]: [geography::country]; [geography::stateProvince]; '
+      '[geography::county], [geography::locality]',
+    );
+    // A longer key must not be clipped by a shorter one that shares a prefix.
+    expect(
+      canonicalizeSpecimenAttributeExpression('[site::verbatimLocality]'),
+      '[geography::verbatimLocality]',
+    );
+    expect(
+      canonicalizeSpecimenAttributeExpression('[site::specificLocality]'),
+      '[geography::specificLocality]',
+    );
+  });
 }

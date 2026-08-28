@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/settings/export_preset_edit.dart';
+import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -19,8 +19,9 @@ void main() {
     mappings: [ExportFieldMapping(expression: '[narrative::narrativeID]')],
   );
 
-  testWidgets('switching presets flushes the previous pending snapshot',
-      (tester) async {
+  testWidgets('switching presets flushes the previous pending snapshot', (
+    tester,
+  ) async {
     final notifier = _FakeExportPresetNotifier({
       'first': firstPreset,
       'second': secondPreset,
@@ -31,16 +32,14 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          exportPresetNotifierProvider.overrideWith(() => notifier),
-        ],
+        overrides: [exportPresetNotifierProvider.overrideWith(() => notifier)],
         child: MaterialApp(
           home: StatefulBuilder(
             builder: (context, setState) {
               selectPreset = (name, preset) => setState(() {
-                    selectedName = name;
-                    selectedPreset = preset;
-                  });
+                selectedName = name;
+                selectedPreset = preset;
+              });
               return Scaffold(
                 body: ExportPresetEditForm(
                   presetName: selectedName,
@@ -67,17 +66,16 @@ void main() {
     expect(notifier.savedPresets.single, firstPreset);
   });
 
-  testWidgets('provider-driven deletion does not flush a pending edit',
-      (tester) async {
+  testWidgets('provider-driven deletion does not flush a pending edit', (
+    tester,
+  ) async {
     final notifier = _FakeExportPresetNotifier({'first': firstPreset});
     var showEditor = true;
     late StateSetter updateHarness;
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          exportPresetNotifierProvider.overrideWith(() => notifier),
-        ],
+        overrides: [exportPresetNotifierProvider.overrideWith(() => notifier)],
         child: MaterialApp(
           home: StatefulBuilder(
             builder: (context, setState) {

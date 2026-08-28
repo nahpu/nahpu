@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
@@ -8,6 +8,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
+
+import '../data/site_fixture.dart';
 
 void main() {
   late Database database;
@@ -51,19 +53,16 @@ void main() {
             initial: Value('NW'),
           ),
         );
-    siteId = await database
-        .into(database.site)
-        .insert(
-          const SiteCompanion(
-            siteID: Value('SITE-01'),
-            projectUuid: Value('project-1'),
-            country: Value('Indonesia'),
-            stateProvince: Value('West Java'),
-            county: Value('Bogor'),
-            municipality: Value('Cibodas'),
-            locality: Value('Forest plot 7'),
-          ),
-        );
+    siteId = await insertSiteWithGeography(
+      database,
+      siteID: 'SITE-01',
+      projectUuid: 'project-1',
+      country: 'Indonesia',
+      stateProvince: 'West Java',
+      county: 'Bogor',
+      municipality: 'Cibodas',
+      locality: 'Forest plot 7',
+    );
     eventId = await database
         .into(database.collEvent)
         .insert(

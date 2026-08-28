@@ -10,8 +10,10 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/export/bird_attributes.dart';
+import 'package:nahpu/services/export/arthropod_attributes.dart';
 import 'package:nahpu/services/export/mammal_attributes.dart';
 import 'package:nahpu/services/export/herp_attributes.dart';
+import 'package:nahpu/services/export/fossil_attributes.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
@@ -40,8 +42,8 @@ class SpecimenRecordWriter {
       ...siteExportList,
       ...collEventExportList,
       ..._getAttributeHeader(),
-      ...parasiteDetectionExportList,
-      ...parasiteExportList,
+      if (_includeParasites) ...parasiteDetectionExportList,
+      if (_includeParasites) ...parasiteExportList,
       partExportSimple,
       'media::media',
     ];
@@ -106,8 +108,12 @@ class SpecimenRecordWriter {
         .map(
           (record) => [
             ...baseContent,
-            ...parasiteDetectionExportList.map((field) => record[field] ?? ''),
-            ...parasiteExportList.map((field) => record[field] ?? ''),
+            if (_includeParasites)
+              ...parasiteDetectionExportList.map(
+                (field) => record[field] ?? '',
+              ),
+            if (_includeParasites)
+              ...parasiteExportList.map((field) => record[field] ?? ''),
             partValue,
             media,
           ],
@@ -132,12 +138,16 @@ class SpecimenRecordWriter {
         return batAttributeExportList;
       case SpecimenRecordType.herpetofauna:
         return herpAttributeExportList;
+      case SpecimenRecordType.arthropods:
+        return arthropodAttributeExportList;
       case SpecimenRecordType.allTaxa:
         return <String>{
           ...mammalAttributeExportList,
           ...birdAttributeExportList,
           ...batAttributeExportList,
           ...herpAttributeExportList,
+          ...arthropodAttributeExportList,
+          ...fossilAttributeExportList,
         }.toList();
     }
   }
@@ -174,6 +184,16 @@ class SpecimenRecordWriter {
   }
 
   Future<List<String>> _getAttributes(SpecimenData data) async {
+    if (recordType == SpecimenRecordType.allTaxa &&
+        data.taxonGroup?.toLowerCase().contains('fossil') == true) {
+      final values = await _getFossilAttributes(data.uuid);
+      final combinedHeader = _getAttributeHeader();
+      final mapped = <String, String>{
+        for (var index = 0; index < fossilAttributeExportList.length; index++)
+          fossilAttributeExportList[index]: values[index],
+      };
+      return combinedHeader.map((key) => mapped[key] ?? '').toList();
+    }
     SpecimenRecordType currentType = recordType;
     if (recordType == SpecimenRecordType.allTaxa) {
       currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
@@ -200,6 +220,10 @@ class SpecimenRecordWriter {
         keys = herpAttributeExportList;
         values = await _getHerpAttributes(data.uuid);
         break;
+      case SpecimenRecordType.arthropods:
+        keys = arthropodAttributeExportList;
+        values = await _getArthropodAttributes(data.uuid);
+        break;
       case SpecimenRecordType.allTaxa:
         keys = [];
         values = [];
@@ -219,6 +243,13 @@ class SpecimenRecordWriter {
     }
 
     return combinedHeader.map((k) => map[k] ?? '').toList();
+  }
+
+  Future<List<String>> _getFossilAttributes(String specimenUuid) {
+    return FossilAttributes(
+      ref: ref,
+      specimenUuid: specimenUuid,
+    ).getAttributes();
   }
 
   Future<List<String>> _getMammalAttributes(
@@ -242,6 +273,16 @@ class SpecimenRecordWriter {
     HerpAttributes herps = HerpAttributes(specimenUuid: specimenUuid, ref: ref);
     return await herps.getAttributes();
   }
+
+  Future<List<String>> _getArthropodAttributes(String specimenUuid) async {
+    final arthropods = ArthropodAttributes(
+      specimenUuid: specimenUuid,
+      ref: ref,
+    );
+    return await arthropods.getAttributes();
+  }
+
+  bool get _includeParasites => recordType != SpecimenRecordType.arthropods;
 
   Future<String> _getSpecimenMedia(String specimenUuid) async {
     String specimenMedia = await MediaWriterServices(

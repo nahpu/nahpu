@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Returns the nearest candidate whose projected hit area contains a tap.
 T? closestMapPoint<T>({

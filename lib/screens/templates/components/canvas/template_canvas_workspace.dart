@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_editor.dart';
 import 'package:nahpu/screens/templates/components/controls/front_back_page_pickers.dart';
@@ -82,22 +82,23 @@ class TemplateCanvasWorkspace extends StatefulWidget {
     Offset globalPosition,
     Offset globalDelta,
     double scale,
-  ) templatePanGlobalDeltaToMm;
+  )
+  templatePanGlobalDeltaToMm;
   final String fieldDisplayOption;
   final VoidCallback onClearSelection;
   final ValueChanged<int> onPageChanged;
   final ValueChanged<String> onSelectElement;
   final ValueChanged<String> onStartInlineEditing;
   final void Function(bool page1, CustomImageElement element)
-      onScheduleTemplateImageUpdate;
+  onScheduleTemplateImageUpdate;
   final void Function(bool page1, String id) onRemoveCustomImage;
   final void Function(bool page1, CustomTextElement element)
-      onScheduleTemplateTextPositionUpdate;
+  onScheduleTemplateTextPositionUpdate;
   final void Function(bool page1, CustomLineElement element)
-      onScheduleTemplateLineUpdate;
+  onScheduleTemplateLineUpdate;
   final void Function(bool page1, String id) onRemoveCustomLine;
   final void Function(bool page1, CustomShapeElement element)
-      onScheduleTemplateShapeUpdate;
+  onScheduleTemplateShapeUpdate;
   final void Function(bool page1, String id) onRemoveCustomShape;
   final ValueChanged<double> onZoomChanged;
   final VoidCallback onCanvasMovementLockToggled;
@@ -177,80 +178,70 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
   }
 
   Map<ShortcutActivator, VoidCallback> get _shortcutBindings => {
-        const SingleActivator(LogicalKeyboardKey.equal, meta: true): _zoomIn,
-        const SingleActivator(LogicalKeyboardKey.equal, control: true): _zoomIn,
-        const SingleActivator(LogicalKeyboardKey.add, meta: true): _zoomIn,
-        const SingleActivator(LogicalKeyboardKey.add, control: true): _zoomIn,
-        const SingleActivator(LogicalKeyboardKey.minus, meta: true): _zoomOut,
-        const SingleActivator(LogicalKeyboardKey.minus, control: true):
-            _zoomOut,
-        const SingleActivator(LogicalKeyboardKey.digit0, meta: true):
-            _resetZoom,
-        const SingleActivator(LogicalKeyboardKey.digit0, control: true):
-            _resetZoom,
-        const SingleActivator(LogicalKeyboardKey.keyL, meta: true):
-            widget.onCanvasMovementLockToggled,
-        const SingleActivator(LogicalKeyboardKey.keyL, control: true):
-            widget.onCanvasMovementLockToggled,
-        const SingleActivator(LogicalKeyboardKey.keyG, meta: true):
-            widget.onGridToggled,
-        const SingleActivator(LogicalKeyboardKey.keyG, control: true):
-            widget.onGridToggled,
-        const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
-            widget.onSnapToggled,
-        const SingleActivator(
-          LogicalKeyboardKey.keyS,
-          control: true,
-          shift: true,
-        ): widget.onSnapToggled,
-        if (widget.canUndo && widget.onUndo != null)
-          const SingleActivator(LogicalKeyboardKey.keyZ, meta: true):
-              widget.onUndo!,
-        if (widget.canUndo && widget.onUndo != null)
-          const SingleActivator(LogicalKeyboardKey.keyZ, control: true):
-              widget.onUndo!,
-        if (widget.canRedo && widget.onRedo != null)
-          const SingleActivator(
-            LogicalKeyboardKey.keyZ,
-            meta: true,
-            shift: true,
-          ): widget.onRedo!,
-        if (widget.canRedo && widget.onRedo != null)
-          const SingleActivator(
-            LogicalKeyboardKey.keyZ,
-            control: true,
-            shift: true,
-          ): widget.onRedo!,
-        if (widget.canRedo && widget.onRedo != null)
-          const SingleActivator(LogicalKeyboardKey.keyY, control: true):
-              widget.onRedo!,
-        if (widget.onDeleteSelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.delete):
-              widget.onDeleteSelectedElement!,
-        if (widget.onDeleteSelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.backspace):
-              widget.onDeleteSelectedElement!,
-        if (widget.onDuplicateSelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyD, meta: true):
-              widget.onDuplicateSelectedElement!,
-        if (widget.onDuplicateSelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyD, control: true):
-              widget.onDuplicateSelectedElement!,
-        if (widget.onCopySelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyC, meta: true):
-              widget.onCopySelectedElement!,
-        if (widget.onCopySelectedElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyC, control: true):
-              widget.onCopySelectedElement!,
-        if (widget.onPasteElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyV, meta: true):
-              widget.onPasteElement!,
-        if (widget.onPasteElement != null)
-          const SingleActivator(LogicalKeyboardKey.keyV, control: true):
-              widget.onPasteElement!,
-        const SingleActivator(LogicalKeyboardKey.escape):
-            widget.onClearSelection,
-      };
+    const SingleActivator(LogicalKeyboardKey.equal, meta: true): _zoomIn,
+    const SingleActivator(LogicalKeyboardKey.equal, control: true): _zoomIn,
+    const SingleActivator(LogicalKeyboardKey.add, meta: true): _zoomIn,
+    const SingleActivator(LogicalKeyboardKey.add, control: true): _zoomIn,
+    const SingleActivator(LogicalKeyboardKey.minus, meta: true): _zoomOut,
+    const SingleActivator(LogicalKeyboardKey.minus, control: true): _zoomOut,
+    const SingleActivator(LogicalKeyboardKey.digit0, meta: true): _resetZoom,
+    const SingleActivator(LogicalKeyboardKey.digit0, control: true): _resetZoom,
+    const SingleActivator(LogicalKeyboardKey.keyL, meta: true):
+        widget.onCanvasMovementLockToggled,
+    const SingleActivator(LogicalKeyboardKey.keyL, control: true):
+        widget.onCanvasMovementLockToggled,
+    const SingleActivator(LogicalKeyboardKey.keyG, meta: true):
+        widget.onGridToggled,
+    const SingleActivator(LogicalKeyboardKey.keyG, control: true):
+        widget.onGridToggled,
+    const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
+        widget.onSnapToggled,
+    const SingleActivator(LogicalKeyboardKey.keyS, control: true, shift: true):
+        widget.onSnapToggled,
+    if (widget.canUndo && widget.onUndo != null)
+      const SingleActivator(LogicalKeyboardKey.keyZ, meta: true):
+          widget.onUndo!,
+    if (widget.canUndo && widget.onUndo != null)
+      const SingleActivator(LogicalKeyboardKey.keyZ, control: true):
+          widget.onUndo!,
+    if (widget.canRedo && widget.onRedo != null)
+      const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true):
+          widget.onRedo!,
+    if (widget.canRedo && widget.onRedo != null)
+      const SingleActivator(
+        LogicalKeyboardKey.keyZ,
+        control: true,
+        shift: true,
+      ): widget.onRedo!,
+    if (widget.canRedo && widget.onRedo != null)
+      const SingleActivator(LogicalKeyboardKey.keyY, control: true):
+          widget.onRedo!,
+    if (widget.onDeleteSelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.delete):
+          widget.onDeleteSelectedElement!,
+    if (widget.onDeleteSelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.backspace):
+          widget.onDeleteSelectedElement!,
+    if (widget.onDuplicateSelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyD, meta: true):
+          widget.onDuplicateSelectedElement!,
+    if (widget.onDuplicateSelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyD, control: true):
+          widget.onDuplicateSelectedElement!,
+    if (widget.onCopySelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyC, meta: true):
+          widget.onCopySelectedElement!,
+    if (widget.onCopySelectedElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyC, control: true):
+          widget.onCopySelectedElement!,
+    if (widget.onPasteElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyV, meta: true):
+          widget.onPasteElement!,
+    if (widget.onPasteElement != null)
+      const SingleActivator(LogicalKeyboardKey.keyV, control: true):
+          widget.onPasteElement!,
+    const SingleActivator(LogicalKeyboardKey.escape): widget.onClearSelection,
+  };
 
   void _zoomIn() {
     widget.onZoomChanged((widget.zoom + 0.25).clamp(0.5, 4.0).toDouble());

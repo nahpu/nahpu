@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/pickers.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -190,6 +191,7 @@ class CommonSearchBar extends StatelessWidget {
     required this.trailing,
     required this.hintText,
     required this.focusNode,
+    this.constraints,
   });
 
   final TextEditingController controller;
@@ -197,6 +199,7 @@ class CommonSearchBar extends StatelessWidget {
   final Iterable<Widget> trailing;
   final String hintText;
   final FocusNode focusNode;
+  final BoxConstraints? constraints;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +210,7 @@ class CommonSearchBar extends StatelessWidget {
       padding: const WidgetStatePropertyAll<EdgeInsets>(
         EdgeInsets.symmetric(horizontal: 8.0),
       ),
+      constraints: constraints,
       elevation: WidgetStateProperty.all(0),
       hintText: hintText,
       backgroundColor: WidgetStateProperty.all(Colors.grey.withAlpha(48)),
@@ -318,6 +322,7 @@ class CommonTextField extends StatelessWidget {
     super.key,
     required this.labelText,
     this.controller,
+    this.focusNode,
     required this.hintText,
     this.enabled = true,
     this.keyboardType = TextInputType.text,
@@ -328,6 +333,7 @@ class CommonTextField extends StatelessWidget {
 
   final bool enabled;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String labelText;
   final String hintText;
   final TextInputType keyboardType;
@@ -341,6 +347,7 @@ class CommonTextField extends StatelessWidget {
       enabled: enabled,
       maxLines: maxLines,
       controller: controller,
+      focusNode: focusNode,
       decoration: InputDecoration(labelText: labelText, hintText: hintText),
       keyboardType: keyboardType,
       onChanged: onChanged,
@@ -379,89 +386,138 @@ class SwitchField extends StatelessWidget {
   }
 }
 
-class AutoCompleteField extends StatelessWidget {
+/// A text field that suggests entries from [options] as the user types.
+///
+/// Generic over the option type so a selection carries its record. Matching an
+/// option back to its record by display string would be ambiguous whenever two
+/// records render the same text.
+class AutoCompleteField<T extends Object> extends StatelessWidget {
   const AutoCompleteField({
     super.key,
     required this.focusNode,
     required this.controller,
     required this.options,
+    required this.displayStringFor,
     required this.onSelected,
     required this.labelText,
     required this.hintText,
+    this.isProminent = false,
   });
 
   final FocusNode focusNode;
   final TextEditingController controller;
-  final List<String> options;
-  final void Function(String) onSelected;
+  final List<T> options;
+
+  /// The text shown for an option, and the text matched against as they type.
+  final String Function(T) displayStringFor;
+  final void Function(T) onSelected;
   final String labelText;
   final String hintText;
 
+  /// Draws a full border instead of the form default underline.
+  ///
+  /// Use for a lookup that fills other fields, so it does not read as one more
+  /// value to type.
+  final bool isProminent;
+
+  /// Caps the overlay so a long list scrolls instead of covering the form.
+  static const double _maxOptionsHeight = 320;
+
   @override
   Widget build(BuildContext context) {
-    return RawAutocomplete<String>(
-      focusNode: focusNode,
-      textEditingController: controller,
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text == '') {
-          return const Iterable<String>.empty();
-        }
-        return options.where((String option) {
-          return option.toLowerCase().contains(
-            textEditingValue.text.toLowerCase(),
-          );
-        });
-      },
-      onSelected: onSelected,
-      fieldViewBuilder:
-          (
-            BuildContext context,
-            TextEditingController controller,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            return AutoCompleteText(
-              controller: controller,
-              enable: true,
-              focusNode: focusNode,
-              labelText: labelText,
-              hintText: hintText,
-              onFieldSubmitted: (String value) {
-                onFieldSubmitted();
+    // The overlay is positioned over the field but sized independently, so the
+    // field's width has to be measured and handed to the options view.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fieldWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : null;
+        return RawAutocomplete<T>(
+          focusNode: focusNode,
+          textEditingController: controller,
+          displayStringForOption: displayStringFor,
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            final query = textEditingValue.text.trim().toLowerCase();
+            if (query.isEmpty) return const Iterable.empty();
+            return options.where(
+              (option) =>
+                  displayStringFor(option).toLowerCase().contains(query),
+            );
+          },
+          onSelected: onSelected,
+          fieldViewBuilder:
+              (
+                BuildContext context,
+                TextEditingController controller,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted,
+              ) {
+                return AutoCompleteText(
+                  controller: controller,
+                  enable: true,
+                  focusNode: focusNode,
+                  labelText: labelText,
+                  hintText: hintText,
+                  isProminent: isProminent,
+                  onFieldSubmitted: (String value) {
+                    onFieldSubmitted();
+                  },
+                );
               },
-            );
-          },
-      optionsViewBuilder:
-          (
-            BuildContext context,
-            AutocompleteOnSelected<String> onSelected,
-            Iterable<String> options,
-          ) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: Container(
-                  width: 300,
-                  constraints: const BoxConstraints(maxHeight: 350),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(8.0),
-                    itemCount: options.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final String option = options.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          onSelected(option);
+          optionsViewBuilder:
+              (
+                BuildContext context,
+                AutocompleteOnSelected<T> onSelected,
+                Iterable<T> options,
+              ) {
+                final colors = Theme.of(context).colorScheme;
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    // Opaque so the form does not show through, and bordered
+                    // rather than shadowed to match every other NAHPU surface
+                    // (see the card theme in themes.dart).
+                    color: colors.surfaceContainerHighest,
+                    elevation: NahpuElevation.none,
+                    shadowColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(NahpuRadius.lg),
+                      side: BorderSide(
+                        color: colors.outlineVariant,
+                        width: NahpuStroke.thin,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Container(
+                      width: fieldWidth,
+                      constraints: const BoxConstraints(
+                        maxHeight: _maxOptionsHeight,
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: NahpuSpacing.md,
+                        ),
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final option = options.elementAt(index);
+                          return ListTile(
+                            dense: true,
+                            title: Text(
+                              displayStringFor(option),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () => onSelected(option),
+                          );
                         },
-                        child: ListTile(title: Text(option)),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+        );
+      },
     );
   }
 }
@@ -475,6 +531,7 @@ class AutoCompleteText extends StatelessWidget {
     required this.hintText,
     required this.onFieldSubmitted,
     required this.enable,
+    this.isProminent = false,
   });
 
   final TextEditingController controller;
@@ -483,13 +540,26 @@ class AutoCompleteText extends StatelessWidget {
   final String labelText;
   final String hintText;
   final bool enable;
+  final bool isProminent;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       enabled: enable,
       controller: controller,
-      decoration: InputDecoration(labelText: labelText, hintText: hintText),
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        // Record-entry fields keep the theme underline; a prominent lookup
+        // takes the full border used elsewhere for non-entry controls.
+        border: isProminent
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
+              )
+            : null,
+        isDense: isProminent,
+        prefixIcon: isProminent ? const Icon(Icons.travel_explore) : null,
+      ),
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
       keyboardType: TextInputType.text,
@@ -576,23 +646,75 @@ class UserDefinedSettingField extends ConsumerWidget {
       },
       onCaseFormatPressed: onCaseFormatPressed,
       resetLabel: 'Match database',
-      onReset: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return CommonAlertDialog(
-              titleText: 'Match database ${plural.toLowerCase()}?',
-              descText:
-                  'Matching database types will'
-                  ' delete all unused ${plural.toLowerCase()}',
-              confirmFunction: () {
-                UtilityServices(ref: ref).getAllOptions(typePrefKey);
-              },
-              cancelFunction: () {},
-            );
-          },
-        );
-      },
+      onReset: () => _showDatabaseMatchDialog(context, ref, plural),
+    );
+  }
+
+  void _showDatabaseMatchDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String plural,
+  ) {
+    var mode = DatabaseMatchMode.appendMissing;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final description = switch (mode) {
+            DatabaseMatchMode.appendMissing =>
+              'Add values found in the database without changing your existing '
+                  '$plural.',
+            DatabaseMatchMode.overrideAll =>
+              'Replace all configured $plural with the values currently found '
+                  'in the database.',
+          };
+          return AlertDialog(
+            title: Text('Match database ${plural.toLowerCase()}?'),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SegmentedButton<DatabaseMatchMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: DatabaseMatchMode.appendMissing,
+                        label: Text('Append missing'),
+                      ),
+                      ButtonSegment(
+                        value: DatabaseMatchMode.overrideAll,
+                        label: Text('Override all'),
+                      ),
+                    ],
+                    selected: {mode},
+                    onSelectionChanged: (selection) {
+                      setState(() => mode = selection.single);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Text(description),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  await UtilityServices(
+                    ref: ref,
+                  ).matchDatabaseOptions(typePrefKey, mode: mode);
+                  if (context.mounted) Navigator.pop(context);
+                },
+                child: const Text('Match database'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

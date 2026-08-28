@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,8 +53,8 @@ void main() {
         .into(database.collEvent)
         .insert(const CollEventCompanion(projectUuid: Value(projectUuid)));
     await database
-        .into(database.weather)
-        .insert(WeatherCompanion(eventID: Value(eventId)));
+        .into(database.environment)
+        .insert(EnvironmentCompanion(eventID: Value(eventId)));
 
     SharedPreferences.setMockInitialValues(const {});
     final preferences = await SharedPreferences.getInstance();
@@ -84,7 +84,7 @@ void main() {
       matching: find.byType(TabBar),
     );
     expect(eventTabBar, findsOneWidget);
-    expect(tester.widget<TabBar>(eventTabBar).tabs, hasLength(2));
+    expect(tester.widget<TabBar>(eventTabBar).tabs, hasLength(3));
     expect(
       tester.getTopLeft(find.byType(EventMediaForm)).dy,
       greaterThan(tester.getTopLeft(find.byType(CollEventTabBar)).dy),

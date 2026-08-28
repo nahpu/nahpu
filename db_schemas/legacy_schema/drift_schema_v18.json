@@ -1,0 +1,5401 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": false
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "project",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "uuid",
+            "getter_name": "uuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "primary-key"
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "description",
+            "getter_name": "description",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "principalInvestigator",
+            "getter_name": "principalInvestigator",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "accession",
+            "getter_name": "accession",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "catalogNumberPrefix",
+            "getter_name": "catalogNumberPrefix",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "currentCatalogNumber",
+            "getter_name": "currentCatalogNumber",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "catalogNumberSuffix",
+            "getter_name": "catalogNumberSuffix",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "location",
+            "getter_name": "location",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "timeZone",
+            "getter_name": "timeZone",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "startDate",
+            "getter_name": "startDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "endDate",
+            "getter_name": "endDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created",
+            "getter_name": "created",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lastAccessed",
+            "getter_name": "lastAccessed",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 1,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "personnel",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "uuid",
+            "getter_name": "uuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "UNIQUE NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "primary-key"
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "initial",
+            "getter_name": "initial",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "email",
+            "getter_name": "email",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "phone",
+            "getter_name": "phone",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "affiliation",
+            "getter_name": "affiliation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "orcid",
+            "getter_name": "orcid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "role",
+            "getter_name": "role",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "currentFieldNumber",
+            "getter_name": "currentFieldNumber",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "photoPath",
+            "getter_name": "photoPath",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "isRegisterField",
+            "getter_name": "isRegisterField",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 1",
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 2,
+      "references": [
+        1,
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "media",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "primaryId",
+            "getter_name": "primaryId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "secondaryId",
+            "getter_name": "secondaryId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "category",
+            "getter_name": "category",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tag",
+            "getter_name": "tag",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "taken",
+            "getter_name": "taken",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "camera",
+            "getter_name": "camera",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lenses",
+            "getter_name": "lenses",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "additionalExif",
+            "getter_name": "additionalExif",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "personnelId",
+            "getter_name": "personnelId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "fileName",
+            "getter_name": "fileName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "uri",
+            "getter_name": "uri",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "caption",
+            "getter_name": "caption",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(personnelId)REFERENCES personnel(uuid)",
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "references": [
+        2,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "site",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "siteID",
+            "getter_name": "siteID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "leadStaffId",
+            "getter_name": "leadStaffId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "siteType",
+            "getter_name": "siteType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "country",
+            "getter_name": "country",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "stateProvince",
+            "getter_name": "stateProvince",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "county",
+            "getter_name": "county",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "municipality",
+            "getter_name": "municipality",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaID",
+            "getter_name": "mediaID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "locality",
+            "getter_name": "locality",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "habitatType",
+            "getter_name": "habitatType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "habitatCondition",
+            "getter_name": "habitatCondition",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "habitatDescription",
+            "getter_name": "habitatDescription",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(mediaID)REFERENCES media(primaryId)",
+          "FOREIGN KEY(leadStaffId)REFERENCES personnel(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "references": [
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "fossilSite",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "siteID",
+            "getter_name": "siteID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "formation",
+            "getter_name": "formation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "geologicEra",
+            "getter_name": "geologicEra",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "geologicPeriod",
+            "getter_name": "geologicPeriod",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "geologicSeries",
+            "getter_name": "geologicSeries",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "geologicEpoch",
+            "getter_name": "geologicEpoch",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "narrowerGeologicStage",
+            "getter_name": "narrowerGeologicStage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "broaderGeologicStage",
+            "getter_name": "broaderGeologicStage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "biozone",
+            "getter_name": "biozone",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "rockType",
+            "getter_name": "rockType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "depositionalEnvironmentType",
+            "getter_name": "depositionalEnvironmentType",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "depositionalContinent",
+            "getter_name": "depositionalContinent",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "depositionalMarine",
+            "getter_name": "depositionalMarine",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "standardPreservationType",
+            "getter_name": "standardPreservationType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "stratigraphyRemark",
+            "getter_name": "stratigraphyRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "stratigraphicSource",
+            "getter_name": "stratigraphicSource",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sedimentologyRemark",
+            "getter_name": "sedimentologyRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(siteID)REFERENCES site(id)"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "references": [
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "coordinate",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "UNIQUE PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "nameId",
+            "getter_name": "nameId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "decimalLatitude",
+            "getter_name": "decimalLatitude",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "decimalLongitude",
+            "getter_name": "decimalLongitude",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "verbatimLatitude",
+            "getter_name": "verbatimLatitude",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "verbatimLongitude",
+            "getter_name": "verbatimLongitude",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "verbatimCoordinates",
+            "getter_name": "verbatimCoordinates",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "verbatimCoordinateSystem",
+            "getter_name": "verbatimCoordinateSystem",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "elevationInMeter",
+            "getter_name": "elevationInMeter",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "datum",
+            "getter_name": "datum",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "uncertaintyInMeters",
+            "getter_name": "uncertaintyInMeters",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "gpsUnit",
+            "getter_name": "gpsUnit",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "siteID",
+            "getter_name": "siteID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(siteID)REFERENCES site(id)"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "references": [
+        3,
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "collEvent",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "idSuffix",
+            "getter_name": "idSuffix",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "startDate",
+            "getter_name": "startDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "startTime",
+            "getter_name": "startTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "endDate",
+            "getter_name": "endDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "endTime",
+            "getter_name": "endTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "primaryCollMethod",
+            "getter_name": "primaryCollMethod",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collMethodNotes",
+            "getter_name": "collMethodNotes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "siteID",
+            "getter_name": "siteID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "REFERENCES site(id)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "site",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "references": [
+        6
+      ],
+      "type": "table",
+      "data": {
+        "name": "weather",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "eventID",
+            "getter_name": "eventID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lowestDayTempC",
+            "getter_name": "lowestDayTempC",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "highestDayTempC",
+            "getter_name": "highestDayTempC",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lowestNightTempC",
+            "getter_name": "lowestNightTempC",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "highestNightTempC",
+            "getter_name": "highestNightTempC",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "averageHumidity",
+            "getter_name": "averageHumidity",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dewPointTemp",
+            "getter_name": "dewPointTemp",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sunriseTime",
+            "getter_name": "sunriseTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sunsetTime",
+            "getter_name": "sunsetTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "moonPhase",
+            "getter_name": "moonPhase",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(eventID)REFERENCES collEvent(id)"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "references": [
+        6,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "collPersonnel",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "eventID",
+            "getter_name": "eventID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "personnelId",
+            "getter_name": "personnelId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "role",
+            "getter_name": "role",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(eventID)REFERENCES collEvent(id)",
+          "FOREIGN KEY(personnelId)REFERENCES personnel(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "references": [
+        6
+      ],
+      "type": "table",
+      "data": {
+        "name": "collEffort",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "eventID",
+            "getter_name": "eventID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "method",
+            "getter_name": "method",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "brand",
+            "getter_name": "brand",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "count",
+            "getter_name": "count",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "size",
+            "getter_name": "size",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(eventID)REFERENCES collEvent(id)"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "references": [
+        2,
+        0,
+        3
+      ],
+      "type": "table",
+      "data": {
+        "name": "narrative",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "date",
+            "getter_name": "date",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "time",
+            "getter_name": "time",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "siteID",
+            "getter_name": "siteID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "writerId",
+            "getter_name": "writerId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "narrative",
+            "getter_name": "narrative",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaID",
+            "getter_name": "mediaID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "REFERENCES media(primaryId)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "media",
+                    "column": "primaryId"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)",
+          "FOREIGN KEY(siteID)REFERENCES site(id)"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "references": [
+        10,
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "narrativeMedia",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "narrativeId",
+            "getter_name": "narrativeId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaId",
+            "getter_name": "mediaId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(narrativeId)REFERENCES narrative(id)",
+          "FOREIGN KEY(mediaId)REFERENCES media(primaryId)"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "references": [
+        3,
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "siteMedia",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "siteId",
+            "getter_name": "siteId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaId",
+            "getter_name": "mediaId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(siteId)REFERENCES site(id)",
+          "FOREIGN KEY(mediaId)REFERENCES media(primaryId)"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "references": [
+        6,
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "eventMedia",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "eventID",
+            "getter_name": "eventID",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaId",
+            "getter_name": "mediaId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(eventID)REFERENCES collEvent(id)",
+          "FOREIGN KEY(mediaId)REFERENCES media(primaryId)"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "references": [
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "taxonomy",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "taxonRank",
+            "getter_name": "taxonRank",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "kingdom",
+            "getter_name": "kingdom",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "phylum",
+            "getter_name": "phylum",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "taxonClass",
+            "getter_name": "taxonClass",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "taxonOrder",
+            "getter_name": "taxonOrder",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "taxonFamily",
+            "getter_name": "taxonFamily",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "genus",
+            "getter_name": "genus",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "specificEpithet",
+            "getter_name": "specificEpithet",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "subspecificEpithet",
+            "getter_name": "subspecificEpithet",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "authors",
+            "getter_name": "authors",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "commonName",
+            "getter_name": "commonName",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notes",
+            "getter_name": "notes",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "citesStatus",
+            "getter_name": "citesStatus",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "redListCategory",
+            "getter_name": "redListCategory",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "countryStatus",
+            "getter_name": "countryStatus",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sortingOrder",
+            "getter_name": "sortingOrder",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaId",
+            "getter_name": "mediaId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(mediaId)REFERENCES media(primaryId)"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "references": [
+        1,
+        0,
+        8,
+        9,
+        14,
+        6
+      ],
+      "type": "table",
+      "data": {
+        "name": "specimen",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "uuid",
+            "getter_name": "uuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "UNIQUE NOT NULL PRIMARY KEY",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "primary-key"
+            ]
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "speciesID",
+            "getter_name": "speciesID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "iDConfidence",
+            "getter_name": "iDConfidence",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "iDMethod",
+            "getter_name": "iDMethod",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "taxonGroup",
+            "getter_name": "taxonGroup",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "condition",
+            "getter_name": "condition",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "prepDate",
+            "getter_name": "prepDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "prepTime",
+            "getter_name": "prepTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collectionDate",
+            "getter_name": "collectionDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collectionTime",
+            "getter_name": "collectionTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "captureDate",
+            "getter_name": "captureDate",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "isRelativeTime",
+            "getter_name": "isRelativeTime",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "captureTime",
+            "getter_name": "captureTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "relativeCaptureTime",
+            "getter_name": "relativeCaptureTime",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "trapType",
+            "getter_name": "trapType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "methodID",
+            "getter_name": "methodID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "coordinateID",
+            "getter_name": "coordinateID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "coordinateExtentMeters",
+            "getter_name": "coordinateExtentMeters",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "catalogerID",
+            "getter_name": "catalogerID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "fieldNumber",
+            "getter_name": "fieldNumber",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "projectFieldNumber",
+            "getter_name": "projectFieldNumber",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collEventID",
+            "getter_name": "collEventID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "isMultipleCollector",
+            "getter_name": "isMultipleCollector",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collPersonnelID",
+            "getter_name": "collPersonnelID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "collMethodID",
+            "getter_name": "collMethodID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "museumID",
+            "getter_name": "museumID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "determinerID",
+            "getter_name": "determinerID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES personnel(uuid)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "personnel",
+                    "column": "uuid"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "preparatorID",
+            "getter_name": "preparatorID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES personnel(uuid)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "personnel",
+                    "column": "uuid"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)",
+          "FOREIGN KEY(catalogerID)REFERENCES personnel(uuid)",
+          "FOREIGN KEY(collPersonnelID)REFERENCES collPersonnel(id)",
+          "FOREIGN KEY(collMethodID)REFERENCES collEffort(id)",
+          "FOREIGN KEY(speciesID)REFERENCES taxonomy(id)",
+          "FOREIGN KEY(collEventID)REFERENCES collEvent(id)"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "references": [
+        15,
+        2
+      ],
+      "type": "table",
+      "data": {
+        "name": "specimenMedia",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mediaId",
+            "getter_name": "mediaId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)",
+          "FOREIGN KEY(mediaId)REFERENCES media(primaryId)"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "references": [
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "associatedData",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "primaryId",
+            "getter_name": "primaryId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES project(uuid)ON DELETE CASCADE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "project",
+                    "column": "uuid"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ]
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "date",
+            "getter_name": "date",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "description",
+            "getter_name": "description",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "uri",
+            "getter_name": "uri",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        15,
+        17
+      ],
+      "type": "table",
+      "data": {
+        "name": "specimenAssociatedData",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "associatedDataId",
+            "getter_name": "associatedDataId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(specimenUuid, associatedDataId)",
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE",
+          "FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE"
+        ],
+        "explicit_pk": [
+          "specimenUuid",
+          "associatedDataId"
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "references": [
+        3,
+        17
+      ],
+      "type": "table",
+      "data": {
+        "name": "siteAssociatedData",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "siteId",
+            "getter_name": "siteId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "associatedDataId",
+            "getter_name": "associatedDataId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(siteId, associatedDataId)",
+          "FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE",
+          "FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE"
+        ],
+        "explicit_pk": [
+          "siteId",
+          "associatedDataId"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "references": [
+        6,
+        17
+      ],
+      "type": "table",
+      "data": {
+        "name": "eventAssociatedData",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "eventID",
+            "getter_name": "eventID",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "associatedDataId",
+            "getter_name": "associatedDataId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "PRIMARY KEY(eventID, associatedDataId)",
+          "FOREIGN KEY(eventID)REFERENCES collEvent(id)ON DELETE CASCADE",
+          "FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE"
+        ],
+        "explicit_pk": [
+          "eventID",
+          "associatedDataId"
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "references": [
+        18,
+        17,
+        15
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 18,
+        "references_in_body": [
+          18,
+          17,
+          15
+        ],
+        "name": "specimen_associated_data_same_project",
+        "sql": "CREATE TRIGGER specimen_associated_data_same_project\nBEFORE INSERT ON specimenAssociatedData\nBEGIN\n    SELECT CASE\n        WHEN (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId) IS NULL\n          OR (SELECT projectUuid FROM specimen\n              WHERE uuid = NEW.specimenUuid) IS NULL\n          OR (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId)\n             != (SELECT projectUuid FROM specimen\n                 WHERE uuid = NEW.specimenUuid)\n        THEN RAISE(ABORT, 'Associated data and specimen must share a project')\n    END;\nEND;"
+      }
+    },
+    {
+      "id": 22,
+      "references": [
+        19,
+        17,
+        3
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 19,
+        "references_in_body": [
+          19,
+          17,
+          3
+        ],
+        "name": "site_associated_data_same_project",
+        "sql": "CREATE TRIGGER site_associated_data_same_project\nBEFORE INSERT ON siteAssociatedData\nBEGIN\n    SELECT CASE\n        WHEN (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId) IS NULL\n          OR (SELECT projectUuid FROM site WHERE id = NEW.siteId) IS NULL\n          OR (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId)\n             != (SELECT projectUuid FROM site WHERE id = NEW.siteId)\n        THEN RAISE(ABORT, 'Associated data and site must share a project')\n    END;\nEND;"
+      }
+    },
+    {
+      "id": 23,
+      "references": [
+        20,
+        17,
+        6
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 20,
+        "references_in_body": [
+          20,
+          17,
+          6
+        ],
+        "name": "event_associated_data_same_project",
+        "sql": "CREATE TRIGGER event_associated_data_same_project\nBEFORE INSERT ON eventAssociatedData\nBEGIN\n    SELECT CASE\n        WHEN (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId) IS NULL\n          OR (SELECT projectUuid FROM collEvent\n              WHERE id = NEW.eventID) IS NULL\n          OR (SELECT projectUuid FROM associatedData\n              WHERE primaryId = NEW.associatedDataId)\n             != (SELECT projectUuid FROM collEvent\n                 WHERE id = NEW.eventID)\n        THEN RAISE(ABORT, 'Associated data and event must share a project')\n    END;\nEND;"
+      }
+    },
+    {
+      "id": 24,
+      "references": [
+        0,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "personnelList",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "personnelUuid",
+            "getter_name": "personnelUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)",
+          "FOREIGN KEY(personnelUuid)REFERENCES personnel(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "mammalAttribute",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "showBatFields",
+            "getter_name": "showBatFields",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "totalLength",
+            "getter_name": "totalLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tailLength",
+            "getter_name": "tailLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "hindFootLength",
+            "getter_name": "hindFootLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "earLength",
+            "getter_name": "earLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "forearm",
+            "getter_name": "forearm",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tibia",
+            "getter_name": "tibia",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "showEchoFields",
+            "getter_name": "showEchoFields",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "echolocation",
+            "getter_name": "echolocation",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "frequencyMax",
+            "getter_name": "frequencyMax",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "frequencyMin",
+            "getter_name": "frequencyMin",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "frequencyAtMaxEnergy",
+            "getter_name": "frequencyAtMaxEnergy",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "duration",
+            "getter_name": "duration",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weight",
+            "getter_name": "weight",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weightUnit",
+            "getter_name": "weightUnit",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "accuracy",
+            "getter_name": "accuracy",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "accuracySpecify",
+            "getter_name": "accuracySpecify",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sex",
+            "getter_name": "sex",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "age",
+            "getter_name": "age",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisPosition",
+            "getter_name": "testisPosition",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisLength",
+            "getter_name": "testisLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisWidth",
+            "getter_name": "testisWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "epididymisAppearance",
+            "getter_name": "epididymisAppearance",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "reproductiveStage",
+            "getter_name": "reproductiveStage",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "leftPlacentalScars",
+            "getter_name": "leftPlacentalScars",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "rightPlacentalScars",
+            "getter_name": "rightPlacentalScars",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mammaeCondition",
+            "getter_name": "mammaeCondition",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mammaeInguinalCount",
+            "getter_name": "mammaeInguinalCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mammaeAxillaryCount",
+            "getter_name": "mammaeAxillaryCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mammaeAbdominalCount",
+            "getter_name": "mammaeAbdominalCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "vaginaOpening",
+            "getter_name": "vaginaOpening",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "pubicSymphysis",
+            "getter_name": "pubicSymphysis",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "embryoLeftCount",
+            "getter_name": "embryoLeftCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "embryoRightCount",
+            "getter_name": "embryoRightCount",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "embryoCR",
+            "getter_name": "embryoCR",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "birdAttribute",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weight",
+            "getter_name": "weight",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weightUnit",
+            "getter_name": "weightUnit",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "wingspan",
+            "getter_name": "wingspan",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "irisColor",
+            "getter_name": "irisColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "irisHex",
+            "getter_name": "irisHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "billColor",
+            "getter_name": "billColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "billHex",
+            "getter_name": "billHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "maxillaColor",
+            "getter_name": "maxillaColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "maxillaHex",
+            "getter_name": "maxillaHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mandibleColor",
+            "getter_name": "mandibleColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mandibleHex",
+            "getter_name": "mandibleHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "toeColor",
+            "getter_name": "toeColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "toeHex",
+            "getter_name": "toeHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tarsusColor",
+            "getter_name": "tarsusColor",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tarsusHex",
+            "getter_name": "tarsusHex",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sex",
+            "getter_name": "sex",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "broodPatch",
+            "getter_name": "broodPatch",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "skullOssification",
+            "getter_name": "skullOssification",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "hasBursa",
+            "getter_name": "hasBursa",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "bursaWidth",
+            "getter_name": "bursaWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "bursaLength",
+            "getter_name": "bursaLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "fat",
+            "getter_name": "fat",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "stomachContent",
+            "getter_name": "stomachContent",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisLength",
+            "getter_name": "testisLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisWidth",
+            "getter_name": "testisWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "testisRemark",
+            "getter_name": "testisRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ovaryLength",
+            "getter_name": "ovaryLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ovaryWidth",
+            "getter_name": "ovaryWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "oviductWidth",
+            "getter_name": "oviductWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ovaryAppearance",
+            "getter_name": "ovaryAppearance",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "firstOvaSize",
+            "getter_name": "firstOvaSize",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "secondOvaSize",
+            "getter_name": "secondOvaSize",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "thirdOvaSize",
+            "getter_name": "thirdOvaSize",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "oviductAppearance",
+            "getter_name": "oviductAppearance",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ovaryRemark",
+            "getter_name": "ovaryRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "wingIsMolt",
+            "getter_name": "wingIsMolt",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "wingMolt",
+            "getter_name": "wingMolt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tailIsMolt",
+            "getter_name": "tailIsMolt",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tailMolt",
+            "getter_name": "tailMolt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "bodyMolt",
+            "getter_name": "bodyMolt",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "moltRemark",
+            "getter_name": "moltRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "specimenRemark",
+            "getter_name": "specimenRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "habitatRemark",
+            "getter_name": "habitatRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "herpAttribute",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sex",
+            "getter_name": "sex",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "age",
+            "getter_name": "age",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weight",
+            "getter_name": "weight",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "weightUnit",
+            "getter_name": "weightUnit",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "svl",
+            "getter_name": "svl",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "arthropodAttribute",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "headWidth",
+            "getter_name": "headWidth",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "bodyLength",
+            "getter_name": "bodyLength",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "wingspanUpper",
+            "getter_name": "wingspanUpper",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "wingspanLower",
+            "getter_name": "wingspanLower",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sex",
+            "getter_name": "sex",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "hostOrganism",
+            "getter_name": "hostOrganism",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "hostPart",
+            "getter_name": "hostPart",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "canopyAffinity",
+            "getter_name": "canopyAffinity",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "canopyCover",
+            "getter_name": "canopyCover",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ambientTemperature",
+            "getter_name": "ambientTemperature",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "ambientHumidity",
+            "getter_name": "ambientHumidity",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "waterTemperature",
+            "getter_name": "waterTemperature",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "pH",
+            "getter_name": "pH",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dissolvedOxygen",
+            "getter_name": "dissolvedOxygen",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "flowVelocity",
+            "getter_name": "flowVelocity",
+            "moor_type": "double",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "fossilAttribute",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "fossilType",
+            "getter_name": "fossilType",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "specimenDescription",
+            "getter_name": "specimenDescription",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "references": [
+        15
+      ],
+      "type": "table",
+      "data": {
+        "name": "parasiteDetection",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "parasiteExamined",
+            "getter_name": "parasiteExamined",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "parasiteDetected",
+            "getter_name": "parasiteDetected",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "detectionRemark",
+            "getter_name": "detectionRemark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "references": [
+        1,
+        15,
+        14
+      ],
+      "type": "table",
+      "data": {
+        "name": "parasite",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "UNIQUE PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "speciesID",
+            "getter_name": "speciesID",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "identifierID",
+            "getter_name": "identifierID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "REFERENCES personnel(uuid)",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "personnel",
+                    "column": "uuid"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": null
+                }
+              }
+            ]
+          },
+          {
+            "name": "parasiteID",
+            "getter_name": "parasiteID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "parasiteUuid",
+            "getter_name": "parasiteUuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "count",
+            "getter_name": "count",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "preparationMethod",
+            "getter_name": "preparationMethod",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "storage",
+            "getter_name": "storage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "storageLocation",
+            "getter_name": "storageLocation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "treatment",
+            "getter_name": "treatment",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "anatomicalLocation",
+            "getter_name": "anatomicalLocation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "lifeStage",
+            "getter_name": "lifeStage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "category",
+            "getter_name": "category",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "associationStatus",
+            "getter_name": "associationStatus",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "detectionMethod",
+            "getter_name": "detectionMethod",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dateCollected",
+            "getter_name": "dateCollected",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "timeCollected",
+            "getter_name": "timeCollected",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "datePreserved",
+            "getter_name": "datePreserved",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "timePreserved",
+            "getter_name": "timePreserved",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "museumPermanent",
+            "getter_name": "museumPermanent",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "museumLoan",
+            "getter_name": "museumLoan",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)",
+          "FOREIGN KEY(speciesID)REFERENCES taxonomy(id)"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "references": [
+        15,
+        1
+      ],
+      "type": "table",
+      "data": {
+        "name": "specimenPart",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "UNIQUE PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "personnelId",
+            "getter_name": "personnelId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "tissueID",
+            "getter_name": "tissueID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "barcodeID",
+            "getter_name": "barcodeID",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "count",
+            "getter_name": "count",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "treatment",
+            "getter_name": "treatment",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "additionalTreatment",
+            "getter_name": "additionalTreatment",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "storage",
+            "getter_name": "storage",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "storageLocation",
+            "getter_name": "storageLocation",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dateTaken",
+            "getter_name": "dateTaken",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "timeTaken",
+            "getter_name": "timeTaken",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "pmi",
+            "getter_name": "pmi",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "museumPermanent",
+            "getter_name": "museumPermanent",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "museumLoan",
+            "getter_name": "museumLoan",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "remark",
+            "getter_name": "remark",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)",
+          "FOREIGN KEY(personnelId)REFERENCES personnel(uuid)"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "references": [
+        0
+      ],
+      "type": "table",
+      "data": {
+        "name": "customFieldDefinition",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "UNIQUE PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "uuid",
+            "getter_name": "uuid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL UNIQUE",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique"
+            ]
+          },
+          {
+            "name": "sourceTemplateUuid",
+            "getter_name": "sourceTemplateUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "uiSection",
+            "getter_name": "uiSection",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "options",
+            "getter_name": "options",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "scope",
+            "getter_name": "scope",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "catalogFormat",
+            "getter_name": "catalogFormat",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "sortOrder",
+            "getter_name": "sortOrder",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "isArchived",
+            "getter_name": "isArchived",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (isArchived IN (0, 1))",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dwcTarget",
+            "getter_name": "dwcTarget",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dwcField",
+            "getter_name": "dwcField",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "dwcMode",
+            "getter_name": "dwcMode",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "allowDwcConflict",
+            "getter_name": "allowDwcConflict",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (allowDwcConflict IN (0, 1))",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "createdAt",
+            "getter_name": "createdAt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "updatedAt",
+            "getter_name": "updatedAt",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE",
+          "CHECK((scope = 'global' AND projectUuid IS NULL)OR(scope = 'project' AND projectUuid IS NOT NULL))",
+          "CHECK(uiSection != 'siteAttribute' OR catalogFormat IS NULL)",
+          "CHECK((dwcTarget IS NULL AND dwcField IS NULL AND dwcMode IS NULL)OR(dwcTarget IS NOT NULL AND dwcField IS NOT NULL AND dwcMode IS NOT NULL))"
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "references": [
+        33,
+        0,
+        3,
+        15,
+        32,
+        31
+      ],
+      "type": "table",
+      "data": {
+        "name": "customFieldValue",
+        "was_declared_in_moor": true,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "UNIQUE PRIMARY KEY AUTOINCREMENT",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              "unique",
+              "auto-increment"
+            ]
+          },
+          {
+            "name": "fieldDefinitionId",
+            "getter_name": "fieldDefinitionId",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "projectUuid",
+            "getter_name": "projectUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "value",
+            "getter_name": "value",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "unit",
+            "getter_name": "unit",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "siteId",
+            "getter_name": "siteId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "specimenUuid",
+            "getter_name": "specimenUuid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "specimenPartId",
+            "getter_name": "specimenPartId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "parasiteId",
+            "getter_name": "parasiteId",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": "",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "isLegacy",
+            "getter_name": "isLegacy",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": "NOT NULL DEFAULT 0 CHECK (isLegacy IN (0, 1))",
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [
+          "FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)ON DELETE CASCADE",
+          "FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE",
+          "FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE",
+          "FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE",
+          "FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE",
+          "FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE",
+          "CHECK((isLegacy = 1 AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))"
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "references": [
+        34
+      ],
+      "type": "index",
+      "data": {
+        "on": 34,
+        "name": "custom_field_site_value_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_site_value_idx\nON customFieldValue(fieldDefinitionId, siteId) WHERE siteId IS NOT NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 36,
+      "references": [
+        34
+      ],
+      "type": "index",
+      "data": {
+        "on": 34,
+        "name": "custom_field_specimen_value_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_specimen_value_idx\nON customFieldValue(fieldDefinitionId, specimenUuid) WHERE specimenUuid IS NOT NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 37,
+      "references": [
+        34
+      ],
+      "type": "index",
+      "data": {
+        "on": 34,
+        "name": "custom_field_part_value_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_part_value_idx\nON customFieldValue(fieldDefinitionId, specimenPartId) WHERE specimenPartId IS NOT NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 38,
+      "references": [
+        34
+      ],
+      "type": "index",
+      "data": {
+        "on": 34,
+        "name": "custom_field_parasite_value_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_parasite_value_idx\nON customFieldValue(fieldDefinitionId, parasiteId) WHERE parasiteId IS NOT NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 39,
+      "references": [
+        33
+      ],
+      "type": "index",
+      "data": {
+        "on": 33,
+        "name": "custom_field_template_target_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx\nON customFieldDefinition(sourceTemplateUuid, scope, ifnull(projectUuid, ''))\nWHERE sourceTemplateUuid IS NOT NULL;",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 40,
+      "references": [
+        34,
+        33,
+        3,
+        15,
+        32,
+        31
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 34,
+        "references_in_body": [
+          34,
+          33,
+          3,
+          15,
+          32,
+          31
+        ],
+        "name": "custom_field_value_validate_insert",
+        "sql": "CREATE TRIGGER custom_field_value_validate_insert\nBEFORE INSERT ON customFieldValue\nWHEN NEW.isLegacy = 0\nBEGIN\n  SELECT CASE WHEN NOT EXISTS (\n    SELECT 1\n    FROM customFieldDefinition d\n    WHERE d.id = NEW.fieldDefinitionId\n      AND d.uiSection = CASE\n        WHEN NEW.siteId IS NOT NULL THEN 'siteAttribute'\n        WHEN NEW.specimenUuid IS NOT NULL THEN 'specimenAttribute'\n        WHEN NEW.specimenPartId IS NOT NULL THEN 'specimenPart'\n        WHEN NEW.parasiteId IS NOT NULL THEN 'parasite'\n      END\n      AND (d.scope = 'global' OR d.projectUuid = NEW.projectUuid)\n  ) THEN RAISE(ABORT, 'Custom field definition does not match its value owner') END;\n\n  SELECT CASE WHEN NOT EXISTS (\n    SELECT 1 FROM customFieldDefinition d\n    WHERE d.id = NEW.fieldDefinitionId\n      AND (\n        (NEW.siteId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM site s\n          WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid\n        )) OR\n        (NEW.specimenUuid IS NOT NULL AND EXISTS (\n          SELECT 1 FROM specimen s\n          WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        )) OR\n        (NEW.specimenPartId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM specimenPart p JOIN specimen s ON s.uuid = p.specimenUuid\n          WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        )) OR\n        (NEW.parasiteId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM parasite p JOIN specimen s ON s.uuid = p.specimenUuid\n          WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        ))\n      )\n  ) THEN RAISE(ABORT, 'Custom field value project or catalog does not match its owner') END;\nEND;"
+      }
+    },
+    {
+      "id": 41,
+      "references": [
+        34,
+        33,
+        3,
+        15,
+        32,
+        31
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 34,
+        "references_in_body": [
+          34,
+          33,
+          3,
+          15,
+          32,
+          31
+        ],
+        "name": "custom_field_value_validate_update",
+        "sql": "CREATE TRIGGER custom_field_value_validate_update\nBEFORE UPDATE ON customFieldValue\nWHEN NEW.isLegacy = 0\nBEGIN\n  SELECT CASE WHEN NOT EXISTS (\n    SELECT 1\n    FROM customFieldDefinition d\n    WHERE d.id = NEW.fieldDefinitionId\n      AND d.uiSection = CASE\n        WHEN NEW.siteId IS NOT NULL THEN 'siteAttribute'\n        WHEN NEW.specimenUuid IS NOT NULL THEN 'specimenAttribute'\n        WHEN NEW.specimenPartId IS NOT NULL THEN 'specimenPart'\n        WHEN NEW.parasiteId IS NOT NULL THEN 'parasite'\n      END\n      AND (d.scope = 'global' OR d.projectUuid = NEW.projectUuid)\n  ) THEN RAISE(ABORT, 'Custom field definition does not match its value owner') END;\n\n  SELECT CASE WHEN NOT EXISTS (\n    SELECT 1 FROM customFieldDefinition d\n    WHERE d.id = NEW.fieldDefinitionId\n      AND (\n        (NEW.siteId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM site s\n          WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid\n        )) OR\n        (NEW.specimenUuid IS NOT NULL AND EXISTS (\n          SELECT 1 FROM specimen s\n          WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        )) OR\n        (NEW.specimenPartId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM specimenPart p JOIN specimen s ON s.uuid = p.specimenUuid\n          WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        )) OR\n        (NEW.parasiteId IS NOT NULL AND EXISTS (\n          SELECT 1 FROM parasite p JOIN specimen s ON s.uuid = p.specimenUuid\n          WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid\n            AND (d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup)\n              WHEN 'birds' THEN 'birds'\n              WHEN 'herpetofauna' THEN 'herpetofauna'\n              WHEN 'arthropods' THEN 'arthropods'\n              ELSE 'mammals' END)\n        ))\n      )\n  ) THEN RAISE(ABORT, 'Custom field value project or catalog does not match its owner') END;\nEND;"
+      }
+    },
+    {
+      "id": 42,
+      "references": [
+        15
+      ],
+      "type": "index",
+      "data": {
+        "on": 15,
+        "name": "specimen_project_species_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS specimen_project_species_idx\nON specimen(projectUuid, speciesID);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 43,
+      "references": [
+        15
+      ],
+      "type": "index",
+      "data": {
+        "on": 15,
+        "name": "specimen_project_event_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS specimen_project_event_idx\nON specimen(projectUuid, collEventID);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 44,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "site_project_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS site_project_idx\nON site(projectUuid);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 45,
+      "references": [
+        5
+      ],
+      "type": "index",
+      "data": {
+        "on": 5,
+        "name": "coordinate_site_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS coordinate_site_idx\nON coordinate(siteID);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 46,
+      "references": [
+        15
+      ],
+      "type": "index",
+      "data": {
+        "on": 15,
+        "name": "specimen_project_coordinate_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS specimen_project_coordinate_idx\nON specimen(projectUuid, coordinateID);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 47,
+      "references": [
+        6
+      ],
+      "type": "index",
+      "data": {
+        "on": 6,
+        "name": "coll_event_project_site_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS coll_event_project_site_idx\nON collEvent(projectUuid, siteID);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 48,
+      "references": [
+        32
+      ],
+      "type": "index",
+      "data": {
+        "on": 32,
+        "name": "specimen_part_specimen_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS specimen_part_specimen_idx\nON specimenPart(specimenUuid);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 49,
+      "references": [
+        17
+      ],
+      "type": "index",
+      "data": {
+        "on": 17,
+        "name": "associated_data_project_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS associated_data_project_idx\nON associatedData(projectUuid);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 50,
+      "references": [
+        18
+      ],
+      "type": "index",
+      "data": {
+        "on": 18,
+        "name": "specimen_associated_data_data_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS specimen_associated_data_data_idx\nON specimenAssociatedData(associatedDataId);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 51,
+      "references": [
+        19
+      ],
+      "type": "index",
+      "data": {
+        "on": 19,
+        "name": "site_associated_data_data_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS site_associated_data_data_idx\nON siteAssociatedData(associatedDataId);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 52,
+      "references": [
+        20
+      ],
+      "type": "index",
+      "data": {
+        "on": 20,
+        "name": "event_associated_data_data_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS event_associated_data_data_idx\nON eventAssociatedData(associatedDataId);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 53,
+      "references": [
+        30
+      ],
+      "type": "index",
+      "data": {
+        "on": 30,
+        "name": "parasite_detection_specimen_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS parasite_detection_specimen_idx\nON parasiteDetection(specimenUuid);",
+        "unique": true,
+        "columns": []
+      }
+    },
+    {
+      "id": 54,
+      "references": [
+        31
+      ],
+      "type": "index",
+      "data": {
+        "on": 31,
+        "name": "parasite_specimen_idx",
+        "sql": "CREATE INDEX IF NOT EXISTS parasite_specimen_idx\nON parasite(specimenUuid);",
+        "unique": false,
+        "columns": []
+      }
+    },
+    {
+      "id": 55,
+      "references": [
+        31
+      ],
+      "type": "index",
+      "data": {
+        "on": 31,
+        "name": "parasite_uuid_idx",
+        "sql": "CREATE UNIQUE INDEX IF NOT EXISTS parasite_uuid_idx\nON parasite(parasiteUuid);",
+        "unique": true,
+        "columns": []
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "project",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"project\" (\"uuid\" TEXT NOT NULL PRIMARY KEY, \"name\" TEXT NOT NULL UNIQUE, \"description\" TEXT, \"principalInvestigator\" TEXT, \"accession\" TEXT, \"catalogNumberPrefix\" TEXT, \"currentCatalogNumber\" INTEGER, \"catalogNumberSuffix\" TEXT, \"location\" TEXT, \"timeZone\" TEXT, \"startDate\" TEXT, \"endDate\" TEXT, \"created\" TEXT, \"lastAccessed\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "personnel",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"personnel\" (\"uuid\" TEXT UNIQUE NOT NULL PRIMARY KEY, \"name\" TEXT, \"initial\" TEXT, \"email\" TEXT, \"phone\" TEXT, \"affiliation\" TEXT, \"orcid\" TEXT, \"role\" TEXT, \"currentFieldNumber\" INTEGER, \"notes\" TEXT, \"photoPath\" TEXT, \"isRegisterField\" INTEGER NOT NULL DEFAULT 1);"
+        }
+      ]
+    },
+    {
+      "name": "media",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"media\" (\"primaryId\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"projectUuid\" TEXT, \"secondaryId\" TEXT, \"category\" TEXT, \"tag\" TEXT, \"taken\" TEXT, \"camera\" TEXT, \"lenses\" TEXT, \"additionalExif\" TEXT, \"personnelId\" TEXT, \"fileName\" TEXT, \"uri\" TEXT, \"caption\" TEXT, FOREIGN KEY(personnelId)REFERENCES personnel(uuid), FOREIGN KEY(projectUuid)REFERENCES project(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "site",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"site\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"siteID\" TEXT, \"projectUuid\" TEXT, \"leadStaffId\" TEXT, \"siteType\" TEXT, \"country\" TEXT, \"stateProvince\" TEXT, \"county\" TEXT, \"municipality\" TEXT, \"mediaID\" TEXT, \"locality\" TEXT, \"remark\" TEXT, \"habitatType\" TEXT, \"habitatCondition\" TEXT, \"habitatDescription\" TEXT, FOREIGN KEY(mediaID)REFERENCES media(primaryId), FOREIGN KEY(leadStaffId)REFERENCES personnel(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "fossilSite",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"fossilSite\" (\"siteID\" INTEGER, \"formation\" TEXT, \"geologicEra\" INTEGER, \"geologicPeriod\" INTEGER, \"geologicSeries\" INTEGER, \"geologicEpoch\" INTEGER, \"narrowerGeologicStage\" TEXT, \"broaderGeologicStage\" TEXT, \"biozone\" TEXT, \"rockType\" TEXT, \"depositionalEnvironmentType\" INTEGER, \"depositionalContinent\" TEXT, \"depositionalMarine\" TEXT, \"standardPreservationType\" TEXT, \"stratigraphyRemark\" TEXT, \"stratigraphicSource\" TEXT, \"sedimentologyRemark\" TEXT, FOREIGN KEY(siteID)REFERENCES site(id));"
+        }
+      ]
+    },
+    {
+      "name": "coordinate",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"coordinate\" (\"id\" INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, \"nameId\" TEXT, \"decimalLatitude\" REAL, \"decimalLongitude\" REAL, \"verbatimLatitude\" TEXT, \"verbatimLongitude\" TEXT, \"verbatimCoordinates\" TEXT, \"verbatimCoordinateSystem\" TEXT, \"elevationInMeter\" REAL, \"datum\" TEXT, \"uncertaintyInMeters\" INTEGER, \"gpsUnit\" TEXT, \"notes\" TEXT, \"siteID\" INTEGER, FOREIGN KEY(siteID)REFERENCES site(id));"
+        }
+      ]
+    },
+    {
+      "name": "collEvent",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"collEvent\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"idSuffix\" TEXT, \"projectUuid\" TEXT, \"startDate\" TEXT, \"startTime\" TEXT, \"endDate\" TEXT, \"endTime\" TEXT, \"primaryCollMethod\" TEXT, \"collMethodNotes\" TEXT, \"siteID\" INTEGER REFERENCES site(id), FOREIGN KEY(projectUuid)REFERENCES project(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "weather",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"weather\" (\"eventID\" INTEGER, \"lowestDayTempC\" REAL, \"highestDayTempC\" REAL, \"lowestNightTempC\" REAL, \"highestNightTempC\" REAL, \"averageHumidity\" REAL, \"dewPointTemp\" REAL, \"sunriseTime\" TEXT, \"sunsetTime\" TEXT, \"moonPhase\" TEXT, \"notes\" TEXT, FOREIGN KEY(eventID)REFERENCES collEvent(id));"
+        }
+      ]
+    },
+    {
+      "name": "collPersonnel",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"collPersonnel\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"eventID\" INTEGER, \"personnelId\" TEXT, \"name\" TEXT, \"role\" TEXT, FOREIGN KEY(eventID)REFERENCES collEvent(id), FOREIGN KEY(personnelId)REFERENCES personnel(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "collEffort",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"collEffort\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"eventID\" INTEGER, \"method\" TEXT, \"brand\" TEXT, \"count\" INTEGER, \"size\" TEXT, \"notes\" TEXT, FOREIGN KEY(eventID)REFERENCES collEvent(id));"
+        }
+      ]
+    },
+    {
+      "name": "narrative",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"narrative\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"projectUuid\" TEXT, \"date\" TEXT, \"time\" TEXT, \"siteID\" INTEGER, \"writerId\" TEXT, \"narrative\" TEXT, \"mediaID\" INTEGER REFERENCES media(primaryId), FOREIGN KEY(projectUuid)REFERENCES project(uuid), FOREIGN KEY(siteID)REFERENCES site(id));"
+        }
+      ]
+    },
+    {
+      "name": "narrativeMedia",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"narrativeMedia\" (\"narrativeId\" INTEGER NOT NULL, \"mediaId\" INTEGER, FOREIGN KEY(narrativeId)REFERENCES narrative(id), FOREIGN KEY(mediaId)REFERENCES media(primaryId));"
+        }
+      ]
+    },
+    {
+      "name": "siteMedia",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"siteMedia\" (\"siteId\" INTEGER NOT NULL, \"mediaId\" INTEGER, FOREIGN KEY(siteId)REFERENCES site(id), FOREIGN KEY(mediaId)REFERENCES media(primaryId));"
+        }
+      ]
+    },
+    {
+      "name": "eventMedia",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"eventMedia\" (\"eventID\" INTEGER NOT NULL, \"mediaId\" INTEGER, FOREIGN KEY(eventID)REFERENCES collEvent(id), FOREIGN KEY(mediaId)REFERENCES media(primaryId));"
+        }
+      ]
+    },
+    {
+      "name": "taxonomy",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"taxonomy\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"taxonRank\" TEXT, \"kingdom\" TEXT, \"phylum\" TEXT, \"taxonClass\" TEXT, \"taxonOrder\" TEXT, \"taxonFamily\" TEXT, \"genus\" TEXT, \"specificEpithet\" TEXT, \"subspecificEpithet\" TEXT, \"authors\" TEXT, \"commonName\" TEXT, \"notes\" TEXT, \"citesStatus\" TEXT, \"redListCategory\" TEXT, \"countryStatus\" TEXT, \"sortingOrder\" INTEGER, \"mediaId\" INTEGER, FOREIGN KEY(mediaId)REFERENCES media(primaryId));"
+        }
+      ]
+    },
+    {
+      "name": "specimen",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"specimen\" (\"uuid\" TEXT UNIQUE NOT NULL PRIMARY KEY, \"projectUuid\" TEXT, \"speciesID\" INTEGER, \"iDConfidence\" INTEGER, \"iDMethod\" TEXT, \"taxonGroup\" TEXT, \"condition\" TEXT, \"prepDate\" TEXT, \"prepTime\" TEXT, \"collectionDate\" TEXT, \"collectionTime\" TEXT, \"captureDate\" TEXT, \"isRelativeTime\" INTEGER, \"captureTime\" TEXT, \"relativeCaptureTime\" TEXT, \"trapType\" TEXT, \"methodID\" TEXT, \"coordinateID\" INTEGER, \"coordinateExtentMeters\" REAL, \"catalogerID\" TEXT, \"fieldNumber\" INTEGER, \"projectFieldNumber\" INTEGER, \"collEventID\" INTEGER, \"isMultipleCollector\" INTEGER, \"collPersonnelID\" INTEGER, \"collMethodID\" INTEGER, \"museumID\" TEXT, \"determinerID\" TEXT REFERENCES personnel(uuid), \"preparatorID\" TEXT REFERENCES personnel(uuid), FOREIGN KEY(projectUuid)REFERENCES project(uuid), FOREIGN KEY(catalogerID)REFERENCES personnel(uuid), FOREIGN KEY(collPersonnelID)REFERENCES collPersonnel(id), FOREIGN KEY(collMethodID)REFERENCES collEffort(id), FOREIGN KEY(speciesID)REFERENCES taxonomy(id), FOREIGN KEY(collEventID)REFERENCES collEvent(id));"
+        }
+      ]
+    },
+    {
+      "name": "specimenMedia",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"specimenMedia\" (\"specimenUuid\" TEXT NOT NULL, \"mediaId\" INTEGER, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid), FOREIGN KEY(mediaId)REFERENCES media(primaryId));"
+        }
+      ]
+    },
+    {
+      "name": "associatedData",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"associatedData\" (\"primaryId\" INTEGER PRIMARY KEY AUTOINCREMENT, \"projectUuid\" TEXT REFERENCES project(uuid)ON DELETE CASCADE, \"name\" TEXT, \"type\" TEXT, \"date\" TEXT, \"description\" TEXT, \"uri\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "specimenAssociatedData",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"specimenAssociatedData\" (\"specimenUuid\" TEXT NOT NULL, \"associatedDataId\" INTEGER NOT NULL, PRIMARY KEY(specimenUuid, associatedDataId), FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE, FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE);"
+        }
+      ]
+    },
+    {
+      "name": "siteAssociatedData",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"siteAssociatedData\" (\"siteId\" INTEGER NOT NULL, \"associatedDataId\" INTEGER NOT NULL, PRIMARY KEY(siteId, associatedDataId), FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE, FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE);"
+        }
+      ]
+    },
+    {
+      "name": "eventAssociatedData",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"eventAssociatedData\" (\"eventID\" INTEGER NOT NULL, \"associatedDataId\" INTEGER NOT NULL, PRIMARY KEY(eventID, associatedDataId), FOREIGN KEY(eventID)REFERENCES collEvent(id)ON DELETE CASCADE, FOREIGN KEY(associatedDataId)REFERENCES associatedData(primaryId)ON DELETE CASCADE);"
+        }
+      ]
+    },
+    {
+      "name": "specimen_associated_data_same_project",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER specimen_associated_data_same_project BEFORE INSERT ON specimenAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM specimen WHERE uuid = NEW.specimenUuid) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM specimen WHERE uuid = NEW.specimenUuid) THEN RAISE (ABORT, 'Associated data and specimen must share a project') END;END"
+        }
+      ]
+    },
+    {
+      "name": "site_associated_data_same_project",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER site_associated_data_same_project BEFORE INSERT ON siteAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM site WHERE id = NEW.siteId) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM site WHERE id = NEW.siteId) THEN RAISE (ABORT, 'Associated data and site must share a project') END;END"
+        }
+      ]
+    },
+    {
+      "name": "event_associated_data_same_project",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER event_associated_data_same_project BEFORE INSERT ON eventAssociatedData BEGIN SELECT CASE WHEN (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) IS NULL OR (SELECT projectUuid FROM collEvent WHERE id = NEW.eventID) IS NULL OR (SELECT projectUuid FROM associatedData WHERE primaryId = NEW.associatedDataId) != (SELECT projectUuid FROM collEvent WHERE id = NEW.eventID) THEN RAISE (ABORT, 'Associated data and event must share a project') END;END"
+        }
+      ]
+    },
+    {
+      "name": "personnelList",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"personnelList\" (\"projectUuid\" TEXT, \"personnelUuid\" TEXT, FOREIGN KEY(projectUuid)REFERENCES project(uuid), FOREIGN KEY(personnelUuid)REFERENCES personnel(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "mammalAttribute",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"mammalAttribute\" (\"specimenUuid\" TEXT NOT NULL, \"showBatFields\" INTEGER, \"totalLength\" REAL, \"tailLength\" REAL, \"hindFootLength\" REAL, \"earLength\" REAL, \"forearm\" REAL, \"tibia\" REAL, \"showEchoFields\" INTEGER, \"echolocation\" INTEGER, \"frequencyMax\" REAL, \"frequencyMin\" REAL, \"frequencyAtMaxEnergy\" REAL, \"duration\" REAL, \"weight\" REAL, \"weightUnit\" TEXT, \"accuracy\" TEXT, \"accuracySpecify\" TEXT, \"sex\" INTEGER, \"age\" INTEGER, \"testisPosition\" INTEGER, \"testisLength\" REAL, \"testisWidth\" REAL, \"epididymisAppearance\" INTEGER, \"reproductiveStage\" INTEGER, \"leftPlacentalScars\" INTEGER, \"rightPlacentalScars\" INTEGER, \"mammaeCondition\" INTEGER, \"mammaeInguinalCount\" INTEGER, \"mammaeAxillaryCount\" INTEGER, \"mammaeAbdominalCount\" INTEGER, \"vaginaOpening\" INTEGER, \"pubicSymphysis\" INTEGER, \"embryoLeftCount\" INTEGER, \"embryoRightCount\" INTEGER, \"embryoCR\" INTEGER, \"remark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "birdAttribute",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"birdAttribute\" (\"specimenUuid\" TEXT NOT NULL, \"weight\" REAL, \"weightUnit\" TEXT, \"wingspan\" REAL, \"irisColor\" TEXT, \"irisHex\" TEXT, \"billColor\" TEXT, \"billHex\" TEXT, \"maxillaColor\" TEXT, \"maxillaHex\" TEXT, \"mandibleColor\" TEXT, \"mandibleHex\" TEXT, \"toeColor\" TEXT, \"toeHex\" TEXT, \"tarsusColor\" TEXT, \"tarsusHex\" TEXT, \"sex\" INTEGER, \"broodPatch\" INTEGER, \"skullOssification\" INTEGER, \"hasBursa\" INTEGER, \"bursaWidth\" REAL, \"bursaLength\" REAL, \"fat\" INTEGER, \"stomachContent\" TEXT, \"testisLength\" REAL, \"testisWidth\" REAL, \"testisRemark\" TEXT, \"ovaryLength\" REAL, \"ovaryWidth\" REAL, \"oviductWidth\" REAL, \"ovaryAppearance\" INTEGER, \"firstOvaSize\" REAL, \"secondOvaSize\" REAL, \"thirdOvaSize\" REAL, \"oviductAppearance\" INTEGER, \"ovaryRemark\" TEXT, \"wingIsMolt\" INTEGER, \"wingMolt\" TEXT, \"tailIsMolt\" INTEGER, \"tailMolt\" TEXT, \"bodyMolt\" INTEGER, \"moltRemark\" TEXT, \"specimenRemark\" TEXT, \"habitatRemark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "herpAttribute",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"herpAttribute\" (\"specimenUuid\" TEXT NOT NULL, \"sex\" INTEGER, \"age\" INTEGER, \"weight\" REAL, \"weightUnit\" TEXT, \"svl\" REAL, \"remark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "arthropodAttribute",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"arthropodAttribute\" (\"specimenUuid\" TEXT NOT NULL, \"headWidth\" REAL, \"bodyLength\" REAL, \"wingspanUpper\" REAL, \"wingspanLower\" REAL, \"sex\" INTEGER, \"hostOrganism\" TEXT, \"hostPart\" TEXT, \"canopyAffinity\" TEXT, \"canopyCover\" TEXT, \"ambientTemperature\" REAL, \"ambientHumidity\" REAL, \"waterTemperature\" REAL, \"pH\" REAL, \"dissolvedOxygen\" REAL, \"flowVelocity\" REAL, \"remark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "fossilAttribute",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"fossilAttribute\" (\"specimenUuid\" TEXT NOT NULL, \"fossilType\" TEXT, \"specimenDescription\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "parasiteDetection",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"parasiteDetection\" (\"specimenUuid\" TEXT NOT NULL, \"parasiteExamined\" INTEGER, \"parasiteDetected\" INTEGER, \"detectionRemark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "parasite",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"parasite\" (\"id\" INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, \"specimenUuid\" TEXT, \"speciesID\" INTEGER, \"identifierID\" TEXT REFERENCES personnel(uuid), \"parasiteID\" TEXT, \"parasiteUuid\" TEXT NOT NULL, \"count\" INTEGER, \"preparationMethod\" TEXT, \"storage\" TEXT, \"storageLocation\" TEXT, \"treatment\" TEXT, \"anatomicalLocation\" TEXT, \"lifeStage\" TEXT, \"category\" TEXT, \"associationStatus\" INTEGER, \"detectionMethod\" TEXT, \"dateCollected\" TEXT, \"timeCollected\" TEXT, \"datePreserved\" TEXT, \"timePreserved\" TEXT, \"museumPermanent\" TEXT, \"museumLoan\" TEXT, \"remark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid), FOREIGN KEY(speciesID)REFERENCES taxonomy(id));"
+        }
+      ]
+    },
+    {
+      "name": "specimenPart",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"specimenPart\" (\"id\" INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, \"specimenUuid\" TEXT, \"personnelId\" TEXT, \"tissueID\" TEXT, \"barcodeID\" TEXT, \"type\" TEXT, \"count\" TEXT, \"treatment\" TEXT, \"additionalTreatment\" TEXT, \"storage\" TEXT, \"storageLocation\" TEXT, \"dateTaken\" TEXT, \"timeTaken\" TEXT, \"pmi\" TEXT, \"museumPermanent\" TEXT, \"museumLoan\" TEXT, \"remark\" TEXT, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid), FOREIGN KEY(personnelId)REFERENCES personnel(uuid));"
+        }
+      ]
+    },
+    {
+      "name": "customFieldDefinition",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"customFieldDefinition\" (\"id\" INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, \"uuid\" TEXT NOT NULL UNIQUE, \"sourceTemplateUuid\" TEXT, \"name\" TEXT NOT NULL, \"type\" TEXT NOT NULL, \"uiSection\" TEXT NOT NULL, \"options\" TEXT, \"scope\" TEXT NOT NULL, \"projectUuid\" TEXT, \"catalogFormat\" TEXT, \"sortOrder\" INTEGER NOT NULL DEFAULT 0, \"isArchived\" INTEGER NOT NULL DEFAULT 0 CHECK (isArchived IN (0, 1)), \"dwcTarget\" TEXT, \"dwcField\" TEXT, \"dwcMode\" TEXT, \"allowDwcConflict\" INTEGER NOT NULL DEFAULT 0 CHECK (allowDwcConflict IN (0, 1)), \"createdAt\" TEXT, \"updatedAt\" TEXT, FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE, CHECK((scope = 'global' AND projectUuid IS NULL)OR(scope = 'project' AND projectUuid IS NOT NULL)), CHECK(uiSection != 'siteAttribute' OR catalogFormat IS NULL), CHECK((dwcTarget IS NULL AND dwcField IS NULL AND dwcMode IS NULL)OR(dwcTarget IS NOT NULL AND dwcField IS NOT NULL AND dwcMode IS NOT NULL)));"
+        }
+      ]
+    },
+    {
+      "name": "customFieldValue",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"customFieldValue\" (\"id\" INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, \"fieldDefinitionId\" INTEGER NOT NULL, \"projectUuid\" TEXT, \"value\" TEXT NOT NULL, \"unit\" TEXT, \"siteId\" INTEGER, \"specimenUuid\" TEXT, \"specimenPartId\" INTEGER, \"parasiteId\" INTEGER, \"isLegacy\" INTEGER NOT NULL DEFAULT 0 CHECK (isLegacy IN (0, 1)), FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)ON DELETE CASCADE, FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE, FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE, FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE, FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE, FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE, CHECK((isLegacy = 1 AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1)));"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_site_value_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_site_value_idx ON customFieldValue (fieldDefinitionId, siteId) WHERE siteId IS NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_specimen_value_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_specimen_value_idx ON customFieldValue (fieldDefinitionId, specimenUuid) WHERE specimenUuid IS NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_part_value_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_part_value_idx ON customFieldValue (fieldDefinitionId, specimenPartId) WHERE specimenPartId IS NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_parasite_value_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_parasite_value_idx ON customFieldValue (fieldDefinitionId, parasiteId) WHERE parasiteId IS NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_template_target_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, '')) WHERE sourceTemplateUuid IS NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_value_validate_insert",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN 'siteAttribute' WHEN NEW.specimenUuid IS NOT NULL THEN 'specimenAttribute' WHEN NEW.specimenPartId IS NOT NULL THEN 'specimenPart' WHEN NEW.parasiteId IS NOT NULL THEN 'parasite' END AND(d.scope = 'global' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, 'Custom field definition does not match its value owner') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END))))) THEN RAISE (ABORT, 'Custom field value project or catalog does not match its owner') END;END"
+        }
+      ]
+    },
+    {
+      "name": "custom_field_value_validate_update",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.siteId IS NOT NULL THEN 'siteAttribute' WHEN NEW.specimenUuid IS NOT NULL THEN 'specimenAttribute' WHEN NEW.specimenPartId IS NOT NULL THEN 'specimenPart' WHEN NEW.parasiteId IS NOT NULL THEN 'parasite' END AND(d.scope = 'global' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, 'Custom field definition does not match its value owner') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN 'birds' THEN 'birds' WHEN 'herpetofauna' THEN 'herpetofauna' WHEN 'arthropods' THEN 'arthropods' ELSE 'mammals' END))))) THEN RAISE (ABORT, 'Custom field value project or catalog does not match its owner') END;END"
+        }
+      ]
+    },
+    {
+      "name": "specimen_project_species_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS specimen_project_species_idx ON specimen (projectUuid, speciesID)"
+        }
+      ]
+    },
+    {
+      "name": "specimen_project_event_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS specimen_project_event_idx ON specimen (projectUuid, collEventID)"
+        }
+      ]
+    },
+    {
+      "name": "site_project_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS site_project_idx ON site (projectUuid)"
+        }
+      ]
+    },
+    {
+      "name": "coordinate_site_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS coordinate_site_idx ON coordinate (siteID)"
+        }
+      ]
+    },
+    {
+      "name": "specimen_project_coordinate_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS specimen_project_coordinate_idx ON specimen (projectUuid, coordinateID)"
+        }
+      ]
+    },
+    {
+      "name": "coll_event_project_site_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS coll_event_project_site_idx ON collEvent (projectUuid, siteID)"
+        }
+      ]
+    },
+    {
+      "name": "specimen_part_specimen_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS specimen_part_specimen_idx ON specimenPart (specimenUuid)"
+        }
+      ]
+    },
+    {
+      "name": "associated_data_project_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS associated_data_project_idx ON associatedData (projectUuid)"
+        }
+      ]
+    },
+    {
+      "name": "specimen_associated_data_data_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS specimen_associated_data_data_idx ON specimenAssociatedData (associatedDataId)"
+        }
+      ]
+    },
+    {
+      "name": "site_associated_data_data_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS site_associated_data_data_idx ON siteAssociatedData (associatedDataId)"
+        }
+      ]
+    },
+    {
+      "name": "event_associated_data_data_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS event_associated_data_data_idx ON eventAssociatedData (associatedDataId)"
+        }
+      ]
+    },
+    {
+      "name": "parasite_detection_specimen_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS parasite_detection_specimen_idx ON parasiteDetection (specimenUuid)"
+        }
+      ]
+    },
+    {
+      "name": "parasite_specimen_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX IF NOT EXISTS parasite_specimen_idx ON parasite (specimenUuid)"
+        }
+      ]
+    },
+    {
+      "name": "parasite_uuid_idx",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE UNIQUE INDEX IF NOT EXISTS parasite_uuid_idx ON parasite (parasiteUuid)"
+        }
+      ]
+    }
+  ]
+}

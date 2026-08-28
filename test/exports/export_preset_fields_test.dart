@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/settings/export_preset_fields.dart';
+import 'package:nahpu/screens/settings/presets/export_preset_fields.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -63,6 +63,99 @@ void main() {
     expect(find.text('habitatType_1'), findsOneWidget);
     expect(find.text('habitatType_2'), findsOneWidget);
     expect(find.text('habitatType_3'), findsOneWidget);
+  });
+
+  testWidgets('custom list separator preserves surrounding whitespace', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[site::habitatType]',
+          textType: 'list',
+          formatOption: 'comma',
+        ),
+      ],
+    );
+    ExportPresetModel? updated;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: MaterialApp(
+          home: ExportPresetFieldsScreen(
+            preset: preset,
+            onPresetChanged: (value) => updated = value,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('separator-comma')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Custom').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('list-custom-separator')),
+      ' - ',
+    );
+    await tester.pump();
+    await tester.ensureVisible(find.text('Done'));
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(updated?.mappings.single.formatOption, 'custom: - ');
+  });
+
+  testWidgets('Darwin Core list mapping shows its fixed separator', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.darwinCore,
+      mappings: [
+        ExportFieldMapping(
+          expression: '[site::habitatType]',
+          textType: 'list',
+          formatOption: 'comma',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('One column · Darwin Core " | " separator'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Darwin Core list values are separated with " | ".'),
+      findsOneWidget,
+    );
+    expect(find.text('Separator'), findsNothing);
+    expect(find.byKey(const ValueKey('separator-comma')), findsNothing);
   });
 
   testWidgets('customizing a scalar preserves its value format', (
@@ -221,7 +314,7 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Field: [site::habitatType]'), findsOneWidget);
+      expect(find.text('Field: [siteAttribute::habitatType]'), findsOneWidget);
     },
   );
 

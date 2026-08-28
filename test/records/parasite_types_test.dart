@@ -27,6 +27,9 @@ void main() {
       CatalogFmt.birds,
       CatalogFmt.herpetofauna,
     });
-    expect(CatalogFmt.values.every(supportsParasites), isTrue);
+    expect(supportsParasites(CatalogFmt.mammals), isTrue);
+    expect(supportsParasites(CatalogFmt.birds), isTrue);
+    expect(supportsParasites(CatalogFmt.herpetofauna), isTrue);
+    expect(supportsParasites(CatalogFmt.arthropods), isFalse);
   });
 }

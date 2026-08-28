@@ -1,16 +1,14 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Converts a pointer movement from global logical pixels to template mm.
 ///
 /// The callback receives the current global pointer position and the global
 /// pixel delta since the previous event. It returns null when the render tree
 /// is not ready, allowing callers to fall back to simple scale-based math.
-typedef TemplatePanMmDeltaCallback = Offset? Function(
-  Offset globalPosition,
-  Offset globalDelta,
-);
+typedef TemplatePanMmDeltaCallback =
+    Offset? Function(Offset globalPosition, Offset globalDelta);
 
 /// Converts degrees to radians for Flutter transforms.
 ///
@@ -71,8 +69,9 @@ Offset? globalDragDeltaToTemplateMm({
   if (renderObject is! RenderBox || !renderObject.hasSize) return null;
 
   final currentLocal = renderObject.globalToLocal(globalPosition);
-  final previousLocal =
-      renderObject.globalToLocal(globalPosition - globalDelta);
+  final previousLocal = renderObject.globalToLocal(
+    globalPosition - globalDelta,
+  );
   return pixelsToTemplateMm(currentLocal - previousLocal, scalePxPerMm);
 }
 
@@ -193,10 +192,12 @@ Rect resizedRotatedRectFromCorner({
 
   switch (corner) {
     case 'br':
-      final fixedX = start.left +
+      final fixedX =
+          start.left +
           start.width / 2 * (1 - cosTheta) +
           start.height / 2 * sinTheta;
-      final fixedY = start.top +
+      final fixedY =
+          start.top +
           start.height / 2 * (1 - cosTheta) -
           start.width / 2 * sinTheta;
       width = (start.width + delta.dx).clamp(2.0, maxWidthMm);
@@ -205,10 +206,12 @@ Rect resizedRotatedRectFromCorner({
       y = fixedY - height / 2 * (1 - cosTheta) + width / 2 * sinTheta;
       break;
     case 'bl':
-      final fixedX = start.left +
+      final fixedX =
+          start.left +
           start.width / 2 * (1 + cosTheta) +
           start.height / 2 * sinTheta;
-      final fixedY = start.top +
+      final fixedY =
+          start.top +
           start.height / 2 * (1 - cosTheta) +
           start.width / 2 * sinTheta;
       width = (start.width - delta.dx).clamp(2.0, maxWidthMm);
@@ -217,10 +220,12 @@ Rect resizedRotatedRectFromCorner({
       y = fixedY - height / 2 * (1 - cosTheta) - width / 2 * sinTheta;
       break;
     case 'tr':
-      final fixedX = start.left +
+      final fixedX =
+          start.left +
           start.width / 2 * (1 - cosTheta) -
           start.height / 2 * sinTheta;
-      final fixedY = start.top +
+      final fixedY =
+          start.top +
           start.height / 2 * (1 + cosTheta) -
           start.width / 2 * sinTheta;
       width = (start.width + delta.dx).clamp(2.0, maxWidthMm);
@@ -230,10 +235,12 @@ Rect resizedRotatedRectFromCorner({
       break;
     case 'tl':
     default:
-      final fixedX = start.left +
+      final fixedX =
+          start.left +
           start.width / 2 * (1 + cosTheta) -
           start.height / 2 * sinTheta;
-      final fixedY = start.top +
+      final fixedY =
+          start.top +
           start.height / 2 * (1 + cosTheta) +
           start.width / 2 * sinTheta;
       width = (start.width - delta.dx).clamp(2.0, maxWidthMm);
@@ -243,10 +250,5 @@ Rect resizedRotatedRectFromCorner({
       break;
   }
 
-  return Rect.fromLTWH(
-    x,
-    y,
-    width,
-    height,
-  );
+  return Rect.fromLTWH(x, y, width, height);
 }

@@ -147,11 +147,7 @@ const XTypeGroup mediaFmt = XTypeGroup(
     'mkv',
     'webm',
   ],
-  uniformTypeIdentifiers: [
-    'public.image',
-    'public.audio',
-    'public.movie',
-  ],
+  uniformTypeIdentifiers: ['public.image', 'public.audio', 'public.movie'],
   mimeTypes: [
     'image/jpeg',
     'image/png',

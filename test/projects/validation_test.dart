@@ -71,12 +71,21 @@ void main() {
     expect(catNum3.isValidCollNum, isFalse);
   }));
 
-  test('Test Specimen Sex Index', () {
-    expect(SpecimenSex.values[0], SpecimenSex.male);
-    expect(SpecimenSex.values[1], SpecimenSex.female);
-    expect(SpecimenSex.values[2], SpecimenSex.unknown);
-    expect(specimenSexList.indexOf('Male'), 0);
-    expect(specimenSexList.indexOf('Female'), 1);
-    expect(specimenSexList.indexOf('Unknown'), 2);
+  test('specimen sex uses stable database codes', () {
+    expect(getSpecimenSex(0), SpecimenSex.male);
+    expect(getSpecimenSex(1), SpecimenSex.female);
+    expect(getSpecimenSex(2), SpecimenSex.unknown);
+    expect(getSpecimenSex(3), SpecimenSex.gynandromorph);
+    expect(getSpecimenSex(4), SpecimenSex.hermaphrodite);
+    expect(getSpecimenSex(5), SpecimenSex.femaleUncertain);
+    expect(getSpecimenSex(6), SpecimenSex.maleUncertain);
+    expect(getSpecimenSex(99), isNull);
+    expect(getSpecimenSexCode(SpecimenSex.male), 0);
+    expect(getSpecimenSexLabel(5), 'Female?');
+    expect(SpecimenSex.maleUncertain.supportsMaleAttributes, isTrue);
+    expect(SpecimenSex.femaleUncertain.supportsFemaleAttributes, isTrue);
+    expect(SpecimenSex.gynandromorph.supportsMaleAttributes, isTrue);
+    expect(SpecimenSex.gynandromorph.supportsFemaleAttributes, isTrue);
+    expect(SpecimenSex.unknown.supportsMaleAttributes, isFalse);
   });
 }

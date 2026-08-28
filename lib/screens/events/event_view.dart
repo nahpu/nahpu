@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
@@ -20,23 +21,40 @@ class CollEventViewer extends ConsumerStatefulWidget {
   CollEventViewerState createState() => CollEventViewerState();
 }
 
-class CollEventViewerState extends ConsumerState<CollEventViewer> {
-  bool _isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class CollEventViewerState extends ConsumerState<CollEventViewer>
+    with RecordPageReconciler<CollEventData, CollEventEntry, CollEventViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _collEvenId;
-  bool _loadedOnce = false;
   bool _isSearching = false;
   final FocusNode _focus = FocusNode();
 
   @override
-  void initState() {
-    super.initState();
+  RecordViewer get recordViewer => RecordViewer.collEvent;
+
+  @override
+  AsyncNotifierProvider<CollEventEntry, List<CollEventData>>
+  get entryProvider => collEventEntryProvider;
+
+  @override
+  Object recordIdOf(CollEventData entry) => entry.id;
+
+  @override
+  void selectRecord(CollEventData? entry) => _collEvenId = entry?.id;
+
+  @override
+  void invalidateEntries() => CollEventServices(ref: ref).invalidateCollEvent();
+
+  @override
+  bool get isSearching => _isSearching;
+
+  @override
+  void cancelSearch() {
+    _isSearching = false;
+    _searchController.clear();
   }
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -44,12 +62,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   @override
   Widget build(BuildContext context) {
     final services = CollEventServices(ref: ref);
-    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
-    ref.listen(collEventEntryProvider, (_, next) {
-      // Skip refresh emissions (see site_view.dart).
-      if (next.isLoading) return;
-      next.whenData(_reconcile);
-    });
+    listenEntries();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Events"),
@@ -116,14 +129,10 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                   }
                   return CollEventPages(
                     collEventEntries: collEventEntries,
-                    pageNav: _pageNav,
-                    isNavButtonVisible: _isVisible,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _collEvenId = collEventEntries[index].id;
-                        _updatePageNav(index);
-                      });
-                    },
+                    pageNav: pageNav,
+                    isNavButtonVisible: isNavVisible,
+                    onPageChanged: (index) =>
+                        handlePageChanged(index, collEventEntries[index]),
                   );
                 },
                 loading: () => const CommonProgressIndicator(),
@@ -132,76 +141,10 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
         ),
       ),
       bottomSheet: Visibility(
-        visible: _isVisible,
-        child: PageNavButton(pageNav: _pageNav),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
     );
-  }
-
-  void _reconcile(List<CollEventData> collEventEntries) {
-    if (!mounted) return;
-    final count = collEventEntries.length;
-    final landIndex = _landingIndex(collEventEntries);
-    if (landIndex != null) {
-      _pageNav.currentPage = landIndex + 1;
-    }
-    final index = _pageNav.clampToCount(count);
-    setState(() {
-      if (landIndex != null && _isSearching) {
-        _isSearching = false;
-        _searchController.clear();
-      }
-      _isVisible = count >= 2;
-      if (count == 0) {
-        _collEvenId = null;
-      } else if (landIndex != null ||
-          _collEvenId == null ||
-          !collEventEntries.any((event) => event.id == _collEvenId)) {
-        _collEvenId = collEventEntries[index].id;
-      }
-    });
-    if (landIndex != null) {
-      // Keyed controller swap (see site_view.dart).
-      _pageNav.openControllerAt(index);
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pageNav.clampController(index);
-      });
-    }
-  }
-
-  /// One-shot landing target for this refresh (see site_view.dart).
-  int? _landingIndex(List<CollEventData> collEventEntries) {
-    final firstLoad = !_loadedOnce;
-    _loadedOnce = true;
-    final pendingJump = ref.read(
-      pendingRecordJumpProvider(RecordViewer.collEvent),
-    );
-    if (pendingJump != null) {
-      final target = collEventEntries.indexWhere(
-        (event) => event.id == pendingJump,
-      );
-      if (target != -1) {
-        ref
-            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
-            .updateState(null);
-        return target;
-      }
-    }
-    if (firstLoad && collEventEntries.isNotEmpty) {
-      return collEventEntries.length - 1;
-    }
-    return null;
-  }
-
-  void _updatePageNav(int value) {
-    setState(() {
-      _pageNav.currentPage = value + 1;
-      _pageNav.updatePageNavigation();
-      if (!_isSearching) {
-        CollEventServices(ref: ref).invalidateCollEvent();
-      }
-    });
   }
 }
 

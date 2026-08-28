@@ -872,6 +872,530 @@ class ProjectCompanion extends UpdateCompanion<ProjectData> {
   }
 }
 
+class Geography extends Table with TableInfo<Geography, GeographyData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Geography(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _countryMeta = const VerificationMeta(
+    'country',
+  );
+  late final GeneratedColumn<String> country = GeneratedColumn<String>(
+    'country',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _islandGroupMeta = const VerificationMeta(
+    'islandGroup',
+  );
+  late final GeneratedColumn<String> islandGroup = GeneratedColumn<String>(
+    'islandGroup',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _stateProvinceMeta = const VerificationMeta(
+    'stateProvince',
+  );
+  late final GeneratedColumn<String> stateProvince = GeneratedColumn<String>(
+    'stateProvince',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _countyMeta = const VerificationMeta('county');
+  late final GeneratedColumn<String> county = GeneratedColumn<String>(
+    'county',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _municipalityMeta = const VerificationMeta(
+    'municipality',
+  );
+  late final GeneratedColumn<String> municipality = GeneratedColumn<String>(
+    'municipality',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _localityMeta = const VerificationMeta(
+    'locality',
+  );
+  late final GeneratedColumn<String> locality = GeneratedColumn<String>(
+    'locality',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _matchKeyMeta = const VerificationMeta(
+    'matchKey',
+  );
+  late final GeneratedColumn<String> matchKey = GeneratedColumn<String>(
+    'matchKey',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    country,
+    islandGroup,
+    stateProvince,
+    county,
+    municipality,
+    locality,
+    matchKey,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geography';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeographyData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('country')) {
+      context.handle(
+        _countryMeta,
+        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
+      );
+    }
+    if (data.containsKey('islandGroup')) {
+      context.handle(
+        _islandGroupMeta,
+        islandGroup.isAcceptableOrUnknown(
+          data['islandGroup']!,
+          _islandGroupMeta,
+        ),
+      );
+    }
+    if (data.containsKey('stateProvince')) {
+      context.handle(
+        _stateProvinceMeta,
+        stateProvince.isAcceptableOrUnknown(
+          data['stateProvince']!,
+          _stateProvinceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('county')) {
+      context.handle(
+        _countyMeta,
+        county.isAcceptableOrUnknown(data['county']!, _countyMeta),
+      );
+    }
+    if (data.containsKey('municipality')) {
+      context.handle(
+        _municipalityMeta,
+        municipality.isAcceptableOrUnknown(
+          data['municipality']!,
+          _municipalityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('locality')) {
+      context.handle(
+        _localityMeta,
+        locality.isAcceptableOrUnknown(data['locality']!, _localityMeta),
+      );
+    }
+    if (data.containsKey('matchKey')) {
+      context.handle(
+        _matchKeyMeta,
+        matchKey.isAcceptableOrUnknown(data['matchKey']!, _matchKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_matchKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GeographyData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeographyData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      country: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country'],
+      ),
+      islandGroup: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}islandGroup'],
+      ),
+      stateProvince: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}stateProvince'],
+      ),
+      county: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}county'],
+      ),
+      municipality: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}municipality'],
+      ),
+      locality: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}locality'],
+      ),
+      matchKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matchKey'],
+      )!,
+    );
+  }
+
+  @override
+  Geography createAlias(String alias) {
+    return Geography(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class GeographyData extends DataClass implements Insertable<GeographyData> {
+  final int id;
+  final String? country;
+  final String? islandGroup;
+  final String? stateProvince;
+  final String? county;
+  final String? municipality;
+  final String? locality;
+
+  /// precise locality; verbatim locality in DWC
+  final String matchKey;
+  const GeographyData({
+    required this.id,
+    this.country,
+    this.islandGroup,
+    this.stateProvince,
+    this.county,
+    this.municipality,
+    this.locality,
+    required this.matchKey,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || country != null) {
+      map['country'] = Variable<String>(country);
+    }
+    if (!nullToAbsent || islandGroup != null) {
+      map['islandGroup'] = Variable<String>(islandGroup);
+    }
+    if (!nullToAbsent || stateProvince != null) {
+      map['stateProvince'] = Variable<String>(stateProvince);
+    }
+    if (!nullToAbsent || county != null) {
+      map['county'] = Variable<String>(county);
+    }
+    if (!nullToAbsent || municipality != null) {
+      map['municipality'] = Variable<String>(municipality);
+    }
+    if (!nullToAbsent || locality != null) {
+      map['locality'] = Variable<String>(locality);
+    }
+    map['matchKey'] = Variable<String>(matchKey);
+    return map;
+  }
+
+  GeographyCompanion toCompanion(bool nullToAbsent) {
+    return GeographyCompanion(
+      id: Value(id),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
+      islandGroup: islandGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(islandGroup),
+      stateProvince: stateProvince == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stateProvince),
+      county: county == null && nullToAbsent
+          ? const Value.absent()
+          : Value(county),
+      municipality: municipality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(municipality),
+      locality: locality == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locality),
+      matchKey: Value(matchKey),
+    );
+  }
+
+  factory GeographyData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeographyData(
+      id: serializer.fromJson<int>(json['id']),
+      country: serializer.fromJson<String?>(json['country']),
+      islandGroup: serializer.fromJson<String?>(json['islandGroup']),
+      stateProvince: serializer.fromJson<String?>(json['stateProvince']),
+      county: serializer.fromJson<String?>(json['county']),
+      municipality: serializer.fromJson<String?>(json['municipality']),
+      locality: serializer.fromJson<String?>(json['locality']),
+      matchKey: serializer.fromJson<String>(json['matchKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'country': serializer.toJson<String?>(country),
+      'islandGroup': serializer.toJson<String?>(islandGroup),
+      'stateProvince': serializer.toJson<String?>(stateProvince),
+      'county': serializer.toJson<String?>(county),
+      'municipality': serializer.toJson<String?>(municipality),
+      'locality': serializer.toJson<String?>(locality),
+      'matchKey': serializer.toJson<String>(matchKey),
+    };
+  }
+
+  GeographyData copyWith({
+    int? id,
+    Value<String?> country = const Value.absent(),
+    Value<String?> islandGroup = const Value.absent(),
+    Value<String?> stateProvince = const Value.absent(),
+    Value<String?> county = const Value.absent(),
+    Value<String?> municipality = const Value.absent(),
+    Value<String?> locality = const Value.absent(),
+    String? matchKey,
+  }) => GeographyData(
+    id: id ?? this.id,
+    country: country.present ? country.value : this.country,
+    islandGroup: islandGroup.present ? islandGroup.value : this.islandGroup,
+    stateProvince: stateProvince.present
+        ? stateProvince.value
+        : this.stateProvince,
+    county: county.present ? county.value : this.county,
+    municipality: municipality.present ? municipality.value : this.municipality,
+    locality: locality.present ? locality.value : this.locality,
+    matchKey: matchKey ?? this.matchKey,
+  );
+  GeographyData copyWithCompanion(GeographyCompanion data) {
+    return GeographyData(
+      id: data.id.present ? data.id.value : this.id,
+      country: data.country.present ? data.country.value : this.country,
+      islandGroup: data.islandGroup.present
+          ? data.islandGroup.value
+          : this.islandGroup,
+      stateProvince: data.stateProvince.present
+          ? data.stateProvince.value
+          : this.stateProvince,
+      county: data.county.present ? data.county.value : this.county,
+      municipality: data.municipality.present
+          ? data.municipality.value
+          : this.municipality,
+      locality: data.locality.present ? data.locality.value : this.locality,
+      matchKey: data.matchKey.present ? data.matchKey.value : this.matchKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeographyData(')
+          ..write('id: $id, ')
+          ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
+          ..write('stateProvince: $stateProvince, ')
+          ..write('county: $county, ')
+          ..write('municipality: $municipality, ')
+          ..write('locality: $locality, ')
+          ..write('matchKey: $matchKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    country,
+    islandGroup,
+    stateProvince,
+    county,
+    municipality,
+    locality,
+    matchKey,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeographyData &&
+          other.id == this.id &&
+          other.country == this.country &&
+          other.islandGroup == this.islandGroup &&
+          other.stateProvince == this.stateProvince &&
+          other.county == this.county &&
+          other.municipality == this.municipality &&
+          other.locality == this.locality &&
+          other.matchKey == this.matchKey);
+}
+
+class GeographyCompanion extends UpdateCompanion<GeographyData> {
+  final Value<int> id;
+  final Value<String?> country;
+  final Value<String?> islandGroup;
+  final Value<String?> stateProvince;
+  final Value<String?> county;
+  final Value<String?> municipality;
+  final Value<String?> locality;
+  final Value<String> matchKey;
+  const GeographyCompanion({
+    this.id = const Value.absent(),
+    this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
+    this.stateProvince = const Value.absent(),
+    this.county = const Value.absent(),
+    this.municipality = const Value.absent(),
+    this.locality = const Value.absent(),
+    this.matchKey = const Value.absent(),
+  });
+  GeographyCompanion.insert({
+    this.id = const Value.absent(),
+    this.country = const Value.absent(),
+    this.islandGroup = const Value.absent(),
+    this.stateProvince = const Value.absent(),
+    this.county = const Value.absent(),
+    this.municipality = const Value.absent(),
+    this.locality = const Value.absent(),
+    required String matchKey,
+  }) : matchKey = Value(matchKey);
+  static Insertable<GeographyData> custom({
+    Expression<int>? id,
+    Expression<String>? country,
+    Expression<String>? islandGroup,
+    Expression<String>? stateProvince,
+    Expression<String>? county,
+    Expression<String>? municipality,
+    Expression<String>? locality,
+    Expression<String>? matchKey,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (country != null) 'country': country,
+      if (islandGroup != null) 'islandGroup': islandGroup,
+      if (stateProvince != null) 'stateProvince': stateProvince,
+      if (county != null) 'county': county,
+      if (municipality != null) 'municipality': municipality,
+      if (locality != null) 'locality': locality,
+      if (matchKey != null) 'matchKey': matchKey,
+    });
+  }
+
+  GeographyCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? country,
+    Value<String?>? islandGroup,
+    Value<String?>? stateProvince,
+    Value<String?>? county,
+    Value<String?>? municipality,
+    Value<String?>? locality,
+    Value<String>? matchKey,
+  }) {
+    return GeographyCompanion(
+      id: id ?? this.id,
+      country: country ?? this.country,
+      islandGroup: islandGroup ?? this.islandGroup,
+      stateProvince: stateProvince ?? this.stateProvince,
+      county: county ?? this.county,
+      municipality: municipality ?? this.municipality,
+      locality: locality ?? this.locality,
+      matchKey: matchKey ?? this.matchKey,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
+    }
+    if (islandGroup.present) {
+      map['islandGroup'] = Variable<String>(islandGroup.value);
+    }
+    if (stateProvince.present) {
+      map['stateProvince'] = Variable<String>(stateProvince.value);
+    }
+    if (county.present) {
+      map['county'] = Variable<String>(county.value);
+    }
+    if (municipality.present) {
+      map['municipality'] = Variable<String>(municipality.value);
+    }
+    if (locality.present) {
+      map['locality'] = Variable<String>(locality.value);
+    }
+    if (matchKey.present) {
+      map['matchKey'] = Variable<String>(matchKey.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeographyCompanion(')
+          ..write('id: $id, ')
+          ..write('country: $country, ')
+          ..write('islandGroup: $islandGroup, ')
+          ..write('stateProvince: $stateProvince, ')
+          ..write('county: $county, ')
+          ..write('municipality: $municipality, ')
+          ..write('locality: $locality, ')
+          ..write('matchKey: $matchKey')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class Personnel extends Table with TableInfo<Personnel, PersonnelData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2420,45 +2944,14 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _countryMeta = const VerificationMeta(
-    'country',
+  static const VerificationMeta _geographyIdMeta = const VerificationMeta(
+    'geographyId',
   );
-  late final GeneratedColumn<String> country = GeneratedColumn<String>(
-    'country',
+  late final GeneratedColumn<int> geographyId = GeneratedColumn<int>(
+    'geographyId',
     aliasedName,
     true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _stateProvinceMeta = const VerificationMeta(
-    'stateProvince',
-  );
-  late final GeneratedColumn<String> stateProvince = GeneratedColumn<String>(
-    'stateProvince',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _countyMeta = const VerificationMeta('county');
-  late final GeneratedColumn<String> county = GeneratedColumn<String>(
-    'county',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _municipalityMeta = const VerificationMeta(
-    'municipality',
-  );
-  late final GeneratedColumn<String> municipality = GeneratedColumn<String>(
-    'municipality',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
+    type: DriftSqlType.int,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -2467,17 +2960,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
   );
   late final GeneratedColumn<String> mediaID = GeneratedColumn<String>(
     'mediaID',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _localityMeta = const VerificationMeta(
-    'locality',
-  );
-  late final GeneratedColumn<String> locality = GeneratedColumn<String>(
-    'locality',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -2493,39 +2975,6 @@ class Site extends Table with TableInfo<Site, SiteData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _habitatTypeMeta = const VerificationMeta(
-    'habitatType',
-  );
-  late final GeneratedColumn<String> habitatType = GeneratedColumn<String>(
-    'habitatType',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _habitatConditionMeta = const VerificationMeta(
-    'habitatCondition',
-  );
-  late final GeneratedColumn<String> habitatCondition = GeneratedColumn<String>(
-    'habitatCondition',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _habitatDescriptionMeta =
-      const VerificationMeta('habitatDescription');
-  late final GeneratedColumn<String> habitatDescription =
-      GeneratedColumn<String>(
-        'habitatDescription',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2533,16 +2982,9 @@ class Site extends Table with TableInfo<Site, SiteData> {
     projectUuid,
     leadStaffId,
     siteType,
-    country,
-    stateProvince,
-    county,
-    municipality,
+    geographyId,
     mediaID,
-    locality,
     remark,
-    habitatType,
-    habitatCondition,
-    habitatDescription,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2589,33 +3031,12 @@ class Site extends Table with TableInfo<Site, SiteData> {
         siteType.isAcceptableOrUnknown(data['siteType']!, _siteTypeMeta),
       );
     }
-    if (data.containsKey('country')) {
+    if (data.containsKey('geographyId')) {
       context.handle(
-        _countryMeta,
-        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
-      );
-    }
-    if (data.containsKey('stateProvince')) {
-      context.handle(
-        _stateProvinceMeta,
-        stateProvince.isAcceptableOrUnknown(
-          data['stateProvince']!,
-          _stateProvinceMeta,
-        ),
-      );
-    }
-    if (data.containsKey('county')) {
-      context.handle(
-        _countyMeta,
-        county.isAcceptableOrUnknown(data['county']!, _countyMeta),
-      );
-    }
-    if (data.containsKey('municipality')) {
-      context.handle(
-        _municipalityMeta,
-        municipality.isAcceptableOrUnknown(
-          data['municipality']!,
-          _municipalityMeta,
+        _geographyIdMeta,
+        geographyId.isAcceptableOrUnknown(
+          data['geographyId']!,
+          _geographyIdMeta,
         ),
       );
     }
@@ -2625,43 +3046,10 @@ class Site extends Table with TableInfo<Site, SiteData> {
         mediaID.isAcceptableOrUnknown(data['mediaID']!, _mediaIDMeta),
       );
     }
-    if (data.containsKey('locality')) {
-      context.handle(
-        _localityMeta,
-        locality.isAcceptableOrUnknown(data['locality']!, _localityMeta),
-      );
-    }
     if (data.containsKey('remark')) {
       context.handle(
         _remarkMeta,
         remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
-      );
-    }
-    if (data.containsKey('habitatType')) {
-      context.handle(
-        _habitatTypeMeta,
-        habitatType.isAcceptableOrUnknown(
-          data['habitatType']!,
-          _habitatTypeMeta,
-        ),
-      );
-    }
-    if (data.containsKey('habitatCondition')) {
-      context.handle(
-        _habitatConditionMeta,
-        habitatCondition.isAcceptableOrUnknown(
-          data['habitatCondition']!,
-          _habitatConditionMeta,
-        ),
-      );
-    }
-    if (data.containsKey('habitatDescription')) {
-      context.handle(
-        _habitatDescriptionMeta,
-        habitatDescription.isAcceptableOrUnknown(
-          data['habitatDescription']!,
-          _habitatDescriptionMeta,
-        ),
       );
     }
     return context;
@@ -2693,45 +3081,17 @@ class Site extends Table with TableInfo<Site, SiteData> {
         DriftSqlType.string,
         data['${effectivePrefix}siteType'],
       ),
-      country: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}country'],
-      ),
-      stateProvince: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}stateProvince'],
-      ),
-      county: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}county'],
-      ),
-      municipality: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}municipality'],
+      geographyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}geographyId'],
       ),
       mediaID: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}mediaID'],
       ),
-      locality: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}locality'],
-      ),
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}remark'],
-      ),
-      habitatType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatType'],
-      ),
-      habitatCondition: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatCondition'],
-      ),
-      habitatDescription: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habitatDescription'],
       ),
     );
   }
@@ -2743,6 +3103,7 @@ class Site extends Table with TableInfo<Site, SiteData> {
 
   @override
   List<String> get customConstraints => const [
+    'FOREIGN KEY(geographyId)REFERENCES geography(id)',
     'FOREIGN KEY(mediaID)REFERENCES media(primaryId)',
     'FOREIGN KEY(leadStaffId)REFERENCES personnel(uuid)',
   ];
@@ -2756,34 +3117,18 @@ class SiteData extends DataClass implements Insertable<SiteData> {
   final String? projectUuid;
   final String? leadStaffId;
   final String? siteType;
-  final String? country;
-  final String? stateProvince;
-  final String? county;
-  final String? municipality;
+  final int? geographyId;
   final String? mediaID;
-  final String? locality;
-
-  /// verbatim locality in DWC
   final String? remark;
-  final String? habitatType;
-  final String? habitatCondition;
-  final String? habitatDescription;
   const SiteData({
     required this.id,
     this.siteID,
     this.projectUuid,
     this.leadStaffId,
     this.siteType,
-    this.country,
-    this.stateProvince,
-    this.county,
-    this.municipality,
+    this.geographyId,
     this.mediaID,
-    this.locality,
     this.remark,
-    this.habitatType,
-    this.habitatCondition,
-    this.habitatDescription,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2801,35 +3146,14 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     if (!nullToAbsent || siteType != null) {
       map['siteType'] = Variable<String>(siteType);
     }
-    if (!nullToAbsent || country != null) {
-      map['country'] = Variable<String>(country);
-    }
-    if (!nullToAbsent || stateProvince != null) {
-      map['stateProvince'] = Variable<String>(stateProvince);
-    }
-    if (!nullToAbsent || county != null) {
-      map['county'] = Variable<String>(county);
-    }
-    if (!nullToAbsent || municipality != null) {
-      map['municipality'] = Variable<String>(municipality);
+    if (!nullToAbsent || geographyId != null) {
+      map['geographyId'] = Variable<int>(geographyId);
     }
     if (!nullToAbsent || mediaID != null) {
       map['mediaID'] = Variable<String>(mediaID);
     }
-    if (!nullToAbsent || locality != null) {
-      map['locality'] = Variable<String>(locality);
-    }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
-    }
-    if (!nullToAbsent || habitatType != null) {
-      map['habitatType'] = Variable<String>(habitatType);
-    }
-    if (!nullToAbsent || habitatCondition != null) {
-      map['habitatCondition'] = Variable<String>(habitatCondition);
-    }
-    if (!nullToAbsent || habitatDescription != null) {
-      map['habitatDescription'] = Variable<String>(habitatDescription);
     }
     return map;
   }
@@ -2849,36 +3173,15 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       siteType: siteType == null && nullToAbsent
           ? const Value.absent()
           : Value(siteType),
-      country: country == null && nullToAbsent
+      geographyId: geographyId == null && nullToAbsent
           ? const Value.absent()
-          : Value(country),
-      stateProvince: stateProvince == null && nullToAbsent
-          ? const Value.absent()
-          : Value(stateProvince),
-      county: county == null && nullToAbsent
-          ? const Value.absent()
-          : Value(county),
-      municipality: municipality == null && nullToAbsent
-          ? const Value.absent()
-          : Value(municipality),
+          : Value(geographyId),
       mediaID: mediaID == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaID),
-      locality: locality == null && nullToAbsent
-          ? const Value.absent()
-          : Value(locality),
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
-      habitatType: habitatType == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatType),
-      habitatCondition: habitatCondition == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatCondition),
-      habitatDescription: habitatDescription == null && nullToAbsent
-          ? const Value.absent()
-          : Value(habitatDescription),
     );
   }
 
@@ -2893,18 +3196,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
       leadStaffId: serializer.fromJson<String?>(json['leadStaffId']),
       siteType: serializer.fromJson<String?>(json['siteType']),
-      country: serializer.fromJson<String?>(json['country']),
-      stateProvince: serializer.fromJson<String?>(json['stateProvince']),
-      county: serializer.fromJson<String?>(json['county']),
-      municipality: serializer.fromJson<String?>(json['municipality']),
+      geographyId: serializer.fromJson<int?>(json['geographyId']),
       mediaID: serializer.fromJson<String?>(json['mediaID']),
-      locality: serializer.fromJson<String?>(json['locality']),
       remark: serializer.fromJson<String?>(json['remark']),
-      habitatType: serializer.fromJson<String?>(json['habitatType']),
-      habitatCondition: serializer.fromJson<String?>(json['habitatCondition']),
-      habitatDescription: serializer.fromJson<String?>(
-        json['habitatDescription'],
-      ),
     );
   }
   @override
@@ -2916,16 +3210,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
       'projectUuid': serializer.toJson<String?>(projectUuid),
       'leadStaffId': serializer.toJson<String?>(leadStaffId),
       'siteType': serializer.toJson<String?>(siteType),
-      'country': serializer.toJson<String?>(country),
-      'stateProvince': serializer.toJson<String?>(stateProvince),
-      'county': serializer.toJson<String?>(county),
-      'municipality': serializer.toJson<String?>(municipality),
+      'geographyId': serializer.toJson<int?>(geographyId),
       'mediaID': serializer.toJson<String?>(mediaID),
-      'locality': serializer.toJson<String?>(locality),
       'remark': serializer.toJson<String?>(remark),
-      'habitatType': serializer.toJson<String?>(habitatType),
-      'habitatCondition': serializer.toJson<String?>(habitatCondition),
-      'habitatDescription': serializer.toJson<String?>(habitatDescription),
     };
   }
 
@@ -2935,38 +3222,18 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     Value<String?> projectUuid = const Value.absent(),
     Value<String?> leadStaffId = const Value.absent(),
     Value<String?> siteType = const Value.absent(),
-    Value<String?> country = const Value.absent(),
-    Value<String?> stateProvince = const Value.absent(),
-    Value<String?> county = const Value.absent(),
-    Value<String?> municipality = const Value.absent(),
+    Value<int?> geographyId = const Value.absent(),
     Value<String?> mediaID = const Value.absent(),
-    Value<String?> locality = const Value.absent(),
     Value<String?> remark = const Value.absent(),
-    Value<String?> habitatType = const Value.absent(),
-    Value<String?> habitatCondition = const Value.absent(),
-    Value<String?> habitatDescription = const Value.absent(),
   }) => SiteData(
     id: id ?? this.id,
     siteID: siteID.present ? siteID.value : this.siteID,
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
     leadStaffId: leadStaffId.present ? leadStaffId.value : this.leadStaffId,
     siteType: siteType.present ? siteType.value : this.siteType,
-    country: country.present ? country.value : this.country,
-    stateProvince: stateProvince.present
-        ? stateProvince.value
-        : this.stateProvince,
-    county: county.present ? county.value : this.county,
-    municipality: municipality.present ? municipality.value : this.municipality,
+    geographyId: geographyId.present ? geographyId.value : this.geographyId,
     mediaID: mediaID.present ? mediaID.value : this.mediaID,
-    locality: locality.present ? locality.value : this.locality,
     remark: remark.present ? remark.value : this.remark,
-    habitatType: habitatType.present ? habitatType.value : this.habitatType,
-    habitatCondition: habitatCondition.present
-        ? habitatCondition.value
-        : this.habitatCondition,
-    habitatDescription: habitatDescription.present
-        ? habitatDescription.value
-        : this.habitatDescription,
   );
   SiteData copyWithCompanion(SiteCompanion data) {
     return SiteData(
@@ -2979,26 +3246,11 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ? data.leadStaffId.value
           : this.leadStaffId,
       siteType: data.siteType.present ? data.siteType.value : this.siteType,
-      country: data.country.present ? data.country.value : this.country,
-      stateProvince: data.stateProvince.present
-          ? data.stateProvince.value
-          : this.stateProvince,
-      county: data.county.present ? data.county.value : this.county,
-      municipality: data.municipality.present
-          ? data.municipality.value
-          : this.municipality,
+      geographyId: data.geographyId.present
+          ? data.geographyId.value
+          : this.geographyId,
       mediaID: data.mediaID.present ? data.mediaID.value : this.mediaID,
-      locality: data.locality.present ? data.locality.value : this.locality,
       remark: data.remark.present ? data.remark.value : this.remark,
-      habitatType: data.habitatType.present
-          ? data.habitatType.value
-          : this.habitatType,
-      habitatCondition: data.habitatCondition.present
-          ? data.habitatCondition.value
-          : this.habitatCondition,
-      habitatDescription: data.habitatDescription.present
-          ? data.habitatDescription.value
-          : this.habitatDescription,
     );
   }
 
@@ -3010,16 +3262,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           ..write('projectUuid: $projectUuid, ')
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
-          ..write('country: $country, ')
-          ..write('stateProvince: $stateProvince, ')
-          ..write('county: $county, ')
-          ..write('municipality: $municipality, ')
+          ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
-          ..write('locality: $locality, ')
-          ..write('remark: $remark, ')
-          ..write('habitatType: $habitatType, ')
-          ..write('habitatCondition: $habitatCondition, ')
-          ..write('habitatDescription: $habitatDescription')
+          ..write('remark: $remark')
           ..write(')'))
         .toString();
   }
@@ -3031,16 +3276,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
     projectUuid,
     leadStaffId,
     siteType,
-    country,
-    stateProvince,
-    county,
-    municipality,
+    geographyId,
     mediaID,
-    locality,
     remark,
-    habitatType,
-    habitatCondition,
-    habitatDescription,
   );
   @override
   bool operator ==(Object other) =>
@@ -3051,16 +3289,9 @@ class SiteData extends DataClass implements Insertable<SiteData> {
           other.projectUuid == this.projectUuid &&
           other.leadStaffId == this.leadStaffId &&
           other.siteType == this.siteType &&
-          other.country == this.country &&
-          other.stateProvince == this.stateProvince &&
-          other.county == this.county &&
-          other.municipality == this.municipality &&
+          other.geographyId == this.geographyId &&
           other.mediaID == this.mediaID &&
-          other.locality == this.locality &&
-          other.remark == this.remark &&
-          other.habitatType == this.habitatType &&
-          other.habitatCondition == this.habitatCondition &&
-          other.habitatDescription == this.habitatDescription);
+          other.remark == this.remark);
 }
 
 class SiteCompanion extends UpdateCompanion<SiteData> {
@@ -3069,32 +3300,18 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
   final Value<String?> projectUuid;
   final Value<String?> leadStaffId;
   final Value<String?> siteType;
-  final Value<String?> country;
-  final Value<String?> stateProvince;
-  final Value<String?> county;
-  final Value<String?> municipality;
+  final Value<int?> geographyId;
   final Value<String?> mediaID;
-  final Value<String?> locality;
   final Value<String?> remark;
-  final Value<String?> habitatType;
-  final Value<String?> habitatCondition;
-  final Value<String?> habitatDescription;
   const SiteCompanion({
     this.id = const Value.absent(),
     this.siteID = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
-    this.country = const Value.absent(),
-    this.stateProvince = const Value.absent(),
-    this.county = const Value.absent(),
-    this.municipality = const Value.absent(),
+    this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
-    this.locality = const Value.absent(),
     this.remark = const Value.absent(),
-    this.habitatType = const Value.absent(),
-    this.habitatCondition = const Value.absent(),
-    this.habitatDescription = const Value.absent(),
   });
   SiteCompanion.insert({
     this.id = const Value.absent(),
@@ -3102,16 +3319,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     this.projectUuid = const Value.absent(),
     this.leadStaffId = const Value.absent(),
     this.siteType = const Value.absent(),
-    this.country = const Value.absent(),
-    this.stateProvince = const Value.absent(),
-    this.county = const Value.absent(),
-    this.municipality = const Value.absent(),
+    this.geographyId = const Value.absent(),
     this.mediaID = const Value.absent(),
-    this.locality = const Value.absent(),
     this.remark = const Value.absent(),
-    this.habitatType = const Value.absent(),
-    this.habitatCondition = const Value.absent(),
-    this.habitatDescription = const Value.absent(),
   });
   static Insertable<SiteData> custom({
     Expression<int>? id,
@@ -3119,16 +3329,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Expression<String>? projectUuid,
     Expression<String>? leadStaffId,
     Expression<String>? siteType,
-    Expression<String>? country,
-    Expression<String>? stateProvince,
-    Expression<String>? county,
-    Expression<String>? municipality,
+    Expression<int>? geographyId,
     Expression<String>? mediaID,
-    Expression<String>? locality,
     Expression<String>? remark,
-    Expression<String>? habitatType,
-    Expression<String>? habitatCondition,
-    Expression<String>? habitatDescription,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3136,16 +3339,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (leadStaffId != null) 'leadStaffId': leadStaffId,
       if (siteType != null) 'siteType': siteType,
-      if (country != null) 'country': country,
-      if (stateProvince != null) 'stateProvince': stateProvince,
-      if (county != null) 'county': county,
-      if (municipality != null) 'municipality': municipality,
+      if (geographyId != null) 'geographyId': geographyId,
       if (mediaID != null) 'mediaID': mediaID,
-      if (locality != null) 'locality': locality,
       if (remark != null) 'remark': remark,
-      if (habitatType != null) 'habitatType': habitatType,
-      if (habitatCondition != null) 'habitatCondition': habitatCondition,
-      if (habitatDescription != null) 'habitatDescription': habitatDescription,
     });
   }
 
@@ -3155,16 +3351,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     Value<String?>? projectUuid,
     Value<String?>? leadStaffId,
     Value<String?>? siteType,
-    Value<String?>? country,
-    Value<String?>? stateProvince,
-    Value<String?>? county,
-    Value<String?>? municipality,
+    Value<int?>? geographyId,
     Value<String?>? mediaID,
-    Value<String?>? locality,
     Value<String?>? remark,
-    Value<String?>? habitatType,
-    Value<String?>? habitatCondition,
-    Value<String?>? habitatDescription,
   }) {
     return SiteCompanion(
       id: id ?? this.id,
@@ -3172,16 +3361,9 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
       projectUuid: projectUuid ?? this.projectUuid,
       leadStaffId: leadStaffId ?? this.leadStaffId,
       siteType: siteType ?? this.siteType,
-      country: country ?? this.country,
-      stateProvince: stateProvince ?? this.stateProvince,
-      county: county ?? this.county,
-      municipality: municipality ?? this.municipality,
+      geographyId: geographyId ?? this.geographyId,
       mediaID: mediaID ?? this.mediaID,
-      locality: locality ?? this.locality,
       remark: remark ?? this.remark,
-      habitatType: habitatType ?? this.habitatType,
-      habitatCondition: habitatCondition ?? this.habitatCondition,
-      habitatDescription: habitatDescription ?? this.habitatDescription,
     );
   }
 
@@ -3203,35 +3385,14 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
     if (siteType.present) {
       map['siteType'] = Variable<String>(siteType.value);
     }
-    if (country.present) {
-      map['country'] = Variable<String>(country.value);
-    }
-    if (stateProvince.present) {
-      map['stateProvince'] = Variable<String>(stateProvince.value);
-    }
-    if (county.present) {
-      map['county'] = Variable<String>(county.value);
-    }
-    if (municipality.present) {
-      map['municipality'] = Variable<String>(municipality.value);
+    if (geographyId.present) {
+      map['geographyId'] = Variable<int>(geographyId.value);
     }
     if (mediaID.present) {
       map['mediaID'] = Variable<String>(mediaID.value);
     }
-    if (locality.present) {
-      map['locality'] = Variable<String>(locality.value);
-    }
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
-    }
-    if (habitatType.present) {
-      map['habitatType'] = Variable<String>(habitatType.value);
-    }
-    if (habitatCondition.present) {
-      map['habitatCondition'] = Variable<String>(habitatCondition.value);
-    }
-    if (habitatDescription.present) {
-      map['habitatDescription'] = Variable<String>(habitatDescription.value);
     }
     return map;
   }
@@ -3244,16 +3405,420 @@ class SiteCompanion extends UpdateCompanion<SiteData> {
           ..write('projectUuid: $projectUuid, ')
           ..write('leadStaffId: $leadStaffId, ')
           ..write('siteType: $siteType, ')
-          ..write('country: $country, ')
-          ..write('stateProvince: $stateProvince, ')
-          ..write('county: $county, ')
-          ..write('municipality: $municipality, ')
+          ..write('geographyId: $geographyId, ')
           ..write('mediaID: $mediaID, ')
-          ..write('locality: $locality, ')
-          ..write('remark: $remark, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SiteAttribute extends Table
+    with TableInfo<SiteAttribute, SiteAttributeData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SiteAttribute(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _siteIDMeta = const VerificationMeta('siteID');
+  late final GeneratedColumn<int> siteID = GeneratedColumn<int>(
+    'siteID',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatTypeMeta = const VerificationMeta(
+    'habitatType',
+  );
+  late final GeneratedColumn<String> habitatType = GeneratedColumn<String>(
+    'habitatType',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatConditionMeta = const VerificationMeta(
+    'habitatCondition',
+  );
+  late final GeneratedColumn<String> habitatCondition = GeneratedColumn<String>(
+    'habitatCondition',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _habitatDescriptionMeta =
+      const VerificationMeta('habitatDescription');
+  late final GeneratedColumn<String> habitatDescription =
+      GeneratedColumn<String>(
+        'habitatDescription',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _canopyCoverMeta = const VerificationMeta(
+    'canopyCover',
+  );
+  late final GeneratedColumn<String> canopyCover = GeneratedColumn<String>(
+    'canopyCover',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    siteID,
+    habitatType,
+    habitatCondition,
+    habitatDescription,
+    canopyCover,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'siteAttribute';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SiteAttributeData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('siteID')) {
+      context.handle(
+        _siteIDMeta,
+        siteID.isAcceptableOrUnknown(data['siteID']!, _siteIDMeta),
+      );
+    }
+    if (data.containsKey('habitatType')) {
+      context.handle(
+        _habitatTypeMeta,
+        habitatType.isAcceptableOrUnknown(
+          data['habitatType']!,
+          _habitatTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('habitatCondition')) {
+      context.handle(
+        _habitatConditionMeta,
+        habitatCondition.isAcceptableOrUnknown(
+          data['habitatCondition']!,
+          _habitatConditionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('habitatDescription')) {
+      context.handle(
+        _habitatDescriptionMeta,
+        habitatDescription.isAcceptableOrUnknown(
+          data['habitatDescription']!,
+          _habitatDescriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('canopyCover')) {
+      context.handle(
+        _canopyCoverMeta,
+        canopyCover.isAcceptableOrUnknown(
+          data['canopyCover']!,
+          _canopyCoverMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  SiteAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SiteAttributeData(
+      siteID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}siteID'],
+      ),
+      habitatType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatType'],
+      ),
+      habitatCondition: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatCondition'],
+      ),
+      habitatDescription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habitatDescription'],
+      ),
+      canopyCover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}canopyCover'],
+      ),
+    );
+  }
+
+  @override
+  SiteAttribute createAlias(String alias) {
+    return SiteAttribute(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(siteID)REFERENCES site(id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SiteAttributeData extends DataClass
+    implements Insertable<SiteAttributeData> {
+  final int? siteID;
+  final String? habitatType;
+  final String? habitatCondition;
+  final String? habitatDescription;
+  final String? canopyCover;
+  const SiteAttributeData({
+    this.siteID,
+    this.habitatType,
+    this.habitatCondition,
+    this.habitatDescription,
+    this.canopyCover,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || siteID != null) {
+      map['siteID'] = Variable<int>(siteID);
+    }
+    if (!nullToAbsent || habitatType != null) {
+      map['habitatType'] = Variable<String>(habitatType);
+    }
+    if (!nullToAbsent || habitatCondition != null) {
+      map['habitatCondition'] = Variable<String>(habitatCondition);
+    }
+    if (!nullToAbsent || habitatDescription != null) {
+      map['habitatDescription'] = Variable<String>(habitatDescription);
+    }
+    if (!nullToAbsent || canopyCover != null) {
+      map['canopyCover'] = Variable<String>(canopyCover);
+    }
+    return map;
+  }
+
+  SiteAttributeCompanion toCompanion(bool nullToAbsent) {
+    return SiteAttributeCompanion(
+      siteID: siteID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(siteID),
+      habitatType: habitatType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatType),
+      habitatCondition: habitatCondition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatCondition),
+      habitatDescription: habitatDescription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(habitatDescription),
+      canopyCover: canopyCover == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canopyCover),
+    );
+  }
+
+  factory SiteAttributeData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SiteAttributeData(
+      siteID: serializer.fromJson<int?>(json['siteID']),
+      habitatType: serializer.fromJson<String?>(json['habitatType']),
+      habitatCondition: serializer.fromJson<String?>(json['habitatCondition']),
+      habitatDescription: serializer.fromJson<String?>(
+        json['habitatDescription'],
+      ),
+      canopyCover: serializer.fromJson<String?>(json['canopyCover']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'siteID': serializer.toJson<int?>(siteID),
+      'habitatType': serializer.toJson<String?>(habitatType),
+      'habitatCondition': serializer.toJson<String?>(habitatCondition),
+      'habitatDescription': serializer.toJson<String?>(habitatDescription),
+      'canopyCover': serializer.toJson<String?>(canopyCover),
+    };
+  }
+
+  SiteAttributeData copyWith({
+    Value<int?> siteID = const Value.absent(),
+    Value<String?> habitatType = const Value.absent(),
+    Value<String?> habitatCondition = const Value.absent(),
+    Value<String?> habitatDescription = const Value.absent(),
+    Value<String?> canopyCover = const Value.absent(),
+  }) => SiteAttributeData(
+    siteID: siteID.present ? siteID.value : this.siteID,
+    habitatType: habitatType.present ? habitatType.value : this.habitatType,
+    habitatCondition: habitatCondition.present
+        ? habitatCondition.value
+        : this.habitatCondition,
+    habitatDescription: habitatDescription.present
+        ? habitatDescription.value
+        : this.habitatDescription,
+    canopyCover: canopyCover.present ? canopyCover.value : this.canopyCover,
+  );
+  SiteAttributeData copyWithCompanion(SiteAttributeCompanion data) {
+    return SiteAttributeData(
+      siteID: data.siteID.present ? data.siteID.value : this.siteID,
+      habitatType: data.habitatType.present
+          ? data.habitatType.value
+          : this.habitatType,
+      habitatCondition: data.habitatCondition.present
+          ? data.habitatCondition.value
+          : this.habitatCondition,
+      habitatDescription: data.habitatDescription.present
+          ? data.habitatDescription.value
+          : this.habitatDescription,
+      canopyCover: data.canopyCover.present
+          ? data.canopyCover.value
+          : this.canopyCover,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SiteAttributeData(')
+          ..write('siteID: $siteID, ')
           ..write('habitatType: $habitatType, ')
           ..write('habitatCondition: $habitatCondition, ')
-          ..write('habitatDescription: $habitatDescription')
+          ..write('habitatDescription: $habitatDescription, ')
+          ..write('canopyCover: $canopyCover')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    siteID,
+    habitatType,
+    habitatCondition,
+    habitatDescription,
+    canopyCover,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SiteAttributeData &&
+          other.siteID == this.siteID &&
+          other.habitatType == this.habitatType &&
+          other.habitatCondition == this.habitatCondition &&
+          other.habitatDescription == this.habitatDescription &&
+          other.canopyCover == this.canopyCover);
+}
+
+class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
+  final Value<int?> siteID;
+  final Value<String?> habitatType;
+  final Value<String?> habitatCondition;
+  final Value<String?> habitatDescription;
+  final Value<String?> canopyCover;
+  final Value<int> rowid;
+  const SiteAttributeCompanion({
+    this.siteID = const Value.absent(),
+    this.habitatType = const Value.absent(),
+    this.habitatCondition = const Value.absent(),
+    this.habitatDescription = const Value.absent(),
+    this.canopyCover = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SiteAttributeCompanion.insert({
+    this.siteID = const Value.absent(),
+    this.habitatType = const Value.absent(),
+    this.habitatCondition = const Value.absent(),
+    this.habitatDescription = const Value.absent(),
+    this.canopyCover = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  static Insertable<SiteAttributeData> custom({
+    Expression<int>? siteID,
+    Expression<String>? habitatType,
+    Expression<String>? habitatCondition,
+    Expression<String>? habitatDescription,
+    Expression<String>? canopyCover,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (siteID != null) 'siteID': siteID,
+      if (habitatType != null) 'habitatType': habitatType,
+      if (habitatCondition != null) 'habitatCondition': habitatCondition,
+      if (habitatDescription != null) 'habitatDescription': habitatDescription,
+      if (canopyCover != null) 'canopyCover': canopyCover,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SiteAttributeCompanion copyWith({
+    Value<int?>? siteID,
+    Value<String?>? habitatType,
+    Value<String?>? habitatCondition,
+    Value<String?>? habitatDescription,
+    Value<String?>? canopyCover,
+    Value<int>? rowid,
+  }) {
+    return SiteAttributeCompanion(
+      siteID: siteID ?? this.siteID,
+      habitatType: habitatType ?? this.habitatType,
+      habitatCondition: habitatCondition ?? this.habitatCondition,
+      habitatDescription: habitatDescription ?? this.habitatDescription,
+      canopyCover: canopyCover ?? this.canopyCover,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (siteID.present) {
+      map['siteID'] = Variable<int>(siteID.value);
+    }
+    if (habitatType.present) {
+      map['habitatType'] = Variable<String>(habitatType.value);
+    }
+    if (habitatCondition.present) {
+      map['habitatCondition'] = Variable<String>(habitatCondition.value);
+    }
+    if (habitatDescription.present) {
+      map['habitatDescription'] = Variable<String>(habitatDescription.value);
+    }
+    if (canopyCover.present) {
+      map['canopyCover'] = Variable<String>(canopyCover.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SiteAttributeCompanion(')
+          ..write('siteID: $siteID, ')
+          ..write('habitatType: $habitatType, ')
+          ..write('habitatCondition: $habitatCondition, ')
+          ..write('habitatDescription: $habitatDescription, ')
+          ..write('canopyCover: $canopyCover, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -5884,11 +6449,11 @@ class CollEventCompanion extends UpdateCompanion<CollEventData> {
   }
 }
 
-class Weather extends Table with TableInfo<Weather, WeatherData> {
+class Environment extends Table with TableInfo<Environment, EnvironmentData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  Weather(this.attachedDatabase, [this._alias]);
+  Environment(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _eventIDMeta = const VerificationMeta(
     'eventID',
   );
@@ -6000,6 +6565,92 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _cloudCoverMeta = const VerificationMeta(
+    'cloudCover',
+  );
+  late final GeneratedColumn<String> cloudCover = GeneratedColumn<String>(
+    'cloudCover',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _rainfallInMmMeta = const VerificationMeta(
+    'rainfallInMm',
+  );
+  late final GeneratedColumn<double> rainfallInMm = GeneratedColumn<double>(
+    'rainfallInMm',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _ambientTemperatureMeta =
+      const VerificationMeta('ambientTemperature');
+  late final GeneratedColumn<double> ambientTemperature =
+      GeneratedColumn<double>(
+        'ambientTemperature',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _ambientHumidityMeta = const VerificationMeta(
+    'ambientHumidity',
+  );
+  late final GeneratedColumn<double> ambientHumidity = GeneratedColumn<double>(
+    'ambientHumidity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _waterTemperatureMeta = const VerificationMeta(
+    'waterTemperature',
+  );
+  late final GeneratedColumn<double> waterTemperature = GeneratedColumn<double>(
+    'waterTemperature',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _pHMeta = const VerificationMeta('pH');
+  late final GeneratedColumn<double> pH = GeneratedColumn<double>(
+    'pH',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dissolvedOxygenMeta = const VerificationMeta(
+    'dissolvedOxygen',
+  );
+  late final GeneratedColumn<double> dissolvedOxygen = GeneratedColumn<double>(
+    'dissolvedOxygen',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _flowVelocityMeta = const VerificationMeta(
+    'flowVelocity',
+  );
+  late final GeneratedColumn<double> flowVelocity = GeneratedColumn<double>(
+    'flowVelocity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
     'notes',
@@ -6021,16 +6672,24 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
     sunriseTime,
     sunsetTime,
     moonPhase,
+    cloudCover,
+    rainfallInMm,
+    ambientTemperature,
+    ambientHumidity,
+    waterTemperature,
+    pH,
+    dissolvedOxygen,
+    flowVelocity,
     notes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'weather';
+  static const String $name = 'environment';
   @override
   VerificationContext validateIntegrity(
-    Insertable<WeatherData> instance, {
+    Insertable<EnvironmentData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -6116,6 +6775,69 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
         moonPhase.isAcceptableOrUnknown(data['moonPhase']!, _moonPhaseMeta),
       );
     }
+    if (data.containsKey('cloudCover')) {
+      context.handle(
+        _cloudCoverMeta,
+        cloudCover.isAcceptableOrUnknown(data['cloudCover']!, _cloudCoverMeta),
+      );
+    }
+    if (data.containsKey('rainfallInMm')) {
+      context.handle(
+        _rainfallInMmMeta,
+        rainfallInMm.isAcceptableOrUnknown(
+          data['rainfallInMm']!,
+          _rainfallInMmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ambientTemperature')) {
+      context.handle(
+        _ambientTemperatureMeta,
+        ambientTemperature.isAcceptableOrUnknown(
+          data['ambientTemperature']!,
+          _ambientTemperatureMeta,
+        ),
+      );
+    }
+    if (data.containsKey('ambientHumidity')) {
+      context.handle(
+        _ambientHumidityMeta,
+        ambientHumidity.isAcceptableOrUnknown(
+          data['ambientHumidity']!,
+          _ambientHumidityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('waterTemperature')) {
+      context.handle(
+        _waterTemperatureMeta,
+        waterTemperature.isAcceptableOrUnknown(
+          data['waterTemperature']!,
+          _waterTemperatureMeta,
+        ),
+      );
+    }
+    if (data.containsKey('pH')) {
+      context.handle(_pHMeta, pH.isAcceptableOrUnknown(data['pH']!, _pHMeta));
+    }
+    if (data.containsKey('dissolvedOxygen')) {
+      context.handle(
+        _dissolvedOxygenMeta,
+        dissolvedOxygen.isAcceptableOrUnknown(
+          data['dissolvedOxygen']!,
+          _dissolvedOxygenMeta,
+        ),
+      );
+    }
+    if (data.containsKey('flowVelocity')) {
+      context.handle(
+        _flowVelocityMeta,
+        flowVelocity.isAcceptableOrUnknown(
+          data['flowVelocity']!,
+          _flowVelocityMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -6128,9 +6850,9 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  WeatherData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  EnvironmentData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return WeatherData(
+    return EnvironmentData(
       eventID: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}eventID'],
@@ -6171,6 +6893,38 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
         DriftSqlType.string,
         data['${effectivePrefix}moonPhase'],
       ),
+      cloudCover: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cloudCover'],
+      ),
+      rainfallInMm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}rainfallInMm'],
+      ),
+      ambientTemperature: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ambientTemperature'],
+      ),
+      ambientHumidity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ambientHumidity'],
+      ),
+      waterTemperature: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}waterTemperature'],
+      ),
+      pH: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}pH'],
+      ),
+      dissolvedOxygen: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dissolvedOxygen'],
+      ),
+      flowVelocity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}flowVelocity'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -6179,8 +6933,8 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   }
 
   @override
-  Weather createAlias(String alias) {
-    return Weather(attachedDatabase, alias);
+  Environment createAlias(String alias) {
+    return Environment(attachedDatabase, alias);
   }
 
   @override
@@ -6191,7 +6945,7 @@ class Weather extends Table with TableInfo<Weather, WeatherData> {
   bool get dontWriteConstraints => true;
 }
 
-class WeatherData extends DataClass implements Insertable<WeatherData> {
+class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
   final int? eventID;
   final double? lowestDayTempC;
   final double? highestDayTempC;
@@ -6202,8 +6956,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
   final String? sunriseTime;
   final String? sunsetTime;
   final String? moonPhase;
+  final String? cloudCover;
+  final double? rainfallInMm;
+  final double? ambientTemperature;
+  final double? ambientHumidity;
+  final double? waterTemperature;
+  final double? pH;
+  final double? dissolvedOxygen;
+  final double? flowVelocity;
   final String? notes;
-  const WeatherData({
+  const EnvironmentData({
     this.eventID,
     this.lowestDayTempC,
     this.highestDayTempC,
@@ -6214,6 +6976,14 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     this.sunriseTime,
     this.sunsetTime,
     this.moonPhase,
+    this.cloudCover,
+    this.rainfallInMm,
+    this.ambientTemperature,
+    this.ambientHumidity,
+    this.waterTemperature,
+    this.pH,
+    this.dissolvedOxygen,
+    this.flowVelocity,
     this.notes,
   });
   @override
@@ -6249,14 +7019,38 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     if (!nullToAbsent || moonPhase != null) {
       map['moonPhase'] = Variable<String>(moonPhase);
     }
+    if (!nullToAbsent || cloudCover != null) {
+      map['cloudCover'] = Variable<String>(cloudCover);
+    }
+    if (!nullToAbsent || rainfallInMm != null) {
+      map['rainfallInMm'] = Variable<double>(rainfallInMm);
+    }
+    if (!nullToAbsent || ambientTemperature != null) {
+      map['ambientTemperature'] = Variable<double>(ambientTemperature);
+    }
+    if (!nullToAbsent || ambientHumidity != null) {
+      map['ambientHumidity'] = Variable<double>(ambientHumidity);
+    }
+    if (!nullToAbsent || waterTemperature != null) {
+      map['waterTemperature'] = Variable<double>(waterTemperature);
+    }
+    if (!nullToAbsent || pH != null) {
+      map['pH'] = Variable<double>(pH);
+    }
+    if (!nullToAbsent || dissolvedOxygen != null) {
+      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen);
+    }
+    if (!nullToAbsent || flowVelocity != null) {
+      map['flowVelocity'] = Variable<double>(flowVelocity);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
     return map;
   }
 
-  WeatherCompanion toCompanion(bool nullToAbsent) {
-    return WeatherCompanion(
+  EnvironmentCompanion toCompanion(bool nullToAbsent) {
+    return EnvironmentCompanion(
       eventID: eventID == null && nullToAbsent
           ? const Value.absent()
           : Value(eventID),
@@ -6287,18 +7081,40 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       moonPhase: moonPhase == null && nullToAbsent
           ? const Value.absent()
           : Value(moonPhase),
+      cloudCover: cloudCover == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudCover),
+      rainfallInMm: rainfallInMm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rainfallInMm),
+      ambientTemperature: ambientTemperature == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ambientTemperature),
+      ambientHumidity: ambientHumidity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ambientHumidity),
+      waterTemperature: waterTemperature == null && nullToAbsent
+          ? const Value.absent()
+          : Value(waterTemperature),
+      pH: pH == null && nullToAbsent ? const Value.absent() : Value(pH),
+      dissolvedOxygen: dissolvedOxygen == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dissolvedOxygen),
+      flowVelocity: flowVelocity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(flowVelocity),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
     );
   }
 
-  factory WeatherData.fromJson(
+  factory EnvironmentData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return WeatherData(
+    return EnvironmentData(
       eventID: serializer.fromJson<int?>(json['eventID']),
       lowestDayTempC: serializer.fromJson<double?>(json['lowestDayTempC']),
       highestDayTempC: serializer.fromJson<double?>(json['highestDayTempC']),
@@ -6311,6 +7127,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       sunriseTime: serializer.fromJson<String?>(json['sunriseTime']),
       sunsetTime: serializer.fromJson<String?>(json['sunsetTime']),
       moonPhase: serializer.fromJson<String?>(json['moonPhase']),
+      cloudCover: serializer.fromJson<String?>(json['cloudCover']),
+      rainfallInMm: serializer.fromJson<double?>(json['rainfallInMm']),
+      ambientTemperature: serializer.fromJson<double?>(
+        json['ambientTemperature'],
+      ),
+      ambientHumidity: serializer.fromJson<double?>(json['ambientHumidity']),
+      waterTemperature: serializer.fromJson<double?>(json['waterTemperature']),
+      pH: serializer.fromJson<double?>(json['pH']),
+      dissolvedOxygen: serializer.fromJson<double?>(json['dissolvedOxygen']),
+      flowVelocity: serializer.fromJson<double?>(json['flowVelocity']),
       notes: serializer.fromJson<String?>(json['notes']),
     );
   }
@@ -6328,11 +7154,19 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
       'sunriseTime': serializer.toJson<String?>(sunriseTime),
       'sunsetTime': serializer.toJson<String?>(sunsetTime),
       'moonPhase': serializer.toJson<String?>(moonPhase),
+      'cloudCover': serializer.toJson<String?>(cloudCover),
+      'rainfallInMm': serializer.toJson<double?>(rainfallInMm),
+      'ambientTemperature': serializer.toJson<double?>(ambientTemperature),
+      'ambientHumidity': serializer.toJson<double?>(ambientHumidity),
+      'waterTemperature': serializer.toJson<double?>(waterTemperature),
+      'pH': serializer.toJson<double?>(pH),
+      'dissolvedOxygen': serializer.toJson<double?>(dissolvedOxygen),
+      'flowVelocity': serializer.toJson<double?>(flowVelocity),
       'notes': serializer.toJson<String?>(notes),
     };
   }
 
-  WeatherData copyWith({
+  EnvironmentData copyWith({
     Value<int?> eventID = const Value.absent(),
     Value<double?> lowestDayTempC = const Value.absent(),
     Value<double?> highestDayTempC = const Value.absent(),
@@ -6343,8 +7177,16 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     Value<String?> sunriseTime = const Value.absent(),
     Value<String?> sunsetTime = const Value.absent(),
     Value<String?> moonPhase = const Value.absent(),
+    Value<String?> cloudCover = const Value.absent(),
+    Value<double?> rainfallInMm = const Value.absent(),
+    Value<double?> ambientTemperature = const Value.absent(),
+    Value<double?> ambientHumidity = const Value.absent(),
+    Value<double?> waterTemperature = const Value.absent(),
+    Value<double?> pH = const Value.absent(),
+    Value<double?> dissolvedOxygen = const Value.absent(),
+    Value<double?> flowVelocity = const Value.absent(),
     Value<String?> notes = const Value.absent(),
-  }) => WeatherData(
+  }) => EnvironmentData(
     eventID: eventID.present ? eventID.value : this.eventID,
     lowestDayTempC: lowestDayTempC.present
         ? lowestDayTempC.value
@@ -6365,10 +7207,26 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     sunriseTime: sunriseTime.present ? sunriseTime.value : this.sunriseTime,
     sunsetTime: sunsetTime.present ? sunsetTime.value : this.sunsetTime,
     moonPhase: moonPhase.present ? moonPhase.value : this.moonPhase,
+    cloudCover: cloudCover.present ? cloudCover.value : this.cloudCover,
+    rainfallInMm: rainfallInMm.present ? rainfallInMm.value : this.rainfallInMm,
+    ambientTemperature: ambientTemperature.present
+        ? ambientTemperature.value
+        : this.ambientTemperature,
+    ambientHumidity: ambientHumidity.present
+        ? ambientHumidity.value
+        : this.ambientHumidity,
+    waterTemperature: waterTemperature.present
+        ? waterTemperature.value
+        : this.waterTemperature,
+    pH: pH.present ? pH.value : this.pH,
+    dissolvedOxygen: dissolvedOxygen.present
+        ? dissolvedOxygen.value
+        : this.dissolvedOxygen,
+    flowVelocity: flowVelocity.present ? flowVelocity.value : this.flowVelocity,
     notes: notes.present ? notes.value : this.notes,
   );
-  WeatherData copyWithCompanion(WeatherCompanion data) {
-    return WeatherData(
+  EnvironmentData copyWithCompanion(EnvironmentCompanion data) {
+    return EnvironmentData(
       eventID: data.eventID.present ? data.eventID.value : this.eventID,
       lowestDayTempC: data.lowestDayTempC.present
           ? data.lowestDayTempC.value
@@ -6395,13 +7253,35 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           ? data.sunsetTime.value
           : this.sunsetTime,
       moonPhase: data.moonPhase.present ? data.moonPhase.value : this.moonPhase,
+      cloudCover: data.cloudCover.present
+          ? data.cloudCover.value
+          : this.cloudCover,
+      rainfallInMm: data.rainfallInMm.present
+          ? data.rainfallInMm.value
+          : this.rainfallInMm,
+      ambientTemperature: data.ambientTemperature.present
+          ? data.ambientTemperature.value
+          : this.ambientTemperature,
+      ambientHumidity: data.ambientHumidity.present
+          ? data.ambientHumidity.value
+          : this.ambientHumidity,
+      waterTemperature: data.waterTemperature.present
+          ? data.waterTemperature.value
+          : this.waterTemperature,
+      pH: data.pH.present ? data.pH.value : this.pH,
+      dissolvedOxygen: data.dissolvedOxygen.present
+          ? data.dissolvedOxygen.value
+          : this.dissolvedOxygen,
+      flowVelocity: data.flowVelocity.present
+          ? data.flowVelocity.value
+          : this.flowVelocity,
       notes: data.notes.present ? data.notes.value : this.notes,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('WeatherData(')
+    return (StringBuffer('EnvironmentData(')
           ..write('eventID: $eventID, ')
           ..write('lowestDayTempC: $lowestDayTempC, ')
           ..write('highestDayTempC: $highestDayTempC, ')
@@ -6412,6 +7292,14 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           ..write('sunriseTime: $sunriseTime, ')
           ..write('sunsetTime: $sunsetTime, ')
           ..write('moonPhase: $moonPhase, ')
+          ..write('cloudCover: $cloudCover, ')
+          ..write('rainfallInMm: $rainfallInMm, ')
+          ..write('ambientTemperature: $ambientTemperature, ')
+          ..write('ambientHumidity: $ambientHumidity, ')
+          ..write('waterTemperature: $waterTemperature, ')
+          ..write('pH: $pH, ')
+          ..write('dissolvedOxygen: $dissolvedOxygen, ')
+          ..write('flowVelocity: $flowVelocity, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -6429,12 +7317,20 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
     sunriseTime,
     sunsetTime,
     moonPhase,
+    cloudCover,
+    rainfallInMm,
+    ambientTemperature,
+    ambientHumidity,
+    waterTemperature,
+    pH,
+    dissolvedOxygen,
+    flowVelocity,
     notes,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is WeatherData &&
+      (other is EnvironmentData &&
           other.eventID == this.eventID &&
           other.lowestDayTempC == this.lowestDayTempC &&
           other.highestDayTempC == this.highestDayTempC &&
@@ -6445,10 +7341,18 @@ class WeatherData extends DataClass implements Insertable<WeatherData> {
           other.sunriseTime == this.sunriseTime &&
           other.sunsetTime == this.sunsetTime &&
           other.moonPhase == this.moonPhase &&
+          other.cloudCover == this.cloudCover &&
+          other.rainfallInMm == this.rainfallInMm &&
+          other.ambientTemperature == this.ambientTemperature &&
+          other.ambientHumidity == this.ambientHumidity &&
+          other.waterTemperature == this.waterTemperature &&
+          other.pH == this.pH &&
+          other.dissolvedOxygen == this.dissolvedOxygen &&
+          other.flowVelocity == this.flowVelocity &&
           other.notes == this.notes);
 }
 
-class WeatherCompanion extends UpdateCompanion<WeatherData> {
+class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
   final Value<int?> eventID;
   final Value<double?> lowestDayTempC;
   final Value<double?> highestDayTempC;
@@ -6459,9 +7363,17 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
   final Value<String?> sunriseTime;
   final Value<String?> sunsetTime;
   final Value<String?> moonPhase;
+  final Value<String?> cloudCover;
+  final Value<double?> rainfallInMm;
+  final Value<double?> ambientTemperature;
+  final Value<double?> ambientHumidity;
+  final Value<double?> waterTemperature;
+  final Value<double?> pH;
+  final Value<double?> dissolvedOxygen;
+  final Value<double?> flowVelocity;
   final Value<String?> notes;
   final Value<int> rowid;
-  const WeatherCompanion({
+  const EnvironmentCompanion({
     this.eventID = const Value.absent(),
     this.lowestDayTempC = const Value.absent(),
     this.highestDayTempC = const Value.absent(),
@@ -6472,10 +7384,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     this.sunriseTime = const Value.absent(),
     this.sunsetTime = const Value.absent(),
     this.moonPhase = const Value.absent(),
+    this.cloudCover = const Value.absent(),
+    this.rainfallInMm = const Value.absent(),
+    this.ambientTemperature = const Value.absent(),
+    this.ambientHumidity = const Value.absent(),
+    this.waterTemperature = const Value.absent(),
+    this.pH = const Value.absent(),
+    this.dissolvedOxygen = const Value.absent(),
+    this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  WeatherCompanion.insert({
+  EnvironmentCompanion.insert({
     this.eventID = const Value.absent(),
     this.lowestDayTempC = const Value.absent(),
     this.highestDayTempC = const Value.absent(),
@@ -6486,10 +7406,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     this.sunriseTime = const Value.absent(),
     this.sunsetTime = const Value.absent(),
     this.moonPhase = const Value.absent(),
+    this.cloudCover = const Value.absent(),
+    this.rainfallInMm = const Value.absent(),
+    this.ambientTemperature = const Value.absent(),
+    this.ambientHumidity = const Value.absent(),
+    this.waterTemperature = const Value.absent(),
+    this.pH = const Value.absent(),
+    this.dissolvedOxygen = const Value.absent(),
+    this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  static Insertable<WeatherData> custom({
+  static Insertable<EnvironmentData> custom({
     Expression<int>? eventID,
     Expression<double>? lowestDayTempC,
     Expression<double>? highestDayTempC,
@@ -6500,6 +7428,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     Expression<String>? sunriseTime,
     Expression<String>? sunsetTime,
     Expression<String>? moonPhase,
+    Expression<String>? cloudCover,
+    Expression<double>? rainfallInMm,
+    Expression<double>? ambientTemperature,
+    Expression<double>? ambientHumidity,
+    Expression<double>? waterTemperature,
+    Expression<double>? pH,
+    Expression<double>? dissolvedOxygen,
+    Expression<double>? flowVelocity,
     Expression<String>? notes,
     Expression<int>? rowid,
   }) {
@@ -6514,12 +7450,20 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
       if (sunriseTime != null) 'sunriseTime': sunriseTime,
       if (sunsetTime != null) 'sunsetTime': sunsetTime,
       if (moonPhase != null) 'moonPhase': moonPhase,
+      if (cloudCover != null) 'cloudCover': cloudCover,
+      if (rainfallInMm != null) 'rainfallInMm': rainfallInMm,
+      if (ambientTemperature != null) 'ambientTemperature': ambientTemperature,
+      if (ambientHumidity != null) 'ambientHumidity': ambientHumidity,
+      if (waterTemperature != null) 'waterTemperature': waterTemperature,
+      if (pH != null) 'pH': pH,
+      if (dissolvedOxygen != null) 'dissolvedOxygen': dissolvedOxygen,
+      if (flowVelocity != null) 'flowVelocity': flowVelocity,
       if (notes != null) 'notes': notes,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  WeatherCompanion copyWith({
+  EnvironmentCompanion copyWith({
     Value<int?>? eventID,
     Value<double?>? lowestDayTempC,
     Value<double?>? highestDayTempC,
@@ -6530,10 +7474,18 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     Value<String?>? sunriseTime,
     Value<String?>? sunsetTime,
     Value<String?>? moonPhase,
+    Value<String?>? cloudCover,
+    Value<double?>? rainfallInMm,
+    Value<double?>? ambientTemperature,
+    Value<double?>? ambientHumidity,
+    Value<double?>? waterTemperature,
+    Value<double?>? pH,
+    Value<double?>? dissolvedOxygen,
+    Value<double?>? flowVelocity,
     Value<String?>? notes,
     Value<int>? rowid,
   }) {
-    return WeatherCompanion(
+    return EnvironmentCompanion(
       eventID: eventID ?? this.eventID,
       lowestDayTempC: lowestDayTempC ?? this.lowestDayTempC,
       highestDayTempC: highestDayTempC ?? this.highestDayTempC,
@@ -6544,6 +7496,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
       sunriseTime: sunriseTime ?? this.sunriseTime,
       sunsetTime: sunsetTime ?? this.sunsetTime,
       moonPhase: moonPhase ?? this.moonPhase,
+      cloudCover: cloudCover ?? this.cloudCover,
+      rainfallInMm: rainfallInMm ?? this.rainfallInMm,
+      ambientTemperature: ambientTemperature ?? this.ambientTemperature,
+      ambientHumidity: ambientHumidity ?? this.ambientHumidity,
+      waterTemperature: waterTemperature ?? this.waterTemperature,
+      pH: pH ?? this.pH,
+      dissolvedOxygen: dissolvedOxygen ?? this.dissolvedOxygen,
+      flowVelocity: flowVelocity ?? this.flowVelocity,
       notes: notes ?? this.notes,
       rowid: rowid ?? this.rowid,
     );
@@ -6582,6 +7542,30 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
     if (moonPhase.present) {
       map['moonPhase'] = Variable<String>(moonPhase.value);
     }
+    if (cloudCover.present) {
+      map['cloudCover'] = Variable<String>(cloudCover.value);
+    }
+    if (rainfallInMm.present) {
+      map['rainfallInMm'] = Variable<double>(rainfallInMm.value);
+    }
+    if (ambientTemperature.present) {
+      map['ambientTemperature'] = Variable<double>(ambientTemperature.value);
+    }
+    if (ambientHumidity.present) {
+      map['ambientHumidity'] = Variable<double>(ambientHumidity.value);
+    }
+    if (waterTemperature.present) {
+      map['waterTemperature'] = Variable<double>(waterTemperature.value);
+    }
+    if (pH.present) {
+      map['pH'] = Variable<double>(pH.value);
+    }
+    if (dissolvedOxygen.present) {
+      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen.value);
+    }
+    if (flowVelocity.present) {
+      map['flowVelocity'] = Variable<double>(flowVelocity.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -6593,7 +7577,7 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
 
   @override
   String toString() {
-    return (StringBuffer('WeatherCompanion(')
+    return (StringBuffer('EnvironmentCompanion(')
           ..write('eventID: $eventID, ')
           ..write('lowestDayTempC: $lowestDayTempC, ')
           ..write('highestDayTempC: $highestDayTempC, ')
@@ -6604,6 +7588,14 @@ class WeatherCompanion extends UpdateCompanion<WeatherData> {
           ..write('sunriseTime: $sunriseTime, ')
           ..write('sunsetTime: $sunsetTime, ')
           ..write('moonPhase: $moonPhase, ')
+          ..write('cloudCover: $cloudCover, ')
+          ..write('rainfallInMm: $rainfallInMm, ')
+          ..write('ambientTemperature: $ambientTemperature, ')
+          ..write('ambientHumidity: $ambientHumidity, ')
+          ..write('waterTemperature: $waterTemperature, ')
+          ..write('pH: $pH, ')
+          ..write('dissolvedOxygen: $dissolvedOxygen, ')
+          ..write('flowVelocity: $flowVelocity, ')
           ..write('notes: $notes, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -13223,12 +14215,14 @@ class MammalAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _ageMeta = const VerificationMeta('age');
-  late final GeneratedColumn<int> age = GeneratedColumn<int>(
-    'age',
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -13432,7 +14426,7 @@ class MammalAttribute extends Table
     accuracy,
     accuracySpecify,
     sex,
-    age,
+    lifeStage,
     testisPosition,
     testisLength,
     testisWidth,
@@ -13609,10 +14603,10 @@ class MammalAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
-    if (data.containsKey('age')) {
+    if (data.containsKey('lifeStage')) {
       context.handle(
-        _ageMeta,
-        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('testisPosition')) {
@@ -13847,9 +14841,9 @@ class MammalAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
-      age: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}age'],
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
       ),
       testisPosition: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -13956,7 +14950,7 @@ class MammalAttributeData extends DataClass
   final String? accuracy;
   final String? accuracySpecify;
   final int? sex;
-  final int? age;
+  final String? lifeStage;
   final int? testisPosition;
 
   /// encode using enum
@@ -13996,7 +14990,7 @@ class MammalAttributeData extends DataClass
     this.accuracy,
     this.accuracySpecify,
     this.sex,
-    this.age,
+    this.lifeStage,
     this.testisPosition,
     this.testisLength,
     this.testisWidth,
@@ -14073,8 +15067,8 @@ class MammalAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
-    if (!nullToAbsent || age != null) {
-      map['age'] = Variable<int>(age);
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || testisPosition != null) {
       map['testisPosition'] = Variable<int>(testisPosition);
@@ -14185,7 +15179,9 @@ class MammalAttributeData extends DataClass
           ? const Value.absent()
           : Value(accuracySpecify),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
-      age: age == null && nullToAbsent ? const Value.absent() : Value(age),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       testisPosition: testisPosition == null && nullToAbsent
           ? const Value.absent()
           : Value(testisPosition),
@@ -14267,7 +15263,7 @@ class MammalAttributeData extends DataClass
       accuracy: serializer.fromJson<String?>(json['accuracy']),
       accuracySpecify: serializer.fromJson<String?>(json['accuracySpecify']),
       sex: serializer.fromJson<int?>(json['sex']),
-      age: serializer.fromJson<int?>(json['age']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       testisPosition: serializer.fromJson<int?>(json['testisPosition']),
       testisLength: serializer.fromJson<double?>(json['testisLength']),
       testisWidth: serializer.fromJson<double?>(json['testisWidth']),
@@ -14320,7 +15316,7 @@ class MammalAttributeData extends DataClass
       'accuracy': serializer.toJson<String?>(accuracy),
       'accuracySpecify': serializer.toJson<String?>(accuracySpecify),
       'sex': serializer.toJson<int?>(sex),
-      'age': serializer.toJson<int?>(age),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'testisPosition': serializer.toJson<int?>(testisPosition),
       'testisLength': serializer.toJson<double?>(testisLength),
       'testisWidth': serializer.toJson<double?>(testisWidth),
@@ -14361,7 +15357,7 @@ class MammalAttributeData extends DataClass
     Value<String?> accuracy = const Value.absent(),
     Value<String?> accuracySpecify = const Value.absent(),
     Value<int?> sex = const Value.absent(),
-    Value<int?> age = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<int?> testisPosition = const Value.absent(),
     Value<double?> testisLength = const Value.absent(),
     Value<double?> testisWidth = const Value.absent(),
@@ -14409,7 +15405,7 @@ class MammalAttributeData extends DataClass
         ? accuracySpecify.value
         : this.accuracySpecify,
     sex: sex.present ? sex.value : this.sex,
-    age: age.present ? age.value : this.age,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     testisPosition: testisPosition.present
         ? testisPosition.value
         : this.testisPosition,
@@ -14499,7 +15495,7 @@ class MammalAttributeData extends DataClass
           ? data.accuracySpecify.value
           : this.accuracySpecify,
       sex: data.sex.present ? data.sex.value : this.sex,
-      age: data.age.present ? data.age.value : this.age,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       testisPosition: data.testisPosition.present
           ? data.testisPosition.value
           : this.testisPosition,
@@ -14572,7 +15568,7 @@ class MammalAttributeData extends DataClass
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('testisPosition: $testisPosition, ')
           ..write('testisLength: $testisLength, ')
           ..write('testisWidth: $testisWidth, ')
@@ -14615,7 +15611,7 @@ class MammalAttributeData extends DataClass
     accuracy,
     accuracySpecify,
     sex,
-    age,
+    lifeStage,
     testisPosition,
     testisLength,
     testisWidth,
@@ -14657,7 +15653,7 @@ class MammalAttributeData extends DataClass
           other.accuracy == this.accuracy &&
           other.accuracySpecify == this.accuracySpecify &&
           other.sex == this.sex &&
-          other.age == this.age &&
+          other.lifeStage == this.lifeStage &&
           other.testisPosition == this.testisPosition &&
           other.testisLength == this.testisLength &&
           other.testisWidth == this.testisWidth &&
@@ -14697,7 +15693,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
   final Value<String?> accuracy;
   final Value<String?> accuracySpecify;
   final Value<int?> sex;
-  final Value<int?> age;
+  final Value<String?> lifeStage;
   final Value<int?> testisPosition;
   final Value<double?> testisLength;
   final Value<double?> testisWidth;
@@ -14736,7 +15732,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.testisPosition = const Value.absent(),
     this.testisLength = const Value.absent(),
     this.testisWidth = const Value.absent(),
@@ -14776,7 +15772,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     this.accuracy = const Value.absent(),
     this.accuracySpecify = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.testisPosition = const Value.absent(),
     this.testisLength = const Value.absent(),
     this.testisWidth = const Value.absent(),
@@ -14816,7 +15812,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     Expression<String>? accuracy,
     Expression<String>? accuracySpecify,
     Expression<int>? sex,
-    Expression<int>? age,
+    Expression<String>? lifeStage,
     Expression<int>? testisPosition,
     Expression<double>? testisLength,
     Expression<double>? testisWidth,
@@ -14857,7 +15853,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
       if (accuracy != null) 'accuracy': accuracy,
       if (accuracySpecify != null) 'accuracySpecify': accuracySpecify,
       if (sex != null) 'sex': sex,
-      if (age != null) 'age': age,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (testisPosition != null) 'testisPosition': testisPosition,
       if (testisLength != null) 'testisLength': testisLength,
       if (testisWidth != null) 'testisWidth': testisWidth,
@@ -14904,7 +15900,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     Value<String?>? accuracy,
     Value<String?>? accuracySpecify,
     Value<int?>? sex,
-    Value<int?>? age,
+    Value<String?>? lifeStage,
     Value<int?>? testisPosition,
     Value<double?>? testisLength,
     Value<double?>? testisWidth,
@@ -14944,7 +15940,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
       accuracy: accuracy ?? this.accuracy,
       accuracySpecify: accuracySpecify ?? this.accuracySpecify,
       sex: sex ?? this.sex,
-      age: age ?? this.age,
+      lifeStage: lifeStage ?? this.lifeStage,
       testisPosition: testisPosition ?? this.testisPosition,
       testisLength: testisLength ?? this.testisLength,
       testisWidth: testisWidth ?? this.testisWidth,
@@ -15028,8 +16024,8 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
-    if (age.present) {
-      map['age'] = Variable<int>(age.value);
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (testisPosition.present) {
       map['testisPosition'] = Variable<int>(testisPosition.value);
@@ -15110,7 +16106,7 @@ class MammalAttributeCompanion extends UpdateCompanion<MammalAttributeData> {
           ..write('accuracy: $accuracy, ')
           ..write('accuracySpecify: $accuracySpecify, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('testisPosition: $testisPosition, ')
           ..write('testisLength: $testisLength, ')
           ..write('testisWidth: $testisWidth, ')
@@ -15318,6 +16314,17 @@ class BirdAttribute extends Table
     aliasedName,
     true,
     type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -15635,6 +16642,7 @@ class BirdAttribute extends Table
     tarsusColor,
     tarsusHex,
     sex,
+    lifeStage,
     broodPatch,
     skullOssification,
     hasBursa,
@@ -15792,6 +16800,12 @@ class BirdAttribute extends Table
       context.handle(
         _sexMeta,
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('broodPatch')) {
@@ -16081,6 +17095,10 @@ class BirdAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
       broodPatch: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}broodPatch'],
@@ -16226,6 +17244,7 @@ class BirdAttributeData extends DataClass
   final String? tarsusColor;
   final String? tarsusHex;
   final int? sex;
+  final String? lifeStage;
   final int? broodPatch;
   final int? skullOssification;
   final int? hasBursa;
@@ -16277,6 +17296,7 @@ class BirdAttributeData extends DataClass
     this.tarsusColor,
     this.tarsusHex,
     this.sex,
+    this.lifeStage,
     this.broodPatch,
     this.skullOssification,
     this.hasBursa,
@@ -16356,6 +17376,9 @@ class BirdAttributeData extends DataClass
     }
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || broodPatch != null) {
       map['broodPatch'] = Variable<int>(broodPatch);
@@ -16490,6 +17513,9 @@ class BirdAttributeData extends DataClass
           ? const Value.absent()
           : Value(tarsusHex),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       broodPatch: broodPatch == null && nullToAbsent
           ? const Value.absent()
           : Value(broodPatch),
@@ -16595,6 +17621,7 @@ class BirdAttributeData extends DataClass
       tarsusColor: serializer.fromJson<String?>(json['tarsusColor']),
       tarsusHex: serializer.fromJson<String?>(json['tarsusHex']),
       sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       broodPatch: serializer.fromJson<int?>(json['broodPatch']),
       skullOssification: serializer.fromJson<int?>(json['skullOssification']),
       hasBursa: serializer.fromJson<int?>(json['hasBursa']),
@@ -16645,6 +17672,7 @@ class BirdAttributeData extends DataClass
       'tarsusColor': serializer.toJson<String?>(tarsusColor),
       'tarsusHex': serializer.toJson<String?>(tarsusHex),
       'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'broodPatch': serializer.toJson<int?>(broodPatch),
       'skullOssification': serializer.toJson<int?>(skullOssification),
       'hasBursa': serializer.toJson<int?>(hasBursa),
@@ -16693,6 +17721,7 @@ class BirdAttributeData extends DataClass
     Value<String?> tarsusColor = const Value.absent(),
     Value<String?> tarsusHex = const Value.absent(),
     Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<int?> broodPatch = const Value.absent(),
     Value<int?> skullOssification = const Value.absent(),
     Value<int?> hasBursa = const Value.absent(),
@@ -16740,6 +17769,7 @@ class BirdAttributeData extends DataClass
     tarsusColor: tarsusColor.present ? tarsusColor.value : this.tarsusColor,
     tarsusHex: tarsusHex.present ? tarsusHex.value : this.tarsusHex,
     sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     broodPatch: broodPatch.present ? broodPatch.value : this.broodPatch,
     skullOssification: skullOssification.present
         ? skullOssification.value
@@ -16815,6 +17845,7 @@ class BirdAttributeData extends DataClass
           : this.tarsusColor,
       tarsusHex: data.tarsusHex.present ? data.tarsusHex.value : this.tarsusHex,
       sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       broodPatch: data.broodPatch.present
           ? data.broodPatch.value
           : this.broodPatch,
@@ -16909,6 +17940,7 @@ class BirdAttributeData extends DataClass
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('broodPatch: $broodPatch, ')
           ..write('skullOssification: $skullOssification, ')
           ..write('hasBursa: $hasBursa, ')
@@ -16959,6 +17991,7 @@ class BirdAttributeData extends DataClass
     tarsusColor,
     tarsusHex,
     sex,
+    lifeStage,
     broodPatch,
     skullOssification,
     hasBursa,
@@ -17008,6 +18041,7 @@ class BirdAttributeData extends DataClass
           other.tarsusColor == this.tarsusColor &&
           other.tarsusHex == this.tarsusHex &&
           other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
           other.broodPatch == this.broodPatch &&
           other.skullOssification == this.skullOssification &&
           other.hasBursa == this.hasBursa &&
@@ -17055,6 +18089,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
   final Value<String?> tarsusColor;
   final Value<String?> tarsusHex;
   final Value<int?> sex;
+  final Value<String?> lifeStage;
   final Value<int?> broodPatch;
   final Value<int?> skullOssification;
   final Value<int?> hasBursa;
@@ -17101,6 +18136,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.broodPatch = const Value.absent(),
     this.skullOssification = const Value.absent(),
     this.hasBursa = const Value.absent(),
@@ -17148,6 +18184,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     this.tarsusColor = const Value.absent(),
     this.tarsusHex = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.broodPatch = const Value.absent(),
     this.skullOssification = const Value.absent(),
     this.hasBursa = const Value.absent(),
@@ -17195,6 +18232,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Expression<String>? tarsusColor,
     Expression<String>? tarsusHex,
     Expression<int>? sex,
+    Expression<String>? lifeStage,
     Expression<int>? broodPatch,
     Expression<int>? skullOssification,
     Expression<int>? hasBursa,
@@ -17242,6 +18280,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       if (tarsusColor != null) 'tarsusColor': tarsusColor,
       if (tarsusHex != null) 'tarsusHex': tarsusHex,
       if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (broodPatch != null) 'broodPatch': broodPatch,
       if (skullOssification != null) 'skullOssification': skullOssification,
       if (hasBursa != null) 'hasBursa': hasBursa,
@@ -17291,6 +18330,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     Value<String?>? tarsusColor,
     Value<String?>? tarsusHex,
     Value<int?>? sex,
+    Value<String?>? lifeStage,
     Value<int?>? broodPatch,
     Value<int?>? skullOssification,
     Value<int?>? hasBursa,
@@ -17338,6 +18378,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
       tarsusColor: tarsusColor ?? this.tarsusColor,
       tarsusHex: tarsusHex ?? this.tarsusHex,
       sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
       broodPatch: broodPatch ?? this.broodPatch,
       skullOssification: skullOssification ?? this.skullOssification,
       hasBursa: hasBursa ?? this.hasBursa,
@@ -17422,6 +18463,9 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
     }
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
+    }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (broodPatch.present) {
       map['broodPatch'] = Variable<int>(broodPatch.value);
@@ -17530,6 +18574,7 @@ class BirdAttributeCompanion extends UpdateCompanion<BirdAttributeData> {
           ..write('tarsusColor: $tarsusColor, ')
           ..write('tarsusHex: $tarsusHex, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('broodPatch: $broodPatch, ')
           ..write('skullOssification: $skullOssification, ')
           ..write('hasBursa: $hasBursa, ')
@@ -17589,12 +18634,14 @@ class HerpAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _ageMeta = const VerificationMeta('age');
-  late final GeneratedColumn<int> age = GeneratedColumn<int>(
-    'age',
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
   );
@@ -17640,7 +18687,7 @@ class HerpAttribute extends Table
   List<GeneratedColumn> get $columns => [
     specimenUuid,
     sex,
-    age,
+    lifeStage,
     weight,
     weightUnit,
     svl,
@@ -17675,10 +18722,10 @@ class HerpAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
-    if (data.containsKey('age')) {
+    if (data.containsKey('lifeStage')) {
       context.handle(
-        _ageMeta,
-        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
       );
     }
     if (data.containsKey('weight')) {
@@ -17722,9 +18769,9 @@ class HerpAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
-      age: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}age'],
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
       ),
       weight: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
@@ -17762,7 +18809,7 @@ class HerpAttributeData extends DataClass
     implements Insertable<HerpAttributeData> {
   final String specimenUuid;
   final int? sex;
-  final int? age;
+  final String? lifeStage;
   final double? weight;
   final String? weightUnit;
   final double? svl;
@@ -17770,7 +18817,7 @@ class HerpAttributeData extends DataClass
   const HerpAttributeData({
     required this.specimenUuid,
     this.sex,
-    this.age,
+    this.lifeStage,
     this.weight,
     this.weightUnit,
     this.svl,
@@ -17783,8 +18830,8 @@ class HerpAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
-    if (!nullToAbsent || age != null) {
-      map['age'] = Variable<int>(age);
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
     }
     if (!nullToAbsent || weight != null) {
       map['weight'] = Variable<double>(weight);
@@ -17805,7 +18852,9 @@ class HerpAttributeData extends DataClass
     return HerpAttributeCompanion(
       specimenUuid: Value(specimenUuid),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
-      age: age == null && nullToAbsent ? const Value.absent() : Value(age),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
       weight: weight == null && nullToAbsent
           ? const Value.absent()
           : Value(weight),
@@ -17827,7 +18876,7 @@ class HerpAttributeData extends DataClass
     return HerpAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       sex: serializer.fromJson<int?>(json['sex']),
-      age: serializer.fromJson<int?>(json['age']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
       weight: serializer.fromJson<double?>(json['weight']),
       weightUnit: serializer.fromJson<String?>(json['weightUnit']),
       svl: serializer.fromJson<double?>(json['svl']),
@@ -17840,7 +18889,7 @@ class HerpAttributeData extends DataClass
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
       'sex': serializer.toJson<int?>(sex),
-      'age': serializer.toJson<int?>(age),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
       'weight': serializer.toJson<double?>(weight),
       'weightUnit': serializer.toJson<String?>(weightUnit),
       'svl': serializer.toJson<double?>(svl),
@@ -17851,7 +18900,7 @@ class HerpAttributeData extends DataClass
   HerpAttributeData copyWith({
     String? specimenUuid,
     Value<int?> sex = const Value.absent(),
-    Value<int?> age = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
     Value<double?> weight = const Value.absent(),
     Value<String?> weightUnit = const Value.absent(),
     Value<double?> svl = const Value.absent(),
@@ -17859,7 +18908,7 @@ class HerpAttributeData extends DataClass
   }) => HerpAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     sex: sex.present ? sex.value : this.sex,
-    age: age.present ? age.value : this.age,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
     weight: weight.present ? weight.value : this.weight,
     weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
     svl: svl.present ? svl.value : this.svl,
@@ -17871,7 +18920,7 @@ class HerpAttributeData extends DataClass
           ? data.specimenUuid.value
           : this.specimenUuid,
       sex: data.sex.present ? data.sex.value : this.sex,
-      age: data.age.present ? data.age.value : this.age,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
       weight: data.weight.present ? data.weight.value : this.weight,
       weightUnit: data.weightUnit.present
           ? data.weightUnit.value
@@ -17886,7 +18935,7 @@ class HerpAttributeData extends DataClass
     return (StringBuffer('HerpAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('weight: $weight, ')
           ..write('weightUnit: $weightUnit, ')
           ..write('svl: $svl, ')
@@ -17896,15 +18945,22 @@ class HerpAttributeData extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(specimenUuid, sex, age, weight, weightUnit, svl, remark);
+  int get hashCode => Object.hash(
+    specimenUuid,
+    sex,
+    lifeStage,
+    weight,
+    weightUnit,
+    svl,
+    remark,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is HerpAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.sex == this.sex &&
-          other.age == this.age &&
+          other.lifeStage == this.lifeStage &&
           other.weight == this.weight &&
           other.weightUnit == this.weightUnit &&
           other.svl == this.svl &&
@@ -17914,7 +18970,7 @@ class HerpAttributeData extends DataClass
 class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   final Value<String> specimenUuid;
   final Value<int?> sex;
-  final Value<int?> age;
+  final Value<String?> lifeStage;
   final Value<double?> weight;
   final Value<String?> weightUnit;
   final Value<double?> svl;
@@ -17923,7 +18979,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   const HerpAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.weight = const Value.absent(),
     this.weightUnit = const Value.absent(),
     this.svl = const Value.absent(),
@@ -17933,7 +18989,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   HerpAttributeCompanion.insert({
     required String specimenUuid,
     this.sex = const Value.absent(),
-    this.age = const Value.absent(),
+    this.lifeStage = const Value.absent(),
     this.weight = const Value.absent(),
     this.weightUnit = const Value.absent(),
     this.svl = const Value.absent(),
@@ -17943,7 +18999,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   static Insertable<HerpAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<int>? sex,
-    Expression<int>? age,
+    Expression<String>? lifeStage,
     Expression<double>? weight,
     Expression<String>? weightUnit,
     Expression<double>? svl,
@@ -17953,7 +19009,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (sex != null) 'sex': sex,
-      if (age != null) 'age': age,
+      if (lifeStage != null) 'lifeStage': lifeStage,
       if (weight != null) 'weight': weight,
       if (weightUnit != null) 'weightUnit': weightUnit,
       if (svl != null) 'svl': svl,
@@ -17965,7 +19021,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
   HerpAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<int?>? sex,
-    Value<int?>? age,
+    Value<String?>? lifeStage,
     Value<double?>? weight,
     Value<String?>? weightUnit,
     Value<double?>? svl,
@@ -17975,7 +19031,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return HerpAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       sex: sex ?? this.sex,
-      age: age ?? this.age,
+      lifeStage: lifeStage ?? this.lifeStage,
       weight: weight ?? this.weight,
       weightUnit: weightUnit ?? this.weightUnit,
       svl: svl ?? this.svl,
@@ -17993,8 +19049,8 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
-    if (age.present) {
-      map['age'] = Variable<int>(age.value);
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
     }
     if (weight.present) {
       map['weight'] = Variable<double>(weight.value);
@@ -18019,7 +19075,7 @@ class HerpAttributeCompanion extends UpdateCompanion<HerpAttributeData> {
     return (StringBuffer('HerpAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('sex: $sex, ')
-          ..write('age: $age, ')
+          ..write('lifeStage: $lifeStage, ')
           ..write('weight: $weight, ')
           ..write('weightUnit: $weightUnit, ')
           ..write('svl: $svl, ')
@@ -18100,6 +19156,26 @@ class ArthropodAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _casteMeta = const VerificationMeta('caste');
+  late final GeneratedColumn<int> caste = GeneratedColumn<int>(
+    'caste',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _hostOrganismMeta = const VerificationMeta(
     'hostOrganism',
   );
@@ -18122,92 +19198,6 @@ class ArthropodAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
-  static const VerificationMeta _canopyAffinityMeta = const VerificationMeta(
-    'canopyAffinity',
-  );
-  late final GeneratedColumn<String> canopyAffinity = GeneratedColumn<String>(
-    'canopyAffinity',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _canopyCoverMeta = const VerificationMeta(
-    'canopyCover',
-  );
-  late final GeneratedColumn<String> canopyCover = GeneratedColumn<String>(
-    'canopyCover',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _ambientTemperatureMeta =
-      const VerificationMeta('ambientTemperature');
-  late final GeneratedColumn<double> ambientTemperature =
-      GeneratedColumn<double>(
-        'ambientTemperature',
-        aliasedName,
-        true,
-        type: DriftSqlType.double,
-        requiredDuringInsert: false,
-        $customConstraints: '',
-      );
-  static const VerificationMeta _ambientHumidityMeta = const VerificationMeta(
-    'ambientHumidity',
-  );
-  late final GeneratedColumn<double> ambientHumidity = GeneratedColumn<double>(
-    'ambientHumidity',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _waterTemperatureMeta = const VerificationMeta(
-    'waterTemperature',
-  );
-  late final GeneratedColumn<double> waterTemperature = GeneratedColumn<double>(
-    'waterTemperature',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _pHMeta = const VerificationMeta('pH');
-  late final GeneratedColumn<double> pH = GeneratedColumn<double>(
-    'pH',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _dissolvedOxygenMeta = const VerificationMeta(
-    'dissolvedOxygen',
-  );
-  late final GeneratedColumn<double> dissolvedOxygen = GeneratedColumn<double>(
-    'dissolvedOxygen',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
-  static const VerificationMeta _flowVelocityMeta = const VerificationMeta(
-    'flowVelocity',
-  );
-  late final GeneratedColumn<double> flowVelocity = GeneratedColumn<double>(
-    'flowVelocity',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: '',
-  );
   static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
   late final GeneratedColumn<String> remark = GeneratedColumn<String>(
     'remark',
@@ -18225,16 +19215,10 @@ class ArthropodAttribute extends Table
     wingspanUpper,
     wingspanLower,
     sex,
+    lifeStage,
+    caste,
     hostOrganism,
     hostPart,
-    canopyAffinity,
-    canopyCover,
-    ambientTemperature,
-    ambientHumidity,
-    waterTemperature,
-    pH,
-    dissolvedOxygen,
-    flowVelocity,
     remark,
   ];
   @override
@@ -18296,6 +19280,18 @@ class ArthropodAttribute extends Table
         sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
       );
     }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
+      );
+    }
+    if (data.containsKey('caste')) {
+      context.handle(
+        _casteMeta,
+        caste.isAcceptableOrUnknown(data['caste']!, _casteMeta),
+      );
+    }
     if (data.containsKey('hostOrganism')) {
       context.handle(
         _hostOrganismMeta,
@@ -18309,72 +19305,6 @@ class ArthropodAttribute extends Table
       context.handle(
         _hostPartMeta,
         hostPart.isAcceptableOrUnknown(data['hostPart']!, _hostPartMeta),
-      );
-    }
-    if (data.containsKey('canopyAffinity')) {
-      context.handle(
-        _canopyAffinityMeta,
-        canopyAffinity.isAcceptableOrUnknown(
-          data['canopyAffinity']!,
-          _canopyAffinityMeta,
-        ),
-      );
-    }
-    if (data.containsKey('canopyCover')) {
-      context.handle(
-        _canopyCoverMeta,
-        canopyCover.isAcceptableOrUnknown(
-          data['canopyCover']!,
-          _canopyCoverMeta,
-        ),
-      );
-    }
-    if (data.containsKey('ambientTemperature')) {
-      context.handle(
-        _ambientTemperatureMeta,
-        ambientTemperature.isAcceptableOrUnknown(
-          data['ambientTemperature']!,
-          _ambientTemperatureMeta,
-        ),
-      );
-    }
-    if (data.containsKey('ambientHumidity')) {
-      context.handle(
-        _ambientHumidityMeta,
-        ambientHumidity.isAcceptableOrUnknown(
-          data['ambientHumidity']!,
-          _ambientHumidityMeta,
-        ),
-      );
-    }
-    if (data.containsKey('waterTemperature')) {
-      context.handle(
-        _waterTemperatureMeta,
-        waterTemperature.isAcceptableOrUnknown(
-          data['waterTemperature']!,
-          _waterTemperatureMeta,
-        ),
-      );
-    }
-    if (data.containsKey('pH')) {
-      context.handle(_pHMeta, pH.isAcceptableOrUnknown(data['pH']!, _pHMeta));
-    }
-    if (data.containsKey('dissolvedOxygen')) {
-      context.handle(
-        _dissolvedOxygenMeta,
-        dissolvedOxygen.isAcceptableOrUnknown(
-          data['dissolvedOxygen']!,
-          _dissolvedOxygenMeta,
-        ),
-      );
-    }
-    if (data.containsKey('flowVelocity')) {
-      context.handle(
-        _flowVelocityMeta,
-        flowVelocity.isAcceptableOrUnknown(
-          data['flowVelocity']!,
-          _flowVelocityMeta,
-        ),
       );
     }
     if (data.containsKey('remark')) {
@@ -18416,6 +19346,14 @@ class ArthropodAttribute extends Table
         DriftSqlType.int,
         data['${effectivePrefix}sex'],
       ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
+      caste: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}caste'],
+      ),
       hostOrganism: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}hostOrganism'],
@@ -18423,38 +19361,6 @@ class ArthropodAttribute extends Table
       hostPart: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}hostPart'],
-      ),
-      canopyAffinity: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}canopyAffinity'],
-      ),
-      canopyCover: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}canopyCover'],
-      ),
-      ambientTemperature: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}ambientTemperature'],
-      ),
-      ambientHumidity: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}ambientHumidity'],
-      ),
-      waterTemperature: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}waterTemperature'],
-      ),
-      pH: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}pH'],
-      ),
-      dissolvedOxygen: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}dissolvedOxygen'],
-      ),
-      flowVelocity: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}flowVelocity'],
       ),
       remark: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -18484,16 +19390,10 @@ class ArthropodAttributeData extends DataClass
   final double? wingspanUpper;
   final double? wingspanLower;
   final int? sex;
+  final String? lifeStage;
+  final int? caste;
   final String? hostOrganism;
   final String? hostPart;
-  final String? canopyAffinity;
-  final String? canopyCover;
-  final double? ambientTemperature;
-  final double? ambientHumidity;
-  final double? waterTemperature;
-  final double? pH;
-  final double? dissolvedOxygen;
-  final double? flowVelocity;
   final String? remark;
   const ArthropodAttributeData({
     required this.specimenUuid,
@@ -18502,16 +19402,10 @@ class ArthropodAttributeData extends DataClass
     this.wingspanUpper,
     this.wingspanLower,
     this.sex,
+    this.lifeStage,
+    this.caste,
     this.hostOrganism,
     this.hostPart,
-    this.canopyAffinity,
-    this.canopyCover,
-    this.ambientTemperature,
-    this.ambientHumidity,
-    this.waterTemperature,
-    this.pH,
-    this.dissolvedOxygen,
-    this.flowVelocity,
     this.remark,
   });
   @override
@@ -18533,35 +19427,17 @@ class ArthropodAttributeData extends DataClass
     if (!nullToAbsent || sex != null) {
       map['sex'] = Variable<int>(sex);
     }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
+    }
+    if (!nullToAbsent || caste != null) {
+      map['caste'] = Variable<int>(caste);
+    }
     if (!nullToAbsent || hostOrganism != null) {
       map['hostOrganism'] = Variable<String>(hostOrganism);
     }
     if (!nullToAbsent || hostPart != null) {
       map['hostPart'] = Variable<String>(hostPart);
-    }
-    if (!nullToAbsent || canopyAffinity != null) {
-      map['canopyAffinity'] = Variable<String>(canopyAffinity);
-    }
-    if (!nullToAbsent || canopyCover != null) {
-      map['canopyCover'] = Variable<String>(canopyCover);
-    }
-    if (!nullToAbsent || ambientTemperature != null) {
-      map['ambientTemperature'] = Variable<double>(ambientTemperature);
-    }
-    if (!nullToAbsent || ambientHumidity != null) {
-      map['ambientHumidity'] = Variable<double>(ambientHumidity);
-    }
-    if (!nullToAbsent || waterTemperature != null) {
-      map['waterTemperature'] = Variable<double>(waterTemperature);
-    }
-    if (!nullToAbsent || pH != null) {
-      map['pH'] = Variable<double>(pH);
-    }
-    if (!nullToAbsent || dissolvedOxygen != null) {
-      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen);
-    }
-    if (!nullToAbsent || flowVelocity != null) {
-      map['flowVelocity'] = Variable<double>(flowVelocity);
     }
     if (!nullToAbsent || remark != null) {
       map['remark'] = Variable<String>(remark);
@@ -18585,34 +19461,18 @@ class ArthropodAttributeData extends DataClass
           ? const Value.absent()
           : Value(wingspanLower),
       sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
+      caste: caste == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caste),
       hostOrganism: hostOrganism == null && nullToAbsent
           ? const Value.absent()
           : Value(hostOrganism),
       hostPart: hostPart == null && nullToAbsent
           ? const Value.absent()
           : Value(hostPart),
-      canopyAffinity: canopyAffinity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(canopyAffinity),
-      canopyCover: canopyCover == null && nullToAbsent
-          ? const Value.absent()
-          : Value(canopyCover),
-      ambientTemperature: ambientTemperature == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ambientTemperature),
-      ambientHumidity: ambientHumidity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ambientHumidity),
-      waterTemperature: waterTemperature == null && nullToAbsent
-          ? const Value.absent()
-          : Value(waterTemperature),
-      pH: pH == null && nullToAbsent ? const Value.absent() : Value(pH),
-      dissolvedOxygen: dissolvedOxygen == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dissolvedOxygen),
-      flowVelocity: flowVelocity == null && nullToAbsent
-          ? const Value.absent()
-          : Value(flowVelocity),
       remark: remark == null && nullToAbsent
           ? const Value.absent()
           : Value(remark),
@@ -18631,18 +19491,10 @@ class ArthropodAttributeData extends DataClass
       wingspanUpper: serializer.fromJson<double?>(json['wingspanUpper']),
       wingspanLower: serializer.fromJson<double?>(json['wingspanLower']),
       sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
+      caste: serializer.fromJson<int?>(json['caste']),
       hostOrganism: serializer.fromJson<String?>(json['hostOrganism']),
       hostPart: serializer.fromJson<String?>(json['hostPart']),
-      canopyAffinity: serializer.fromJson<String?>(json['canopyAffinity']),
-      canopyCover: serializer.fromJson<String?>(json['canopyCover']),
-      ambientTemperature: serializer.fromJson<double?>(
-        json['ambientTemperature'],
-      ),
-      ambientHumidity: serializer.fromJson<double?>(json['ambientHumidity']),
-      waterTemperature: serializer.fromJson<double?>(json['waterTemperature']),
-      pH: serializer.fromJson<double?>(json['pH']),
-      dissolvedOxygen: serializer.fromJson<double?>(json['dissolvedOxygen']),
-      flowVelocity: serializer.fromJson<double?>(json['flowVelocity']),
       remark: serializer.fromJson<String?>(json['remark']),
     );
   }
@@ -18656,16 +19508,10 @@ class ArthropodAttributeData extends DataClass
       'wingspanUpper': serializer.toJson<double?>(wingspanUpper),
       'wingspanLower': serializer.toJson<double?>(wingspanLower),
       'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
+      'caste': serializer.toJson<int?>(caste),
       'hostOrganism': serializer.toJson<String?>(hostOrganism),
       'hostPart': serializer.toJson<String?>(hostPart),
-      'canopyAffinity': serializer.toJson<String?>(canopyAffinity),
-      'canopyCover': serializer.toJson<String?>(canopyCover),
-      'ambientTemperature': serializer.toJson<double?>(ambientTemperature),
-      'ambientHumidity': serializer.toJson<double?>(ambientHumidity),
-      'waterTemperature': serializer.toJson<double?>(waterTemperature),
-      'pH': serializer.toJson<double?>(pH),
-      'dissolvedOxygen': serializer.toJson<double?>(dissolvedOxygen),
-      'flowVelocity': serializer.toJson<double?>(flowVelocity),
       'remark': serializer.toJson<String?>(remark),
     };
   }
@@ -18677,16 +19523,10 @@ class ArthropodAttributeData extends DataClass
     Value<double?> wingspanUpper = const Value.absent(),
     Value<double?> wingspanLower = const Value.absent(),
     Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
+    Value<int?> caste = const Value.absent(),
     Value<String?> hostOrganism = const Value.absent(),
     Value<String?> hostPart = const Value.absent(),
-    Value<String?> canopyAffinity = const Value.absent(),
-    Value<String?> canopyCover = const Value.absent(),
-    Value<double?> ambientTemperature = const Value.absent(),
-    Value<double?> ambientHumidity = const Value.absent(),
-    Value<double?> waterTemperature = const Value.absent(),
-    Value<double?> pH = const Value.absent(),
-    Value<double?> dissolvedOxygen = const Value.absent(),
-    Value<double?> flowVelocity = const Value.absent(),
     Value<String?> remark = const Value.absent(),
   }) => ArthropodAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
@@ -18699,26 +19539,10 @@ class ArthropodAttributeData extends DataClass
         ? wingspanLower.value
         : this.wingspanLower,
     sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
+    caste: caste.present ? caste.value : this.caste,
     hostOrganism: hostOrganism.present ? hostOrganism.value : this.hostOrganism,
     hostPart: hostPart.present ? hostPart.value : this.hostPart,
-    canopyAffinity: canopyAffinity.present
-        ? canopyAffinity.value
-        : this.canopyAffinity,
-    canopyCover: canopyCover.present ? canopyCover.value : this.canopyCover,
-    ambientTemperature: ambientTemperature.present
-        ? ambientTemperature.value
-        : this.ambientTemperature,
-    ambientHumidity: ambientHumidity.present
-        ? ambientHumidity.value
-        : this.ambientHumidity,
-    waterTemperature: waterTemperature.present
-        ? waterTemperature.value
-        : this.waterTemperature,
-    pH: pH.present ? pH.value : this.pH,
-    dissolvedOxygen: dissolvedOxygen.present
-        ? dissolvedOxygen.value
-        : this.dissolvedOxygen,
-    flowVelocity: flowVelocity.present ? flowVelocity.value : this.flowVelocity,
     remark: remark.present ? remark.value : this.remark,
   );
   ArthropodAttributeData copyWithCompanion(ArthropodAttributeCompanion data) {
@@ -18737,32 +19561,12 @@ class ArthropodAttributeData extends DataClass
           ? data.wingspanLower.value
           : this.wingspanLower,
       sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
+      caste: data.caste.present ? data.caste.value : this.caste,
       hostOrganism: data.hostOrganism.present
           ? data.hostOrganism.value
           : this.hostOrganism,
       hostPart: data.hostPart.present ? data.hostPart.value : this.hostPart,
-      canopyAffinity: data.canopyAffinity.present
-          ? data.canopyAffinity.value
-          : this.canopyAffinity,
-      canopyCover: data.canopyCover.present
-          ? data.canopyCover.value
-          : this.canopyCover,
-      ambientTemperature: data.ambientTemperature.present
-          ? data.ambientTemperature.value
-          : this.ambientTemperature,
-      ambientHumidity: data.ambientHumidity.present
-          ? data.ambientHumidity.value
-          : this.ambientHumidity,
-      waterTemperature: data.waterTemperature.present
-          ? data.waterTemperature.value
-          : this.waterTemperature,
-      pH: data.pH.present ? data.pH.value : this.pH,
-      dissolvedOxygen: data.dissolvedOxygen.present
-          ? data.dissolvedOxygen.value
-          : this.dissolvedOxygen,
-      flowVelocity: data.flowVelocity.present
-          ? data.flowVelocity.value
-          : this.flowVelocity,
       remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
@@ -18776,16 +19580,10 @@ class ArthropodAttributeData extends DataClass
           ..write('wingspanUpper: $wingspanUpper, ')
           ..write('wingspanLower: $wingspanLower, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('caste: $caste, ')
           ..write('hostOrganism: $hostOrganism, ')
           ..write('hostPart: $hostPart, ')
-          ..write('canopyAffinity: $canopyAffinity, ')
-          ..write('canopyCover: $canopyCover, ')
-          ..write('ambientTemperature: $ambientTemperature, ')
-          ..write('ambientHumidity: $ambientHumidity, ')
-          ..write('waterTemperature: $waterTemperature, ')
-          ..write('pH: $pH, ')
-          ..write('dissolvedOxygen: $dissolvedOxygen, ')
-          ..write('flowVelocity: $flowVelocity, ')
           ..write('remark: $remark')
           ..write(')'))
         .toString();
@@ -18799,16 +19597,10 @@ class ArthropodAttributeData extends DataClass
     wingspanUpper,
     wingspanLower,
     sex,
+    lifeStage,
+    caste,
     hostOrganism,
     hostPart,
-    canopyAffinity,
-    canopyCover,
-    ambientTemperature,
-    ambientHumidity,
-    waterTemperature,
-    pH,
-    dissolvedOxygen,
-    flowVelocity,
     remark,
   );
   @override
@@ -18821,16 +19613,10 @@ class ArthropodAttributeData extends DataClass
           other.wingspanUpper == this.wingspanUpper &&
           other.wingspanLower == this.wingspanLower &&
           other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
+          other.caste == this.caste &&
           other.hostOrganism == this.hostOrganism &&
           other.hostPart == this.hostPart &&
-          other.canopyAffinity == this.canopyAffinity &&
-          other.canopyCover == this.canopyCover &&
-          other.ambientTemperature == this.ambientTemperature &&
-          other.ambientHumidity == this.ambientHumidity &&
-          other.waterTemperature == this.waterTemperature &&
-          other.pH == this.pH &&
-          other.dissolvedOxygen == this.dissolvedOxygen &&
-          other.flowVelocity == this.flowVelocity &&
           other.remark == this.remark);
 }
 
@@ -18842,16 +19628,10 @@ class ArthropodAttributeCompanion
   final Value<double?> wingspanUpper;
   final Value<double?> wingspanLower;
   final Value<int?> sex;
+  final Value<String?> lifeStage;
+  final Value<int?> caste;
   final Value<String?> hostOrganism;
   final Value<String?> hostPart;
-  final Value<String?> canopyAffinity;
-  final Value<String?> canopyCover;
-  final Value<double?> ambientTemperature;
-  final Value<double?> ambientHumidity;
-  final Value<double?> waterTemperature;
-  final Value<double?> pH;
-  final Value<double?> dissolvedOxygen;
-  final Value<double?> flowVelocity;
   final Value<String?> remark;
   final Value<int> rowid;
   const ArthropodAttributeCompanion({
@@ -18861,16 +19641,10 @@ class ArthropodAttributeCompanion
     this.wingspanUpper = const Value.absent(),
     this.wingspanLower = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.caste = const Value.absent(),
     this.hostOrganism = const Value.absent(),
     this.hostPart = const Value.absent(),
-    this.canopyAffinity = const Value.absent(),
-    this.canopyCover = const Value.absent(),
-    this.ambientTemperature = const Value.absent(),
-    this.ambientHumidity = const Value.absent(),
-    this.waterTemperature = const Value.absent(),
-    this.pH = const Value.absent(),
-    this.dissolvedOxygen = const Value.absent(),
-    this.flowVelocity = const Value.absent(),
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -18881,16 +19655,10 @@ class ArthropodAttributeCompanion
     this.wingspanUpper = const Value.absent(),
     this.wingspanLower = const Value.absent(),
     this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.caste = const Value.absent(),
     this.hostOrganism = const Value.absent(),
     this.hostPart = const Value.absent(),
-    this.canopyAffinity = const Value.absent(),
-    this.canopyCover = const Value.absent(),
-    this.ambientTemperature = const Value.absent(),
-    this.ambientHumidity = const Value.absent(),
-    this.waterTemperature = const Value.absent(),
-    this.pH = const Value.absent(),
-    this.dissolvedOxygen = const Value.absent(),
-    this.flowVelocity = const Value.absent(),
     this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
@@ -18901,16 +19669,10 @@ class ArthropodAttributeCompanion
     Expression<double>? wingspanUpper,
     Expression<double>? wingspanLower,
     Expression<int>? sex,
+    Expression<String>? lifeStage,
+    Expression<int>? caste,
     Expression<String>? hostOrganism,
     Expression<String>? hostPart,
-    Expression<String>? canopyAffinity,
-    Expression<String>? canopyCover,
-    Expression<double>? ambientTemperature,
-    Expression<double>? ambientHumidity,
-    Expression<double>? waterTemperature,
-    Expression<double>? pH,
-    Expression<double>? dissolvedOxygen,
-    Expression<double>? flowVelocity,
     Expression<String>? remark,
     Expression<int>? rowid,
   }) {
@@ -18921,16 +19683,10 @@ class ArthropodAttributeCompanion
       if (wingspanUpper != null) 'wingspanUpper': wingspanUpper,
       if (wingspanLower != null) 'wingspanLower': wingspanLower,
       if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
+      if (caste != null) 'caste': caste,
       if (hostOrganism != null) 'hostOrganism': hostOrganism,
       if (hostPart != null) 'hostPart': hostPart,
-      if (canopyAffinity != null) 'canopyAffinity': canopyAffinity,
-      if (canopyCover != null) 'canopyCover': canopyCover,
-      if (ambientTemperature != null) 'ambientTemperature': ambientTemperature,
-      if (ambientHumidity != null) 'ambientHumidity': ambientHumidity,
-      if (waterTemperature != null) 'waterTemperature': waterTemperature,
-      if (pH != null) 'pH': pH,
-      if (dissolvedOxygen != null) 'dissolvedOxygen': dissolvedOxygen,
-      if (flowVelocity != null) 'flowVelocity': flowVelocity,
       if (remark != null) 'remark': remark,
       if (rowid != null) 'rowid': rowid,
     });
@@ -18943,16 +19699,10 @@ class ArthropodAttributeCompanion
     Value<double?>? wingspanUpper,
     Value<double?>? wingspanLower,
     Value<int?>? sex,
+    Value<String?>? lifeStage,
+    Value<int?>? caste,
     Value<String?>? hostOrganism,
     Value<String?>? hostPart,
-    Value<String?>? canopyAffinity,
-    Value<String?>? canopyCover,
-    Value<double?>? ambientTemperature,
-    Value<double?>? ambientHumidity,
-    Value<double?>? waterTemperature,
-    Value<double?>? pH,
-    Value<double?>? dissolvedOxygen,
-    Value<double?>? flowVelocity,
     Value<String?>? remark,
     Value<int>? rowid,
   }) {
@@ -18963,16 +19713,10 @@ class ArthropodAttributeCompanion
       wingspanUpper: wingspanUpper ?? this.wingspanUpper,
       wingspanLower: wingspanLower ?? this.wingspanLower,
       sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
+      caste: caste ?? this.caste,
       hostOrganism: hostOrganism ?? this.hostOrganism,
       hostPart: hostPart ?? this.hostPart,
-      canopyAffinity: canopyAffinity ?? this.canopyAffinity,
-      canopyCover: canopyCover ?? this.canopyCover,
-      ambientTemperature: ambientTemperature ?? this.ambientTemperature,
-      ambientHumidity: ambientHumidity ?? this.ambientHumidity,
-      waterTemperature: waterTemperature ?? this.waterTemperature,
-      pH: pH ?? this.pH,
-      dissolvedOxygen: dissolvedOxygen ?? this.dissolvedOxygen,
-      flowVelocity: flowVelocity ?? this.flowVelocity,
       remark: remark ?? this.remark,
       rowid: rowid ?? this.rowid,
     );
@@ -18999,35 +19743,17 @@ class ArthropodAttributeCompanion
     if (sex.present) {
       map['sex'] = Variable<int>(sex.value);
     }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
+    }
+    if (caste.present) {
+      map['caste'] = Variable<int>(caste.value);
+    }
     if (hostOrganism.present) {
       map['hostOrganism'] = Variable<String>(hostOrganism.value);
     }
     if (hostPart.present) {
       map['hostPart'] = Variable<String>(hostPart.value);
-    }
-    if (canopyAffinity.present) {
-      map['canopyAffinity'] = Variable<String>(canopyAffinity.value);
-    }
-    if (canopyCover.present) {
-      map['canopyCover'] = Variable<String>(canopyCover.value);
-    }
-    if (ambientTemperature.present) {
-      map['ambientTemperature'] = Variable<double>(ambientTemperature.value);
-    }
-    if (ambientHumidity.present) {
-      map['ambientHumidity'] = Variable<double>(ambientHumidity.value);
-    }
-    if (waterTemperature.present) {
-      map['waterTemperature'] = Variable<double>(waterTemperature.value);
-    }
-    if (pH.present) {
-      map['pH'] = Variable<double>(pH.value);
-    }
-    if (dissolvedOxygen.present) {
-      map['dissolvedOxygen'] = Variable<double>(dissolvedOxygen.value);
-    }
-    if (flowVelocity.present) {
-      map['flowVelocity'] = Variable<double>(flowVelocity.value);
     }
     if (remark.present) {
       map['remark'] = Variable<String>(remark.value);
@@ -19047,16 +19773,10 @@ class ArthropodAttributeCompanion
           ..write('wingspanUpper: $wingspanUpper, ')
           ..write('wingspanLower: $wingspanLower, ')
           ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('caste: $caste, ')
           ..write('hostOrganism: $hostOrganism, ')
           ..write('hostPart: $hostPart, ')
-          ..write('canopyAffinity: $canopyAffinity, ')
-          ..write('canopyCover: $canopyCover, ')
-          ..write('ambientTemperature: $ambientTemperature, ')
-          ..write('ambientHumidity: $ambientHumidity, ')
-          ..write('waterTemperature: $waterTemperature, ')
-          ..write('pH: $pH, ')
-          ..write('dissolvedOxygen: $dissolvedOxygen, ')
-          ..write('flowVelocity: $flowVelocity, ')
           ..write('remark: $remark, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -19092,6 +19812,46 @@ class FossilAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+    'sex',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _ontogeneticStageMeta = const VerificationMeta(
+    'ontogeneticStage',
+  );
+  late final GeneratedColumn<String> ontogeneticStage = GeneratedColumn<String>(
+    'ontogeneticStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+    'weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightUnitMeta = const VerificationMeta(
+    'weightUnit',
+  );
+  late final GeneratedColumn<String> weightUnit = GeneratedColumn<String>(
+    'weightUnit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _specimenDescriptionMeta =
       const VerificationMeta('specimenDescription');
   late final GeneratedColumn<String> specimenDescription =
@@ -19103,11 +19863,25 @@ class FossilAttribute extends Table
         requiredDuringInsert: false,
         $customConstraints: '',
       );
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+    'remark',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     specimenUuid,
     fossilType,
+    sex,
+    ontogeneticStage,
+    weight,
+    weightUnit,
     specimenDescription,
+    remark,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -19138,6 +19912,33 @@ class FossilAttribute extends Table
         fossilType.isAcceptableOrUnknown(data['fossilType']!, _fossilTypeMeta),
       );
     }
+    if (data.containsKey('sex')) {
+      context.handle(
+        _sexMeta,
+        sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('ontogeneticStage')) {
+      context.handle(
+        _ontogeneticStageMeta,
+        ontogeneticStage.isAcceptableOrUnknown(
+          data['ontogeneticStage']!,
+          _ontogeneticStageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight')) {
+      context.handle(
+        _weightMeta,
+        weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
+      );
+    }
+    if (data.containsKey('weightUnit')) {
+      context.handle(
+        _weightUnitMeta,
+        weightUnit.isAcceptableOrUnknown(data['weightUnit']!, _weightUnitMeta),
+      );
+    }
     if (data.containsKey('specimenDescription')) {
       context.handle(
         _specimenDescriptionMeta,
@@ -19145,6 +19946,12 @@ class FossilAttribute extends Table
           data['specimenDescription']!,
           _specimenDescriptionMeta,
         ),
+      );
+    }
+    if (data.containsKey('remark')) {
+      context.handle(
+        _remarkMeta,
+        remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
       );
     }
     return context;
@@ -19164,9 +19971,29 @@ class FossilAttribute extends Table
         DriftSqlType.string,
         data['${effectivePrefix}fossilType'],
       ),
+      sex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sex'],
+      ),
+      ontogeneticStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ontogeneticStage'],
+      ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight'],
+      ),
+      weightUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weightUnit'],
+      ),
       specimenDescription: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}specimenDescription'],
+      ),
+      remark: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remark'],
       ),
     );
   }
@@ -19188,11 +20015,21 @@ class FossilAttributeData extends DataClass
     implements Insertable<FossilAttributeData> {
   final String specimenUuid;
   final String? fossilType;
+  final int? sex;
+  final String? ontogeneticStage;
+  final double? weight;
+  final String? weightUnit;
   final String? specimenDescription;
+  final String? remark;
   const FossilAttributeData({
     required this.specimenUuid,
     this.fossilType,
+    this.sex,
+    this.ontogeneticStage,
+    this.weight,
+    this.weightUnit,
     this.specimenDescription,
+    this.remark,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -19201,8 +20038,23 @@ class FossilAttributeData extends DataClass
     if (!nullToAbsent || fossilType != null) {
       map['fossilType'] = Variable<String>(fossilType);
     }
+    if (!nullToAbsent || sex != null) {
+      map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || ontogeneticStage != null) {
+      map['ontogeneticStage'] = Variable<String>(ontogeneticStage);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<double>(weight);
+    }
+    if (!nullToAbsent || weightUnit != null) {
+      map['weightUnit'] = Variable<String>(weightUnit);
+    }
     if (!nullToAbsent || specimenDescription != null) {
       map['specimenDescription'] = Variable<String>(specimenDescription);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
     }
     return map;
   }
@@ -19213,9 +20065,22 @@ class FossilAttributeData extends DataClass
       fossilType: fossilType == null && nullToAbsent
           ? const Value.absent()
           : Value(fossilType),
+      sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      ontogeneticStage: ontogeneticStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ontogeneticStage),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
+      weightUnit: weightUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightUnit),
       specimenDescription: specimenDescription == null && nullToAbsent
           ? const Value.absent()
           : Value(specimenDescription),
+      remark: remark == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remark),
     );
   }
 
@@ -19227,9 +20092,14 @@ class FossilAttributeData extends DataClass
     return FossilAttributeData(
       specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
       fossilType: serializer.fromJson<String?>(json['fossilType']),
+      sex: serializer.fromJson<int?>(json['sex']),
+      ontogeneticStage: serializer.fromJson<String?>(json['ontogeneticStage']),
+      weight: serializer.fromJson<double?>(json['weight']),
+      weightUnit: serializer.fromJson<String?>(json['weightUnit']),
       specimenDescription: serializer.fromJson<String?>(
         json['specimenDescription'],
       ),
+      remark: serializer.fromJson<String?>(json['remark']),
     );
   }
   @override
@@ -19238,20 +20108,37 @@ class FossilAttributeData extends DataClass
     return <String, dynamic>{
       'specimenUuid': serializer.toJson<String>(specimenUuid),
       'fossilType': serializer.toJson<String?>(fossilType),
+      'sex': serializer.toJson<int?>(sex),
+      'ontogeneticStage': serializer.toJson<String?>(ontogeneticStage),
+      'weight': serializer.toJson<double?>(weight),
+      'weightUnit': serializer.toJson<String?>(weightUnit),
       'specimenDescription': serializer.toJson<String?>(specimenDescription),
+      'remark': serializer.toJson<String?>(remark),
     };
   }
 
   FossilAttributeData copyWith({
     String? specimenUuid,
     Value<String?> fossilType = const Value.absent(),
+    Value<int?> sex = const Value.absent(),
+    Value<String?> ontogeneticStage = const Value.absent(),
+    Value<double?> weight = const Value.absent(),
+    Value<String?> weightUnit = const Value.absent(),
     Value<String?> specimenDescription = const Value.absent(),
+    Value<String?> remark = const Value.absent(),
   }) => FossilAttributeData(
     specimenUuid: specimenUuid ?? this.specimenUuid,
     fossilType: fossilType.present ? fossilType.value : this.fossilType,
+    sex: sex.present ? sex.value : this.sex,
+    ontogeneticStage: ontogeneticStage.present
+        ? ontogeneticStage.value
+        : this.ontogeneticStage,
+    weight: weight.present ? weight.value : this.weight,
+    weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
     specimenDescription: specimenDescription.present
         ? specimenDescription.value
         : this.specimenDescription,
+    remark: remark.present ? remark.value : this.remark,
   );
   FossilAttributeData copyWithCompanion(FossilAttributeCompanion data) {
     return FossilAttributeData(
@@ -19261,9 +20148,18 @@ class FossilAttributeData extends DataClass
       fossilType: data.fossilType.present
           ? data.fossilType.value
           : this.fossilType,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      ontogeneticStage: data.ontogeneticStage.present
+          ? data.ontogeneticStage.value
+          : this.ontogeneticStage,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      weightUnit: data.weightUnit.present
+          ? data.weightUnit.value
+          : this.weightUnit,
       specimenDescription: data.specimenDescription.present
           ? data.specimenDescription.value
           : this.specimenDescription,
+      remark: data.remark.present ? data.remark.value : this.remark,
     );
   }
 
@@ -19272,51 +20168,94 @@ class FossilAttributeData extends DataClass
     return (StringBuffer('FossilAttributeData(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('fossilType: $fossilType, ')
-          ..write('specimenDescription: $specimenDescription')
+          ..write('sex: $sex, ')
+          ..write('ontogeneticStage: $ontogeneticStage, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('specimenDescription: $specimenDescription, ')
+          ..write('remark: $remark')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(specimenUuid, fossilType, specimenDescription);
+  int get hashCode => Object.hash(
+    specimenUuid,
+    fossilType,
+    sex,
+    ontogeneticStage,
+    weight,
+    weightUnit,
+    specimenDescription,
+    remark,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FossilAttributeData &&
           other.specimenUuid == this.specimenUuid &&
           other.fossilType == this.fossilType &&
-          other.specimenDescription == this.specimenDescription);
+          other.sex == this.sex &&
+          other.ontogeneticStage == this.ontogeneticStage &&
+          other.weight == this.weight &&
+          other.weightUnit == this.weightUnit &&
+          other.specimenDescription == this.specimenDescription &&
+          other.remark == this.remark);
 }
 
 class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
   final Value<String> specimenUuid;
   final Value<String?> fossilType;
+  final Value<int?> sex;
+  final Value<String?> ontogeneticStage;
+  final Value<double?> weight;
+  final Value<String?> weightUnit;
   final Value<String?> specimenDescription;
+  final Value<String?> remark;
   final Value<int> rowid;
   const FossilAttributeCompanion({
     this.specimenUuid = const Value.absent(),
     this.fossilType = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.ontogeneticStage = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.specimenDescription = const Value.absent(),
+    this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FossilAttributeCompanion.insert({
     required String specimenUuid,
     this.fossilType = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.ontogeneticStage = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.specimenDescription = const Value.absent(),
+    this.remark = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : specimenUuid = Value(specimenUuid);
   static Insertable<FossilAttributeData> custom({
     Expression<String>? specimenUuid,
     Expression<String>? fossilType,
+    Expression<int>? sex,
+    Expression<String>? ontogeneticStage,
+    Expression<double>? weight,
+    Expression<String>? weightUnit,
     Expression<String>? specimenDescription,
+    Expression<String>? remark,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (specimenUuid != null) 'specimenUuid': specimenUuid,
       if (fossilType != null) 'fossilType': fossilType,
+      if (sex != null) 'sex': sex,
+      if (ontogeneticStage != null) 'ontogeneticStage': ontogeneticStage,
+      if (weight != null) 'weight': weight,
+      if (weightUnit != null) 'weightUnit': weightUnit,
       if (specimenDescription != null)
         'specimenDescription': specimenDescription,
+      if (remark != null) 'remark': remark,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -19324,13 +20263,23 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
   FossilAttributeCompanion copyWith({
     Value<String>? specimenUuid,
     Value<String?>? fossilType,
+    Value<int?>? sex,
+    Value<String?>? ontogeneticStage,
+    Value<double?>? weight,
+    Value<String?>? weightUnit,
     Value<String?>? specimenDescription,
+    Value<String?>? remark,
     Value<int>? rowid,
   }) {
     return FossilAttributeCompanion(
       specimenUuid: specimenUuid ?? this.specimenUuid,
       fossilType: fossilType ?? this.fossilType,
+      sex: sex ?? this.sex,
+      ontogeneticStage: ontogeneticStage ?? this.ontogeneticStage,
+      weight: weight ?? this.weight,
+      weightUnit: weightUnit ?? this.weightUnit,
       specimenDescription: specimenDescription ?? this.specimenDescription,
+      remark: remark ?? this.remark,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -19344,8 +20293,23 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
     if (fossilType.present) {
       map['fossilType'] = Variable<String>(fossilType.value);
     }
+    if (sex.present) {
+      map['sex'] = Variable<int>(sex.value);
+    }
+    if (ontogeneticStage.present) {
+      map['ontogeneticStage'] = Variable<String>(ontogeneticStage.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (weightUnit.present) {
+      map['weightUnit'] = Variable<String>(weightUnit.value);
+    }
     if (specimenDescription.present) {
       map['specimenDescription'] = Variable<String>(specimenDescription.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -19358,7 +20322,12 @@ class FossilAttributeCompanion extends UpdateCompanion<FossilAttributeData> {
     return (StringBuffer('FossilAttributeCompanion(')
           ..write('specimenUuid: $specimenUuid, ')
           ..write('fossilType: $fossilType, ')
+          ..write('sex: $sex, ')
+          ..write('ontogeneticStage: $ontogeneticStage, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
           ..write('specimenDescription: $specimenDescription, ')
+          ..write('remark: $remark, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -22074,23 +23043,43 @@ class CustomFieldDefinition extends Table
     requiredDuringInsert: false,
     $customConstraints: 'UNIQUE PRIMARY KEY AUTOINCREMENT',
   );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL UNIQUE',
+  );
+  static const VerificationMeta _sourceTemplateUuidMeta =
+      const VerificationMeta('sourceTemplateUuid');
+  late final GeneratedColumn<String> sourceTemplateUuid =
+      GeneratedColumn<String>(
+        'sourceTemplateUuid',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
     'name',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
     'type',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _uiSectionMeta = const VerificationMeta(
     'uiSection',
@@ -22098,10 +23087,10 @@ class CustomFieldDefinition extends Table
   late final GeneratedColumn<String> uiSection = GeneratedColumn<String>(
     'uiSection',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _optionsMeta = const VerificationMeta(
     'options',
@@ -22118,10 +23107,101 @@ class CustomFieldDefinition extends Table
   late final GeneratedColumn<String> scope = GeneratedColumn<String>(
     'scope',
     aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _projectUuidMeta = const VerificationMeta(
+    'projectUuid',
+  );
+  late final GeneratedColumn<String> projectUuid = GeneratedColumn<String>(
+    'projectUuid',
+    aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     $customConstraints: '',
+  );
+  static const VerificationMeta _catalogFormatMeta = const VerificationMeta(
+    'catalogFormat',
+  );
+  late final GeneratedColumn<String> catalogFormat = GeneratedColumn<String>(
+    'catalogFormat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sortOrder',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  late final GeneratedColumn<int> isArchived = GeneratedColumn<int>(
+    'isArchived',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (isArchived IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  static const VerificationMeta _dwcTargetMeta = const VerificationMeta(
+    'dwcTarget',
+  );
+  late final GeneratedColumn<String> dwcTarget = GeneratedColumn<String>(
+    'dwcTarget',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dwcFieldMeta = const VerificationMeta(
+    'dwcField',
+  );
+  late final GeneratedColumn<String> dwcField = GeneratedColumn<String>(
+    'dwcField',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dwcModeMeta = const VerificationMeta(
+    'dwcMode',
+  );
+  late final GeneratedColumn<String> dwcMode = GeneratedColumn<String>(
+    'dwcMode',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _allowDwcConflictMeta = const VerificationMeta(
+    'allowDwcConflict',
+  );
+  late final GeneratedColumn<int> allowDwcConflict = GeneratedColumn<int>(
+    'allowDwcConflict',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (allowDwcConflict IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -22148,11 +23228,21 @@ class CustomFieldDefinition extends Table
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    uuid,
+    sourceTemplateUuid,
     name,
     type,
     uiSection,
     options,
     scope,
+    projectUuid,
+    catalogFormat,
+    sortOrder,
+    isArchived,
+    dwcTarget,
+    dwcField,
+    dwcMode,
+    allowDwcConflict,
     createdAt,
     updatedAt,
   ];
@@ -22171,23 +23261,46 @@ class CustomFieldDefinition extends Table
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('sourceTemplateUuid')) {
+      context.handle(
+        _sourceTemplateUuidMeta,
+        sourceTemplateUuid.isAcceptableOrUnknown(
+          data['sourceTemplateUuid']!,
+          _sourceTemplateUuidMeta,
+        ),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
         name.isAcceptableOrUnknown(data['name']!, _nameMeta),
       );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
         _typeMeta,
         type.isAcceptableOrUnknown(data['type']!, _typeMeta),
       );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
     }
     if (data.containsKey('uiSection')) {
       context.handle(
         _uiSectionMeta,
         uiSection.isAcceptableOrUnknown(data['uiSection']!, _uiSectionMeta),
       );
+    } else if (isInserting) {
+      context.missing(_uiSectionMeta);
     }
     if (data.containsKey('options')) {
       context.handle(
@@ -22199,6 +23312,65 @@ class CustomFieldDefinition extends Table
       context.handle(
         _scopeMeta,
         scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scopeMeta);
+    }
+    if (data.containsKey('projectUuid')) {
+      context.handle(
+        _projectUuidMeta,
+        projectUuid.isAcceptableOrUnknown(
+          data['projectUuid']!,
+          _projectUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('catalogFormat')) {
+      context.handle(
+        _catalogFormatMeta,
+        catalogFormat.isAcceptableOrUnknown(
+          data['catalogFormat']!,
+          _catalogFormatMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sortOrder')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sortOrder']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('isArchived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['isArchived']!, _isArchivedMeta),
+      );
+    }
+    if (data.containsKey('dwcTarget')) {
+      context.handle(
+        _dwcTargetMeta,
+        dwcTarget.isAcceptableOrUnknown(data['dwcTarget']!, _dwcTargetMeta),
+      );
+    }
+    if (data.containsKey('dwcField')) {
+      context.handle(
+        _dwcFieldMeta,
+        dwcField.isAcceptableOrUnknown(data['dwcField']!, _dwcFieldMeta),
+      );
+    }
+    if (data.containsKey('dwcMode')) {
+      context.handle(
+        _dwcModeMeta,
+        dwcMode.isAcceptableOrUnknown(data['dwcMode']!, _dwcModeMeta),
+      );
+    }
+    if (data.containsKey('allowDwcConflict')) {
+      context.handle(
+        _allowDwcConflictMeta,
+        allowDwcConflict.isAcceptableOrUnknown(
+          data['allowDwcConflict']!,
+          _allowDwcConflictMeta,
+        ),
       );
     }
     if (data.containsKey('createdAt')) {
@@ -22229,18 +23401,26 @@ class CustomFieldDefinition extends Table
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       ),
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      sourceTemplateUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sourceTemplateUuid'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
-      ),
+      )!,
       type: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}type'],
-      ),
+      )!,
       uiSection: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}uiSection'],
-      ),
+      )!,
       options: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}options'],
@@ -22248,7 +23428,39 @@ class CustomFieldDefinition extends Table
       scope: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}scope'],
+      )!,
+      projectUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}projectUuid'],
       ),
+      catalogFormat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalogFormat'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sortOrder'],
+      )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}isArchived'],
+      )!,
+      dwcTarget: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcTarget'],
+      ),
+      dwcField: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcField'],
+      ),
+      dwcMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dwcMode'],
+      ),
+      allowDwcConflict: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}allowDwcConflict'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}createdAt'],
@@ -22266,6 +23478,13 @@ class CustomFieldDefinition extends Table
   }
 
   @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE',
+    'CHECK((scope = \'global\' AND projectUuid IS NULL)OR(scope = \'project\' AND projectUuid IS NOT NULL))',
+    'CHECK(uiSection != \'siteAttribute\' OR catalogFormat IS NULL)',
+    'CHECK((dwcTarget IS NULL AND dwcField IS NULL AND dwcMode IS NULL)OR(dwcTarget IS NOT NULL AND dwcField IS NOT NULL AND dwcMode IS NOT NULL))',
+  ];
+  @override
   bool get dontWriteConstraints => true;
 }
 
@@ -22274,20 +23493,40 @@ class CustomFieldDefinitionData extends DataClass
   final int? id;
 
   /// internal id
-  final String? name;
-  final String? type;
-  final String? uiSection;
+  final String uuid;
+  final String? sourceTemplateUuid;
+  final String name;
+  final String type;
+  final String uiSection;
   final String? options;
-  final String? scope;
+  final String scope;
+  final String? projectUuid;
+  final String? catalogFormat;
+  final int sortOrder;
+  final int isArchived;
+  final String? dwcTarget;
+  final String? dwcField;
+  final String? dwcMode;
+  final int allowDwcConflict;
   final String? createdAt;
   final String? updatedAt;
   const CustomFieldDefinitionData({
     this.id,
-    this.name,
-    this.type,
-    this.uiSection,
+    required this.uuid,
+    this.sourceTemplateUuid,
+    required this.name,
+    required this.type,
+    required this.uiSection,
     this.options,
-    this.scope,
+    required this.scope,
+    this.projectUuid,
+    this.catalogFormat,
+    required this.sortOrder,
+    required this.isArchived,
+    this.dwcTarget,
+    this.dwcField,
+    this.dwcMode,
+    required this.allowDwcConflict,
     this.createdAt,
     this.updatedAt,
   });
@@ -22297,21 +23536,35 @@ class CustomFieldDefinitionData extends DataClass
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || name != null) {
-      map['name'] = Variable<String>(name);
+    map['uuid'] = Variable<String>(uuid);
+    if (!nullToAbsent || sourceTemplateUuid != null) {
+      map['sourceTemplateUuid'] = Variable<String>(sourceTemplateUuid);
     }
-    if (!nullToAbsent || type != null) {
-      map['type'] = Variable<String>(type);
-    }
-    if (!nullToAbsent || uiSection != null) {
-      map['uiSection'] = Variable<String>(uiSection);
-    }
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    map['uiSection'] = Variable<String>(uiSection);
     if (!nullToAbsent || options != null) {
       map['options'] = Variable<String>(options);
     }
-    if (!nullToAbsent || scope != null) {
-      map['scope'] = Variable<String>(scope);
+    map['scope'] = Variable<String>(scope);
+    if (!nullToAbsent || projectUuid != null) {
+      map['projectUuid'] = Variable<String>(projectUuid);
     }
+    if (!nullToAbsent || catalogFormat != null) {
+      map['catalogFormat'] = Variable<String>(catalogFormat);
+    }
+    map['sortOrder'] = Variable<int>(sortOrder);
+    map['isArchived'] = Variable<int>(isArchived);
+    if (!nullToAbsent || dwcTarget != null) {
+      map['dwcTarget'] = Variable<String>(dwcTarget);
+    }
+    if (!nullToAbsent || dwcField != null) {
+      map['dwcField'] = Variable<String>(dwcField);
+    }
+    if (!nullToAbsent || dwcMode != null) {
+      map['dwcMode'] = Variable<String>(dwcMode);
+    }
+    map['allowDwcConflict'] = Variable<int>(allowDwcConflict);
     if (!nullToAbsent || createdAt != null) {
       map['createdAt'] = Variable<String>(createdAt);
     }
@@ -22324,17 +23577,35 @@ class CustomFieldDefinitionData extends DataClass
   CustomFieldDefinitionCompanion toCompanion(bool nullToAbsent) {
     return CustomFieldDefinitionCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-      type: type == null && nullToAbsent ? const Value.absent() : Value(type),
-      uiSection: uiSection == null && nullToAbsent
+      uuid: Value(uuid),
+      sourceTemplateUuid: sourceTemplateUuid == null && nullToAbsent
           ? const Value.absent()
-          : Value(uiSection),
+          : Value(sourceTemplateUuid),
+      name: Value(name),
+      type: Value(type),
+      uiSection: Value(uiSection),
       options: options == null && nullToAbsent
           ? const Value.absent()
           : Value(options),
-      scope: scope == null && nullToAbsent
+      scope: Value(scope),
+      projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
-          : Value(scope),
+          : Value(projectUuid),
+      catalogFormat: catalogFormat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(catalogFormat),
+      sortOrder: Value(sortOrder),
+      isArchived: Value(isArchived),
+      dwcTarget: dwcTarget == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcTarget),
+      dwcField: dwcField == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcField),
+      dwcMode: dwcMode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dwcMode),
+      allowDwcConflict: Value(allowDwcConflict),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -22351,11 +23622,23 @@ class CustomFieldDefinitionData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomFieldDefinitionData(
       id: serializer.fromJson<int?>(json['id']),
-      name: serializer.fromJson<String?>(json['name']),
-      type: serializer.fromJson<String?>(json['type']),
-      uiSection: serializer.fromJson<String?>(json['uiSection']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      sourceTemplateUuid: serializer.fromJson<String?>(
+        json['sourceTemplateUuid'],
+      ),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      uiSection: serializer.fromJson<String>(json['uiSection']),
       options: serializer.fromJson<String?>(json['options']),
-      scope: serializer.fromJson<String?>(json['scope']),
+      scope: serializer.fromJson<String>(json['scope']),
+      projectUuid: serializer.fromJson<String?>(json['projectUuid']),
+      catalogFormat: serializer.fromJson<String?>(json['catalogFormat']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      isArchived: serializer.fromJson<int>(json['isArchived']),
+      dwcTarget: serializer.fromJson<String?>(json['dwcTarget']),
+      dwcField: serializer.fromJson<String?>(json['dwcField']),
+      dwcMode: serializer.fromJson<String?>(json['dwcMode']),
+      allowDwcConflict: serializer.fromJson<int>(json['allowDwcConflict']),
       createdAt: serializer.fromJson<String?>(json['createdAt']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
@@ -22365,11 +23648,21 @@ class CustomFieldDefinitionData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int?>(id),
-      'name': serializer.toJson<String?>(name),
-      'type': serializer.toJson<String?>(type),
-      'uiSection': serializer.toJson<String?>(uiSection),
+      'uuid': serializer.toJson<String>(uuid),
+      'sourceTemplateUuid': serializer.toJson<String?>(sourceTemplateUuid),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'uiSection': serializer.toJson<String>(uiSection),
       'options': serializer.toJson<String?>(options),
-      'scope': serializer.toJson<String?>(scope),
+      'scope': serializer.toJson<String>(scope),
+      'projectUuid': serializer.toJson<String?>(projectUuid),
+      'catalogFormat': serializer.toJson<String?>(catalogFormat),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'isArchived': serializer.toJson<int>(isArchived),
+      'dwcTarget': serializer.toJson<String?>(dwcTarget),
+      'dwcField': serializer.toJson<String?>(dwcField),
+      'dwcMode': serializer.toJson<String?>(dwcMode),
+      'allowDwcConflict': serializer.toJson<int>(allowDwcConflict),
       'createdAt': serializer.toJson<String?>(createdAt),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
@@ -22377,20 +23670,44 @@ class CustomFieldDefinitionData extends DataClass
 
   CustomFieldDefinitionData copyWith({
     Value<int?> id = const Value.absent(),
-    Value<String?> name = const Value.absent(),
-    Value<String?> type = const Value.absent(),
-    Value<String?> uiSection = const Value.absent(),
+    String? uuid,
+    Value<String?> sourceTemplateUuid = const Value.absent(),
+    String? name,
+    String? type,
+    String? uiSection,
     Value<String?> options = const Value.absent(),
-    Value<String?> scope = const Value.absent(),
+    String? scope,
+    Value<String?> projectUuid = const Value.absent(),
+    Value<String?> catalogFormat = const Value.absent(),
+    int? sortOrder,
+    int? isArchived,
+    Value<String?> dwcTarget = const Value.absent(),
+    Value<String?> dwcField = const Value.absent(),
+    Value<String?> dwcMode = const Value.absent(),
+    int? allowDwcConflict,
     Value<String?> createdAt = const Value.absent(),
     Value<String?> updatedAt = const Value.absent(),
   }) => CustomFieldDefinitionData(
     id: id.present ? id.value : this.id,
-    name: name.present ? name.value : this.name,
-    type: type.present ? type.value : this.type,
-    uiSection: uiSection.present ? uiSection.value : this.uiSection,
+    uuid: uuid ?? this.uuid,
+    sourceTemplateUuid: sourceTemplateUuid.present
+        ? sourceTemplateUuid.value
+        : this.sourceTemplateUuid,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    uiSection: uiSection ?? this.uiSection,
     options: options.present ? options.value : this.options,
-    scope: scope.present ? scope.value : this.scope,
+    scope: scope ?? this.scope,
+    projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
+    catalogFormat: catalogFormat.present
+        ? catalogFormat.value
+        : this.catalogFormat,
+    sortOrder: sortOrder ?? this.sortOrder,
+    isArchived: isArchived ?? this.isArchived,
+    dwcTarget: dwcTarget.present ? dwcTarget.value : this.dwcTarget,
+    dwcField: dwcField.present ? dwcField.value : this.dwcField,
+    dwcMode: dwcMode.present ? dwcMode.value : this.dwcMode,
+    allowDwcConflict: allowDwcConflict ?? this.allowDwcConflict,
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
@@ -22399,11 +23716,31 @@ class CustomFieldDefinitionData extends DataClass
   ) {
     return CustomFieldDefinitionData(
       id: data.id.present ? data.id.value : this.id,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      sourceTemplateUuid: data.sourceTemplateUuid.present
+          ? data.sourceTemplateUuid.value
+          : this.sourceTemplateUuid,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
       uiSection: data.uiSection.present ? data.uiSection.value : this.uiSection,
       options: data.options.present ? data.options.value : this.options,
       scope: data.scope.present ? data.scope.value : this.scope,
+      projectUuid: data.projectUuid.present
+          ? data.projectUuid.value
+          : this.projectUuid,
+      catalogFormat: data.catalogFormat.present
+          ? data.catalogFormat.value
+          : this.catalogFormat,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+      dwcTarget: data.dwcTarget.present ? data.dwcTarget.value : this.dwcTarget,
+      dwcField: data.dwcField.present ? data.dwcField.value : this.dwcField,
+      dwcMode: data.dwcMode.present ? data.dwcMode.value : this.dwcMode,
+      allowDwcConflict: data.allowDwcConflict.present
+          ? data.allowDwcConflict.value
+          : this.allowDwcConflict,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -22413,11 +23750,21 @@ class CustomFieldDefinitionData extends DataClass
   String toString() {
     return (StringBuffer('CustomFieldDefinitionData(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('sourceTemplateUuid: $sourceTemplateUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('uiSection: $uiSection, ')
           ..write('options: $options, ')
           ..write('scope: $scope, ')
+          ..write('projectUuid: $projectUuid, ')
+          ..write('catalogFormat: $catalogFormat, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('dwcTarget: $dwcTarget, ')
+          ..write('dwcField: $dwcField, ')
+          ..write('dwcMode: $dwcMode, ')
+          ..write('allowDwcConflict: $allowDwcConflict, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -22427,11 +23774,21 @@ class CustomFieldDefinitionData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    uuid,
+    sourceTemplateUuid,
     name,
     type,
     uiSection,
     options,
     scope,
+    projectUuid,
+    catalogFormat,
+    sortOrder,
+    isArchived,
+    dwcTarget,
+    dwcField,
+    dwcMode,
+    allowDwcConflict,
     createdAt,
     updatedAt,
   );
@@ -22440,11 +23797,21 @@ class CustomFieldDefinitionData extends DataClass
       identical(this, other) ||
       (other is CustomFieldDefinitionData &&
           other.id == this.id &&
+          other.uuid == this.uuid &&
+          other.sourceTemplateUuid == this.sourceTemplateUuid &&
           other.name == this.name &&
           other.type == this.type &&
           other.uiSection == this.uiSection &&
           other.options == this.options &&
           other.scope == this.scope &&
+          other.projectUuid == this.projectUuid &&
+          other.catalogFormat == this.catalogFormat &&
+          other.sortOrder == this.sortOrder &&
+          other.isArchived == this.isArchived &&
+          other.dwcTarget == this.dwcTarget &&
+          other.dwcField == this.dwcField &&
+          other.dwcMode == this.dwcMode &&
+          other.allowDwcConflict == this.allowDwcConflict &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -22452,50 +23819,104 @@ class CustomFieldDefinitionData extends DataClass
 class CustomFieldDefinitionCompanion
     extends UpdateCompanion<CustomFieldDefinitionData> {
   final Value<int?> id;
-  final Value<String?> name;
-  final Value<String?> type;
-  final Value<String?> uiSection;
+  final Value<String> uuid;
+  final Value<String?> sourceTemplateUuid;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<String> uiSection;
   final Value<String?> options;
-  final Value<String?> scope;
+  final Value<String> scope;
+  final Value<String?> projectUuid;
+  final Value<String?> catalogFormat;
+  final Value<int> sortOrder;
+  final Value<int> isArchived;
+  final Value<String?> dwcTarget;
+  final Value<String?> dwcField;
+  final Value<String?> dwcMode;
+  final Value<int> allowDwcConflict;
   final Value<String?> createdAt;
   final Value<String?> updatedAt;
   const CustomFieldDefinitionCompanion({
     this.id = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.sourceTemplateUuid = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
     this.uiSection = const Value.absent(),
     this.options = const Value.absent(),
     this.scope = const Value.absent(),
+    this.projectUuid = const Value.absent(),
+    this.catalogFormat = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.dwcTarget = const Value.absent(),
+    this.dwcField = const Value.absent(),
+    this.dwcMode = const Value.absent(),
+    this.allowDwcConflict = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   CustomFieldDefinitionCompanion.insert({
     this.id = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.uiSection = const Value.absent(),
+    required String uuid,
+    this.sourceTemplateUuid = const Value.absent(),
+    required String name,
+    required String type,
+    required String uiSection,
     this.options = const Value.absent(),
-    this.scope = const Value.absent(),
+    required String scope,
+    this.projectUuid = const Value.absent(),
+    this.catalogFormat = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.dwcTarget = const Value.absent(),
+    this.dwcField = const Value.absent(),
+    this.dwcMode = const Value.absent(),
+    this.allowDwcConflict = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  });
+  }) : uuid = Value(uuid),
+       name = Value(name),
+       type = Value(type),
+       uiSection = Value(uiSection),
+       scope = Value(scope);
   static Insertable<CustomFieldDefinitionData> custom({
     Expression<int>? id,
+    Expression<String>? uuid,
+    Expression<String>? sourceTemplateUuid,
     Expression<String>? name,
     Expression<String>? type,
     Expression<String>? uiSection,
     Expression<String>? options,
     Expression<String>? scope,
+    Expression<String>? projectUuid,
+    Expression<String>? catalogFormat,
+    Expression<int>? sortOrder,
+    Expression<int>? isArchived,
+    Expression<String>? dwcTarget,
+    Expression<String>? dwcField,
+    Expression<String>? dwcMode,
+    Expression<int>? allowDwcConflict,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (uuid != null) 'uuid': uuid,
+      if (sourceTemplateUuid != null) 'sourceTemplateUuid': sourceTemplateUuid,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
       if (uiSection != null) 'uiSection': uiSection,
       if (options != null) 'options': options,
       if (scope != null) 'scope': scope,
+      if (projectUuid != null) 'projectUuid': projectUuid,
+      if (catalogFormat != null) 'catalogFormat': catalogFormat,
+      if (sortOrder != null) 'sortOrder': sortOrder,
+      if (isArchived != null) 'isArchived': isArchived,
+      if (dwcTarget != null) 'dwcTarget': dwcTarget,
+      if (dwcField != null) 'dwcField': dwcField,
+      if (dwcMode != null) 'dwcMode': dwcMode,
+      if (allowDwcConflict != null) 'allowDwcConflict': allowDwcConflict,
       if (createdAt != null) 'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
     });
@@ -22503,21 +23924,41 @@ class CustomFieldDefinitionCompanion
 
   CustomFieldDefinitionCompanion copyWith({
     Value<int?>? id,
-    Value<String?>? name,
-    Value<String?>? type,
-    Value<String?>? uiSection,
+    Value<String>? uuid,
+    Value<String?>? sourceTemplateUuid,
+    Value<String>? name,
+    Value<String>? type,
+    Value<String>? uiSection,
     Value<String?>? options,
-    Value<String?>? scope,
+    Value<String>? scope,
+    Value<String?>? projectUuid,
+    Value<String?>? catalogFormat,
+    Value<int>? sortOrder,
+    Value<int>? isArchived,
+    Value<String?>? dwcTarget,
+    Value<String?>? dwcField,
+    Value<String?>? dwcMode,
+    Value<int>? allowDwcConflict,
     Value<String?>? createdAt,
     Value<String?>? updatedAt,
   }) {
     return CustomFieldDefinitionCompanion(
       id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      sourceTemplateUuid: sourceTemplateUuid ?? this.sourceTemplateUuid,
       name: name ?? this.name,
       type: type ?? this.type,
       uiSection: uiSection ?? this.uiSection,
       options: options ?? this.options,
       scope: scope ?? this.scope,
+      projectUuid: projectUuid ?? this.projectUuid,
+      catalogFormat: catalogFormat ?? this.catalogFormat,
+      sortOrder: sortOrder ?? this.sortOrder,
+      isArchived: isArchived ?? this.isArchived,
+      dwcTarget: dwcTarget ?? this.dwcTarget,
+      dwcField: dwcField ?? this.dwcField,
+      dwcMode: dwcMode ?? this.dwcMode,
+      allowDwcConflict: allowDwcConflict ?? this.allowDwcConflict,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -22528,6 +23969,12 @@ class CustomFieldDefinitionCompanion
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (sourceTemplateUuid.present) {
+      map['sourceTemplateUuid'] = Variable<String>(sourceTemplateUuid.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -22544,6 +23991,30 @@ class CustomFieldDefinitionCompanion
     if (scope.present) {
       map['scope'] = Variable<String>(scope.value);
     }
+    if (projectUuid.present) {
+      map['projectUuid'] = Variable<String>(projectUuid.value);
+    }
+    if (catalogFormat.present) {
+      map['catalogFormat'] = Variable<String>(catalogFormat.value);
+    }
+    if (sortOrder.present) {
+      map['sortOrder'] = Variable<int>(sortOrder.value);
+    }
+    if (isArchived.present) {
+      map['isArchived'] = Variable<int>(isArchived.value);
+    }
+    if (dwcTarget.present) {
+      map['dwcTarget'] = Variable<String>(dwcTarget.value);
+    }
+    if (dwcField.present) {
+      map['dwcField'] = Variable<String>(dwcField.value);
+    }
+    if (dwcMode.present) {
+      map['dwcMode'] = Variable<String>(dwcMode.value);
+    }
+    if (allowDwcConflict.present) {
+      map['allowDwcConflict'] = Variable<int>(allowDwcConflict.value);
+    }
     if (createdAt.present) {
       map['createdAt'] = Variable<String>(createdAt.value);
     }
@@ -22557,11 +24028,21 @@ class CustomFieldDefinitionCompanion
   String toString() {
     return (StringBuffer('CustomFieldDefinitionCompanion(')
           ..write('id: $id, ')
+          ..write('uuid: $uuid, ')
+          ..write('sourceTemplateUuid: $sourceTemplateUuid, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
           ..write('uiSection: $uiSection, ')
           ..write('options: $options, ')
           ..write('scope: $scope, ')
+          ..write('projectUuid: $projectUuid, ')
+          ..write('catalogFormat: $catalogFormat, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('dwcTarget: $dwcTarget, ')
+          ..write('dwcField: $dwcField, ')
+          ..write('dwcMode: $dwcMode, ')
+          ..write('allowDwcConflict: $allowDwcConflict, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -22591,10 +24072,10 @@ class CustomFieldValue extends Table
   late final GeneratedColumn<int> fieldDefinitionId = GeneratedColumn<int>(
     'fieldDefinitionId',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _projectUuidMeta = const VerificationMeta(
     'projectUuid',
@@ -22611,10 +24092,10 @@ class CustomFieldValue extends Table
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
     'value',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: '',
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _unitMeta = const VerificationMeta('unit');
   late final GeneratedColumn<String> unit = GeneratedColumn<String>(
@@ -22625,6 +24106,71 @@ class CustomFieldValue extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  late final GeneratedColumn<int> eventId = GeneratedColumn<int>(
+    'eventId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _siteIdMeta = const VerificationMeta('siteId');
+  late final GeneratedColumn<int> siteId = GeneratedColumn<int>(
+    'siteId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
+    'specimenUuid',
+  );
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+    'specimenUuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _specimenPartIdMeta = const VerificationMeta(
+    'specimenPartId',
+  );
+  late final GeneratedColumn<int> specimenPartId = GeneratedColumn<int>(
+    'specimenPartId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _parasiteIdMeta = const VerificationMeta(
+    'parasiteId',
+  );
+  late final GeneratedColumn<int> parasiteId = GeneratedColumn<int>(
+    'parasiteId',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isLegacyMeta = const VerificationMeta(
+    'isLegacy',
+  );
+  late final GeneratedColumn<int> isLegacy = GeneratedColumn<int>(
+    'isLegacy',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (isLegacy IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -22632,6 +24178,12 @@ class CustomFieldValue extends Table
     projectUuid,
     value,
     unit,
+    eventId,
+    siteId,
+    specimenUuid,
+    specimenPartId,
+    parasiteId,
+    isLegacy,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -22656,6 +24208,8 @@ class CustomFieldValue extends Table
           _fieldDefinitionIdMeta,
         ),
       );
+    } else if (isInserting) {
+      context.missing(_fieldDefinitionIdMeta);
     }
     if (data.containsKey('projectUuid')) {
       context.handle(
@@ -22671,11 +24225,55 @@ class CustomFieldValue extends Table
         _valueMeta,
         value.isAcceptableOrUnknown(data['value']!, _valueMeta),
       );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
     }
     if (data.containsKey('unit')) {
       context.handle(
         _unitMeta,
         unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('eventId')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['eventId']!, _eventIdMeta),
+      );
+    }
+    if (data.containsKey('siteId')) {
+      context.handle(
+        _siteIdMeta,
+        siteId.isAcceptableOrUnknown(data['siteId']!, _siteIdMeta),
+      );
+    }
+    if (data.containsKey('specimenUuid')) {
+      context.handle(
+        _specimenUuidMeta,
+        specimenUuid.isAcceptableOrUnknown(
+          data['specimenUuid']!,
+          _specimenUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('specimenPartId')) {
+      context.handle(
+        _specimenPartIdMeta,
+        specimenPartId.isAcceptableOrUnknown(
+          data['specimenPartId']!,
+          _specimenPartIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('parasiteId')) {
+      context.handle(
+        _parasiteIdMeta,
+        parasiteId.isAcceptableOrUnknown(data['parasiteId']!, _parasiteIdMeta),
+      );
+    }
+    if (data.containsKey('isLegacy')) {
+      context.handle(
+        _isLegacyMeta,
+        isLegacy.isAcceptableOrUnknown(data['isLegacy']!, _isLegacyMeta),
       );
     }
     return context;
@@ -22694,7 +24292,7 @@ class CustomFieldValue extends Table
       fieldDefinitionId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}fieldDefinitionId'],
-      ),
+      )!,
       projectUuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}projectUuid'],
@@ -22702,11 +24300,35 @@ class CustomFieldValue extends Table
       value: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}value'],
-      ),
+      )!,
       unit: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
       ),
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}eventId'],
+      ),
+      siteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}siteId'],
+      ),
+      specimenUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}specimenUuid'],
+      ),
+      specimenPartId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}specimenPartId'],
+      ),
+      parasiteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parasiteId'],
+      ),
+      isLegacy: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}isLegacy'],
+      )!,
     );
   }
 
@@ -22717,8 +24339,14 @@ class CustomFieldValue extends Table
 
   @override
   List<String> get customConstraints => const [
-    'FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)',
-    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)',
+    'FOREIGN KEY(fieldDefinitionId)REFERENCES customFieldDefinition(id)ON DELETE CASCADE',
+    'FOREIGN KEY(projectUuid)REFERENCES project(uuid)ON DELETE CASCADE',
+    'FOREIGN KEY(eventId)REFERENCES collEvent(id)ON DELETE CASCADE',
+    'FOREIGN KEY(siteId)REFERENCES site(id)ON DELETE CASCADE',
+    'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE',
+    'FOREIGN KEY(specimenPartId)REFERENCES specimenPart(id)ON DELETE CASCADE',
+    'FOREIGN KEY(parasiteId)REFERENCES parasite(id)ON DELETE CASCADE',
+    'CHECK((isLegacy = 1 AND eventId IS NULL AND siteId IS NULL AND specimenUuid IS NULL AND specimenPartId IS NULL AND parasiteId IS NULL)OR(isLegacy = 0 AND projectUuid IS NOT NULL AND((eventId IS NOT NULL)+(siteId IS NOT NULL)+(specimenUuid IS NOT NULL)+(specimenPartId IS NOT NULL)+(parasiteId IS NOT NULL))= 1))',
   ];
   @override
   bool get dontWriteConstraints => true;
@@ -22729,16 +24357,28 @@ class CustomFieldValueData extends DataClass
   final int? id;
 
   /// internal id
-  final int? fieldDefinitionId;
+  final int fieldDefinitionId;
   final String? projectUuid;
-  final String? value;
+  final String value;
   final String? unit;
+  final int? eventId;
+  final int? siteId;
+  final String? specimenUuid;
+  final int? specimenPartId;
+  final int? parasiteId;
+  final int isLegacy;
   const CustomFieldValueData({
     this.id,
-    this.fieldDefinitionId,
+    required this.fieldDefinitionId,
     this.projectUuid,
-    this.value,
+    required this.value,
     this.unit,
+    this.eventId,
+    this.siteId,
+    this.specimenUuid,
+    this.specimenPartId,
+    this.parasiteId,
+    required this.isLegacy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -22746,34 +24386,58 @@ class CustomFieldValueData extends DataClass
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
     }
-    if (!nullToAbsent || fieldDefinitionId != null) {
-      map['fieldDefinitionId'] = Variable<int>(fieldDefinitionId);
-    }
+    map['fieldDefinitionId'] = Variable<int>(fieldDefinitionId);
     if (!nullToAbsent || projectUuid != null) {
       map['projectUuid'] = Variable<String>(projectUuid);
     }
-    if (!nullToAbsent || value != null) {
-      map['value'] = Variable<String>(value);
-    }
+    map['value'] = Variable<String>(value);
     if (!nullToAbsent || unit != null) {
       map['unit'] = Variable<String>(unit);
     }
+    if (!nullToAbsent || eventId != null) {
+      map['eventId'] = Variable<int>(eventId);
+    }
+    if (!nullToAbsent || siteId != null) {
+      map['siteId'] = Variable<int>(siteId);
+    }
+    if (!nullToAbsent || specimenUuid != null) {
+      map['specimenUuid'] = Variable<String>(specimenUuid);
+    }
+    if (!nullToAbsent || specimenPartId != null) {
+      map['specimenPartId'] = Variable<int>(specimenPartId);
+    }
+    if (!nullToAbsent || parasiteId != null) {
+      map['parasiteId'] = Variable<int>(parasiteId);
+    }
+    map['isLegacy'] = Variable<int>(isLegacy);
     return map;
   }
 
   CustomFieldValueCompanion toCompanion(bool nullToAbsent) {
     return CustomFieldValueCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      fieldDefinitionId: fieldDefinitionId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(fieldDefinitionId),
+      fieldDefinitionId: Value(fieldDefinitionId),
       projectUuid: projectUuid == null && nullToAbsent
           ? const Value.absent()
           : Value(projectUuid),
-      value: value == null && nullToAbsent
-          ? const Value.absent()
-          : Value(value),
+      value: Value(value),
       unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      eventId: eventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventId),
+      siteId: siteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(siteId),
+      specimenUuid: specimenUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specimenUuid),
+      specimenPartId: specimenPartId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specimenPartId),
+      parasiteId: parasiteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parasiteId),
+      isLegacy: Value(isLegacy),
     );
   }
 
@@ -22784,10 +24448,16 @@ class CustomFieldValueData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CustomFieldValueData(
       id: serializer.fromJson<int?>(json['id']),
-      fieldDefinitionId: serializer.fromJson<int?>(json['fieldDefinitionId']),
+      fieldDefinitionId: serializer.fromJson<int>(json['fieldDefinitionId']),
       projectUuid: serializer.fromJson<String?>(json['projectUuid']),
-      value: serializer.fromJson<String?>(json['value']),
+      value: serializer.fromJson<String>(json['value']),
       unit: serializer.fromJson<String?>(json['unit']),
+      eventId: serializer.fromJson<int?>(json['eventId']),
+      siteId: serializer.fromJson<int?>(json['siteId']),
+      specimenUuid: serializer.fromJson<String?>(json['specimenUuid']),
+      specimenPartId: serializer.fromJson<int?>(json['specimenPartId']),
+      parasiteId: serializer.fromJson<int?>(json['parasiteId']),
+      isLegacy: serializer.fromJson<int>(json['isLegacy']),
     );
   }
   @override
@@ -22795,27 +24465,45 @@ class CustomFieldValueData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int?>(id),
-      'fieldDefinitionId': serializer.toJson<int?>(fieldDefinitionId),
+      'fieldDefinitionId': serializer.toJson<int>(fieldDefinitionId),
       'projectUuid': serializer.toJson<String?>(projectUuid),
-      'value': serializer.toJson<String?>(value),
+      'value': serializer.toJson<String>(value),
       'unit': serializer.toJson<String?>(unit),
+      'eventId': serializer.toJson<int?>(eventId),
+      'siteId': serializer.toJson<int?>(siteId),
+      'specimenUuid': serializer.toJson<String?>(specimenUuid),
+      'specimenPartId': serializer.toJson<int?>(specimenPartId),
+      'parasiteId': serializer.toJson<int?>(parasiteId),
+      'isLegacy': serializer.toJson<int>(isLegacy),
     };
   }
 
   CustomFieldValueData copyWith({
     Value<int?> id = const Value.absent(),
-    Value<int?> fieldDefinitionId = const Value.absent(),
+    int? fieldDefinitionId,
     Value<String?> projectUuid = const Value.absent(),
-    Value<String?> value = const Value.absent(),
+    String? value,
     Value<String?> unit = const Value.absent(),
+    Value<int?> eventId = const Value.absent(),
+    Value<int?> siteId = const Value.absent(),
+    Value<String?> specimenUuid = const Value.absent(),
+    Value<int?> specimenPartId = const Value.absent(),
+    Value<int?> parasiteId = const Value.absent(),
+    int? isLegacy,
   }) => CustomFieldValueData(
     id: id.present ? id.value : this.id,
-    fieldDefinitionId: fieldDefinitionId.present
-        ? fieldDefinitionId.value
-        : this.fieldDefinitionId,
+    fieldDefinitionId: fieldDefinitionId ?? this.fieldDefinitionId,
     projectUuid: projectUuid.present ? projectUuid.value : this.projectUuid,
-    value: value.present ? value.value : this.value,
+    value: value ?? this.value,
     unit: unit.present ? unit.value : this.unit,
+    eventId: eventId.present ? eventId.value : this.eventId,
+    siteId: siteId.present ? siteId.value : this.siteId,
+    specimenUuid: specimenUuid.present ? specimenUuid.value : this.specimenUuid,
+    specimenPartId: specimenPartId.present
+        ? specimenPartId.value
+        : this.specimenPartId,
+    parasiteId: parasiteId.present ? parasiteId.value : this.parasiteId,
+    isLegacy: isLegacy ?? this.isLegacy,
   );
   CustomFieldValueData copyWithCompanion(CustomFieldValueCompanion data) {
     return CustomFieldValueData(
@@ -22828,6 +24516,18 @@ class CustomFieldValueData extends DataClass
           : this.projectUuid,
       value: data.value.present ? data.value.value : this.value,
       unit: data.unit.present ? data.unit.value : this.unit,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      siteId: data.siteId.present ? data.siteId.value : this.siteId,
+      specimenUuid: data.specimenUuid.present
+          ? data.specimenUuid.value
+          : this.specimenUuid,
+      specimenPartId: data.specimenPartId.present
+          ? data.specimenPartId.value
+          : this.specimenPartId,
+      parasiteId: data.parasiteId.present
+          ? data.parasiteId.value
+          : this.parasiteId,
+      isLegacy: data.isLegacy.present ? data.isLegacy.value : this.isLegacy,
     );
   }
 
@@ -22838,14 +24538,31 @@ class CustomFieldValueData extends DataClass
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
-          ..write('unit: $unit')
+          ..write('unit: $unit, ')
+          ..write('eventId: $eventId, ')
+          ..write('siteId: $siteId, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenPartId: $specimenPartId, ')
+          ..write('parasiteId: $parasiteId, ')
+          ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, fieldDefinitionId, projectUuid, value, unit);
+  int get hashCode => Object.hash(
+    id,
+    fieldDefinitionId,
+    projectUuid,
+    value,
+    unit,
+    eventId,
+    siteId,
+    specimenUuid,
+    specimenPartId,
+    parasiteId,
+    isLegacy,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -22854,35 +24571,66 @@ class CustomFieldValueData extends DataClass
           other.fieldDefinitionId == this.fieldDefinitionId &&
           other.projectUuid == this.projectUuid &&
           other.value == this.value &&
-          other.unit == this.unit);
+          other.unit == this.unit &&
+          other.eventId == this.eventId &&
+          other.siteId == this.siteId &&
+          other.specimenUuid == this.specimenUuid &&
+          other.specimenPartId == this.specimenPartId &&
+          other.parasiteId == this.parasiteId &&
+          other.isLegacy == this.isLegacy);
 }
 
 class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
   final Value<int?> id;
-  final Value<int?> fieldDefinitionId;
+  final Value<int> fieldDefinitionId;
   final Value<String?> projectUuid;
-  final Value<String?> value;
+  final Value<String> value;
   final Value<String?> unit;
+  final Value<int?> eventId;
+  final Value<int?> siteId;
+  final Value<String?> specimenUuid;
+  final Value<int?> specimenPartId;
+  final Value<int?> parasiteId;
+  final Value<int> isLegacy;
   const CustomFieldValueCompanion({
     this.id = const Value.absent(),
     this.fieldDefinitionId = const Value.absent(),
     this.projectUuid = const Value.absent(),
     this.value = const Value.absent(),
     this.unit = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.siteId = const Value.absent(),
+    this.specimenUuid = const Value.absent(),
+    this.specimenPartId = const Value.absent(),
+    this.parasiteId = const Value.absent(),
+    this.isLegacy = const Value.absent(),
   });
   CustomFieldValueCompanion.insert({
     this.id = const Value.absent(),
-    this.fieldDefinitionId = const Value.absent(),
+    required int fieldDefinitionId,
     this.projectUuid = const Value.absent(),
-    this.value = const Value.absent(),
+    required String value,
     this.unit = const Value.absent(),
-  });
+    this.eventId = const Value.absent(),
+    this.siteId = const Value.absent(),
+    this.specimenUuid = const Value.absent(),
+    this.specimenPartId = const Value.absent(),
+    this.parasiteId = const Value.absent(),
+    this.isLegacy = const Value.absent(),
+  }) : fieldDefinitionId = Value(fieldDefinitionId),
+       value = Value(value);
   static Insertable<CustomFieldValueData> custom({
     Expression<int>? id,
     Expression<int>? fieldDefinitionId,
     Expression<String>? projectUuid,
     Expression<String>? value,
     Expression<String>? unit,
+    Expression<int>? eventId,
+    Expression<int>? siteId,
+    Expression<String>? specimenUuid,
+    Expression<int>? specimenPartId,
+    Expression<int>? parasiteId,
+    Expression<int>? isLegacy,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -22890,15 +24638,27 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       if (projectUuid != null) 'projectUuid': projectUuid,
       if (value != null) 'value': value,
       if (unit != null) 'unit': unit,
+      if (eventId != null) 'eventId': eventId,
+      if (siteId != null) 'siteId': siteId,
+      if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (specimenPartId != null) 'specimenPartId': specimenPartId,
+      if (parasiteId != null) 'parasiteId': parasiteId,
+      if (isLegacy != null) 'isLegacy': isLegacy,
     });
   }
 
   CustomFieldValueCompanion copyWith({
     Value<int?>? id,
-    Value<int?>? fieldDefinitionId,
+    Value<int>? fieldDefinitionId,
     Value<String?>? projectUuid,
-    Value<String?>? value,
+    Value<String>? value,
     Value<String?>? unit,
+    Value<int?>? eventId,
+    Value<int?>? siteId,
+    Value<String?>? specimenUuid,
+    Value<int?>? specimenPartId,
+    Value<int?>? parasiteId,
+    Value<int>? isLegacy,
   }) {
     return CustomFieldValueCompanion(
       id: id ?? this.id,
@@ -22906,6 +24666,12 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
       projectUuid: projectUuid ?? this.projectUuid,
       value: value ?? this.value,
       unit: unit ?? this.unit,
+      eventId: eventId ?? this.eventId,
+      siteId: siteId ?? this.siteId,
+      specimenUuid: specimenUuid ?? this.specimenUuid,
+      specimenPartId: specimenPartId ?? this.specimenPartId,
+      parasiteId: parasiteId ?? this.parasiteId,
+      isLegacy: isLegacy ?? this.isLegacy,
     );
   }
 
@@ -22927,6 +24693,24 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
     }
+    if (eventId.present) {
+      map['eventId'] = Variable<int>(eventId.value);
+    }
+    if (siteId.present) {
+      map['siteId'] = Variable<int>(siteId.value);
+    }
+    if (specimenUuid.present) {
+      map['specimenUuid'] = Variable<String>(specimenUuid.value);
+    }
+    if (specimenPartId.present) {
+      map['specimenPartId'] = Variable<int>(specimenPartId.value);
+    }
+    if (parasiteId.present) {
+      map['parasiteId'] = Variable<int>(parasiteId.value);
+    }
+    if (isLegacy.present) {
+      map['isLegacy'] = Variable<int>(isLegacy.value);
+    }
     return map;
   }
 
@@ -22937,7 +24721,13 @@ class CustomFieldValueCompanion extends UpdateCompanion<CustomFieldValueData> {
           ..write('fieldDefinitionId: $fieldDefinitionId, ')
           ..write('projectUuid: $projectUuid, ')
           ..write('value: $value, ')
-          ..write('unit: $unit')
+          ..write('unit: $unit, ')
+          ..write('eventId: $eventId, ')
+          ..write('siteId: $siteId, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenPartId: $specimenPartId, ')
+          ..write('parasiteId: $parasiteId, ')
+          ..write('isLegacy: $isLegacy')
           ..write(')'))
         .toString();
   }
@@ -22947,13 +24737,15 @@ abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
   late final Project project = Project(this);
+  late final Geography geography = Geography(this);
   late final Personnel personnel = Personnel(this);
   late final Media media = Media(this);
   late final Site site = Site(this);
+  late final SiteAttribute siteAttribute = SiteAttribute(this);
   late final FossilSite fossilSite = FossilSite(this);
   late final Coordinate coordinate = Coordinate(this);
   late final CollEvent collEvent = CollEvent(this);
-  late final Weather weather = Weather(this);
+  late final Environment environment = Environment(this);
   late final CollPersonnel collPersonnel = CollPersonnel(this);
   late final CollEffort collEffort = CollEffort(this);
   late final Narrative narrative = Narrative(this);
@@ -22994,6 +24786,38 @@ abstract class _$Database extends GeneratedDatabase {
   late final CustomFieldDefinition customFieldDefinition =
       CustomFieldDefinition(this);
   late final CustomFieldValue customFieldValue = CustomFieldValue(this);
+  late final Index customFieldSiteValueIdx = Index(
+    'custom_field_site_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_site_value_idx ON customFieldValue (fieldDefinitionId, siteId) WHERE siteId IS NOT NULL',
+  );
+  late final Index customFieldEventValueIdx = Index(
+    'custom_field_event_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_event_value_idx ON customFieldValue (fieldDefinitionId, eventId) WHERE eventId IS NOT NULL',
+  );
+  late final Index customFieldSpecimenValueIdx = Index(
+    'custom_field_specimen_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_specimen_value_idx ON customFieldValue (fieldDefinitionId, specimenUuid) WHERE specimenUuid IS NOT NULL',
+  );
+  late final Index customFieldPartValueIdx = Index(
+    'custom_field_part_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_part_value_idx ON customFieldValue (fieldDefinitionId, specimenPartId) WHERE specimenPartId IS NOT NULL',
+  );
+  late final Index customFieldParasiteValueIdx = Index(
+    'custom_field_parasite_value_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_parasite_value_idx ON customFieldValue (fieldDefinitionId, parasiteId) WHERE parasiteId IS NOT NULL',
+  );
+  late final Index customFieldTemplateTargetIdx = Index(
+    'custom_field_template_target_idx',
+    'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
+  );
+  late final Trigger customFieldValueValidateInsert = Trigger(
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'custom_field_value_validate_insert',
+  );
+  late final Trigger customFieldValueValidateUpdate = Trigger(
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'birds\' WHEN \'herpetofauna\' THEN \'herpetofauna\' WHEN \'arthropods\' THEN \'arthropods\' ELSE \'mammals\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'custom_field_value_validate_update',
+  );
   late final Index specimenProjectSpeciesIdx = Index(
     'specimen_project_species_idx',
     'CREATE INDEX IF NOT EXISTS specimen_project_species_idx ON specimen (projectUuid, speciesID)',
@@ -23005,6 +24829,10 @@ abstract class _$Database extends GeneratedDatabase {
   late final Index siteProjectIdx = Index(
     'site_project_idx',
     'CREATE INDEX IF NOT EXISTS site_project_idx ON site (projectUuid)',
+  );
+  late final Index siteGeographyIdx = Index(
+    'site_geography_idx',
+    'CREATE INDEX IF NOT EXISTS site_geography_idx ON site (geographyId)',
   );
   late final Index coordinateSiteIdx = Index(
     'coordinate_site_idx',
@@ -23056,13 +24884,15 @@ abstract class _$Database extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     project,
+    geography,
     personnel,
     media,
     site,
+    siteAttribute,
     fossilSite,
     coordinate,
     collEvent,
-    weather,
+    environment,
     collPersonnel,
     collEffort,
     narrative,
@@ -23090,9 +24920,18 @@ abstract class _$Database extends GeneratedDatabase {
     specimenPart,
     customFieldDefinition,
     customFieldValue,
+    customFieldSiteValueIdx,
+    customFieldEventValueIdx,
+    customFieldSpecimenValueIdx,
+    customFieldPartValueIdx,
+    customFieldParasiteValueIdx,
+    customFieldTemplateTargetIdx,
+    customFieldValueValidateInsert,
+    customFieldValueValidateUpdate,
     specimenProjectSpeciesIdx,
     specimenProjectEventIdx,
     siteProjectIdx,
+    siteGeographyIdx,
     coordinateSiteIdx,
     specimenProjectCoordinateIdx,
     collEventProjectSiteIdx,
@@ -23174,6 +25013,76 @@ abstract class _$Database extends GeneratedDatabase {
       on: TableUpdateQuery.onTableName(
         'eventAssociatedData',
         limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'project',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldDefinition', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldDefinition',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'project',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'collEvent',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'site',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimen',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimenPart',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'parasite',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('customFieldValue', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldValue',
+        limitUpdateKind: UpdateKind.insert,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'customFieldValue',
+        limitUpdateKind: UpdateKind.update,
       ),
       result: [],
     ),
@@ -23657,6 +25566,254 @@ typedef $ProjectProcessedTableManager =
       (ProjectData, $ProjectReferences),
       ProjectData,
       PrefetchHooks Function({bool associatedDataRefs})
+    >;
+typedef $GeographyCreateCompanionBuilder =
+    GeographyCompanion Function({
+      Value<int> id,
+      Value<String?> country,
+      Value<String?> islandGroup,
+      Value<String?> stateProvince,
+      Value<String?> county,
+      Value<String?> municipality,
+      Value<String?> locality,
+      required String matchKey,
+    });
+typedef $GeographyUpdateCompanionBuilder =
+    GeographyCompanion Function({
+      Value<int> id,
+      Value<String?> country,
+      Value<String?> islandGroup,
+      Value<String?> stateProvince,
+      Value<String?> county,
+      Value<String?> municipality,
+      Value<String?> locality,
+      Value<String> matchKey,
+    });
+
+class $GeographyFilterComposer extends Composer<_$Database, Geography> {
+  $GeographyFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get county => $composableBuilder(
+    column: $table.county,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locality => $composableBuilder(
+    column: $table.locality,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matchKey => $composableBuilder(
+    column: $table.matchKey,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $GeographyOrderingComposer extends Composer<_$Database, Geography> {
+  $GeographyOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get county => $composableBuilder(
+    column: $table.county,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locality => $composableBuilder(
+    column: $table.locality,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get matchKey => $composableBuilder(
+    column: $table.matchKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $GeographyAnnotationComposer extends Composer<_$Database, Geography> {
+  $GeographyAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get country =>
+      $composableBuilder(column: $table.country, builder: (column) => column);
+
+  GeneratedColumn<String> get islandGroup => $composableBuilder(
+    column: $table.islandGroup,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get stateProvince => $composableBuilder(
+    column: $table.stateProvince,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get county =>
+      $composableBuilder(column: $table.county, builder: (column) => column);
+
+  GeneratedColumn<String> get municipality => $composableBuilder(
+    column: $table.municipality,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get locality =>
+      $composableBuilder(column: $table.locality, builder: (column) => column);
+
+  GeneratedColumn<String> get matchKey =>
+      $composableBuilder(column: $table.matchKey, builder: (column) => column);
+}
+
+class $GeographyTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          Geography,
+          GeographyData,
+          $GeographyFilterComposer,
+          $GeographyOrderingComposer,
+          $GeographyAnnotationComposer,
+          $GeographyCreateCompanionBuilder,
+          $GeographyUpdateCompanionBuilder,
+          (GeographyData, BaseReferences<_$Database, Geography, GeographyData>),
+          GeographyData,
+          PrefetchHooks Function()
+        > {
+  $GeographyTableManager(_$Database db, Geography table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $GeographyFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $GeographyOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $GeographyAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
+                Value<String?> stateProvince = const Value.absent(),
+                Value<String?> county = const Value.absent(),
+                Value<String?> municipality = const Value.absent(),
+                Value<String?> locality = const Value.absent(),
+                Value<String> matchKey = const Value.absent(),
+              }) => GeographyCompanion(
+                id: id,
+                country: country,
+                islandGroup: islandGroup,
+                stateProvince: stateProvince,
+                county: county,
+                municipality: municipality,
+                locality: locality,
+                matchKey: matchKey,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> country = const Value.absent(),
+                Value<String?> islandGroup = const Value.absent(),
+                Value<String?> stateProvince = const Value.absent(),
+                Value<String?> county = const Value.absent(),
+                Value<String?> municipality = const Value.absent(),
+                Value<String?> locality = const Value.absent(),
+                required String matchKey,
+              }) => GeographyCompanion.insert(
+                id: id,
+                country: country,
+                islandGroup: islandGroup,
+                stateProvince: stateProvince,
+                county: county,
+                municipality: municipality,
+                locality: locality,
+                matchKey: matchKey,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $GeographyProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      Geography,
+      GeographyData,
+      $GeographyFilterComposer,
+      $GeographyOrderingComposer,
+      $GeographyAnnotationComposer,
+      $GeographyCreateCompanionBuilder,
+      $GeographyUpdateCompanionBuilder,
+      (GeographyData, BaseReferences<_$Database, Geography, GeographyData>),
+      GeographyData,
+      PrefetchHooks Function()
     >;
 typedef $PersonnelCreateCompanionBuilder =
     PersonnelCompanion Function({
@@ -24537,16 +26694,9 @@ typedef $SiteCreateCompanionBuilder =
       Value<String?> projectUuid,
       Value<String?> leadStaffId,
       Value<String?> siteType,
-      Value<String?> country,
-      Value<String?> stateProvince,
-      Value<String?> county,
-      Value<String?> municipality,
+      Value<int?> geographyId,
       Value<String?> mediaID,
-      Value<String?> locality,
       Value<String?> remark,
-      Value<String?> habitatType,
-      Value<String?> habitatCondition,
-      Value<String?> habitatDescription,
     });
 typedef $SiteUpdateCompanionBuilder =
     SiteCompanion Function({
@@ -24555,16 +26705,9 @@ typedef $SiteUpdateCompanionBuilder =
       Value<String?> projectUuid,
       Value<String?> leadStaffId,
       Value<String?> siteType,
-      Value<String?> country,
-      Value<String?> stateProvince,
-      Value<String?> county,
-      Value<String?> municipality,
+      Value<int?> geographyId,
       Value<String?> mediaID,
-      Value<String?> locality,
       Value<String?> remark,
-      Value<String?> habitatType,
-      Value<String?> habitatCondition,
-      Value<String?> habitatDescription,
     });
 
 final class $SiteReferences extends BaseReferences<_$Database, Site, SiteData> {
@@ -24622,23 +26765,8 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get country => $composableBuilder(
-    column: $table.country,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get county => $composableBuilder(
-    column: $table.county,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  ColumnFilters<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -24647,28 +26775,8 @@ class $SiteFilterComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get locality => $composableBuilder(
-    column: $table.locality,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get remark => $composableBuilder(
     column: $table.remark,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -24731,23 +26839,8 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get country => $composableBuilder(
-    column: $table.country,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get county => $composableBuilder(
-    column: $table.county,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  ColumnOrderings<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -24756,28 +26849,8 @@ class $SiteOrderingComposer extends Composer<_$Database, Site> {
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get locality => $composableBuilder(
-    column: $table.locality,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get remark => $composableBuilder(
     column: $table.remark,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -24809,45 +26882,16 @@ class $SiteAnnotationComposer extends Composer<_$Database, Site> {
   GeneratedColumn<String> get siteType =>
       $composableBuilder(column: $table.siteType, builder: (column) => column);
 
-  GeneratedColumn<String> get country =>
-      $composableBuilder(column: $table.country, builder: (column) => column);
-
-  GeneratedColumn<String> get stateProvince => $composableBuilder(
-    column: $table.stateProvince,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get county =>
-      $composableBuilder(column: $table.county, builder: (column) => column);
-
-  GeneratedColumn<String> get municipality => $composableBuilder(
-    column: $table.municipality,
+  GeneratedColumn<int> get geographyId => $composableBuilder(
+    column: $table.geographyId,
     builder: (column) => column,
   );
 
   GeneratedColumn<String> get mediaID =>
       $composableBuilder(column: $table.mediaID, builder: (column) => column);
 
-  GeneratedColumn<String> get locality =>
-      $composableBuilder(column: $table.locality, builder: (column) => column);
-
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
-
-  GeneratedColumn<String> get habitatType => $composableBuilder(
-    column: $table.habitatType,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get habitatCondition => $composableBuilder(
-    column: $table.habitatCondition,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get habitatDescription => $composableBuilder(
-    column: $table.habitatDescription,
-    builder: (column) => column,
-  );
 
   Expression<T> collEventRefs<T extends Object>(
     Expression<T> Function($CollEventAnnotationComposer a) f,
@@ -24908,32 +26952,18 @@ class $SiteTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
-                Value<String?> country = const Value.absent(),
-                Value<String?> stateProvince = const Value.absent(),
-                Value<String?> county = const Value.absent(),
-                Value<String?> municipality = const Value.absent(),
+                Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
-                Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
-                Value<String?> habitatType = const Value.absent(),
-                Value<String?> habitatCondition = const Value.absent(),
-                Value<String?> habitatDescription = const Value.absent(),
               }) => SiteCompanion(
                 id: id,
                 siteID: siteID,
                 projectUuid: projectUuid,
                 leadStaffId: leadStaffId,
                 siteType: siteType,
-                country: country,
-                stateProvince: stateProvince,
-                county: county,
-                municipality: municipality,
+                geographyId: geographyId,
                 mediaID: mediaID,
-                locality: locality,
                 remark: remark,
-                habitatType: habitatType,
-                habitatCondition: habitatCondition,
-                habitatDescription: habitatDescription,
               ),
           createCompanionCallback:
               ({
@@ -24942,32 +26972,18 @@ class $SiteTableManager
                 Value<String?> projectUuid = const Value.absent(),
                 Value<String?> leadStaffId = const Value.absent(),
                 Value<String?> siteType = const Value.absent(),
-                Value<String?> country = const Value.absent(),
-                Value<String?> stateProvince = const Value.absent(),
-                Value<String?> county = const Value.absent(),
-                Value<String?> municipality = const Value.absent(),
+                Value<int?> geographyId = const Value.absent(),
                 Value<String?> mediaID = const Value.absent(),
-                Value<String?> locality = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
-                Value<String?> habitatType = const Value.absent(),
-                Value<String?> habitatCondition = const Value.absent(),
-                Value<String?> habitatDescription = const Value.absent(),
               }) => SiteCompanion.insert(
                 id: id,
                 siteID: siteID,
                 projectUuid: projectUuid,
                 leadStaffId: leadStaffId,
                 siteType: siteType,
-                country: country,
-                stateProvince: stateProvince,
-                county: county,
-                municipality: municipality,
+                geographyId: geographyId,
                 mediaID: mediaID,
-                locality: locality,
                 remark: remark,
-                habitatType: habitatType,
-                habitatCondition: habitatCondition,
-                habitatDescription: habitatDescription,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), $SiteReferences(db, table, e)))
@@ -25010,6 +27026,213 @@ typedef $SiteProcessedTableManager =
       (SiteData, $SiteReferences),
       SiteData,
       PrefetchHooks Function({bool collEventRefs})
+    >;
+typedef $SiteAttributeCreateCompanionBuilder =
+    SiteAttributeCompanion Function({
+      Value<int?> siteID,
+      Value<String?> habitatType,
+      Value<String?> habitatCondition,
+      Value<String?> habitatDescription,
+      Value<String?> canopyCover,
+      Value<int> rowid,
+    });
+typedef $SiteAttributeUpdateCompanionBuilder =
+    SiteAttributeCompanion Function({
+      Value<int?> siteID,
+      Value<String?> habitatType,
+      Value<String?> habitatCondition,
+      Value<String?> habitatDescription,
+      Value<String?> canopyCover,
+      Value<int> rowid,
+    });
+
+class $SiteAttributeFilterComposer extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get siteID => $composableBuilder(
+    column: $table.siteID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $SiteAttributeOrderingComposer
+    extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get siteID => $composableBuilder(
+    column: $table.siteID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $SiteAttributeAnnotationComposer
+    extends Composer<_$Database, SiteAttribute> {
+  $SiteAttributeAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get siteID =>
+      $composableBuilder(column: $table.siteID, builder: (column) => column);
+
+  GeneratedColumn<String> get habitatType => $composableBuilder(
+    column: $table.habitatType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get habitatCondition => $composableBuilder(
+    column: $table.habitatCondition,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get habitatDescription => $composableBuilder(
+    column: $table.habitatDescription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get canopyCover => $composableBuilder(
+    column: $table.canopyCover,
+    builder: (column) => column,
+  );
+}
+
+class $SiteAttributeTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          SiteAttribute,
+          SiteAttributeData,
+          $SiteAttributeFilterComposer,
+          $SiteAttributeOrderingComposer,
+          $SiteAttributeAnnotationComposer,
+          $SiteAttributeCreateCompanionBuilder,
+          $SiteAttributeUpdateCompanionBuilder,
+          (
+            SiteAttributeData,
+            BaseReferences<_$Database, SiteAttribute, SiteAttributeData>,
+          ),
+          SiteAttributeData,
+          PrefetchHooks Function()
+        > {
+  $SiteAttributeTableManager(_$Database db, SiteAttribute table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SiteAttributeFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SiteAttributeOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SiteAttributeAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int?> siteID = const Value.absent(),
+                Value<String?> habitatType = const Value.absent(),
+                Value<String?> habitatCondition = const Value.absent(),
+                Value<String?> habitatDescription = const Value.absent(),
+                Value<String?> canopyCover = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SiteAttributeCompanion(
+                siteID: siteID,
+                habitatType: habitatType,
+                habitatCondition: habitatCondition,
+                habitatDescription: habitatDescription,
+                canopyCover: canopyCover,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int?> siteID = const Value.absent(),
+                Value<String?> habitatType = const Value.absent(),
+                Value<String?> habitatCondition = const Value.absent(),
+                Value<String?> habitatDescription = const Value.absent(),
+                Value<String?> canopyCover = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SiteAttributeCompanion.insert(
+                siteID: siteID,
+                habitatType: habitatType,
+                habitatCondition: habitatCondition,
+                habitatDescription: habitatDescription,
+                canopyCover: canopyCover,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $SiteAttributeProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      SiteAttribute,
+      SiteAttributeData,
+      $SiteAttributeFilterComposer,
+      $SiteAttributeOrderingComposer,
+      $SiteAttributeAnnotationComposer,
+      $SiteAttributeCreateCompanionBuilder,
+      $SiteAttributeUpdateCompanionBuilder,
+      (
+        SiteAttributeData,
+        BaseReferences<_$Database, SiteAttribute, SiteAttributeData>,
+      ),
+      SiteAttributeData,
+      PrefetchHooks Function()
     >;
 typedef $FossilSiteCreateCompanionBuilder =
     FossilSiteCompanion Function({
@@ -26240,8 +28463,8 @@ typedef $CollEventProcessedTableManager =
       CollEventData,
       PrefetchHooks Function({bool siteID})
     >;
-typedef $WeatherCreateCompanionBuilder =
-    WeatherCompanion Function({
+typedef $EnvironmentCreateCompanionBuilder =
+    EnvironmentCompanion Function({
       Value<int?> eventID,
       Value<double?> lowestDayTempC,
       Value<double?> highestDayTempC,
@@ -26252,11 +28475,19 @@ typedef $WeatherCreateCompanionBuilder =
       Value<String?> sunriseTime,
       Value<String?> sunsetTime,
       Value<String?> moonPhase,
+      Value<String?> cloudCover,
+      Value<double?> rainfallInMm,
+      Value<double?> ambientTemperature,
+      Value<double?> ambientHumidity,
+      Value<double?> waterTemperature,
+      Value<double?> pH,
+      Value<double?> dissolvedOxygen,
+      Value<double?> flowVelocity,
       Value<String?> notes,
       Value<int> rowid,
     });
-typedef $WeatherUpdateCompanionBuilder =
-    WeatherCompanion Function({
+typedef $EnvironmentUpdateCompanionBuilder =
+    EnvironmentCompanion Function({
       Value<int?> eventID,
       Value<double?> lowestDayTempC,
       Value<double?> highestDayTempC,
@@ -26267,12 +28498,20 @@ typedef $WeatherUpdateCompanionBuilder =
       Value<String?> sunriseTime,
       Value<String?> sunsetTime,
       Value<String?> moonPhase,
+      Value<String?> cloudCover,
+      Value<double?> rainfallInMm,
+      Value<double?> ambientTemperature,
+      Value<double?> ambientHumidity,
+      Value<double?> waterTemperature,
+      Value<double?> pH,
+      Value<double?> dissolvedOxygen,
+      Value<double?> flowVelocity,
       Value<String?> notes,
       Value<int> rowid,
     });
 
-class $WeatherFilterComposer extends Composer<_$Database, Weather> {
-  $WeatherFilterComposer({
+class $EnvironmentFilterComposer extends Composer<_$Database, Environment> {
+  $EnvironmentFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -26329,14 +28568,54 @@ class $WeatherFilterComposer extends Composer<_$Database, Weather> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get pH => $composableBuilder(
+    column: $table.pH,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $WeatherOrderingComposer extends Composer<_$Database, Weather> {
-  $WeatherOrderingComposer({
+class $EnvironmentOrderingComposer extends Composer<_$Database, Environment> {
+  $EnvironmentOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -26393,14 +28672,54 @@ class $WeatherOrderingComposer extends Composer<_$Database, Weather> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get pH => $composableBuilder(
+    column: $table.pH,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $WeatherAnnotationComposer extends Composer<_$Database, Weather> {
-  $WeatherAnnotationComposer({
+class $EnvironmentAnnotationComposer extends Composer<_$Database, Environment> {
+  $EnvironmentAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -26453,36 +28772,77 @@ class $WeatherAnnotationComposer extends Composer<_$Database, Weather> {
   GeneratedColumn<String> get moonPhase =>
       $composableBuilder(column: $table.moonPhase, builder: (column) => column);
 
+  GeneratedColumn<String> get cloudCover => $composableBuilder(
+    column: $table.cloudCover,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get rainfallInMm => $composableBuilder(
+    column: $table.rainfallInMm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get ambientTemperature => $composableBuilder(
+    column: $table.ambientTemperature,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get ambientHumidity => $composableBuilder(
+    column: $table.ambientHumidity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get waterTemperature => $composableBuilder(
+    column: $table.waterTemperature,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get pH =>
+      $composableBuilder(column: $table.pH, builder: (column) => column);
+
+  GeneratedColumn<double> get dissolvedOxygen => $composableBuilder(
+    column: $table.dissolvedOxygen,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get flowVelocity => $composableBuilder(
+    column: $table.flowVelocity,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 }
 
-class $WeatherTableManager
+class $EnvironmentTableManager
     extends
         RootTableManager<
           _$Database,
-          Weather,
-          WeatherData,
-          $WeatherFilterComposer,
-          $WeatherOrderingComposer,
-          $WeatherAnnotationComposer,
-          $WeatherCreateCompanionBuilder,
-          $WeatherUpdateCompanionBuilder,
-          (WeatherData, BaseReferences<_$Database, Weather, WeatherData>),
-          WeatherData,
+          Environment,
+          EnvironmentData,
+          $EnvironmentFilterComposer,
+          $EnvironmentOrderingComposer,
+          $EnvironmentAnnotationComposer,
+          $EnvironmentCreateCompanionBuilder,
+          $EnvironmentUpdateCompanionBuilder,
+          (
+            EnvironmentData,
+            BaseReferences<_$Database, Environment, EnvironmentData>,
+          ),
+          EnvironmentData,
           PrefetchHooks Function()
         > {
-  $WeatherTableManager(_$Database db, Weather table)
+  $EnvironmentTableManager(_$Database db, Environment table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $WeatherFilterComposer($db: db, $table: table),
+              $EnvironmentFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $WeatherOrderingComposer($db: db, $table: table),
+              $EnvironmentOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $WeatherAnnotationComposer($db: db, $table: table),
+              $EnvironmentAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int?> eventID = const Value.absent(),
@@ -26495,9 +28855,17 @@ class $WeatherTableManager
                 Value<String?> sunriseTime = const Value.absent(),
                 Value<String?> sunsetTime = const Value.absent(),
                 Value<String?> moonPhase = const Value.absent(),
+                Value<String?> cloudCover = const Value.absent(),
+                Value<double?> rainfallInMm = const Value.absent(),
+                Value<double?> ambientTemperature = const Value.absent(),
+                Value<double?> ambientHumidity = const Value.absent(),
+                Value<double?> waterTemperature = const Value.absent(),
+                Value<double?> pH = const Value.absent(),
+                Value<double?> dissolvedOxygen = const Value.absent(),
+                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => WeatherCompanion(
+              }) => EnvironmentCompanion(
                 eventID: eventID,
                 lowestDayTempC: lowestDayTempC,
                 highestDayTempC: highestDayTempC,
@@ -26508,6 +28876,14 @@ class $WeatherTableManager
                 sunriseTime: sunriseTime,
                 sunsetTime: sunsetTime,
                 moonPhase: moonPhase,
+                cloudCover: cloudCover,
+                rainfallInMm: rainfallInMm,
+                ambientTemperature: ambientTemperature,
+                ambientHumidity: ambientHumidity,
+                waterTemperature: waterTemperature,
+                pH: pH,
+                dissolvedOxygen: dissolvedOxygen,
+                flowVelocity: flowVelocity,
                 notes: notes,
                 rowid: rowid,
               ),
@@ -26523,9 +28899,17 @@ class $WeatherTableManager
                 Value<String?> sunriseTime = const Value.absent(),
                 Value<String?> sunsetTime = const Value.absent(),
                 Value<String?> moonPhase = const Value.absent(),
+                Value<String?> cloudCover = const Value.absent(),
+                Value<double?> rainfallInMm = const Value.absent(),
+                Value<double?> ambientTemperature = const Value.absent(),
+                Value<double?> ambientHumidity = const Value.absent(),
+                Value<double?> waterTemperature = const Value.absent(),
+                Value<double?> pH = const Value.absent(),
+                Value<double?> dissolvedOxygen = const Value.absent(),
+                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => WeatherCompanion.insert(
+              }) => EnvironmentCompanion.insert(
                 eventID: eventID,
                 lowestDayTempC: lowestDayTempC,
                 highestDayTempC: highestDayTempC,
@@ -26536,6 +28920,14 @@ class $WeatherTableManager
                 sunriseTime: sunriseTime,
                 sunsetTime: sunsetTime,
                 moonPhase: moonPhase,
+                cloudCover: cloudCover,
+                rainfallInMm: rainfallInMm,
+                ambientTemperature: ambientTemperature,
+                ambientHumidity: ambientHumidity,
+                waterTemperature: waterTemperature,
+                pH: pH,
+                dissolvedOxygen: dissolvedOxygen,
+                flowVelocity: flowVelocity,
                 notes: notes,
                 rowid: rowid,
               ),
@@ -26547,18 +28939,21 @@ class $WeatherTableManager
       );
 }
 
-typedef $WeatherProcessedTableManager =
+typedef $EnvironmentProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      Weather,
-      WeatherData,
-      $WeatherFilterComposer,
-      $WeatherOrderingComposer,
-      $WeatherAnnotationComposer,
-      $WeatherCreateCompanionBuilder,
-      $WeatherUpdateCompanionBuilder,
-      (WeatherData, BaseReferences<_$Database, Weather, WeatherData>),
-      WeatherData,
+      Environment,
+      EnvironmentData,
+      $EnvironmentFilterComposer,
+      $EnvironmentOrderingComposer,
+      $EnvironmentAnnotationComposer,
+      $EnvironmentCreateCompanionBuilder,
+      $EnvironmentUpdateCompanionBuilder,
+      (
+        EnvironmentData,
+        BaseReferences<_$Database, Environment, EnvironmentData>,
+      ),
+      EnvironmentData,
       PrefetchHooks Function()
     >;
 typedef $CollPersonnelCreateCompanionBuilder =
@@ -30225,7 +32620,7 @@ typedef $MammalAttributeCreateCompanionBuilder =
       Value<String?> accuracy,
       Value<String?> accuracySpecify,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<int?> testisPosition,
       Value<double?> testisLength,
       Value<double?> testisWidth,
@@ -30266,7 +32661,7 @@ typedef $MammalAttributeUpdateCompanionBuilder =
       Value<String?> accuracy,
       Value<String?> accuracySpecify,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<int?> testisPosition,
       Value<double?> testisLength,
       Value<double?> testisWidth,
@@ -30391,8 +32786,8 @@ class $MammalAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -30586,8 +32981,8 @@ class $MammalAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -30767,8 +33162,8 @@ class $MammalAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
-  GeneratedColumn<int> get age =>
-      $composableBuilder(column: $table.age, builder: (column) => column);
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
 
   GeneratedColumn<int> get testisPosition => $composableBuilder(
     column: $table.testisPosition,
@@ -30902,7 +33297,7 @@ class $MammalAttributeTableManager
                 Value<String?> accuracy = const Value.absent(),
                 Value<String?> accuracySpecify = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> testisPosition = const Value.absent(),
                 Value<double?> testisLength = const Value.absent(),
                 Value<double?> testisWidth = const Value.absent(),
@@ -30941,7 +33336,7 @@ class $MammalAttributeTableManager
                 accuracy: accuracy,
                 accuracySpecify: accuracySpecify,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 testisPosition: testisPosition,
                 testisLength: testisLength,
                 testisWidth: testisWidth,
@@ -30982,7 +33377,7 @@ class $MammalAttributeTableManager
                 Value<String?> accuracy = const Value.absent(),
                 Value<String?> accuracySpecify = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> testisPosition = const Value.absent(),
                 Value<double?> testisLength = const Value.absent(),
                 Value<double?> testisWidth = const Value.absent(),
@@ -31021,7 +33416,7 @@ class $MammalAttributeTableManager
                 accuracy: accuracy,
                 accuracySpecify: accuracySpecify,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 testisPosition: testisPosition,
                 testisLength: testisLength,
                 testisWidth: testisWidth,
@@ -31085,6 +33480,7 @@ typedef $BirdAttributeCreateCompanionBuilder =
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
+      Value<String?> lifeStage,
       Value<int?> broodPatch,
       Value<int?> skullOssification,
       Value<int?> hasBursa,
@@ -31133,6 +33529,7 @@ typedef $BirdAttributeUpdateCompanionBuilder =
       Value<String?> tarsusColor,
       Value<String?> tarsusHex,
       Value<int?> sex,
+      Value<String?> lifeStage,
       Value<int?> broodPatch,
       Value<int?> skullOssification,
       Value<int?> hasBursa,
@@ -31253,6 +33650,11 @@ class $BirdAttributeFilterComposer extends Composer<_$Database, BirdAttribute> {
 
   ColumnFilters<int> get sex => $composableBuilder(
     column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -31486,6 +33888,11 @@ class $BirdAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get broodPatch => $composableBuilder(
     column: $table.broodPatch,
     builder: (column) => ColumnOrderings(column),
@@ -31696,6 +34103,9 @@ class $BirdAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
   GeneratedColumn<int> get broodPatch => $composableBuilder(
     column: $table.broodPatch,
     builder: (column) => column,
@@ -31870,6 +34280,7 @@ class $BirdAttributeTableManager
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> broodPatch = const Value.absent(),
                 Value<int?> skullOssification = const Value.absent(),
                 Value<int?> hasBursa = const Value.absent(),
@@ -31916,6 +34327,7 @@ class $BirdAttributeTableManager
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,
+                lifeStage: lifeStage,
                 broodPatch: broodPatch,
                 skullOssification: skullOssification,
                 hasBursa: hasBursa,
@@ -31964,6 +34376,7 @@ class $BirdAttributeTableManager
                 Value<String?> tarsusColor = const Value.absent(),
                 Value<String?> tarsusHex = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<int?> broodPatch = const Value.absent(),
                 Value<int?> skullOssification = const Value.absent(),
                 Value<int?> hasBursa = const Value.absent(),
@@ -32010,6 +34423,7 @@ class $BirdAttributeTableManager
                 tarsusColor: tarsusColor,
                 tarsusHex: tarsusHex,
                 sex: sex,
+                lifeStage: lifeStage,
                 broodPatch: broodPatch,
                 skullOssification: skullOssification,
                 hasBursa: hasBursa,
@@ -32068,7 +34482,7 @@ typedef $HerpAttributeCreateCompanionBuilder =
     HerpAttributeCompanion Function({
       required String specimenUuid,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<double?> weight,
       Value<String?> weightUnit,
       Value<double?> svl,
@@ -32079,7 +34493,7 @@ typedef $HerpAttributeUpdateCompanionBuilder =
     HerpAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<int?> sex,
-      Value<int?> age,
+      Value<String?> lifeStage,
       Value<double?> weight,
       Value<String?> weightUnit,
       Value<double?> svl,
@@ -32105,8 +34519,8 @@ class $HerpAttributeFilterComposer extends Composer<_$Database, HerpAttribute> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32150,8 +34564,8 @@ class $HerpAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -32193,8 +34607,8 @@ class $HerpAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
-  GeneratedColumn<int> get age =>
-      $composableBuilder(column: $table.age, builder: (column) => column);
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
 
   GeneratedColumn<double> get weight =>
       $composableBuilder(column: $table.weight, builder: (column) => column);
@@ -32244,7 +34658,7 @@ class $HerpAttributeTableManager
               ({
                 Value<String> specimenUuid = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<String?> weightUnit = const Value.absent(),
                 Value<double?> svl = const Value.absent(),
@@ -32253,7 +34667,7 @@ class $HerpAttributeTableManager
               }) => HerpAttributeCompanion(
                 specimenUuid: specimenUuid,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 weight: weight,
                 weightUnit: weightUnit,
                 svl: svl,
@@ -32264,7 +34678,7 @@ class $HerpAttributeTableManager
               ({
                 required String specimenUuid,
                 Value<int?> sex = const Value.absent(),
-                Value<int?> age = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
                 Value<double?> weight = const Value.absent(),
                 Value<String?> weightUnit = const Value.absent(),
                 Value<double?> svl = const Value.absent(),
@@ -32273,7 +34687,7 @@ class $HerpAttributeTableManager
               }) => HerpAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 sex: sex,
-                age: age,
+                lifeStage: lifeStage,
                 weight: weight,
                 weightUnit: weightUnit,
                 svl: svl,
@@ -32313,16 +34727,10 @@ typedef $ArthropodAttributeCreateCompanionBuilder =
       Value<double?> wingspanUpper,
       Value<double?> wingspanLower,
       Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> caste,
       Value<String?> hostOrganism,
       Value<String?> hostPart,
-      Value<String?> canopyAffinity,
-      Value<String?> canopyCover,
-      Value<double?> ambientTemperature,
-      Value<double?> ambientHumidity,
-      Value<double?> waterTemperature,
-      Value<double?> pH,
-      Value<double?> dissolvedOxygen,
-      Value<double?> flowVelocity,
       Value<String?> remark,
       Value<int> rowid,
     });
@@ -32334,16 +34742,10 @@ typedef $ArthropodAttributeUpdateCompanionBuilder =
       Value<double?> wingspanUpper,
       Value<double?> wingspanLower,
       Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> caste,
       Value<String?> hostOrganism,
       Value<String?> hostPart,
-      Value<String?> canopyAffinity,
-      Value<String?> canopyCover,
-      Value<double?> ambientTemperature,
-      Value<double?> ambientHumidity,
-      Value<double?> waterTemperature,
-      Value<double?> pH,
-      Value<double?> dissolvedOxygen,
-      Value<double?> flowVelocity,
       Value<String?> remark,
       Value<int> rowid,
     });
@@ -32387,6 +34789,16 @@ class $ArthropodAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get caste => $composableBuilder(
+    column: $table.caste,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => ColumnFilters(column),
@@ -32394,46 +34806,6 @@ class $ArthropodAttributeFilterComposer
 
   ColumnFilters<String> get hostPart => $composableBuilder(
     column: $table.hostPart,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get pH => $composableBuilder(
-    column: $table.pH,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32482,6 +34854,16 @@ class $ArthropodAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get caste => $composableBuilder(
+    column: $table.caste,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => ColumnOrderings(column),
@@ -32489,46 +34871,6 @@ class $ArthropodAttributeOrderingComposer
 
   ColumnOrderings<String> get hostPart => $composableBuilder(
     column: $table.hostPart,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get pH => $composableBuilder(
-    column: $table.pH,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -32573,6 +34915,12 @@ class $ArthropodAttributeAnnotationComposer
   GeneratedColumn<int> get sex =>
       $composableBuilder(column: $table.sex, builder: (column) => column);
 
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
+  GeneratedColumn<int> get caste =>
+      $composableBuilder(column: $table.caste, builder: (column) => column);
+
   GeneratedColumn<String> get hostOrganism => $composableBuilder(
     column: $table.hostOrganism,
     builder: (column) => column,
@@ -32580,44 +34928,6 @@ class $ArthropodAttributeAnnotationComposer
 
   GeneratedColumn<String> get hostPart =>
       $composableBuilder(column: $table.hostPart, builder: (column) => column);
-
-  GeneratedColumn<String> get canopyAffinity => $composableBuilder(
-    column: $table.canopyAffinity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get canopyCover => $composableBuilder(
-    column: $table.canopyCover,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get ambientTemperature => $composableBuilder(
-    column: $table.ambientTemperature,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get ambientHumidity => $composableBuilder(
-    column: $table.ambientHumidity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get waterTemperature => $composableBuilder(
-    column: $table.waterTemperature,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get pH =>
-      $composableBuilder(column: $table.pH, builder: (column) => column);
-
-  GeneratedColumn<double> get dissolvedOxygen => $composableBuilder(
-    column: $table.dissolvedOxygen,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get flowVelocity => $composableBuilder(
-    column: $table.flowVelocity,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<String> get remark =>
       $composableBuilder(column: $table.remark, builder: (column) => column);
@@ -32664,16 +34974,10 @@ class $ArthropodAttributeTableManager
                 Value<double?> wingspanUpper = const Value.absent(),
                 Value<double?> wingspanLower = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> caste = const Value.absent(),
                 Value<String?> hostOrganism = const Value.absent(),
                 Value<String?> hostPart = const Value.absent(),
-                Value<String?> canopyAffinity = const Value.absent(),
-                Value<String?> canopyCover = const Value.absent(),
-                Value<double?> ambientTemperature = const Value.absent(),
-                Value<double?> ambientHumidity = const Value.absent(),
-                Value<double?> waterTemperature = const Value.absent(),
-                Value<double?> pH = const Value.absent(),
-                Value<double?> dissolvedOxygen = const Value.absent(),
-                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArthropodAttributeCompanion(
@@ -32683,16 +34987,10 @@ class $ArthropodAttributeTableManager
                 wingspanUpper: wingspanUpper,
                 wingspanLower: wingspanLower,
                 sex: sex,
+                lifeStage: lifeStage,
+                caste: caste,
                 hostOrganism: hostOrganism,
                 hostPart: hostPart,
-                canopyAffinity: canopyAffinity,
-                canopyCover: canopyCover,
-                ambientTemperature: ambientTemperature,
-                ambientHumidity: ambientHumidity,
-                waterTemperature: waterTemperature,
-                pH: pH,
-                dissolvedOxygen: dissolvedOxygen,
-                flowVelocity: flowVelocity,
                 remark: remark,
                 rowid: rowid,
               ),
@@ -32704,16 +35002,10 @@ class $ArthropodAttributeTableManager
                 Value<double?> wingspanUpper = const Value.absent(),
                 Value<double?> wingspanLower = const Value.absent(),
                 Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> caste = const Value.absent(),
                 Value<String?> hostOrganism = const Value.absent(),
                 Value<String?> hostPart = const Value.absent(),
-                Value<String?> canopyAffinity = const Value.absent(),
-                Value<String?> canopyCover = const Value.absent(),
-                Value<double?> ambientTemperature = const Value.absent(),
-                Value<double?> ambientHumidity = const Value.absent(),
-                Value<double?> waterTemperature = const Value.absent(),
-                Value<double?> pH = const Value.absent(),
-                Value<double?> dissolvedOxygen = const Value.absent(),
-                Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ArthropodAttributeCompanion.insert(
@@ -32723,16 +35015,10 @@ class $ArthropodAttributeTableManager
                 wingspanUpper: wingspanUpper,
                 wingspanLower: wingspanLower,
                 sex: sex,
+                lifeStage: lifeStage,
+                caste: caste,
                 hostOrganism: hostOrganism,
                 hostPart: hostPart,
-                canopyAffinity: canopyAffinity,
-                canopyCover: canopyCover,
-                ambientTemperature: ambientTemperature,
-                ambientHumidity: ambientHumidity,
-                waterTemperature: waterTemperature,
-                pH: pH,
-                dissolvedOxygen: dissolvedOxygen,
-                flowVelocity: flowVelocity,
                 remark: remark,
                 rowid: rowid,
               ),
@@ -32765,14 +35051,24 @@ typedef $FossilAttributeCreateCompanionBuilder =
     FossilAttributeCompanion Function({
       required String specimenUuid,
       Value<String?> fossilType,
+      Value<int?> sex,
+      Value<String?> ontogeneticStage,
+      Value<double?> weight,
+      Value<String?> weightUnit,
       Value<String?> specimenDescription,
+      Value<String?> remark,
       Value<int> rowid,
     });
 typedef $FossilAttributeUpdateCompanionBuilder =
     FossilAttributeCompanion Function({
       Value<String> specimenUuid,
       Value<String?> fossilType,
+      Value<int?> sex,
+      Value<String?> ontogeneticStage,
+      Value<double?> weight,
+      Value<String?> weightUnit,
       Value<String?> specimenDescription,
+      Value<String?> remark,
       Value<int> rowid,
     });
 
@@ -32795,8 +35091,33 @@ class $FossilAttributeFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remark => $composableBuilder(
+    column: $table.remark,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -32820,8 +35141,33 @@ class $FossilAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+    column: $table.remark,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -32845,10 +35191,29 @@ class $FossilAttributeAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<String> get ontogeneticStage => $composableBuilder(
+    column: $table.ontogeneticStage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get specimenDescription => $composableBuilder(
     column: $table.specimenDescription,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
 }
 
 class $FossilAttributeTableManager
@@ -32884,24 +35249,44 @@ class $FossilAttributeTableManager
               ({
                 Value<String> specimenUuid = const Value.absent(),
                 Value<String?> fossilType = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> ontogeneticStage = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
                 Value<String?> specimenDescription = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FossilAttributeCompanion(
                 specimenUuid: specimenUuid,
                 fossilType: fossilType,
+                sex: sex,
+                ontogeneticStage: ontogeneticStage,
+                weight: weight,
+                weightUnit: weightUnit,
                 specimenDescription: specimenDescription,
+                remark: remark,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String specimenUuid,
                 Value<String?> fossilType = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> ontogeneticStage = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
                 Value<String?> specimenDescription = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FossilAttributeCompanion.insert(
                 specimenUuid: specimenUuid,
                 fossilType: fossilType,
+                sex: sex,
+                ontogeneticStage: ontogeneticStage,
+                weight: weight,
+                weightUnit: weightUnit,
                 specimenDescription: specimenDescription,
+                remark: remark,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -34232,22 +36617,42 @@ typedef $SpecimenPartProcessedTableManager =
 typedef $CustomFieldDefinitionCreateCompanionBuilder =
     CustomFieldDefinitionCompanion Function({
       Value<int?> id,
-      Value<String?> name,
-      Value<String?> type,
-      Value<String?> uiSection,
+      required String uuid,
+      Value<String?> sourceTemplateUuid,
+      required String name,
+      required String type,
+      required String uiSection,
       Value<String?> options,
-      Value<String?> scope,
+      required String scope,
+      Value<String?> projectUuid,
+      Value<String?> catalogFormat,
+      Value<int> sortOrder,
+      Value<int> isArchived,
+      Value<String?> dwcTarget,
+      Value<String?> dwcField,
+      Value<String?> dwcMode,
+      Value<int> allowDwcConflict,
       Value<String?> createdAt,
       Value<String?> updatedAt,
     });
 typedef $CustomFieldDefinitionUpdateCompanionBuilder =
     CustomFieldDefinitionCompanion Function({
       Value<int?> id,
-      Value<String?> name,
-      Value<String?> type,
-      Value<String?> uiSection,
+      Value<String> uuid,
+      Value<String?> sourceTemplateUuid,
+      Value<String> name,
+      Value<String> type,
+      Value<String> uiSection,
       Value<String?> options,
-      Value<String?> scope,
+      Value<String> scope,
+      Value<String?> projectUuid,
+      Value<String?> catalogFormat,
+      Value<int> sortOrder,
+      Value<int> isArchived,
+      Value<String?> dwcTarget,
+      Value<String?> dwcField,
+      Value<String?> dwcMode,
+      Value<int> allowDwcConflict,
       Value<String?> createdAt,
       Value<String?> updatedAt,
     });
@@ -34263,6 +36668,16 @@ class $CustomFieldDefinitionFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -34291,6 +36706,46 @@ class $CustomFieldDefinitionFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcTarget => $composableBuilder(
+    column: $table.dwcTarget,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcField => $composableBuilder(
+    column: $table.dwcField,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dwcMode => $composableBuilder(
+    column: $table.dwcMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
@@ -34313,6 +36768,16 @@ class $CustomFieldDefinitionOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -34341,6 +36806,46 @@ class $CustomFieldDefinitionOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcTarget => $composableBuilder(
+    column: $table.dwcTarget,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcField => $composableBuilder(
+    column: $table.dwcField,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dwcMode => $composableBuilder(
+    column: $table.dwcMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -34364,6 +36869,14 @@ class $CustomFieldDefinitionAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceTemplateUuid => $composableBuilder(
+    column: $table.sourceTemplateUuid,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -34378,6 +36891,38 @@ class $CustomFieldDefinitionAnnotationComposer
 
   GeneratedColumn<String> get scope =>
       $composableBuilder(column: $table.scope, builder: (column) => column);
+
+  GeneratedColumn<String> get projectUuid => $composableBuilder(
+    column: $table.projectUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get catalogFormat => $composableBuilder(
+    column: $table.catalogFormat,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get dwcTarget =>
+      $composableBuilder(column: $table.dwcTarget, builder: (column) => column);
+
+  GeneratedColumn<String> get dwcField =>
+      $composableBuilder(column: $table.dwcField, builder: (column) => column);
+
+  GeneratedColumn<String> get dwcMode =>
+      $composableBuilder(column: $table.dwcMode, builder: (column) => column);
+
+  GeneratedColumn<int> get allowDwcConflict => $composableBuilder(
+    column: $table.allowDwcConflict,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -34422,40 +36967,80 @@ class $CustomFieldDefinitionTableManager
           updateCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<String?> name = const Value.absent(),
-                Value<String?> type = const Value.absent(),
-                Value<String?> uiSection = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
+                Value<String?> sourceTemplateUuid = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> uiSection = const Value.absent(),
                 Value<String?> options = const Value.absent(),
-                Value<String?> scope = const Value.absent(),
+                Value<String> scope = const Value.absent(),
+                Value<String?> projectUuid = const Value.absent(),
+                Value<String?> catalogFormat = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> isArchived = const Value.absent(),
+                Value<String?> dwcTarget = const Value.absent(),
+                Value<String?> dwcField = const Value.absent(),
+                Value<String?> dwcMode = const Value.absent(),
+                Value<int> allowDwcConflict = const Value.absent(),
                 Value<String?> createdAt = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => CustomFieldDefinitionCompanion(
                 id: id,
+                uuid: uuid,
+                sourceTemplateUuid: sourceTemplateUuid,
                 name: name,
                 type: type,
                 uiSection: uiSection,
                 options: options,
                 scope: scope,
+                projectUuid: projectUuid,
+                catalogFormat: catalogFormat,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                dwcTarget: dwcTarget,
+                dwcField: dwcField,
+                dwcMode: dwcMode,
+                allowDwcConflict: allowDwcConflict,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<String?> name = const Value.absent(),
-                Value<String?> type = const Value.absent(),
-                Value<String?> uiSection = const Value.absent(),
+                required String uuid,
+                Value<String?> sourceTemplateUuid = const Value.absent(),
+                required String name,
+                required String type,
+                required String uiSection,
                 Value<String?> options = const Value.absent(),
-                Value<String?> scope = const Value.absent(),
+                required String scope,
+                Value<String?> projectUuid = const Value.absent(),
+                Value<String?> catalogFormat = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> isArchived = const Value.absent(),
+                Value<String?> dwcTarget = const Value.absent(),
+                Value<String?> dwcField = const Value.absent(),
+                Value<String?> dwcMode = const Value.absent(),
+                Value<int> allowDwcConflict = const Value.absent(),
                 Value<String?> createdAt = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => CustomFieldDefinitionCompanion.insert(
                 id: id,
+                uuid: uuid,
+                sourceTemplateUuid: sourceTemplateUuid,
                 name: name,
                 type: type,
                 uiSection: uiSection,
                 options: options,
                 scope: scope,
+                projectUuid: projectUuid,
+                catalogFormat: catalogFormat,
+                sortOrder: sortOrder,
+                isArchived: isArchived,
+                dwcTarget: dwcTarget,
+                dwcField: dwcField,
+                dwcMode: dwcMode,
+                allowDwcConflict: allowDwcConflict,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -34491,18 +37076,30 @@ typedef $CustomFieldDefinitionProcessedTableManager =
 typedef $CustomFieldValueCreateCompanionBuilder =
     CustomFieldValueCompanion Function({
       Value<int?> id,
-      Value<int?> fieldDefinitionId,
+      required int fieldDefinitionId,
       Value<String?> projectUuid,
-      Value<String?> value,
+      required String value,
       Value<String?> unit,
+      Value<int?> eventId,
+      Value<int?> siteId,
+      Value<String?> specimenUuid,
+      Value<int?> specimenPartId,
+      Value<int?> parasiteId,
+      Value<int> isLegacy,
     });
 typedef $CustomFieldValueUpdateCompanionBuilder =
     CustomFieldValueCompanion Function({
       Value<int?> id,
-      Value<int?> fieldDefinitionId,
+      Value<int> fieldDefinitionId,
       Value<String?> projectUuid,
-      Value<String?> value,
+      Value<String> value,
       Value<String?> unit,
+      Value<int?> eventId,
+      Value<int?> siteId,
+      Value<String?> specimenUuid,
+      Value<int?> specimenPartId,
+      Value<int?> parasiteId,
+      Value<int> isLegacy,
     });
 
 class $CustomFieldValueFilterComposer
@@ -34536,6 +37133,36 @@ class $CustomFieldValueFilterComposer
 
   ColumnFilters<String> get unit => $composableBuilder(
     column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get siteId => $composableBuilder(
+    column: $table.siteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isLegacy => $composableBuilder(
+    column: $table.isLegacy,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -34573,6 +37200,36 @@ class $CustomFieldValueOrderingComposer
     column: $table.unit,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get siteId => $composableBuilder(
+    column: $table.siteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isLegacy => $composableBuilder(
+    column: $table.isLegacy,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $CustomFieldValueAnnotationComposer
@@ -34602,6 +37259,30 @@ class $CustomFieldValueAnnotationComposer
 
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<int> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+
+  GeneratedColumn<int> get siteId =>
+      $composableBuilder(column: $table.siteId, builder: (column) => column);
+
+  GeneratedColumn<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get specimenPartId => $composableBuilder(
+    column: $table.specimenPartId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get parasiteId => $composableBuilder(
+    column: $table.parasiteId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get isLegacy =>
+      $composableBuilder(column: $table.isLegacy, builder: (column) => column);
 }
 
 class $CustomFieldValueTableManager
@@ -34636,30 +37317,54 @@ class $CustomFieldValueTableManager
           updateCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<int?> fieldDefinitionId = const Value.absent(),
+                Value<int> fieldDefinitionId = const Value.absent(),
                 Value<String?> projectUuid = const Value.absent(),
-                Value<String?> value = const Value.absent(),
+                Value<String> value = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
+                Value<int?> eventId = const Value.absent(),
+                Value<int?> siteId = const Value.absent(),
+                Value<String?> specimenUuid = const Value.absent(),
+                Value<int?> specimenPartId = const Value.absent(),
+                Value<int?> parasiteId = const Value.absent(),
+                Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                eventId: eventId,
+                siteId: siteId,
+                specimenUuid: specimenUuid,
+                specimenPartId: specimenPartId,
+                parasiteId: parasiteId,
+                isLegacy: isLegacy,
               ),
           createCompanionCallback:
               ({
                 Value<int?> id = const Value.absent(),
-                Value<int?> fieldDefinitionId = const Value.absent(),
+                required int fieldDefinitionId,
                 Value<String?> projectUuid = const Value.absent(),
-                Value<String?> value = const Value.absent(),
+                required String value,
                 Value<String?> unit = const Value.absent(),
+                Value<int?> eventId = const Value.absent(),
+                Value<int?> siteId = const Value.absent(),
+                Value<String?> specimenUuid = const Value.absent(),
+                Value<int?> specimenPartId = const Value.absent(),
+                Value<int?> parasiteId = const Value.absent(),
+                Value<int> isLegacy = const Value.absent(),
               }) => CustomFieldValueCompanion.insert(
                 id: id,
                 fieldDefinitionId: fieldDefinitionId,
                 projectUuid: projectUuid,
                 value: value,
                 unit: unit,
+                eventId: eventId,
+                siteId: siteId,
+                specimenUuid: specimenUuid,
+                specimenPartId: specimenPartId,
+                parasiteId: parasiteId,
+                isLegacy: isLegacy,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -34691,17 +37396,22 @@ class $DatabaseManager {
   final _$Database _db;
   $DatabaseManager(this._db);
   $ProjectTableManager get project => $ProjectTableManager(_db, _db.project);
+  $GeographyTableManager get geography =>
+      $GeographyTableManager(_db, _db.geography);
   $PersonnelTableManager get personnel =>
       $PersonnelTableManager(_db, _db.personnel);
   $MediaTableManager get media => $MediaTableManager(_db, _db.media);
   $SiteTableManager get site => $SiteTableManager(_db, _db.site);
+  $SiteAttributeTableManager get siteAttribute =>
+      $SiteAttributeTableManager(_db, _db.siteAttribute);
   $FossilSiteTableManager get fossilSite =>
       $FossilSiteTableManager(_db, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db, _db.coordinate);
   $CollEventTableManager get collEvent =>
       $CollEventTableManager(_db, _db.collEvent);
-  $WeatherTableManager get weather => $WeatherTableManager(_db, _db.weather);
+  $EnvironmentTableManager get environment =>
+      $EnvironmentTableManager(_db, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db, _db.collPersonnel);
   $CollEffortTableManager get collEffort =>

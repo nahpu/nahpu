@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
@@ -97,6 +98,14 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         ),
         const PopupMenuDivider(height: 8),
         PopupMenuItem(
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.collEvent,
+          ),
+          child: const SortMenuButton(),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
           enabled: widget.collEventId != null,
           onTap: widget.collEventId == null
               ? null
@@ -163,7 +172,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         title: 'Delete collecting event?',
         deletePrompt:
             'You will also delete collecting effort'
-            ', collecting personnel, weather data, and media in this event.',
+            ', collecting personnel, environmental data, and media in this event.',
         onDelete: () async {
           try {
             await CollEventServices(
@@ -206,7 +215,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       deletePrompt:
           'Deleting all collecting events will also delete all associated'
           ' collecting effort, collecting personnel, '
-          'weather data, and media from the database.',
+          'environmental data, and media from the database.',
       onDelete: () async {
         try {
           final service = CollEventServices(ref: ref);

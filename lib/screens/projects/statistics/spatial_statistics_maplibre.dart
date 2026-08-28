@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
@@ -108,6 +108,11 @@ class _MapLibreMapState extends State<_MapLibreMap> {
   final _readiness = MapLibreCameraReadiness();
   SpatialStatisticDatum? _tooltipRow;
 
+  /// Built once per state. [MapOptions] compares by identity, so a fresh
+  /// instance on every build makes the web view backend re-apply the options,
+  /// which throws while its controller is still being created.
+  late final MapOptions _options = _buildOptions();
+
   bool get _isReady => mounted && _readiness.isReady;
 
   @override
@@ -129,7 +134,6 @@ class _MapLibreMapState extends State<_MapLibreMap> {
 
   @override
   Widget build(BuildContext context) {
-    final first = widget.rows.firstOrNull;
     final maximumCount = widget.rows.fold<int>(
       0,
       (maximum, row) => math.max(maximum, row.count ?? 0),
@@ -140,23 +144,7 @@ class _MapLibreMapState extends State<_MapLibreMap> {
         children: [
           MapLibreMap(
             gestureRecognizers: {...mapLibreGestureRecognizers()},
-            options: MapOptions(
-              initStyle: widget.style,
-              initCenter: Geographic(
-                lon: first?.decimalLongitude ?? 0,
-                lat: first?.decimalLatitude ?? 18,
-              ),
-              initZoom: widget.rows.length == 1 ? 12 : 1.5,
-              minZoom: 1,
-              maxZoom: 16,
-              maxPitch: 60,
-              gestures: const MapGestures(
-                pan: true,
-                zoom: true,
-                rotate: false,
-                pitch: false,
-              ),
-            ),
+            options: _options,
             onMapCreated: (controller) {
               if (!mounted) return;
               _controller = controller;
@@ -227,6 +215,27 @@ class _MapLibreMapState extends State<_MapLibreMap> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  MapOptions _buildOptions() {
+    final first = widget.rows.firstOrNull;
+    return MapOptions(
+      initStyle: widget.style,
+      initCenter: Geographic(
+        lon: first?.decimalLongitude ?? 0,
+        lat: first?.decimalLatitude ?? 18,
+      ),
+      initZoom: widget.rows.length == 1 ? 12 : 1.5,
+      minZoom: 1,
+      maxZoom: 16,
+      maxPitch: 60,
+      gestures: const MapGestures(
+        pan: true,
+        zoom: true,
+        rotate: false,
+        pitch: false,
       ),
     );
   }

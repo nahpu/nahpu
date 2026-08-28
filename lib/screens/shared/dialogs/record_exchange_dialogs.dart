@@ -1,47 +1,14 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
-
-class RecordQrDialog extends StatelessWidget {
-  const RecordQrDialog({super.key, required this.title, required this.data});
-
-  final String title;
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QrImageView(data: data, size: 280, backgroundColor: Colors.white),
-            const SizedBox(height: 12),
-            const Text(
-              'Scan this code from another NAHPU device to import the record.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
-    );
-  }
-}
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordImportTargetChoice {
   const RecordImportTargetChoice({required this.targetId});
@@ -52,9 +19,10 @@ class RecordImportTargetChoice {
 Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
   required BuildContext context,
   required RecordExchangePayload payload,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
   required List<CollEventData> events,
   int? initialTargetId,
+  String? matchedLocality,
 }) {
   final isSite = payload.type == RecordExchangeType.site;
   final selectedRecords = isSite
@@ -88,6 +56,15 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
                   ),
                   const SizedBox(height: 8),
                   Text(_summary(payload)),
+                  if (matchedLocality != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Reuses a saved locality: $matchedLocality',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   RadioGroup<int?>(
                     groupValue: selected,
@@ -152,7 +129,7 @@ class LinkedSiteChoice {
 
 Future<LinkedSiteChoice?> showLinkedSiteDialog({
   required BuildContext context,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
 }) {
   var selected = -1;
   return showDialog<LinkedSiteChoice>(
@@ -244,8 +221,9 @@ String _summary(RecordExchangePayload payload) {
     );
   }
   if (payload.type == RecordExchangeType.event &&
-      payload.data['weather'] != null) {
-    parts.add('weather');
+      (payload.data['environment'] != null ||
+          payload.data['weather'] != null)) {
+    parts.add('environmental data');
   }
   if (payload.mediaCount > 0) {
     parts.add(
@@ -342,6 +320,7 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   bool get _hasMedia => widget.payload.hasMedia;
 
@@ -384,11 +363,21 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
             formats: formats,
             formatLabel: _formatLabel,
             formatFieldLabel: _hasMedia ? 'Archive format' : 'File format',
+            extensionForFormat: (format) => switch (format) {
+              _RecordExportFormat.json => 'json',
+              _RecordExportFormat.zip => 'zip',
+              _RecordExportFormat.tarGzip => 'tar.gz',
+            },
             onFormatChanged: (value) => setState(() {
               _format = value;
               _outputFile = null;
             }),
             onFileNameChanged: (_) => _resetExport(),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _outputFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDir = null;
@@ -441,7 +430,9 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
     setState(() => _isRunning = true);
     try {
       final file = await widget.onExport(
-        fileStem: _exportCtr.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text.trim(),
         destinationDirectory: _selectedDir,
         archiveFormat: switch (_format) {
           _RecordExportFormat.json => null,
@@ -574,7 +565,7 @@ Future<SpecimenImportReferences?> chooseSpecimenReferences({
   required BuildContext context,
   required RecordExchangePayload payload,
   required List<CollEventData> events,
-  required List<SiteData> sites,
+  required List<SiteRecord> sites,
   required List<TaxonomyData> taxa,
 }) async {
   int? eventId;

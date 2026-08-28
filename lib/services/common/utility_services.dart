@@ -2,11 +2,14 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+
+enum DatabaseMatchMode { appendMissing, overrideAll }
 
 class UtilityServices extends AppServices {
   const UtilityServices({required super.ref});
@@ -47,11 +50,29 @@ class UtilityServices extends AppServices {
   }
 
   Future<void> getAllOptions(String prefKey) async {
+    await matchDatabaseOptions(prefKey, mode: DatabaseMatchMode.overrideAll);
+  }
+
+  Future<void> matchDatabaseOptions(
+    String prefKey, {
+    required DatabaseMatchMode mode,
+  }) async {
     List<String> data = await getDistinctOptions(prefKey);
-    List<String> options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
-    await ref
-        .read(userConfigSettingsServiceProvider)
-        .replaceOptions(prefKey, options);
+    final settings = ref.read(userConfigSettingsServiceProvider);
+
+    if (mode == DatabaseMatchMode.overrideAll) {
+      final options = data.isEmpty ? getDefaultOptionsList(prefKey) : data;
+      await settings.replaceOptions(prefKey, options);
+    } else {
+      final configured = await settings.loadOptions(
+        prefKey,
+        getDefaultOptionsList(prefKey),
+      );
+      await settings.replaceOptions(
+        prefKey,
+        mergeVocabularyOptions(configured, data),
+      );
+    }
     _invalidateOptions(prefKey);
   }
 

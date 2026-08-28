@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
@@ -9,6 +9,8 @@ import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/sites/components/copy_from_project_dialog.dart';
+
+import '../data/site_fixture.dart';
 
 void main() {
   late Database database;
@@ -79,15 +81,12 @@ void main() {
     final targetId = await database
         .into(database.site)
         .insert(const SiteCompanion(projectUuid: Value('target-project')));
-    final sourceId = await database
-        .into(database.site)
-        .insert(
-          const SiteCompanion(
-            projectUuid: Value('source-project'),
-            siteID: Value('SOURCE-1'),
-            country: Value('Canada'),
-          ),
-        );
+    final sourceId = await insertSiteWithGeography(
+      database,
+      projectUuid: 'source-project',
+      siteID: 'SOURCE-1',
+      country: 'Canada',
+    );
     await CoordinateQuery(database).createCoordinate(
       CoordinateCompanion(
         decimalLatitude: const Value(1.0),

@@ -1,17 +1,23 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
 
 /// Creates third-party specimen record packages.
@@ -39,7 +45,17 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   bool _isPlanning = false;
   bool _isWriting = false;
   bool _isLoadingTaxa = true;
+  bool _appendDate = false;
   int _planGeneration = 0;
+  bool _isCancelling = false;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+  ExportOutcome? _outcome;
+  String? _runError;
+  String? _failedStepLabel;
+  int? _outputBytes;
+  Duration? _runDuration;
 
   @override
   void initState() {
@@ -53,6 +69,7 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   void dispose() {
     _fileController.dispose();
     _mobileTabs.dispose();
+    unawaited(_progressSubscription?.cancel());
     super.dispose();
   }
 
@@ -61,69 +78,135 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     final settings = ScrollableConstrainedLayout(
       child: _BundleSettingsPane(
         fileController: _fileController,
-        selectedDirectory: _selectedDirectory,
         format: _format,
         archiveFormat: _archiveFormat,
         availableTaxonGroups: _availableTaxonGroups,
         selectedTaxonGroups: _selectedTaxonGroups,
         taxonSelectionMode: _taxonSelectionMode,
         isLoadingTaxa: _isLoadingTaxa,
-        isWriting: _isWriting,
-        canWrite:
-            _fileController.isValid &&
-            (!_format.usesTaxonSelection || _selectedTaxonGroups.isNotEmpty) &&
-            !_isPlanning,
         onFormatChanged: _changeFormat,
         onArchiveFormatChanged: _changeArchiveFormat,
         onTaxonGroupsChanged: _changeTaxonGroups,
         onTaxonSelectionModeChanged: _changeTaxonSelectionMode,
         onFileNameChanged: _changeFileName,
-        onSelectDirectory: _selectDirectory,
-        onClearDirectory: _clearDirectory,
-        onBundle: _writeBundle,
-        onShare: _outputPath != null ? _shareBundle : null,
+        appendDate: _appendDate,
+        onAppendDateChanged: (value) {
+          setState(() {
+            _appendDate = value;
+            _outputPath = null;
+          });
+        },
+        locationCard: ExportLocationCard(
+          selectedDir: _selectedDirectory,
+          output: _outputPath == null ? null : File(_outputPath!),
+          outputBytes: _outputBytes,
+          duration: _runDuration,
+          enabled: !_isWriting,
+          onSelectDir: _selectDirectory,
+          onClearDir: _clearDestination,
+          onShare: _shareBundle,
+          onOpenFolder: _openFolder,
+          onDismiss: _clearDestination,
+        ),
       ),
     );
+    final jobProgress = _jobProgress;
+    final leftPane = _isWriting && jobProgress != null
+        ? ScrollableConstrainedLayout(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ExportProgressPanel(
+                title: 'Bundling records',
+                progress: jobProgress,
+                hint:
+                    'Packaging writes the records, copies media, compresses '
+                    'the bundle, and then checks it. Keep NAHPU open.',
+                isCancelling: _isCancelling,
+                onCancel: _requestCancel,
+              ),
+            ),
+          )
+        : settings;
     final contents = Padding(
       padding: const EdgeInsets.all(16),
-      child: BundleContentsPane(
-        manifest: _manifest,
-        isLoading: _isPlanning,
-        error: _planningError,
-      ),
+      // A finished bundle keeps its contents on screen: the location card
+      // already reports the file.
+      child:
+          _outcome != null && _outcome != ExportOutcome.succeeded && !_isWriting
+          ? ExportFailurePanel(
+              outcome: _outcome!,
+              errorMessage: _runError,
+              failedStepLabel: _failedStepLabel,
+              onRetry: _writeBundle,
+            )
+          : BundleContentsPane(
+              manifest: _manifest,
+              isLoading: _isPlanning,
+              error: _planningError,
+            ),
     );
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
 
+    return PopScope(
+      // Leaving mid-bundle would leave a partly written package behind, so the
+      // user has to cancel deliberately.
+      canPop: !_isWriting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(leftPane, contents, isLargeScreen),
+    );
+  }
+
+  Widget _buildScaffold(Widget settings, Widget contents, bool isLargeScreen) {
+    final body = isLargeScreen
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: settings),
+              Expanded(child: contents),
+            ],
+          )
+        : Column(
+            children: [
+              TabBar(
+                controller: _mobileTabs,
+                tabs: const [
+                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                  Tab(icon: Icon(Icons.inventory_2_outlined), text: 'Contents'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _mobileTabs,
+                  children: [settings, contents],
+                ),
+              ),
+            ],
+          );
     return Scaffold(
       appBar: AppBar(title: const Text('Bundle records')),
-      body: isLargeScreen
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: settings),
-                Expanded(child: contents),
-              ],
-            )
-          : Column(
-              children: [
-                TabBar(
-                  controller: _mobileTabs,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
-                    Tab(
-                      icon: Icon(Icons.inventory_2_outlined),
-                      text: 'Contents',
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _mobileTabs,
-                    children: [settings, contents],
-                  ),
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(child: body),
+            ExportActionBar(
+              label: 'Create bundle',
+              repeatLabel: 'Bundle another',
+              icon: Icons.inventory_2_outlined,
+              canExport:
+                  _fileController.isValid &&
+                  (!_format.usesTaxonSelection ||
+                      _selectedTaxonGroups.isNotEmpty) &&
+                  !_isPlanning,
+              isRunning: _isWriting,
+              hasOutput: _outputPath != null,
+              onExport: _writeBundle,
             ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -204,13 +287,6 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     });
   }
 
-  void _clearDirectory() {
-    setState(() {
-      _selectedDirectory = null;
-      _outputPath = null;
-    });
-  }
-
   Future<void> _planBundle() async {
     final generation = ++_planGeneration;
     if (_format.usesTaxonSelection && _selectedTaxonGroups.isEmpty) {
@@ -246,7 +322,27 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
   }
 
   Future<void> _writeBundle() async {
-    setState(() => _isWriting = true);
+    final reporter = ExportProgressReporter(
+      steps: DwcBundleWriter.bundlePhases,
+    );
+    final cancellation = ExportCancellation();
+    final stopwatch = Stopwatch()..start();
+    setState(() {
+      _isWriting = true;
+      _isCancelling = false;
+      _outcome = null;
+      _runError = null;
+      _failedStepLabel = null;
+      _outputBytes = null;
+      _runDuration = null;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    // On a phone the panel lives in the settings tab, so show it.
+    if (_mobileTabs.index != 0) _mobileTabs.animateTo(0);
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
       final output = await _getOutputPath();
       final manifest = await DwcBundleWriter(ref: ref).write(
@@ -254,24 +350,93 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
         archiveFormat: _archiveFormat,
         selectedTaxonGroups: _selectedTaxonGroups,
         outputPath: output.path,
+        progress: reporter,
+        cancel: cancellation,
+        expectedFileCount: _manifest?.files.length ?? 0,
       );
+      final bytes = await _outputSize(output);
       if (!mounted) return;
       setState(() {
         _outputPath = output.path;
         _manifest = manifest;
+        _outcome = ExportOutcome.succeeded;
+        _outputBytes = bytes;
+        _runDuration = stopwatch.elapsed;
       });
       _showCompleted(output.path);
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.cancelled;
+        _runDuration = stopwatch.elapsed;
+      });
     } catch (error) {
-      if (mounted) _showError(error.toString());
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.failed;
+        _runError = error.toString();
+        _failedStepLabel = _jobProgress?.activeStep?.label;
+        _runDuration = stopwatch.elapsed;
+      });
+      _showError(error.toString());
     } finally {
-      if (mounted) setState(() => _isWriting = false);
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isWriting = false;
+          _isCancelling = false;
+          _cancellation = null;
+        });
+      }
+    }
+  }
+
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the bundle?'),
+        content: const Text(
+          'The bundle is still being written. Leaving now cancels it and no '
+          'package will be saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep bundling'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel bundle'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
+  }
+
+  /// Reads the size of a finished bundle, which some formats write as a folder.
+  Future<int?> _outputSize(File output) async {
+    try {
+      return await output.length();
+    } on FileSystemException {
+      return null;
     }
   }
 
   Future<File> _getOutputPath() async {
     final output = await AppIOServices(
       dir: _selectedDirectory,
-      fileStem: _fileStem,
+      fileStem: _appendDate
+          ? appendDateToFileStem(_fileStem, DateTime.now())
+          : _fileStem.trim(),
       ext: _format.outputExtension(_archiveFormat),
     ).getSavePath();
     return output;
@@ -285,6 +450,29 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     } catch (error) {
       if (mounted) _showError(error.toString());
     }
+  }
+
+  Future<void> _openFolder() async {
+    final outputPath = _outputPath;
+    if (outputPath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(File(outputPath));
+    } catch (error) {
+      if (mounted) _showError('Unable to open the folder: $error');
+    }
+  }
+
+  /// Closing the result puts the screen back where it was before the bundle,
+  /// directory included, so one tap lands on the directory input rather than
+  /// on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDirectory = null;
+      _outputPath = null;
+      _outcome = null;
+      _outputBytes = null;
+      _runDuration = null;
+    });
   }
 
   void _showCompleted(String outputPath) {
@@ -307,45 +495,39 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
 class _BundleSettingsPane extends StatelessWidget {
   const _BundleSettingsPane({
     required this.fileController,
-    required this.selectedDirectory,
     required this.format,
     required this.archiveFormat,
     required this.availableTaxonGroups,
     required this.selectedTaxonGroups,
     required this.taxonSelectionMode,
     required this.isLoadingTaxa,
-    required this.isWriting,
-    required this.canWrite,
     required this.onFormatChanged,
     required this.onArchiveFormatChanged,
     required this.onTaxonGroupsChanged,
     required this.onTaxonSelectionModeChanged,
     required this.onFileNameChanged,
-    required this.onSelectDirectory,
-    required this.onClearDirectory,
-    required this.onBundle,
-    required this.onShare,
+    required this.appendDate,
+    required this.onAppendDateChanged,
+    required this.locationCard,
   });
 
   final FileOpCtrModel fileController;
-  final Directory? selectedDirectory;
   final DwcBundleFormat format;
   final BundleArchiveFormat archiveFormat;
   final Set<String> availableTaxonGroups;
   final Set<String> selectedTaxonGroups;
   final BundleTaxonSelectionMode taxonSelectionMode;
   final bool isLoadingTaxa;
-  final bool isWriting;
-  final bool canWrite;
   final ValueChanged<DwcBundleFormat> onFormatChanged;
   final ValueChanged<BundleArchiveFormat> onArchiveFormatChanged;
   final ValueChanged<Set<String>> onTaxonGroupsChanged;
   final ValueChanged<BundleTaxonSelectionMode> onTaxonSelectionModeChanged;
   final ValueChanged<String?> onFileNameChanged;
-  final Future<void> Function() onSelectDirectory;
-  final VoidCallback onClearDirectory;
-  final Future<void> Function() onBundle;
-  final Future<void> Function()? onShare;
+  final bool appendDate;
+  final ValueChanged<bool> onAppendDateChanged;
+
+  /// The destination, shown directly under the file settings it belongs to.
+  final Widget locationCard;
 
   @override
   Widget build(BuildContext context) {
@@ -371,22 +553,16 @@ class _BundleSettingsPane extends StatelessWidget {
         const SizedBox(height: 8),
         BundleFileSettingsCard(
           exportCtr: fileController,
-          selectedDir: selectedDirectory,
           format: format,
           archiveFormat: archiveFormat,
           onFormatChanged: onFormatChanged,
           onArchiveFormatChanged: onArchiveFormatChanged,
           onFileNameChanged: onFileNameChanged,
-          onSelectDir: onSelectDirectory,
-          onClearDir: onClearDirectory,
+          appendDate: appendDate,
+          onAppendDateChanged: onAppendDateChanged,
         ),
-        const SizedBox(height: 24),
-        ExportShareButton(
-          hasExported: onShare != null,
-          isRunning: isWriting,
-          onExport: canWrite ? onBundle : null,
-          onShare: () => onShare?.call(),
-        ),
+        const SizedBox(height: 8),
+        locationCard,
       ],
     );
   }
@@ -399,27 +575,20 @@ class _NahpuPackageScopeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: double.infinity,
-      child: Card(
-        elevation: 0,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Complete NAHPU data'),
-              SizedBox(height: 8),
-              Text(
-                'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
-              ),
-              SizedBox(height: 8),
-              Text('Export is in Frictionless Data Format.'),
-            ],
-          ),
+      child: NahpuPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Complete NAHPU data'),
+            SizedBox(height: 8),
+            Text(
+              'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
+            ),
+            SizedBox(height: 8),
+            Text('Export is in Frictionless Data Format.'),
+          ],
         ),
       ),
     );
@@ -448,83 +617,75 @@ class BundleTaxonSelectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Card(
-        elevation: 0,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      child: NahpuPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Recorded Taxa',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: SegmentedButton<BundleTaxonSelectionMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: BundleTaxonSelectionMode.all,
+                    label: Text('All taxa'),
+                    icon: Icon(Icons.select_all_outlined),
+                  ),
+                  ButtonSegment(
+                    value: BundleTaxonSelectionMode.selected,
+                    label: Text('Selected taxa'),
+                    icon: Icon(Icons.filter_alt_outlined),
+                  ),
+                ],
+                selected: {selectionMode},
+                onSelectionChanged: (selection) =>
+                    onModeChanged(selection.single),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (availableTaxonGroups.isEmpty)
+              const Text('No specimen taxa have been recorded yet.')
+            else if (selectionMode == BundleTaxonSelectionMode.all)
               Text(
-                'Recorded Taxa',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: SegmentedButton<BundleTaxonSelectionMode>(
-                  segments: const [
-                    ButtonSegment(
-                      value: BundleTaxonSelectionMode.all,
-                      label: Text('All taxa'),
-                      icon: Icon(Icons.select_all_outlined),
-                    ),
-                    ButtonSegment(
-                      value: BundleTaxonSelectionMode.selected,
-                      label: Text('Selected taxa'),
-                      icon: Icon(Icons.filter_alt_outlined),
-                    ),
-                  ],
-                  selected: {selectionMode},
-                  onSelectionChanged: (selection) =>
-                      onModeChanged(selection.single),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (availableTaxonGroups.isEmpty)
-                const Text('No specimen taxa have been recorded yet.')
-              else if (selectionMode == BundleTaxonSelectionMode.all)
-                Text(
-                  '${availableTaxonGroups.length} recorded taxon groups will be included.',
-                )
-              else
-                ...availableTaxonGroups.map((group) {
-                  final isRequiredBat =
-                      group == 'Bats' &&
-                      selectedTaxonGroups.contains('Mammals');
-                  return CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: isRequiredBat || selectedTaxonGroups.contains(group),
-                    title: Text(
-                      group == 'Mammals' ? 'Mammals (includes bats)' : group,
-                    ),
-                    subtitle: group == 'Mammals'
-                        ? const Text('Bats are always included with mammals.')
-                        : isRequiredBat
-                        ? const Text('Included with Mammals')
-                        : null,
-                    onChanged: isRequiredBat
-                        ? null
-                        : (selected) {
-                            final next = selectedTaxonGroups.toSet();
-                            if (selected == true) {
-                              next.add(group);
-                            } else {
-                              next.remove(group);
-                            }
-                            if (group == 'Mammals' && selected == true) {
-                              next.add('Bats');
-                            }
-                            onChanged(next);
-                          },
-                  );
-                }),
-            ],
-          ),
+                '${availableTaxonGroups.length} recorded taxon groups will be included.',
+              )
+            else
+              ...availableTaxonGroups.map((group) {
+                final isRequiredBat =
+                    group == 'Bats' && selectedTaxonGroups.contains('Mammals');
+                return CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: isRequiredBat || selectedTaxonGroups.contains(group),
+                  title: Text(
+                    group == 'Mammals' ? 'Mammals (includes bats)' : group,
+                  ),
+                  subtitle: group == 'Mammals'
+                      ? const Text('Bats are always included with mammals.')
+                      : isRequiredBat
+                      ? const Text('Included with Mammals')
+                      : null,
+                  onChanged: isRequiredBat
+                      ? null
+                      : (selected) {
+                          final next = selectedTaxonGroups.toSet();
+                          if (selected == true) {
+                            next.add(group);
+                          } else {
+                            next.remove(group);
+                          }
+                          if (group == 'Mammals' && selected == true) {
+                            next.add('Bats');
+                          }
+                          onChanged(next);
+                        },
+                );
+              }),
+          ],
         ),
       ),
     );

@@ -412,6 +412,7 @@ class _CoordinateExportOverlayState
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -447,11 +448,21 @@ class _CoordinateExportOverlayState
             format: _format,
             formats: CoordinateFileFormat.values,
             formatLabel: _formatLabel,
+            extensionForFormat: (format) => switch (format) {
+              CoordinateFileFormat.geoJson => 'geojson',
+              CoordinateFileFormat.kml => 'kml',
+              CoordinateFileFormat.shapefile => 'zip',
+            },
             onFormatChanged: (value) => setState(() {
               _format = value;
               _outputFile = null;
             }),
             onFileNameChanged: (_) => _resetExport(),
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
+              _outputFile = null;
+            }),
             onSelectDir: _selectDirectory,
             onClearDir: () => setState(() {
               _selectedDir = null;
@@ -496,7 +507,9 @@ class _CoordinateExportOverlayState
       final file = await CoordinateExchangeService(ref: ref).exportCoordinates(
         widget.coordinates,
         _format,
-        fileName: _exportCtr.fileNameCtr.text,
+        fileName: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text,
         destinationDirectory: _selectedDir,
       );
       if (!mounted) return;
@@ -546,7 +559,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
   });
 
   final AsyncValue<List<CoordinateData>> coordinates;
-  final AsyncValue<List<SiteData>> sites;
+  final AsyncValue<List<SiteRecord>> sites;
   final int? siteFilterId;
   final Set<int> selectedCoordinateIds;
   final int? focusedCoordinateId;
@@ -565,7 +578,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .where((coordinate) => selectedCoordinateIds.contains(coordinate.id))
         .toList(growable: false);
     final siteLabels = {
-      for (final site in sites.value ?? const <SiteData>[])
+      for (final site in sites.value ?? const <SiteRecord>[])
         site.id: _siteLabel(site),
     };
     return Padding(
@@ -644,7 +657,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .toList();
   }
 
-  String _siteLabel(SiteData site) {
+  String _siteLabel(SiteRecord site) {
     final name = site.siteID?.trim();
     if (name != null && name.isNotEmpty) return name;
     final locality = site.locality?.trim();

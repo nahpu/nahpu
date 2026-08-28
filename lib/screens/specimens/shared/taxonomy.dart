@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_details.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -10,7 +11,6 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/projects/taxonomy_services.dart';
-import 'package:nahpu/services/common/utility_services.dart';
 
 class TaxonomicForm extends ConsumerWidget {
   const TaxonomicForm({
@@ -26,7 +26,7 @@ class TaxonomicForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
       title: 'Taxon Info',
-      infoContent: const TaxonomyInfoContent(),
+      infoTopic: InfoTopic.specimenTaxonomy,
       mainAxisAlignment: MainAxisAlignment.center,
       child: ref
           .watch(taxonDataProvider(specimenUuid))
@@ -105,213 +105,6 @@ class TaxonomicForm extends ConsumerWidget {
   }
 }
 
-class TaxonInfoTitle extends StatelessWidget {
-  const TaxonInfoTitle({
-    super.key,
-    required this.displayName,
-    required this.authors,
-    required this.commonName,
-  });
-
-  final String displayName;
-  final String? authors;
-  final String? commonName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          displayName,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w400,
-            fontStyle: FontStyle.italic,
-            fontFamily: "Merriweather",
-          ),
-        ),
-        if (authors != null && authors!.isNotEmpty)
-          Text('${authors!}, ', style: Theme.of(context).textTheme.titleMedium),
-        if (commonName != null && commonName!.isNotEmpty)
-          Text(
-            commonName!.toCommonName(),
-            style: Theme.of(context).textTheme.bodyMedium,
-            overflow: TextOverflow.visible,
-          ),
-        Divider(color: Theme.of(context).dividerColor, thickness: 2),
-      ],
-    );
-  }
-}
-
-class TaxonDetailsView extends StatelessWidget {
-  const TaxonDetailsView({super.key, required this.taxonData});
-
-  final TaxonomyData taxonData;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Text(
-            'Classification',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          TaxonDetailRow(
-            label: 'Rank',
-            value: taxonRankFromString(taxonData.taxonRank)?.label,
-          ),
-          TaxonDetailRow(
-            label: 'Kingdom',
-            value: taxonData.kingdom ?? getKingdom(taxonData.taxonClass),
-          ),
-          TaxonDetailRow(
-            label: 'Phylum',
-            value: taxonData.phylum ?? getPhylum(taxonData.taxonClass),
-          ),
-          TaxonDetailRow(label: 'Class', value: taxonData.taxonClass),
-          TaxonDetailRow(label: 'Order', value: taxonData.taxonOrder),
-          TaxonDetailRow(label: 'Family', value: taxonData.taxonFamily),
-          TaxonDetailRow(
-            label: 'Genus',
-            value: taxonData.genus,
-            isItalic: true,
-          ),
-          TaxonDetailRow(
-            label: 'Species',
-            value: '${taxonData.genus} ${taxonData.specificEpithet}',
-            isItalic: true,
-          ),
-          TaxonDetailRow(
-            label: 'Subspecies',
-            value: taxonData.subspecificEpithet,
-            isItalic: true,
-          ),
-          TaxonDetailRow(label: 'Authors', value: taxonData.authors),
-          const SizedBox(height: 8),
-          if (taxonData.redListCategory != null &&
-              taxonData.redListCategory!.isNotEmpty)
-            TaxonDetailRow(
-              label: 'Red List category',
-              isStacked: true,
-              customValue: RedListCategoryPill(
-                category: taxonData.redListCategory!,
-              ),
-            ),
-          TaxonDetailRow(label: 'CITES status', value: taxonData.citesStatus),
-          TaxonDetailRow(
-            label: 'Country status',
-            isStacked: true,
-            value: taxonData.countryStatus,
-          ),
-          TaxonDetailRow(
-            label: 'Notes',
-            isStacked: true,
-            value: taxonData.notes,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RedListCategoryPill extends StatelessWidget {
-  const RedListCategoryPill({super.key, required this.category});
-
-  final String category;
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = matchRedListCategoryColor(category);
-    final textColor = bgColor.computeLuminance() > 0.3
-        ? Colors.black
-        : Colors.white;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Text(
-        category,
-        style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
-
-class TaxonDetailRow extends StatelessWidget {
-  const TaxonDetailRow({
-    super.key,
-    required this.label,
-    this.value,
-    this.customValue,
-    this.isItalic = false,
-    this.isStacked = false,
-  });
-
-  final String label;
-  final String? value;
-  final Widget? customValue;
-  final bool isItalic;
-  final bool isStacked;
-
-  @override
-  Widget build(BuildContext context) {
-    if ((value == null || value!.isEmpty) && customValue == null) {
-      return const SizedBox.shrink();
-    }
-
-    final textStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      fontStyle: isItalic ? FontStyle.italic : null,
-    );
-
-    if (isStacked) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 4),
-            customValue ?? Text(value!, style: textStyle),
-          ],
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: customValue == null
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
-          ),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: customValue == null
-                  ? CrossAxisAlignment.start
-                  : CrossAxisAlignment.center,
-              children: [
-                Text(': ', style: Theme.of(context).textTheme.titleSmall),
-                Expanded(child: customValue ?? Text(value!, style: textStyle)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class TaxonText extends StatelessWidget {
   const TaxonText({super.key, required this.rank, required this.value});
 
@@ -347,7 +140,7 @@ class SpeciesAutoComplete extends ConsumerStatefulWidget {
 
   final String specimenUuid;
   final TextEditingController speciesCtr;
-  final List<String> options;
+  final List<TaxonomyData> options;
 
   @override
   SpeciesAutoCompleteState createState() => SpeciesAutoCompleteState();
@@ -357,53 +150,46 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Type taxon name and select from list',
+      child: AutoCompleteField<TaxonomyData>(
+        focusNode: _focusNode,
+        controller: widget.speciesCtr,
+        options: widget.options,
+        displayStringFor: getTaxonDisplayName,
+        labelText: 'Taxon',
+        hintText: 'Type taxon name',
+        onSelected: _inputTaxon,
+      ),
+    );
+  }
+
+  @override
   void dispose() {
     _focusNode.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Type taxon name and select from list',
-      child: AutoCompleteField(
-        focusNode: _focusNode,
-        controller: widget.speciesCtr,
-        options: widget.options,
-        labelText: 'Taxon',
-        hintText: 'Type taxon name',
-        onSelected: (String selection) {
-          setState(() {
-            _inputTaxon(selection);
-          });
-          _focusNode.unfocus();
-        },
-      ),
+  /// Stores the selected taxon's id.
+  ///
+  /// The option carries the record, so the id is taken straight from it. Looking
+  /// the taxon back up by genus and epithet would be ambiguous whenever two
+  /// records share them -- a species and its nominate subspecies always do.
+  void _inputTaxon(TaxonomyData taxon) {
+    SpecimenServices(ref: ref).updateSpecimen(
+      widget.specimenUuid,
+      SpecimenCompanion(speciesID: db.Value(taxon.id)),
     );
-  }
-
-  void _inputTaxon(String selection) {
-    _copyTaxon(selection);
-    var taxon = widget.speciesCtr.text.split(' ');
-    TaxonomyServices(ref: ref).getTaxonBySpecies(taxon[0], taxon[1]).then((
-      data,
-    ) {
-      SpecimenServices(ref: ref).updateSpecimen(
-        widget.specimenUuid,
-        SpecimenCompanion(speciesID: db.Value(data?.id)),
-      );
-    });
-  }
-
-  void _copyTaxon(String selection) {
-    widget.speciesCtr.value = widget.speciesCtr.value.copyWith(
-      text: selection,
-      selection: TextSelection.collapsed(offset: selection.length),
-    );
+    _focusNode.unfocus();
   }
 }
 
-class SpeciesInputField extends StatelessWidget {
+/// The taxon field, holding the text as the user types it.
+///
+/// Owns its controller so a rebuild cannot replace it mid-edit; the text is
+/// only re-derived when the stored taxon actually changes.
+class SpeciesInputField extends StatefulWidget {
   const SpeciesInputField({
     super.key,
     required this.specimenUuid,
@@ -416,33 +202,54 @@ class SpeciesInputField extends StatelessWidget {
   final List<TaxonomyData> taxonList;
 
   @override
+  State<SpeciesInputField> createState() => _SpeciesInputFieldState();
+}
+
+class _SpeciesInputFieldState extends State<SpeciesInputField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: _storedTaxonName,
+  );
+
+  @override
   Widget build(BuildContext context) {
     return CommonPadding(
       child: SpeciesAutoComplete(
-        specimenUuid: specimenUuid,
-        speciesCtr: _getSpeciesCtr,
-        options: _options,
+        specimenUuid: widget.specimenUuid,
+        speciesCtr: _controller,
+        options: widget.taxonList,
       ),
     );
   }
 
-  TextEditingController get _getSpeciesCtr {
-    if (speciesCtr == null) {
-      return TextEditingController();
+  @override
+  void didUpdateWidget(SpeciesInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only follow a change to the stored taxon. Rewriting the text on every
+    // rebuild would discard what the user is typing.
+    if (oldWidget.speciesCtr != widget.speciesCtr) {
+      final name = _storedTaxonName;
+      _controller.value = TextEditingValue(
+        text: name,
+        selection: TextSelection.collapsed(offset: name.length),
+      );
     }
-    var data = taxonList.firstWhere((taxon) => taxon.id == speciesCtr);
-    TextEditingController ctr = TextEditingController(
-      text: '${data.genus} ${data.specificEpithet}',
-    );
-    ctr.selection = TextSelection.fromPosition(
-      TextPosition(offset: ctr.text.length),
-    );
-    return ctr;
   }
 
-  List<String> get _options => taxonList
-      .map((taxon) => '${taxon.genus} ${taxon.specificEpithet}')
-      .toList();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// The display name of the taxon this specimen references, if it is loaded.
+  String get _storedTaxonName {
+    final id = widget.speciesCtr;
+    if (id == null) return '';
+    for (final taxon in widget.taxonList) {
+      if (taxon.id == id) return getTaxonDisplayName(taxon);
+    }
+    return '';
+  }
 }
 
 /// Taxon field that is disabled
@@ -492,31 +299,6 @@ class SpeciesField extends StatelessWidget {
       validator: (value) => value!.isEmpty ? 'Please enter a taxon' : null,
       keyboardType: TextInputType.text,
       textInputAction: TextInputAction.done,
-    );
-  }
-}
-
-class TaxonomyInfoContent extends StatelessWidget {
-  const TaxonomyInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    ScreenType screenType = getScreenType(context);
-    return InfoContainer(
-      content: [
-        const InfoContent(
-          content:
-              'Taxonomic information is automatically added based on the '
-              'species you enter. ',
-        ),
-        screenType == ScreenType.phone
-            ? const InfoContent(
-                content: 'From top to bottom: Class, Order, Family',
-              )
-            : const InfoContent(
-                content: 'From left to right: Class, Order, Family',
-              ),
-      ],
     );
   }
 }

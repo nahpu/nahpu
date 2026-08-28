@@ -16,6 +16,16 @@ class _DocumentTemplateSubstitutor {
         texts.add(ct);
         continue;
       }
+      if (isTemplatePictureTextType(ct.textType)) {
+        texts.add(
+          ct.copyWith(
+            resolvedPicturePaths: resolveTemplatePicturePaths(ct.text, data),
+            isQrCode: false,
+            isDynamic: false,
+          ),
+        );
+        continue;
+      }
       final subbedText = resolveDocumentTemplatePlaceholders(
         text: ct.text,
         data: data,

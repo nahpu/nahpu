@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -8,6 +8,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/narrative/narrative_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class SiteForm extends ConsumerWidget {
   const SiteForm({
@@ -23,7 +24,7 @@ class SiteForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    List<SiteData> data = [];
+    List<SiteRecord> data = [];
     final siteEntry = ref.watch(siteEntryProvider);
     siteEntry.whenData((siteEntry) => data = siteEntry);
     return SiteIdField(

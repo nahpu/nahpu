@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 typedef TextFormatOption = ({String value, String label});
 
 const kTextTypeOptions = <TextFormatOption>[
   (value: 'normal', label: 'Normal Text'),
+  (value: 'picture', label: 'Picture'),
   (value: 'markdown', label: 'Markdown'),
   (value: 'coordinates', label: 'Coordinates'),
   (value: 'list', label: 'List Values'),
@@ -54,7 +55,7 @@ const kTextFormatOptions = <String, List<TextFormatOption>>{
     (value: 'yyyy-mm-dd-hm', label: 'YYYY-MM-DD 24h (2026-06-28 14:05)'),
     (
       value: 'yyyy-mm-dd-hms',
-      label: 'YYYY-MM-DD seconds (2026-06-28 14:05:09)'
+      label: 'YYYY-MM-DD seconds (2026-06-28 14:05:09)',
     ),
     (value: 'iso-minutes', label: 'ISO minutes (2026-06-28T14:05)'),
     (value: 'iso-seconds', label: 'ISO seconds (2026-06-28T14:05:09)'),
@@ -65,19 +66,19 @@ const kTextFormatOptions = <String, List<TextFormatOption>>{
     (value: 'yyyy/mm/dd-hm', label: 'YYYY/MM/DD 24h (2026/06/28 14:05)'),
     (
       value: 'dd-month-yyyy-hm',
-      label: 'DD Month YYYY 24h (28 June 2026 14:05)'
+      label: 'DD Month YYYY 24h (28 June 2026 14:05)',
     ),
     (
       value: 'month-dd-yyyy-hm',
-      label: 'Month DD, YYYY 12h (June 28, 2026 2:05 PM)'
+      label: 'Month DD, YYYY 12h (June 28, 2026 2:05 PM)',
     ),
     (
       value: 'dd-month-abbr-yyyy-hm',
-      label: 'DD Mon YYYY 24h (28 Jun 2026 14:05)'
+      label: 'DD Mon YYYY 24h (28 Jun 2026 14:05)',
     ),
     (
       value: 'month-abbr-dd-yyyy-hm',
-      label: 'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'
+      label: 'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)',
     ),
     (value: 'time-24', label: 'Time 24h (14:05)'),
     (value: 'time-24-seconds', label: 'Time 24h seconds (14:05:09)'),

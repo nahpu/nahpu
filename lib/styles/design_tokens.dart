@@ -17,10 +17,11 @@ abstract final class NahpuSpacing {
 }
 
 abstract final class NahpuRadius {
-  static const double small = 8;
-  static const double medium = 12;
-  static const double large = 16;
-  static const double extraLarge = 24;
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 16;
+  static const double xl = 24;
 }
 
 abstract final class NahpuStroke {
@@ -52,6 +53,20 @@ abstract final class NahpuBreakpoints {
   static const double compact = 600;
   static const double projectWizardRail = 840;
   static const double desktop = 900;
+
+  /// Laptop-sized and wider: enough room for the project rail to show its
+  /// labels without crowding the page beside it.
+  static const double laptop = 1280;
+}
+
+/// Fixed geometry for dashboard panels so every panel lines up.
+abstract final class NahpuDashboardPanel {
+  static const double height = 360;
+  static const double maxWidth = 460;
+  static const double contentMaxWidth = 420;
+
+  /// Height of a dashboard row: one panel plus the card title and padding.
+  static const double rowHeight = 470;
 }
 
 abstract final class NahpuContentWidth {

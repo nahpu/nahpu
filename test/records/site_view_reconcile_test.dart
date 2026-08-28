@@ -1,17 +1,20 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/sites/components/menu_bar.dart';
+import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Regression tests for the issue #132 in-place refresh: they drive the real
 /// [SiteViewer] against an in-memory database, exercising the same
@@ -28,8 +31,15 @@ void main() {
   });
 
   Future<ProviderContainer> pumpViewer(WidgetTester tester, Database db) async {
+    // The record list reads its sort from shared preferences, the same way
+    // the running app does.
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
     final container = ProviderContainer(
-      overrides: [databaseProvider.overrideWithValue(db)],
+      overrides: [
+        databaseProvider.overrideWithValue(db),
+        settingProvider.overrideWithValue(preferences),
+      ],
     );
     container.read(projectUuidProvider.notifier).updateProjectUuid(projectUuid);
     await tester.pumpWidget(
@@ -52,6 +62,28 @@ void main() {
   // fire it so no timer is pending when the tree is disposed.
   Future<void> drainOverlayTimer(WidgetTester tester) =>
       tester.pump(const Duration(seconds: 6));
+
+  Finder siteRecordPageView() => find.byWidgetPredicate(
+    (widget) => widget is PageView && widget.key is ObjectKey,
+    description: 'site record PageView',
+  );
+
+  /// Rebuilds the viewer under a new key, destroying its [State] while the
+  /// container — and so the entry provider's cached list — stays alive. That
+  /// is what a rotation or a resize across the rail breakpoint does to the
+  /// real app.
+  Future<void> recreateViewerState(
+    WidgetTester tester,
+    ProviderContainer container,
+  ) async {
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(home: SiteViewer(key: UniqueKey())),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
 
   testWidgets('empty list renders without a setState-during-build error', (
     tester,
@@ -169,9 +201,7 @@ void main() {
     // Assert the real viewport, not just the counter text — the counter reads
     // bookkeeping and can lie about the view.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
     expect(tester.takeException(), isNull);
@@ -202,9 +232,7 @@ void main() {
     // real viewport too — a counter-only check can pass while the view stays
     // behind.
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 2.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(
@@ -228,9 +256,9 @@ void main() {
     final container = await pumpViewer(tester, db);
 
     // First load lands on 4 of 4; swipe back into the middle of the list.
-    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.fling(siteRecordPageView(), const Offset(600, 0), 2000);
     await tester.pumpAndSettle();
-    await tester.fling(find.byType(PageView), const Offset(600, 0), 2000);
+    await tester.fling(siteRecordPageView(), const Offset(600, 0), 2000);
     await tester.pumpAndSettle();
     expect(find.text('Page 2 of 4'), findsAtLeastNWidgets(1));
 
@@ -246,9 +274,7 @@ void main() {
     // layout and stuck the view one page short. The keyed controller swap
     // must land the real viewport on the new record.
     expect(find.text('Page 5 of 5'), findsAtLeastNWidgets(1));
-    final controller = tester
-        .widget<PageView>(find.byType(PageView))
-        .controller;
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
     expect(controller?.page, 4.0);
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
     expect(tester.takeException(), isNull);
@@ -279,6 +305,80 @@ void main() {
     expect(find.text('Cancel'), findsNothing);
     expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
     expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, newId);
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('a recreated State seeds the counter from the cached list', (
+    tester,
+  ) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    await seedSite(db);
+    final lastId = await seedSite(db);
+
+    final container = await pumpViewer(tester, db);
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+
+    await recreateViewerState(tester, container);
+
+    // Regression guard: the reconcile used to run only on a provider
+    // emission. A recreated State met an entry provider that still held its
+    // cached list, so nothing emitted, and the viewer rendered records under
+    // a counter stuck at "Page 0 of 0" with the nav bar gone.
+    expect(find.text('Page 0 of 0'), findsNothing);
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    expect(find.byType(PageNavButton), findsOneWidget);
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, lastId);
+    expect(tester.takeException(), isNull);
+
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('a recreated State returns to the page the user was on', (
+    tester,
+  ) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    final middleId = await seedSite(db);
+    await seedSite(db);
+
+    final container = await pumpViewer(tester, db);
+    // First load lands on 3 of 3; swipe back one page.
+    await tester.fling(siteRecordPageView(), const Offset(600, 0), 2000);
+    await tester.pumpAndSettle();
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+
+    await recreateViewerState(tester, container);
+
+    // The position lives in lastViewedRecordProvider, outside the State, so
+    // it survives the rebuild. Assert the real viewport, not just the counter.
+    expect(find.text('Page 2 of 3'), findsAtLeastNWidgets(1));
+    final controller = tester.widget<PageView>(siteRecordPageView()).controller;
+    expect(controller?.page, 1.0);
+    expect(tester.widget<SiteMenu>(find.byType(SiteMenu)).siteId, middleId);
+    expect(tester.takeException(), isNull);
+
+    await drainOverlayTimer(tester);
+  });
+
+  testWidgets('a fresh container still lands on the last record', (
+    tester,
+  ) async {
+    final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
+    addTearDown(db.close);
+    await seedSite(db);
+    await seedSite(db);
+    final lastId = await seedSite(db);
+
+    // Guards the first-load rule against the new position memory: with
+    // nothing remembered, insertion order still opens on the newest record.
+    final container = await pumpViewer(tester, db);
+
+    expect(find.text('Page 3 of 3'), findsAtLeastNWidgets(1));
+    expect(container.read(lastViewedRecordProvider(RecordViewer.site)), lastId);
+
     await drainOverlayTimer(tester);
   });
 }

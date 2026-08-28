@@ -1,6 +1,8 @@
 import 'package:nahpu/screens/projects/components/project_info.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -21,7 +23,7 @@ class ProjectOverview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
       title: 'Project Overview',
-      infoContent: const ProjectInfoContent(),
+      infoTopic: InfoTopic.projectOverview,
       isPrimary: true,
       isExpanded: useHorizontalLayout,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -29,14 +31,9 @@ class ProjectOverview extends ConsumerWidget {
           .watch(projectInfoProvider(projectUuid))
           .when(
             data: (data) {
-              final projectInfo = Padding(
-                padding: const EdgeInsets.all(8),
-                child: ProjectInfo(
-                  projectData: data,
-                  showActions: false,
-                  useSectionContainers: false,
-                ),
-              );
+              final qrData = data == null
+                  ? null
+                  : ProjectExchangeService.encodeQr(data);
               final actions = ProjectInfoActions(
                 projectData: data,
                 onEdit: onEdit,
@@ -45,16 +42,29 @@ class ProjectOverview extends ConsumerWidget {
                 return Column(
                   children: [
                     Expanded(
-                      child: SingleChildScrollView(
-                        key: const ValueKey('project-overview-scroll'),
-                        child: projectInfo,
+                      child: _ProjectInfoSection(
+                        data: data,
+                        qrData: qrData,
+                        useHorizontalQrLayout: true,
                       ),
                     ),
                     actions,
                   ],
                 );
               }
-              return Column(children: [projectInfo, actions]);
+              return Column(
+                children: [
+                  SizedBox(
+                    height: 360,
+                    child: _ProjectInfoSection(
+                      data: data,
+                      qrData: qrData,
+                      useHorizontalQrLayout: false,
+                    ),
+                  ),
+                  actions,
+                ],
+              );
             },
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),
@@ -76,47 +86,31 @@ class ProjectOverview extends ConsumerWidget {
   }
 }
 
-class ProjectInfoContent extends StatelessWidget {
-  const ProjectInfoContent({super.key});
+class _ProjectInfoSection extends StatelessWidget {
+  const _ProjectInfoSection({
+    required this.data,
+    required this.qrData,
+    required this.useHorizontalQrLayout,
+  });
+
+  final ProjectData? data;
+  final String? qrData;
+  final bool useHorizontalQrLayout;
 
   @override
   Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Basic information about the project.'
-              ' You can edit or export the project information'
-              ' using the actions at the bottom of this panel.'
-              ' QR sharing is available from the project menu.',
+    return SingleChildScrollView(
+      key: const ValueKey('project-overview-scroll'),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: ProjectInfo(
+          projectData: data,
+          qrData: qrData,
+          useHorizontalQrLayout: useHorizontalQrLayout,
+          showActions: false,
+          useSectionContainers: false,
         ),
-        InfoContent(
-          header: 'UUID',
-          content:
-              'UUID is a universal unique identifier.'
-              ' It is automatically generated when you create a new project.'
-              ' It standardizes the project identification process,'
-              ' making it easy to find, manage, and share project data.',
-        ),
-        InfoContent(
-          header: 'Sharing project details',
-          content:
-              'Export project information as JSON to transfer it '
-              'between desktop devices. You can also use the "Show QR" '
-              'action from the project menu, then scan it when creating a '
-              'new project on another device.',
-        ),
-        InfoContent(
-          header: 'Tips',
-          content:
-              'Keep the description short and concise.'
-              ' Provide only general information about the location,'
-              ' e.g. Mt. Gede, Java, Indonesia.'
-              ' We recommend using the narrative to provide'
-              ' more detailed information about the project.',
-        ),
-      ],
+      ),
     );
   }
 }

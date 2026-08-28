@@ -818,6 +818,60 @@ void main() {
         expect(sheets.single.cellData.map((data) => data['id']), ['A', 'A']);
       },
     );
+
+    test('oversized auto-fill rows are isolated and never repeated', () async {
+      final longText = List.filled(
+        120,
+        'A long dynamic narrative paragraph.',
+      ).join(' ');
+      final template = Template(
+        name: 'oversized',
+        widthMm: 60,
+        heightMm: 20,
+        page1: TemplatePage(
+          customTexts: [
+            CustomTextElement(
+              id: 'narrative',
+              text: longText,
+              xMm: 0,
+              yMm: 0,
+              maxWidthMm: 60,
+              isDynamic: true,
+            ),
+          ],
+        ),
+        page2: const TemplatePage(),
+      );
+
+      final sheets = await DocumentWriter.planDocumentSheetsForTesting(
+        layout: _layout(
+          blocks: [
+            _block(
+              templateName: template.name,
+              templateCount: 1,
+              rows: -1,
+              cols: 1,
+            ),
+          ],
+        ),
+        templates: [template],
+        dataByBlock: const [
+          [
+            {'id': 'A'},
+            {'id': 'B'},
+          ],
+        ],
+        useTemplateDimensions: true,
+        usableHeightPt: 120,
+      );
+
+      expect(sheets, hasLength(2));
+      expect(
+        sheets.expand((sheet) => sheet.cellData).map((data) => data['id']),
+        ['A', 'B'],
+      );
+      expect(sheets.every((sheet) => sheet.cellData.length == 1), isTrue);
+    });
   });
 
   group('DocumentWriter auto-fill sizing tests', () {
@@ -1012,6 +1066,46 @@ void main() {
       expect(longHeight, greaterThan(shortHeight));
     });
 
+    test('auto-height measurement uses formatted newline and bullet lists', () {
+      TemplatePage listPage(String formatOption) => TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: formatOption,
+            text: 'A|B|C',
+            textType: 'list',
+            formatOption: formatOption,
+            xMm: 0,
+            yMm: 0,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+      );
+
+      final commaHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+            page: listPage('comma'),
+            wPt: 180,
+            hPt: 20,
+          );
+      final newlineHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+            page: listPage('newline'),
+            wPt: 180,
+            hPt: 20,
+          );
+      final bulletHeight =
+          DocumentWriter.estimateTemplatePageContentHeightPtForTesting(
+            page: listPage('bullet'),
+            wPt: 180,
+            hPt: 20,
+          );
+
+      expect(newlineHeight, greaterThan(commaHeight));
+      expect(bulletHeight, greaterThan(commaHeight));
+    });
+
     test('includes template padding in auto-fill cell height', () {
       final page = TemplatePage(
         customTexts: [
@@ -1075,6 +1169,52 @@ void main() {
       );
 
       expect(height, greaterThan(documentPdfMmToPt(10)));
+    });
+
+    test('auto-height dynamic text uses a breakable flow cell', () {
+      final page = TemplatePage(
+        customTexts: [
+          const CustomTextElement(
+            id: 'header',
+            text: 'Narrative header',
+            xMm: 2,
+            yMm: 2,
+          ),
+          CustomTextElement(
+            id: 'dynamic',
+            text: List.filled(80, 'Dynamic narrative text').join(' '),
+            xMm: 2,
+            yMm: 10,
+            fontSizePt: 10,
+            maxWidthMm: 55,
+            isDynamic: true,
+          ),
+        ],
+        customLines: const [
+          CustomLineElement(id: 'after-dynamic', xMm: 2, yMm: 20, lengthMm: 55),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: documentPdfMmToPt(60),
+        hPt: documentPdfMmToPt(30),
+        autoHeight: true,
+      );
+
+      expect(typst, contains('grid.cell(breakable: true)'));
+      expect(typst, contains('block(width: 100%, breakable: true'));
+      expect(typst, contains('flow_top_dynamic'));
+      expect(typst, contains('#place(left, dx:'));
+      expect(
+        typst,
+        isNot(
+          contains(
+            '#place(top + left, dx: ${documentPdfMmToPt(2)}pt, '
+            'dy: ${documentPdfMmToPt(10)}pt',
+          ),
+        ),
+      );
     });
 
     test(
@@ -1640,13 +1780,60 @@ void main() {
       },
     );
 
-    test('List formatting handles normal separators and custom separators', () {
-      const listText = 'mammal | bird | reptile';
-      final commaList = formatTemplateText(listText, 'list', 'comma');
-      expect(commaList, 'mammal, bird, reptile');
+    test('List formatting handles compact values and every separator', () {
+      const listText = 'mammal|bird|reptile';
+      expect(
+        formatTemplateText(listText, 'list', 'pipe'),
+        'mammal | bird | reptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'comma'),
+        'mammal, bird, reptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'semicolon'),
+        'mammal; bird; reptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'slash'),
+        'mammal / bird / reptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'newline'),
+        'mammal\nbird\nreptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'bullet'),
+        '• mammal\n• bird\n• reptile',
+      );
+      expect(
+        formatTemplateText(listText, 'list', 'custom: - '),
+        'mammal - bird - reptile',
+      );
+    });
 
-      final customList = formatTemplateText(listText, 'list', 'custom: - ');
-      expect(customList, 'mammal - bird - reptile');
+    test('renderer does not reinterpret a formatted custom pipe separator', () {
+      const page = TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'list',
+            text: 'A|B',
+            textType: 'list',
+            formatOption: 'custom:|;',
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      );
+
+      final typst = DocumentWriter.renderSingleDocumentCellTypstForTesting(
+        page: page,
+        wPt: 100,
+        hPt: 100,
+      );
+
+      expect(typst, contains('A|;B'));
+      expect(typst, isNot(contains('A|;;B')));
     });
 
     test('Date formatting parses and formats ISO dates correctly', () {
@@ -1702,6 +1889,15 @@ void main() {
       expect(formatTemplateText('\u2640', 'sex', 'symbol:unknown'), '\u2640');
       expect(formatTemplateText('\u2642', 'sex', 'letter:na'), 'M');
       expect(formatTemplateText('\u2640', 'sex', 'text:none'), 'Female');
+
+      expect(formatTemplateText('3', 'sex', 'text:unknown'), 'Gynandromorph');
+      expect(formatTemplateText('4', 'sex', 'letter:unknown'), 'H');
+      expect(formatTemplateText('5', 'sex', 'symbol:unknown'), '\u2640?');
+      expect(formatTemplateText('Male?', 'sex', 'letter:unknown'), 'M?');
+      expect(
+        formatTemplateText('\u26A5', 'sex', 'text:unknown'),
+        'Hermaphrodite',
+      );
     });
 
     test('Typst keeps sex symbols and selects a glyph-capable font', () {

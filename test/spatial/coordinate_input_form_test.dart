@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -196,9 +196,10 @@ void main() {
     await tester.tap(find.text('Import'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Supported files:'), findsOneWidget);
     expect(
       find.text(
-        'Supported files: GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
+        'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
       ),
       findsOneWidget,
     );

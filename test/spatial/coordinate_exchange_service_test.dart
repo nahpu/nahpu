@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/record_exchange/coordinate_exchange_service.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/src/rust/api/gis.dart' as rust_gis;
+import 'package:nahpu/services/types/coordinate_import.dart';
 
 void main() {
   test('coordinate QR payload round-trips every persisted field', () {
@@ -59,10 +59,12 @@ void main() {
   test('coordinate file imports use the configured default datum', () {
     final companions = CoordinateExchangeService.companionsForSite(
       const [
-        rust_gis.CoordinateTransferRecord(
+        CoordinateImportRecord(
           nameId: 'Imported coordinate',
           decimalLatitude: 12.3,
           decimalLongitude: 45.6,
+          gpsUnit: 'Garmin 64s',
+          notes: 'Ridge waypoint',
         ),
       ],
       9,
@@ -70,6 +72,8 @@ void main() {
     );
 
     expect(companions.single.datum, const Value('NAD83'));
+    expect(companions.single.gpsUnit, const Value('Garmin 64s'));
+    expect(companions.single.notes, const Value('Ridge waypoint'));
   });
 
   test('project coordinate query excludes other projects', () async {

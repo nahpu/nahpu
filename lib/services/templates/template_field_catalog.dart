@@ -14,16 +14,24 @@ Map<String, List<String>> availableTemplateFieldGroups(
       allowedTables = {'personnel', 'project'};
       break;
     case RecordType.narrative:
-      allowedTables = {'narrative', 'site', 'personnel'};
+      allowedTables = {'narrative', 'site', 'geography', 'personnel'};
       break;
     case RecordType.site:
-      allowedTables = {'site', 'personnel', 'coordinate'};
+      allowedTables = {
+        'site',
+        'geography',
+        'siteAttribute',
+        'personnel',
+        'coordinate',
+      };
       break;
     case RecordType.collEvent:
       allowedTables = {
         'collEvent',
         'site',
-        'weather',
+        'geography',
+        'siteAttribute',
+        'environment',
         'coordinate',
         'collEffort',
         'collPersonnel',
@@ -38,22 +46,33 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'project',
         'collEvent',
         'site',
+        'geography',
+        'siteAttribute',
         'coordinate',
-        'weather',
+        'environment',
         'mammalAttribute',
         'birdAttribute',
         'herpAttribute',
+        'arthropodAttribute',
+        'fossilAttribute',
         'specimenPart',
       };
       if (selectedTaxon == 'Mammals') {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (selectedTaxon == 'Birds') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('arthropodAttribute');
       } else if (selectedTaxon == 'Herpetofauna') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
+        allowedTables.remove('arthropodAttribute');
+      } else if (selectedTaxon == 'Arthropods') {
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
       }
       break;
   }
@@ -65,6 +84,9 @@ Map<String, List<String>> availableTemplateFieldGroups(
           .map((column) => '$tableName::${column.name}')
           .toList(growable: false);
     }
+  }
+  if (recordType != RecordType.none) {
+    groups['media'] = const ['media::media'];
   }
   return groups;
 }

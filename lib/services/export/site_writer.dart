@@ -7,6 +7,7 @@ import 'package:nahpu/services/export/media_writer.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
 class SiteWriterServices extends AppServices {
@@ -24,7 +25,7 @@ class SiteWriterServices extends AppServices {
   Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
     List<String> header = [...siteExportList, 'media::media'];
 
-    List<SiteData> siteList = await SiteServices(ref: ref).getAllSites();
+    List<SiteRecord> siteList = await SiteServices(ref: ref).getAllSites();
     List<Map<String, dynamic>> jsonList = [];
 
     for (var site in siteList) {
@@ -78,17 +79,21 @@ class SiteWriterServices extends AppServices {
     if (siteID == null) {
       return List.filled(emptySite, '');
     } else {
-      SiteData? data = await _getSiteData(siteID);
+      SiteRecord? data = await _getSiteData(siteID);
       if (data == null) {
         return List.filled(emptySite, '');
       } else {
+        final attribute = await SiteServices(ref: ref).getSiteAttribute(siteID);
         String verbatimLocality = _createVerbatimLocality(data);
 
         List<String> siteDelimited = _getSiteDelimited(data);
         String coordinates = await getCoordinates(siteID);
         List<String> siteDetails = [
           data.siteID.toString(),
-          data.habitatType ?? '',
+          attribute?.habitatType ?? '',
+          attribute?.habitatCondition ?? '',
+          attribute?.habitatDescription ?? '',
+          attribute?.canopyCover ?? '',
           ...siteDelimited,
           verbatimLocality,
           coordinates,
@@ -102,7 +107,7 @@ class SiteWriterServices extends AppServices {
     if (siteID == null) {
       return '';
     } else {
-      SiteData? data = await _getSiteData(siteID);
+      SiteRecord? data = await _getSiteData(siteID);
       if (data == null) {
         return '';
       } else {
@@ -112,7 +117,7 @@ class SiteWriterServices extends AppServices {
     }
   }
 
-  Future<SiteData?> _getSiteData(int? siteID) async {
+  Future<SiteRecord?> _getSiteData(int? siteID) async {
     return await SiteServices(ref: ref).getSite(siteID);
   }
 
@@ -167,8 +172,9 @@ class SiteWriterServices extends AppServices {
     return [nameId, latLong, elevation, uncertainty, datum, gpsUnit, notes];
   }
 
-  List<String> _getSiteDelimited(SiteData data) {
+  List<String> _getSiteDelimited(SiteRecord data) {
     String country = data.country != null ? '${data.country}' : '';
+    String islandGroup = data.islandGroup ?? '';
     String stateProvince = data.stateProvince != null
         ? '${data.stateProvince}'
         : '';
@@ -182,6 +188,7 @@ class SiteWriterServices extends AppServices {
     String siteRemark = data.remark != null ? '${data.remark}' : '';
     return [
       country,
+      islandGroup,
       stateProvince,
       county,
       municipality,
@@ -190,7 +197,7 @@ class SiteWriterServices extends AppServices {
     ];
   }
 
-  String _createVerbatimLocality(SiteData data) {
+  String _createVerbatimLocality(SiteRecord data) {
     String country = data.country != null ? '${data.country}: ' : '';
     String stateProvince = data.stateProvince != null
         ? '${data.stateProvince}; '

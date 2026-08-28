@@ -37,7 +37,7 @@ class TemplateEditorHistoryService {
   ///
   /// A non-positive [capacity] is normalized to one retained entry.
   TemplateEditorHistoryService({int capacity = 50})
-      : capacity = capacity < 1 ? 1 : capacity;
+    : capacity = capacity < 1 ? 1 : capacity;
 
   /// The maximum number of undo states retained.
   final int capacity;

@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_editor.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/styles/themes.dart';
 
 void main() {
-  testWidgets('uses NAHPU light surface around the canvas in dark mode',
-      (tester) async {
+  testWidgets('uses NAHPU light surface around the canvas in dark mode', (
+    tester,
+  ) async {
     const template = Template(
       name: 'Test template',
       page1: TemplatePage(),
@@ -37,13 +38,8 @@ void main() {
               editorTemplateFieldPreview: const {},
               selectedElement: null,
               templateStackKey: GlobalKey(),
-              templatePanGlobalDeltaToMm: (
-                stackKey,
-                globalPosition,
-                globalDelta,
-                scale,
-              ) =>
-                  null,
+              templatePanGlobalDeltaToMm:
+                  (stackKey, globalPosition, globalDelta, scale) => null,
               onClearSelection: () {},
               onSelectElement: (_) {},
               onStartInlineEditing: (_) {},

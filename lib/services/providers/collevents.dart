@@ -5,7 +5,9 @@ import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final collEventEntryProvider =
@@ -16,10 +18,12 @@ final collEventEntryProvider =
 class CollEventEntry extends AsyncNotifier<List<CollEventData>> {
   Future<List<CollEventData>> _fetchCollEventEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.collEvent));
 
     final collEvents = CollEventQuery(
       ref.read(databaseProvider),
-    ).getAllCollEvents(projectUuid);
+    ).getAllCollEvents(projectUuid, sort: sort);
 
     return collEvents;
   }
@@ -65,18 +69,18 @@ final collPersonnelProvider = FutureProvider.family
       ).getCollPersonnelByEventId(collEventId),
     );
 
-final weatherDataProvider = FutureProvider.family.autoDispose<WeatherData, int>(
-  (ref, collEventId) => WeatherDataQuery(
-    ref.read(databaseProvider),
-  ).getWeatherDataByEventId(collEventId),
-);
+final environmentDataProvider = FutureProvider.family
+    .autoDispose<EnvironmentData, int>(
+      (ref, collEventId) => EnvironmentDataQuery(
+        ref.read(databaseProvider),
+      ).getEnvironmentDataByEventId(collEventId),
+    );
 
 final eventMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, eventId) async {
-      final links = await CollEventQuery(
-        ref.read(databaseProvider),
-      ).getEventMedia(eventId);
-      final mediaQuery = MediaDbQuery(ref.read(databaseProvider));
+      final database = ref.read(databaseProvider);
+      final links = await CollEventQuery(database).getEventMedia(eventId);
+      final mediaQuery = MediaDbQuery(database);
       final media = <MediaData>[];
       for (final link in links) {
         if (link.mediaId case final mediaId?) {

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -14,8 +14,11 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/frb_generated.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,7 +91,9 @@ void main() {
       key: parasiteCategoryPrefKey,
       value: ['Ectoparasite'],
     );
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final category = preview.userConfigs.firstWhere(
       (entry) => entry.key == parasiteCategoryPrefKey,
     );
@@ -107,13 +112,46 @@ void main() {
     expect(datums, ['WGS84', 'NAD83', 'NAD27']);
     expect(datums, isNot(contains('Other')));
 
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final datum = preview.userConfigs.firstWhere(
       (entry) => entry.key == datumPrefKey,
     );
     expect(datum.label, 'Datums');
     expect(datum.values, datums);
     expect(datum.isControlledVocabulary, isTrue);
+  });
+
+  test('activity and environmental settings are exportable', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final activities = await container.read(
+      userDefinedFieldProvider(collActivityPrefKey).future,
+    );
+    final environmentalFields = await container.read(
+      userDefinedFieldProvider(environmentalDataFieldsPrefKey).future,
+    );
+    expect(activities, defaultCollActivities);
+    expect(activities, isNot(contains('Other')));
+    expect(environmentalFields, defaultVisibleEnvironmentalDataFields);
+
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
+    final activity = preview.userConfigs.firstWhere(
+      (entry) => entry.key == collActivityPrefKey,
+    );
+    expect(activity.label, 'Primary activities');
+    expect(activity.values, activities);
+    expect(activity.isControlledVocabulary, isTrue);
+    final environmental = preview.userConfigs.firstWhere(
+      (entry) => entry.key == environmentalDataFieldsPrefKey,
+    );
+    expect(environmental.label, 'Environmental data fields');
+    expect(environmental.values, environmentalFields);
+    expect(environmental.isControlledVocabulary, isFalse);
   });
 
   test('user config settings service persists options and formats', () async {
@@ -149,12 +187,120 @@ void main() {
       value: true.toString(),
     );
 
-    final preview = await rust_config.getConfigExportPreview();
+    final preview = await rust_config.getConfigExportPreview(
+      customFieldTemplates: const [],
+    );
     final setting = preview.userConfigs.firstWhere(
       (entry) => entry.key == projectFieldIdAutoIncrementPrefKey,
     );
     expect(setting.label, 'Auto-increment project field ID');
     expect(setting.value, 'true');
+  });
+
+  test(
+    'custom field templates strip scope and import to one destination',
+    () async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+      await database
+          .into(database.project)
+          .insert(
+            const ProjectCompanion(
+              uuid: Value('project-a'),
+              name: Value('Project A'),
+            ),
+          );
+      final customFields = CustomFieldService(database);
+      final definition = await customFields.createDefinition(
+        const CustomFieldDraft(
+          name: 'Canopy cover',
+          type: FieldType.number,
+          placement: FieldUISection.siteAttribute,
+          scope: FieldScope.global,
+        ),
+      );
+      const transfer = UserConfigTransferService();
+      final output = File('${tempDir.path}/custom-fields.json');
+      await transfer.export(
+        output: output,
+        format: UserConfigFileFormat.json,
+        sections: const {rust_config.UserConfigSection.customFields},
+        database: database,
+        selectedDefinitionIds: {definition.id!},
+      );
+      final source = await transfer.inspect(XFile(output.path));
+      addTearDown(source.dispose);
+      expect(source.preview.schemaVersion, 4);
+      expect(source.preview.customFields.single.label, 'Canopy cover');
+      await customFields.deleteDefinition(definition.id!);
+
+      await transfer.import(
+        source,
+        const {rust_config.UserConfigSection.customFields},
+        database: database,
+        destination: UserConfigImportDestination.currentProject,
+        projectUuid: 'project-a',
+      );
+      final definitions = await database
+          .select(database.customFieldDefinition)
+          .get();
+      expect(definitions, hasLength(1));
+      final imported = definitions.single;
+      expect(imported.projectUuid, 'project-a');
+      expect(imported.sourceTemplateUuid, definition.uuid);
+      expect(imported.isArchived, 0);
+
+      await transfer.import(
+        source,
+        const {rust_config.UserConfigSection.customFields},
+        database: database,
+        destination: UserConfigImportDestination.currentProject,
+        projectUuid: 'project-a',
+      );
+      expect(
+        await database.select(database.customFieldDefinition).get(),
+        hasLength(1),
+      );
+    },
+  );
+
+  test('custom field QR payload contains only selected templates', () async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final customFields = CustomFieldService(database);
+    final included = await customFields.createDefinition(
+      const CustomFieldDraft(
+        name: 'Included field',
+        type: FieldType.text,
+        placement: FieldUISection.siteAttribute,
+        scope: FieldScope.global,
+      ),
+    );
+    await customFields.createDefinition(
+      const CustomFieldDraft(
+        name: 'Excluded field',
+        type: FieldType.boolean,
+        placement: FieldUISection.siteAttribute,
+        scope: FieldScope.global,
+      ),
+    );
+
+    const transfer = UserConfigTransferService();
+    final payload = await transfer.exportCustomFieldPayload(
+      database: database,
+      projectUuid: null,
+      selectedDefinitionIds: {included.id!},
+    );
+    final source = await transfer.inspectCustomFieldPayload(payload);
+    addTearDown(source.dispose);
+
+    expect(source.preview.schemaVersion, 4);
+    expect(source.preview.customFields, hasLength(1));
+    expect(source.preview.customFields.single.label, 'Included field');
   });
 
   testWidgets(

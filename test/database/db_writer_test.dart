@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/db_writer.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   group('databaseCandidatesFromRelativePaths', () {
@@ -40,7 +42,17 @@ void main() {
         isTrue,
       );
       expect(
+        isAssociatedBackupArchivePath(
+          'project-a/associatedData/sites/site-notes.pdf',
+        ),
+        isTrue,
+      );
+      expect(
         isAssociatedBackupArchivePath('appMedia/personnel/person.jpg'),
+        isTrue,
+      );
+      expect(
+        isAssociatedBackupArchivePath('appMedia/template/shared-image.png'),
         isTrue,
       );
       expect(
@@ -54,5 +66,14 @@ void main() {
       expect(isAssociatedBackupArchivePath('backup/old.sqlite3'), isFalse);
       expect(isAssociatedBackupArchivePath('other/random.txt'), isFalse);
     });
+  });
+
+  test('global template media is collected by full backups', () {
+    expect(
+      globalBackupDirectoryPaths('/documents/nahpu'),
+      contains(
+        path.join('/documents/nahpu', appMediaDirName, templateMediaDirName),
+      ),
+    );
   });
 }

@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/canvas/line_hit_test_region.dart';
 import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
@@ -54,7 +54,7 @@ class DraggableLineChip extends StatefulWidget {
   final TemplatePanMmDeltaCallback templatePanToMmDelta;
   final void Function(Offset newPosMm) onMoved;
   final void Function(double xMm, double yMm, double widthMm, double heightMm)
-      onBoundsChanged;
+  onBoundsChanged;
   final void Function(int rotationDegrees) onRotationChanged;
   final VoidCallback? onDelete;
   final bool isSelected;
@@ -142,8 +142,10 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final left = posMm.dx * widget.scale + insetX;
     final top = posMm.dy * widget.scale + insetY;
     final w = (effWmm * widget.scale).clamp(0.0, double.infinity);
-    final lineThicknessPx =
-        math.max(1.0, widget.thicknessPt * widget.scale / _kPdfPointsPerMm);
+    final lineThicknessPx = math.max(
+      1.0,
+      widget.thicknessPt * widget.scale / _kPdfPointsPerMm,
+    );
     final double gapPx = lineThicknessPx * 1.25;
     final double h = widget.strokeStyle == 'double'
         ? lineThicknessPx * 2.0 + gapPx
@@ -153,8 +155,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final borderColor = _moving
         ? scheme.primary
         : widget.isSelected
-            ? scheme.primary
-            : scheme.outline;
+        ? scheme.primary
+        : scheme.outline;
 
     // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
     // does not hit-test children outside a tight w×h Stack).
@@ -162,8 +164,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     final padR = _handleHit / 2 + 6;
     final controlsHeight =
         (widget.onDelete != null ? 30.0 : 0.0) + 40.0 + 4.0 + 48.0;
-    final padT =
-        widget.isSelected && !widget.isLocked ? controlsHeight + 8.0 : 52.0;
+    final padT = widget.isSelected && !widget.isLocked
+        ? controlsHeight + 8.0
+        : 52.0;
     final padB = _handleHit / 2 + 6;
     final outerW = w + padL + padR;
     final outerH = h + padT + padB;
@@ -201,8 +204,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                   child: GestureDetector(
                     key: _measureKey,
                     behavior: HitTestBehavior.translucent,
-                    onTapDown:
-                        widget.isLocked ? (_) => widget.onTap?.call() : null,
+                    onTapDown: widget.isLocked
+                        ? (_) => widget.onTap?.call()
+                        : null,
                     onTap: widget.isLocked ? null : widget.onTap,
                     onPanStart: widget.isLocked ? null : _onMovePanStart,
                     onPanUpdate: widget.isLocked ? null : _onMovePanUpdate,
@@ -211,7 +215,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                     child: Center(
                       child: widget.isVisible
                           ? AnimatedContainer(
-                              duration: (_resizeHandle != null ||
+                              duration:
+                                  (_resizeHandle != null ||
                                       _rotateStartFingerRad != null ||
                                       _moving)
                                   ? Duration.zero
@@ -230,8 +235,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                                 boxShadow: _moving
                                     ? [
                                         BoxShadow(
-                                          color: scheme.primary
-                                              .withValues(alpha: 0.25),
+                                          color: scheme.primary.withValues(
+                                            alpha: 0.25,
+                                          ),
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
                                         ),
@@ -257,7 +263,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                           : Opacity(
                               opacity: 0.35,
                               child: AnimatedContainer(
-                                duration: (_resizeHandle != null ||
+                                duration:
+                                    (_resizeHandle != null ||
                                         _rotateStartFingerRad != null ||
                                         _moving)
                                     ? Duration.zero
@@ -276,8 +283,9 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                                   boxShadow: _moving
                                       ? [
                                           BoxShadow(
-                                            color: scheme.primary
-                                                .withValues(alpha: 0.25),
+                                            color: scheme.primary.withValues(
+                                              alpha: 0.25,
+                                            ),
                                             blurRadius: 8,
                                             offset: const Offset(0, 2),
                                           ),
@@ -306,10 +314,22 @@ class DraggableLineChipState extends State<DraggableLineChip> {
                 ),
               ),
               if (widget.isSelected && !widget.isLocked) ...[
-                _lineHandle(_LineHandle.left, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _lineHandle(_LineHandle.right, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _lineHandle(
+                  _LineHandle.left,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _lineHandle(
+                  _LineHandle.right,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
                 Positioned(
                   left: padL + w / 2 - 24,
                   top: math.max(0.0, padT - controlsHeight - 8.0),
@@ -385,7 +405,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
       children: [
         if (snapResult.verticalGuideMm != null)
           Positioned(
-            left: snapResult.verticalGuideMm! * widget.scale +
+            left:
+                snapResult.verticalGuideMm! * widget.scale +
                 widget.canvasInsetXPx -
                 _snapGuideWidthPx / 2,
             top: widget.canvasInsetYPx,
@@ -396,7 +417,8 @@ class DraggableLineChipState extends State<DraggableLineChip> {
         if (snapResult.horizontalGuideMm != null)
           Positioned(
             left: widget.canvasInsetXPx,
-            top: widget.canvasInsetYPx +
+            top:
+                widget.canvasInsetYPx +
                 snapResult.horizontalGuideMm! * widget.scale -
                 _snapGuideWidthPx / 2,
             width: widget.templateWidthMm * widget.scale,
@@ -509,20 +531,26 @@ class DraggableLineChipState extends State<DraggableLineChip> {
     _rotateStartElemDeg = widget.rotationDegrees;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    _rotateStartFingerRad = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
   }
 
   void _onRotatePanUpdate(DragUpdateDetails d) {
     if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    final cur = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
     final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
     final deg = CustomImageElement.normalizeImageRotationDegrees(
       _rotateStartElemDeg! + radiansToDegrees(delta),
@@ -567,11 +595,11 @@ class DraggableLineChipState extends State<DraggableLineChip> {
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
   Rect get _widgetRect => Rect.fromLTWH(
-        widget.position.dx,
-        widget.position.dy,
-        widget.lengthMm,
-        math.max(2.0, widget.thicknessPt * 0.3527),
-      );
+    widget.position.dx,
+    widget.position.dy,
+    widget.lengthMm,
+    math.max(2.0, widget.thicknessPt * 0.3527),
+  );
 
   bool _isSameRect(Rect a, Rect b) {
     const tolerance = 1e-6;

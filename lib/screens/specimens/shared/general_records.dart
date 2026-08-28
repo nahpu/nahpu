@@ -4,7 +4,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -51,7 +51,7 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
     return FormCard(
       title: 'Collection & Identification',
       isPrimary: true,
-      infoContent: const CollRecordInfoContent(),
+      infoTopic: InfoTopic.specimenGeneralRecord,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       child: Column(
@@ -73,10 +73,10 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
           IDConfidence(
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
+            onChanged: () => setState(() {}),
           ),
           Visibility(
-            visible:
-                _showMore || widget.specimenCtr.idMethodCtr.text.isNotEmpty,
+            visible: widget.specimenCtr.idConfidenceCtr != null,
             child: IDMethod(
               specimenUuid: widget.specimenUuid,
               specimenCtr: widget.specimenCtr,
@@ -165,10 +165,12 @@ class IDConfidence extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
+    required this.onChanged,
   });
 
   final String specimenUuid;
   final SpecimenFormCtrModel specimenCtr;
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -176,6 +178,8 @@ class IDConfidence extends ConsumerWidget {
       child: DropdownButtonFormField<int?>(
         initialValue: specimenCtr.idConfidenceCtr,
         onChanged: (int? value) {
+          specimenCtr.idConfidenceCtr = value;
+          onChanged();
           SpecimenServices(ref: ref).updateSpecimen(
             specimenUuid,
             SpecimenCompanion(iDConfidence: db.Value(value)),
@@ -185,14 +189,18 @@ class IDConfidence extends ConsumerWidget {
           labelText: 'ID Confidence',
           hintText: 'Choose a confidence level',
         ),
-        items: idConfidenceList.reversed
-            .map(
-              (e) => DropdownMenuItem<int?>(
-                value: idConfidenceList.indexOf(e),
-                child: CommonDropdownText(text: e),
-              ),
-            )
-            .toList(),
+        items: [
+          const DropdownMenuItem<int?>(
+            value: null,
+            child: CommonDropdownText(text: 'Not assigned'),
+          ),
+          ...idConfidenceList.reversed.map(
+            (e) => DropdownMenuItem<int?>(
+              value: idConfidenceList.indexOf(e),
+              child: CommonDropdownText(text: e),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -264,24 +272,47 @@ class IDMethod extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final service = SpecimenServices(ref: ref);
-    return CommonPadding(
-      child: TextField(
-        controller: specimenCtr.idMethodCtr,
-        decoration: const InputDecoration(
-          labelText: 'ID Method',
-          hintText: 'Enter ID method',
-        ),
-        onChanged: (value) {
-          if (value.isNotEmpty) {
-            service.updateSpecimenSkipInvalidation(
-              specimenUuid,
-              SpecimenCompanion(iDMethod: db.Value(value)),
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(idMethodPrefKey))
+        .when(
+          data: (data) {
+            final options = includeCurrentVocabularyValue(
+              data,
+              specimenCtr.idMethodCtr,
             );
-          }
-        },
-        onSubmitted: (_) => service.invalidateSpecimenList(),
-      ),
-    );
+            return CommonPadding(
+              child: DropdownButtonFormField<String?>(
+                initialValue: specimenCtr.idMethodCtr,
+                decoration: const InputDecoration(
+                  labelText: 'Identification Method',
+                  hintText: 'Choose an identification method',
+                ),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: CommonDropdownText(text: 'Not assigned'),
+                  ),
+                  ...options.map(
+                    (value) => DropdownMenuItem<String?>(
+                      value: value,
+                      child: CommonDropdownText(text: value),
+                    ),
+                  ),
+                ],
+                onChanged: (value) {
+                  specimenCtr.idMethodCtr = value;
+                  service.updateSpecimenSkipInvalidation(
+                    specimenUuid,
+                    SpecimenCompanion(iDMethod: db.Value(value)),
+                  );
+                  service.invalidateSpecimenList();
+                },
+              ),
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error: $error'),
+        );
   }
 }
 
@@ -1041,53 +1072,5 @@ class _SpecimenFieldIdEditorState
       ref.invalidate(personnelNameProvider(_cataloger!.uuid));
     }
     if (mounted) Navigator.pop(context);
-  }
-}
-
-class CollRecordInfoContent extends StatelessWidget {
-  const CollRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'General record of the specimen. '
-              'Field ID uses the project default and can be either a '
-              'cataloger field number or a project catalog number. '
-              'Use the edit button to change the number or identifier type.',
-        ),
-        InfoContent(
-          header: 'Cataloger and preparator fields',
-          content:
-              'By default, the cataloger is the preparator.'
-              ' If the preparator is different, '
-              'select the preparator from the dropdown.',
-        ),
-        InfoContent(
-          header: 'Taxon field',
-          content:
-              'Type the taxon name to search for it in the taxon registry. '
-              'You can start by typing the epithet to simplify the search. '
-              'The taxon field will be disabled if no'
-              ' taxa are registered in the project.'
-              ' You can add a taxon in the taxon registry section in the '
-              'project dashboard.',
-        ),
-        InfoContent(
-          header: 'Condition field',
-          content:
-              'The condition field is a qualitative measure of the freshness'
-              ' of the specimen at time of prep.'
-              ' Condition can depend on factors including time since death,'
-              ' temperature, sun exposure (especially for salvage specimens), etc.'
-              ' If the collection time (i.e., time of death) and prep times are known,'
-              ' these can also be added for a more quantitative'
-              ' measure of condition at time of prep.',
-        ),
-      ],
-    );
   }
 }

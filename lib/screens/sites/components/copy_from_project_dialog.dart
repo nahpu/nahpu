@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/sites/site_copy_services.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 Future<SiteCopyResult?> showCopyFromProjectDialog({
   required BuildContext context,
@@ -32,8 +32,8 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
   String? _blockingTitle;
   List<ProjectSummary> _projects = [];
   ProjectSummary? _project;
-  List<SiteData> _sites = [];
-  SiteData? _site;
+  List<SiteRecord> _sites = [];
+  SiteRecord? _site;
   SiteCopySource? _source;
   Set<SiteCopyField> _selectedFields = {};
 
@@ -354,14 +354,16 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
       SiteCopyField.leadStaff => source.site.leadStaffId,
       SiteCopyField.siteType => source.site.siteType,
       SiteCopyField.country => source.site.country,
+      SiteCopyField.islandGroup => source.site.islandGroup,
       SiteCopyField.stateProvince => source.site.stateProvince,
       SiteCopyField.county => source.site.county,
       SiteCopyField.municipality => source.site.municipality,
       SiteCopyField.locality => source.site.locality,
       SiteCopyField.remark => source.site.remark,
-      SiteCopyField.habitatType => source.site.habitatType,
-      SiteCopyField.habitatCondition => source.site.habitatCondition,
-      SiteCopyField.habitatDescription => source.site.habitatDescription,
+      SiteCopyField.habitatType => source.attribute?.habitatType,
+      SiteCopyField.habitatCondition => source.attribute?.habitatCondition,
+      SiteCopyField.habitatDescription => source.attribute?.habitatDescription,
+      SiteCopyField.canopyCover => source.attribute?.canopyCover,
       SiteCopyField.coordinates => source.coordinates.isNotEmpty ? 'yes' : null,
     };
     return value?.trim().isNotEmpty == true;
@@ -379,26 +381,28 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
       SiteCopyField.siteId => source.site.siteID,
       SiteCopyField.siteType => source.site.siteType,
       SiteCopyField.country => source.site.country,
+      SiteCopyField.islandGroup => source.site.islandGroup,
       SiteCopyField.stateProvince => source.site.stateProvince,
       SiteCopyField.county => source.site.county,
       SiteCopyField.municipality => source.site.municipality,
       SiteCopyField.locality => source.site.locality,
       SiteCopyField.remark => source.site.remark,
-      SiteCopyField.habitatType => source.site.habitatType,
-      SiteCopyField.habitatCondition => source.site.habitatCondition,
-      SiteCopyField.habitatDescription => source.site.habitatDescription,
+      SiteCopyField.habitatType => source.attribute?.habitatType,
+      SiteCopyField.habitatCondition => source.attribute?.habitatCondition,
+      SiteCopyField.habitatDescription => source.attribute?.habitatDescription,
+      SiteCopyField.canopyCover => source.attribute?.canopyCover,
       SiteCopyField.leadStaff => source.site.leadStaffId,
       SiteCopyField.coordinates => null,
     };
     return value ?? '';
   }
 
-  String _siteLabel(SiteData site) {
+  String _siteLabel(SiteRecord site) {
     final value = site.siteID?.trim();
     return value == null || value.isEmpty ? 'Unnamed site #${site.id}' : value;
   }
 
-  String _siteSubtitle(SiteData site) {
+  String _siteSubtitle(SiteRecord site) {
     return [
       site.siteType,
       site.locality,

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -184,31 +184,46 @@ void main() {
     );
     expect(sidePanel, findsOneWidget);
     expect(bottomPanel, findsNothing);
+    expect(find.byTooltip('Close'), findsOneWidget);
   });
 
-  testWidgets('narrow layout shows metadata at the bottom', (tester) async {
+  testWidgets('narrow layout toggles between media and info views', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(500, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final mediaList = seedImages(1);
+    _writeMediaFile(tempAppDir, 'photo1.png', _pngBytes);
+    final mediaList = [
+      _buildMedia(id: 1, fileName: 'photo1.png', caption: 'A nice view'),
+    ];
     await _pumpViewerLauncher(tester, db, mediaList);
     await _openDialog(tester);
 
-    final sidePanel = find.ancestor(
-      of: find.byType(MediaDetailsView),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.width == 360,
-      ),
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      tester.widget<BottomSheet>(find.byType(BottomSheet)).showDragHandle,
+      isTrue,
     );
-    final bottomPanel = find.ancestor(
-      of: find.byType(MediaDetailsView),
-      matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.height == 280,
-      ),
-    );
-    expect(bottomPanel, findsOneWidget);
-    expect(sidePanel, findsNothing);
+    expect(find.byType(DraggableScrollableSheet), findsOneWidget);
+    expect(find.byTooltip('Close'), findsNothing);
+    expect(find.byIcon(Icons.close), findsNothing);
+    expect(find.byType(TabBar), findsNothing);
+    expect(find.byTooltip('Show details'), findsOneWidget);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(find.text('A nice view'), findsNothing);
+
+    await tester.tap(find.byTooltip('Show details'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaDetailsView), findsOneWidget);
+    expect(find.text('A nice view'), findsOneWidget);
+    expect(find.byTooltip('Hide details'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Hide details'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    expect(find.text('A nice view'), findsNothing);
   });
 
   testWidgets('falls back gracefully for audio when playback is unavailable', (
@@ -307,10 +322,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Show info'));
     await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pump();
+    await _flushMediaLoad(tester);
     expect(find.text('Media info'), findsOneWidget);
     expect(find.text('Camera'), findsOneWidget);
     expect(find.text('NAHPU Camera'), findsOneWidget);
     expect(find.text('Additional EXIF'), findsOneWidget);
+    expect(find.text('Size'), findsOneWidget);
+    expect(find.text('${_pngBytes.length} B'), findsOneWidget);
     expect(find.byType(FormSection), findsNWidgets(4));
   });
 

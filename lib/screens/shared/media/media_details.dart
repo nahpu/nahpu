@@ -1,31 +1,61 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/types/import.dart';
 
-class MediaDetailsView extends ConsumerWidget {
+class MediaDetailsView extends ConsumerStatefulWidget {
   const MediaDetailsView({super.key, required this.media});
 
   final MediaData media;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  MediaDetailsViewState createState() => MediaDetailsViewState();
+}
+
+class MediaDetailsViewState extends ConsumerState<MediaDetailsView> {
+  String? _mediaSize;
+  bool _mediaSizeLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMediaSize();
+  }
+
+  @override
+  void didUpdateWidget(covariant MediaDetailsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.media.fileName != widget.media.fileName ||
+        oldWidget.media.category != widget.media.category ||
+        oldWidget.media.projectUuid != widget.media.projectUuid) {
+      setState(() {
+        _mediaSize = null;
+        _mediaSizeLoading = true;
+      });
+      _loadMediaSize();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = widget.media;
     final photographer = ref
         .watch(projectPersonnelProvider)
         .whenOrNull(
           data: (people) => people
-              .where((person) => person.uuid == media.personnelId)
+              .where((person) => person.uuid == widget.media.personnelId)
               .firstOrNull
               ?.name,
         );
     final linkedInformation = ref.watch(
       mediaLinkedInformationProvider(
         MediaLinkRequest(
-          mediaId: media.primaryId,
-          category: media.category ?? '',
+          mediaId: widget.media.primaryId,
+          category: widget.media.category ?? '',
         ),
       ),
     );
@@ -34,6 +64,7 @@ class MediaDetailsView extends ConsumerWidget {
         title: 'File',
         rows: [
           MapEntry('File name', media.fileName),
+          MapEntry('Size', _mediaSizeLoading ? 'Loading…' : _mediaSize),
           MapEntry('URI', media.uri),
           MapEntry('Category', media.category),
         ],
@@ -63,34 +94,65 @@ class MediaDetailsView extends ConsumerWidget {
       ),
     ];
 
-    return ListView(
-      shrinkWrap: true,
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      children: [
-        linkedInformation.when(
-          data: (information) => information == null
-              ? const SizedBox.shrink()
-              : _MediaDetailSectionView(
-                  section: _MediaDetailSection(
-                    title: 'Linked information',
-                    rows: information.fields
-                        .map((field) => MapEntry(field.label, field.value))
-                        .toList(growable: false),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          linkedInformation.when(
+            data: (information) => information == null
+                ? const SizedBox.shrink()
+                : _MediaDetailSectionView(
+                    section: _MediaDetailSection(
+                      title: 'Linked information',
+                      rows: information.fields
+                          .map((field) => MapEntry(field.label, field.value))
+                          .toList(growable: false),
+                    ),
                   ),
-                ),
-          loading: () => const FormSection(
-            title: 'Linked information',
-            child: Center(child: CircularProgressIndicator()),
+            loading: () => const FormSection(
+              title: 'Linked information',
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stack) => FormSection(
+              title: 'Linked information',
+              child: Text('Linked information is unavailable: $error'),
+            ),
           ),
-          error: (error, stack) => FormSection(
-            title: 'Linked information',
-            child: Text('Linked information is unavailable: $error'),
-          ),
-        ),
-        for (final section in sections)
-          _MediaDetailSectionView(section: section),
-      ],
+          for (final section in sections)
+            _MediaDetailSectionView(section: section),
+        ],
+      ),
     );
+  }
+
+  Future<void> _loadMediaSize() async {
+    final media = widget.media;
+    final fileName = media.fileName?.trim() ?? '';
+    if (fileName.isEmpty) {
+      _mediaSize = null;
+      _mediaSizeLoading = false;
+      return;
+    }
+
+    String? mediaSize;
+    try {
+      final file = await ImageServices(
+        ref: ref,
+        category: matchMediaCategoryString(media.category ?? ''),
+      ).getProjectMediaPath(fileName, media.projectUuid ?? '');
+      if (file.existsSync()) {
+        mediaSize = formatMediaFileSize(file.lengthSync());
+      }
+    } catch (_) {
+      mediaSize = null;
+    }
+
+    if (!mounted || widget.media != media) return;
+    setState(() {
+      _mediaSize = mediaSize;
+      _mediaSizeLoading = false;
+    });
   }
 
   String _dateTaken(String? rawValue) {

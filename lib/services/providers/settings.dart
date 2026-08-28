@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +22,10 @@ const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 
+/// Prefix for the per-viewer record sort. Each record viewer stores its own
+/// field and direction, so sorting sites does not reorder specimens.
+const String recordSortPrefKey = 'recordSort';
+
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
 // Required for research reproducibility. Can be exported/imported.
@@ -30,18 +34,27 @@ const String siteTypePrefKey = 'siteTypes';
 const String siteTypeFmtPrefKey = 'siteTypeFmt';
 const String habitatTypePrefKey = 'habitatTypes';
 const String habitatTypeFmtPrefKey = 'habitatTypeFmt';
+const String siteGeographyFieldsPrefKey = 'siteGeographyFields';
 const String datumPrefKey = 'datums';
 const String datumFmtPrefKey = 'datumFmt';
 const String collMethodPrefKey = 'collEventMethods';
 const String collMethodFmtPrefKey = 'collEventMethodFmt';
+const String collActivityPrefKey = 'collEventActivities';
+const String collActivityFmtPrefKey = 'collEventActivityFmt';
 const String collRolePrefKey = 'collPersonnelRoles';
 const String collRoleFmtPrefKey = 'collPersonnelRoleFmt';
+const String environmentalDataFieldsPrefKey = 'environmentalDataFields';
 const String specimenTypePrefKey = 'specimenTypes';
 const String specimenTypeFmtPrefKey = 'specimenTypeFmt';
 const String treatmentPrefKey = 'specimenTreatment';
 const String treatmentFmtPrefKey = 'treatmentFmt';
 const String conditionPrefKey = 'specimenConditions';
 const String conditionFmtPrefKey = 'conditionFmt';
+const String specimenSexPrefKey = 'specimenSexes';
+const String idMethodPrefKey = 'idMethods';
+const String idMethodFmtPrefKey = 'idMethodFmt';
+const String lifeStagePrefKey = 'lifeStages';
+const String lifeStageFmtPrefKey = 'lifeStageFmt';
 const String fieldIdModePrefKey = 'fieldIdMode';
 const String projectFieldIdAutoIncrementPrefKey = 'projectFieldIdAutoIncrement';
 const String parasiteIdPrefixPrefKey = 'parasiteIdPrefix';
@@ -169,25 +182,41 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultHabitatTypes;
     case siteTypePrefKey:
       return defaultSiteTypes;
+    case siteGeographyFieldsPrefKey:
+      return defaultVisibleSiteGeographyFields;
     case datumPrefKey:
       return defaultDatums;
     case collMethodPrefKey:
       return defaultCollMethods;
+    case collActivityPrefKey:
+      return defaultCollActivities;
     case collRolePrefKey:
       return defaultCollRoles;
+    case environmentalDataFieldsPrefKey:
+      return defaultVisibleEnvironmentalDataFields;
     case specimenTypePrefKey:
       return defaultSpecimenType;
     case treatmentPrefKey:
       return defaultTreatment;
     case conditionPrefKey:
       return defaultCondition;
+    case specimenSexPrefKey:
+      return defaultSpecimenSexLabels;
+    case idMethodPrefKey:
+      return defaultIdMethods;
+    case lifeStagePrefKey:
+      return defaultLifeStages;
     default:
       return [];
   }
 }
 
+// App-wide settings notifiers are kept alive, like [themeSettingProvider].
+// They are written by one-off `ref.read`s from transient screens such as the
+// create-project wizard; auto-disposing them tears the notifier down between
+// the read and the write, leaving `set` running on a disposed Ref.
 final catalogFmtNotifierProvider =
-    AsyncNotifierProvider.autoDispose<CatalogFmtNotifier, CatalogFmt>(
+    AsyncNotifierProvider<CatalogFmtNotifier, CatalogFmt>(
       CatalogFmtNotifier.new,
     );
 
@@ -245,12 +274,15 @@ final textCaseFmtProvider = FutureProvider.family
     });
 
 final fieldIdModeNotifierProvider =
-    AsyncNotifierProvider.autoDispose<FieldIdModeNotifier, FieldIdMode>(
+    AsyncNotifierProvider<FieldIdModeNotifier, FieldIdMode>(
       FieldIdModeNotifier.new,
     );
 
 class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
   Future<FieldIdMode> _fetchSettings() async {
+    // Read the preferences before the first await, so the fetch never reaches
+    // for `ref` across an async gap.
+    final prefs = ref.watch(settingProvider);
     final fieldIdModeString = await rust_config.getUserConfigString(
       key: fieldIdModePrefKey,
     );
@@ -258,7 +290,6 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
     final fieldIdMode = FieldIdMode.values.byName(
       fieldIdModeString ?? FieldIdMode.personnel.name,
     );
-    final prefs = ref.read(settingProvider);
     final defaultMigrated =
         prefs.getBool(fieldIdModeDefaultMigratedPrefKey) ?? false;
     if (!defaultMigrated) {
@@ -308,10 +339,9 @@ class FieldIdModeNotifier extends AsyncNotifier<FieldIdMode> {
 }
 
 final projectFieldIdAutoIncrementProvider =
-    AsyncNotifierProvider.autoDispose<
-      ProjectFieldIdAutoIncrementNotifier,
-      bool
-    >(ProjectFieldIdAutoIncrementNotifier.new);
+    AsyncNotifierProvider<ProjectFieldIdAutoIncrementNotifier, bool>(
+      ProjectFieldIdAutoIncrementNotifier.new,
+    );
 
 class ProjectFieldIdAutoIncrementNotifier extends AsyncNotifier<bool> {
   @override

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A searchable grouped field picker that expands inside its current surface.
 class InlineGroupedFieldPicker extends StatefulWidget {

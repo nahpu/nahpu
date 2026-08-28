@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/db_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/src/rust/api/archive.dart';
@@ -32,9 +34,21 @@ class DbArchiveInspection {
 }
 
 class DbBackupSummary {
-  const DbBackupSummary({required this.entries});
+  const DbBackupSummary({
+    required this.entries,
+    required this.associatedFileBytes,
+    required this.databaseBytes,
+  });
 
   final Map<String, int> entries;
+
+  /// Combined size of the media and associated files the backup will copy.
+  final int associatedFileBytes;
+
+  /// Size of the live database, used to estimate the work the backup starts with.
+  final int databaseBytes;
+
+  int get totalBytes => associatedFileBytes + databaseBytes;
 }
 
 List<DbArchiveDatabaseCandidate> databaseCandidatesFromRelativePaths(
@@ -73,11 +87,47 @@ bool isAssociatedBackupArchivePath(String relative) {
           (segments[1] == 'media' || segments[1] == 'associateddata'));
 }
 
+@visibleForTesting
+List<String> globalBackupDirectoryPaths(String root) {
+  return [
+    p.join(root, userConfigDirName, userMapDirName),
+    p.join(root, userConfigDirName, userFontDirName),
+    p.join(root, appMediaDirName, templateMediaDirName),
+  ];
+}
+
 /// Creates a complete NAHPU backup archive.
 class DbExport extends AppServices {
   const DbExport({required super.ref, required this.filePath});
 
   final File filePath;
+
+  /// Describes the stages of a backup, weighted by the bytes each one moves.
+  ///
+  /// Equal weights would leave the bar crawling through whichever stage happens
+  /// to hold the media library, so the sizes from [getSummary] set the shares.
+  static List<ExportPhaseStep> backupPhases(DbBackupSummary summary) {
+    final database = summary.databaseBytes.toDouble();
+    final associated = summary.associatedFileBytes.toDouble();
+    final hasSizes = database > 0 || associated > 0;
+    return [
+      ExportPhaseStep(
+        phase: ExportPhase.preparing,
+        label: 'Prepare backup',
+        weight: hasSizes ? database : 1,
+      ),
+      ExportPhaseStep(
+        phase: ExportPhase.copyingFiles,
+        label: 'Copy media and files',
+        weight: hasSizes ? associated : 1,
+      ),
+      ExportPhaseStep(
+        phase: ExportPhase.compressing,
+        label: 'Compress archive',
+        weight: hasSizes ? database + associated : 1,
+      ),
+    ];
+  }
 
   Future<DbBackupSummary> getSummary() async {
     final counts = <String, int>{
@@ -92,10 +142,22 @@ class DbExport extends AppServices {
     };
     final associatedFiles = await _collectAssociatedFiles();
     counts['Associated files'] = associatedFiles.length;
-    return DbBackupSummary(entries: counts);
+    return DbBackupSummary(
+      entries: counts,
+      associatedFileBytes: await _totalBytes(associatedFiles),
+      databaseBytes: await _databaseBytes(),
+    );
   }
 
-  Future<File> write(DbArchiveFormat format) async {
+  /// Writes the backup archive, reporting to [progress] as each stage runs.
+  ///
+  /// A cancelled or failed run leaves nothing behind: the staging directory and
+  /// any half-written archive are removed before the error reaches the caller.
+  Future<File> write(
+    DbArchiveFormat format, {
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
     final tempRoot = await tempDirectory;
     final staging = Directory(
       p.join(
@@ -106,23 +168,41 @@ class DbExport extends AppServices {
     await staging.create(recursive: true);
 
     try {
+      // Exporting the database and settings happens inside calls that report
+      // nothing, so this stage runs an indeterminate bar rather than a
+      // determinate one frozen at zero.
+      progress?.beginPhase(ExportPhase.preparing, indeterminate: true);
+      cancel?.throwIfCancelled();
       final databaseFile = File(p.join(staging.path, nahpuBackupDatabaseName));
+      progress?.setCurrentItem(nahpuBackupDatabaseName);
       await dbAccess.exportInto(databaseFile);
 
       final settingsFile = File(p.join(staging.path, 'user_configs.json'));
+      progress?.setCurrentItem(p.basename(settingsFile.path));
       await rust_config.exportConfigToFile(
         filePath: settingsFile.path,
         sections: rust_config.UserConfigSection.values,
+        customFieldTemplates: const [],
       );
 
-      await _copyAssociatedFiles(staging);
-      final archiveFiles = staging
-          .listSync(recursive: true, followLinks: false)
-          .whereType<File>()
-          .map((file) => file.path)
-          .toList();
-      await _writeArchive(format, staging.path, archiveFiles);
+      cancel?.throwIfCancelled();
+      await _copyAssociatedFiles(staging, progress: progress, cancel: cancel);
+
+      cancel?.throwIfCancelled();
+      final archiveFiles = await _stagedFilePaths(staging);
+      await _writeArchive(
+        format,
+        staging.path,
+        archiveFiles,
+        progress: progress,
+        cancel: cancel,
+      );
+      cancel?.throwIfCancelled();
+      progress?.complete();
       return filePath;
+    } catch (_) {
+      await _deleteIncompleteOutput();
+      rethrow;
     } finally {
       if (staging.existsSync()) {
         await staging.delete(recursive: true);
@@ -140,41 +220,64 @@ class DbExport extends AppServices {
   Future<List<File>> _collectAssociatedFiles() async {
     final files = <File>[...await MediaFinder(ref: ref).getAllMedia()];
     files.addAll(await _collectAssociatedDataFiles());
-    files.addAll(await _collectDirectoryFiles(await userMapDir));
-    files.addAll(await _collectDirectoryFiles(await userFontDir));
+    final root = await nahpuDocumentDir;
+    for (final directoryPath in globalBackupDirectoryPaths(root.path)) {
+      final directory = Directory(directoryPath);
+      await directory.create(recursive: true);
+      files.addAll(await _collectDirectoryFiles(directory));
+    }
     return files.where((file) => file.existsSync()).toList();
   }
 
   Future<List<File>> _collectAssociatedDataFiles() async {
-    final root = await nahpuDocumentDir;
     final rows = await dbAccess
         .customSelect(
           "SELECT projectUuid, uri FROM associatedData WHERE type = 'File'",
         )
         .get();
-    File? associatedDataFile(QueryRow row) {
+    Future<File?> associatedDataFile(QueryRow row) async {
       final projectUuid = row.data['projectUuid'] as String?;
-      final fileName = row.data['uri'] as String?;
-      if (projectUuid == null || fileName == null || fileName.isEmpty) {
+      final storageKey = row.data['uri'] as String?;
+      if (projectUuid == null ||
+          storageKey == null ||
+          storageKey.isEmpty ||
+          Uri.tryParse(storageKey)?.scheme == 'file') {
         return null;
       }
-      return File(p.join(root.path, projectUuid, 'associatedData', fileName));
+      try {
+        return await FileServices(
+          ref: ref,
+        ).resolveAssociatedDataFile(projectUuid, storageKey);
+      } on FormatException {
+        return null;
+      }
     }
 
-    return rows
-        .map(associatedDataFile)
-        .whereType<File>()
-        .where((file) => file.existsSync())
-        .toList();
+    final files = await Future.wait(rows.map(associatedDataFile));
+    return files.whereType<File>().where((file) => file.existsSync()).toList();
   }
 
-  Future<void> _copyAssociatedFiles(Directory staging) async {
+  Future<void> _copyAssociatedFiles(
+    Directory staging, {
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
     final root = await nahpuDocumentDir;
-    for (final source in await _collectAssociatedFiles()) {
+    final sources = await _collectAssociatedFiles();
+    progress?.beginPhase(
+      ExportPhase.copyingFiles,
+      totalUnits: sources.length,
+      totalBytes: await _totalBytes(sources),
+    );
+    for (final source in sources) {
+      cancel?.throwIfCancelled();
       final relativePath = p.relative(source.path, from: root.path);
       final target = File(p.join(staging.path, relativePath));
       await target.parent.create(recursive: true);
+      progress?.setCurrentItem(p.basename(source.path));
+      final bytes = await _fileLength(source);
       await source.copy(target.path);
+      progress?.advanceItem(bytes: bytes);
     }
   }
 
@@ -189,8 +292,11 @@ class DbExport extends AppServices {
   Future<void> _writeArchive(
     DbArchiveFormat format,
     String stagingPath,
-    List<String> files,
-  ) async {
+    List<String> files, {
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
+    progress?.beginPhase(ExportPhase.compressing, totalUnits: files.length);
     try {
       if (format == DbArchiveFormat.zip) {
         final writer = await ZipWriter.newInstance(
@@ -198,26 +304,113 @@ class DbExport extends AppServices {
           files: files,
           outputPath: filePath.path,
         );
-        await writer.write();
+        await followArchiveProgress(
+          writer.writeWithProgress(),
+          progress: progress,
+          cancel: cancel,
+        );
       } else {
         final writer = await TarGzipWriter.newInstance(
           parentDir: stagingPath,
           files: files,
           outputPath: filePath.path,
         );
-        await writer.write();
+        await followArchiveProgress(
+          writer.writeWithProgress(),
+          progress: progress,
+          cancel: cancel,
+        );
       }
+    } on ExportCancelledException {
+      rethrow;
     } catch (error) {
       throw Exception('Error creating database backup: $error');
+    }
+  }
+
+  /// Lists the staged files without blocking the UI isolate.
+  ///
+  /// A recursive `listSync` over a large media library freezes the frame that a
+  /// live progress bar is drawn in, which reads to the user as a hang.
+  Future<List<String>> _stagedFilePaths(Directory staging) async {
+    final paths = <String>[];
+    await for (final entity in staging.list(
+      recursive: true,
+      followLinks: false,
+    )) {
+      if (entity is File) paths.add(entity.path);
+    }
+    return paths;
+  }
+
+  Future<int> _databaseBytes() async {
+    final database = await dBPath;
+    return _fileLength(database);
+  }
+
+  Future<int> _totalBytes(List<File> files) async {
+    var total = 0;
+    for (final file in files) {
+      total += await _fileLength(file);
+    }
+    return total;
+  }
+
+  Future<int> _fileLength(File file) async {
+    try {
+      return await file.length();
+    } on FileSystemException {
+      return 0;
+    }
+  }
+
+  /// Removes a partially written archive so a failed run leaves no broken file.
+  Future<void> _deleteIncompleteOutput() async {
+    try {
+      if (filePath.path.isNotEmpty && filePath.existsSync()) {
+        await filePath.delete();
+      }
+    } on FileSystemException catch (error) {
+      if (kDebugMode) print('Error deleting partial backup: $error');
     }
   }
 }
 
 /// Replaces the current database from a raw SQLite file or full backup archive.
+/// Format of the safety archive taken before a database replace.
+///
+/// tar.gz rather than zip: these are written unattended on every restore, and
+/// the smaller output matters more here than opening without extra tools.
+const DbArchiveFormat preReplaceBackupFormat = DbArchiveFormat.tarGzip;
+
 class DbWriter extends AppServices {
   const DbWriter({required super.ref, required this.filePath});
 
   final File filePath;
+
+  /// Describes the stages of a restore, in the order they run.
+  ///
+  /// Archive contents are unknown until the archive is opened, so the stages
+  /// carry equal weight and the running counts carry the detail.
+  static const List<ExportPhaseStep> restorePhases = [
+    ExportPhaseStep(phase: ExportPhase.extracting, label: 'Extract archive'),
+    ExportPhaseStep(
+      phase: ExportPhase.copyingFiles,
+      label: 'Restore media and files',
+    ),
+    // The safety archive copies the whole media library, so it carries real
+    // weight rather than flashing past as a formality.
+    ExportPhaseStep(
+      phase: ExportPhase.collecting,
+      label: 'Back up current data',
+      weight: 2,
+    ),
+    ExportPhaseStep(
+      phase: ExportPhase.finalizing,
+      label: 'Replace database',
+      weight: 2,
+    ),
+  ];
 
   Future<DbArchiveInspection> inspectArchive() async {
     final tempDir = await _extractArchive();
@@ -233,46 +426,67 @@ class DbWriter extends AppServices {
     bool backup,
     bool isArchived, {
     String? databaseRelativePath,
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
   }) async {
     try {
       final dbImportPath = isArchived
-          ? await _copyProjectData(databaseRelativePath)
+          ? await _copyProjectData(
+              databaseRelativePath,
+              progress: progress,
+              cancel: cancel,
+            )
           : filePath.path;
+      cancel?.throwIfCancelled();
       if (backup) {
-        final backupPath = await backupDir;
-        await _backUpBeforeDelete(backupPath);
+        await _backUpBeforeDelete(progress: progress, cancel: cancel);
       }
+      cancel?.throwIfCancelled();
+      progress?.beginPhase(ExportPhase.finalizing);
       await _writeDb(dbImportPath);
+      progress?.complete();
     } finally {
       await _deleteTempDir();
     }
   }
 
-  Future<Directory> _extractArchive() async {
+  Future<Directory> _extractArchive({
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
     final tempDir = await tempDirectory;
     if (tempDir.existsSync()) {
       await tempDir.delete(recursive: true);
     }
     await tempDir.create(recursive: true);
+    progress?.beginPhase(ExportPhase.extracting);
     final lowerPath = filePath.path.toLowerCase();
     if (lowerPath.endsWith('.zip')) {
       final extractor = await ZipExtractor.newInstance(
         archivePath: filePath.path,
         outputDir: tempDir.path,
       );
-      await extractor.extract();
+      await followArchiveProgress(
+        extractor.extractWithProgress(),
+        progress: progress,
+        cancel: cancel,
+      );
     } else if (lowerPath.endsWith('.tar.gz')) {
       final extractor = await TarGzipExtractor.newInstance(
         archivePath: filePath.path,
         outputDir: tempDir.path,
       );
-      await extractor.extract();
+      await followArchiveProgress(
+        extractor.extractWithProgress(),
+        progress: progress,
+        cancel: cancel,
+      );
     } else {
       throw const FormatException(
         'Choose a NAHPU backup ZIP or TAR.GZ archive.',
       );
     }
-    _validateExtraction(tempDir);
+    await _validateExtraction(tempDir);
     return tempDir;
   }
 
@@ -285,8 +499,12 @@ class DbWriter extends AppServices {
     );
   }
 
-  Future<String> _copyProjectData(String? databaseRelativePath) async {
-    final tempDir = await _extractArchive();
+  Future<String> _copyProjectData(
+    String? databaseRelativePath, {
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
+    final tempDir = await _extractArchive(progress: progress, cancel: cancel);
     final candidates = _databaseCandidates(tempDir);
     if (candidates.isEmpty) {
       throw const FormatException(
@@ -310,15 +528,23 @@ class DbWriter extends AppServices {
     final files = tempDir.listSync(recursive: true, followLinks: false);
     await _importSettings(files);
     final nahpuDir = await nahpuDocumentDir;
-    for (final entity in files.whereType<File>()) {
+    final restorable = files.whereType<File>().where((entity) {
       final relative = _relativeArchivePath(entity.path, tempDir.path);
-      if (entity.path == selectedPath ||
-          !isAssociatedBackupArchivePath(relative)) {
-        continue;
-      }
+      return entity.path != selectedPath &&
+          isAssociatedBackupArchivePath(relative);
+    }).toList();
+    progress?.beginPhase(
+      ExportPhase.copyingFiles,
+      totalUnits: restorable.length,
+    );
+    for (final entity in restorable) {
+      cancel?.throwIfCancelled();
+      final relative = _relativeArchivePath(entity.path, tempDir.path);
       final target = File(p.join(nahpuDir.path, relative));
       await target.parent.create(recursive: true);
+      progress?.setCurrentItem(p.basename(entity.path));
       await entity.copy(target.path);
+      progress?.advanceItem();
     }
     return selectedPath;
   }
@@ -339,9 +565,13 @@ class DbWriter extends AppServices {
     return p.relative(filePath, from: rootPath).replaceAll('\\', '/');
   }
 
-  void _validateExtraction(Directory extraction) {
+  /// Rejects an archive whose entries escape the extraction directory.
+  ///
+  /// The walk is asynchronous so a large restore does not block the frame that
+  /// draws the progress panel.
+  Future<void> _validateExtraction(Directory extraction) async {
     final root = p.canonicalize(extraction.path);
-    for (final entity in extraction.listSync(
+    await for (final entity in extraction.list(
       recursive: true,
       followLinks: false,
     )) {
@@ -365,9 +595,37 @@ class DbWriter extends AppServices {
     newDb.close();
   }
 
-  Future<void> _backUpBeforeDelete(File backupPath) async {
-    if (backupPath.existsSync()) backupPath.deleteSync();
-    await dbAccess.exportInto(backupPath);
+  /// Writes a full archive before the database is overwritten.
+  ///
+  /// This used to be a bare `.sqlite3` snapshot, which meant the safety net
+  /// under the most destructive operation in the app held no media at all — a
+  /// user who restored the wrong archive got their records back and their
+  /// photos never. It now goes through [DbExport], so the fallback is the same
+  /// zip or tar.gz with every media file that the backup window produces.
+  Future<File> _backUpBeforeDelete({
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+  }) async {
+    final documentDir = await nahpuDocumentDir;
+    final directory = Directory(p.join(documentDir.path, nahpuBackupDir));
+    await directory.create(recursive: true);
+    final target = await AppIOServices(
+      dir: directory,
+      fileStem: 'nahpu_backup-$dateTimeStamp',
+      ext: preReplaceBackupFormat.extension,
+    ).getSavePath();
+
+    // [DbExport] reports against its own stages, which are not part of a
+    // restore job, so this stage runs indeterminate and names the file instead
+    // of forwarding a reporter that would assert on unknown phases.
+    progress?.beginPhase(ExportPhase.collecting, indeterminate: true);
+    progress?.setCurrentItem(p.basename(target.path));
+
+    await DbExport(
+      ref: ref,
+      filePath: target,
+    ).write(preReplaceBackupFormat, cancel: cancel);
+    return target;
   }
 
   Future<void> _deleteTempDir() async {

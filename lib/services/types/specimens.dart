@@ -1,15 +1,20 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'nahpu_icons.dart';
 
-enum CatalogFmt { mammals, birds, herpetofauna }
+enum CatalogFmt { mammals, birds, herpetofauna, arthropods }
 
-// Database read through index.
-// and stored as integer.
-// DON'T CHANGE ORDER!
-enum SpecimenSex { male, female, unknown }
+enum SpecimenSex {
+  male,
+  female,
+  unknown,
+  gynandromorph,
+  hermaphrodite,
+  femaleUncertain,
+  maleUncertain,
+}
 
 enum SpecimenSearchOption {
   all,
@@ -26,7 +31,143 @@ enum SpecimenSearchOption {
 
 enum FieldIdMode { personnel, project }
 
-const List<String> specimenSexList = ['Male', 'Female', 'Unknown'];
+const List<String> defaultIdMethods = [
+  'morphology',
+  'taxonomy',
+  'genomics',
+  'mtDNA',
+  'unknown',
+];
+
+const List<String> defaultLifeStages = [
+  'Egg',
+  'Larva',
+  'Nymph',
+  'Pupa',
+  'Neonate',
+  'Juvenile',
+  'Subadult',
+  'Adult',
+  'Metamorph',
+  'Unknown',
+];
+
+/// Stable database codes for specimen sex.
+///
+/// DO NOT CHANGE THE KEYS.
+/// The database uses these codes to store specimen sex, and changing them
+/// would break existing records.
+/// All reads and writes go through these maps rather than enum indexes.
+const Map<int, SpecimenSex> specimenSexByCode = {
+  0: SpecimenSex.male,
+  1: SpecimenSex.female,
+  2: SpecimenSex.unknown,
+  3: SpecimenSex.gynandromorph,
+  4: SpecimenSex.hermaphrodite,
+  5: SpecimenSex.femaleUncertain,
+  6: SpecimenSex.maleUncertain,
+};
+
+const Map<SpecimenSex, int> specimenSexCode = {
+  SpecimenSex.male: 0,
+  SpecimenSex.female: 1,
+  SpecimenSex.unknown: 2,
+  SpecimenSex.gynandromorph: 3,
+  SpecimenSex.hermaphrodite: 4,
+  SpecimenSex.femaleUncertain: 5,
+  SpecimenSex.maleUncertain: 6,
+};
+
+const Map<SpecimenSex, String> specimenSexLabel = {
+  SpecimenSex.male: 'Male',
+  SpecimenSex.female: 'Female',
+  SpecimenSex.unknown: 'Unknown',
+  SpecimenSex.gynandromorph: 'Gynandromorph',
+  SpecimenSex.hermaphrodite: 'Hermaphrodite',
+  SpecimenSex.femaleUncertain: 'Female?',
+  SpecimenSex.maleUncertain: 'Male?',
+};
+
+const Map<SpecimenSex, String> specimenSexLetter = {
+  SpecimenSex.male: 'M',
+  SpecimenSex.female: 'F',
+  SpecimenSex.unknown: 'U',
+  SpecimenSex.gynandromorph: 'G',
+  SpecimenSex.hermaphrodite: 'H',
+  SpecimenSex.femaleUncertain: 'F?',
+  SpecimenSex.maleUncertain: 'M?',
+};
+
+const Map<SpecimenSex, String> specimenSexSymbol = {
+  SpecimenSex.male: '\u2642',
+  SpecimenSex.female: '\u2640',
+  SpecimenSex.unknown: '?',
+  SpecimenSex.gynandromorph: '\u2642/\u2640',
+  SpecimenSex.hermaphrodite: '\u26A5',
+  SpecimenSex.femaleUncertain: '\u2640?',
+  SpecimenSex.maleUncertain: '\u2642?',
+};
+
+const List<SpecimenSex> defaultSpecimenSexes = [
+  SpecimenSex.male,
+  SpecimenSex.female,
+  SpecimenSex.unknown,
+];
+
+const List<SpecimenSex> optionalSpecimenSexes = [
+  SpecimenSex.gynandromorph,
+  SpecimenSex.hermaphrodite,
+  SpecimenSex.femaleUncertain,
+  SpecimenSex.maleUncertain,
+];
+
+const List<SpecimenSex> allowedSpecimenSexes = [
+  ...defaultSpecimenSexes,
+  ...optionalSpecimenSexes,
+];
+
+List<String> get defaultSpecimenSexLabels => defaultSpecimenSexes
+    .map((sex) => specimenSexLabel[sex]!)
+    .toList(growable: false);
+
+SpecimenSex? specimenSexFromConfigValue(String value) {
+  final normalized = value.trim().toLowerCase();
+  for (final sex in allowedSpecimenSexes) {
+    if (sex.name.toLowerCase() == normalized ||
+        specimenSexLabel[sex]!.toLowerCase() == normalized) {
+      return sex;
+    }
+  }
+  return null;
+}
+
+SpecimenSex? specimenSexFromDisplayValue(String? value) {
+  final normalized = value?.trim().toLowerCase();
+  if (normalized == null || normalized.isEmpty) return null;
+  final code = int.tryParse(normalized);
+  if (code != null) return specimenSexByCode[code];
+
+  for (final sex in allowedSpecimenSexes) {
+    if (sex.name.toLowerCase() == normalized ||
+        specimenSexLabel[sex]!.toLowerCase() == normalized ||
+        specimenSexLetter[sex]!.toLowerCase() == normalized ||
+        specimenSexSymbol[sex]!.toLowerCase() == normalized) {
+      return sex;
+    }
+  }
+  return null;
+}
+
+List<SpecimenSex> normalizeSpecimenSexOptions(Iterable<String> values) {
+  final configured = values
+      .map(specimenSexFromConfigValue)
+      .whereType<SpecimenSex>()
+      .toSet();
+  return [
+    ...defaultSpecimenSexes,
+    ...optionalSpecimenSexes.where(configured.contains),
+  ];
+}
 
 String? canonicalizeCondition(String? value) {
   if (value == 'Freshly Euthanized') return 'Freshly euthanized';
@@ -43,11 +184,31 @@ const List<String> defaultCondition = [
   'Unknown',
 ];
 
-SpecimenSex? getSpecimenSex(int? sex) {
-  if (sex != null) {
-    return SpecimenSex.values[sex];
-  }
-  return null;
+SpecimenSex? getSpecimenSex(int? sex) => specimenSexByCode[sex];
+
+int getSpecimenSexCode(SpecimenSex sex) => specimenSexCode[sex]!;
+
+String? getSpecimenSexLabel(int? code) {
+  final sex = getSpecimenSex(code);
+  return sex == null ? null : specimenSexLabel[sex];
+}
+
+extension SpecimenSexAttributes on SpecimenSex {
+  bool get supportsMaleAttributes => switch (this) {
+    SpecimenSex.male ||
+    SpecimenSex.maleUncertain ||
+    SpecimenSex.gynandromorph ||
+    SpecimenSex.hermaphrodite => true,
+    _ => false,
+  };
+
+  bool get supportsFemaleAttributes => switch (this) {
+    SpecimenSex.female ||
+    SpecimenSex.femaleUncertain ||
+    SpecimenSex.gynandromorph ||
+    SpecimenSex.hermaphrodite => true,
+    _ => false,
+  };
 }
 
 const List<String> defaultSpecimenType = [
@@ -95,7 +256,12 @@ const List<String> relativeTimeList = [
 
 const List<String> idConfidenceList = ['Low', 'Medium', 'High'];
 
-const List<String> taxonGroupList = ['Birds', 'Mammals', 'Herpetofauna'];
+const List<String> taxonGroupList = [
+  'Birds',
+  'Mammals',
+  'Herpetofauna',
+  'Arthropods',
+];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
@@ -106,6 +272,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
       return CatalogFmt.mammals;
     case 'Herpetofauna':
       return CatalogFmt.herpetofauna;
+    case 'Arthropods':
+      return CatalogFmt.arthropods;
     default:
       return CatalogFmt.mammals;
   }
@@ -119,6 +287,8 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
       return SpecimenRecordType.generalMammals;
     case CatalogFmt.herpetofauna:
       return SpecimenRecordType.herpetofauna;
+    case CatalogFmt.arthropods:
+      return SpecimenRecordType.arthropods;
   }
 }
 
@@ -132,6 +302,8 @@ String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
       return 'Bats';
     case SpecimenRecordType.herpetofauna:
       return 'Herpetofauna';
+    case SpecimenRecordType.arthropods:
+      return 'Arthropods';
     default:
       throw Exception('Invalid record type');
   }
@@ -148,6 +320,8 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.bats;
     case 'Herpetofauna':
       return SpecimenRecordType.herpetofauna;
+    case 'Arthropods':
+      return SpecimenRecordType.arthropods;
     default:
       return SpecimenRecordType.generalMammals;
   }
@@ -161,6 +335,8 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Mammals';
     case CatalogFmt.herpetofauna:
       return 'Herpetofauna';
+    case CatalogFmt.arthropods:
+      return 'Arthropods';
   }
 }
 
@@ -171,9 +347,9 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
     case CatalogFmt.mammals:
       return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
     case CatalogFmt.herpetofauna:
-      return isFilledIcon
-          ? NahpuIcons.amphibianFilled
-          : NahpuIcons.amphibianOutlined;
+      return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
+    case CatalogFmt.arthropods:
+      return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
   }
 }
 
@@ -202,7 +378,9 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
     case CatalogFmt.birds:
       return 'assets/icons/bird_outlined.svg';
     case CatalogFmt.herpetofauna:
-      return 'assets/icons/amphibian_outlined.svg';
+      return 'assets/icons/frog.svg';
+    case CatalogFmt.arthropods:
+      return 'assets/icons/beetle.svg';
   }
 }
 

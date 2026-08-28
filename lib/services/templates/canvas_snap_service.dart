@@ -4,10 +4,7 @@ import 'dart:ui';
 /// A horizontal and/or vertical canvas coordinate available for snapping.
 class CanvasSnapTarget {
   /// Creates a snap target from optional template coordinates in millimeters.
-  const CanvasSnapTarget({
-    this.xMm,
-    this.yMm,
-  });
+  const CanvasSnapTarget({this.xMm, this.yMm});
 
   final double? xMm;
   final double? yMm;
@@ -94,8 +91,9 @@ class CanvasSnapSession {
         .toList(growable: false);
 
     if (activeTarget != null &&
-        availableTargets
-            .any((target) => (target - activeTarget).abs() < 1e-6) &&
+        availableTargets.any(
+          (target) => (target - activeTarget).abs() < 1e-6,
+        ) &&
         (value - activeTarget).abs() <= releaseToleranceMm) {
       return activeTarget;
     }

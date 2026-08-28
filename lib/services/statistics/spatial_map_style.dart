@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:nahpu/services/sites/coordinate_map_point.dart';
+import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
@@ -175,7 +176,7 @@ class SpatialMapStyleService {
         'circle-color': [
           'case',
           ['get', 'focused'],
-          _hex(_focusedCoordinateColor(colorScheme)),
+          _hex(NahpuTheme.focusedMapMarker(colorScheme)),
           ['get', 'selected'],
           _hex(colorScheme.primary),
           _hex(colorScheme.onSurfaceVariant),
@@ -502,11 +503,6 @@ class SpatialMapStyleService {
   }
 
   static int mathMax(int first, int second) => first > second ? first : second;
-
-  static Color _focusedCoordinateColor(ColorScheme colorScheme) =>
-      colorScheme.brightness == Brightness.dark
-      ? const Color(0xFF90CAF9)
-      : const Color(0xFF1565C0);
 
   static String _hex(Color color) {
     final value = color.toARGB32().toRadixString(16).padLeft(8, '0');

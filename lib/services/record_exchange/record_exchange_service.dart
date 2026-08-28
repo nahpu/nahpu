@@ -3,13 +3,16 @@ import 'dart:io';
 import 'package:drift/drift.dart' as db;
 import 'package:file_selector/file_selector.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_archive.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_specimen.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 export 'record_exchange_models.dart';
 export 'record_exchange_archive.dart';
@@ -108,10 +111,15 @@ class RecordExchangeService extends AppServices {
     Directory? extractedMediaDirectory,
   }) async {
     payload.validate();
-    return dbAccess.transaction(() async {
+    final deferredAssociatedDataCleanup = <AssociatedDataData>[];
+    final result = await dbAccess.transaction(() async {
       switch (payload.type) {
         case RecordExchangeType.site:
-          return siteEvent.importSite(payload, targetId: targetId);
+          return siteEvent.importSite(
+            payload,
+            targetId: targetId,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
+          );
         case RecordExchangeType.event:
           return siteEvent.importEvent(
             payload,
@@ -119,6 +127,7 @@ class RecordExchangeService extends AppServices {
             linkedSiteId: linkedSiteId,
             createEmbeddedSite: createEmbeddedSite,
             extractedMediaDirectory: extractedMediaDirectory,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
           );
         case RecordExchangeType.specimen:
           return specimen.importSpecimen(
@@ -126,12 +135,30 @@ class RecordExchangeService extends AppServices {
             targetUuid: targetSpecimenUuid,
             references: references,
             extractedMediaDirectory: extractedMediaDirectory,
+            deferredAssociatedDataCleanup: deferredAssociatedDataCleanup,
           );
       }
     });
+    final associatedData = AssociatedDataServices(ref: ref);
+    for (final data in deferredAssociatedDataCleanup) {
+      await associatedData.cleanupManagedFileIfUnused(data);
+    }
+    return result;
   }
 
-  Future<List<SiteData>> getCurrentProjectSites() =>
+  /// Returns the locality already saved for [payload]'s site, if any.
+  ///
+  /// Lets the import dialog say the incoming locality will be reused rather
+  /// than silently matching it behind the user's back.
+  Future<GeographyData?> matchedGeography(RecordExchangePayload payload) {
+    final site = payload.data['site'];
+    if (site is! Map) return Future.value();
+    return GeographyQuery(
+      dbAccess,
+    ).findMatch(GeographyDraft.fromJson(Map<String, dynamic>.from(site)));
+  }
+
+  Future<List<SiteRecord>> getCurrentProjectSites() =>
       siteEvent.getCurrentProjectSites();
 
   Future<List<CollEventData>> getCurrentProjectEvents() =>

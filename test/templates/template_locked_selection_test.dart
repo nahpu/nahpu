@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_chip.dart';
 import 'package:nahpu/screens/templates/components/canvas/draggable_image_chip.dart';
@@ -8,10 +8,7 @@ import 'package:nahpu/screens/templates/components/canvas/draggable_shape_chip.d
 void main() {
   Offset? panDelta(Offset globalPosition, Offset globalDelta) => globalDelta;
 
-  Future<void> pumpLockedElement(
-    WidgetTester tester,
-    Widget element,
-  ) async {
+  Future<void> pumpLockedElement(WidgetTester tester, Widget element) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

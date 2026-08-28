@@ -9,6 +9,7 @@ import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/src/rust/api/export.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 class CollEventRecordWriter extends AppServices {
   CollEventRecordWriter({
@@ -94,6 +95,7 @@ class CollEventRecordWriter extends AppServices {
     String endTime = data.endTime ?? '';
     String effort = await _getEffort(data.id);
     String person = await _getAllPersonnel(data.id);
+    final environment = await _getEnvironment(data.id);
 
     return [
       eventID,
@@ -104,8 +106,41 @@ class CollEventRecordWriter extends AppServices {
       endTime,
       effort,
       person,
+      ...environment,
     ];
   }
+
+  Future<List<String>> _getEnvironment(int eventId) async {
+    try {
+      final data = await CollEventServices(
+        ref: ref,
+      ).getAllEnvironmentData(eventId);
+      return [
+        _number(data.lowestDayTempC),
+        _number(data.highestDayTempC),
+        _number(data.lowestNightTempC),
+        _number(data.highestNightTempC),
+        _number(data.averageHumidity),
+        _number(data.dewPointTemp),
+        data.sunriseTime ?? '',
+        data.sunsetTime ?? '',
+        data.moonPhase ?? '',
+        data.cloudCover ?? '',
+        _number(data.rainfallInMm),
+        _number(data.ambientTemperature),
+        _number(data.ambientHumidity),
+        _number(data.waterTemperature),
+        _number(data.pH),
+        _number(data.dissolvedOxygen),
+        _number(data.flowVelocity),
+        data.notes ?? '',
+      ];
+    } catch (_) {
+      return List.filled(environmentalDataExportList.length, '');
+    }
+  }
+
+  String _number(double? value) => value?.truncateZero() ?? '';
 
   Future<List<String>> _getSite(int? siteID) async {
     List<String> siteDetails = await SiteWriterServices(

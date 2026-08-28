@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
@@ -41,10 +41,11 @@ void main() {
     );
 
     expect(find.text('Order by'), findsNothing);
-    final blockCard = find.ancestor(
-      of: find.text('Block #1'),
-      matching: find.byType(Card),
-    );
+    // The section itself is a panel now, so "Block #1" has two Card ancestors.
+    // The innermost one is the block's own card.
+    final blockCard = find
+        .ancestor(of: find.text('Block #1'), matching: find.byType(Card))
+        .first;
     final showMore = find.descendant(
       of: blockCard,
       matching: find.text('Show more'),

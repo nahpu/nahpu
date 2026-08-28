@@ -2,15 +2,17 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/common/file_explorer_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
@@ -124,6 +126,105 @@ void main() {
     ]);
     expect(copiedFiles[0].readAsBytesSync(), [4]);
     expect(copiedFiles[1].readAsBytesSync(), [5]);
+  });
+
+  testWidgets('associated data copies are organized by record origin', (
+    tester,
+  ) async {
+    const projectUuid = 'associated-origin-test';
+    final ref = await _buildRef(tester, db, projectUuid: projectUuid);
+    final sourceRoot = Directory.systemTemp.createTempSync(
+      'nahpu-associated-data-src',
+    );
+    addTearDown(() {
+      if (sourceRoot.existsSync()) sourceRoot.deleteSync(recursive: true);
+    });
+    final source = File(path.join(sourceRoot.path, 'notes.pdf'))
+      ..writeAsBytesSync([1, 2, 3]);
+
+    final results = await tester.runAsync(() async {
+      final files = FileServices(ref: ref);
+      final site = await files.copyAssociatedDataFile(
+        source,
+        AssociatedDataOrigin.sites,
+      );
+      final event = await files.copyAssociatedDataFile(
+        source,
+        AssociatedDataOrigin.events,
+      );
+      final specimen = await files.copyAssociatedDataFile(
+        source,
+        AssociatedDataOrigin.specimens,
+      );
+      return (
+        site: await files.associatedDataStorageKey(site),
+        event: await files.associatedDataStorageKey(event),
+        specimen: await files.associatedDataStorageKey(specimen),
+      );
+    });
+
+    expect(results!.site, 'sites/notes.pdf');
+    expect(results.event, 'events/notes.pdf');
+    expect(results.specimen, 'specimens/notes.pdf');
+  });
+
+  testWidgets('associated data resolver supports legacy paths safely', (
+    tester,
+  ) async {
+    const projectUuid = 'associated-resolver-test';
+    final ref = await _buildRef(tester, db, projectUuid: projectUuid);
+    final service = FileServices(ref: ref);
+
+    final paths = await tester.runAsync(() async {
+      return (
+        legacy: await service.resolveAssociatedDataFile(
+          projectUuid,
+          'legacy.pdf',
+        ),
+        nested: await service.resolveAssociatedDataFile(
+          projectUuid,
+          'sites/notes.pdf',
+        ),
+      );
+    });
+
+    expect(
+      paths!.legacy.path,
+      path.join(
+        tempAppDir.path,
+        nahpuAppDir,
+        projectUuid,
+        associatedDataDir,
+        'legacy.pdf',
+      ),
+    );
+    expect(
+      paths.nested.path,
+      path.join(
+        tempAppDir.path,
+        nahpuAppDir,
+        projectUuid,
+        associatedDataDir,
+        'sites',
+        'notes.pdf',
+      ),
+    );
+    await expectLater(
+      service.resolveAssociatedDataFile(projectUuid, '../escape.pdf'),
+      throwsFormatException,
+    );
+    await expectLater(
+      service.resolveAssociatedDataFile(projectUuid, 'sites/../escape.pdf'),
+      throwsFormatException,
+    );
+    await expectLater(
+      service.resolveAssociatedDataFile(projectUuid, r'C:\escape.pdf'),
+      throwsFormatException,
+    );
+    await expectLater(
+      service.resolveAssociatedDataFile(projectUuid, '/tmp/escape.pdf'),
+      throwsFormatException,
+    );
   });
 
   testWidgets('fileList marks database formats as non-deletable', (

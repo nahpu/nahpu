@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart' as db;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -276,9 +276,9 @@ class ProjectDetailsSections extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'NAHPU stores collection dates and times as entered in local '
-                'field time; it does not convert them. The project time zone '
-                'records that context so exchanged data can be interpreted '
-                'consistently by third-party collection management systems.',
+                'field time. The project time zone records that context so '
+                'exchanged data can be interpreted consistently by third-party '
+                'collection management systems and other tools.',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],

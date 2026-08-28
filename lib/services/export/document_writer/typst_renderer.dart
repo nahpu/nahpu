@@ -1,5 +1,9 @@
 part of '../document_writer.dart';
 
+/// Renders pages whose text was already substituted and formatted.
+///
+/// Keeping formatting in [_DocumentTemplateSubstitutor] prevents custom list
+/// separators from being interpreted as source delimiters a second time.
 class _DocumentTypstRenderer {
   const _DocumentTypstRenderer();
 
@@ -56,24 +60,466 @@ class _DocumentTypstRenderer {
 
     for (var i = 0; i < cells.length; i++) {
       final cell = cells[i];
-      writeSingleDocumentCell(
-        typst: typst,
-        page: cell.page,
-        data: cell.data,
-        wPt: cell.widthPt,
-        hPt: cell.canvasHeightPt,
-        templatePadTopMm: cell.block.templatePadTopMm,
-        templatePadLeftMm: cell.block.templatePadLeftMm,
-        templatePadRightMm: cell.block.templatePadRightMm,
-        templatePadBottomMm: cell.block.templatePadBottomMm,
-        mirror: cell.mirror,
-        outline: cell.outline,
-        autoHeight: cell.autoHeight,
-      );
+      if (cell.autoHeight &&
+          !cell.mirror &&
+          _flowingDynamicTexts(cell.page).isNotEmpty) {
+        writeBreakableAutoHeightDocumentCell(
+          typst: typst,
+          page: cell.page,
+          data: cell.data,
+          wPt: cell.widthPt,
+          hPt: cell.canvasHeightPt,
+          templatePadTopMm: cell.block.templatePadTopMm,
+          templatePadLeftMm: cell.block.templatePadLeftMm,
+          templatePadRightMm: cell.block.templatePadRightMm,
+          templatePadBottomMm: cell.block.templatePadBottomMm,
+          outline: cell.outline,
+        );
+      } else {
+        writeSingleDocumentCell(
+          typst: typst,
+          page: cell.page,
+          data: cell.data,
+          wPt: cell.widthPt,
+          hPt: cell.canvasHeightPt,
+          templatePadTopMm: cell.block.templatePadTopMm,
+          templatePadLeftMm: cell.block.templatePadLeftMm,
+          templatePadRightMm: cell.block.templatePadRightMm,
+          templatePadBottomMm: cell.block.templatePadBottomMm,
+          mirror: cell.mirror,
+          outline: cell.outline,
+          autoHeight: cell.autoHeight,
+        );
+      }
     }
 
     _fillRemainingGridSpaces(typst, cells.length, cols);
     typst.writeln(')');
+  }
+
+  void writeBreakableAutoHeightDocumentCell({
+    required StringBuffer typst,
+    required TemplatePage page,
+    required Map<String, String> data,
+    required double wPt,
+    required double hPt,
+    required double templatePadTopMm,
+    required double templatePadLeftMm,
+    required double templatePadRightMm,
+    required double templatePadBottomMm,
+    TemplateOutline? outline,
+  }) {
+    final padTop = documentPdfMmToPt(templatePadTopMm);
+    final padBottom = documentPdfMmToPt(templatePadBottomMm);
+    final padLeft = documentPdfMmToPt(templatePadLeftMm);
+    final padRight = documentPdfMmToPt(templatePadRightMm);
+    final dynamicTexts = _flowingDynamicTexts(page);
+    final dynamicRows = _dynamicFlowRows(dynamicTexts);
+    final dynamicIds = dynamicTexts.map((text) => text.id).toSet();
+    final staticElements = sortElements(
+      page,
+    ).where((element) => !_isDynamicTextWithId(element, dynamicIds)).toList();
+    final events = _breakableFlowEvents(dynamicRows, staticElements);
+    final staticContentHeightPt = _staticContentHeightPt(page, wPt);
+    final initialCellHeightPt = math.max(hPt, staticContentHeightPt);
+
+    typst.writeln('  grid.cell(breakable: true)[');
+    typst.writeln('#style(styles => {');
+    typst.writeln('  let cell_height = ${initialCellHeightPt}pt');
+    for (final text in dynamicTexts) {
+      final varSuffix = _typstVarSuffix(text.id);
+      final textElem = _typstTextElement(text, applyBox: false);
+      final widthPt = _textMaxWidthPt(text, wPt);
+      final measureBoxArgs = _textBoxArgs(text, width: '${widthPt}pt');
+      final measureBox = measureBoxArgs.isEmpty
+          ? 'box(width: ${widthPt}pt)'
+          : 'box($measureBoxArgs)';
+      typst.writeln(
+        '  let h_$varSuffix = measure($measureBox[$textElem], styles).height',
+      );
+    }
+    _writeDynamicFlowVariables(typst, dynamicTexts);
+
+    for (final element in sortElements(page)) {
+      final shift = _dynamicShiftExpression(
+        dynamicTexts,
+        _elementTopMm(element),
+        excludeElement: element,
+      );
+      if (_isFlowingDynamicText(element)) {
+        final suffix = _typstVarSuffix((element as CustomTextElement).id);
+        typst.writeln(
+          '  cell_height = calc.max(cell_height, flow_top_$suffix + h_$suffix)',
+        );
+      } else {
+        final bottom = _elementBottomPt(element, wPt);
+        if (bottom > 0 && shift != '0pt') {
+          typst.writeln(
+            '  cell_height = calc.max(cell_height, ${bottom}pt + $shift)',
+          );
+        }
+      }
+    }
+
+    typst.writeln(
+      '  block(width: 100%, breakable: true, above: 0pt, below: 0pt)[',
+    );
+    if (padTop > 0) typst.writeln('    #v(${padTop}pt)');
+    typst.writeln('    #pad(left: ${padLeft}pt, right: ${padRight}pt)[');
+    typst.writeln(
+      '      #block(width: ${wPt}pt, breakable: true, above: 0pt, below: 0pt)[',
+    );
+    _writeFlowOutline(typst, outline, wPt, hPt);
+
+    var cursor = '0pt';
+    for (final event in events) {
+      if (event is _DocumentDynamicFlowRow) {
+        final rowTop = _dynamicRowTopExpression(event);
+        _writeFlowAdvance(typst, cursor: cursor, target: rowTop);
+        for (final companion in event.companions) {
+          final companionTop = _dynamicFlowTopExpression(
+            dynamicTexts,
+            _elementTopMm(companion),
+            excludeElement: companion,
+          );
+          _writeFlowPositionedElement(
+            typst,
+            companion,
+            data,
+            dy: '$companionTop - $rowTop',
+          );
+        }
+        _writeBreakableDynamicRow(
+          typst: typst,
+          row: event,
+          rowTop: rowTop,
+          wPt: wPt,
+        );
+        cursor = _dynamicRowBottomExpression(event);
+      } else if (event is _DocumentStaticFlowEvent) {
+        final target = _dynamicFlowTopExpression(
+          dynamicTexts,
+          _elementTopMm(event.element),
+          excludeElement: event.element,
+        );
+        _writeFlowAdvance(typst, cursor: cursor, target: target);
+        _writeFlowPositionedElement(typst, event.element, data, dy: '0pt');
+        cursor = target;
+      }
+    }
+    _writeFlowAdvance(typst, cursor: cursor, target: 'cell_height');
+    typst.writeln('      ]');
+    typst.writeln('    ]');
+    if (padBottom > 0) typst.writeln('    #v(${padBottom}pt)');
+    typst.writeln('  ]');
+    typst.writeln('})');
+    typst.writeln('  ],');
+  }
+
+  List<CustomTextElement> _flowingDynamicTexts(TemplatePage page) {
+    return page.customTexts
+        .where(TemplateDynamicLayoutService.isFlowingDynamicText)
+        .toList()
+      ..sort((a, b) => a.yMm.compareTo(b.yMm));
+  }
+
+  bool _isFlowingDynamicText(dynamic element) {
+    return element is CustomTextElement &&
+        TemplateDynamicLayoutService.isFlowingDynamicText(element);
+  }
+
+  bool _isDynamicTextWithId(dynamic element, Set<String> ids) {
+    return element is CustomTextElement && ids.contains(element.id);
+  }
+
+  List<_DocumentDynamicFlowRow> _dynamicFlowRows(
+    List<CustomTextElement> texts,
+  ) {
+    final rows = <_DocumentDynamicFlowRow>[];
+    for (final text in texts) {
+      if (rows.isEmpty ||
+          text.yMm - rows.last.yMm >
+              TemplateDynamicLayoutService.verticalRowToleranceMm) {
+        rows.add(_DocumentDynamicFlowRow([text]));
+      } else {
+        rows.last.texts.add(text);
+      }
+    }
+    return rows;
+  }
+
+  List<_DocumentBreakableFlowEvent> _breakableFlowEvents(
+    List<_DocumentDynamicFlowRow> rows,
+    List<dynamic> staticElements,
+  ) {
+    final events = <_DocumentBreakableFlowEvent>[...rows];
+    for (final element in staticElements) {
+      final yMm = _elementTopMm(element);
+      _DocumentDynamicFlowRow? companionRow;
+      var closestDistance = double.infinity;
+      for (final row in rows) {
+        final distance = (yMm - row.yMm).abs();
+        if (distance <= TemplateDynamicLayoutService.verticalRowToleranceMm &&
+            distance < closestDistance) {
+          companionRow = row;
+          closestDistance = distance;
+        }
+      }
+      if (companionRow != null) {
+        companionRow.companions.add(element);
+      } else {
+        events.add(_DocumentStaticFlowEvent(element));
+      }
+    }
+    for (final row in rows) {
+      row.companions.sort(
+        (a, b) => (a.zIndex as int).compareTo(b.zIndex as int),
+      );
+    }
+    events.sort((a, b) {
+      final yResult = a.yMm.compareTo(b.yMm);
+      if (yResult != 0) return yResult;
+      return a.zIndex.compareTo(b.zIndex);
+    });
+    return events;
+  }
+
+  void _writeDynamicFlowVariables(
+    StringBuffer typst,
+    List<CustomTextElement> dynamicTexts,
+  ) {
+    for (var index = 0; index < dynamicTexts.length; index++) {
+      final text = dynamicTexts[index];
+      final suffix = _typstVarSuffix(text.id);
+      typst.writeln(
+        '  let flow_top_$suffix = ${documentPdfMmToPt(text.yMm)}pt',
+      );
+      for (var priorIndex = 0; priorIndex < index; priorIndex++) {
+        final prior = dynamicTexts[priorIndex];
+        if (text.yMm - prior.yMm <=
+            TemplateDynamicLayoutService.verticalRowToleranceMm) {
+          continue;
+        }
+        typst.writeln(
+          '  flow_top_$suffix = calc.max(flow_top_$suffix, flow_clearance_${_typstVarSuffix(prior.id)})',
+        );
+      }
+      typst.writeln(
+        '  let flow_clearance_$suffix = flow_top_$suffix + h_$suffix + ${documentPdfMmToPt(TemplateDynamicLayoutService.verticalGapMm)}pt',
+      );
+    }
+  }
+
+  String _dynamicRowTopExpression(_DocumentDynamicFlowRow row) {
+    return 'flow_top_${_typstVarSuffix(row.texts.first.id)}';
+  }
+
+  String _dynamicRowBottomExpression(_DocumentDynamicFlowRow row) {
+    final bottoms = row.texts.map((text) {
+      final suffix = _typstVarSuffix(text.id);
+      return 'flow_top_$suffix + h_$suffix';
+    }).toList();
+    if (bottoms.length == 1) return bottoms.single;
+    return 'calc.max(${bottoms.join(', ')})';
+  }
+
+  String _dynamicFlowTopExpression(
+    List<CustomTextElement> dynamicTexts,
+    double yMm, {
+    required dynamic excludeElement,
+  }) {
+    var target = '${documentPdfMmToPt(yMm)}pt';
+    for (final text in dynamicTexts) {
+      if (identical(text, excludeElement)) continue;
+      if (yMm - text.yMm >
+          TemplateDynamicLayoutService.verticalRowToleranceMm) {
+        target =
+            'calc.max($target, flow_clearance_${_typstVarSuffix(text.id)})';
+      }
+    }
+    return target;
+  }
+
+  void _writeFlowAdvance(
+    StringBuffer typst, {
+    required String cursor,
+    required String target,
+  }) {
+    typst.writeln('        #v(calc.max(0pt, ($target) - ($cursor)))');
+  }
+
+  void _writeBreakableDynamicRow({
+    required StringBuffer typst,
+    required _DocumentDynamicFlowRow row,
+    required String rowTop,
+    required double wPt,
+  }) {
+    final texts = [...row.texts]..sort((a, b) => a.xMm.compareTo(b.xMm));
+    var rightEdge = 0.0;
+    var hasOverlap = false;
+    for (final text in texts) {
+      final left = documentPdfMmToPt(text.xMm);
+      if (left < rightEdge - 0.001) hasOverlap = true;
+      rightEdge = math.max(rightEdge, left + _textMaxWidthPt(text, wPt));
+    }
+    if (hasOverlap) {
+      _writeOverlappingDynamicRow(
+        typst: typst,
+        row: row,
+        rowTop: rowTop,
+        wPt: wPt,
+      );
+      return;
+    }
+
+    final columns = <_DocumentDynamicFlowColumn>[];
+    var cursorX = 0.0;
+    for (final text in texts) {
+      final left = documentPdfMmToPt(text.xMm).clamp(0.0, wPt);
+      if (left > cursorX + 0.001) {
+        columns.add(_DocumentDynamicFlowColumn(widthPt: left - cursorX));
+      }
+      final width = math.max(
+        1.0,
+        math.min(_textMaxWidthPt(text, wPt), math.max(1.0, wPt - left)),
+      );
+      columns.add(_DocumentDynamicFlowColumn(widthPt: width, text: text));
+      cursorX = left + width;
+    }
+    if (cursorX < wPt - 0.001) {
+      columns.add(_DocumentDynamicFlowColumn(widthPt: wPt - cursorX));
+    }
+
+    typst.writeln('        #grid(');
+    typst.writeln(
+      '          columns: (${columns.map((column) => '${column.widthPt}pt').join(', ')}),',
+    );
+    typst.writeln('          rows: (auto,),');
+    typst.writeln('          column-gutter: 0pt,');
+    typst.writeln('          row-gutter: 0pt,');
+    for (final column in columns) {
+      final text = column.text;
+      if (text == null) {
+        typst.writeln('          [],');
+        continue;
+      }
+      final suffix = _typstVarSuffix(text.id);
+      typst.writeln('          grid.cell(breakable: true)[');
+      typst.writeln(
+        '            #v(calc.max(0pt, flow_top_$suffix - $rowTop))',
+      );
+      _writeBreakableTextBlock(typst, text, indent: '            ');
+      typst.writeln('          ],');
+    }
+    typst.writeln('        )');
+  }
+
+  void _writeOverlappingDynamicRow({
+    required StringBuffer typst,
+    required _DocumentDynamicFlowRow row,
+    required String rowTop,
+    required double wPt,
+  }) {
+    final driver = row.texts.reduce((a, b) {
+      final aHeight = _estimatedDynamicTextBottomPt(a, row.yMm, wPt);
+      final bHeight = _estimatedDynamicTextBottomPt(b, row.yMm, wPt);
+      return aHeight >= bHeight ? a : b;
+    });
+    for (final text in row.texts) {
+      if (identical(text, driver)) continue;
+      final suffix = _typstVarSuffix(text.id);
+      final element = _typstTextElement(text, applyBox: true);
+      typst.writeln(
+        '        #place(left, dx: ${documentPdfMmToPt(text.xMm)}pt, '
+        'dy: flow_top_$suffix - $rowTop)[$element]',
+      );
+    }
+    final left = documentPdfMmToPt(driver.xMm).clamp(0.0, wPt);
+    final width = math.max(
+      1.0,
+      math.min(_textMaxWidthPt(driver, wPt), math.max(1.0, wPt - left)),
+    );
+    final right = math.max(0.0, wPt - left - width);
+    final suffix = _typstVarSuffix(driver.id);
+    typst.writeln('        #pad(left: ${left}pt, right: ${right}pt)[');
+    typst.writeln('          #v(calc.max(0pt, flow_top_$suffix - $rowTop))');
+    _writeBreakableTextBlock(typst, driver, indent: '          ');
+    typst.writeln('        ]');
+  }
+
+  double _estimatedDynamicTextBottomPt(
+    CustomTextElement text,
+    double rowYmm,
+    double wPt,
+  ) {
+    return documentPdfMmToPt(text.yMm - rowYmm) +
+        _estimateTextHeightPt(
+          text.text,
+          text.fontSizePt,
+          _textContentWidthPt(text, wPt),
+        ) +
+        _textBoxVerticalExtraPt(text);
+  }
+
+  void _writeBreakableTextBlock(
+    StringBuffer typst,
+    CustomTextElement text, {
+    required String indent,
+  }) {
+    final textElem = _typstTextElement(text, applyBox: false);
+    final args = _textBoxArgs(text);
+    final decoration = args.isEmpty ? '' : ', $args';
+    typst.writeln(
+      '$indent#block(width: 100%, breakable: true, above: 0pt, '
+      'below: 0pt$decoration)[',
+    );
+    if (text.rotationDegrees == 0) {
+      typst.writeln('$indent  $textElem');
+    } else {
+      typst.writeln(
+        '$indent  #rotate(${text.rotationDegrees}deg, origin: top + left)[$textElem]',
+      );
+    }
+    typst.writeln('$indent]');
+  }
+
+  void _writeFlowPositionedElement(
+    StringBuffer typst,
+    dynamic element,
+    Map<String, String> data, {
+    required String dy,
+  }) {
+    if (element is CustomImageElement) {
+      _writeSingleCustomImage(typst, element, '0pt', dyOverridePt: dy);
+    } else if (element is CustomTextElement) {
+      _writeSingleCustomText(typst, element, data, '0pt', dyOverridePt: dy);
+    } else if (element is CustomLineElement) {
+      _writeSingleCustomLine(typst, element, '0pt', dyOverridePt: dy);
+    } else if (element is CustomShapeElement) {
+      _writeSingleCustomShape(typst, element, '0pt', dyOverridePt: dy);
+    }
+  }
+
+  void _writeFlowOutline(
+    StringBuffer typst,
+    TemplateOutline? outline,
+    double wPt,
+    double hPt,
+  ) {
+    if (outline == null) return;
+    final r = (outline.colorArgb >> 16) & 0xFF;
+    final g = (outline.colorArgb >> 8) & 0xFF;
+    final b = outline.colorArgb & 0xFF;
+    final strokeStyle = outline.style == TemplateOutlineStyle.dashed
+        ? '"dashed"'
+        : outline.style == TemplateOutlineStyle.dotted
+        ? '"dotted"'
+        : '"solid"';
+    typst.writeln(
+      '        #place(top + left)[#rect(width: ${wPt}pt, height: ${hPt}pt, '
+      'stroke: (paint: rgb($r, $g, $b), thickness: ${outline.widthPt}pt, '
+      'dash: $strokeStyle))]',
+    );
   }
 
   void writeSingleDocumentCell({
@@ -116,6 +562,7 @@ class _DocumentTypstRenderer {
                   t.isVisible &&
                   t.isDynamic &&
                   !t.isQrCode &&
+                  !isTemplatePictureTextType(t.textType) &&
                   templateSpecimenSexIconFieldKeyFromBracketText(t.text) ==
                       null,
             )
@@ -173,6 +620,7 @@ class _DocumentTypstRenderer {
         if (el is CustomTextElement &&
             el.isDynamic &&
             !el.isQrCode &&
+            !isTemplatePictureTextType(el.textType) &&
             templateSpecimenSexIconFieldKeyFromBracketText(el.text) == null) {
           final varSuffix = _typstVarSuffix(el.id);
           typst.writeln(
@@ -335,38 +783,76 @@ class _DocumentTypstRenderer {
     StringBuffer typst,
     CustomTextElement t,
     Map<String, String> data,
-    String dyShift,
-  ) {
+    String dyShift, {
+    String? dyOverridePt,
+  }) {
+    final alignment = dyOverridePt == null ? 'top + left' : 'left';
+    final dy = dyOverridePt ?? _dyPt(t.yMm, dyShift);
+    if (isTemplatePictureTextType(t.textType)) {
+      _writePictureGrid(typst, t, alignment: alignment, dy: dy);
+      return;
+    }
     if (t.isQrCode) {
       if (t.tempPath == null || t.tempPath!.isEmpty) return;
       String cleanPath = t.tempPath!.replaceAll(r'\', r'\\');
       final sizePt = documentPdfMmToPt(t.qrSizeMm);
       typst.writeln(
-        '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]',
+        '  #place($alignment, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: $dy)[#rotate(${t.rotationDegrees}deg, origin: center)[#image("$cleanPath", width: ${sizePt}pt, height: ${sizePt}pt, fit: "contain")]]',
       );
       return;
     }
 
     final gKey = templateSpecimenSexIconFieldKeyFromBracketText(t.text);
     if (gKey != null) {
-      _writeSpecimenSexIcon(typst, t, data, gKey, dyShift);
+      _writeSpecimenSexIcon(
+        typst,
+        t,
+        data,
+        gKey,
+        dyShift,
+        dyOverridePt: dyOverridePt,
+      );
       return;
     }
 
     final textElem = _typstTextElement(t, applyBox: true);
 
     typst.writeln(
-      '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: top + left)[$textElem]]',
+      '  #place($alignment, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: $dy)[#rotate(${t.rotationDegrees}deg, origin: top + left)[$textElem]]',
     );
   }
 
-  String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
-    final formatted = formatExportTemplateText(
-      t.text,
-      t.textType,
-      t.formatOption,
-      t.caseFormat,
+  void _writePictureGrid(
+    StringBuffer typst,
+    CustomTextElement text, {
+    required String alignment,
+    required String dy,
+  }) {
+    final paths = text.resolvedPicturePaths
+        .where(isTemplateImagePathUsable)
+        .toList(growable: false);
+    if (paths.isEmpty) return;
+    final dimensions = templatePictureGridDimensions(paths.length);
+    final widthPt = documentPdfMmToPt(text.pictureWidthMm);
+    final heightPt = documentPdfMmToPt(text.pictureHeightMm);
+    final cellWidthPt = widthPt / dimensions.columns;
+    final cellHeightPt = heightPt / dimensions.rows;
+    typst.writeln(
+      '  #place($alignment, dx: ${documentPdfMmToPt(text.xMm)}pt, dy: $dy)[#rotate(${text.rotationDegrees}deg, origin: center)[#block(width: ${widthPt}pt, height: ${heightPt}pt)[',
     );
+    for (var index = 0; index < paths.length; index++) {
+      final cleanPath = paths[index].replaceAll(r'\', r'\\');
+      final dx = (index % dimensions.columns) * cellWidthPt;
+      final imageDy = (index ~/ dimensions.columns) * cellHeightPt;
+      typst.writeln(
+        '    #place(top + left, dx: ${dx}pt, dy: ${imageDy}pt)[#image("$cleanPath", width: ${cellWidthPt}pt, height: ${cellHeightPt}pt, fit: "contain")]',
+      );
+    }
+    typst.writeln('  ]]]');
+  }
+
+  String _typstTextElement(CustomTextElement t, {required bool applyBox}) {
+    final formatted = t.text;
     final isMarkdown = t.textType == 'markdown';
     final content = isMarkdown ? formatted : _escapeTypstMarkup(formatted);
     final hexColor = t.colorArgb.toRadixString(16).padLeft(8, '0');
@@ -437,10 +923,13 @@ class _DocumentTypstRenderer {
     CustomTextElement t,
     Map<String, String> data,
     String gKey,
-    String dyShift,
-  ) {
+    String dyShift, {
+    String? dyOverridePt,
+  }) {
     final display = _fieldValueCi(data, gKey);
     final ch = _genderSymbolForDisplayValue(display);
+    final alignment = dyOverridePt == null ? 'top + left' : 'left';
+    final dy = dyOverridePt ?? _dyPt(t.yMm, dyShift);
 
     final iconWPt = documentPdfMmToPt(
       t.iconWidthMm ?? kTemplateSpecimenSexIconDefaultWidthMm,
@@ -451,23 +940,18 @@ class _DocumentTypstRenderer {
     final fs = math.min(iconWPt, iconHPt) * 0.88;
 
     typst.writeln(
-      '  #place(top + left, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: ${_dyPt(t.yMm, dyShift)})[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]',
+      '  #place($alignment, dx: ${documentPdfMmToPt(t.xMm)}pt, dy: $dy)[#rotate(${t.rotationDegrees}deg, origin: center)[#box(width: ${iconWPt}pt, height: ${iconHPt}pt)[#align(center+horizon)[#text(size: ${fs}pt, font: "DejaVu Sans")[$ch]]]]]',
     );
   }
 
   String _genderSymbolForDisplayValue(String display) {
-    final s = display.trim().toLowerCase();
-    if (s == '0' || s == 'male' || s == 'm' || s == '\u2642') {
-      return '\u2642';
-    }
-    if (s == '1' || s == 'female' || s == 'f' || s == '\u2640') {
-      return '\u2640';
-    }
-    return '?';
+    final sex = specimenSexFromDisplayValue(display);
+    return sex == null ? '?' : specimenSexSymbol[sex]!;
   }
 
-  bool _containsSexSymbol(String text) =>
-      text.runes.any((rune) => rune == 0x2640 || rune == 0x2642);
+  bool _containsSexSymbol(String text) => text.runes.any(
+    (rune) => rune == 0x2640 || rune == 0x2642 || rune == 0x26A5,
+  );
 
   String _fieldValueCi(Map<String, String> m, String key) {
     if (m.containsKey(key)) return m[key] ?? '';
@@ -540,7 +1024,15 @@ class _DocumentTypstRenderer {
       final specimenSexIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
         text.text,
       );
-      if (text.isDynamic && !text.isQrCode && specimenSexIconKey == null) {
+      if (text.isDynamic &&
+          !text.isQrCode &&
+          !isTemplatePictureTextType(text.textType) &&
+          specimenSexIconKey == null) {
+        continue;
+      }
+
+      if (isTemplatePictureTextType(text.textType)) {
+        height = math.max(height, _pictureBottomPt(text));
         continue;
       }
 
@@ -603,6 +1095,9 @@ class _DocumentTypstRenderer {
     if (element is CustomLineElement) return _customLineBottomPt(element);
     if (element is CustomShapeElement) return _customShapeBottomPt(element);
     if (element is CustomTextElement) {
+      if (isTemplatePictureTextType(element.textType)) {
+        return _pictureBottomPt(element);
+      }
       final specimenSexIconKey = templateSpecimenSexIconFieldKeyFromBracketText(
         element.text,
       );
@@ -658,6 +1153,15 @@ class _DocumentTypstRenderer {
           widthPt: documentPdfMmToPt(image.widthMm),
           heightPt: documentPdfMmToPt(image.heightMm),
           rotationDegrees: image.rotationDegrees,
+        );
+  }
+
+  double _pictureBottomPt(CustomTextElement picture) {
+    return documentPdfMmToPt(picture.yMm) +
+        _rotatedRectBottomExtentPt(
+          widthPt: documentPdfMmToPt(picture.pictureWidthMm),
+          heightPt: documentPdfMmToPt(picture.pictureHeightMm),
+          rotationDegrees: picture.rotationDegrees,
         );
   }
 
@@ -724,21 +1228,25 @@ class _DocumentTypstRenderer {
   void _writeSingleCustomImage(
     StringBuffer typst,
     CustomImageElement im,
-    String dyShift,
-  ) {
+    String dyShift, {
+    String? dyOverridePt,
+  }) {
     if (!isTemplateImagePathUsable(im.imagePath)) return;
     String path = im.imagePath.replaceAll(r'\', r'\\');
+    final alignment = dyOverridePt == null ? 'top + left' : 'left';
+    final dy = dyOverridePt ?? _dyPt(im.yMm, dyShift);
 
     typst.writeln(
-      '  #place(top + left, dx: ${documentPdfMmToPt(im.xMm)}pt, dy: ${_dyPt(im.yMm, dyShift)})[#rotate(${im.rotationDegrees}deg, origin: center)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]',
+      '  #place($alignment, dx: ${documentPdfMmToPt(im.xMm)}pt, dy: $dy)[#rotate(${im.rotationDegrees}deg, origin: center)[#image("$path", width: ${documentPdfMmToPt(im.widthMm)}pt, height: ${documentPdfMmToPt(im.heightMm)}pt, fit: "contain")]]',
     );
   }
 
   void _writeSingleCustomLine(
     StringBuffer typst,
     CustomLineElement line,
-    String dyShift,
-  ) {
+    String dyShift, {
+    String? dyOverridePt,
+  }) {
     final hexColor = line.colorArgb.toRadixString(16).padLeft(8, '0');
     final colorStr =
         'rgb("${hexColor.substring(2)}")'; // ignores alpha for now, assuming 100%
@@ -763,16 +1271,19 @@ class _DocumentTypstRenderer {
           '#line(length: ${lengthPt}pt, stroke: (paint: $colorStr, thickness: ${line.thicknessPt}pt, dash: $strokeDash))';
     }
 
+    final alignment = dyOverridePt == null ? 'top + left' : 'left';
+    final dy = dyOverridePt ?? _dyPt(line.yMm, dyShift);
     typst.writeln(
-      '  #place(top + left, dx: ${documentPdfMmToPt(line.xMm)}pt, dy: ${_dyPt(line.yMm, dyShift)})[#rotate(${line.rotationDegrees}deg, origin: center)[$elem]]',
+      '  #place($alignment, dx: ${documentPdfMmToPt(line.xMm)}pt, dy: $dy)[#rotate(${line.rotationDegrees}deg, origin: center)[$elem]]',
     );
   }
 
   void _writeSingleCustomShape(
     StringBuffer typst,
     CustomShapeElement shape,
-    String dyShift,
-  ) {
+    String dyShift, {
+    String? dyOverridePt,
+  }) {
     final strokeHex = shape.strokeColorArgb.toRadixString(16).padLeft(8, '0');
     final strokeColor = 'rgb("${strokeHex.substring(2)}")';
 
@@ -818,8 +1329,10 @@ class _DocumentTypstRenderer {
           '#$kind(width: ${wPt}pt, height: ${hPt}pt, stroke: (paint: $strokeColor, thickness: ${shape.strokeThicknessPt}pt, dash: $strokeDash)$fillOpt)';
     }
 
+    final alignment = dyOverridePt == null ? 'top + left' : 'left';
+    final dy = dyOverridePt ?? _dyPt(shape.yMm, dyShift);
     typst.writeln(
-      '  #place(top + left, dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: ${_dyPt(shape.yMm, dyShift)})[#rotate(${shape.rotationDegrees}deg, origin: center)[$elem]]',
+      '  #place($alignment, dx: ${documentPdfMmToPt(shape.xMm)}pt, dy: $dy)[#rotate(${shape.rotationDegrees}deg, origin: center)[$elem]]',
     );
   }
 
@@ -927,4 +1440,59 @@ class _DocumentTypstRenderer {
       totalCells++;
     }
   }
+}
+
+abstract class _DocumentBreakableFlowEvent {
+  const _DocumentBreakableFlowEvent();
+
+  double get yMm;
+  int get zIndex;
+}
+
+class _DocumentDynamicFlowRow extends _DocumentBreakableFlowEvent {
+  _DocumentDynamicFlowRow(this.texts);
+
+  final List<CustomTextElement> texts;
+  final List<dynamic> companions = [];
+
+  @override
+  double get yMm => texts.first.yMm;
+
+  @override
+  int get zIndex => texts
+      .map((text) => text.zIndex)
+      .reduce((minimum, value) => math.min(minimum, value));
+}
+
+class _DocumentStaticFlowEvent extends _DocumentBreakableFlowEvent {
+  const _DocumentStaticFlowEvent(this.element);
+
+  final dynamic element;
+
+  @override
+  double get yMm {
+    if (element is CustomImageElement) {
+      return (element as CustomImageElement).yMm;
+    }
+    if (element is CustomTextElement) {
+      return (element as CustomTextElement).yMm;
+    }
+    if (element is CustomLineElement) {
+      return (element as CustomLineElement).yMm;
+    }
+    if (element is CustomShapeElement) {
+      return (element as CustomShapeElement).yMm;
+    }
+    return 0;
+  }
+
+  @override
+  int get zIndex => element.zIndex as int;
+}
+
+class _DocumentDynamicFlowColumn {
+  const _DocumentDynamicFlowColumn({required this.widthPt, this.text});
+
+  final double widthPt;
+  final CustomTextElement? text;
 }

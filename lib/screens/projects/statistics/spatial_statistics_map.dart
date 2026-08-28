@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,7 +11,7 @@ import 'package:nahpu/services/sites/natural_earth.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
 import 'package:nahpu/screens/projects/statistics/linux_user_map_layers.dart';
-import 'package:nahpu/screens/settings/map_settings.dart';
+import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 

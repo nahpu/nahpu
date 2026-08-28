@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -103,6 +104,14 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
                   await _duplicatePart();
                 },
           child: const DuplicateMenuButton(text: 'Duplicate part'),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.specimen,
+          ),
+          child: const SortMenuButton(),
         ),
         const PopupMenuDivider(height: 8),
         PopupMenuItem(

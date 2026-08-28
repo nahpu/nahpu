@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/styles/themes.dart';
 
@@ -34,8 +34,9 @@ void main() {
       );
     });
 
-    testWidgets('standard cards are flat in light and dark NAHPU themes',
-        (tester) async {
+    testWidgets('standard cards are flat in light and dark NAHPU themes', (
+      tester,
+    ) async {
       for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
         await tester.pumpWidget(
           MaterialApp(
@@ -46,7 +47,9 @@ void main() {
 
         final material = tester.widget<Material>(
           find.descendant(
-              of: find.byType(Card), matching: find.byType(Material)),
+            of: find.byType(Card),
+            matching: find.byType(Material),
+          ),
         );
         expect(material.elevation, 0);
         expect(material.shadowColor, Colors.transparent);

@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -14,9 +14,10 @@ import 'package:nahpu/services/export/export_document.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
-import 'package:nahpu/screens/settings/document_presets.dart';
+import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
@@ -49,6 +50,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Directory? _selectedDir;
   File? _savePath;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -67,7 +69,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Widget build(BuildContext context) {
     ref.watch(projectUuidProvider);
 
-    bool isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
 
     final settingsPane = _layout == null
         ? const Center(child: CircularProgressIndicator())
@@ -77,9 +80,8 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
             selectedSetupName: _selectedSetupName,
             templateNames: _templateNames,
             exportCtr: exportCtr,
-            selectedDir: _selectedDir,
             isRunning: _isRunning,
-            hasExported: _savePath != null,
+            appendDate: _appendDate,
             onLayoutChanged: _layoutChanged,
             onSetupSelected: _selectSetup,
             onFileNameChanged: (v) {
@@ -87,21 +89,22 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
                 _savePath = null;
               });
             },
-            onSelectDir: () async {
-              Directory? path = await FilePickerServices().selectDir();
+            onAppendDateChanged: (value) {
               setState(() {
-                _selectedDir = path;
+                _appendDate = value;
                 _savePath = null;
               });
             },
-            onClearDir: () {
-              setState(() {
-                _selectedDir = null;
-                _savePath = null;
-              });
-            },
-            onExportPressed: !exportCtr.isValid ? null : _exportDocuments,
-            onSharePressed: _shareExport,
+            locationCard: ExportLocationCard(
+              selectedDir: _selectedDir,
+              output: _savePath,
+              enabled: !_isRunning,
+              onSelectDir: _selectDirectory,
+              onClearDir: _clearDestination,
+              onShare: _shareExport,
+              onOpenFolder: _openFolder,
+              onDismiss: _clearDestination,
+            ),
             onManagePresets: () async {
               await Navigator.push<void>(
                 context,
@@ -126,42 +129,77 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       isBlockSelection: true,
     );
 
+    final body = isLargeScreen
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: settingsPane),
+                const SizedBox(width: 16),
+                Expanded(child: previewPane),
+              ],
+            ),
+          )
+        : Column(
+            children: [
+              TabBar(
+                controller: _mobileTabController,
+                tabs: const [
+                  Tab(icon: Icon(Icons.settings_outlined)),
+                  Tab(icon: Icon(Icons.preview_outlined)),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _mobileTabController,
+                  children: [settingsPane, previewPane],
+                ),
+              ),
+            ],
+          );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Export documents')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(child: Text(_error!))
-          : isLargeScreen
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          : SafeArea(
+              child: Column(
                 children: [
-                  Expanded(child: settingsPane),
-                  const SizedBox(width: 16),
-                  Expanded(child: previewPane),
+                  Expanded(child: body),
+                  ExportActionBar(
+                    label: 'Export documents',
+                    repeatLabel: 'Export another',
+                    icon: Icons.picture_as_pdf_outlined,
+                    canExport: exportCtr.isValid,
+                    isRunning: _isRunning,
+                    hasOutput: _savePath != null,
+                    onExport: _exportDocuments,
+                  ),
                 ],
               ),
-            )
-          : Column(
-              children: [
-                TabBar(
-                  controller: _mobileTabController,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.settings_outlined)),
-                    Tab(icon: Icon(Icons.preview_outlined)),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _mobileTabController,
-                    children: [settingsPane, previewPane],
-                  ),
-                ),
-              ],
             ),
     );
+  }
+
+  /// Closing the result also drops the directory, so one tap lands back on the
+  /// directory input rather than on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDir = null;
+      _savePath = null;
+    });
+  }
+
+  Future<void> _selectDirectory() async {
+    final path = await FilePickerServices().selectDir();
+    if (path == null || !mounted) return;
+    setState(() {
+      _selectedDir = path;
+      _savePath = null;
+    });
   }
 
   void _setPreviewStale() {
@@ -297,7 +335,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     try {
       final savePath = await ExportDocumentService(ref: ref).exportDocuments(
         selectedDir: _selectedDir!,
-        fileStem: exportCtr.fileNameCtr.text,
+        fileStem: _appendDate
+            ? appendDateToFileStem(exportCtr.fileNameCtr.text, DateTime.now())
+            : exportCtr.fileNameCtr.text,
         layout: _layout!,
       );
 
@@ -305,7 +345,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
         setState(() {
           _savePath = savePath;
         });
-        _showSavedPath();
       }
     } catch (e) {
       if (mounted) {
@@ -322,18 +361,18 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     }
   }
 
-  void _showSavedPath() {
+  Future<void> _openFolder() async {
     final savePath = _savePath;
-    if (!context.mounted || savePath == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          systemPlatform == PlatformType.desktop
-              ? 'Exported to ${savePath.path}'
-              : 'Export complete!',
-        ),
-      ),
-    );
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(savePath);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
   }
 
   Future<void> _shareExport() async {

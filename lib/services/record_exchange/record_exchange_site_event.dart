@@ -5,14 +5,19 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_database.dart';
+import 'package:nahpu/services/record_exchange/record_exchange_custom_fields.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/associated_data.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
 
 class RecordExchangeSiteEvent extends AppServices {
   const RecordExchangeSiteEvent({required super.ref});
@@ -26,10 +31,12 @@ class RecordExchangeSiteEvent extends AppServices {
               ..where((row) => row.projectUuid.equals(currentProjectUuid)))
             .getSingleOrNull();
     if (site == null) throw const FormatException('Site could not be found.');
+    final siteRecord = await _withGeography(site);
 
     final coordinates = await CoordinateQuery(
       dbAccess,
     ).getCoordinatesBySiteID(site.id);
+    final siteAttribute = await SiteQuery(dbAccess).getSiteAttribute(site.id);
     final personnel = <Map<String, dynamic>>[];
     if (site.leadStaffId != null) {
       final leadStaff = await support.getPersonnel(site.leadStaffId!);
@@ -41,7 +48,10 @@ class RecordExchangeSiteEvent extends AppServices {
     return RecordExchangePayload(
       type: RecordExchangeType.site,
       data: {
-        'site': support.portableSite(site),
+        'site': support.portableSite(siteRecord),
+        'siteAttribute': siteAttribute == null
+            ? null
+            : support.portableSiteAttribute(siteAttribute),
         'coordinates': coordinates
             .map(support.portableCoordinate)
             .toList(growable: false),
@@ -50,6 +60,9 @@ class RecordExchangeSiteEvent extends AppServices {
               site.id,
             )).map(support.portableAssociatedData).toList(growable: false),
         'personnel': personnel,
+        'customFields': await RecordExchangeCustomFields(
+          ref: ref,
+        ).export(siteId: site.id),
       },
     );
   }
@@ -93,11 +106,20 @@ class RecordExchangeSiteEvent extends AppServices {
         final coordinates = await CoordinateQuery(
           dbAccess,
         ).getCoordinatesBySiteID(site.id);
+        final siteAttribute = await SiteQuery(
+          dbAccess,
+        ).getSiteAttribute(site.id);
         linkedSite = {
-          'site': support.portableSite(site),
+          'site': support.portableSite(await _withGeography(site)),
+          'siteAttribute': siteAttribute == null
+              ? null
+              : support.portableSiteAttribute(siteAttribute),
           'coordinates': coordinates
               .map(support.portableCoordinate)
               .toList(growable: false),
+          'customFields': await RecordExchangeCustomFields(
+            ref: ref,
+          ).export(siteId: site.id),
         };
         if (site.leadStaffId != null) {
           final leadStaff = await support.getPersonnel(site.leadStaffId!);
@@ -108,13 +130,13 @@ class RecordExchangeSiteEvent extends AppServices {
       }
     }
 
-    WeatherData? weather;
+    EnvironmentData? environment;
     try {
-      weather = await (dbAccess.select(
-        dbAccess.weather,
+      environment = await (dbAccess.select(
+        dbAccess.environment,
       )..where((row) => row.eventID.equals(event.id))).getSingleOrNull();
     } catch (_) {
-      weather = null;
+      environment = null;
     }
 
     final mediaFiles = <RecordExchangeMediaFile>[];
@@ -124,7 +146,16 @@ class RecordExchangeSiteEvent extends AppServices {
       'personnelAssignments': assignments
           .map(support.portableAssignment)
           .toList(growable: false),
-      'weather': weather == null ? null : support.portableWeather(weather),
+      'environment': environment == null
+          ? null
+          : support.portableEnvironment(environment),
+      'customFields': await RecordExchangeCustomFields(
+        ref: ref,
+      ).export(eventId: event.id),
+      'associatedData':
+          (await AssociatedDataQuery(dbAccess).getAssociatedDataForEvent(
+            event.id,
+          )).map(support.portableAssociatedData).toList(growable: false),
       'site': ?linkedSite,
     };
     if (includeMedia) {
@@ -142,16 +173,25 @@ class RecordExchangeSiteEvent extends AppServices {
   Future<RecordExchangeResult> importSite(
     RecordExchangePayload payload, {
     int? targetId,
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
     );
     final siteJson = _requiredMap(payload.data['site'], 'site');
+    final siteAttributeJson = payload.data['siteAttribute'] is Map
+        ? Map<String, dynamic>.from(payload.data['siteAttribute'] as Map)
+        : siteJson;
     final leadStaffId = RecordExchangeDatabase.optionalString(
       siteJson['leadStaffId'],
     );
     support.validatePersonnelReference(leadStaffId, personnelIds);
-    final companion = support.siteCompanion(siteJson);
+    final companion = support
+        .siteCompanion(siteJson)
+        .copyWith(
+          // Reuses the matching locality when this site's geography already exists.
+          geographyId: db.Value(await support.resolveGeography(siteJson)),
+        );
     if (targetId != null) {
       final target =
           await (dbAccess.select(dbAccess.site)
@@ -176,8 +216,19 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.coordinate,
       )..where((row) => row.siteID.equals(targetId))).go();
-      await AssociatedDataQuery(dbAccess).unlinkAllFromSite(targetId);
+      await (dbAccess.delete(
+        dbAccess.siteAttribute,
+      )..where((row) => row.siteID.equals(targetId))).go();
+      final orphaned = await AssociatedDataServices(ref: ref)
+          .detachAllFromTarget(
+            AssociatedDataTarget.site(targetId),
+            cleanupFiles: false,
+          );
+      deferredAssociatedDataCleanup?.addAll(orphaned);
     }
+    await dbAccess
+        .into(dbAccess.siteAttribute)
+        .insert(support.siteAttributeCompanion(siteAttributeJson, siteId));
     for (final coordinateJson in RecordExchangePayload.mapList(
       payload.data['coordinates'],
     )) {
@@ -188,14 +239,16 @@ class RecordExchangeSiteEvent extends AppServices {
     for (final json in RecordExchangePayload.mapList(
       payload.data['associatedData'],
     )) {
-      final associatedDataId = await AssociatedDataQuery(dbAccess)
-          .createProjectAssociatedData(
-            AssociatedDataData.fromJson(
-              support.associatedDataJson(json),
-            ).toCompanion(true),
-          );
-      await AssociatedDataQuery(dbAccess).linkToSite(associatedDataId, siteId);
+      await AssociatedDataServices(ref: ref).createAssociatedData(
+        target: AssociatedDataTarget.site(siteId),
+        form: AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
+      );
     }
+    await RecordExchangeCustomFields(
+      ref: ref,
+    ).import(payload.data['customFields'], siteId: siteId);
     return RecordExchangeResult(recordId: siteId);
   }
 
@@ -205,6 +258,7 @@ class RecordExchangeSiteEvent extends AppServices {
     int? linkedSiteId,
     bool createEmbeddedSite = false,
     Directory? extractedMediaDirectory,
+    List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     final personnelIds = await support.importPersonnel(
       RecordExchangePayload.mapList(payload.data['personnel']),
@@ -217,9 +271,15 @@ class RecordExchangeSiteEvent extends AppServices {
       final linked = _requiredMap(siteData, 'linked site');
       createdSiteId = await support.insertPortableSite(
         _requiredMap(linked['site'], 'linked site'),
+        linked['siteAttribute'] is Map
+            ? Map<String, dynamic>.from(linked['siteAttribute'] as Map)
+            : null,
         RecordExchangePayload.mapList(linked['coordinates']),
         personnelIds,
       );
+      await RecordExchangeCustomFields(
+        ref: ref,
+      ).import(linked['customFields'], siteId: createdSiteId);
       resolvedSiteId = createdSiteId;
     }
     if (siteData != null && resolvedSiteId == null) {
@@ -267,8 +327,14 @@ class RecordExchangeSiteEvent extends AppServices {
         dbAccess.collPersonnel,
       )..where((row) => row.eventID.equals(targetId))).go();
       await (dbAccess.delete(
-        dbAccess.weather,
+        dbAccess.environment,
       )..where((row) => row.eventID.equals(targetId))).go();
+      final orphaned = await AssociatedDataServices(ref: ref)
+          .detachAllFromTarget(
+            AssociatedDataTarget.event(targetId),
+            cleanupFiles: false,
+          );
+      deferredAssociatedDataCleanup?.addAll(orphaned);
     }
 
     for (final effortJson in RecordExchangePayload.mapList(
@@ -289,16 +355,29 @@ class RecordExchangeSiteEvent extends AppServices {
           .into(dbAccess.collPersonnel)
           .insert(support.assignmentCompanion(assignmentJson, eventId));
     }
-    final weather = payload.data['weather'];
-    if (weather is Map) {
-      await dbAccess
-          .into(dbAccess.weather)
-          .insert(
-            support.weatherCompanion(
-              Map<String, dynamic>.from(weather),
-              eventId,
-            ),
-          );
+    final environment = payload.data['environment'] ?? payload.data['weather'];
+    await dbAccess
+        .into(dbAccess.environment)
+        .insert(
+          support.environmentCompanion(
+            environment is Map
+                ? Map<String, dynamic>.from(environment)
+                : const {},
+            eventId,
+          ),
+        );
+    await RecordExchangeCustomFields(
+      ref: ref,
+    ).import(payload.data['customFields'], eventId: eventId);
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['associatedData'],
+    )) {
+      await AssociatedDataServices(ref: ref).createAssociatedData(
+        target: AssociatedDataTarget.event(eventId),
+        form: AssociatedDataData.fromJson(
+          support.associatedDataJson(json),
+        ).toCompanion(true),
+      );
     }
     if (payload.data.containsKey('media')) {
       await _deleteEventMedia(eventId);
@@ -315,7 +394,15 @@ class RecordExchangeSiteEvent extends AppServices {
     );
   }
 
-  Future<List<SiteData>> getCurrentProjectSites() {
+  /// Joins a site row with its shared locality for export.
+  Future<SiteRecord> _withGeography(SiteData site) async {
+    return SiteRecord(
+      site: site,
+      geography: await GeographyQuery(dbAccess).getById(site.geographyId),
+    );
+  }
+
+  Future<List<SiteRecord>> getCurrentProjectSites() {
     return SiteQuery(dbAccess).getAllSites(currentProjectUuid);
   }
 

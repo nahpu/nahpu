@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart' as db;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
@@ -21,6 +21,10 @@ import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class ParasiteForms extends StatelessWidget {
   const ParasiteForms({super.key, required this.specimenUuid});
@@ -33,7 +37,7 @@ class ParasiteForms extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Parasite records',
-          infoContent: ParasiteRecordInfoContent(),
+          infoTopic: InfoTopic.specimenParasites,
         ),
         SizedBox(height: 450, child: ParasiteList(specimenUuid: specimenUuid)),
       ],
@@ -304,11 +308,13 @@ class ParasiteRecordForm extends ConsumerStatefulWidget {
 
 class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   bool _showMore = false;
+  final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   bool get _isEditing => widget.parasite != null;
 
   @override
   void dispose() {
+    _customFields.dispose();
     widget.controller.dispose();
     super.dispose();
   }
@@ -316,6 +322,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      footer: FormButton(isEditing: _isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -392,12 +399,22 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             visible: _showMore,
             child: _AdvancedParasiteFields(controller: widget.controller),
           ),
+          if (_isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.parasite(widget.parasite!.id!),
+              showAll: _showMore,
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.parasite,
+              specimenUuid: widget.specimenUuid,
+              controller: _customFields,
+              showAll: _showMore,
+            ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () => setState(() => _showMore = !_showMore),
           ),
-          const SizedBox(height: 16),
-          FormButton(isEditing: _isEditing, onSubmitted: _submit),
         ],
       ),
     );
@@ -411,9 +428,15 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
           ref: ref,
         ).updateParasite(widget.parasite!.id!, widget.specimenUuid, form);
       } else {
-        await ParasiteServices(
-          ref: ref,
-        ).createParasite(widget.specimenUuid, form);
+        final database = ref.read(databaseProvider);
+        await database.transaction(() async {
+          final id = await ParasiteServices(
+            ref: ref,
+          ).createParasite(widget.specimenUuid, form);
+          await ref
+              .read(customFieldServiceProvider)
+              .setValues(CustomFieldOwner.parasite(id), _customFields.values);
+        });
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
@@ -921,22 +944,3 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
 }
 
 enum _ParasiteIdAction { scan, newNumber, settings }
-
-class ParasiteRecordInfoContent extends StatelessWidget {
-  const ParasiteRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Record parasites collected from the specimen, '
-              'including their taxonomy, location, collection, preservation, '
-              'and identification details.',
-        ),
-      ],
-    );
-  }
-}

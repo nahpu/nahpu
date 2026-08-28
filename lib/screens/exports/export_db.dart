@@ -1,13 +1,20 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/db_writer.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportDbForm extends ConsumerStatefulWidget {
   const ExportDbForm({super.key});
@@ -28,6 +35,16 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   bool _hasSaved = false;
   bool _isLoading = true;
   bool _isRunning = false;
+  bool _isCancelling = false;
+  ExportProgressReporter? _reporter;
+  ExportCancellation? _cancellation;
+  StreamSubscription<ExportJobProgress>? _progressSubscription;
+  ExportJobProgress? _jobProgress;
+  ExportOutcome? _outcome;
+  String? _runError;
+  String? _failedStepLabel;
+  int? _outputBytes;
+  Duration? _runDuration;
 
   @override
   void initState() {
@@ -38,21 +55,34 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   @override
   void dispose() {
     _fileNameController.dispose();
+    unawaited(_progressSubscription?.cancel());
+    unawaited(_reporter?.dispose());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      // Leaving mid-backup would orphan the staging directory and the partly
+      // written archive, so the user has to cancel deliberately.
+      canPop: !_isRunning,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Backup database')),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 760;
+            final wide = constraints.maxWidth >= NahpuBreakpoints.compact;
             final settings = _BackupSettingsCard(
               controller: _fileNameController,
               format: _format,
-              directory: _selectedDir,
               appendDate: _appendDate,
               enabled: !_isLoading && !_isRunning,
               onFormatChanged: (value) {
@@ -73,16 +103,54 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                   _hasSaved = false;
                 });
               },
-              onSelectDirectory: _getDir,
-              onClearDirectory: () => setState(() {
-                _selectedDir = null;
-                _hasSaved = false;
-              }),
             );
-            final summary = _BackupSummary(
-              summary: _summary,
-              error: _summaryError,
+            final jobProgress = _jobProgress;
+            final destination = ExportLocationCard(
+              selectedDir: _selectedDir,
+              output: _hasSaved ? _savePath : null,
+              outputBytes: _outputBytes,
+              duration: _runDuration,
+              enabled: !_isLoading && !_isRunning,
+              onSelectDir: _getDir,
+              onClearDir: _clearDestination,
+              onShare: () => _shareFile(context),
+              onOpenFolder: _openFolder,
+              onDismiss: _clearDestination,
             );
+            final settingsPane = _isRunning && jobProgress != null
+                ? ExportProgressPanel(
+                    title: 'Backing up database',
+                    progress: jobProgress,
+                    hint:
+                        'Large media libraries can take several minutes. '
+                        'Keep NAHPU open until this finishes.',
+                    isCancelling: _isCancelling,
+                    onCancel: _requestCancel,
+                  )
+                : settings;
+            // The destination belongs with the file settings it configures.
+            final leftPane = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                settingsPane,
+                const SizedBox(height: NahpuSpacing.xl),
+                destination,
+              ],
+            );
+            // A finished backup keeps the contents summary on screen: the
+            // location card already reports the file.
+            final failed =
+                _outcome != null &&
+                _outcome != ExportOutcome.succeeded &&
+                !_isRunning;
+            final rightPane = failed
+                ? ExportFailurePanel(
+                    outcome: _outcome!,
+                    errorMessage: _runError,
+                    failedStepLabel: _failedStepLabel,
+                    onRetry: _writeDb,
+                  )
+                : _BackupSummary(summary: _summary, error: _summaryError);
             return Column(
               children: [
                 Expanded(
@@ -95,32 +163,34 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                             ? Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(child: settings),
-                                  const SizedBox(width: 20),
-                                  Expanded(child: summary),
+                                  Expanded(child: leftPane),
+                                  const SizedBox(width: NahpuSpacing.xxl),
+                                  Expanded(child: rightPane),
                                 ],
                               )
                             : Column(
                                 children: [
-                                  settings,
-                                  const SizedBox(height: 16),
-                                  summary,
+                                  leftPane,
+                                  const SizedBox(height: NahpuSpacing.xl),
+                                  rightPane,
                                 ],
                               ),
                       ),
                     ),
                   ),
                 ),
-                _BackupActionBar(
-                  isRunning: _isRunning,
-                  canSave:
+                ExportActionBar(
+                  label: 'Save backup',
+                  repeatLabel: 'Save another',
+                  icon: Icons.save_alt_outlined,
+                  canExport:
                       !_isLoading &&
                       _summary != null &&
                       _summaryError == null &&
                       _fileNameController.text.trim().isNotEmpty,
-                  hasSaved: _hasSaved,
-                  onSave: _writeDb,
-                  onShare: () => _shareFile(context),
+                  isRunning: _isRunning,
+                  hasOutput: _hasSaved,
+                  onExport: _writeDb,
                 ),
               ],
             );
@@ -148,7 +218,28 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   }
 
   Future<void> _writeDb() async {
-    setState(() => _isRunning = true);
+    final summary = _summary;
+    if (summary == null) return;
+    final reporter = ExportProgressReporter(
+      steps: DbExport.backupPhases(summary),
+    );
+    final cancellation = ExportCancellation();
+    final stopwatch = Stopwatch()..start();
+    setState(() {
+      _isRunning = true;
+      _isCancelling = false;
+      _outcome = null;
+      _runError = null;
+      _failedStepLabel = null;
+      _outputBytes = null;
+      _runDuration = null;
+      _reporter = reporter;
+      _cancellation = cancellation;
+      _jobProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _progressSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _jobProgress = progress);
+    });
     try {
       final savePath = await AppIOServices(
         dir: _selectedDir,
@@ -160,24 +251,73 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
       final output = await DbExport(
         ref: ref,
         filePath: savePath,
-      ).write(_format);
+      ).write(_format, progress: reporter, cancel: cancellation);
+      final bytes = await output.length();
       if (!mounted) return;
       setState(() {
         _hasSaved = true;
         _savePath = output;
+        _outcome = ExportOutcome.succeeded;
+        _outputBytes = bytes;
+        _runDuration = stopwatch.elapsed;
       });
-      _showSuccess();
+    } on ExportCancelledException {
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.cancelled;
+        _runDuration = stopwatch.elapsed;
+      });
     } catch (error) {
-      if (mounted) _showError(error.toString());
+      if (!mounted) return;
+      setState(() {
+        _outcome = ExportOutcome.failed;
+        _runError = error.toString();
+        _failedStepLabel = _jobProgress?.activeStep?.label;
+        _runDuration = stopwatch.elapsed;
+      });
+      _showError(error.toString());
     } finally {
-      if (mounted) setState(() => _isRunning = false);
+      await _progressSubscription?.cancel();
+      _progressSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isRunning = false;
+          _isCancelling = false;
+          _reporter = null;
+          _cancellation = null;
+        });
+      }
     }
   }
 
-  void _showSuccess() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('File saved as ${_savePath!.path}')));
+  void _requestCancel() {
+    _cancellation?.cancel();
+    setState(() => _isCancelling = true);
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel the backup?'),
+        content: const Text(
+          'The backup is still running. Leaving now cancels it and no file '
+          'will be saved.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep backing up'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel backup'),
+          ),
+        ],
+      ),
+    );
+    if (leave == true && mounted) _requestCancel();
   }
 
   void _showError(String error) {
@@ -199,6 +339,30 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     }
   }
 
+  Future<void> _openFolder() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(savePath);
+    } catch (error) {
+      if (mounted) _showError('Unable to open the folder: $error');
+    }
+  }
+
+  /// Closing the result puts the screen back where it was before the backup,
+  /// directory included, so one tap lands on the directory input rather than
+  /// on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDir = null;
+      _hasSaved = false;
+      _savePath = null;
+      _outcome = null;
+      _outputBytes = null;
+      _runDuration = null;
+    });
+  }
+
   Future<void> _getDir() async {
     final selected = await FilePickerServices().selectDir();
     if (selected == null || !mounted) return;
@@ -213,90 +377,67 @@ class _BackupSettingsCard extends StatelessWidget {
   const _BackupSettingsCard({
     required this.controller,
     required this.format,
-    required this.directory,
     required this.appendDate,
     required this.enabled,
     required this.onFormatChanged,
     required this.onFileNameChanged,
     required this.onAppendDateChanged,
-    required this.onSelectDirectory,
-    required this.onClearDirectory,
   });
 
   final TextEditingController controller;
   final DbArchiveFormat format;
-  final Directory? directory;
   final bool appendDate;
   final bool enabled;
   final ValueChanged<DbArchiveFormat> onFormatChanged;
   final ValueChanged<String> onFileNameChanged;
   final ValueChanged<bool> onAppendDateChanged;
-  final VoidCallback onSelectDirectory;
-  final VoidCallback onClearDirectory;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Backup archive',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'This creates a full NAHPU backup, including all projects, '
-              'records, media, and app settings. For a project-only backup, '
-              'use Project export.',
-            ),
-            const SizedBox(height: 20),
-            SegmentedButton<DbArchiveFormat>(
-              segments: const [
-                ButtonSegment(
-                  value: DbArchiveFormat.tarGzip,
-                  label: Text('TAR.GZ'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-                ButtonSegment(
-                  value: DbArchiveFormat.zip,
-                  label: Text('ZIP'),
-                  icon: Icon(Icons.folder_zip_outlined),
-                ),
-              ],
-              selected: {format},
-              onSelectionChanged: enabled
-                  ? (values) => onFormatChanged(values.single)
-                  : null,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: controller,
-              enabled: enabled,
-              onChanged: onFileNameChanged,
-              decoration: InputDecoration(
-                labelText: 'File name',
-                suffixText: '.${format.extension}',
-                border: const OutlineInputBorder(),
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Backup archive', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          const Text(
+            'This creates a full NAHPU backup, including all projects, '
+            'records, media, and app settings. For a project-only backup, '
+            'use Project export.',
+          ),
+          const SizedBox(height: 20),
+          SegmentedButton<DbArchiveFormat>(
+            segments: const [
+              ButtonSegment(
+                value: DbArchiveFormat.tarGzip,
+                label: Text('TAR.GZ'),
+                icon: Icon(Icons.folder_zip_outlined),
               ),
-            ),
-            AppendDateSwitch(
-              value: appendDate,
-              enabled: enabled,
-              onChanged: onAppendDateChanged,
-            ),
-            const SizedBox(height: 16),
-            if (systemPlatform == PlatformType.desktop)
-              FileSettingsDirectoryPicker(
-                selectedDir: directory,
-                onSelectDir: enabled ? onSelectDirectory : () {},
-                onClearDir: enabled ? onClearDirectory : () {},
+              ButtonSegment(
+                value: DbArchiveFormat.zip,
+                label: Text('ZIP'),
+                icon: Icon(Icons.folder_zip_outlined),
               ),
-          ],
-        ),
+            ],
+            selected: {format},
+            onSelectionChanged: enabled
+                ? (values) => onFormatChanged(values.single)
+                : null,
+          ),
+          const SizedBox(height: 20),
+          FileNameField(
+            controller: controller,
+            enabled: enabled,
+            extension: format.extension,
+            appendDate: appendDate,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
+        ],
       ),
     );
   }
@@ -310,82 +451,44 @@ class _BackupSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Entire database contents',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            if (error != null)
-              ErrorText(error: error!)
-            else if (summary == null)
-              const Center(child: CircularProgressIndicator())
-            else
-              for (final entry in summary!.entries.entries)
-                ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(entry.key),
-                  trailing: Text('${entry.value}'),
-                ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BackupActionBar extends StatelessWidget {
-  const _BackupActionBar({
-    required this.isRunning,
-    required this.canSave,
-    required this.hasSaved,
-    required this.onSave,
-    required this.onShare,
-  });
-
-  final bool isRunning;
-  final bool canSave;
-  final bool hasSaved;
-  final VoidCallback onSave;
-  final VoidCallback onShare;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 4, 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (hasSaved)
-                OutlinedButton.icon(
-                  onPressed: onShare,
-                  icon: Icon(Icons.adaptive.share_rounded),
-                  label: const Text('Share'),
-                ),
-              if (hasSaved) const SizedBox(width: 12),
-              FilledButton.icon(
-                onPressed: canSave && !isRunning ? onSave : null,
-                icon: isRunning
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save_alt_outlined),
-                label: Text(hasSaved ? 'Save another' : 'Save backup'),
-              ),
-            ],
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Entire database contents',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
-        ),
+          const SizedBox(height: 8),
+          if (error != null)
+            ErrorText(error: error!)
+          else if (summary == null)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            for (final entry in summary!.entries.entries)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(entry.key),
+                trailing: Text('${entry.value}'),
+              ),
+            const CommonDivider(),
+            // Knowing the size before pressing Save is what tells the user
+            // whether this is a ten second job or a ten minute one.
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Backup size before compression',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              trailing: Text(
+                formatByteSize(summary!.totalBytes),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

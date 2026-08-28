@@ -3,11 +3,37 @@ const Map<String, String> specimenAttributeTableAliases = {
   'mammalMeasurement': 'mammalAttribute',
   'avianMeasurement': 'birdAttribute',
   'herpMeasurement': 'herpAttribute',
+  'weather': 'environment',
 };
 
 const Map<String, String> specimenAttributeFieldAliases = {
   'footColor': 'toeColor',
   'footHex': 'toeHex',
+};
+
+/// Site geography fields that moved to the shared `geography` table in v21.
+///
+/// Rewriting them here migrates every saved export preset and document template
+/// on load, so nothing stored has to be rewritten.
+const Map<String, String> _geographySourceFields = {
+  'country': 'country',
+  'islandGroup': 'islandGroup',
+  'stateProvince': 'stateProvince',
+  'county': 'county',
+  'municipality': 'municipality',
+  'locality': 'locality',
+  'specificLocality': 'specificLocality',
+  'verbatimLocality': 'verbatimLocality',
+};
+
+const Map<String, String> _v19SourceAliases = {
+  'arthropodAttribute::canopyCover': 'siteAttribute::canopyCover',
+  'arthropodAttribute::ambientTemperature': 'environment::ambientTemperature',
+  'arthropodAttribute::ambientHumidity': 'environment::ambientHumidity',
+  'arthropodAttribute::waterTemperature': 'environment::waterTemperature',
+  'arthropodAttribute::pH': 'environment::pH',
+  'arthropodAttribute::dissolvedOxygen': 'environment::dissolvedOxygen',
+  'arthropodAttribute::flowVelocity': 'environment::flowVelocity',
 };
 
 /// Returns the canonical specimen-attribute table name for [name].
@@ -16,12 +42,34 @@ String canonicalizeSpecimenAttributeTableName(String name) =>
 
 /// Returns the canonical `table::field` form of [sourceKey].
 String canonicalizeSpecimenAttributeSourceKey(String sourceKey) {
+  final v19Alias = _v19SourceAliases[sourceKey];
+  if (v19Alias != null) return v19Alias;
   final separator = sourceKey.indexOf('::');
   if (separator < 0) {
     return canonicalizeSpecimenAttributeTableName(sourceKey);
   }
   final table = sourceKey.substring(0, separator);
   final field = sourceKey.substring(separator + 2);
+  if (table == 'site' &&
+      const {
+        'habitatType',
+        'habitatCondition',
+        'habitatDescription',
+      }.contains(field)) {
+    return 'siteAttribute::$field';
+  }
+  if (table == 'site' && _geographySourceFields.containsKey(field)) {
+    return 'geography::${_geographySourceFields[field]}';
+  }
+  if (const {
+        'mammalMeasurement',
+        'mammalAttribute',
+        'herpMeasurement',
+        'herpAttribute',
+      }.contains(table) &&
+      field == 'age') {
+    return '${canonicalizeSpecimenAttributeTableName(table)}::lifeStage';
+  }
   return '${canonicalizeSpecimenAttributeTableName(table)}'
       '::${specimenAttributeFieldAliases[field] ?? field}';
 }
@@ -34,6 +82,24 @@ String canonicalizeSpecimenAttributeExpression(String expression) {
   }
   for (final entry in specimenAttributeFieldAliases.entries) {
     canonical = canonical.replaceAll('::${entry.key}', '::${entry.value}');
+  }
+  canonical = canonical
+      .replaceAll('site::habitatType', 'siteAttribute::habitatType')
+      .replaceAll('site::habitatCondition', 'siteAttribute::habitatCondition')
+      .replaceAll(
+        'site::habitatDescription',
+        'siteAttribute::habitatDescription',
+      )
+      .replaceAll('mammalAttribute::age', 'mammalAttribute::lifeStage')
+      .replaceAll('herpAttribute::age', 'herpAttribute::lifeStage');
+  for (final entry in _geographySourceFields.entries) {
+    canonical = canonical.replaceAll(
+      'site::${entry.key}',
+      'geography::${entry.value}',
+    );
+  }
+  for (final entry in _v19SourceAliases.entries) {
+    canonical = canonical.replaceAll(entry.key, entry.value);
   }
   return canonical;
 }

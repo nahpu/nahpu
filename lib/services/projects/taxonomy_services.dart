@@ -2,7 +2,7 @@ import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class TaxonomyServices extends AppServices {
   const TaxonomyServices({required super.ref});
@@ -16,12 +16,6 @@ class TaxonomyServices extends AppServices {
       dbAccess,
     ).searchTaxon(query);
     return results.map((e) => e.id).toList();
-  }
-
-  Future<TaxonomyData?> getTaxonBySpecies(String genus, String epithet) async {
-    return await TaxonomyQuery(
-      dbAccess,
-    ).getTaxonIdByGenusEpithet(genus, epithet);
   }
 
   Future<List<int>> getUsedTaxa() async {
@@ -115,30 +109,124 @@ class TaxonFilterServices {
 
   List<TaxonomyData> filterTaxonList(
     List<TaxonomyData> data,
-    String searchValue,
-  ) {
+    String searchValue, {
+    TaxonSearchCategory category = TaxonSearchCategory.allFields,
+  }) {
+    final normalizedQuery = searchValue.trim().toLowerCase();
+    if (normalizedQuery.isEmpty) return data;
     return data
-        .where((taxon) => _isTaxonMatch(taxon, searchValue.toLowerCase()))
+        .where((taxon) => _isTaxonMatch(taxon, normalizedQuery, category))
         .toList();
   }
 
-  bool _isTaxonMatch(TaxonomyData data, String searchValue) {
-    return _getSpecies(data).contains(searchValue) ||
-        _getFamily(data).contains(searchValue) ||
-        _getOrder(data).contains(searchValue);
+  bool _isTaxonMatch(
+    TaxonomyData data,
+    String searchValue,
+    TaxonSearchCategory category,
+  ) {
+    return _valuesFor(
+      data,
+      category,
+    ).any((value) => value.trim().toLowerCase().contains(searchValue));
   }
 
-  String _getSpecies(TaxonomyData taxon) {
-    return getSpeciesName(taxon).toLowerCase();
+  Iterable<String> _valuesFor(
+    TaxonomyData taxon,
+    TaxonSearchCategory category,
+  ) {
+    final values = <TaxonSearchCategory, Iterable<String>>{
+      TaxonSearchCategory.taxonRank: _values(taxon.taxonRank),
+      TaxonSearchCategory.kingdom: _values(
+        taxon.kingdom ?? getKingdom(taxon.taxonClass),
+      ),
+      TaxonSearchCategory.phylum: _values(
+        taxon.phylum ?? getPhylum(taxon.taxonClass),
+      ),
+      TaxonSearchCategory.taxonClass: _values(taxon.taxonClass),
+      TaxonSearchCategory.order: _values(taxon.taxonOrder),
+      TaxonSearchCategory.family: _values(taxon.taxonFamily),
+      TaxonSearchCategory.genus: _values(taxon.genus),
+      TaxonSearchCategory.species: _scientificNameValues([
+        taxon.genus,
+        taxon.specificEpithet,
+      ]),
+      TaxonSearchCategory.subspecies:
+          taxon.subspecificEpithet?.trim().isNotEmpty == true
+          ? _scientificNameValues([
+              taxon.genus,
+              taxon.specificEpithet,
+              taxon.subspecificEpithet,
+            ])
+          : const [],
+      TaxonSearchCategory.authors: _values(taxon.authors),
+      TaxonSearchCategory.commonName: _values(taxon.commonName),
+      TaxonSearchCategory.redListCategory: _values(taxon.redListCategory),
+      TaxonSearchCategory.citesStatus: _values(taxon.citesStatus),
+      TaxonSearchCategory.countryStatus: _values(taxon.countryStatus),
+      TaxonSearchCategory.sortingOrder: _values(taxon.sortingOrder?.toString()),
+      TaxonSearchCategory.notes: _values(taxon.notes),
+    };
+    if (category != TaxonSearchCategory.allFields) {
+      return values[category] ?? const [];
+    }
+    return values.values.expand((value) => value);
   }
 
-  String _getFamily(TaxonomyData taxon) {
-    return (taxon.taxonFamily ?? '').toLowerCase();
+  Iterable<String> _values(String? value) {
+    return value == null || value.trim().isEmpty ? const [] : [value];
   }
 
-  String _getOrder(TaxonomyData taxon) {
-    return (taxon.taxonOrder ?? '').toLowerCase();
+  Iterable<String> _scientificNameValues(List<String?> parts) {
+    final values = parts
+        .whereType<String>()
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (values.isEmpty) return const [];
+    return [values.join(' '), ...values];
   }
+}
+
+enum TaxonSearchCategory {
+  allFields,
+  taxonRank,
+  kingdom,
+  phylum,
+  taxonClass,
+  order,
+  family,
+  genus,
+  species,
+  subspecies,
+  authors,
+  commonName,
+  redListCategory,
+  citesStatus,
+  countryStatus,
+  sortingOrder,
+  notes,
+}
+
+extension TaxonSearchCategoryLabel on TaxonSearchCategory {
+  String get label => switch (this) {
+    TaxonSearchCategory.allFields => 'All fields',
+    TaxonSearchCategory.taxonRank => 'Taxon rank',
+    TaxonSearchCategory.kingdom => 'Kingdom',
+    TaxonSearchCategory.phylum => 'Phylum',
+    TaxonSearchCategory.taxonClass => 'Class',
+    TaxonSearchCategory.order => 'Order',
+    TaxonSearchCategory.family => 'Family',
+    TaxonSearchCategory.genus => 'Genus',
+    TaxonSearchCategory.species => 'Species',
+    TaxonSearchCategory.subspecies => 'Subspecies',
+    TaxonSearchCategory.authors => 'Authors',
+    TaxonSearchCategory.commonName => 'Common name',
+    TaxonSearchCategory.redListCategory => 'Red List category',
+    TaxonSearchCategory.citesStatus => 'CITES status',
+    TaxonSearchCategory.countryStatus => 'Country status',
+    TaxonSearchCategory.sortingOrder => 'Sorting order',
+    TaxonSearchCategory.notes => 'Notes',
+  };
 }
 
 String getSpeciesName(TaxonomyData data) {

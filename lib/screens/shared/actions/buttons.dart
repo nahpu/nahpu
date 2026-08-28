@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
@@ -178,17 +178,28 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
+    this.isRunning = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
 
+  /// Swaps the icon for a spinner and blocks a second press while work runs.
+  final bool isRunning;
+
   @override
   Widget build(BuildContext context) {
     return FilledButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon),
+      onPressed: isRunning ? null : onPressed,
+      icon: isRunning
+          ? const SizedBox.square(
+              dimension: NahpuControlSize.indicator,
+              child: CircularProgressIndicator(
+                strokeWidth: NahpuStroke.regular,
+              ),
+            )
+          : Icon(icon),
       label: Text(label),
     );
   }
@@ -206,21 +217,25 @@ class FormButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      children: [
-        SecondaryButton(
-          text: 'Cancel',
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        const SizedBox(width: 24),
-        PrimaryButton(
-          label: isEditing ? 'Update' : 'Add',
-          icon: isEditing ? Icons.check : Icons.add,
-          onPressed: onSubmitted,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.lg),
+      child: Wrap(
+        spacing: 16,
+        children: [
+          SecondaryButton(
+            text: 'Cancel',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          const SizedBox(width: 24),
+          PrimaryButton(
+            label: isEditing ? 'Update' : 'Add',
+            icon: isEditing ? Icons.check : Icons.add,
+            onPressed: onSubmitted,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -338,6 +353,18 @@ class FindMenuButton extends StatelessWidget {
     return const ListTile(
       leading: Icon(Icons.search_outlined),
       title: Text('Find'),
+    );
+  }
+}
+
+class SortMenuButton extends StatelessWidget {
+  const SortMenuButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ListTile(
+      leading: Icon(Icons.sort_rounded),
+      title: Text('Sort records'),
     );
   }
 }

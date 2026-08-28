@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/export/statistics_exporter.dart';
@@ -16,10 +16,16 @@ class StatisticDataTable extends StatefulWidget {
     super.key,
     required this.rows,
     required this.onExport,
+    this.categoryLabel = 'Category',
+    this.seriesLabel,
+    this.countLabel = 'Count',
   });
 
   final List<StatisticTableRow> rows;
   final VoidCallback? onExport;
+  final String categoryLabel;
+  final String? seriesLabel;
+  final String countLabel;
 
   @override
   State<StatisticDataTable> createState() => _StatisticDataTableState();
@@ -37,39 +43,48 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
       _rowsPerPage = availableRows.last;
     }
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: PaginatedDataTable(
-        header: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            tooltip: 'Export table',
-            onPressed: widget.onExport,
-            icon: const Icon(Icons.file_upload_outlined),
+    return SingleChildScrollView(
+      primary: false,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: PaginatedDataTable(
+          header: const SizedBox.shrink(),
+          actions: [
+            IconButton(
+              tooltip: 'Export table',
+              onPressed: widget.onExport,
+              icon: const Icon(Icons.file_upload_outlined),
+            ),
+          ],
+          showEmptyRows: false,
+          rowsPerPage: _rowsPerPage,
+          availableRowsPerPage: availableRows,
+          onRowsPerPageChanged: (value) {
+            if (value != null) setState(() => _rowsPerPage = value);
+          },
+          source: _StatisticDataSource(
+            widget.rows,
+            hasSeries: widget.seriesLabel != null,
           ),
-        ],
-        showEmptyRows: false,
-        rowsPerPage: _rowsPerPage,
-        availableRowsPerPage: availableRows,
-        onRowsPerPageChanged: (value) {
-          if (value != null) setState(() => _rowsPerPage = value);
-        },
-        source: _StatisticDataSource(widget.rows),
-        columns: const [
-          DataColumn(label: Text('Rank'), numeric: true),
-          DataColumn(label: Text('Category')),
-          DataColumn(label: Text('Count'), numeric: true),
-          DataColumn(label: Text('Percent'), numeric: true),
-        ],
+          columns: [
+            const DataColumn(label: Text('Rank'), numeric: true),
+            DataColumn(label: Text(widget.categoryLabel)),
+            if (widget.seriesLabel != null)
+              DataColumn(label: Text(widget.seriesLabel!)),
+            DataColumn(label: Text(widget.countLabel), numeric: true),
+            const DataColumn(label: Text('Percent'), numeric: true),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _StatisticDataSource extends DataTableSource {
-  _StatisticDataSource(this.rows);
+  _StatisticDataSource(this.rows, {required this.hasSeries});
 
   final List<StatisticTableRow> rows;
+  final bool hasSeries;
 
   @override
   DataRow? getRow(int index) {
@@ -85,6 +100,7 @@ class _StatisticDataSource extends DataTableSource {
             child: Text(row.category, overflow: TextOverflow.ellipsis),
           ),
         ),
+        if (hasSeries) DataCell(Text(row.series ?? 'Not recorded')),
         DataCell(Text(row.count.toString())),
         DataCell(Text('${row.percent.toStringAsFixed(1)}%')),
       ],
@@ -105,17 +121,21 @@ Future<void> showStatisticExportDialog({
   required BuildContext context,
   required String defaultFileName,
   required List<StatisticTableRow> rows,
+  String categoryLabel = 'Category',
+  String? seriesLabel,
+  String countLabel = 'Count',
 }) {
   return showTabularExportDialog(
     context: context,
     title: 'Export statistics table',
     defaultFileName: defaultFileName,
-    headers: const ['Rank', 'Category', 'Count', 'Percent (%)'],
+    headers: ['Rank', categoryLabel, ?seriesLabel, countLabel, 'Percent (%)'],
     rows: [
       for (final row in rows)
         [
           row.rank.toString(),
           row.category,
+          if (seriesLabel != null) row.series ?? 'Not recorded',
           row.count.toString(),
           row.percent.toStringAsFixed(2),
         ],
@@ -191,6 +211,7 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
   Directory? _directory;
   File? _exportedFile;
   bool _isRunning = false;
+  bool _appendDate = false;
 
   @override
   void initState() {
@@ -218,6 +239,13 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
         });
       },
       onFileNameChanged: (_) => _resetExport(),
+      appendDate: _appendDate,
+      onAppendDateChanged: (value) {
+        setState(() {
+          _appendDate = value;
+          _exportedFile = null;
+        });
+      },
       onSelectDir: _selectDirectory,
       onClearDir: () => setState(() {
         _directory = null;
@@ -295,7 +323,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
       };
       final file = await AppIOServices(
         dir: _directory,
-        fileStem: _exportCtr.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
+            : _exportCtr.fileNameCtr.text.trim(),
         ext: extension,
       ).getSavePath();
       await const StatisticsTableExporter().writeRows(

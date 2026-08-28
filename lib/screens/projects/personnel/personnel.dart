@@ -7,7 +7,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
@@ -29,7 +29,7 @@ class PersonnelViewerState extends ConsumerState<PersonnelViewer> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Personnel',
-      infoContent: const PersonnelInfoContent(),
+      infoTopic: InfoTopic.projectPersonnel,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
         height: topDashboardHeight - 96,
@@ -425,59 +425,6 @@ class PersonnelSubtitle extends StatelessWidget {
                 ),
         ],
       ),
-    );
-  }
-}
-
-class PersonnelInfoContent extends StatelessWidget {
-  const PersonnelInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'List of personnel for this project.'
-              ' Use the add button to add personnel.'
-              ' To edit or delete the personnel, use the menu button.'
-              ' You need at least a cataloger to start adding specimens.',
-        ),
-        InfoContent(
-          content:
-              'When you create a personnel,'
-              ' their data will be saved in the database'
-              ' for reuse in other projects. Deleting a personnel will'
-              ' only remove them from this project. '
-              'You can permanently delete a personnel in the settings.',
-        ),
-        InfoContent(
-          content:
-              'Some institutions use project ID'
-              ' instead of initial for the specimen field ID.'
-              ' Replace the initial with the project ID.',
-        ),
-        InfoContent(
-          header: 'Role definitions',
-          content:
-              'Cataloger - responsible for cataloging the specimens.'
-              ' They are the ones who responsible for recording the specimen data.'
-              ' You cannot change the cataloger role once the personnel is created.'
-              ' Their names will be listed in'
-              ' any field that ask for personnel name input.'
-              '\n\n'
-              'Determiner only - determines specimens, '
-              'but does not catalog or prepare them.'
-              ' Their name will be listed in the determiner field.'
-              '\n\n'
-              'Preparator only - help prepare the specimens, '
-              ' but does not record the specimen data.'
-              ' Their name will only be listed in the preparator and collector field.'
-              '\n\n'
-              'None - does not have any role in taking care of the specimens.',
-        ),
-      ],
     );
   }
 }

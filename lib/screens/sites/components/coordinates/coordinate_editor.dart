@@ -17,9 +17,14 @@ class NewCoordinate extends ConsumerStatefulWidget {
 }
 
 class _NewCoordinateState extends ConsumerState<NewCoordinate> {
+  static const _tabularReader = CoordinateTabularReader();
+
   final _manualFormKey = GlobalKey<CoordinateFormsState>();
   _AddCoordinateMode _mode = _AddCoordinateMode.manual;
   CoordinateImportReview? _review;
+  CoordinateTabularData? _tabularData;
+  Map<CoordinateImportField, int?> _tabularMapping = {};
+  String? _mappingError;
   Set<int> _selectedImports = {};
   int? _focusedImport;
   bool _isLoadingFile = false;
@@ -221,6 +226,20 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
   Widget _buildImportReview() {
     final review = _review;
     if (review == null) {
+      final tabularData = _tabularData;
+      if (tabularData != null) {
+        return CoordinateColumnMapping(
+          data: tabularData,
+          mapping: _tabularMapping,
+          errorText: _mappingError,
+          onMappingChanged: (field, column) => setState(() {
+            _tabularMapping = Map.of(_tabularMapping)..[field] = column;
+            _mappingError = null;
+          }),
+          onReview: _reviewTabularCoordinates,
+          onChooseAnother: _pickCoordinateFile,
+        );
+      }
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -228,7 +247,13 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Supported files: GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
+                'Supported files:',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -303,6 +328,14 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
+        if (review.skippedCount > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+            child: Text(
+              '${review.skippedCount} row${review.skippedCount == 1 ? '' : 's'} skipped',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
         Expanded(
           child: ListView.builder(
             itemCount: review.coordinates.length,
@@ -327,25 +360,32 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Flexible(
-                child: OutlinedButton.icon(
-                  onPressed: _scanQr,
-                  icon: const Icon(Icons.qr_code_scanner_outlined),
-                  label: const Text('Scan QR', overflow: TextOverflow.ellipsis),
-                ),
+              OutlinedButton.icon(
+                onPressed: _scanQr,
+                icon: const Icon(Icons.qr_code_scanner_outlined),
+                label: const Text('Scan QR', overflow: TextOverflow.ellipsis),
               ),
-              const SizedBox(width: 16),
-              Flexible(
-                child: OutlinedButton.icon(
-                  onPressed: _pickCoordinateFile,
-                  icon: const Icon(Icons.file_open_outlined),
-                  label: const Text(
-                    'Choose another file',
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              if (_tabularData != null)
+                OutlinedButton.icon(
+                  onPressed: () => setState(() {
+                    _review = null;
+                    _selectedImports.clear();
+                    _focusedImport = null;
+                  }),
+                  icon: const Icon(Icons.table_chart_outlined),
+                  label: const Text('Edit column mapping'),
+                ),
+              OutlinedButton.icon(
+                onPressed: _pickCoordinateFile,
+                icon: const Icon(Icons.file_open_outlined),
+                label: const Text(
+                  'Choose another file',
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -362,11 +402,27 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
         acceptedTypeGroups: [coordinateFileTypeGroup],
       );
       if (file == null) return;
+      if (CoordinateTabularReader.supportsPath(file.path)) {
+        final data = await _tabularReader.readFile(file.path);
+        if (!mounted) return;
+        setState(() {
+          _tabularData = data;
+          _tabularMapping = Map.of(data.inferredMapping);
+          _mappingError = null;
+          _review = null;
+          _selectedImports.clear();
+          _focusedImport = null;
+        });
+        return;
+      }
       final review = await CoordinateExchangeService(
         ref: ref,
       ).importFile(file.path);
       if (!mounted) return;
       setState(() {
+        _tabularData = null;
+        _tabularMapping = {};
+        _mappingError = null;
         _review = review;
         _selectedImports = {
           for (var index = 0; index < review.coordinates.length; index++) index,
@@ -377,6 +433,38 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
       if (mounted) _showError(error.toString());
     } finally {
       if (mounted) setState(() => _isLoadingFile = false);
+    }
+  }
+
+  void _reviewTabularCoordinates() {
+    final data = _tabularData;
+    if (data == null) return;
+    final problems = _tabularReader.validateMapping(_tabularMapping);
+    if (problems.isNotEmpty) {
+      setState(() => _mappingError = problems.join('\n'));
+      return;
+    }
+    try {
+      final parsed = _tabularReader.parse(data, _tabularMapping);
+      final review = CoordinateImportReview(
+        coordinates: parsed.coordinates,
+        skippedCount: parsed.skippedCount,
+        warnings: parsed.warnings,
+      );
+      setState(() {
+        _mappingError = null;
+        _review = review;
+        _selectedImports = {
+          for (var index = 0; index < review.coordinates.length; index++) index,
+        };
+        _focusedImport = review.coordinates.isEmpty ? null : 0;
+      });
+    } catch (error) {
+      setState(() {
+        _mappingError = error is FormatException
+            ? error.message.toString()
+            : error.toString();
+      });
     }
   }
 
@@ -533,7 +621,7 @@ class _ImportCoordinateMap extends StatelessWidget {
     required this.onFocused,
   });
 
-  final List<rust_gis.CoordinateTransferRecord> records;
+  final List<CoordinateImportRecord> records;
   final int? focusedIndex;
   final ValueChanged<int> onFocused;
 
@@ -1082,7 +1170,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
 
   Future<Position?> _getLocation() async {
     try {
-      return GeoLocationServices().getCurrentCoordinates();
+      return await GeoLocationServices().getCurrentCoordinates();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1281,7 +1369,7 @@ class _AngularCoordinateFields extends StatelessWidget {
           color: Theme.of(context).colorScheme.outlineVariant,
           width: NahpuStroke.thin,
         ),
-        borderRadius: BorderRadius.circular(NahpuRadius.large),
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1393,52 +1481,6 @@ class _AngularCoordinateFields extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class CoordinateInfoContent extends StatelessWidget {
-  const CoordinateInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Coordinates of the site.'
-              ' Use the add coordinate button to add a coordinate.'
-              ' There is no limit to the number of coordinates that can be added.',
-        ),
-        InfoContent(
-          content:
-              'Manual entry supports decimal degrees (DD), degrees and decimal'
-              ' minutes (DDM), degrees-minutes-seconds (DMS), and WGS84 UTM.'
-              ' DDM and DMS use separate numeric fields with required N/S and'
-              ' E/W direction controls.',
-        ),
-        InfoContent(
-          header: 'Import',
-          content:
-              'Coordinate file import supports GeoJSON/JSON, KML, zipped'
-              ' Shapefile, and GPX files. NAHPU coordinate QR codes can also'
-              ' be scanned from the Import tab.',
-        ),
-        InfoContent(
-          header: 'List information',
-          content:
-              'Top: Coordinate name\n'
-              'Bottom (left to right): Latitude and Longitude,'
-              ' Elevation, Uncertainty, and Datum',
-        ),
-        InfoContent(
-          header: 'Datum',
-          content:
-              'The datum is the reference frame for the coordinates.'
-              ' New coordinates use the first datum configured in Site Settings.',
-        ),
-      ],
     );
   }
 }

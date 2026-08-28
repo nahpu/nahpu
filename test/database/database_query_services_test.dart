@@ -5,6 +5,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/database/taxonomy_queries.dart';
 
 void main() {
   late Database db;
@@ -18,13 +19,17 @@ void main() {
   });
 
   test('project list returns lightweight project summaries', () async {
-    await db.into(db.project).insert(const ProjectCompanion(
-          uuid: Value('project-a'),
-          name: Value('Project A'),
-          description: Value('Not part of the summary'),
-          created: Value('2026-01-01 08:00'),
-          lastAccessed: Value('2026-01-02 09:00'),
-        ));
+    await db
+        .into(db.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-a'),
+            name: Value('Project A'),
+            description: Value('Not part of the summary'),
+            created: Value('2026-01-01 08:00'),
+            lastAccessed: Value('2026-01-02 09:00'),
+          ),
+        );
 
     final summaries = await ProjectQuery(db).getProjectList();
 
@@ -50,10 +55,7 @@ void main() {
         'Myotis lucifugus',
       ]) {
         final results = await query.searchSpecimens(
-          SpecimenSearchCriteria(
-            projectUuid: 'project-a',
-            searchQuery: search,
-          ),
+          SpecimenSearchCriteria(projectUuid: 'project-a', searchQuery: search),
           limit: 50,
           offset: 0,
         );
@@ -62,26 +64,28 @@ void main() {
       }
     });
 
-    test('isolates projects and orders and paginates by field number',
-        () async {
-      final query = SpecimenQuery(db);
-      const criteria = SpecimenSearchCriteria(projectUuid: 'project-a');
+    test(
+      'isolates projects and orders and paginates by field number',
+      () async {
+        final query = SpecimenQuery(db);
+        const criteria = SpecimenSearchCriteria(projectUuid: 'project-a');
 
-      final firstPage = await query.searchSpecimens(
-        criteria,
-        limit: 1,
-        offset: 0,
-      );
-      final secondPage = await query.searchSpecimens(
-        criteria,
-        limit: 1,
-        offset: 1,
-      );
+        final firstPage = await query.searchSpecimens(
+          criteria,
+          limit: 1,
+          offset: 0,
+        );
+        final secondPage = await query.searchSpecimens(
+          criteria,
+          limit: 1,
+          offset: 1,
+        );
 
-      expect(firstPage.map((row) => row.uuid), ['specimen-a-2']);
-      expect(secondPage.map((row) => row.uuid), ['specimen-a-10']);
-      expect(await query.countSpecimens(criteria), 2);
-    });
+        expect(firstPage.map((row) => row.uuid), ['specimen-a-2']);
+        expect(secondPage.map((row) => row.uuid), ['specimen-a-10']);
+        expect(await query.countSpecimens(criteria), 2);
+      },
+    );
 
     test('applies inclusive collection and preparation date ranges', () async {
       final query = SpecimenQuery(db);
@@ -124,19 +128,25 @@ void main() {
   });
 
   test('specimen determiner prevents personnel removal', () async {
-    await db.into(db.project).insert(
+    await db
+        .into(db.project)
+        .insert(
           const ProjectCompanion(
             uuid: Value('project-a'),
             name: Value('Project A'),
           ),
         );
-    await db.into(db.personnel).insert(
+    await db
+        .into(db.personnel)
+        .insert(
           const PersonnelCompanion(
             uuid: Value('determiner-a'),
             name: Value('Dana Determiner'),
           ),
         );
-    await db.into(db.specimen).insert(
+    await db
+        .into(db.specimen)
+        .insert(
           const SpecimenCompanion(
             uuid: Value('specimen-a'),
             projectUuid: Value('project-a'),
@@ -152,19 +162,73 @@ void main() {
       isTrue,
     );
   });
+
+  test('taxon record counts include specimen and parasite usages', () async {
+    await db.batch((batch) {
+      batch.insertAll(db.project, const [
+        ProjectCompanion(uuid: Value('project-a'), name: Value('Project A')),
+        ProjectCompanion(uuid: Value('project-b'), name: Value('Project B')),
+      ]);
+    });
+    final taxonId = await db
+        .into(db.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonRank: Value('species'),
+            genus: Value('Myotis'),
+            specificEpithet: Value('lucifugus'),
+          ),
+        );
+    await db.batch((batch) {
+      batch.insertAll(db.specimen, [
+        SpecimenCompanion(
+          uuid: Value('specimen-a-1'),
+          projectUuid: Value('project-a'),
+          speciesID: Value(taxonId),
+        ),
+        SpecimenCompanion(
+          uuid: Value('specimen-a-2'),
+          projectUuid: Value('project-a'),
+          speciesID: Value(taxonId),
+        ),
+        SpecimenCompanion(
+          uuid: Value('specimen-b-1'),
+          projectUuid: Value('project-b'),
+          speciesID: Value(taxonId),
+        ),
+      ]);
+      batch.insertAll(db.parasite, [
+        ParasiteCompanion(
+          specimenUuid: Value('specimen-a-1'),
+          speciesID: Value(taxonId),
+          parasiteUuid: Value('parasite-a-1'),
+        ),
+        ParasiteCompanion(
+          specimenUuid: Value('specimen-b-1'),
+          speciesID: Value(taxonId),
+          parasiteUuid: Value('parasite-b-1'),
+        ),
+      ]);
+    });
+
+    final counts = await TaxonomyQuery(
+      db,
+    ).getTaxonRecordCounts(taxonId, activeProjectUuid: 'project-a');
+
+    expect(counts.activeProject, 3);
+    expect(counts.allProjects, 5);
+    expect(
+      (await TaxonomyQuery(db).getTaxonRecordCounts(taxonId)).activeProject,
+      equals(null),
+    );
+  });
 }
 
 Future<void> _seedSpecimenSearchData(Database db) async {
   await db.batch((batch) {
     batch.insertAll(db.project, const [
-      ProjectCompanion(
-        uuid: Value('project-a'),
-        name: Value('Project A'),
-      ),
-      ProjectCompanion(
-        uuid: Value('project-b'),
-        name: Value('Project B'),
-      ),
+      ProjectCompanion(uuid: Value('project-a'), name: Value('Project A')),
+      ProjectCompanion(uuid: Value('project-b'), name: Value('Project B')),
     ]);
     batch.insertAll(db.personnel, const [
       PersonnelCompanion(
@@ -178,10 +242,14 @@ Future<void> _seedSpecimenSearchData(Database db) async {
     ]);
   });
 
-  final taxonId = await db.into(db.taxonomy).insert(const TaxonomyCompanion(
-        genus: Value('Myotis'),
-        specificEpithet: Value('lucifugus'),
-      ));
+  final taxonId = await db
+      .into(db.taxonomy)
+      .insert(
+        const TaxonomyCompanion(
+          genus: Value('Myotis'),
+          specificEpithet: Value('lucifugus'),
+        ),
+      );
 
   await db.batch((batch) {
     batch.insertAll(db.specimen, [

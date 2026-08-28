@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/database.dart' as nahpu_db;
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeDatabase extends AppServices {
   const RecordExchangeDatabase({required super.ref});
@@ -57,18 +59,24 @@ class RecordExchangeDatabase extends AppServices {
 
   Future<int> insertPortableSite(
     Map<String, dynamic> siteJson,
+    Map<String, dynamic>? siteAttributeJson,
     List<Map<String, dynamic>> coordinateJson,
     Map<String, String> personnelIds,
   ) async {
     final leadStaffId = optionalString(siteJson['leadStaffId']);
     validatePersonnelReference(leadStaffId, personnelIds);
+    final geographyId = await resolveGeography(siteJson);
     final siteId = await dbAccess
         .into(dbAccess.site)
         .insert(
-          siteCompanion(
-            siteJson,
-          ).copyWith(projectUuid: db.Value(currentProjectUuid)),
+          siteCompanion(siteJson).copyWith(
+            projectUuid: db.Value(currentProjectUuid),
+            geographyId: db.Value(geographyId),
+          ),
         );
+    await dbAccess
+        .into(dbAccess.siteAttribute)
+        .insert(siteAttributeCompanion(siteAttributeJson ?? siteJson, siteId));
     for (final coordinate in coordinateJson) {
       await dbAccess
           .into(dbAccess.coordinate)
@@ -77,8 +85,31 @@ class RecordExchangeDatabase extends AppServices {
     return siteId;
   }
 
-  Map<String, dynamic> portableSite(SiteData value) =>
-      without(value.toJson(), {'id', 'projectUuid', 'mediaID'});
+  /// Writes a site with its geography inlined.
+  ///
+  /// The payload stays flat so records exported before geography moved into its
+  /// own table still import, and so a scanned QR code carries the locality
+  /// itself rather than an id that means nothing on the receiving device.
+  Map<String, dynamic> portableSite(SiteRecord value) => {
+    ...without(value.site.toJson(), {
+      'id',
+      'projectUuid',
+      'mediaID',
+      'geographyId',
+    }),
+    ...value.draft.toJson(),
+  };
+
+  /// Returns the shared locality for an imported site, creating it when new.
+  ///
+  /// An incoming locality that already exists reuses that record, which is what
+  /// keeps QR and file imports from duplicating localities.
+  Future<int?> resolveGeography(Map<String, dynamic> siteJson) {
+    return GeographyQuery(dbAccess).resolve(GeographyDraft.fromJson(siteJson));
+  }
+
+  Map<String, dynamic> portableSiteAttribute(SiteAttributeData value) =>
+      without(value.toJson(), {'siteID'});
 
   Map<String, dynamic> portableCoordinate(CoordinateData value) =>
       without(value.toJson(), {'id', 'siteID'});
@@ -92,7 +123,7 @@ class RecordExchangeDatabase extends AppServices {
   Map<String, dynamic> portableAssignment(CollPersonnelData value) =>
       without(value.toJson(), {'id', 'eventID'});
 
-  Map<String, dynamic> portableWeather(WeatherData value) =>
+  Map<String, dynamic> portableEnvironment(EnvironmentData value) =>
       without(value.toJson(), {'eventID'});
 
   Map<String, dynamic> portableAssociatedData(AssociatedDataData value) {
@@ -117,23 +148,26 @@ class RecordExchangeDatabase extends AppServices {
     return json;
   }
 
+  /// Builds the site row. Geography is resolved separately by
+  /// [resolveGeography] because it lives in a shared table.
   nahpu_db.SiteCompanion siteCompanion(Map<String, dynamic> json) =>
       nahpu_db.SiteCompanion(
         siteID: db.Value(optionalString(json['siteID'])),
         leadStaffId: db.Value(optionalString(json['leadStaffId'])),
         siteType: db.Value(optionalString(json['siteType'])),
-        country: db.Value(optionalString(json['country'])),
-        stateProvince: db.Value(optionalString(json['stateProvince'])),
-        county: db.Value(optionalString(json['county'])),
-        municipality: db.Value(optionalString(json['municipality'])),
-        locality: db.Value(optionalString(json['locality'])),
         remark: db.Value(optionalString(json['remark'])),
-        habitatType: db.Value(optionalString(json['habitatType'])),
-        habitatCondition: db.Value(optionalString(json['habitatCondition'])),
-        habitatDescription: db.Value(
-          optionalString(json['habitatDescription']),
-        ),
       );
+
+  nahpu_db.SiteAttributeCompanion siteAttributeCompanion(
+    Map<String, dynamic> json,
+    int siteId,
+  ) => nahpu_db.SiteAttributeCompanion(
+    siteID: db.Value(siteId),
+    habitatType: db.Value(optionalString(json['habitatType'])),
+    habitatCondition: db.Value(optionalString(json['habitatCondition'])),
+    habitatDescription: db.Value(optionalString(json['habitatDescription'])),
+    canopyCover: db.Value(optionalString(json['canopyCover'])),
+  );
 
   nahpu_db.CoordinateCompanion coordinateCompanion(
     Map<String, dynamic> json,
@@ -192,10 +226,10 @@ class RecordExchangeDatabase extends AppServices {
     role: db.Value(optionalString(json['role'])),
   );
 
-  nahpu_db.WeatherCompanion weatherCompanion(
+  nahpu_db.EnvironmentCompanion environmentCompanion(
     Map<String, dynamic> json,
     int eventId,
-  ) => nahpu_db.WeatherCompanion(
+  ) => nahpu_db.EnvironmentCompanion(
     eventID: db.Value(eventId),
     lowestDayTempC: db.Value(optionalDouble(json['lowestDayTempC'])),
     highestDayTempC: db.Value(optionalDouble(json['highestDayTempC'])),
@@ -206,6 +240,14 @@ class RecordExchangeDatabase extends AppServices {
     sunriseTime: db.Value(optionalString(json['sunriseTime'])),
     sunsetTime: db.Value(optionalString(json['sunsetTime'])),
     moonPhase: db.Value(optionalString(json['moonPhase'])),
+    cloudCover: db.Value(optionalString(json['cloudCover'])),
+    rainfallInMm: db.Value(optionalDouble(json['rainfallInMm'])),
+    ambientTemperature: db.Value(optionalDouble(json['ambientTemperature'])),
+    ambientHumidity: db.Value(optionalDouble(json['ambientHumidity'])),
+    waterTemperature: db.Value(optionalDouble(json['waterTemperature'])),
+    pH: db.Value(optionalDouble(json['pH'])),
+    dissolvedOxygen: db.Value(optionalDouble(json['dissolvedOxygen'])),
+    flowVelocity: db.Value(optionalDouble(json['flowVelocity'])),
     notes: db.Value(optionalString(json['notes'])),
   );
 

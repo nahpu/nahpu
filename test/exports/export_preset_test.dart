@@ -98,6 +98,21 @@ void main() {
       );
     });
 
+    test('normalizes missing and invalid legacy list formats to pipe', () {
+      ExportFieldMapping restoreWith([String? formatOption]) {
+        return ExportFieldMapping.fromJson({
+          'expression': '[site::habitatType]',
+          'textType': 'list',
+          'formatOption': ?formatOption,
+        });
+      }
+
+      expect(restoreWith().formatOption, 'pipe');
+      expect(restoreWith('normal').formatOption, 'pipe');
+      expect(restoreWith('unsupported').formatOption, 'pipe');
+      expect(restoreWith('custom: - ').formatOption, 'custom: - ');
+    });
+
     test(
       'serializes the Darwin Core header format using the current schema',
       () {

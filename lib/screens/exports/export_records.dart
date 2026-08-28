@@ -1,20 +1,21 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
-import 'package:nahpu/screens/settings/export_presets.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/settings/presets/export_presets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 /// Runs record exports from a saved preset. Record shape is intentionally not
 /// editable here: the preset is the reproducible definition of an export.
@@ -32,9 +33,9 @@ class ExportFormState extends ConsumerState<ExportForm>
   Directory? _selectedDir;
   String? _selectedPresetName;
   ExportPresetModel? _selectedPreset;
-  bool _hasSaved = false;
   bool _isRunning = false;
-  late File _savePath;
+  bool _appendDate = false;
+  File? _savePath;
   late TabController _mobileTabController;
 
   @override
@@ -64,7 +65,8 @@ class ExportFormState extends ConsumerState<ExportForm>
   @override
   Widget build(BuildContext context) {
     final presetsAsync = ref.watch(exportPresetNotifierProvider);
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Export records')),
@@ -91,7 +93,7 @@ class ExportFormState extends ConsumerState<ExportForm>
                     setState(() {
                       _selectedPresetName = name;
                       _selectedPreset = name == null ? null : presets[name];
-                      _hasSaved = false;
+                      _savePath = null;
                     });
                   },
                   onManagePresets: _managePresets,
@@ -99,41 +101,38 @@ class ExportFormState extends ConsumerState<ExportForm>
                 const SizedBox(height: 8),
                 FileSettingsCard(
                   exportCtr: exportCtr,
-                  selectedDir: _selectedDir,
                   onExportFmtChanged: (value) {
                     if (value == null) return;
                     setState(() {
                       exportCtr.exportFmtCtr = value;
-                      _hasSaved = false;
+                      _savePath = null;
                     });
                   },
                   onFileNameChanged: (value) {
                     if (value == null) return;
                     setState(() {
                       _fileStem = value;
-                      _hasSaved = false;
+                      _savePath = null;
                     });
                   },
-                  onSelectDir: () async {
-                    final path = await FilePickerServices().selectDir();
-                    if (path != null) {
-                      setState(() {
-                        _selectedDir = path;
-                        _hasSaved = false;
-                      });
-                    }
+                  appendDate: _appendDate,
+                  onAppendDateChanged: (value) {
+                    setState(() {
+                      _appendDate = value;
+                      _savePath = null;
+                    });
                   },
-                  onClearDir: () => setState(() {
-                    _selectedDir = null;
-                    _hasSaved = false;
-                  }),
                 ),
-                const SizedBox(height: 24),
-                ExportShareButton(
-                  hasExported: _hasSaved,
-                  isRunning: _isRunning,
-                  onExport: _isValid() ? _exportFile : null,
+                const SizedBox(height: 8),
+                ExportLocationCard(
+                  selectedDir: _selectedDir,
+                  output: _savePath,
+                  enabled: !_isRunning,
+                  onSelectDir: _selectDirectory,
+                  onClearDir: _clearDestination,
                   onShare: () => _shareFile(context),
+                  onOpenFolder: _openFolder,
+                  onDismiss: _clearDestination,
                 ),
               ],
             ),
@@ -159,33 +158,53 @@ class ExportFormState extends ConsumerState<ExportForm>
             ),
           );
 
-          if (isLargeScreen) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: settingsPane),
-                Expanded(child: previewPane),
-              ],
-            );
-          } else {
-            return Column(
-              children: [
-                TabBar(
-                  controller: _mobileTabController,
-                  tabs: const [
-                    Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
-                    Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+          final body = isLargeScreen
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: settingsPane),
+                    Expanded(child: previewPane),
                   ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _mobileTabController,
-                    children: [settingsPane, previewPane],
-                  ),
+                )
+              : Column(
+                  children: [
+                    TabBar(
+                      controller: _mobileTabController,
+                      tabs: const [
+                        Tab(
+                          icon: Icon(Icons.settings_outlined),
+                          text: 'Settings',
+                        ),
+                        Tab(
+                          icon: Icon(Icons.preview_outlined),
+                          text: 'Preview',
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _mobileTabController,
+                        children: [settingsPane, previewPane],
+                      ),
+                    ),
+                  ],
+                );
+          return SafeArea(
+            child: Column(
+              children: [
+                Expanded(child: body),
+                ExportActionBar(
+                  label: 'Export records',
+                  repeatLabel: 'Export another',
+                  icon: Icons.file_upload_outlined,
+                  canExport: _isValid(),
+                  isRunning: _isRunning,
+                  hasOutput: _savePath != null,
+                  onExport: _exportFile,
                 ),
               ],
-            );
-          }
+            ),
+          );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
@@ -216,17 +235,18 @@ class ExportFormState extends ConsumerState<ExportForm>
         ExportFmt.json => 'json',
         _ => format.name,
       };
-      _savePath = await AppIOServices(
+      final savePath = await AppIOServices(
         dir: _selectedDir,
-        fileStem: _fileStem,
+        fileStem: _appendDate
+            ? appendDateToFileStem(_fileStem, DateTime.now())
+            : _fileStem.trim(),
         ext: ext,
       ).getSavePath();
       await PresetRecordExporter(
         ref: ref,
         preset: _selectedPreset!,
-      ).write(_savePath, format);
-      if (mounted) setState(() => _hasSaved = true);
-      _showSavedPath();
+      ).write(savePath, format);
+      if (mounted) setState(() => _savePath = savePath);
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -238,22 +258,43 @@ class ExportFormState extends ConsumerState<ExportForm>
     }
   }
 
-  void _showSavedPath() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          systemPlatform == PlatformType.desktop
-              ? 'Exported to $_savePath'
-              : 'Export complete!',
-        ),
-      ),
-    );
+  /// Closing the result also drops the directory, so one tap lands back on the
+  /// directory input rather than on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDir = null;
+      _savePath = null;
+    });
+  }
+
+  Future<void> _selectDirectory() async {
+    final path = await FilePickerServices().selectDir();
+    if (path == null || !mounted) return;
+    setState(() {
+      _selectedDir = path;
+      _savePath = null;
+    });
+  }
+
+  Future<void> _openFolder() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(savePath);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
   }
 
   Future<void> _shareFile(BuildContext context) async {
+    final savePath = _savePath;
+    if (savePath == null) return;
     try {
-      await FilePickerServices().shareFile(context, _savePath);
+      await FilePickerServices().shareFile(context, savePath);
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -312,41 +353,32 @@ class _PresetPicker extends StatelessWidget {
         ),
       );
     }
-    return Card(
-      elevation: 0,
-      color: Theme.of(
-        context,
-      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<String>(
-              initialValue: selectedPresetName,
-              decoration: const InputDecoration(
-                labelText: 'Export preset',
-                helperText:
-                    'Record type, headers, and field mappings are set by the preset.',
-              ),
-              items: presets.keys
-                  .map(
-                    (name) => DropdownMenuItem(value: name, child: Text(name)),
-                  )
-                  .toList(growable: false),
-              onChanged: onPresetChanged,
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: selectedPresetName,
+            decoration: const InputDecoration(
+              labelText: 'Export preset',
+              helperText:
+                  'Record type, headers, and field mappings are set by the preset.',
             ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: onManagePresets,
-                icon: const Icon(Icons.settings_outlined, size: 16),
-                label: const Text('Manage presets'),
-              ),
+            items: presets.keys
+                .map((name) => DropdownMenuItem(value: name, child: Text(name)))
+                .toList(growable: false),
+            onChanged: onPresetChanged,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: onManagePresets,
+              icon: const Icon(Icons.settings_outlined, size: 16),
+              label: const Text('Manage presets'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

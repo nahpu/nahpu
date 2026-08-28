@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -20,6 +20,8 @@ void main() {
     );
     addTearDown(database.close);
 
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     expect(find.text('IDs'), findsOneWidget);
     expect(find.text('Specimen UUID: specimen'), findsOneWidget);
     expect(find.text('Additional Part ID'), findsNothing);
@@ -28,6 +30,7 @@ void main() {
     expect(find.text('Curation'), findsNothing);
     expect(find.text('Additional treatment'), findsNothing);
     expect(find.text('Preparator'), findsNothing);
+    expect(find.text('Add custom field'), findsNothing);
 
     final showMore = find.text('Show more');
     await tester.ensureVisible(showMore);
@@ -35,9 +38,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Curation'), findsOneWidget);
+    expect(find.text('Custom fields'), findsOneWidget);
+    expect(find.text('Add custom field'), findsOneWidget);
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     _expectFieldInSection(tester, 'Additional treatment', 'Preparation');
     _expectFieldInSection(tester, 'Preparator', 'Sampling');
-    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage type', 'Curation');
     _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
 
@@ -65,12 +72,22 @@ void main() {
     expect(find.text('Show more'), findsOneWidget);
     _expectFieldInSection(tester, 'Date taken', 'Sampling');
     _expectFieldInSection(tester, 'PMI', 'Sampling');
-    _expectFieldInSection(tester, 'Storage', 'Curation');
+    _expectFieldInSection(tester, 'Storage type', 'Curation');
     _expectFieldInSection(tester, 'Storage location', 'Curation');
     _expectFieldInSection(tester, 'Museum permanent', 'Curation');
     expect(find.text('Museum loan'), findsNothing);
     expect(find.text('Remarks'), findsNothing);
   });
+}
+
+void _expectOutsideScroll(WidgetTester tester, String label) {
+  expect(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(SingleChildScrollView),
+    ),
+    findsNothing,
+  );
 }
 
 Future<Database> _pumpPartForm(
@@ -80,6 +97,20 @@ Future<Database> _pumpPartForm(
   final database = Database.forTesting(
     DatabaseConnection(NativeDatabase.memory()),
   );
+  await database
+      .into(database.project)
+      .insert(
+        const ProjectCompanion(uuid: Value('project'), name: Value('Project')),
+      );
+  await database
+      .into(database.specimen)
+      .insert(
+        const SpecimenCompanion(
+          uuid: Value('specimen'),
+          projectUuid: Value('project'),
+          taxonGroup: Value('Mammals'),
+        ),
+      );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [

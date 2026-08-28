@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/exports/bundle_records.dart';
@@ -11,7 +11,7 @@ import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/settings/settings.dart';
-import 'package:nahpu/screens/settings/app_settings_import.dart';
+import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -131,7 +131,9 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AppSettings()),
+                MaterialPageRoute(
+                  builder: (context) => AppSettings(projectUuid: projectUuid),
+                ),
               );
             },
           ),
@@ -148,7 +150,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.input_outlined),
+            leading: const Icon(Icons.download_outlined),
             title: const Text('Import user configs'),
             onTap: () {
               Navigator.push(
@@ -187,6 +189,10 @@ class _DeleteProjectTile extends ConsumerWidget {
           final confirmationCode = projectUuid.length >= 5
               ? projectUuid.substring(0, 5)
               : projectUuid;
+          // Held so the outcome is still reported if this tile is gone by the
+          // time the deletion finishes: both outlive the menu panel.
+          final navigator = Navigator.of(context);
+          final messenger = ScaffoldMessenger.of(context);
           return showDeleteAlertOnMenu(
             context: context,
             title: 'Delete project?',
@@ -198,24 +204,19 @@ class _DeleteProjectTile extends ConsumerWidget {
                 final message = await ProjectServices(
                   ref: ref,
                 ).deleteProjectAndData(projectUuid);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Home()),
-                  );
-                  if (message != null) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(message)));
-                  }
+                navigator.pop();
+                navigator.pushReplacement(
+                  MaterialPageRoute(builder: (context) => const Home()),
+                );
+                if (message != null) {
+                  messenger.showSnackBar(SnackBar(content: Text(message)));
                 }
               } catch (e) {
+                navigator.pop();
+                final errorMessage = e is ProjectDeletionFailure
+                    ? e.toUserMessage()
+                    : e.toString();
                 if (context.mounted) {
-                  Navigator.pop(context);
-                  final errorMessage = e is ProjectDeletionFailure
-                      ? e.toUserMessage()
-                      : e.toString();
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -223,6 +224,8 @@ class _DeleteProjectTile extends ConsumerWidget {
                       content: Text(errorMessage),
                     ),
                   );
+                } else {
+                  messenger.showSnackBar(SnackBar(content: Text(errorMessage)));
                 }
               }
             },

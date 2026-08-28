@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_exists_dialog.dart';
@@ -13,11 +13,12 @@ import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/export/common.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
-import 'package:nahpu/screens/settings/document_presets/template_preset_deletion.dart';
+import 'package:nahpu/screens/settings/presets/template_preset_deletion.dart';
 import 'package:nahpu/services/templates/editor_service.dart';
 import 'package:nahpu/services/templates/canvas_placement_service.dart';
 import 'package:nahpu/services/templates/editor_history_service.dart';
@@ -501,7 +502,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
                 final joined = jsonList
                     .map((json) => json[key]?.toString() ?? '')
                     .where((v) => v.isNotEmpty)
-                    .join(' | ');
+                    .join(writerSeparator);
                 m['personnel::$key'] = joined;
               }
             }
@@ -1162,12 +1163,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   /// Imports a template, synchronizes its size/settings, and makes it active.
   Future<void> _importTemplate() async {
-    final result = await FilePicker.pickFiles(
+    final result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (result == null || result.files.single.path == null) return;
-    final filePath = result.files.single.path!;
+    final filePath = result?.path;
+    if (filePath == null) return;
     final imported = await _templateService.importFromPath(filePath);
     if (imported != null && mounted) {
       final o = imported.printOptions;

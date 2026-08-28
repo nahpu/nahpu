@@ -3,7 +3,9 @@ import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/types/sites.dart';
@@ -21,12 +23,14 @@ class SiteCopySource {
   const SiteCopySource({
     required this.project,
     required this.site,
+    required this.attribute,
     required this.coordinates,
     this.leaderName,
   });
 
   final ProjectSummary project;
-  final SiteData site;
+  final SiteRecord site;
+  final SiteAttributeData? attribute;
   final List<CoordinateData> coordinates;
   final String? leaderName;
 
@@ -77,7 +81,7 @@ class SiteCopyServices extends AppServices {
     return projects;
   }
 
-  Future<List<SiteData>> getSourceSites(String projectUuid) async {
+  Future<List<SiteRecord>> getSourceSites(String projectUuid) async {
     final sites = await SiteQuery(dbAccess).getAllSites(projectUuid);
     sites.sort((a, b) {
       final aName = a.siteID?.trim() ?? '';
@@ -110,6 +114,7 @@ class SiteCopyServices extends AppServices {
     final coordinates = await CoordinateQuery(
       dbAccess,
     ).getCoordinatesBySiteID(siteId);
+    final attribute = await SiteQuery(dbAccess).getSiteAttribute(siteId);
     String? leaderName;
     if (site.leadStaffId != null) {
       try {
@@ -122,7 +127,11 @@ class SiteCopyServices extends AppServices {
     }
     return SiteCopySource(
       project: project,
-      site: site,
+      site: SiteRecord(
+        site: site,
+        geography: await GeographyQuery(dbAccess).getById(site.geographyId),
+      ),
+      attribute: attribute,
       coordinates: coordinates,
       leaderName: leaderName,
     );
@@ -130,7 +139,8 @@ class SiteCopyServices extends AppServices {
 
   Future<bool> isTargetEmpty(int targetSiteId) async {
     final site = await SiteQuery(dbAccess).getSiteById(targetSiteId);
-    return _isEmpty(site);
+    final attribute = await SiteQuery(dbAccess).getSiteAttribute(targetSiteId);
+    return _isEmpty(site, attribute);
   }
 
   Future<SiteCopyResult> copy(SiteCopyRequest request) async {
@@ -146,7 +156,10 @@ class SiteCopyServices extends AppServices {
           'The selected target site is not in the active project.',
         );
       }
-      if (!await _isEmpty(target)) {
+      final targetAttribute = await SiteQuery(
+        dbAccess,
+      ).getSiteAttribute(target.id);
+      if (!await _isEmpty(target, targetAttribute)) {
         throw const SiteCopyException(
           'The current site must be empty before copying data.',
         );
@@ -156,22 +169,45 @@ class SiteCopyServices extends AppServices {
           'Choose a site from a different project.',
         );
       }
-      final source =
+      final sourceSite =
           await (dbAccess.select(dbAccess.site)
                 ..where((row) => row.id.equals(request.sourceSiteId))
                 ..where(
                   (row) => row.projectUuid.equals(request.sourceProjectUuid),
                 ))
               .getSingleOrNull();
-      if (source == null) {
+      if (sourceSite == null) {
         throw const SiteCopyException('The source site could not be found.');
       }
+      final source = SiteRecord(
+        site: sourceSite,
+        geography: await GeographyQuery(
+          dbAccess,
+        ).getById(sourceSite.geographyId),
+      );
+      final sourceAttribute = await SiteQuery(
+        dbAccess,
+      ).getSiteAttribute(source.id);
       final coordinates = await CoordinateQuery(
         dbAccess,
       ).getCoordinatesBySiteID(source.id);
 
-      final companion = _siteCompanion(source, request.fields);
+      final companion = _siteCompanion(source, request.fields).copyWith(
+        geographyId: await _copiedGeographyId(source, target, request.fields),
+      );
       await SiteQuery(dbAccess).updateSiteEntry(target.id, companion);
+      final attributeCompanion = _siteAttributeCompanion(
+        sourceAttribute,
+        request.fields,
+      );
+      final updated = await SiteQuery(
+        dbAccess,
+      ).updateSiteAttributeEntry(target.id, attributeCompanion);
+      if (updated == 0) {
+        await SiteQuery(dbAccess).createSiteAttribute(
+          attributeCompanion.copyWith(siteID: db.Value(target.id)),
+        );
+      }
 
       if (request.fields.contains(SiteCopyField.leadStaff) &&
           source.leadStaffId != null) {
@@ -230,21 +266,23 @@ class SiteCopyServices extends AppServices {
     return result;
   }
 
-  Future<bool> _isEmpty(SiteData site) async {
+  Future<bool> _isEmpty(SiteRecord site, SiteAttributeData? attribute) async {
     final scalarValues = [
       site.siteID,
       site.leadStaffId,
       site.siteType,
       site.country,
+      site.islandGroup,
       site.stateProvince,
       site.county,
       site.municipality,
       site.mediaID,
       site.locality,
       site.remark,
-      site.habitatType,
-      site.habitatCondition,
-      site.habitatDescription,
+      attribute?.habitatType,
+      attribute?.habitatCondition,
+      attribute?.habitatDescription,
+      attribute?.canopyCover,
     ];
     if (scalarValues.any((value) => value?.trim().isNotEmpty == true)) {
       return false;
@@ -269,7 +307,7 @@ class SiteCopyServices extends AppServices {
     return fossil.isEmpty;
   }
 
-  SiteCompanion _siteCompanion(SiteData source, Set<SiteCopyField> fields) {
+  SiteCompanion _siteCompanion(SiteRecord source, Set<SiteCopyField> fields) {
     return SiteCompanion(
       siteID: fields.contains(SiteCopyField.siteId)
           ? db.Value(source.siteID)
@@ -280,37 +318,80 @@ class SiteCopyServices extends AppServices {
       siteType: fields.contains(SiteCopyField.siteType)
           ? db.Value(source.siteType)
           : const db.Value.absent(),
-      country: fields.contains(SiteCopyField.country)
-          ? db.Value(source.country)
-          : const db.Value.absent(),
-      stateProvince: fields.contains(SiteCopyField.stateProvince)
-          ? db.Value(source.stateProvince)
-          : const db.Value.absent(),
-      county: fields.contains(SiteCopyField.county)
-          ? db.Value(source.county)
-          : const db.Value.absent(),
-      municipality: fields.contains(SiteCopyField.municipality)
-          ? db.Value(source.municipality)
-          : const db.Value.absent(),
-      locality: fields.contains(SiteCopyField.locality)
-          ? db.Value(source.locality)
-          : const db.Value.absent(),
       remark: fields.contains(SiteCopyField.remark)
           ? db.Value(source.remark)
-          : const db.Value.absent(),
-      habitatType: fields.contains(SiteCopyField.habitatType)
-          ? db.Value(source.habitatType)
-          : const db.Value.absent(),
-      habitatCondition: fields.contains(SiteCopyField.habitatCondition)
-          ? db.Value(source.habitatCondition)
-          : const db.Value.absent(),
-      habitatDescription: fields.contains(SiteCopyField.habitatDescription)
-          ? db.Value(source.habitatDescription)
           : const db.Value.absent(),
     );
   }
 
-  String _siteLabel(SiteData site) {
+  /// Resolves the locality the target should point at after the copy.
+  ///
+  /// A geography record is atomic, so copying a subset of its fields means
+  /// combining the chosen source values with the target's existing ones and
+  /// resolving that combination, which may match an existing record or create a
+  /// new one.
+  Future<db.Value<int?>> _copiedGeographyId(
+    SiteRecord source,
+    SiteRecord target,
+    Set<SiteCopyField> fields,
+  ) async {
+    const geographyFields = {
+      SiteCopyField.country,
+      SiteCopyField.islandGroup,
+      SiteCopyField.stateProvince,
+      SiteCopyField.county,
+      SiteCopyField.municipality,
+      SiteCopyField.locality,
+    };
+    if (fields.intersection(geographyFields).isEmpty) {
+      return const db.Value.absent();
+    }
+    String? pick(SiteCopyField field, String? from, String? current) =>
+        fields.contains(field) ? from : current;
+    final draft = GeographyDraft(
+      country: pick(SiteCopyField.country, source.country, target.country),
+      islandGroup: pick(
+        SiteCopyField.islandGroup,
+        source.islandGroup,
+        target.islandGroup,
+      ),
+      stateProvince: pick(
+        SiteCopyField.stateProvince,
+        source.stateProvince,
+        target.stateProvince,
+      ),
+      county: pick(SiteCopyField.county, source.county, target.county),
+      municipality: pick(
+        SiteCopyField.municipality,
+        source.municipality,
+        target.municipality,
+      ),
+      locality: pick(SiteCopyField.locality, source.locality, target.locality),
+    );
+    return db.Value(await GeographyQuery(dbAccess).resolve(draft));
+  }
+
+  SiteAttributeCompanion _siteAttributeCompanion(
+    SiteAttributeData? source,
+    Set<SiteCopyField> fields,
+  ) {
+    return SiteAttributeCompanion(
+      habitatType: fields.contains(SiteCopyField.habitatType)
+          ? db.Value(source?.habitatType)
+          : const db.Value.absent(),
+      habitatCondition: fields.contains(SiteCopyField.habitatCondition)
+          ? db.Value(source?.habitatCondition)
+          : const db.Value.absent(),
+      habitatDescription: fields.contains(SiteCopyField.habitatDescription)
+          ? db.Value(source?.habitatDescription)
+          : const db.Value.absent(),
+      canopyCover: fields.contains(SiteCopyField.canopyCover)
+          ? db.Value(source?.canopyCover)
+          : const db.Value.absent(),
+    );
+  }
+
+  String _siteLabel(SiteRecord site) {
     final value = site.siteID?.trim();
     return value == null || value.isEmpty ? 'Unnamed site #${site.id}' : value;
   }

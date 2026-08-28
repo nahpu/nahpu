@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'generated_migrations/schema.dart';
 
@@ -14,17 +16,346 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  for (final version in [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) {
-    test('upgrade from v$version to v17', () async {
+  for (final version in [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+  ]) {
+    test('upgrade from v$version to v21', () async {
       final connection = await verifier.startAt(version);
       final db = Database.forMigrationTesting(connection);
 
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 21);
       await db.close();
     });
   }
 
-  test('v16 to v17 preserves determiner and backfills weight units', () async {
+  test('v20 to v21 deduplicates localities into shared geography', () async {
+    final schema = await verifier.schemaAt(20);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    // Two sites whose localities differ only by case and spacing, one that is
+    // genuinely different, and one with no locality at all.
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince, county, '
+      'municipality, locality) VALUES '
+      "(1, 'S1', 'project', 'Indonesia', 'Sulawesi Selatan', 'Gowa', "
+      "'Tinggimoncong', 'Mt. Bawakaraeng')",
+    );
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince, county, '
+      'municipality, locality) VALUES '
+      "(2, 'S2', 'project', '  indonesia ', 'SULAWESI  SELATAN', 'gowa', "
+      "'tinggimoncong', 'mt. bawakaraeng')",
+    );
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince) VALUES '
+      "(3, 'S3', 'project', 'Indonesia', 'Papua')",
+    );
+    raw.execute(
+      "INSERT INTO site (id, siteID, projectUuid) VALUES (4, 'S4', 'project')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 21);
+
+    final localities = await db.select(db.geography).get();
+    expect(localities, hasLength(2));
+
+    final sites = await (db.select(
+      db.site,
+    )..orderBy([(row) => OrderingTerm.asc(row.id)])).get();
+    // The duplicate pair collapses onto one record.
+    expect(sites[0].geographyId, isNotNull);
+    expect(sites[1].geographyId, sites[0].geographyId);
+    // The distinct locality keeps its own, and the blank site gets none.
+    expect(sites[2].geographyId, isNot(sites[0].geographyId));
+    expect(sites[2].geographyId, isNotNull);
+    expect(sites[3].geographyId, isNull);
+
+    // The surviving record keeps the casing that was entered first.
+    final shared = localities.firstWhere(
+      (row) => row.id == sites[0].geographyId,
+    );
+    expect(shared.country, 'Indonesia');
+    expect(shared.stateProvince, 'Sulawesi Selatan');
+    expect(shared.locality, 'Mt. Bawakaraeng');
+
+    await db.close();
+  });
+
+  test('v19 to v20 preserves values and adds event ownership', () async {
+    final schema = await verifier.schemaAt(19);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO site (id, siteID, projectUuid) "
+      "VALUES (7, 'SITE-7', 'project')",
+    );
+    raw.execute(
+      "INSERT INTO collEvent (id, projectUuid, siteID) "
+      "VALUES (11, 'project', 7)",
+    );
+    raw.execute(
+      'INSERT INTO customFieldDefinition '
+      '(id, uuid, name, type, uiSection, scope) VALUES '
+      "(1, 'site-field', 'Canopy note', 'text', 'siteAttribute', 'global')",
+    );
+    raw.execute(
+      'INSERT INTO customFieldValue '
+      '(id, fieldDefinitionId, projectUuid, value, siteId) VALUES '
+      "(1, 1, 'project', 'Preserved', 7)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 21);
+
+    final preserved = await db.select(db.customFieldValue).getSingle();
+    expect(preserved.value, 'Preserved');
+    expect(preserved.siteId, 7);
+    expect(preserved.eventId, isNull);
+
+    final service = CustomFieldService(db);
+    final definition = await service.createDefinition(
+      const CustomFieldDraft(
+        name: 'Wind direction',
+        type: FieldType.text,
+        placement: FieldUISection.environmentalData,
+        scope: FieldScope.project,
+        projectUuid: 'project',
+      ),
+    );
+    const owner = CustomFieldOwner.environment(11);
+    await service.setValue(owner, definition.id!, 'North');
+    await service.setValue(owner, definition.id!, 'Northeast');
+    final eventValues = await (db.select(
+      db.customFieldValue,
+    )..where((row) => row.eventId.equals(11))).get();
+    expect(eventValues, hasLength(1));
+    expect(eventValues.single.value, 'Northeast');
+
+    await service.setArchived(definition.id!, true);
+    expect(await service.getEntries(owner), isEmpty);
+    expect(await service.getExportEntries(owner), hasLength(1));
+
+    await (db.delete(db.collEvent)..where((row) => row.id.equals(11))).go();
+    expect(
+      await (db.select(
+        db.customFieldValue,
+      )..where((row) => row.eventId.equals(11))).get(),
+      isEmpty,
+    );
+    await db.close();
+  });
+
+  test('v18 to v20 preserves data and translates legacy ages', () async {
+    final schema = await verifier.schemaAt(18);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      'INSERT INTO site '
+      '(id, siteID, projectUuid, country, stateProvince, county, municipality, '
+      'habitatType, habitatCondition, habitatDescription) '
+      "VALUES (7, 'SITE-7', 'project', 'ID', 'Papua', 'Jayapura', 'Sentani', "
+      "'Forest', 'Intact', 'Lowland rainforest')",
+    );
+    raw.execute(
+      'INSERT INTO collEvent (id, projectUuid, siteID, startDate) '
+      "VALUES (11, 'project', 7, '2026-08-16')",
+    );
+    raw.execute(
+      'INSERT INTO weather '
+      '(eventID, lowestDayTempC, highestNightTempC, averageHumidity, notes) '
+      "VALUES (11, 20.5, 24.5, 87, 'Rain overnight')",
+    );
+
+    for (var age = 0; age < 4; age++) {
+      raw.execute(
+        'INSERT INTO specimen (uuid, projectUuid, iDMethod) '
+        "VALUES ('mammal-$age', 'project', 'legacy method')",
+      );
+      raw.execute(
+        'INSERT INTO mammalAttribute '
+        '(specimenUuid, age, totalLength, remark) '
+        "VALUES ('mammal-$age', $age, ${100 + age}, 'mammal-$age')",
+      );
+    }
+    for (var age = 0; age < 5; age++) {
+      raw.execute(
+        "INSERT INTO specimen (uuid, projectUuid) "
+        "VALUES ('herp-$age', 'project')",
+      );
+      raw.execute(
+        'INSERT INTO herpAttribute (specimenUuid, age, svl, remark) '
+        "VALUES ('herp-$age', $age, ${40 + age}, 'herp-$age')",
+      );
+    }
+    raw.execute(
+      "INSERT INTO specimen (uuid, projectUuid) VALUES "
+      "('bird', 'project'), ('arthropod', 'project'), ('fossil', 'project')",
+    );
+    raw.execute(
+      "INSERT INTO birdAttribute (specimenUuid, weight) VALUES ('bird', 8.5)",
+    );
+    raw.execute(
+      'INSERT INTO arthropodAttribute '
+      '(specimenUuid, headWidth, hostOrganism, canopyCover, '
+      'ambientTemperature, remark) '
+      "VALUES ('arthropod', 2.25, 'Ficus', '75%', 26.5, 'retained')",
+    );
+    raw.execute(
+      'INSERT INTO fossilAttribute '
+      '(specimenUuid, fossilType, specimenDescription) '
+      "VALUES ('fossil', 'Trace fossil', 'Trackway')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 21);
+
+    final site = await db.select(db.site).getSingle();
+    expect(site.siteID, 'SITE-7');
+    // Geography moved to its own table in v21.
+    final geography = await db.select(db.geography).getSingle();
+    expect(site.geographyId, geography.id);
+    expect(geography.country, 'ID');
+    expect(geography.islandGroup, isNull);
+    final siteAttribute = await db.select(db.siteAttribute).getSingle();
+    expect(siteAttribute.siteID, 7);
+    expect(siteAttribute.habitatType, 'Forest');
+    expect(siteAttribute.habitatCondition, 'Intact');
+    expect(siteAttribute.habitatDescription, 'Lowland rainforest');
+    expect(siteAttribute.canopyCover, isNull);
+
+    final environment = await db.select(db.environment).getSingle();
+    expect(environment.eventID, 11);
+    expect(environment.lowestDayTempC, 20.5);
+    expect(environment.highestNightTempC, 24.5);
+    expect(environment.averageHumidity, 87);
+    expect(environment.notes, 'Rain overnight');
+    expect(environment.cloudCover, isNull);
+    expect(environment.flowVelocity, isNull);
+
+    const mammalStages = ['Adult', 'Subadult', 'Juvenile', 'Unknown'];
+    final mammals = await db.select(db.mammalAttribute).get();
+    for (var age = 0; age < mammalStages.length; age++) {
+      final row = mammals.singleWhere(
+        (entry) => entry.specimenUuid == 'mammal-$age',
+      );
+      expect(row.lifeStage, mammalStages[age]);
+      expect(row.totalLength, 100 + age);
+      expect(row.remark, 'mammal-$age');
+    }
+    const herpStages = ['Adult', 'Juvenile', 'Neonate', 'Metamorph', 'Unknown'];
+    final herps = await db.select(db.herpAttribute).get();
+    for (var age = 0; age < herpStages.length; age++) {
+      final row = herps.singleWhere(
+        (entry) => entry.specimenUuid == 'herp-$age',
+      );
+      expect(row.lifeStage, herpStages[age]);
+      expect(row.svl, 40 + age);
+      expect(row.remark, 'herp-$age');
+    }
+
+    final bird = await db.select(db.birdAttribute).getSingle();
+    expect(bird.weight, 8.5);
+    expect(bird.lifeStage, isNull);
+    final arthropod = await db.select(db.arthropodAttribute).getSingle();
+    expect(arthropod.headWidth, 2.25);
+    expect(arthropod.hostOrganism, 'Ficus');
+    expect(arthropod.remark, 'retained');
+    expect(arthropod.lifeStage, isNull);
+    expect(arthropod.caste, isNull);
+    final arthropodColumns = raw
+        .select('PRAGMA table_info(arthropodAttribute)')
+        .map((row) => row['name']);
+    expect(arthropodColumns, isNot(contains('canopyCover')));
+    expect(arthropodColumns, isNot(contains('ambientTemperature')));
+
+    final fossil = await db.select(db.fossilAttribute).getSingle();
+    expect(fossil.fossilType, 'Trace fossil');
+    expect(fossil.specimenDescription, 'Trackway');
+    expect(fossil.sex, isNull);
+    expect(fossil.ontogeneticStage, isNull);
+    expect(fossil.weight, isNull);
+    expect(fossil.weightUnit, isNull);
+    expect(fossil.remark, isNull);
+    final mammalSpecimen = await (db.select(
+      db.specimen,
+    )..where((row) => row.uuid.equals('mammal-0'))).getSingle();
+    expect(mammalSpecimen.iDMethod, 'legacy method');
+
+    final tableNames = raw
+        .select("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .map((row) => row['name']);
+    expect(tableNames, contains('environment'));
+    expect(tableNames, isNot(contains('weather')));
+    expect(raw.select('PRAGMA foreign_key_check'), isEmpty);
+    expect(
+      raw.select('PRAGMA integrity_check').single['integrity_check'],
+      'ok',
+    );
+    await db.close();
+  });
+
+  test('v17 ownerless values become archived guarded legacy values', () async {
+    final schema = await verifier.schemaAt(17);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      'INSERT INTO customFieldDefinition '
+      '(id, name, type, uiSection, scope) VALUES '
+      "(1, 'Canopy cover', 'numeric', 'siteHabitat', 'project')",
+    );
+    raw.execute(
+      'INSERT INTO customFieldValue '
+      '(id, fieldDefinitionId, projectUuid, value, unit) VALUES '
+      "(1, 1, 'project', '42', '%')",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 21);
+
+    final definition = await db.select(db.customFieldDefinition).getSingle();
+    final value = await db.select(db.customFieldValue).getSingle();
+    expect(definition.name, 'Canopy cover');
+    expect(definition.type, 'number');
+    expect(definition.uiSection, 'siteAttribute');
+    expect(definition.scope, 'global');
+    expect(definition.projectUuid, isNull);
+    expect(definition.isArchived, 1);
+    expect(value.value, '42');
+    expect(value.unit, '%');
+    expect(value.projectUuid, 'project');
+    expect(value.isLegacy, 1);
+    expect(value.siteId, isNull);
+
+    final service = CustomFieldService(db);
+    await expectLater(
+      service.deleteDefinition(definition.id!),
+      throwsA(isA<CustomFieldValidationException>()),
+    );
+    await service.discardLegacyValues(definition.id!);
+    await service.deleteDefinition(definition.id!);
+    expect(await db.select(db.customFieldDefinition).get(), isEmpty);
+    await db.close();
+  });
+
+  test('v16 to v20 preserves determiner and backfills weight units', () async {
     final schema = await verifier.schemaAt(16);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -51,7 +382,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     final mammal = await (db.select(
       db.specimen,
@@ -82,7 +413,7 @@ void main() {
     await db.close();
   });
 
-  test('v15 to v17 adds catalog and storage location columns', () async {
+  test('v15 to v20 adds catalog and storage location columns', () async {
     final schema = await verifier.schemaAt(15);
     final raw = schema.rawDatabase;
     raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
@@ -100,7 +431,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     final project = await db.select(db.project).getSingle();
     final part = await db.select(db.specimenPart).getSingle();
@@ -120,7 +451,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
     await db.close();
   });
 
@@ -132,7 +463,7 @@ void main() {
     );
     final db = Database.forMigrationTesting(schema.newConnection());
 
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
     final columns = await db
         .customSelect(
           'PRAGMA index_info(site_project_idx)',
@@ -190,14 +521,19 @@ void main() {
           'maxillaHex': null,
           'mandibleColor': null,
           'mandibleHex': null,
+          'lifeStage': null,
         });
+      }
+      if (table == 'mammalMeasurement' || table == 'herpMeasurement') {
+        expectedRow.remove('age');
+        expectedRow['lifeStage'] = null;
       }
       expectedRow['weightUnit'] = 'g';
       expected[table] = expectedRow;
     }
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     for (final entry in legacyToCanonical.entries) {
       final actual = await db
@@ -259,7 +595,7 @@ void main() {
       );
 
       final db = Database.forMigrationTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 21);
 
       final data = await db.select(db.associatedData).getSingle();
       expect(data.projectUuid, 'project-a');
@@ -315,7 +651,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     final fossilSite = await db.select(db.fossilSite).getSingle();
     expect(fossilSite.siteID, 7);
@@ -375,7 +711,7 @@ void main() {
     );
 
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     final specimens = await db.select(db.specimen).get();
     expect(
@@ -416,7 +752,7 @@ void main() {
       "('specimen', 1, 1, 'Fleas observed')",
     );
     final db = Database.forMigrationTesting(schema.newConnection());
-    await verifier.migrateAndValidate(db, 17);
+    await verifier.migrateAndValidate(db, 21);
 
     final project = await db.select(db.project).getSingle();
     expect(project.accession, isNull);

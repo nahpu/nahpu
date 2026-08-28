@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class NahpuTheme {
   static const _canopyTeal = Color(0xFF1B9E77);
   static const _mistySage = Color(0xFF4D625B);
   static const _mossShadow = Color(0xFF1E352F);
+  static const _canopyMist = Color(0xFF7FD9BE);
 
   static final _lightColorScheme = ColorScheme.fromSeed(
     seedColor: _canopyTeal,
@@ -24,6 +25,12 @@ class NahpuTheme {
 
   /// Light surface used around printable template canvases in every app theme.
   static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
+
+  /// Marker color for the focused point on NAHPU maps. Selected points use
+  /// [ColorScheme.primary] and the rest use [ColorScheme.onSurfaceVariant], so
+  /// this tone has to stay readable next to the canopy teal in both themes.
+  static Color focusedMapMarker(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _canopyMist : _mossShadow;
 
   static ThemeData lightTheme() {
     return ThemeData(
@@ -53,7 +60,7 @@ class NahpuTheme {
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.medium)),
+        borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
         side: BorderSide(
           color: colorScheme.outlineVariant,
           width: NahpuStroke.thin,

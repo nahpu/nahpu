@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -538,51 +537,105 @@ List<String> findTaxonImportProblems(
   Map<int, TaxonEntryHeader> headerMap, {
   List<List<String>>? rows,
 }) {
-  List<String> problemHeaders = _findDuplicateValues(headerMap);
-
-  for (var header in requiredTaxonImportHeaders) {
-    if (!headerMap.containsValue(header)) {
-      problemHeaders.add('Missing ${matchTaxonEntryHeader(header)}');
+  final problems = _findDuplicateValues(headerMap);
+  if (rows == null) {
+    final hasRank = headerMap.containsValue(TaxonEntryHeader.taxonRank);
+    final hasSpeciesFields = requiredTaxonImportHeaders.every(
+      headerMap.containsValue,
+    );
+    if (!hasRank && !hasSpeciesFields) {
+      problems.add(
+        'Add Taxon rank when the complete species columns are not available',
+      );
     }
+    return problems;
   }
 
-  if (rows != null) {
-    problemHeaders.addAll(_findMissingRequiredValues(headerMap, rows));
-  }
-
-  return problemHeaders;
+  problems.addAll(_findRankAwareProblems(headerMap, rows));
+  return problems;
 }
 
-List<String> _findMissingRequiredValues(
+List<String> _findRankAwareProblems(
   Map<int, TaxonEntryHeader> headerMap,
   List<List<String>> rows,
 ) {
   final issues = <String>[];
-  for (final header in requiredTaxonImportHeaders) {
-    int? columnIndex;
-    for (final entry in headerMap.entries) {
-      if (entry.value == header) {
-        columnIndex = entry.key;
-        break;
-      }
-    }
-    if (columnIndex == null) {
+  final requiredRows = <TaxonEntryHeader, Set<int>>{};
+  final invalidRanks = <String>[];
+  final missingRankRows = <int>[];
+  final rankColumn = _columnFor(headerMap, TaxonEntryHeader.taxonRank);
+
+  for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    final row = rows[rowIndex];
+    final rawRank = _valueAt(row, rankColumn).trim();
+    if (rawRank.isEmpty && !_hasCompleteSpeciesFields(headerMap, row)) {
+      missingRankRows.add(rowIndex + 2);
       continue;
     }
-
-    int missingCount = 0;
-    for (final row in rows) {
-      if (columnIndex >= row.length || row[columnIndex].trim().isEmpty) {
-        missingCount++;
-      }
+    final rank = rawRank.isEmpty
+        ? TaxonRank.species
+        : taxonRankFromString(rawRank);
+    if (rank == null) {
+      invalidRanks.add('$rawRank (row ${rowIndex + 2})');
+      continue;
     }
-    if (missingCount > 0) {
-      issues.add(
-        'Missing ${matchTaxonEntryHeader(header)} values in $missingCount row(s)',
-      );
+    for (final header in taxonImportRankHeaders.take(rank.index + 1)) {
+      requiredRows.putIfAbsent(header, () => <int>{}).add(rowIndex);
     }
   }
+
+  if (invalidRanks.isNotEmpty) {
+    issues.add(
+      'Invalid Taxon rank values in ${invalidRanks.length} row(s): '
+      '${invalidRanks.join(', ')}',
+    );
+  }
+  if (missingRankRows.isNotEmpty) {
+    issues.add(
+      'Add Taxon rank for rows without a complete species classification: '
+      '${missingRankRows.join(', ')}',
+    );
+  }
+
+  for (final entry in requiredRows.entries) {
+    final header = entry.key;
+    final column = _columnFor(headerMap, header);
+    if (column == null) {
+      issues.add('Missing ${matchTaxonEntryHeader(header)}');
+      continue;
+    }
+    final missingCount = entry.value
+        .where((rowIndex) => _valueAt(rows[rowIndex], column).trim().isEmpty)
+        .length;
+    if (missingCount == 0) continue;
+    issues.add(
+      'Missing ${matchTaxonEntryHeader(header)} values in '
+      '$missingCount row(s)',
+    );
+  }
   return issues;
+}
+
+bool _hasCompleteSpeciesFields(
+  Map<int, TaxonEntryHeader> headerMap,
+  List<String> row,
+) {
+  return requiredTaxonImportHeaders.every((header) {
+    final column = _columnFor(headerMap, header);
+    return _valueAt(row, column).trim().isNotEmpty;
+  });
+}
+
+int? _columnFor(Map<int, TaxonEntryHeader> headerMap, TaxonEntryHeader header) {
+  for (final entry in headerMap.entries) {
+    if (entry.value == header) return entry.key;
+  }
+  return null;
+}
+
+String _valueAt(List<String> row, int? column) {
+  if (column == null || column >= row.length) return '';
+  return row[column];
 }
 
 List<String> _findDuplicateValues(Map<int, TaxonEntryHeader> headerMap) {
@@ -618,39 +671,90 @@ class TaxonEntryReader extends AppServices {
   }
 
   Future<ParsedCSVdata> parseData(CsvData data) async {
+    final review = await reviewData(data);
+    final selected = {
+      for (var index = 0; index < review.candidates.length; index++)
+        if (review.candidates[index].isSelectable) index,
+    };
+    final result = await importSelected(review, selected);
+    final importData = ParsedCSVdata.empty()
+      ..recordCount = result.importedTaxaCount
+      ..importedSpeciesCount = result.importedTaxaCount
+      ..importedFamilyCount = result.importedFamilyCount;
+    for (final candidate in review.candidates) {
+      if (!candidate.isSelectable) {
+        importData.skippedSpecies.add(candidate.displayName);
+      }
+    }
+    return importData;
+  }
+
+  Future<TaxonImportReview> reviewData(CsvData data) async {
     final problems = findProblems(data.headerMap, rows: data.data);
     if (problems.isNotEmpty) {
       throw Exception('Invalid import data: ${problems.join(', ')}');
     }
 
-    ParsedCSVdata importData = ParsedCSVdata.empty();
-    HashSet<String> importedFamilies = HashSet();
-    HashSet<String> importedSpecies = HashSet();
+    final existingTaxa = await TaxonomyServices(ref: ref).getTaxonList();
+    final existingKeys = existingTaxa.map(_taxonomyKey).toSet();
+    final seenKeys = <String>{};
+    final parsedData = _parseData(data);
+    final candidates = <TaxonImportCandidate>[];
 
-    List<TaxonEntryData> parsedData = _parseData(data);
+    for (var index = 0; index < parsedData.length; index++) {
+      final entry = _normalizeData(parsedData[index]);
+      final key = _entryKey(entry);
+      final status = existingKeys.contains(key)
+          ? TaxonImportStatus.alreadyRegistered
+          : seenKeys.contains(key)
+          ? TaxonImportStatus.duplicateInFile
+          : TaxonImportStatus.ready;
+      seenKeys.add(key);
+      candidates.add(
+        TaxonImportCandidate(sourceRow: index + 2, data: entry, status: status),
+      );
+    }
 
-    for (var data in parsedData) {
-      bool hasSpecies = await _checkSpeciesExist(data);
-      String species = '${data.genus} ${data.specificEpithet}';
-      if (hasSpecies) {
-        importData.skippedSpecies.add(species);
-        continue;
-      }
-      TaxonomyCompanion dbForm = _getDbForm(data);
-      TaxonomyServices(ref: ref).createTaxon(dbForm);
-      importData.recordCount++;
+    return TaxonImportReview(candidates: candidates);
+  }
 
-      if (!importedFamilies.contains(data.taxonFamily)) {
-        importedFamilies.add(data.taxonFamily);
-      }
-
-      if (!importedSpecies.contains(species)) {
-        importedSpecies.add(species);
+  Future<TaxonImportResult> importSelected(
+    TaxonImportReview review,
+    Set<int> selectedIndexes,
+  ) async {
+    final currentTaxa = await TaxonomyServices(ref: ref).getTaxonList();
+    final currentKeys = currentTaxa.map(_taxonomyKey).toSet();
+    final selectedIndexesInOrder = selectedIndexes.toList()..sort();
+    final selected = <TaxonImportCandidate>[];
+    final selectedKeys = <String>{};
+    for (final index in selectedIndexesInOrder) {
+      if (index < 0 || index >= review.candidates.length) continue;
+      final candidate = review.candidates[index];
+      final key = _entryKey(candidate.data);
+      if (candidate.isSelectable &&
+          !currentKeys.contains(key) &&
+          selectedKeys.add(key)) {
+        selected.add(candidate);
       }
     }
-    importData.countAll(importedSpecies, importedFamilies);
+    final families = selected
+        .map((candidate) => candidate.data.taxonFamily.trim())
+        .where((family) => family.isNotEmpty)
+        .toSet();
+
+    await dbAccess.transaction(() async {
+      for (final candidate in selected) {
+        await dbAccess
+            .into(dbAccess.taxonomy)
+            .insert(_getDbForm(candidate.data));
+      }
+    });
     ref.invalidate(taxonRegistryProvider);
-    return importData;
+    ref.invalidate(taxonProvider);
+    return TaxonImportResult(
+      importedTaxaCount: selected.length,
+      importedFamilyCount: families.length,
+    );
   }
 
   List<TaxonEntryData> _parseData(CsvData data) {
@@ -666,30 +770,116 @@ class TaxonEntryReader extends AppServices {
   }
 
   TaxonomyCompanion _getDbForm(TaxonEntryData data) {
+    final rank = taxonRankFromString(data.taxonRank) ?? TaxonRank.species;
     return TaxonomyCompanion(
-      taxonClass: db.Value(data.taxonClass.trim().toSentenceCase()),
-      taxonOrder: db.Value(data.taxonOrder.trim().toSentenceCase()),
-      taxonFamily: db.Value(data.taxonFamily.trim().toSentenceCase()),
-      genus: db.Value(data.genus.trim().toSentenceCase()),
-      specificEpithet: db.Value(data.specificEpithet.trim().toLowerCase()),
-      authors: db.Value(data.authors?.trim()),
-      commonName: db.Value(data.commonName?.trim().toLowerCase()),
-      citesStatus: db.Value(data.citesStatus?.trim().toUpperCase()),
-      redListCategory: db.Value(data.redListCategory?.trim().toUpperCase()),
-      countryStatus: db.Value(data.countryStatus?.trim().toUpperCase()),
+      taxonRank: db.Value(rank.databaseValue),
+      taxonClass: db.Value(_nullable(data.taxonClass)),
+      taxonOrder: db.Value(_nullable(data.taxonOrder)),
+      taxonFamily: db.Value(_nullable(data.taxonFamily)),
+      genus: db.Value(_nullable(data.genus)),
+      specificEpithet: db.Value(_nullable(data.specificEpithet)),
+      subspecificEpithet: db.Value(_nullable(data.subspecificEpithet)),
+      authors: db.Value(_nullable(data.authors)),
+      commonName: db.Value(_nullable(data.commonName)),
+      citesStatus: db.Value(_nullable(data.citesStatus)),
+      redListCategory: db.Value(_nullable(data.redListCategory)),
+      countryStatus: db.Value(_nullable(data.countryStatus)),
       sortingOrder: db.Value(data.sortingOrder),
-      notes: db.Value(data.notes),
+      notes: db.Value(_nullable(data.notes)),
     );
   }
 
-  Future<bool> _checkSpeciesExist(TaxonEntryData data) async {
-    try {
-      TaxonomyData? species = await TaxonomyServices(
-        ref: ref,
-      ).getTaxonBySpecies(data.genus, data.specificEpithet);
-      return species != null;
-    } catch (e) {
-      throw Exception('Error checking species: $e');
+  TaxonEntryData _normalizeData(TaxonEntryData data) {
+    final rank = taxonRankFromString(data.taxonRank) ?? TaxonRank.species;
+    return data.copyWith(
+      taxonRank: rank.databaseValue,
+      taxonClass: _throughRank(
+        rank,
+        TaxonRank.taxonClass,
+        data.taxonClass.trim().toSentenceCase(),
+      ),
+      taxonOrder: _throughRank(
+        rank,
+        TaxonRank.order,
+        data.taxonOrder.trim().toSentenceCase(),
+      ),
+      taxonFamily: _throughRank(
+        rank,
+        TaxonRank.family,
+        data.taxonFamily.trim().toSentenceCase(),
+      ),
+      genus: _throughRank(
+        rank,
+        TaxonRank.genus,
+        data.genus.trim().toSentenceCase(),
+      ),
+      specificEpithet: _throughRank(
+        rank,
+        TaxonRank.species,
+        data.specificEpithet.trim().toLowerCase(),
+      ),
+      subspecificEpithet: _throughRank(
+        rank,
+        TaxonRank.subspecies,
+        data.subspecificEpithet.trim().toLowerCase(),
+      ),
+      authors: data.authors?.trim(),
+      commonName: data.commonName?.trim().toLowerCase(),
+      citesStatus: data.citesStatus?.trim().toUpperCase(),
+      redListCategory: data.redListCategory?.trim().toUpperCase(),
+      countryStatus: data.countryStatus?.trim().toUpperCase(),
+      notes: data.notes?.trim(),
+    );
+  }
+
+  String _throughRank(TaxonRank rank, TaxonRank fieldRank, String value) {
+    return rank.index >= fieldRank.index ? value : '';
+  }
+
+  String? _nullable(String? value) {
+    final trimmed = value?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  String _entryKey(TaxonEntryData data) {
+    final candidate = TaxonImportCandidate(
+      sourceRow: 0,
+      data: data,
+      status: TaxonImportStatus.ready,
+    );
+    return _rankNameKey(candidate.rank, candidate.displayName);
+  }
+
+  String _taxonomyKey(TaxonomyData data) {
+    final rank = taxonRankFromString(data.taxonRank) ?? _inferRank(data);
+    final name = switch (rank) {
+      TaxonRank.taxonClass => data.taxonClass ?? '',
+      TaxonRank.order => data.taxonOrder ?? '',
+      TaxonRank.family => data.taxonFamily ?? '',
+      TaxonRank.genus => data.genus ?? '',
+      TaxonRank.species => '${data.genus ?? ''} ${data.specificEpithet ?? ''}',
+      TaxonRank.subspecies =>
+        '${data.genus ?? ''} ${data.specificEpithet ?? ''} '
+            '${data.subspecificEpithet ?? ''}',
+    };
+    return _rankNameKey(rank, name);
+  }
+
+  TaxonRank _inferRank(TaxonomyData data) {
+    if (data.subspecificEpithet?.trim().isNotEmpty == true) {
+      return TaxonRank.subspecies;
     }
+    if (data.specificEpithet?.trim().isNotEmpty == true) {
+      return TaxonRank.species;
+    }
+    if (data.genus?.trim().isNotEmpty == true) return TaxonRank.genus;
+    if (data.taxonFamily?.trim().isNotEmpty == true) return TaxonRank.family;
+    if (data.taxonOrder?.trim().isNotEmpty == true) return TaxonRank.order;
+    return TaxonRank.taxonClass;
+  }
+
+  String _rankNameKey(TaxonRank rank, String name) {
+    final normalizedName = name.trim().replaceAll(RegExp(r'\s+'), ' ');
+    return '${rank.databaseValue}|${normalizedName.toLowerCase()}';
   }
 }

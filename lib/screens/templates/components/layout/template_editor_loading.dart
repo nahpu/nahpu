@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class TemplateEditorLoading extends StatelessWidget {
   const TemplateEditorLoading({super.key});
@@ -6,9 +6,7 @@ class TemplateEditorLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: SafeArea(
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      body: SafeArea(child: Center(child: CircularProgressIndicator())),
     );
   }
 }

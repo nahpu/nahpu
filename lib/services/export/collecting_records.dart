@@ -16,6 +16,8 @@ class CollectingRecordWriterServices extends AppServices {
     String preparator = await _getPreparatorName(data.preparatorID);
     List<String> taxonomy = await _getSpeciesName(data.speciesID);
     String condition = data.condition ?? '';
+    String idConfidence = data.iDConfidence?.toString() ?? '';
+    String idMethod = data.iDMethod ?? '';
     String collectionTime = data.collectionTime ?? '';
     String prepDate = data.prepDate ?? '';
     String prepTime = data.prepTime ?? '';
@@ -27,6 +29,8 @@ class CollectingRecordWriterServices extends AppServices {
       preparator,
       ...taxonomy,
       condition,
+      idConfidence,
+      idMethod,
       collectionTime,
       prepDate,
       prepTime,

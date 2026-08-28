@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
@@ -125,6 +125,61 @@ void main() {
       expect(cataloger.currentFieldNumber, 7);
     },
   );
+
+  testWidgets(
+    'Identification Method follows ID Confidence and preserves a hidden legacy value',
+    (tester) async {
+      final harness = await _SpecimenFormHarness.create();
+      addTearDown(harness.dispose);
+      await harness.database
+          .update(harness.database.specimen)
+          .write(const SpecimenCompanion(iDMethod: Value('legacy microscopy')));
+      final controller = SpecimenFormCtrModel.fromData(
+        await harness.getSpecimen(),
+      );
+      addTearDown(controller.dispose);
+
+      await harness.pump(
+        tester,
+        GeneralRecordField(
+          specimenUuid: 'specimen-a',
+          specimenCtr: controller,
+          useHorizontalLayout: false,
+        ),
+      );
+
+      expect(find.text('ID Confidence'), findsOneWidget);
+      expect(find.text('Identification Method'), findsNothing);
+
+      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('High').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Identification Method'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Identification Method')).dy,
+        greaterThan(tester.getTopLeft(find.text('ID Confidence')).dy),
+      );
+
+      await tester.tap(find.byType(DropdownButtonFormField<String?>).last);
+      await tester.pumpAndSettle();
+      for (final option in [...defaultIdMethods, 'legacy microscopy']) {
+        expect(find.text(option), findsWidgets);
+      }
+      await tester.tap(find.text('legacy microscopy').last);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Not assigned').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Identification Method'), findsNothing);
+      expect(controller.idMethodCtr, 'legacy microscopy');
+      expect((await harness.getSpecimen()).iDMethod, 'legacy microscopy');
+    },
+  );
 }
 
 class _SpecimenFormHarness {
@@ -141,6 +196,9 @@ class _SpecimenFormHarness {
       overrides: [
         databaseProvider.overrideWithValue(database),
         fieldIdModeNotifierProvider.overrideWith(_TestFieldIdModeNotifier.new),
+        userDefinedFieldProvider.overrideWith(
+          (ref, prefKey) async => getDefaultOptionsList(prefKey),
+        ),
       ],
     );
     container.read(projectUuidProvider.notifier).updateProjectUuid('project-a');

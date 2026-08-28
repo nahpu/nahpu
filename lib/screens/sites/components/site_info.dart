@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +34,7 @@ class SiteInfo extends ConsumerWidget {
     return FormCard(
       isPrimary: true,
       title: 'Site Identity',
-      infoContent: const SiteInfoContent(),
+      infoTopic: InfoTopic.siteOverview,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       child: AdaptiveLayout(
@@ -123,34 +123,6 @@ class SiteInfo extends ConsumerWidget {
               ),
         ],
       ),
-    );
-  }
-}
-
-class SiteInfoContent extends StatelessWidget {
-  const SiteInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'Basic information about the site.'
-              ' We recommend developing a naming convention for your sites.'
-              ' For example, "CAMP-01" for the first campsite, '
-              '"L1" for the first line. You could prefix the site ID with the'
-              ' project ID or location ID to make it unique.',
-        ),
-        InfoContent(
-          content:
-              'To avoid inputting the same information when creating a new site,'
-              ' you can duplicate a site using the menu button in the top right corner.'
-              ' It will create a new site with the same information as the current site,'
-              ' except that the site ID and coordinates will be empty.',
-        ),
-      ],
     );
   }
 }

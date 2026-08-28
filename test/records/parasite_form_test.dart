@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -44,6 +44,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     final uuidText = tester.widget<SelectableText>(find.byType(SelectableText));
     final displayedUuid = uuidText.data!.replaceFirst('UUID: ', '');
     expect(
@@ -96,6 +98,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    _expectOutsideScroll(tester, 'Cancel');
+    _expectOutsideScroll(tester, 'Add');
     expect(find.text('Parasite details'), findsOneWidget);
     expect(find.text('Collection & identification'), findsOneWidget);
     expect(find.text('Preparation & preservation'), findsNothing);
@@ -125,6 +129,16 @@ void main() {
     expect(find.text('Preparation & preservation'), findsNothing);
     expect(find.text('Life stage'), findsNothing);
   });
+}
+
+void _expectOutsideScroll(WidgetTester tester, String label) {
+  expect(
+    find.ancestor(
+      of: find.text(label),
+      matching: find.byType(SingleChildScrollView),
+    ),
+    findsNothing,
+  );
 }
 
 void _expectFieldInSection(

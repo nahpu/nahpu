@@ -23,6 +23,13 @@ Future<Map<String, String>> documentFieldValuesForSpecimen(
     }
   } catch (_) {}
 
+  final links = await SpecimenServices(ref: ref).getSpecimenMedia(s.uuid);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
+
   return m;
 }
 
@@ -39,37 +46,70 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
   ).getRecord(record.specimen);
   final partId = record.part.id?.toString();
   for (final fields in records) {
-    if (fields['specimenPart::id'] == partId) return fields;
+    if (fields['specimenPart::id'] == partId) {
+      final links = await SpecimenServices(
+        ref: ref,
+      ).getSpecimenMedia(record.specimen.uuid);
+      await _addDocumentMediaValues(
+        fields,
+        links.map((link) => link.mediaId).whereType<int>(),
+        ref,
+      );
+      return fields;
+    }
   }
   return const <String, String>{};
 }
 
 /// Builds template field values for a site document record.
 ///
-/// The returned map includes `site::` values, derived locality/coordinate
-/// fields, and lead personnel fields when a lead staff member is set.
+/// The returned map includes `site::` and `geography::` values, derived
+/// locality/coordinate fields, and lead personnel fields when a lead staff
+/// member is set.
 Future<Map<String, String>> documentFieldValuesForSite(
   Database db,
-  SiteData s,
+  SiteRecord s,
   WidgetRef ref,
 ) async {
   final m = <String, String>{};
   final writer = SiteWriterServices(ref: ref);
 
-  for (var entry in s.toJson().entries) {
+  for (var entry in s.site.toJson().entries) {
     m['site::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+  // Geography moved to its own table, so its keys come from the joined row.
+  for (var entry in s.draft.toJson().entries) {
+    m['geography::${entry.key}'] = entry.value?.toString() ?? '';
+  }
+  final attribute = await SiteServices(ref: ref).getSiteAttribute(s.id);
+  if (attribute != null) {
+    for (final entry in attribute.toJson().entries) {
+      if (entry.key == 'siteID') continue;
+      m['siteAttribute::${entry.key}'] = entry.value?.toString() ?? '';
+    }
   }
 
   m['site::site'] = s.siteID ?? '';
-  m['site::habitatType'] = s.habitatType ?? '';
-  m['site::country'] = s.country ?? '';
-  m['site::stateProvince'] = s.stateProvince ?? '';
-  m['site::county'] = s.county ?? '';
-  m['site::municipality'] = s.municipality ?? '';
-  m['site::specificLocality'] = s.locality ?? '';
+  m['siteAttribute::habitatType'] = attribute?.habitatType ?? '';
+  m['site::habitatType'] = attribute?.habitatType ?? '';
+  m['geography::country'] = s.country ?? '';
+  m['geography::islandGroup'] = s.islandGroup ?? '';
+  m['geography::stateProvince'] = s.stateProvince ?? '';
+  m['geography::county'] = s.county ?? '';
+  m['geography::municipality'] = s.municipality ?? '';
+  m['geography::specificLocality'] = s.locality ?? '';
   m['site::siteNotes'] = s.remark ?? '';
-  m['site::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
+  m['geography::verbatimLocality'] = await writer.getVerbatimLocality(s.id);
   m['site::coordinates'] = await writer.getCoordinates(s.id);
+
+  final customEntries = await CustomFieldService(
+    db,
+  ).getExportEntries(CustomFieldOwner.site(s.id));
+  for (final entry in customEntries) {
+    m['customSite::${entry.definition.uuid}'] = entry.value == null
+        ? ''
+        : entry.definition.displayValue(entry.value!.value);
+  }
 
   final coordinates = await CoordinateServices(
     ref: ref,
@@ -86,6 +126,12 @@ Future<Map<String, String>> documentFieldValuesForSite(
       }
     } catch (_) {}
   }
+  final links = await SiteServices(ref: ref).getSiteMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
   return m;
 }
 
@@ -232,12 +278,37 @@ Future<Map<String, String>> documentFieldValuesForCollEvent(
     for (var key in effortKeys) {
       final combined = effortJsons
           .map((e) => e[key]?.toString() ?? '')
-          .join(' | ');
+          .join(writerSeparator);
       m['collEffort::$key'] = combined;
     }
   }
 
   m.addAll(buildCollPersonnelFieldValues(resolvedCollectingPersonnel));
+
+  try {
+    final environment = await CollEventServices(
+      ref: ref,
+    ).getAllEnvironmentData(s.id);
+    for (final entry in environment.toJson().entries) {
+      m['environment::${entry.key}'] = entry.value?.toString() ?? '';
+    }
+  } catch (_) {}
+
+  final customEnvironment = await CustomFieldService(
+    db,
+  ).getExportEntries(CustomFieldOwner.environment(s.id));
+  for (final entry in customEnvironment) {
+    m['customEnvironment::${entry.definition.uuid}'] = entry.value == null
+        ? ''
+        : entry.definition.displayValue(entry.value!.value);
+  }
+
+  final links = await CollEventQuery(db).getEventMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
 
   return m;
 }
@@ -353,5 +424,71 @@ Future<Map<String, String>> documentFieldValuesForNarrative(
     } catch (_) {}
   }
 
+  final links = await NarrativeServices(ref: ref).getNarrativeMedia(s.id);
+  await _addDocumentMediaValues(
+    m,
+    links.map((link) => link.mediaId).whereType<int>(),
+    ref,
+  );
+
   return m;
+}
+
+Future<void> _addDocumentMediaValues(
+  Map<String, String> values,
+  Iterable<int> mediaIds,
+  WidgetRef ref,
+) async {
+  final query = MediaDbQuery(ref.read(databaseProvider));
+  final rows = <MediaData>[];
+  for (final id in mediaIds.toSet()) {
+    try {
+      rows.add(await query.getMedia(id));
+    } catch (_) {
+      // A stale relation must not prevent the rest of the document rendering.
+    }
+  }
+  rows.sort((a, b) => a.primaryId.compareTo(b.primaryId));
+  try {
+    values[kTemplateMediaField] = await MediaWriterServices(
+      ref: ref,
+    ).formatMediaData(rows);
+  } catch (_) {
+    // Picture rendering is independent of optional descriptive metadata.
+    values[kTemplateMediaField] = '';
+  }
+
+  final imagePaths = <String>[];
+  for (final row in rows) {
+    final fileName = row.fileName?.trim();
+    final category = row.category?.trim();
+    final projectUuid = row.projectUuid?.trim();
+    if (fileName == null ||
+        fileName.isEmpty ||
+        category == null ||
+        category.isEmpty ||
+        projectUuid == null ||
+        projectUuid.isEmpty) {
+      continue;
+    }
+    try {
+      final file = await MediaFinder(ref: ref).getPathForProjectMedia(
+        fileName,
+        projectUuid,
+        matchMediaCategoryString(category),
+      );
+      if (!await file.exists()) continue;
+      final header = await file
+          .openRead(0, 64)
+          .fold<List<int>>(<int>[], (bytes, chunk) => bytes..addAll(chunk));
+      final mimeType = lookupMimeType(file.path, headerBytes: header);
+      if (mimeType?.startsWith('image/') ?? false) {
+        imagePaths.add(file.path);
+      }
+    } catch (_) {
+      // Unsupported categories, unreadable files, and unknown MIME types are
+      // intentionally omitted from Picture output.
+    }
+  }
+  values[kTemplatePicturePathsDataKey] = jsonEncode(imagePaths);
 }

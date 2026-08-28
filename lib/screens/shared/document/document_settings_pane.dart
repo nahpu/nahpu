@@ -1,11 +1,10 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -31,16 +30,13 @@ class DocumentSettingsPane extends StatelessWidget {
     required this.selectedSetupName,
     required this.templateNames,
     required this.exportCtr,
-    required this.selectedDir,
     required this.isRunning,
-    required this.hasExported,
+    required this.appendDate,
     required this.onLayoutChanged,
     required this.onSetupSelected,
     required this.onFileNameChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
-    required this.onExportPressed,
-    required this.onSharePressed,
+    required this.onAppendDateChanged,
+    required this.locationCard,
     this.selectedCount = 0,
     this.totalCount = 0,
     this.onSelectSpecimens,
@@ -56,18 +52,18 @@ class DocumentSettingsPane extends StatelessWidget {
   final List<String> templateNames;
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
   final bool isRunning;
-  final bool hasExported;
+  final bool appendDate;
 
   final ValueChanged<rust_config.DocumentLayoutPreset> onLayoutChanged;
   final ValueChanged<String> onSetupSelected;
 
   final ValueChanged<String?> onFileNameChanged;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
-  final VoidCallback? onExportPressed;
-  final VoidCallback onSharePressed;
+  final ValueChanged<bool> onAppendDateChanged;
+
+  /// The destination, shown directly under the file settings it belongs to.
+  final Widget locationCard;
+
   final int selectedCount;
   final int totalCount;
   final VoidCallback? onSelectSpecimens;
@@ -109,18 +105,13 @@ class DocumentSettingsPane extends StatelessWidget {
               const SizedBox(height: 16),
               _FileSettingsSection(
                 exportCtr: exportCtr,
-                selectedDir: selectedDir,
+                appendDate: appendDate,
+                enabled: !isRunning,
                 onFileNameChanged: onFileNameChanged,
-                onSelectDir: onSelectDir,
-                onClearDir: onClearDir,
+                onAppendDateChanged: onAppendDateChanged,
               ),
               const SizedBox(height: 16),
-              _ExportActions(
-                isRunning: isRunning,
-                hasExported: hasExported,
-                onExportPressed: onExportPressed,
-                onSharePressed: onSharePressed,
-              ),
+              locationCard,
             ],
           ),
         ],
@@ -159,7 +150,7 @@ class _RecordSelectionSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsPaneCard(
+    return NahpuPanel(
       child: Row(
         children: [
           Expanded(
@@ -189,86 +180,40 @@ class _RecordSelectionSummary extends StatelessWidget {
 class _FileSettingsSection extends StatelessWidget {
   const _FileSettingsSection({
     required this.exportCtr,
-    required this.selectedDir,
+    required this.appendDate,
+    required this.enabled,
     required this.onFileNameChanged,
-    required this.onSelectDir,
-    required this.onClearDir,
+    required this.onAppendDateChanged,
   });
 
   final FileOpCtrModel exportCtr;
-  final Directory? selectedDir;
+  final bool appendDate;
+  final bool enabled;
   final ValueChanged<String?> onFileNameChanged;
-  final Future<void> Function() onSelectDir;
-  final VoidCallback onClearDir;
+  final ValueChanged<bool> onAppendDateChanged;
 
   @override
   Widget build(BuildContext context) {
-    return _SettingsPaneCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('File settings', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          FileNameField(controller: exportCtr, onChanged: onFileNameChanged),
-          if (!Platform.isIOS && !Platform.isAndroid) ...[
-            const SizedBox(height: 16),
-            FileSettingsDirectoryPicker(
-              selectedDir: selectedDir,
-              onSelectDir: onSelectDir,
-              onClearDir: onClearDir,
-            ),
-          ],
+          FileNameField(
+            controller: exportCtr.fileNameCtr,
+            extension: 'pdf',
+            appendDate: appendDate,
+            enabled: enabled,
+            onChanged: onFileNameChanged,
+          ),
+          AppendDateSwitch(
+            value: appendDate,
+            enabled: enabled,
+            onChanged: onAppendDateChanged,
+          ),
         ],
       ),
-    );
-  }
-}
-
-class _ExportActions extends StatelessWidget {
-  const _ExportActions({
-    required this.isRunning,
-    required this.hasExported,
-    required this.onExportPressed,
-    required this.onSharePressed,
-  });
-
-  final bool isRunning;
-  final bool hasExported;
-  final VoidCallback? onExportPressed;
-  final VoidCallback onSharePressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        ExportShareButton(
-          hasExported: hasExported,
-          isRunning: isRunning,
-          onExport: onExportPressed,
-          onShare: onSharePressed,
-        ),
-      ],
-    );
-  }
-}
-
-class _SettingsPaneCard extends StatelessWidget {
-  const _SettingsPaneCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: child,
     );
   }
 }
@@ -358,13 +303,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   Widget build(BuildContext context) {
     const isContinuous = false;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

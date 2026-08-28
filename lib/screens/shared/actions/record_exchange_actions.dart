@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/dialogs/record_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/associated_data.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeActions {
   const RecordExchangeActions({required this.context, required this.ref});
@@ -249,7 +253,11 @@ class RecordExchangeActions {
         ref.invalidate(siteEntryProvider);
       }
       ref.invalidate(partBySpecimenProvider(result.recordUuid!));
-      ref.invalidate(associatedDataProvider(result.recordUuid!));
+      ref.invalidate(
+        associatedDataProvider(
+          AssociatedDataTarget.specimen(result.recordUuid!),
+        ),
+      );
       _showSuccess('Specimen imported successfully.');
     } catch (error) {
       _showError(error);
@@ -268,6 +276,7 @@ class RecordExchangeActions {
     try {
       final service = RecordExchangeService(ref: ref);
       final sites = await service.getCurrentProjectSites();
+      final matched = await service.matchedGeography(payload);
       if (!context.mounted) return;
       final choice = await showRecordImportTargetDialog(
         context: context,
@@ -275,6 +284,9 @@ class RecordExchangeActions {
         sites: sites,
         events: const [],
         initialTargetId: initialTargetId,
+        matchedLocality: matched == null
+            ? null
+            : GeographyDraft.fromData(matched).displayName,
       );
       if (choice == null) return;
       final result = await service.importPayload(
@@ -285,6 +297,9 @@ class RecordExchangeActions {
           .read(pendingRecordJumpProvider(RecordViewer.site).notifier)
           .updateState(result.recordId);
       ref.invalidate(siteEntryProvider);
+      ref.invalidate(
+        associatedDataProvider(AssociatedDataTarget.site(result.recordId)),
+      );
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
       _showSuccess('Site imported successfully.');
@@ -335,6 +350,9 @@ class RecordExchangeActions {
       }
       ref.invalidate(collEventEntryProvider);
       ref.invalidate(eventMediaProvider(result.recordId));
+      ref.invalidate(
+        associatedDataProvider(AssociatedDataTarget.event(result.recordId)),
+      );
       ref.invalidate(siteEntryProvider);
       ref.invalidate(allPersonnelProvider);
       ref.invalidate(projectPersonnelProvider);
@@ -408,7 +426,12 @@ class RecordExchangeActions {
       }
       await showDialog<void>(
         context: context,
-        builder: (context) => RecordQrDialog(title: title, data: qrData),
+        builder: (context) => QrCodeDialog(
+          title: title,
+          data: qrData,
+          description:
+              'Scan this code from another NAHPU device to import the record.',
+        ),
       );
     } catch (error) {
       _showError(error);

@@ -82,22 +82,22 @@ class DocumentPageSetup {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'pageSizeKey': pageSizeKey,
-        'pageOrientation': pageOrientation,
-        'customPageWidthMm': customPageWidthMm,
-        'customPageHeightMm': customPageHeightMm,
-        'rowsPerPage': rowsPerPage,
-        'colsPerPage': colsPerPage,
-        'pagePadTopMm': pagePadTopMm,
-        'pagePadLeftMm': pagePadLeftMm,
-        'pagePadRightMm': pagePadRightMm,
-        'pagePadBottomMm': pagePadBottomMm,
-        'documentPadTopMm': documentPadTopMm,
-        'documentPadLeftMm': documentPadLeftMm,
-        'documentPadRightMm': documentPadRightMm,
-        'documentPadBottomMm': documentPadBottomMm,
-      };
+    'name': name,
+    'pageSizeKey': pageSizeKey,
+    'pageOrientation': pageOrientation,
+    'customPageWidthMm': customPageWidthMm,
+    'customPageHeightMm': customPageHeightMm,
+    'rowsPerPage': rowsPerPage,
+    'colsPerPage': colsPerPage,
+    'pagePadTopMm': pagePadTopMm,
+    'pagePadLeftMm': pagePadLeftMm,
+    'pagePadRightMm': pagePadRightMm,
+    'pagePadBottomMm': pagePadBottomMm,
+    'documentPadTopMm': documentPadTopMm,
+    'documentPadLeftMm': documentPadLeftMm,
+    'documentPadRightMm': documentPadRightMm,
+    'documentPadBottomMm': documentPadBottomMm,
+  };
 
   factory DocumentPageSetup.fromJson(Map<String, dynamic> json) {
     double readDouble(String key, String legacyKey, double fallback) {
@@ -123,10 +123,16 @@ class DocumentPageSetup {
       pagePadBottomMm: (json['pagePadBottomMm'] as num?)?.toDouble() ?? 8.0,
       documentPadTopMm: readDouble('documentPadTopMm', 'labelPadTopMm', 1.0),
       documentPadLeftMm: readDouble('documentPadLeftMm', 'labelPadLeftMm', 1.0),
-      documentPadRightMm:
-          readDouble('documentPadRightMm', 'labelPadRightMm', 1.0),
-      documentPadBottomMm:
-          readDouble('documentPadBottomMm', 'labelPadBottomMm', 1.0),
+      documentPadRightMm: readDouble(
+        'documentPadRightMm',
+        'labelPadRightMm',
+        1.0,
+      ),
+      documentPadBottomMm: readDouble(
+        'documentPadBottomMm',
+        'labelPadBottomMm',
+        1.0,
+      ),
     );
   }
 
@@ -187,12 +193,13 @@ class DocumentPageSetupService {
       ...dir.listSync().whereType<File>(),
       if (legacyDir.existsSync()) ...legacyDir.listSync().whereType<File>(),
     ];
-    final names = files
-        .where((f) => f.path.endsWith('.json'))
-        .map((f) => p.basenameWithoutExtension(f.path))
-        .toSet()
-        .toList()
-      ..sort();
+    final names =
+        files
+            .where((f) => f.path.endsWith('.json'))
+            .map((f) => p.basenameWithoutExtension(f.path))
+            .toSet()
+            .toList()
+          ..sort();
     if (!names.contains('Default')) {
       await saveSetup(DocumentPageSetup.defaults());
       names.add('Default');
@@ -235,7 +242,8 @@ class DocumentPageSetupService {
 
   Future<String> getCurrentSetupName() async {
     final prefs = await _prefs;
-    final stored = prefs.getString(_kCurrentPageSetupName) ??
+    final stored =
+        prefs.getString(_kCurrentPageSetupName) ??
         prefs.getString(_legacyCurrentPageSetupName);
     final names = await listSetupNames();
     if (stored != null && names.contains(stored)) return stored;

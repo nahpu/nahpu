@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/export/document_writer.dart';
@@ -114,9 +114,13 @@ class _DocumentPageLivePreviewState
 
     try {
       double w = _getPageWidth(
-          widget.layout.pageSizeKey, widget.layout.customPageWidthMm);
+        widget.layout.pageSizeKey,
+        widget.layout.customPageWidthMm,
+      );
       double h = _getPageHeight(
-          widget.layout.pageSizeKey, widget.layout.customPageHeightMm);
+        widget.layout.pageSizeKey,
+        widget.layout.customPageHeightMm,
+      );
 
       if (widget.layout.pageOrientation == 'landscape') {
         final tmp = w;

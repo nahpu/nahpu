@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
@@ -15,10 +17,12 @@ final narrativeEntryProvider =
 class NarrativeEntry extends AsyncNotifier<List<NarrativeData>> {
   Future<List<NarrativeData>> _fetchNarrativeEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.narrative));
 
     final narrativeEntries = NarrativeQuery(
       ref.read(databaseProvider),
-    ).getAllNarrative(projectUuid);
+    ).getAllNarrative(projectUuid, sort: sort);
 
     return narrativeEntries;
   }
@@ -44,16 +48,15 @@ class NarrativeEntry extends AsyncNotifier<List<NarrativeData>> {
 
 final narrativeMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, narrativeId) async {
+      final database = ref.read(databaseProvider);
       List<NarrativeMediaData> mediaList = await NarrativeQuery(
-        ref.read(databaseProvider),
+        database,
       ).getNarrativeMedia(narrativeId);
       List<MediaData> mediaDataList = [];
       for (NarrativeMediaData media in mediaList) {
         if (media.mediaId != null) {
           mediaDataList.add(
-            await MediaDbQuery(
-              ref.read(databaseProvider),
-            ).getMedia(media.mediaId!),
+            await MediaDbQuery(database).getMedia(media.mediaId!),
           );
         }
       }

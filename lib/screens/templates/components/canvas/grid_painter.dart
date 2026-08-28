@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class GridPainter extends CustomPainter {
   GridPainter({
@@ -26,14 +26,20 @@ class GridPainter extends CustomPainter {
     for (double x = 0; x <= templateWidthMm; x += smallStep) {
       final px = x * scale;
       final isMajor = (x % bigStep) < 0.01;
-      canvas.drawLine(Offset(px, 0), Offset(px, size.height),
-          isMajor ? thickPaint : thinPaint);
+      canvas.drawLine(
+        Offset(px, 0),
+        Offset(px, size.height),
+        isMajor ? thickPaint : thinPaint,
+      );
     }
     for (double y = 0; y <= templateHeightMm; y += smallStep) {
       final py = y * scale;
       final isMajor = (y % bigStep) < 0.01;
-      canvas.drawLine(Offset(0, py), Offset(size.width, py),
-          isMajor ? thickPaint : thinPaint);
+      canvas.drawLine(
+        Offset(0, py),
+        Offset(size.width, py),
+        isMajor ? thickPaint : thinPaint,
+      );
     }
 
     final textStyle = TextStyle(color: Colors.grey.shade500, fontSize: 9);

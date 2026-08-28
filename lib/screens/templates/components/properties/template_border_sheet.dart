@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
@@ -43,11 +43,7 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
       widget.onOutlineChanged(null);
     } else {
       widget.onOutlineChanged(
-        TemplateOutline(
-          style: s,
-          widthPt: _widthPt,
-          colorArgb: _colorArgb,
-        ),
+        TemplateOutline(style: s, widthPt: _widthPt, colorArgb: _colorArgb),
       );
     }
   }
@@ -121,8 +117,9 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
                           ),
                           const SizedBox(width: 8),
                           _StylePicker(
-                            value:
-                                _style == null ? 'none' : _styleString(_style!),
+                            value: _style == null
+                                ? 'none'
+                                : _styleString(_style!),
                             onChanged: _onStyleChanged,
                           ),
                           if (_style != null) ...[
@@ -174,10 +171,7 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
 }
 
 class _StylePicker extends StatelessWidget {
-  const _StylePicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StylePicker({required this.value, required this.onChanged});
 
   static const values = ['none', 'solid', 'dashed', 'dotted', 'double'];
 
@@ -205,10 +199,7 @@ class _StylePicker extends StatelessWidget {
                     width: 48,
                     height: 20,
                     child: CustomPaint(
-                      painter: _StylePreviewPainter(
-                        style: val,
-                        color: color,
-                      ),
+                      painter: _StylePreviewPainter(style: val, color: color),
                     ),
                   ),
                 const SizedBox(width: 12),
@@ -229,10 +220,7 @@ class _StylePicker extends StatelessWidget {
 }
 
 class _StylePreviewPainter extends CustomPainter {
-  const _StylePreviewPainter({
-    required this.style,
-    required this.color,
-  });
+  const _StylePreviewPainter({required this.style, required this.color});
 
   final String style;
   final Color color;
@@ -258,16 +246,8 @@ class _StylePreviewPainter extends CustomPainter {
         ..color = color
         ..strokeWidth = 1.0
         ..style = PaintingStyle.stroke;
-      canvas.drawLine(
-        Offset(0, y - 2),
-        Offset(size.width, y - 2),
-        paintDouble,
-      );
-      canvas.drawLine(
-        Offset(0, y + 2),
-        Offset(size.width, y + 2),
-        paintDouble,
-      );
+      canvas.drawLine(Offset(0, y - 2), Offset(size.width, y - 2), paintDouble);
+      canvas.drawLine(Offset(0, y + 2), Offset(size.width, y + 2), paintDouble);
     }
   }
 
@@ -282,11 +262,7 @@ class _StylePreviewPainter extends CustomPainter {
     double d = 0.0;
     while (d < width) {
       final end = (d + dashLen).clamp(0.0, width);
-      canvas.drawLine(
-        Offset(d, y),
-        Offset(end, y),
-        paint,
-      );
+      canvas.drawLine(Offset(d, y), Offset(end, y), paint);
       d += dashLen + gapLen;
     }
   }
@@ -298,10 +274,7 @@ class _StylePreviewPainter extends CustomPainter {
 }
 
 class _ThicknessPicker extends StatelessWidget {
-  const _ThicknessPicker({
-    required this.value,
-    required this.onChanged,
-  });
+  const _ThicknessPicker({required this.value, required this.onChanged});
 
   static const values = [0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0];
 
@@ -315,10 +288,12 @@ class _ThicknessPicker extends StatelessWidget {
       isDense: true,
       underline: const SizedBox.shrink(),
       items: values
-          .map((thickness) => DropdownMenuItem(
-                value: thickness,
-                child: Text('${thickness}pt'),
-              ))
+          .map(
+            (thickness) => DropdownMenuItem(
+              value: thickness,
+              child: Text('${thickness}pt'),
+            ),
+          )
           .toList(),
       onChanged: (value) {
         if (value != null) onChanged(value);

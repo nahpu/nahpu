@@ -5,13 +5,15 @@ part of 'taxonomy_queries.dart';
 // ignore_for_file: type=lint
 mixin _$TaxonomyQueryMixin on DatabaseAccessor<Database> {
   Project get project => attachedDatabase.project;
+  Geography get geography => attachedDatabase.geography;
   Personnel get personnel => attachedDatabase.personnel;
   Media get media => attachedDatabase.media;
   Site get site => attachedDatabase.site;
+  SiteAttribute get siteAttribute => attachedDatabase.siteAttribute;
   FossilSite get fossilSite => attachedDatabase.fossilSite;
   Coordinate get coordinate => attachedDatabase.coordinate;
   CollEvent get collEvent => attachedDatabase.collEvent;
-  Weather get weather => attachedDatabase.weather;
+  Environment get environment => attachedDatabase.environment;
   CollPersonnel get collPersonnel => attachedDatabase.collPersonnel;
   CollEffort get collEffort => attachedDatabase.collEffort;
   Narrative get narrative => attachedDatabase.narrative;
@@ -49,20 +51,24 @@ class TaxonomyQueryManager {
   TaxonomyQueryManager(this._db);
   $ProjectTableManager get project =>
       $ProjectTableManager(_db.attachedDatabase, _db.project);
+  $GeographyTableManager get geography =>
+      $GeographyTableManager(_db.attachedDatabase, _db.geography);
   $PersonnelTableManager get personnel =>
       $PersonnelTableManager(_db.attachedDatabase, _db.personnel);
   $MediaTableManager get media =>
       $MediaTableManager(_db.attachedDatabase, _db.media);
   $SiteTableManager get site =>
       $SiteTableManager(_db.attachedDatabase, _db.site);
+  $SiteAttributeTableManager get siteAttribute =>
+      $SiteAttributeTableManager(_db.attachedDatabase, _db.siteAttribute);
   $FossilSiteTableManager get fossilSite =>
       $FossilSiteTableManager(_db.attachedDatabase, _db.fossilSite);
   $CoordinateTableManager get coordinate =>
       $CoordinateTableManager(_db.attachedDatabase, _db.coordinate);
   $CollEventTableManager get collEvent =>
       $CollEventTableManager(_db.attachedDatabase, _db.collEvent);
-  $WeatherTableManager get weather =>
-      $WeatherTableManager(_db.attachedDatabase, _db.weather);
+  $EnvironmentTableManager get environment =>
+      $EnvironmentTableManager(_db.attachedDatabase, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db.attachedDatabase, _db.collPersonnel);
   $CollEffortTableManager get collEffort =>

@@ -25,6 +25,8 @@ Keep Rust code, comments, and docstrings to 100 characters per line; wrap long s
 
 Keep screens as thin UI wrappers under `lib/screens/`. Put business logic in `lib/services/` and reusable UI in `lib/screens/shared/`. Do not place UI in services or return widgets from helpers; create widget classes, no functions return widgets. In widget classes, only `@override` methods go before `build`; keep `build` near the top and helpers below. Prefer `const`, immutable models, and Riverpod over mutable globals. Keep `build` side-effect free; do IO, database, and bridge work in services/providers. Guard async UI updates with `context.mounted`. Use theme values.
 
+Use the NAHPU design tokens from `lib/styles/design_tokens.dart` for UI styling. Prefer `NahpuSpacing`, `NahpuRadius`, `NahpuStroke`, `NahpuElevation`, `NahpuControlSize`, `NahpuBreakpoints`, and the content-width tokens over hard-coded spacing, radii, borders, elevations, control sizes, breakpoints, or layout widths. Use the active `Theme.of(context)` and `ColorScheme` for colors and typography; add or update shared theme values in `lib/styles/themes.dart` when a value is not already available.
+
 ## Testing Guidelines
 
 Add focused `*_test.dart` files in `test/`. Prefer service tests for import/export, persistence, validation, and migrations; add widget tests for regressions. Run integration tests for startup, navigation, IO, or bridge changes.

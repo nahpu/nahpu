@@ -56,11 +56,12 @@ void main() {
     await rust_config.exportConfigToFile(
       filePath: exportPath,
       sections: rust_config.UserConfigSection.values,
+      customFieldTemplates: const [],
     );
     final exported =
         jsonDecode(File(exportPath).readAsStringSync()) as Map<String, dynamic>;
-    expect(exported['schema_version'], 3);
-    expect(exported['included_sections'], hasLength(5));
+    expect(exported['schema_version'], 4);
+    expect(exported['included_sections'], hasLength(6));
     expect(exported['template_table_preview_columns'], previewColumns);
 
     await rust_config.setUserConfigList(key: configKey, value: ['Ocean']);
@@ -96,6 +97,7 @@ void main() {
     await rust_config.exportConfigToFile(
       filePath: exportPath,
       sections: const [rust_config.UserConfigSection.userConfigs],
+      customFieldTemplates: const [],
     );
 
     await rust_config.setUserConfigList(key: configKey, value: ['Ocean']);

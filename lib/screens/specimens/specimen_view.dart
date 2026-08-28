@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/features.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -15,6 +15,7 @@ import 'package:nahpu/screens/specimens/shared/menu_bar.dart';
 import 'package:nahpu/screens/specimens/specimen_form.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 
 class SpecimenViewer extends ConsumerStatefulWidget {
   const SpecimenViewer({super.key});
@@ -23,14 +24,33 @@ class SpecimenViewer extends ConsumerStatefulWidget {
   SpecimenViewerState createState() => SpecimenViewerState();
 }
 
-class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
-  bool isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class SpecimenViewerState extends ConsumerState<SpecimenViewer>
+    with RecordPageReconciler<SpecimenData, SpecimenEntry, SpecimenViewer> {
   String? _specimenUuid;
-  bool _loadedOnce = false;
   CatalogFmt? _catalogFmt;
   TaxonData taxonomy = TaxonData();
   late FocusNode _focus;
+
+  @override
+  RecordViewer get recordViewer => RecordViewer.specimen;
+
+  @override
+  AsyncNotifierProvider<SpecimenEntry, List<SpecimenData>> get entryProvider =>
+      specimenEntryProvider;
+
+  @override
+  Object recordIdOf(SpecimenData entry) => entry.uuid;
+
+  @override
+  void selectRecord(SpecimenData? entry) {
+    _specimenUuid = entry?.uuid;
+    _catalogFmt = entry == null
+        ? null
+        : matchTaxonGroupToCatFmt(entry.taxonGroup);
+  }
+
+  @override
+  void invalidateEntries() => ref.invalidate(specimenEntryProvider);
 
   @override
   void initState() {
@@ -40,19 +60,13 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Reconcile page/selection bookkeeping outside build (see site_view.dart).
-    ref.listen(specimenEntryProvider, (_, next) {
-      // Skip refresh emissions (see site_view.dart).
-      if (next.isLoading) return;
-      next.whenData(_reconcile);
-    });
+    listenEntries();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Specimen Records"),
@@ -90,18 +104,11 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
                   return const EmptySpecimen(isButtonVisible: true);
                 }
                 return SpecimenPages(
-                  pageNav: _pageNav,
-                  isNavButtonVisible: isVisible,
+                  pageNav: pageNav,
+                  isNavButtonVisible: isNavVisible,
                   specimenEntry: specimenEntry,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _specimenUuid = specimenEntry[index].uuid;
-                      _catalogFmt = matchTaxonGroupToCatFmt(
-                        specimenEntry[index].taxonGroup,
-                      );
-                      _updatePageNav(index);
-                    });
-                  },
+                  onPageChanged: (index) =>
+                      handlePageChanged(index, specimenEntry[index]),
                 );
               },
               loading: () => const CommonProgressIndicator(),
@@ -109,73 +116,10 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer> {
             ),
       ),
       bottomSheet: Visibility(
-        visible: isVisible,
-        child: PageNavButton(pageNav: _pageNav),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
     );
-  }
-
-  void _reconcile(List<SpecimenData> specimenEntry) {
-    if (!mounted) return;
-    final count = specimenEntry.length;
-    final landIndex = _landingIndex(specimenEntry);
-    if (landIndex != null) {
-      _pageNav.currentPage = landIndex + 1;
-    }
-    final index = _pageNav.clampToCount(count);
-    setState(() {
-      isVisible = count >= 2;
-      if (count == 0) {
-        _specimenUuid = null;
-        _catalogFmt = null;
-      } else if (landIndex != null ||
-          _specimenUuid == null ||
-          !specimenEntry.any((specimen) => specimen.uuid == _specimenUuid)) {
-        _specimenUuid = specimenEntry[index].uuid;
-        _catalogFmt = matchTaxonGroupToCatFmt(specimenEntry[index].taxonGroup);
-      }
-    });
-    if (landIndex != null) {
-      // Keyed controller swap (see site_view.dart).
-      _pageNav.openControllerAt(index);
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pageNav.clampController(index);
-      });
-    }
-  }
-
-  /// One-shot landing target for this refresh (see site_view.dart).
-  int? _landingIndex(List<SpecimenData> specimenEntry) {
-    final firstLoad = !_loadedOnce;
-    _loadedOnce = true;
-    final pendingJump = ref.read(
-      pendingRecordJumpProvider(RecordViewer.specimen),
-    );
-    if (pendingJump != null) {
-      final target = specimenEntry.indexWhere(
-        (specimen) => specimen.uuid == pendingJump,
-      );
-      if (target != -1) {
-        ref
-            .read(pendingRecordJumpProvider(RecordViewer.specimen).notifier)
-            .updateState(null);
-        return target;
-      }
-    }
-    if (firstLoad && specimenEntry.isNotEmpty) {
-      return specimenEntry.length - 1;
-    }
-    return null;
-  }
-
-  void _updatePageNav(int value) {
-    setState(() {
-      _pageNav.currentPage = value + 1;
-      _pageNav.updatePageNavigation();
-
-      ref.invalidate(specimenEntryProvider);
-    });
   }
 }
 

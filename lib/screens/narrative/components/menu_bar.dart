@@ -1,16 +1,18 @@
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum MenuSelection {
   newNarrative,
   duplicate,
   pdfExport,
+  sortRecords,
   deleteRecords,
   deleteAllRecords,
 }
@@ -86,6 +88,15 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
           value: MenuSelection.newNarrative,
           child: const CreateMenuButton(text: 'Create narrative'),
           onTap: () => createNewNarrative(context, ref),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.sortRecords,
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.narrative,
+          ),
+          child: const SortMenuButton(),
         ),
         const PopupMenuDivider(height: 8),
         PopupMenuItem<MenuSelection>(

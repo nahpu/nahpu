@@ -1,5 +1,6 @@
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
+import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 
 enum ExportFmt { csv, tsv, excel, json }
@@ -64,6 +65,7 @@ enum SpecimenRecordType {
   bats,
   allMammals,
   herpetofauna,
+  arthropods,
   allTaxa,
 }
 
@@ -75,9 +77,14 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType { birds, mammals, herps }
+enum TaxonRecordType { birds, mammals, herps, arthropods }
 
-const List<String> taxonRecordTypeList = ['Birds', 'Mammals', 'Herpetofauna'];
+const List<String> taxonRecordTypeList = [
+  'Birds',
+  'Mammals',
+  'Herpetofauna',
+  'Arthropods',
+];
 
 enum MammalRecordType { excludeBats, onlyBats, allMammals }
 
@@ -115,6 +122,8 @@ const collectingRecordExportList = [
   'specimen::genus',
   'specimen::specificEpithet',
   'specimen::condition',
+  'specimen::iDConfidence',
+  'specimen::iDMethod',
   'specimen::collectionTime',
   'specimen::preparationDate',
   'specimen::preparationTime',
@@ -169,14 +178,18 @@ const List<String> parasiteExportList = [
 
 const siteExportList = [
   'site::site',
-  'site::habitatType',
-  'site::country',
-  'site::stateProvince',
-  'site::county',
-  'site::municipality',
-  'site::specificLocality',
+  'siteAttribute::habitatType',
+  'siteAttribute::habitatCondition',
+  'siteAttribute::habitatDescription',
+  'siteAttribute::canopyCover',
+  'geography::country',
+  'geography::islandGroup',
+  'geography::stateProvince',
+  'geography::county',
+  'geography::municipality',
+  'geography::specificLocality',
   'site::siteNotes',
-  'site::verbatimLocality',
+  'geography::verbatimLocality',
   'site::coordinates',
 ];
 
@@ -189,7 +202,7 @@ const mammalAttributeExportList = [
   'measurement::accuracy',
   'measurement::accuracySpecify',
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::testisPosition',
   'measurement::testisLength',
   'measurement::testisWidth',
@@ -225,7 +238,7 @@ const batAttributeExportList = [
   'measurement::accuracy',
   'measurement::accuracySpecify',
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::testisPosition',
   'measurement::testisLength',
   'measurement::testisWidth',
@@ -261,6 +274,7 @@ const birdAttributeExportList = [
   'measurement::tarsusColor',
   'measurement::tarsusHex',
   'measurement::sex',
+  'measurement::lifeStage',
   'measurement::broodPatch',
   'measurement::skullOssification',
   'measurement::hasBursa',
@@ -292,9 +306,32 @@ const birdAttributeExportList = [
 
 const herpAttributeExportList = [
   'measurement::sex',
-  'measurement::age',
+  'measurement::lifeStage',
   'measurement::weight',
   'measurement::svl',
+  'measurement::remark',
+];
+
+const arthropodAttributeExportList = [
+  'measurement::headWidth',
+  'measurement::bodyLength',
+  'measurement::wingspanUpper',
+  'measurement::wingspanLower',
+  'measurement::sex',
+  'measurement::lifeStage',
+  'measurement::caste',
+  'measurement::hostOrganism',
+  'measurement::hostPart',
+  'measurement::remark',
+];
+
+const fossilAttributeExportList = [
+  'measurement::fossilType',
+  'measurement::specimenDescription',
+  'measurement::sex',
+  'measurement::ontogeneticStage',
+  'measurement::weight',
+  'measurement::weightUnit',
   'measurement::remark',
 ];
 
@@ -314,6 +351,28 @@ const collEventExportList = [
   'event::endTime',
   'event::methods',
   'event::personnel',
+  ...environmentalDataExportList,
+];
+
+const environmentalDataExportList = [
+  'environment::lowestDayTempC',
+  'environment::highestDayTempC',
+  'environment::lowestNightTempC',
+  'environment::highestNightTempC',
+  'environment::averageHumidity',
+  'environment::dewPointTemp',
+  'environment::sunriseTime',
+  'environment::sunsetTime',
+  'environment::moonPhase',
+  'environment::cloudCover',
+  'environment::rainfallInMm',
+  'environment::ambientTemperature',
+  'environment::ambientHumidity',
+  'environment::waterTemperature',
+  'environment::pH',
+  'environment::dissolvedOxygen',
+  'environment::flowVelocity',
+  'environment::notes',
 ];
 
 const allMediaExportList = [
@@ -543,13 +602,17 @@ class ExportFieldMapping {
   }
 
   factory ExportFieldMapping.fromJson(Map<String, dynamic> json) {
+    final textType = json['textType'] as String? ?? 'normal';
+    final rawFormatOption = json['formatOption'] as String? ?? 'normal';
     return ExportFieldMapping(
       expression: canonicalizeSpecimenAttributeExpression(
         json['expression'] as String? ?? '',
       ),
       headerOverride: json['headerOverride'] as String?,
-      textType: json['textType'] as String? ?? 'normal',
-      formatOption: json['formatOption'] as String? ?? 'normal',
+      textType: textType,
+      formatOption: textType == 'list'
+          ? normalizeTemplateListFormatOption(rawFormatOption)
+          : rawFormatOption,
       caseFormat: json['caseFormat'] as String? ?? 'normal',
       nullFallbackOption: json['nullFallbackOption'] as String? ?? 'blank',
       customNullFallbackText: json['customNullFallbackText'] as String? ?? '',

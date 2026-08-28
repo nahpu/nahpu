@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -207,7 +207,9 @@ Future<({int? sharedMediaId, int? taxonomyId})> _seedProjectWithLinkedData(
         ),
       );
 
-  await db.into(db.weather).insert(WeatherCompanion(eventID: Value(eventId)));
+  await db
+      .into(db.environment)
+      .insert(EnvironmentCompanion(eventID: Value(eventId)));
 
   final specimenUuid = 'specimen-$projectUuid';
   await SpecimenQuery(db).createSpecimen(

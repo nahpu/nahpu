@@ -5,8 +5,9 @@ import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 /// Icons live directly in [iconDir]. Subdirectories are deliberately excluded
-/// from the asset bundle (Flutter's directory entries are not recursive), so
-/// `nahpu_legacy_icons/` is font-source art and is not checked here.
+/// from the asset bundle, since Flutter's directory entries are not recursive.
+///
+/// The icon font is a separate system and is covered by `nahpu_font_test.dart`.
 const String iconDir = 'assets/icons';
 
 List<File> topLevelIcons() =>

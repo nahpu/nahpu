@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_markdown.dart';
 import 'package:nahpu/styles/themes.dart';
 
 void main() {
-  testWidgets('renders Markdown tables with printable colors in dark mode',
-      (tester) async {
+  testWidgets('renders Markdown tables with printable colors in dark mode', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: NahpuTheme.darkTheme(),
@@ -32,13 +33,7 @@ void main() {
     expect(style.tableHead!.color, Colors.black);
     expect(style.tableHead!.fontWeight, isNull);
     expect(style.tableBody!.color, Colors.black);
-    expect(
-      (style.tableHeadCellsDecoration! as BoxDecoration).color,
-      isNull,
-    );
-    expect(
-      (style.tableCellsDecoration! as BoxDecoration).color,
-      isNull,
-    );
+    expect((style.tableHeadCellsDecoration! as BoxDecoration).color, isNull);
+    expect((style.tableCellsDecoration! as BoxDecoration).color, isNull);
   });
 }

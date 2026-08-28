@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,6 +39,8 @@ void main() {
     expect(normalizeBundleTaxonGroup('Non-Bat Mammals'), 'Mammals');
     expect(normalizeBundleTaxonGroup('Bats'), 'Bats');
     expect(normalizeBundleTaxonGroup('Herpetofauna'), 'Herpetofauna');
+    expect(normalizeBundleTaxonGroup('Arthropoda'), 'Arthropods');
+    expect(normalizeBundleTaxonGroup('Insects'), 'Arthropods');
   });
 
   test('bundle types expose valid archive choices and extensions', () {
@@ -71,7 +73,7 @@ void main() {
         )
         .toSet();
 
-    expect(mappings, hasLength(57));
+    expect(mappings, hasLength(76));
     expect(keys, hasLength(mappings.length));
     final qcf = mappings.singleWhere(
       (mapping) =>
@@ -92,6 +94,34 @@ void main() {
     expect(highConfidence['enum_type'], 'IdentificationConfidence');
     expect(highConfidence['enum_name'], 'high');
     expect(highConfidence['display_name'], 'High');
+
+    final arthropodFemale = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'arthropodAttribute' &&
+          mapping['column'] == 'sex' &&
+          mapping['sqlite_index'] == 1,
+    );
+    expect(arthropodFemale['enum_name'], 'female');
+    expect(arthropodFemale['display_name'], 'Female');
+
+    final arthropodWorker = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'arthropodAttribute' &&
+          mapping['column'] == 'caste' &&
+          mapping['sqlite_index'] == 8,
+    );
+    expect(arthropodWorker['enum_type'], 'ArthropodCaste');
+    expect(arthropodWorker['enum_name'], 'worker');
+    expect(arthropodWorker['display_name'], 'worker');
+
+    final birdMaleUncertain = mappings.singleWhere(
+      (mapping) =>
+          mapping['table'] == 'birdAttribute' &&
+          mapping['column'] == 'sex' &&
+          mapping['sqlite_index'] == 6,
+    );
+    expect(birdMaleUncertain['enum_name'], 'maleUncertain');
+    expect(birdMaleUncertain['display_name'], 'Male?');
   });
 
   testWidgets('users can switch to selected taxa and change the selection', (
@@ -249,7 +279,7 @@ void main() {
     expect(icons, contains(Icons.video_file_outlined));
   });
 
-  testWidgets('NAHPU package planning uses project JSON without SQLite', (
+  testWidgets('NAHPU package export handles missing optional tables', (
     tester,
   ) async {
     final tempDir = Directory.systemTemp.createTempSync('nahpu-dp-test-');
@@ -306,8 +336,9 @@ void main() {
         .read(projectUuidProvider.notifier)
         .updateProjectUuid('project-a');
 
+    final writer = DwcBundleWriter(ref: widgetRef!);
     final manifest = (await tester.runAsync(
-      () => DwcBundleWriter(ref: widgetRef!).plan(
+      () => writer.plan(
         format: DwcBundleFormat.nahpuDataPackage,
         archiveFormat: BundleArchiveFormat.zip,
         selectedTaxonGroups: const {},
@@ -317,6 +348,39 @@ void main() {
 
     expect(paths, contains('nahpu-project.json'));
     expect(paths, isNot(contains('database/nahpu.sqlite3')));
+
+    for (final archive in BundleArchiveFormat.values) {
+      final extension = archive == BundleArchiveFormat.zip ? 'zip' : 'tar.gz';
+      final outputPath = '${tempDir.path}/empty.nahpu-dp.$extension';
+      final written = await tester.runAsync(
+        () => writer.write(
+          format: DwcBundleFormat.nahpuDataPackage,
+          archiveFormat: archive,
+          selectedTaxonGroups: const {},
+          outputPath: outputPath,
+        ),
+      );
+
+      expect(File(outputPath).existsSync(), isTrue);
+      expect(
+        written!.files.any((file) => file.path == 'tables/environment.csv'),
+        isTrue,
+      );
+      expect(
+        written.files.any((file) => file.path == 'tables/parasite.csv'),
+        isTrue,
+      );
+      expect(
+        written.files.any((file) => file.path == 'tables/fossilSite.csv'),
+        isTrue,
+      );
+      // Localities are their own table, so the package carries them as their
+      // own resource rather than repeating them on every site row.
+      expect(
+        written.files.any((file) => file.path == 'tables/geography.csv'),
+        isTrue,
+      );
+    }
   });
 }
 

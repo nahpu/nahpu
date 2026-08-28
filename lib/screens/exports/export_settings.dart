@@ -1,16 +1,22 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/components/file_settings.dart';
-import 'package:nahpu/screens/settings/user_config_transfer_widgets.dart';
-import 'package:nahpu/screens/shared/actions/export_share_button.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/settings/transfer/user_config_transfer_widgets.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportSettingsForm extends ConsumerStatefulWidget {
   const ExportSettingsForm({super.key});
@@ -29,10 +35,13 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
   late final TabController _tabController;
   UserConfigFileFormat _format = UserConfigFileFormat.json;
   rust_config.UserConfigTransferPreview? _preview;
+  List<CustomFieldDefinitionData> _customFields = const [];
+  final Set<int> _selectedCustomFieldIds = {};
   Directory? _selectedDirectory;
   File? _savedFile;
   bool _isLoadingPreview = true;
   bool _isRunning = false;
+  bool _appendDate = false;
   String? _previewError;
 
   @override
@@ -52,7 +61,8 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
 
   @override
   Widget build(BuildContext context) {
-    final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
+    final isLargeScreen =
+        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
     final settingsPane = ScrollableConstrainedLayout(
       child: Column(
         children: [
@@ -70,13 +80,32 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
               });
             },
           ),
+          if (_selectedSections.contains(
+            rust_config.UserConfigSection.customFields,
+          )) ...[
+            const SizedBox(height: 8),
+            _CustomFieldDefinitionPicker(
+              definitions: _customFields,
+              selectedIds: _selectedCustomFieldIds,
+              enabled: !_isRunning,
+              onChanged: (ids) {
+                setState(() {
+                  _selectedCustomFieldIds
+                    ..clear()
+                    ..addAll(ids);
+                  _savedFile = null;
+                });
+                _refreshPreview();
+              },
+            ),
+          ],
           const SizedBox(height: 8),
           GenericFileSettingsCard<UserConfigFileFormat>(
             exportCtr: _exportController,
-            selectedDir: _selectedDirectory,
             format: _format,
             formats: UserConfigFileFormat.values,
             formatLabel: (format) => format.label,
+            extensionForFormat: (format) => format.extension,
             onFormatChanged: (format) {
               setState(() {
                 _format = format;
@@ -84,18 +113,22 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
               });
             },
             onFileNameChanged: (_) => setState(() => _savedFile = null),
-            onSelectDir: _selectDirectory,
-            onClearDir: () => setState(() {
-              _selectedDirectory = null;
+            appendDate: _appendDate,
+            onAppendDateChanged: (value) => setState(() {
+              _appendDate = value;
               _savedFile = null;
             }),
           ),
-          const SizedBox(height: 24),
-          ExportShareButton(
-            hasExported: _savedFile != null,
-            isRunning: _isRunning,
-            onExport: _canExport ? _export : null,
+          const SizedBox(height: 8),
+          ExportLocationCard(
+            selectedDir: _selectedDirectory,
+            output: _savedFile,
+            enabled: !_isRunning,
+            onSelectDir: _selectDirectory,
+            onClearDir: _clearDestination,
             onShare: _share,
+            onOpenFolder: _openFolder,
+            onDismiss: _clearDestination,
           ),
         ],
       ),
@@ -111,37 +144,49 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
       ),
     );
 
+    final body = isLargeScreen
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: settingsPane),
+              Expanded(child: previewPane),
+            ],
+          )
+        : Column(
+            children: [
+              TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
+                  Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [settingsPane, previewPane],
+                ),
+              ),
+            ],
+          );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Export user configs')),
       body: SafeArea(
-        child: isLargeScreen
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: settingsPane),
-                  Expanded(child: previewPane),
-                ],
-              )
-            : Column(
-                children: [
-                  TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(
-                        icon: Icon(Icons.settings_outlined),
-                        text: 'Settings',
-                      ),
-                      Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
-                    ],
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [settingsPane, previewPane],
-                    ),
-                  ),
-                ],
-              ),
+        child: Column(
+          children: [
+            Expanded(child: body),
+            ExportActionBar(
+              label: 'Export settings',
+              repeatLabel: 'Export another',
+              icon: Icons.file_upload_outlined,
+              canExport: _canExport,
+              isRunning: _isRunning,
+              hasOutput: _savedFile != null,
+              onExport: _export,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -155,7 +200,47 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
 
   Future<void> _loadPreview() async {
     try {
-      final preview = await _service.currentPreview();
+      final database = ref.read(databaseProvider);
+      final projectUuid = ref.read(projectUuidProvider);
+      final definitions = await _service.availableCustomFields(
+        database,
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+      );
+      _selectedCustomFieldIds.addAll(
+        definitions.map((definition) => definition.id!),
+      );
+      final preview = await _service.currentPreview(
+        database: database,
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+        selectedDefinitionIds: _selectedCustomFieldIds,
+      );
+      if (!mounted) return;
+      setState(() {
+        _customFields = definitions;
+        _preview = preview;
+        _isLoadingPreview = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _previewError = error.toString();
+        _isLoadingPreview = false;
+      });
+    }
+  }
+
+  Future<void> _refreshPreview() async {
+    setState(() {
+      _isLoadingPreview = true;
+      _previewError = null;
+    });
+    try {
+      final projectUuid = ref.read(projectUuidProvider);
+      final preview = await _service.currentPreview(
+        database: ref.read(databaseProvider),
+        projectUuid: projectUuid.isEmpty ? null : projectUuid,
+        selectedDefinitionIds: _selectedCustomFieldIds,
+      );
       if (!mounted) return;
       setState(() {
         _preview = preview;
@@ -184,13 +269,24 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     try {
       final output = await AppIOServices(
         dir: _selectedDirectory,
-        fileStem: _exportController.fileNameCtr.text.trim(),
+        fileStem: _appendDate
+            ? appendDateToFileStem(
+                _exportController.fileNameCtr.text,
+                DateTime.now(),
+              )
+            : _exportController.fileNameCtr.text.trim(),
         ext: _format.extension,
       ).getSavePath();
       await _service.export(
         output: output,
         format: _format,
         sections: _selectedSections,
+        database: ref.read(databaseProvider),
+        projectUuid: switch (ref.read(projectUuidProvider)) {
+          final uuid when uuid.isNotEmpty => uuid,
+          _ => null,
+        },
+        selectedDefinitionIds: _selectedCustomFieldIds,
       );
       if (!mounted) return;
       setState(() => _savedFile = output);
@@ -210,6 +306,29 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     }
   }
 
+  /// Closing the result also drops the directory, so one tap lands back on the
+  /// directory input rather than on a filled-in path that needs clearing too.
+  void _clearDestination() {
+    setState(() {
+      _selectedDirectory = null;
+      _savedFile = null;
+    });
+  }
+
+  Future<void> _openFolder() async {
+    final file = _savedFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(file);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
+  }
+
   Future<void> _share() async {
     final file = _savedFile;
     if (file == null) return;
@@ -221,5 +340,78 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
         context,
       ).showSnackBar(SnackBar(content: ErrorText(error: error.toString())));
     }
+  }
+}
+
+class _CustomFieldDefinitionPicker extends StatelessWidget {
+  const _CustomFieldDefinitionPicker({
+    required this.definitions,
+    required this.selectedIds,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final List<CustomFieldDefinitionData> definitions;
+  final Set<int> selectedIds;
+  final bool enabled;
+  final ValueChanged<Set<int>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Custom field templates',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              TextButton(
+                onPressed: enabled
+                    ? () => onChanged(
+                        definitions.map((field) => field.id!).toSet(),
+                      )
+                    : null,
+                child: const Text('Select all'),
+              ),
+              TextButton(
+                onPressed: enabled && selectedIds.isNotEmpty
+                    ? () => onChanged({})
+                    : null,
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+          if (definitions.isEmpty)
+            const ListTile(title: Text('No custom fields available'))
+          else
+            for (final definition in definitions)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(definition.name),
+                subtitle: Text(
+                  '${definition.placement.label} • '
+                  '${definition.fieldScope.name}',
+                ),
+                value: selectedIds.contains(definition.id),
+                onChanged: enabled
+                    ? (selected) {
+                        final next = Set<int>.of(selectedIds);
+                        if (selected ?? false) {
+                          next.add(definition.id!);
+                        } else {
+                          next.remove(definition.id);
+                        }
+                        onChanged(next);
+                      }
+                    : null,
+              ),
+        ],
+      ),
+    );
   }
 }

@@ -1,0 +1,29 @@
+---
+title: "Combine un proyecto y resuelva conflictos"
+sidebar:
+  order: 6
+---
+
+Combine registros de otra copia del mismo proyecto mediante la revisión guiada de conflictos.
+
+## Pasos
+
+{% steps %}
+
+1. Haga una copia de seguridad de la base de datos receptora.
+2. Abra el proyecto receptor y seleccione `Merge project`.
+3. Elija un proyecto JSON.GZ, ZIP, TAR.GZ o un NAHPU Data Package compatible.
+4. Revise información del proyecto, personal, taxonomía, sitios, eventos, especímenes y narrativas en el orden presentado.
+5. Para cada conflicto, elija `Keep current`, `Use imported`, `Import as new` o `Skip`.
+6. Revise el resumen final, ejecute la combinación y después verifique recuentos y medios.
+{% /steps %}
+
+{% aside type="caution" %}
+
+Use `Force merge` solo cuando UUID diferentes se refieran realmente al mismo proyecto de campo y la discrepancia haya sido investigada.
+
+{% /aside %}
+
+## Más información
+
+[Abra la guía completa](https://nahpu.app/es/usages/export/project-transfer/#merge-into-the-matching-project)

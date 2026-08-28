@@ -1,4 +1,5 @@
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 
 /// Default columns for the print-labels specimen table (field ids from
 /// [labelTemplateAvailableFieldIds]).
@@ -54,6 +55,10 @@ List<String> labelTemplateAvailableFieldIds(Database db) {
 }
 
 /// Keeps saved field-id lists aligned with the current catalog.
+///
+/// Saved ids are canonicalized first. Without that, a column saved under a
+/// namespace that has since moved -- `site::country` before geography became
+/// its own table -- would fail the catalog check and be dropped silently.
 List<String> normalizePrintSpecimenTableColumnIds(
   List<String> ids,
   Database db,
@@ -61,5 +66,8 @@ List<String> normalizePrintSpecimenTableColumnIds(
   final allowed = labelTemplateAvailableFieldIds(
     db,
   ).map((e) => e.toLowerCase()).toSet();
-  return ids.where((id) => allowed.contains(id.toLowerCase())).toList();
+  return ids
+      .map(canonicalizeSpecimenAttributeSourceKey)
+      .where((id) => allowed.contains(id.toLowerCase()))
+      .toList();
 }

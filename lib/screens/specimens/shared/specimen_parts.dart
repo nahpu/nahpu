@@ -9,8 +9,10 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
@@ -22,6 +24,10 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({
@@ -40,13 +46,24 @@ class PartDataForm extends ConsumerStatefulWidget {
 class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final int _length = 3;
+
+  int get _length => supportsParasites(widget.catalogFmt) ? 3 : 2;
 
   @override
   void initState() {
     super.initState();
 
     _tabController = TabController(length: _length, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant PartDataForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (supportsParasites(oldWidget.catalogFmt) !=
+        supportsParasites(widget.catalogFmt)) {
+      _tabController.dispose();
+      _tabController = TabController(length: _length, vsync: this);
+    }
   }
 
   @override
@@ -59,7 +76,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
   Widget build(BuildContext context) {
     return FormCard(
       isWithTitle: false,
-      infoContent: const SpecimenPartInfoContent(),
+      infoTopic: InfoTopic.specimenParts,
       isWithSidePadding: false,
       child: CommonTabBars(
         tabController: _tabController,
@@ -71,7 +88,8 @@ class PartDataFormState extends ConsumerState<PartDataForm>
               matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
             ),
           ),
-          const Tab(icon: Icon(Icons.bug_report_outlined)),
+          if (supportsParasites(widget.catalogFmt))
+            const Tab(icon: Icon(Icons.bug_report_outlined)),
           Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
@@ -79,8 +97,11 @@ class PartDataFormState extends ConsumerState<PartDataForm>
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          ParasiteForms(specimenUuid: widget.specimenUuid),
-          AssociatedDataViewer(specimenUuid: widget.specimenUuid),
+          if (supportsParasites(widget.catalogFmt))
+            ParasiteForms(specimenUuid: widget.specimenUuid),
+          AssociatedDataViewer(
+            target: AssociatedDataTarget.specimen(widget.specimenUuid),
+          ),
         ],
       ),
     );
@@ -105,7 +126,7 @@ class SpecimenPartFields extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Specimen Parts',
-          infoContent: SpecimenPartInfoContent(),
+          infoTopic: InfoTopic.specimenParts,
         ),
         SizedBox(
           height: 450,
@@ -603,9 +624,11 @@ class PartForm extends ConsumerStatefulWidget {
 
 class PartFormState extends ConsumerState<PartForm> {
   bool _showMore = false;
+  final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   @override
   void dispose() {
+    _customFields.dispose();
     widget.partCtr.dispose();
     super.dispose();
   }
@@ -613,6 +636,7 @@ class PartFormState extends ConsumerState<PartForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      footer: FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -650,20 +674,24 @@ class PartFormState extends ConsumerState<PartForm> {
               ),
             ),
           ),
+          if (widget.isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
+              showAll: _showMore,
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.specimenPart,
+              specimenUuid: widget.specimenUuid,
+              controller: _customFields,
+              showAll: _showMore,
+            ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () {
               setState(() {
                 _showMore = !_showMore;
               });
-            },
-          ),
-          const SizedBox(height: 16),
-          FormButton(
-            isEditing: widget.isEditing,
-            onSubmitted: () {
-              widget.isEditing ? _updatePart() : _createPart();
-              Navigator.of(context).pop();
             },
           ),
         ],
@@ -678,18 +706,33 @@ class PartFormState extends ConsumerState<PartForm> {
       widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
       widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
-  Future<void> _createPart() async {
-    SpecimenPartCompanion form = _getForm();
-
-    await SpecimenPartServices(ref: ref).createSpecimenPart(form);
-  }
-
-  Future<void> _updatePart() async {
-    SpecimenPartCompanion form = _getForm();
-
-    await SpecimenPartServices(
-      ref: ref,
-    ).updateSpecimenPart(widget.specimenPartId!, form);
+  Future<void> _submit() async {
+    try {
+      if (widget.isEditing) {
+        await SpecimenPartServices(
+          ref: ref,
+        ).updateSpecimenPart(widget.specimenPartId!, _getForm());
+      } else {
+        final database = ref.read(databaseProvider);
+        await database.transaction(() async {
+          final id = await SpecimenPartServices(
+            ref: ref,
+          ).createSpecimenPart(_getForm());
+          await ref
+              .read(customFieldServiceProvider)
+              .setValues(
+                CustomFieldOwner.specimenPart(id),
+                _customFields.values,
+              );
+        });
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to save specimen part: $error')),
+      );
+    }
   }
 
   SpecimenPartCompanion _getForm() {
@@ -1018,8 +1061,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.storageCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.storageCtr,
-            labelText: 'Storage',
-            hintText: 'Enter storage medium or method',
+            labelText: 'Storage type',
+            hintText: 'Enter storage type',
             isLastField: false,
           ),
         ),
@@ -1028,7 +1071,8 @@ class PartCurationFields extends StatelessWidget {
           child: CommonTextField(
             controller: partCtr.storageLocationCtr,
             labelText: 'Storage location',
-            hintText: 'Enter freezer, cabinet, shelf, or container',
+            hintText:
+                'It can be cell or jar ID, following your museum convention',
             isLastField: false,
           ),
         ),
@@ -1410,24 +1454,5 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
 
   bool _hasNoId() {
     return widget.tissueIDct.text.isEmpty;
-  }
-}
-
-class SpecimenPartInfoContent extends StatelessWidget {
-  const SpecimenPartInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content:
-              'List of specimen parts collected from the specimen, '
-              'such as skin, skull, liver, etc.'
-              ' You can edit the type and treatments list in the settings,',
-        ),
-      ],
-    );
   }
 }

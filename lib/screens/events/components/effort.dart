@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -27,7 +27,7 @@ class CollEffort extends StatelessWidget {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Effort',
-      infoContent: const EffortInfoContent(),
+      infoTopic: InfoTopic.eventEffort,
       child: SizedBox(
         height: 484,
         child: CollEffortList(collEventId: collEventId),
@@ -214,7 +214,7 @@ class NewCollEffort extends ConsumerWidget {
     final collToolCtr = CollEffortCtrModel.empty();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Method'),
+        title: const Text('Add Effort'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -395,31 +395,45 @@ class CollEffortFormState extends ConsumerState<CollEffortForm> {
     return ScrollableConstrainedLayout(
       child: Column(
         children: [
-          CollectionMethods(ctr: widget.collToolCtr),
-          CommonTextField(
-            controller: widget.collToolCtr.brandCtr,
-            labelText: 'Brand and Model',
-            hintText: 'Enter brand and Model of the tool',
-            isLastField: false,
+          FormSection(
+            title: 'Effort',
+            child: Column(
+              children: [
+                CollectionMethods(ctr: widget.collToolCtr),
+                CommonNumField(
+                  controller: widget.collToolCtr.countCtr,
+                  labelText: 'Count',
+                  hintText: 'How many of this tool were used (if applicable)?',
+                  isLastField: false,
+                ),
+              ],
+            ),
           ),
-          CommonNumField(
-            controller: widget.collToolCtr.countCtr,
-            labelText: 'Count',
-            hintText: 'How many of this tool were used?',
-            isLastField: false,
-          ),
-          CommonTextField(
-            controller: widget.collToolCtr.sizeCtr,
-            labelText: 'Size',
-            hintText: 'Enter size of the tool (if applicable)',
-            isLastField: false,
-          ),
-          CommonTextField(
-            controller: widget.collToolCtr.noteCtr,
-            maxLines: 3,
-            labelText: 'Notes',
-            hintText: 'Enter any notes about the tool (if applicable)',
-            isLastField: true,
+          FormSection(
+            title: 'Method details',
+            child: Column(
+              children: [
+                CommonTextField(
+                  controller: widget.collToolCtr.brandCtr,
+                  labelText: 'Brand and Model',
+                  hintText: 'Enter brand and model of the tool (if applicable)',
+                  isLastField: false,
+                ),
+                CommonTextField(
+                  controller: widget.collToolCtr.sizeCtr,
+                  labelText: 'Size',
+                  hintText: 'Enter size of the tool (if applicable)',
+                  isLastField: false,
+                ),
+                CommonTextField(
+                  controller: widget.collToolCtr.noteCtr,
+                  maxLines: 3,
+                  labelText: 'Notes',
+                  hintText: 'Enter any notes about the tool (if applicable)',
+                  isLastField: true,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           FormButton(
@@ -511,24 +525,5 @@ class CollectionMethods extends ConsumerWidget {
           loading: () => const CommonProgressIndicator(),
           error: (e, _) => Text(e.toString()),
         );
-  }
-}
-
-class EffortInfoContent extends StatelessWidget {
-  const EffortInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Effort information for the event. '
-              'This includes the method used, the brand and model of the tool, '
-              'the count of the tool, the size of the tool, and any notes about the '
-              'tool.',
-        ),
-      ],
-    );
   }
 }

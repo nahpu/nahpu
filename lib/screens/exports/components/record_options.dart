@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -26,10 +26,9 @@ class RecordOptionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.4),
+      color: Theme.of(
+        context,
+      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -42,14 +41,14 @@ class RecordOptionsCard extends StatelessWidget {
             const SizedBox(height: 16),
             DropdownButtonFormField<RecordType>(
               initialValue: recordType,
-              decoration: const InputDecoration(
-                labelText: 'Record type',
-              ),
+              decoration: const InputDecoration(labelText: 'Record type'),
               items: recordTypeList
-                  .map((e) => DropdownMenuItem(
-                        value: RecordType.values[recordTypeList.indexOf(e)],
-                        child: CommonDropdownText(text: e),
-                      ))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: RecordType.values[recordTypeList.indexOf(e)],
+                      child: CommonDropdownText(text: e),
+                    ),
+                  )
                   .toList(),
               onChanged: onRecordTypeChanged,
             ),
@@ -57,15 +56,15 @@ class RecordOptionsCard extends StatelessWidget {
               visible: recordType == RecordType.specimenRecord,
               child: DropdownButtonFormField<TaxonRecordType?>(
                 initialValue: taxonRecordType,
-                decoration: const InputDecoration(
-                  labelText: 'Taxon group',
-                ),
+                decoration: const InputDecoration(labelText: 'Taxon group'),
                 items: taxonRecordTypeList
-                    .map((e) => DropdownMenuItem(
-                          value: TaxonRecordType
-                              .values[taxonRecordTypeList.indexOf(e)],
-                          child: CommonDropdownText(text: e),
-                        ))
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: TaxonRecordType
+                            .values[taxonRecordTypeList.indexOf(e)],
+                        child: CommonDropdownText(text: e),
+                      ),
+                    )
                     .toList(),
                 onChanged: onTaxonRecordTypeChanged,
               ),
@@ -74,15 +73,15 @@ class RecordOptionsCard extends StatelessWidget {
               visible: isMammalSpecimenRecord,
               child: DropdownButtonFormField<MammalRecordType>(
                 initialValue: mammalRecordType,
-                decoration: const InputDecoration(
-                  labelText: 'Mammal group',
-                ),
+                decoration: const InputDecoration(labelText: 'Mammal group'),
                 items: mammalGroupList
-                    .map((e) => DropdownMenuItem(
-                          value: MammalRecordType
-                              .values[mammalGroupList.indexOf(e)],
-                          child: CommonDropdownText(text: e),
-                        ))
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value:
+                            MammalRecordType.values[mammalGroupList.indexOf(e)],
+                        child: CommonDropdownText(text: e),
+                      ),
+                    )
                     .toList(),
                 onChanged: onMammalRecordTypeChanged,
               ),

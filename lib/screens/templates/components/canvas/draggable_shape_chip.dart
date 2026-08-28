@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/templates/canvas_snap_service.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
@@ -61,7 +61,7 @@ class DraggableShapeChip extends StatefulWidget {
   final TemplatePanMmDeltaCallback templatePanToMmDelta;
   final void Function(Offset newPosMm) onMoved;
   final void Function(double xMm, double yMm, double widthMm, double heightMm)
-      onBoundsChanged;
+  onBoundsChanged;
   final void Function(int rotationDegrees) onRotationChanged;
   final VoidCallback? onDelete;
   final bool isSelected;
@@ -123,11 +123,11 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
   int get _effectiveRotationDeg => _rotateLiveDeg ?? widget.rotationDegrees;
 
   Rect get _widgetRect => Rect.fromLTWH(
-        widget.position.dx,
-        widget.position.dy,
-        widget.widthMm,
-        widget.heightMm,
-      );
+    widget.position.dx,
+    widget.position.dy,
+    widget.widthMm,
+    widget.heightMm,
+  );
 
   bool _isSameRect(Rect a, Rect b) {
     const tolerance = 1e-6;
@@ -222,20 +222,26 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     _rotateStartElemDeg = widget.rotationDegrees;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    _rotateStartFingerRad =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    _rotateStartFingerRad = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
   }
 
   void _onRotatePanUpdate(DragUpdateDetails d) {
     if (_rotateStartFingerRad == null || _rotateStartElemDeg == null) return;
     final box = _measureKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
-    final c =
-        box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2));
-    final cur =
-        math.atan2(d.globalPosition.dy - c.dy, d.globalPosition.dx - c.dx);
+    final c = box.localToGlobal(
+      Offset(box.size.width / 2, box.size.height / 2),
+    );
+    final cur = math.atan2(
+      d.globalPosition.dy - c.dy,
+      d.globalPosition.dx - c.dx,
+    );
     final delta = normalizeRadiansDelta(cur - _rotateStartFingerRad!);
     final deg = CustomImageElement.normalizeImageRotationDegrees(
       _rotateStartElemDeg! + radiansToDegrees(delta),
@@ -370,8 +376,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
     final borderColor = _moving
         ? scheme.primary
         : widget.isSelected
-            ? scheme.primary
-            : scheme.outline;
+        ? scheme.primary
+        : scheme.outline;
 
     // Padded outer stack so handles/rotate sit inside hit-test bounds (Flutter
     // does not hit-test children outside a tight w×h Stack).
@@ -409,8 +415,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 child: GestureDetector(
                   key: _measureKey,
                   behavior: HitTestBehavior.opaque,
-                  onTapDown:
-                      widget.isLocked ? (_) => widget.onTap?.call() : null,
+                  onTapDown: widget.isLocked
+                      ? (_) => widget.onTap?.call()
+                      : null,
                   onTap: widget.isLocked ? null : widget.onTap,
                   onPanStart: widget.isLocked
                       ? null
@@ -433,7 +440,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           final gDelta = details.globalPosition - last;
                           _imageMovePanLastGlobal = details.globalPosition;
                           final dMm = _mmDeltaFromGlobalDrag(
-                              details.globalPosition, gDelta);
+                            details.globalPosition,
+                            gDelta,
+                          );
                           final origin = _imagePanOriginMm ?? widget.position;
                           _imagePanAccumMm += dMm;
                           final lr = _resizeLiveRect;
@@ -469,8 +478,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                           );
                           setState(() {
                             _imageDragLiveMm = snapResult.position;
-                            _snapResult =
-                                snapResult.hasGuide ? snapResult : null;
+                            _snapResult = snapResult.hasGuide
+                                ? snapResult
+                                : null;
                           });
                         },
                   onPanEnd: widget.isLocked
@@ -495,7 +505,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                         },
                   child: widget.isVisible
                       ? AnimatedContainer(
-                          duration: (_resizeCorner != null ||
+                          duration:
+                              (_resizeCorner != null ||
                                   _rotateStartFingerRad != null ||
                                   _moving)
                               ? Duration.zero
@@ -511,8 +522,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                             boxShadow: _moving
                                 ? [
                                     BoxShadow(
-                                      color: scheme.primary
-                                          .withValues(alpha: 0.25),
+                                      color: scheme.primary.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -533,7 +545,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                                   fillColor: widget.fillColorArgb != null
                                       ? Color(widget.fillColorArgb!)
                                       : null,
-                                  strokeThicknessPx: widget.strokeThicknessPt *
+                                  strokeThicknessPx:
+                                      widget.strokeThicknessPt *
                                       widget.scale /
                                       _kPdfPointsPerMm,
                                   strokeStyle: widget.strokeStyle,
@@ -545,8 +558,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                                 child: Icon(
                                   Icons.drag_indicator,
                                   size: 14,
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.5),
+                                  color: scheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                               ),
                             ],
@@ -555,7 +569,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                       : Opacity(
                           opacity: 0.35,
                           child: AnimatedContainer(
-                            duration: (_resizeCorner != null ||
+                            duration:
+                                (_resizeCorner != null ||
                                     _rotateStartFingerRad != null ||
                                     _moving)
                                 ? Duration.zero
@@ -571,8 +586,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                               boxShadow: _moving
                                   ? [
                                       BoxShadow(
-                                        color: scheme.primary
-                                            .withValues(alpha: 0.25),
+                                        color: scheme.primary.withValues(
+                                          alpha: 0.25,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -595,8 +611,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                                         : null,
                                     strokeThicknessPx:
                                         widget.strokeThicknessPt *
-                                            widget.scale /
-                                            _kPdfPointsPerMm,
+                                        widget.scale /
+                                        _kPdfPointsPerMm,
                                     strokeStyle: widget.strokeStyle,
                                   ),
                                 ),
@@ -606,8 +622,9 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                                   child: Icon(
                                     Icons.drag_indicator,
                                     size: 14,
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.5),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -617,14 +634,38 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
                 ),
               ),
               if (widget.isSelected && !widget.isLocked) ...[
-                _cornerHandle(_ShapeCorner.tl, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.tr, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.bl, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
-                _cornerHandle(_ShapeCorner.br, scheme,
-                    innerLeft: padL, innerTop: padT, innerW: w, innerH: h),
+                _cornerHandle(
+                  _ShapeCorner.tl,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  _ShapeCorner.tr,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  _ShapeCorner.bl,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
+                _cornerHandle(
+                  _ShapeCorner.br,
+                  scheme,
+                  innerLeft: padL,
+                  innerTop: padT,
+                  innerW: w,
+                  innerH: h,
+                ),
                 Positioned(
                   left: padL + w / 2 - 24,
                   top: math.max(
@@ -701,7 +742,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
       children: [
         if (snapResult.verticalGuideMm != null)
           Positioned(
-            left: snapResult.verticalGuideMm! * widget.scale +
+            left:
+                snapResult.verticalGuideMm! * widget.scale +
                 widget.canvasInsetXPx -
                 _snapGuideWidthPx / 2,
             top: widget.canvasInsetYPx,
@@ -712,7 +754,8 @@ class DraggableShapeChipState extends State<DraggableShapeChip> {
         if (snapResult.horizontalGuideMm != null)
           Positioned(
             left: widget.canvasInsetXPx,
-            top: widget.canvasInsetYPx +
+            top:
+                widget.canvasInsetYPx +
                 snapResult.horizontalGuideMm! * widget.scale -
                 _snapGuideWidthPx / 2,
             width: widget.templateWidthMm * widget.scale,
@@ -799,10 +842,14 @@ class ShapePainter extends CustomPainter {
         final innerRect = Rect.fromLTWH(
           doubleInset + strokeThicknessPx / 2,
           doubleInset + strokeThicknessPx / 2,
-          (size.width - 2 * doubleInset - strokeThicknessPx)
-              .clamp(0.0, double.infinity),
-          (size.height - 2 * doubleInset - strokeThicknessPx)
-              .clamp(0.0, double.infinity),
+          (size.width - 2 * doubleInset - strokeThicknessPx).clamp(
+            0.0,
+            double.infinity,
+          ),
+          (size.height - 2 * doubleInset - strokeThicknessPx).clamp(
+            0.0,
+            double.infinity,
+          ),
         );
         if (innerRect.width > 0 && innerRect.height > 0) {
           canvas.drawPath(_shapePath(innerRect), strokePaint);

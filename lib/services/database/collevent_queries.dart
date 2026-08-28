@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 
 part 'collevent_queries.g.dart';
 
@@ -28,12 +30,58 @@ class CollEventQuery extends DatabaseAccessor<Database>
     return sites;
   }
 
-  /// Returns events oldest-first so new records are the final form page.
-  Future<List<CollEventData>> getAllCollEvents(String projectUuid) async {
-    return await (select(collEvent)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..orderBy([(row) => OrderingTerm.asc(row.id)]))
-        .get();
+  /// Returns events in [sort] order. The default keeps insertion order, so new
+  /// records are the final form page.
+  Future<List<CollEventData>> getAllCollEvents(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+  }) async {
+    if (sort.isDefault) {
+      return await (select(collEvent)
+            ..where((t) => t.projectUuid.equals(projectUuid))
+            ..orderBy([(row) => OrderingTerm.asc(row.id)]))
+          .get();
+    }
+    // The displayed event id spans the site, so join it in even when the sort
+    // does not need it — an empty join is not worth a second query shape.
+    final query =
+        select(
+            collEvent,
+          ).join([leftOuterJoin(site, collEvent.siteID.equalsExp(site.id))])
+          ..where(collEvent.projectUuid.equals(projectUuid))
+          ..orderBy(_orderingTerms(sort));
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(collEvent)).toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(RecordSort sort) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        // Order by the components `formatCollEventId` composes, not by a
+        // concatenated string: that keeps `2-` ahead of `10-`.
+        RecordSortField.eventId => [
+          ...textSortTerms(site.siteID, direction),
+          ...textSortTerms(collEvent.startDate, direction),
+          ...textSortTerms(collEvent.idSuffix, direction),
+        ],
+        // Start dates are ISO `yyyy-MM-dd` text, so lexicographic ordering is
+        // chronological.
+        RecordSortField.startDate => textSortTerms(
+          collEvent.startDate,
+          direction,
+        ),
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(
+            expression: collEvent.id,
+            mode: orderingModeFor(direction),
+          ),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(collEvent.id),
+    ];
   }
 
   Future<List<int>> getEventPerSite(int siteID) async {
@@ -48,6 +96,13 @@ class CollEventQuery extends DatabaseAccessor<Database>
           ..where((t) => t.id.equals(id))
           ..limit(1))
         .getSingle();
+  }
+
+  Future<List<String>> getDistinctPrimaryActivities() async {
+    final data = await select(collEvent).get();
+    return getDistinctList(
+      data.map((event) => event.primaryCollMethod).toList(),
+    );
   }
 
   Future<void> createEventMedia(EventMediaCompanion form) {
@@ -198,24 +253,26 @@ class CollPersonnelQuery extends DatabaseAccessor<Database>
   }
 }
 
-class WeatherDataQuery extends DatabaseAccessor<Database>
+class EnvironmentDataQuery extends DatabaseAccessor<Database>
     with _$CollEventQueryMixin {
-  WeatherDataQuery(super.db);
+  EnvironmentDataQuery(super.db);
 
-  Future<int> createWeatherData(WeatherCompanion form) =>
-      into(weather).insert(form);
+  Future<int> createEnvironmentData(EnvironmentCompanion form) =>
+      into(environment).insert(form);
 
-  Future updateWeatherDataEntry(int id, WeatherCompanion entry) {
-    return (update(weather)..where((t) => t.eventID.equals(id))).write(entry);
+  Future updateEnvironmentDataEntry(int id, EnvironmentCompanion entry) {
+    return (update(
+      environment,
+    )..where((t) => t.eventID.equals(id))).write(entry);
   }
 
-  Future<WeatherData> getWeatherDataByEventId(int weatherId) async {
+  Future<EnvironmentData> getEnvironmentDataByEventId(int eventId) async {
     return await (select(
-      weather,
-    )..where((t) => t.eventID.equals(weatherId))).getSingle();
+      environment,
+    )..where((t) => t.eventID.equals(eventId))).getSingle();
   }
 
-  Future<void> deleteWeatherData(int eventId) {
-    return (delete(weather)..where((t) => t.eventID.equals(eventId))).go();
+  Future<void> deleteEnvironmentData(int eventId) {
+    return (delete(environment)..where((t) => t.eventID.equals(eventId))).go();
   }
 }

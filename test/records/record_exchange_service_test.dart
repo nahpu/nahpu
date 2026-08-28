@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,9 +11,14 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
+import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
+
+import '../data/site_fixture.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +99,17 @@ void main() {
           ),
         );
     await database
+        .into(database.siteAttribute)
+        .insert(
+          SiteAttributeCompanion(
+            siteID: Value(sourceSite),
+            habitatType: const Value('Forest'),
+            habitatCondition: const Value('Intact'),
+            habitatDescription: const Value('Lowland rainforest'),
+            canopyCover: const Value('75%'),
+          ),
+        );
+    await database
         .into(database.coordinate)
         .insert(
           CoordinateCompanion(
@@ -127,6 +143,13 @@ void main() {
     expect(importedSite.siteID, 'Camp A');
     expect(importedSite.projectUuid, 'project-a');
     expect(importedSite.leadStaffId, 'person-a');
+    final importedAttribute = await (database.select(
+      database.siteAttribute,
+    )..where((row) => row.siteID.equals(result.recordId))).getSingle();
+    expect(importedAttribute.habitatType, 'Forest');
+    expect(importedAttribute.habitatCondition, 'Intact');
+    expect(importedAttribute.habitatDescription, 'Lowland rainforest');
+    expect(importedAttribute.canopyCover, '75%');
 
     final coordinates = await (database.select(
       database.coordinate,
@@ -148,7 +171,7 @@ void main() {
   });
 
   testWidgets(
-    'event package round-trips effort, personnel, weather, and site',
+    'event package round-trips effort, personnel, environment, and site',
     (tester) async {
       await setUpService(tester);
       addTearDown(tearDownService);
@@ -191,7 +214,7 @@ void main() {
               projectUuid: const Value('project-a'),
               siteID: Value(sourceSite),
               startDate: const Value('2026-07-23'),
-              primaryCollMethod: const Value('Mist net'),
+              primaryCollMethod: const Value('Recording'),
             ),
           );
       await database
@@ -214,15 +237,46 @@ void main() {
             ),
           );
       await database
-          .into(database.weather)
+          .into(database.environment)
           .insert(
-            WeatherCompanion(
+            EnvironmentCompanion(
               eventID: Value(sourceEvent),
               lowestDayTempC: const Value(18.5),
               highestDayTempC: const Value(27.0),
               moonPhase: const Value('Full moon'),
+              cloudCover: const Value('7'),
+              rainfallInMm: const Value(12.5),
+              ambientHumidity: const Value(88.0),
+              pH: const Value(6.8),
             ),
           );
+      final associatedDataId = await AssociatedDataQuery(database)
+          .createProjectAssociatedData(
+            const AssociatedDataCompanion(
+              projectUuid: Value('project-a'),
+              name: Value('Event field notes'),
+              type: Value('Link'),
+              uri: Value('https://example.org/event-notes'),
+            ),
+          );
+      await AssociatedDataQuery(
+        database,
+      ).linkToEvent(associatedDataId, sourceEvent);
+      final customFieldService = CustomFieldService(database);
+      final windField = await customFieldService.createDefinition(
+        const CustomFieldDraft(
+          name: 'Wind direction',
+          type: FieldType.text,
+          placement: FieldUISection.environmentalData,
+          scope: FieldScope.project,
+          projectUuid: 'project-a',
+        ),
+      );
+      await customFieldService.setValue(
+        CustomFieldOwner.environment(sourceEvent),
+        windField.id!,
+        'Northwest',
+      );
 
       final payload = await service.exportEvent(sourceEvent);
       final result = await service.importPayload(
@@ -235,7 +289,7 @@ void main() {
         database.collEvent,
       )..where((row) => row.id.equals(result.recordId))).getSingle();
       expect(importedEvent.siteID, sourceSite);
-      expect(importedEvent.primaryCollMethod, 'Mist net');
+      expect(importedEvent.primaryCollMethod, 'Recording');
       expect(
         await (database.select(
           database.collEffort,
@@ -248,13 +302,121 @@ void main() {
         )..where((row) => row.eventID.equals(result.recordId))).get(),
         hasLength(1),
       );
-      final weather = await (database.select(
-        database.weather,
+      final environment = await (database.select(
+        database.environment,
       )..where((row) => row.eventID.equals(result.recordId))).getSingle();
-      expect(weather.highestDayTempC, 27.0);
-      expect(weather.moonPhase, 'Full moon');
+      expect(environment.highestDayTempC, 27.0);
+      expect(environment.moonPhase, 'Full moon');
+      expect(environment.cloudCover, '7');
+      expect(environment.rainfallInMm, 12.5);
+      expect(environment.ambientHumidity, 88.0);
+      expect(environment.pH, 6.8);
+      final importedCustomValues = await customFieldService.getEntries(
+        CustomFieldOwner.environment(result.recordId),
+      );
+      expect(importedCustomValues, hasLength(1));
+      expect(importedCustomValues.single.definition.name, 'Wind direction');
+      expect(importedCustomValues.single.value?.value, 'Northwest');
+      final associatedData = await AssociatedDataQuery(
+        database,
+      ).getAssociatedDataForEvent(result.recordId);
+      expect(associatedData, hasLength(1));
+      expect(associatedData.single.name, 'Event field notes');
+      expect(associatedData.single.uri, 'https://example.org/event-notes');
     },
   );
+
+  testWidgets('site import reuses a locality the project already has', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceSite = await insertSiteWithGeography(
+      database,
+      projectUuid: 'project-a',
+      siteID: 'Camp A',
+      country: 'Indonesia',
+      stateProvince: 'Sulawesi Selatan',
+      county: 'Gowa',
+      locality: 'Mt. Bawakaraeng',
+    );
+
+    final payload = await service.exportSite(sourceSite);
+    final parsed = RecordExchangePayload.parse(
+      payload.compactEncoded,
+      expectedType: 'site',
+    );
+    final result = await service.importPayload(parsed);
+
+    final localities = await GeographyQuery(database).getAll();
+    expect(localities, hasLength(1), reason: 'the locality must be reused');
+    final imported = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(result.recordId))).getSingle();
+    final source = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(sourceSite))).getSingle();
+    expect(imported.geographyId, source.geographyId);
+    expect(localities.single.locality, 'Mt. Bawakaraeng');
+  });
+
+  testWidgets('site import creates a locality the project lacks', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceSite = await insertSiteWithGeography(
+      database,
+      projectUuid: 'project-a',
+      siteID: 'Camp A',
+      country: 'Indonesia',
+      locality: 'Mt. Bawakaraeng',
+    );
+    final payload = await service.exportSite(sourceSite);
+
+    // Drop the source side entirely, so the payload carries the only copy.
+    await (database.delete(
+      database.site,
+    )..where((row) => row.id.equals(sourceSite))).go();
+    await GeographyQuery(database).deleteUnreferenced();
+    expect(await GeographyQuery(database).getAll(), isEmpty);
+
+    final parsed = RecordExchangePayload.parse(
+      payload.compactEncoded,
+      expectedType: 'site',
+    );
+    final result = await service.importPayload(parsed);
+
+    final localities = await GeographyQuery(database).getAll();
+    expect(localities, hasLength(1));
+    final imported = await (database.select(
+      database.site,
+    )..where((row) => row.id.equals(result.recordId))).getSingle();
+    final linked = await GeographyQuery(database).getById(imported.geographyId);
+    expect(linked!.locality, 'Mt. Bawakaraeng');
+    expect(linked.country, 'Indonesia');
+  });
+
+  testWidgets('legacy v3 event imports weather as environmental data', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final payload = RecordExchangePayload.parse(
+      '{"nahpu_record":"event","version":3,"data":{'
+      '"event":{"startDate":"2026-08-16"},'
+      '"weather":{"lowestDayTempC":19.5,"averageHumidity":82,'
+      '"notes":"Legacy weather note"}}}',
+    );
+
+    final result = await service.importPayload(payload);
+    final environment = await (database.select(
+      database.environment,
+    )..where((row) => row.eventID.equals(result.recordId))).getSingle();
+    expect(environment.lowestDayTempC, 19.5);
+    expect(environment.averageHumidity, 82);
+    expect(environment.notes, 'Legacy weather note');
+  });
 
   testWidgets('event import can create the embedded linked site', (
     tester,
@@ -290,6 +452,50 @@ void main() {
       database.collEvent,
     )..where((row) => row.id.equals(result.recordId))).getSingle();
     expect(importedEvent.siteID, result.createdSiteId);
+  });
+
+  testWidgets('event replacement safely detaches prior associated data', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final sourceEvent = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+    final targetEvent = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion(projectUuid: Value('project-a')));
+    final retainingSite = await database
+        .into(database.site)
+        .insert(const SiteCompanion(projectUuid: Value('project-a')));
+    final replacementId = await AssociatedDataQuery(database)
+        .createEventDataAssociation(
+          sourceEvent,
+          const AssociatedDataCompanion(name: Value('Replacement notes')),
+        );
+    final priorId = await AssociatedDataQuery(database)
+        .createEventDataAssociation(
+          targetEvent,
+          const AssociatedDataCompanion(name: Value('Prior shared notes')),
+        );
+    await AssociatedDataQuery(database).linkToSite(priorId, retainingSite);
+
+    final payload = await service.exportEvent(sourceEvent);
+    final result = await service.importPayload(payload, targetId: targetEvent);
+
+    expect(result.recordId, targetEvent);
+    final targetData = await AssociatedDataQuery(
+      database,
+    ).getAssociatedDataForEvent(targetEvent);
+    expect(targetData.map((entry) => entry.name), ['Replacement notes']);
+    expect(
+      await AssociatedDataQuery(database).getAssociatedDataById(priorId),
+      isNotNull,
+    );
+    expect(
+      await AssociatedDataQuery(database).getAssociatedDataById(replacementId),
+      isNotNull,
+    );
   });
 
   testWidgets(
@@ -441,10 +647,76 @@ void main() {
     );
     expect(
       () => RecordExchangePayload.parse(
-        '{"nahpu_record":"site","version":2,"data":{}}',
+        '{"nahpu_record":"site","version":99,"data":{}}',
       ),
       throwsFormatException,
     );
+  });
+
+  testWidgets('specimen package round-trips arthropod attributes', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('arthropod-a'),
+            projectUuid: Value('project-a'),
+            taxonGroup: Value('Arthropods'),
+          ),
+        );
+    await database
+        .into(database.arthropodAttribute)
+        .insert(
+          const ArthropodAttributeCompanion(
+            specimenUuid: Value('arthropod-a'),
+            bodyLength: Value(12.5),
+            hostOrganism: Value('Quercus alba'),
+            lifeStage: Value('Nymph'),
+          ),
+        );
+
+    final payload = await service.exportSpecimen('arthropod-a');
+    expect(payload.version, recordExchangeVersion);
+    final measurements = Map<String, dynamic>.from(
+      payload.data['measurements'] as Map,
+    );
+    expect(
+      (measurements['arthropod'] as Map<String, dynamic>)['bodyLength'],
+      12.5,
+    );
+
+    final result = await service.importPayload(
+      RecordExchangePayload.parse(payload.compactEncoded),
+    );
+    final imported = await (database.select(
+      database.arthropodAttribute,
+    )..where((row) => row.specimenUuid.equals(result.recordUuid!))).getSingle();
+    expect(imported.bodyLength, 12.5);
+    expect(imported.hostOrganism, 'Quercus alba');
+    expect(imported.lifeStage, 'Nymph');
+  });
+
+  testWidgets('legacy v3 specimen imports integer age as life stage', (
+    tester,
+  ) async {
+    await setUpService(tester);
+    addTearDown(tearDownService);
+    final payload = RecordExchangePayload.parse(
+      '{"nahpu_record":"specimen","version":3,"data":{'
+      '"specimen":{"uuid":"legacy-mammal","taxonGroup":"Mammals"},'
+      '"measurements":{"mammal":{"age":2,"weight":14.5}}}}',
+    );
+
+    final result = await service.importPayload(payload);
+    final imported = await (database.select(
+      database.mammalAttribute,
+    )..where((row) => row.specimenUuid.equals(result.recordUuid!))).getSingle();
+    expect(imported.lifeStage, 'Juvenile');
+    expect(imported.weight, 14.5);
+    expect(imported.weightUnit, 'g');
   });
 
   testWidgets(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/services/database/database.dart' as db;
@@ -6,11 +6,13 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
+import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -132,6 +134,17 @@ class ProjectNotFound extends StatelessWidget {
           Text(
             'Create or import a project to get started.',
             style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: NahpuSpacing.xxl),
+          FilledButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SetupWizardScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.auto_fix_high_outlined),
+            label: const Text('Setup NAHPU'),
           ),
         ],
       ),
@@ -438,31 +451,12 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Project QR code'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ProjectQrCodeViewer(
-                  data: ProjectExchangeService.encodeQr(value),
-                  isFullScreen: true,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Scan this code when creating a new project to transfer '
-                  'project information.',
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
+        return QrCodeDialog(
+          title: 'Project QR code',
+          data: ProjectExchangeService.encodeQr(value),
+          description:
+              'Scan this code when creating a new project to transfer '
+              'project information.',
         );
       },
     );

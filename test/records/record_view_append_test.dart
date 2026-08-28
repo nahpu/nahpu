@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -82,8 +82,8 @@ void main() {
         .into(database.collEvent)
         .insert(const CollEventCompanion(projectUuid: Value(projectUuid)));
     await database
-        .into(database.weather)
-        .insert(WeatherCompanion(eventID: Value(id)));
+        .into(database.environment)
+        .insert(EnvironmentCompanion(eventID: Value(id)));
     return id;
   }
 

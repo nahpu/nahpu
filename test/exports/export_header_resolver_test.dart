@@ -17,8 +17,9 @@ void main() {
     });
 
     expect(
-      resolver
-          .headerFor(const ExportFieldMapping(expression: '[specimen::uuid]')),
+      resolver.headerFor(
+        const ExportFieldMapping(expression: '[specimen::uuid]'),
+      ),
       'dwc:occurrenceID',
     );
     expect(
@@ -26,6 +27,14 @@ void main() {
         const ExportFieldMapping(expression: '[taxonomy::citesStatus]'),
       ),
       'nahpu:taxonomy.citesStatus',
+    );
+    expect(
+      resolver.headerFor(
+        const ExportFieldMapping(
+          expression: '[customEnvironment::wind-direction-uuid]',
+        ),
+      ),
+      'nahpu:customEnvironment.wind-direction-uuid',
     );
   });
 
@@ -42,14 +51,11 @@ void main() {
       ),
     });
 
-    expect(
-      resolver.headersForSource('mammalAttribute::tailLength'),
-      [
-        'dwc:measurementType',
-        'dwc:measurementValue',
-        'dwc:measurementUnit',
-      ],
-    );
+    expect(resolver.headersForSource('mammalAttribute::tailLength'), [
+      'dwc:measurementType',
+      'dwc:measurementValue',
+      'dwc:measurementUnit',
+    ]);
     expect(
       resolver
           .dwcMappingForSource('mammalAttribute::tailLength')
@@ -109,14 +115,16 @@ void main() {
       headerFormat: ExportHeaderFormat.darwinCore,
       mappings: [
         ExportFieldMapping(
-            expression: '[specimen::uuid]-[specimen::fieldNumber]'),
+          expression: '[specimen::uuid]-[specimen::fieldNumber]',
+        ),
       ],
     );
 
     expect(
       validateExportPreset(preset),
       contains(
-          'Standardized header modes require a custom header for composite mappings.'),
+        'Standardized header modes require a custom header for composite mappings.',
+      ),
     );
   });
 }

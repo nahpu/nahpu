@@ -7,18 +7,24 @@ import 'package:nahpu/services/database/narrative_queries.dart';
 import 'package:intl/intl.dart';
 
 Future<void> castColumnsIntToReal(
-    Migrator m, dynamic table, List<String> colsToCast) async {
+  Migrator m,
+  dynamic table,
+  List<String> colsToCast,
+) async {
   final db = m.database as Database;
 
-  final List<String> columnNames =
-      table.$columns.map((column) => column.name).toList().cast<String>();
+  final List<String> columnNames = table.$columns
+      .map((column) => column.name)
+      .toList()
+      .cast<String>();
 
   final columnNamesCasted = columnNames.map((column) {
     return (colsToCast.contains(column)) ? 'CAST($column AS REAL)' : column;
   }).toList();
 
   await db.customStatement(
-      'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}');
+    'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}',
+  );
   await m.createTable(table);
   await db.customStatement('''
         INSERT INTO ${table.actualTableName} (${columnNames.join(', ')})
@@ -31,11 +37,14 @@ Future<void> castColumnsIntToReal(
 Future<void> alterTableHelper(Migrator m, dynamic table) async {
   final db = m.database as Database;
 
-  final List<String> columnNames =
-      table.$columns.map((column) => column.name).toList().cast<String>();
+  final List<String> columnNames = table.$columns
+      .map((column) => column.name)
+      .toList()
+      .cast<String>();
 
   await db.customStatement(
-      'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}');
+    'ALTER TABLE ${table.actualTableName} RENAME TO tmp_${table.actualTableName}',
+  );
   await m.createTable(table);
   await db.customStatement('''
         INSERT INTO ${table.actualTableName} (${columnNames.join(', ')})
@@ -53,7 +62,7 @@ Future<void> castMammalType(Migrator m) async {
     'earLength',
     'forearm',
     'testisLength',
-    'testisWidth'
+    'testisWidth',
   ];
 
   await castColumnsIntToReal(m, mammalAttribute, columnsToUpdate);
@@ -66,7 +75,8 @@ String convertDateString(String inputDateString) {
 }
 
 String convertTimeString(String inputTimeString) {
-  DateTime? parsedTime = DateFormat('h:m a').tryParse(inputTimeString) ??
+  DateTime? parsedTime =
+      DateFormat('h:m a').tryParse(inputTimeString) ??
       DateFormat('H:m').tryParse(inputTimeString);
   if (parsedTime == null) return inputTimeString;
   return DateFormat.Hms().format(parsedTime);
@@ -155,8 +165,9 @@ Future<void> migrateSpecimenDateTimeFormat(Migrator m) async {
       }
 
       // Specimen part update
-      final specimenParts =
-          await SpecimenPartQuery(db).getSpecimenParts(specimenData.uuid);
+      final specimenParts = await SpecimenPartQuery(
+        db,
+      ).getSpecimenParts(specimenData.uuid);
 
       for (final specimenPartData in specimenParts) {
         bool doSpecimenPartUpdate = false;
@@ -192,11 +203,13 @@ Future<void> migrateSpecimenDateTimeFormat(Migrator m) async {
       }
 
       // Associated data update
-      final associatedDataList = await db.customSelect(
-        'SELECT primaryId, date FROM associatedData WHERE specimenUuid = ?',
-        variables: [Variable.withString(specimenData.uuid)],
-        readsFrom: const {},
-      ).get();
+      final associatedDataList = await db
+          .customSelect(
+            'SELECT primaryId, date FROM associatedData WHERE specimenUuid = ?',
+            variables: [Variable.withString(specimenData.uuid)],
+            readsFrom: const {},
+          )
+          .get();
 
       for (final associatedDatum in associatedDataList) {
         final dateString = associatedDatum.readNullable<String>('date');
@@ -221,8 +234,9 @@ Future<void> migrateNarrativeDateTimeFormat(Migrator m) async {
   final projects = await ProjectQuery(db).getAllProjects();
 
   for (final projectData in projects) {
-    final narrativeList =
-        await NarrativeQuery(db).getAllNarrative(projectData.uuid);
+    final narrativeList = await NarrativeQuery(
+      db,
+    ).getAllNarrative(projectData.uuid);
 
     for (final narrativeData in narrativeList) {
       final narrativeJson = narrativeData.toJson();
@@ -250,8 +264,9 @@ Future<void> migrateCollEventDateTimeFormat(Migrator m) async {
   final collEventTimeFields = ['startTime', 'endTime'];
 
   for (final projectData in projects) {
-    final eventList =
-        await CollEventQuery(db).getAllCollEvents(projectData.uuid);
+    final eventList = await CollEventQuery(
+      db,
+    ).getAllCollEvents(projectData.uuid);
 
     for (final eventData in eventList) {
       bool doUpdate = false;

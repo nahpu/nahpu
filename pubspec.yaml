@@ -18,8 +18,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+36
 
 environment:
-  sdk: ">=3.10.0 <=4.1.0"
-  flutter: ">=3.38.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -39,6 +39,7 @@ dependencies:
   uuid: ^4.1.0
   url_launcher: ^6.1.5
   intl: ^0.20.0
+  yaml: ^3.1.3
   http: ^1.2.0
   crypto: ^3.0.6
   freezed_annotation: ^3.0.0
@@ -53,16 +54,17 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
-  file_picker: ^12.0.0-beta.7
+  file_picker: ^12.0.0
   geolocator: ^14.0.0
-  flutter_rust_bridge: 2.12.0
+  flutter_rust_bridge: 2.13.0
   mobile_scanner: ^7.0.0
   sqlite3: ^3.1.5
   rust_lib_nahpu:
     path: rust_builder
   timezone: ^0.11.0
-  material_ui: ^0.0.1
+  material_ui: ^1.0.0
   qr: ^4.0.0
+  mime: ^2.0.0
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
   google_fonts: ^8.1.0
@@ -76,6 +78,7 @@ dependencies:
   video_player: ^2.13.0
   fvp: ^0.37.3
   record: ^7.1.1
+  cupertino_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -102,10 +105,10 @@ flutter_launcher_icons:
   image_path_android: "assets/launcher/nahpu-bg.png"
   remove_alpha_ios: true
   adaptive_icon_background: "#f4f1de"
-  adaptive_icon_foreground: "assets/launcher/nahpu-no-bg.png"
+  adaptive_icon_foreground: "assets/launcher/nahpu-fg.png"
   windows:
     generate: true
-    image_path: "assets/launcher/nahpu-light.png"
+    image_path: "assets/launcher/nahpu-no-bg.png"
   macos:
     generate: true
     image_path: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
@@ -127,6 +130,30 @@ flutter:
     - assets/icons/
     - assets/configs/
     - assets/maps/
+    - assets/docs/info/en/
+    - assets/docs/info/pt/
+    - assets/docs/info/es/
+    - assets/docs/info/id/
+    - assets/docs/cookbook/en/
+    - assets/docs/cookbook/en/prepare/
+    - assets/docs/cookbook/en/collect/
+    - assets/docs/cookbook/en/protect-and-collaborate/
+    - assets/docs/cookbook/en/export-and-print/
+    - assets/docs/cookbook/pt/
+    - assets/docs/cookbook/pt/prepare/
+    - assets/docs/cookbook/pt/collect/
+    - assets/docs/cookbook/pt/protect-and-collaborate/
+    - assets/docs/cookbook/pt/export-and-print/
+    - assets/docs/cookbook/es/
+    - assets/docs/cookbook/es/prepare/
+    - assets/docs/cookbook/es/collect/
+    - assets/docs/cookbook/es/protect-and-collaborate/
+    - assets/docs/cookbook/es/export-and-print/
+    - assets/docs/cookbook/id/
+    - assets/docs/cookbook/id/prepare/
+    - assets/docs/cookbook/id/collect/
+    - assets/docs/cookbook/id/protect-and-collaborate/
+    - assets/docs/cookbook/id/export-and-print/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

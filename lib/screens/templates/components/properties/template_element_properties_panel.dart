@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/image_properties_panel.dart';
 import 'package:nahpu/screens/templates/components/properties/line_properties_panel.dart';
 import 'package:nahpu/screens/templates/components/properties/shape_properties_panel.dart';
@@ -33,12 +33,12 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
   final void Function(bool page1, CustomTextElement element) onUpdateCustomText;
   final void Function(bool page1, String id) onDeleteCustomText;
   final void Function(bool page1, CustomImageElement element)
-      onUpdateCustomImage;
+  onUpdateCustomImage;
   final void Function(bool page1, String id) onDeleteCustomImage;
   final void Function(bool page1, CustomLineElement element) onUpdateCustomLine;
   final void Function(bool page1, String id) onDeleteCustomLine;
   final void Function(bool page1, CustomShapeElement element)
-      onUpdateCustomShape;
+  onUpdateCustomShape;
   final void Function(bool page1, String id) onDeleteCustomShape;
   final ValueChanged<String> onDuplicateElement;
   final ValueChanged<String> onCopyElement;

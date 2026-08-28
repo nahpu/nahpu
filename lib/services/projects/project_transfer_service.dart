@@ -26,7 +26,7 @@ export 'project_transfer_models.dart';
 /// Exports and imports complete NAHPU projects with related attribute records.
 ///
 /// Archives are normalized while parsing so legacy attribute names and the
-/// v1-v3 associated-data URL field remain importable.
+/// legacy associated-data URL field remain importable.
 class ProjectTransferService extends AppServices {
   ProjectTransferService({required super.ref})
     : _database = ref.read(databaseProvider),
@@ -56,10 +56,20 @@ class ProjectTransferService extends AppServices {
     final records = <String, List<Map<String, dynamic>>>{};
     records['site'] = await _projectRows('site');
     final siteIds = _intIds(records['site']!, 'id');
+    records['siteAttribute'] = await _rowsForIds(
+      'siteAttribute',
+      'siteID',
+      siteIds,
+    );
+    records['fossilSite'] = await _rowsForIds('fossilSite', 'siteID', siteIds);
     records['coordinate'] = await _rowsForIds('coordinate', 'siteID', siteIds);
     records['collEvent'] = await _projectRows('collEvent');
     final eventIds = _intIds(records['collEvent']!, 'id');
-    records['weather'] = await _rowsForIds('weather', 'eventID', eventIds);
+    records['environment'] = await _rowsForIds(
+      'environment',
+      'eventID',
+      eventIds,
+    );
     records['collPersonnel'] = await _rowsForIds(
       'collPersonnel',
       'eventID',
@@ -92,6 +102,16 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
+    records['arthropodAttribute'] = await _rowsForStrings(
+      'arthropodAttribute',
+      'specimenUuid',
+      specimenUuids,
+    );
+    records['fossilAttribute'] = await _rowsForStrings(
+      'fossilAttribute',
+      'specimenUuid',
+      specimenUuids,
+    );
     records['specimenPart'] = await _rowsForStrings(
       'specimenPart',
       'specimenUuid',
@@ -106,6 +126,14 @@ class ProjectTransferService extends AppServices {
       'parasite',
       'specimenUuid',
       specimenUuids,
+    );
+    records['customFieldValue'] = await _projectRows('customFieldValue');
+    records['customFieldDefinition'] = await _query(
+      'SELECT DISTINCT d.* FROM customFieldDefinition d '
+      'LEFT JOIN customFieldValue v ON v.fieldDefinitionId = d.id '
+      'WHERE (d.scope = ? AND d.projectUuid = ?) '
+      'OR (d.scope = ? AND v.projectUuid = ?)',
+      ['project', currentProjectUuid, 'global', currentProjectUuid],
     );
     records['associatedData'] = await _projectRows('associatedData');
     records['specimenAssociatedData'] = await _rowsForStrings(
@@ -126,6 +154,15 @@ class ProjectTransferService extends AppServices {
       ...records['parasite']!.map((row) => row['speciesID']).whereType<int>(),
     }.toList();
     records['taxonomy'] = await _rowsForIds('taxonomy', 'id', taxonomyIds);
+
+    // Geography is shared across projects like taxonomy, so the referenced
+    // localities travel with the project and are matched on the way back in.
+    final geographyIds = records['site']!
+        .map((row) => row['geographyId'])
+        .whereType<int>()
+        .toSet()
+        .toList();
+    records['geography'] = await _rowsForIds('geography', 'id', geographyIds);
 
     final personnelIds = <String>{};
     final projectPersonnel = await _query(
@@ -302,6 +339,10 @@ class ProjectTransferService extends AppServices {
     final localSites = mode == ProjectTransferImportMode.merge
         ? await _projectRows('site', projectUuid: destinationProjectUuid)
         : <Map<String, dynamic>>[];
+    // Site summaries read their locality through the geography table now, so
+    // both sides need a lookup keyed by geography id.
+    final localGeography = _rowsById(await _query('SELECT * FROM geography'));
+    final importedGeography = _rowsById(payload.rows('geography'));
     final sourceSiteMatches = <int, int>{};
     for (final imported in payload.rows('site')) {
       final current = _findSite(localSites, imported);
@@ -317,9 +358,9 @@ class ProjectTransferService extends AppServices {
           ProjectTransferConflict(
             id: _conflictId('site', sourceId),
             section: ProjectTransferSection.sites,
-            label: _siteName(imported),
-            currentSummary: _siteSummary(current),
-            importedSummary: _siteSummary(imported),
+            label: _siteName(imported, importedGeography),
+            currentSummary: _siteSummary(current, localGeography),
+            importedSummary: _siteSummary(imported, importedGeography),
           ),
         );
       }
@@ -561,6 +602,24 @@ class ProjectTransferService extends AppServices {
           }
         }
 
+        // Localities are shared and matched exactly, so they never conflict:
+        // an incoming locality either already exists or is inserted.
+        final geographyMap = <int, int>{};
+        for (final row in plan.payload.rows('geography')) {
+          final sourceId = row['id'] as int?;
+          final matchKey = row['matchKey'] as String?;
+          if (sourceId == null || matchKey == null) continue;
+          final existing = await _query(
+            'SELECT id FROM geography WHERE matchKey = ?',
+            [matchKey],
+          );
+          geographyMap[sourceId] = existing.isNotEmpty
+              ? existing.first['id'] as int
+              : await _insert('geography', row, omit: {'id'});
+        }
+        int? mappedGeography(Map<String, dynamic> row) =>
+            geographyMap[row['geographyId'] as int?];
+
         final siteMap = <int, int?>{};
         final coordinateMap = <int, int?>{};
         final sitesUsingImportedChildren = <int>{};
@@ -586,13 +645,20 @@ class ProjectTransferService extends AppServices {
             await _update(
               'site',
               _remapPersonnel(
-                {...row, 'id': targetId, 'projectUuid': targetProjectUuid},
+                {
+                  ...row,
+                  'id': targetId,
+                  'projectUuid': targetProjectUuid,
+                  'geographyId': mappedGeography(row),
+                },
                 'leadStaffId',
                 personnelMap,
               ),
               'id',
               targetId,
             );
+            await _deleteWhere('siteAttribute', 'siteID', targetId);
+            await _deleteWhere('fossilSite', 'siteID', targetId);
             siteMap[sourceId] = targetId;
             sitesUsingImportedChildren.add(sourceId);
             updated++;
@@ -601,6 +667,7 @@ class ProjectTransferService extends AppServices {
               {
                 ...row,
                 'projectUuid': targetProjectUuid,
+                'geographyId': mappedGeography(row),
                 if (current != null)
                   'siteID': await _uniqueSiteId(
                     row['siteID'] as String?,
@@ -621,6 +688,32 @@ class ProjectTransferService extends AppServices {
               'site',
               projectUuid: targetProjectUuid,
             );
+          }
+        }
+        for (final row in plan.payload.rows('siteAttribute')) {
+          final sourceSiteId = row['siteID'] as int?;
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId)) {
+            await _insert('siteAttribute', {...row, 'siteID': targetSiteId});
+          }
+        }
+        for (final row in plan.payload.rows('fossilSite')) {
+          final sourceSiteId = row['siteID'] as int?;
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId)) {
+            await _insert('fossilSite', {...row, 'siteID': targetSiteId});
+          }
+        }
+        for (final sourceSiteId in sitesUsingImportedChildren) {
+          final targetSiteId = siteMap[sourceSiteId];
+          if (targetSiteId == null) continue;
+          final hasAttribute = plan.payload
+              .rows('siteAttribute')
+              .any((row) => row['siteID'] == sourceSiteId);
+          if (!hasAttribute) {
+            await _insert('siteAttribute', {'siteID': targetSiteId});
           }
         }
         for (final row in plan.payload.rows('coordinate')) {
@@ -687,7 +780,7 @@ class ProjectTransferService extends AppServices {
               'id',
               targetId,
             );
-            await _deleteWhere('weather', 'eventID', targetId);
+            await _deleteWhere('environment', 'eventID', targetId);
             await _deleteWhere('collPersonnel', 'eventID', targetId);
             await _deleteWhere('collEffort', 'eventID', targetId);
             await _deleteWhere('eventMedia', 'eventID', targetId);
@@ -709,12 +802,22 @@ class ProjectTransferService extends AppServices {
             );
           }
         }
-        for (final row in plan.payload.rows('weather')) {
+        for (final row in plan.payload.rows('environment')) {
           final sourceEventId = row['eventID'] as int?;
           final eventId = eventMap[sourceEventId];
           if (eventId != null &&
               eventsUsingImportedChildren.contains(sourceEventId)) {
-            await _insert('weather', {...row, 'eventID': eventId});
+            await _insert('environment', {...row, 'eventID': eventId});
+          }
+        }
+        for (final sourceEventId in eventsUsingImportedChildren) {
+          final targetEventId = eventMap[sourceEventId];
+          if (targetEventId == null) continue;
+          final hasEnvironment = plan.payload
+              .rows('environment')
+              .any((row) => row['eventID'] == sourceEventId);
+          if (!hasEnvironment) {
+            await _insert('environment', {'eventID': targetEventId});
           }
         }
         for (final row in plan.payload.rows('collPersonnel')) {
@@ -761,6 +864,8 @@ class ProjectTransferService extends AppServices {
         }
 
         final specimenMap = <String, String?>{};
+        final specimenPartMap = <int, int?>{};
+        final parasiteMap = <int, int?>{};
         final specimensUsingImportedChildren = <String>{};
         for (final row in plan.payload.rows('specimen')) {
           final sourceUuid = row['uuid'] as String;
@@ -832,6 +937,8 @@ class ProjectTransferService extends AppServices {
           personnelMap,
           taxonomyMap,
           specimensUsingImportedChildren,
+          specimenPartMap,
+          parasiteMap,
         );
         await _importAssociatedData(
           plan.payload,
@@ -842,6 +949,18 @@ class ProjectTransferService extends AppServices {
           sitesUsingImportedChildren,
           eventsUsingImportedChildren,
           targetProjectUuid,
+        );
+        await _importCustomFields(
+          plan.payload,
+          targetProjectUuid,
+          siteMap,
+          eventMap,
+          specimenMap,
+          specimenPartMap,
+          parasiteMap,
+          sitesUsingImportedChildren,
+          eventsUsingImportedChildren,
+          specimensUsingImportedChildren,
         );
 
         final narrativeMap = <int, int?>{};
@@ -979,6 +1098,7 @@ class ProjectTransferService extends AppServices {
           archivePath: archivePath,
           originalFileName: fileName,
           sourcePath: source.path,
+          sizeBytes: source.statSync().size,
         ),
       );
     }
@@ -1033,6 +1153,7 @@ class ProjectTransferService extends AppServices {
           archivePath: archivePath,
           originalFileName: photoPath,
           sourcePath: source.path,
+          sizeBytes: source.statSync().size,
         ),
       );
     }
@@ -1103,8 +1224,16 @@ class ProjectTransferService extends AppServices {
     Map<String, String?> personnelMap,
     Map<int, int?> taxonomyMap,
     Set<String> specimensUsingImportedChildren,
+    Map<int, int?> specimenPartMap,
+    Map<int, int?> parasiteMap,
   ) async {
-    for (final table in ['mammalAttribute', 'birdAttribute', 'herpAttribute']) {
+    for (final table in [
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+      'arthropodAttribute',
+      'fossilAttribute',
+    ]) {
       for (final row in payload.rows(table)) {
         final sourceUuid = row['specimenUuid'] as String?;
         if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
@@ -1125,7 +1254,7 @@ class ProjectTransferService extends AppServices {
       final uuid = specimenMap[sourceUuid];
       final personnelId = personnelMap[row['personnelId'] as String?];
       if (uuid != null && (row['personnelId'] == null || personnelId != null)) {
-        await _insert(
+        specimenPartMap[row['id'] as int] = await _insert(
           'specimenPart',
           {...row, 'specimenUuid': uuid, 'personnelId': personnelId},
           omit: {'id'},
@@ -1160,7 +1289,7 @@ class ProjectTransferService extends AppServices {
       if (parasiteUuid == null || duplicate.isNotEmpty) {
         parasiteUuid = const Uuid().v4();
       }
-      await _insert(
+      parasiteMap[row['id'] as int] = await _insert(
         'parasite',
         {
           ...row,
@@ -1172,6 +1301,174 @@ class ProjectTransferService extends AppServices {
         omit: {'id'},
       );
     }
+  }
+
+  Future<void> _importCustomFields(
+    ProjectTransferPayload payload,
+    String targetProjectUuid,
+    Map<int, int?> siteMap,
+    Map<int, int?> eventMap,
+    Map<String, String?> specimenMap,
+    Map<int, int?> specimenPartMap,
+    Map<int, int?> parasiteMap,
+    Set<int> sitesUsingImportedChildren,
+    Set<int> eventsUsingImportedChildren,
+    Set<String> specimensUsingImportedChildren,
+  ) async {
+    if (payload.version < 6) return;
+    final definitionMap = <int, int>{};
+    for (final source in payload.rows('customFieldDefinition')) {
+      final sourceId = source['id'] as int?;
+      if (sourceId == null) continue;
+      final sourceUuid = source['uuid'] as String?;
+      final existing = sourceUuid == null
+          ? const <Map<String, dynamic>>[]
+          : await _query(
+              'SELECT * FROM customFieldDefinition WHERE uuid = ? LIMIT 1',
+              [sourceUuid],
+            );
+      if (existing.isNotEmpty &&
+          _sameCustomFieldConfiguration(existing.single, source)) {
+        definitionMap[sourceId] = existing.single['id'] as int;
+        continue;
+      }
+
+      final importedGlobal = source['scope'] == 'global';
+      if (importedGlobal) {
+        final globalMatches = await _query(
+          'SELECT * FROM customFieldDefinition WHERE scope = ? '
+          'AND lower(name) = lower(?) AND uiSection = ?',
+          ['global', source['name'], source['uiSection']],
+        );
+        final identical = globalMatches
+            .where((row) => _sameCustomFieldConfiguration(row, source))
+            .firstOrNull;
+        if (identical != null) {
+          definitionMap[sourceId] = identical['id'] as int;
+          continue;
+        }
+      }
+
+      final target = Map<String, dynamic>.from(source)
+        ..remove('id')
+        ..['uuid'] = existing.isEmpty && sourceUuid != null
+            ? sourceUuid
+            : const Uuid().v4()
+        ..['scope'] = 'project'
+        ..['projectUuid'] = targetProjectUuid
+        ..['name'] = await _uniqueCustomFieldName(
+          source['name'] as String? ?? 'Imported field',
+          source['uiSection'] as String? ?? 'specimenAttribute',
+          targetProjectUuid,
+        );
+      final templateUuid = target['sourceTemplateUuid'] as String?;
+      if (templateUuid != null) {
+        final duplicateTemplate = await _query(
+          'SELECT 1 FROM customFieldDefinition WHERE sourceTemplateUuid = ? '
+          'AND scope = ? AND projectUuid = ? LIMIT 1',
+          [templateUuid, 'project', targetProjectUuid],
+        );
+        if (duplicateTemplate.isNotEmpty) target['sourceTemplateUuid'] = null;
+      }
+      definitionMap[sourceId] = await _insert('customFieldDefinition', target);
+    }
+
+    for (final source in payload.rows('customFieldValue')) {
+      final definitionId = definitionMap[source['fieldDefinitionId'] as int?];
+      if (definitionId == null) continue;
+      final sourceEventId = source['eventId'] as int?;
+      final sourceSiteId = source['siteId'] as int?;
+      final sourceSpecimenUuid = source['specimenUuid'] as String?;
+      final sourcePartId = source['specimenPartId'] as int?;
+      final sourceParasiteId = source['parasiteId'] as int?;
+      final isLegacy = source['isLegacy'] == 1;
+      final eventId = sourceEventId == null ? null : eventMap[sourceEventId];
+      final siteId = sourceSiteId == null ? null : siteMap[sourceSiteId];
+      final specimenUuid = sourceSpecimenUuid == null
+          ? null
+          : specimenMap[sourceSpecimenUuid];
+      final partId = sourcePartId == null
+          ? null
+          : specimenPartMap[sourcePartId];
+      final parasiteId = sourceParasiteId == null
+          ? null
+          : parasiteMap[sourceParasiteId];
+      final ownerWasImported =
+          isLegacy ||
+          (sourceEventId != null &&
+              eventsUsingImportedChildren.contains(sourceEventId) &&
+              eventId != null) ||
+          (sourceSiteId != null &&
+              sitesUsingImportedChildren.contains(sourceSiteId) &&
+              siteId != null) ||
+          (sourceSpecimenUuid != null &&
+              specimensUsingImportedChildren.contains(sourceSpecimenUuid) &&
+              specimenUuid != null) ||
+          (sourcePartId != null && partId != null) ||
+          (sourceParasiteId != null && parasiteId != null);
+      if (!ownerWasImported) continue;
+      await dbAccess.customStatement(
+        'DELETE FROM customFieldValue WHERE fieldDefinitionId = ? '
+        'AND eventId IS ? AND siteId IS ? AND specimenUuid IS ? '
+        'AND specimenPartId IS ? AND parasiteId IS ?',
+        [definitionId, eventId, siteId, specimenUuid, partId, parasiteId],
+      );
+      await _insert(
+        'customFieldValue',
+        {
+          ...source,
+          'fieldDefinitionId': definitionId,
+          'projectUuid': targetProjectUuid,
+          'eventId': eventId,
+          'siteId': siteId,
+          'specimenUuid': specimenUuid,
+          'specimenPartId': partId,
+          'parasiteId': parasiteId,
+        },
+        omit: {'id'},
+      );
+    }
+  }
+
+  bool _sameCustomFieldConfiguration(
+    Map<String, dynamic> current,
+    Map<String, dynamic> imported,
+  ) {
+    const keys = [
+      'name',
+      'type',
+      'uiSection',
+      'options',
+      'catalogFormat',
+      'sortOrder',
+      'isArchived',
+      'dwcTarget',
+      'dwcField',
+      'dwcMode',
+      'allowDwcConflict',
+    ];
+    return keys.every((key) => current[key] == imported[key]);
+  }
+
+  Future<String> _uniqueCustomFieldName(
+    String original,
+    String placement,
+    String projectUuid,
+  ) async {
+    var candidate = original.trim().isEmpty
+        ? 'Imported field'
+        : original.trim();
+    var suffix = 2;
+    while ((await _query(
+      'SELECT 1 FROM customFieldDefinition WHERE uiSection = ? '
+      'AND lower(name) = lower(?) AND '
+      '(scope = ? OR projectUuid = ?) LIMIT 1',
+      [placement, candidate, 'global', projectUuid],
+    )).isNotEmpty) {
+      candidate = '${original.trim()} (imported $suffix)';
+      suffix++;
+    }
+    return candidate;
   }
 
   Future<void> _importAssociatedData(
@@ -1415,6 +1712,8 @@ class ProjectTransferService extends AppServices {
       'mammalAttribute',
       'birdAttribute',
       'herpAttribute',
+      'arthropodAttribute',
+      'fossilAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -1436,6 +1735,23 @@ class ProjectTransferService extends AppServices {
     for (final row in records['coordinate'] ?? const []) {
       if (!siteIds.contains(row['siteID'])) {
         throw const FormatException('A coordinate has an unresolved site.');
+      }
+    }
+    for (final row in records['siteAttribute'] ?? const []) {
+      if (!siteIds.contains(row['siteID'])) {
+        throw const FormatException('A site attribute has an unresolved site.');
+      }
+    }
+    for (final row in records['fossilSite'] ?? const []) {
+      if (!siteIds.contains(row['siteID'])) {
+        throw const FormatException('A fossil site has an unresolved site.');
+      }
+    }
+    for (final row in records['environment'] ?? const []) {
+      if (!eventIds.contains(row['eventID'])) {
+        throw const FormatException(
+          'Environmental data has an unresolved event.',
+        );
       }
     }
     for (final row in records['collEvent'] ?? const []) {
@@ -1462,6 +1778,8 @@ class ProjectTransferService extends AppServices {
       'mammalAttribute',
       'birdAttribute',
       'herpAttribute',
+      'arthropodAttribute',
+      'fossilAttribute',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -1775,14 +2093,38 @@ class ProjectTransferService extends AppServices {
   static String _taxonName(Map<String, dynamic> row) =>
       '${row['genus'] ?? ''} ${row['specificEpithet'] ?? ''}'.trim();
 
-  static String _siteName(Map<String, dynamic> row) =>
-      row['siteID'] as String? ?? row['locality'] as String? ?? 'Unnamed site';
+  /// Indexes rows by their integer `id`, for resolving foreign keys in memory.
+  static Map<int, Map<String, dynamic>> _rowsById(
+    List<Map<String, dynamic>> rows,
+  ) => {
+    for (final row in rows)
+      if (row['id'] is int) row['id'] as int: row,
+  };
 
-  static String _siteSummary(Map<String, dynamic> row) => [
-    row['locality'],
-    row['stateProvince'],
-    row['country'],
-  ].whereType<String>().where((value) => value.isNotEmpty).join(', ');
+  static String _siteName(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) =>
+      row['siteID'] as String? ??
+      _geographyFor(row, geography)?['locality'] as String? ??
+      'Unnamed site';
+
+  static String _siteSummary(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) {
+    final locality = _geographyFor(row, geography);
+    return [
+      locality?['locality'],
+      locality?['stateProvince'],
+      locality?['country'],
+    ].whereType<String>().where((value) => value.isNotEmpty).join(', ');
+  }
+
+  static Map<String, dynamic>? _geographyFor(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> geography,
+  ) => geography[row['geographyId'] as int?];
 
   static String _eventName(Map<String, dynamic> row) => [
     row['startDate'],

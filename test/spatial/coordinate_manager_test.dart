@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/sites/components/coordinates.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 void main() {
   testWidgets('coordinate manager keeps export selection separate from focus', (
@@ -148,7 +149,7 @@ Opacity _opacity(WidgetTester tester, int coordinateId) {
   );
 }
 
-const _sites = [SiteData(id: 10, siteID: 'Site A')];
+const _sites = [SiteRecord(site: SiteData(id: 10, siteID: 'Site A'))];
 
 const _coordinates = [
   CoordinateData(

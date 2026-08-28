@@ -4,8 +4,12 @@ import 'dart:io';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
@@ -15,16 +19,19 @@ import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/birds.dart' as birds;
-import 'package:nahpu/services/types/herps.dart' as herps;
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/mammals.dart' as mammals;
+import 'package:nahpu/services/types/arthropods.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/projects/orcid.dart';
 import 'package:nahpu/services/export/dwc_values.dart';
 import 'package:nahpu/src/rust/api/dwc.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/src/rust/api/nahpu_dp.dart';
+import 'package:nahpu/services/types/geography.dart';
 
 enum DwcBundleFormat {
   darwinCoreArchive,
@@ -162,26 +169,66 @@ class DwcBundleWriter extends AppServices {
     );
   }
 
+  /// Describes the stages of writing a bundle, in the order they run.
+  ///
+  /// Packaging happens inside one `nahpu_dwc` or `nahpu_dp` call that stages,
+  /// copies media, compresses, and then verifies by re-extracting. That call
+  /// cannot report its way through those steps yet, so the stage reports the
+  /// contents it handed over and how long it has been running.
+  static const List<ExportPhaseStep> bundlePhases = [
+    ExportPhaseStep(
+      phase: ExportPhase.collecting,
+      label: 'Collect records',
+      weight: 2,
+    ),
+    ExportPhaseStep(phase: ExportPhase.verifying, label: 'Check records'),
+    ExportPhaseStep(
+      phase: ExportPhase.compressing,
+      label: 'Write and compress package',
+      weight: 4,
+    ),
+  ];
+
+  /// Writes the bundle, reporting to [progress] as each stage runs.
+  ///
+  /// Pass [expectedFileCount] from an earlier [plan] so the packaging stage can
+  /// tell the user how much it is working through.
   Future<DwcBundleManifest> write({
     required DwcBundleFormat format,
     required BundleArchiveFormat archiveFormat,
     required Set<String> selectedTaxonGroups,
     required String outputPath,
+    ExportProgressReporter? progress,
+    ExportCancellation? cancel,
+    int expectedFileCount = 0,
   }) async {
+    progress?.beginPhase(ExportPhase.collecting, indeterminate: true);
+    cancel?.throwIfCancelled();
     if (format == DwcBundleFormat.nahpuDataPackage) {
       return _withNahpuRequest(archiveFormat, (request) async {
         final requestJson = jsonEncode(request);
+        cancel?.throwIfCancelled();
+        progress?.beginPhase(ExportPhase.verifying, indeterminate: true);
         final validation = await validateNahpuPackage(requestJson: requestJson);
         final errors = jsonDecode(validation) as List<dynamic>;
         if (errors.isNotEmpty) {
           throw StateError(errors.join('\n'));
         }
-        return DwcBundleManifest.fromJson(
+        cancel?.throwIfCancelled();
+        progress?.beginPhase(
+          ExportPhase.compressing,
+          totalUnits: expectedFileCount,
+          indeterminate: true,
+        );
+        final manifest = DwcBundleManifest.fromJson(
           await writeNahpuPackage(
             requestJson: requestJson,
             outputPath: outputPath,
           ),
         );
+        cancel?.throwIfCancelled();
+        progress?.complete();
+        return manifest;
       });
     }
     final request = await _buildRequest(
@@ -189,6 +236,8 @@ class DwcBundleWriter extends AppServices {
       archiveFormat,
       selectedTaxonGroups,
     );
+    cancel?.throwIfCancelled();
+    progress?.beginPhase(ExportPhase.verifying, indeterminate: true);
     final validation = await validateDwcBundle(
       requestJson: jsonEncode(request),
     );
@@ -196,12 +245,21 @@ class DwcBundleWriter extends AppServices {
     if (errors.isNotEmpty) {
       throw StateError(errors.join('\n'));
     }
-    return DwcBundleManifest.fromJson(
+    cancel?.throwIfCancelled();
+    progress?.beginPhase(
+      ExportPhase.compressing,
+      totalUnits: expectedFileCount,
+      indeterminate: true,
+    );
+    final manifest = DwcBundleManifest.fromJson(
       await writeDwcBundle(
         requestJson: jsonEncode(request),
         outputPath: outputPath,
       ),
     );
+    cancel?.throwIfCancelled();
+    progress?.complete();
+    return manifest;
   }
 
   Future<Map<String, dynamic>> _buildRequest(
@@ -226,7 +284,13 @@ class DwcBundleWriter extends AppServices {
     final occurrenceRows = <Map<String, dynamic>>[];
     final materialRows = <Map<String, dynamic>>[];
     final measurementRows = <Map<String, dynamic>>[];
+    final eventAssertionRows = <Map<String, dynamic>>[];
+    final materialAssertionRows = <Map<String, dynamic>>[];
+    final occurrenceAssertionRows = <Map<String, dynamic>>[];
+    final interactionAssertionRows = <Map<String, dynamic>>[];
+    final interactionRows = <Map<String, dynamic>>[];
     final mediaRows = <Map<String, dynamic>>[];
+    final warnings = <String>[];
     final agents = <String, _ResolvedAgent>{};
     final occurrenceAgentRoles = <Map<String, dynamic>>[];
     final eventAgentRoles = <Map<String, dynamic>>[];
@@ -240,6 +304,9 @@ class DwcBundleWriter extends AppServices {
       final site = event == null
           ? null
           : await SiteServices(ref: ref).getSite(event.siteID);
+      final siteAttribute = site == null
+          ? null
+          : await SiteServices(ref: ref).getSiteAttribute(site.id);
       final coordinate = await _coordinateForSpecimen(
         specimen.coordinateID,
         event?.siteID,
@@ -280,27 +347,73 @@ class DwcBundleWriter extends AppServices {
           : await _resolveEventAgents(event.id, agents);
       if (eventAgents.isEmpty && cataloger != null) eventAgents = [cataloger];
       final recorders = _catalogerFirst(cataloger, eventAgents);
+      final specimenAttributes = await _measurementValues(specimen);
 
-      occurrenceRows.add(
-        _occurrenceRow(
-          specimen: specimen,
-          taxon: taxon,
-          event: event,
-          eventId: eventId,
-          site: site,
-          coordinate: coordinate,
-          recorders: recorders,
-          determiner: determiner,
-          catalogNumber: catalogNumber,
-        ),
+      final occurrenceRow = _occurrenceRow(
+        specimen: specimen,
+        taxon: taxon,
+        event: event,
+        eventId: eventId,
+        site: site,
+        siteAttribute: siteAttribute,
+        coordinate: coordinate,
+        recorders: recorders,
+        determiner: determiner,
+        catalogNumber: catalogNumber,
+        specimenAttributes: specimenAttributes,
       );
+      _applyCustomFields(
+        await CustomFieldService(
+          dbAccess,
+        ).getExportEntries(CustomFieldOwner.specimen(specimen.uuid)),
+        occurrenceRow,
+        assertionRows: occurrenceAssertionRows,
+        assertionOwnerKey: 'occurrenceID',
+        assertionOwnerId: specimen.uuid,
+        warnings: warnings,
+      );
+      occurrenceRows.add(occurrenceRow);
       if (event != null) {
-        events.putIfAbsent(
-          eventId!,
-          () => _eventRow(event, site, eventId, eventAgents),
-        );
+        if (!events.containsKey(eventId)) {
+          final eventRow = _eventRow(
+            event,
+            site,
+            siteAttribute,
+            eventId!,
+            eventAgents,
+          );
+          await _addEnvironmentAssertions(
+            event,
+            siteAttribute,
+            eventId,
+            eventAssertionRows,
+          );
+          _applyCustomFields(
+            await CustomFieldService(
+              dbAccess,
+            ).getExportEntries(CustomFieldOwner.environment(event.id)),
+            eventRow,
+            assertionRows: eventAssertionRows,
+            assertionOwnerKey: 'eventID',
+            assertionOwnerId: eventId,
+            warnings: warnings,
+          );
+          if (site != null) {
+            _applyCustomFields(
+              await CustomFieldService(
+                dbAccess,
+              ).getExportEntries(CustomFieldOwner.site(site.id)),
+              eventRow,
+              assertionRows: eventAssertionRows,
+              assertionOwnerKey: 'eventID',
+              assertionOwnerId: eventId,
+              warnings: warnings,
+            );
+          }
+          events[eventId] = eventRow;
+        }
         _addAgentRoles(
-          targetId: eventId,
+          targetId: eventId!,
           targetKey: 'eventID',
           agents: eventAgents,
           output: eventAgentRoles,
@@ -321,9 +434,25 @@ class DwcBundleWriter extends AppServices {
         );
       }
       materialRows.addAll(
-        await _materialRows(specimen.uuid, eventId, agents, materialAgentRoles),
+        await _materialRows(
+          specimen.uuid,
+          eventId,
+          agents,
+          materialAgentRoles,
+          materialAssertionRows,
+          warnings,
+        ),
       );
       measurementRows.addAll(await _measurementRows(specimen));
+      final parasiteExport = await _parasiteRows(
+        specimen,
+        eventId,
+        occurrenceAssertionRows,
+        interactionAssertionRows,
+        warnings,
+      );
+      occurrenceRows.addAll(parasiteExport.occurrences);
+      interactionRows.addAll(parasiteExport.interactions);
       mediaRows.addAll(
         await _mediaRows(specimen.uuid, agents, mediaAgentRoles),
       );
@@ -338,6 +467,22 @@ class DwcBundleWriter extends AppServices {
       'events': events.values.map(_removeEmpty).toList(growable: false),
       'materials': materialRows.map(_removeEmpty).toList(growable: false),
       'measurements': measurementRows.map(_removeEmpty).toList(growable: false),
+      'event_assertions': eventAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'material_assertions': materialAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'occurrence_assertions': occurrenceAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'organism_interactions': interactionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'organism_interaction_assertions': interactionAssertionRows
+          .map(_removeEmpty)
+          .toList(growable: false),
+      'warnings': warnings,
       'media': mediaRows.map(_removeEmpty).toList(growable: false),
       'agents': agents.values
           .map((agent) => agent.toJson())
@@ -385,6 +530,7 @@ class DwcBundleWriter extends AppServices {
       await rust_config.exportConfigToFile(
         filePath: configsFile.path,
         sections: rust_config.UserConfigSection.values,
+        customFieldTemplates: const [],
       );
       final payload = await transferService.buildExport();
       final packageInfo = await PackageInfo.fromPlatform();
@@ -421,7 +567,8 @@ class DwcBundleWriter extends AppServices {
     ProjectTransferPayload payload,
   ) async {
     final tables = <Map<String, dynamic>>[];
-    for (final tableName in _nahpuTableNames) {
+    for (final table in database.allTables) {
+      final tableName = table.actualTableName;
       final columns = await database
           .customSelect('PRAGMA table_info("$tableName")')
           .get();
@@ -532,11 +679,13 @@ class DwcBundleWriter extends AppServices {
     required TaxonomyData? taxon,
     required CollEventData? event,
     required String? eventId,
-    required SiteData? site,
+    required SiteRecord? site,
+    required SiteAttributeData? siteAttribute,
     required CoordinateData? coordinate,
     required List<_ResolvedAgent> recorders,
     required _ResolvedAgent? determiner,
     required String? catalogNumber,
+    required Map<String, dynamic> specimenAttributes,
   }) {
     final released = specimen.condition?.toLowerCase() == 'released';
     final scientificName = [
@@ -571,11 +720,12 @@ class DwcBundleWriter extends AppServices {
       'vernacularName': taxon?.commonName,
       'taxonRemarks': taxon?.notes,
       'country': site?.country,
+      'islandGroup': site?.islandGroup,
       'stateProvince': site?.stateProvince,
       'county': site?.county,
       'municipality': site?.municipality,
       'locality': site?.locality,
-      'habitat': site?.habitatDescription ?? site?.habitatType,
+      'habitat': _habitat(siteAttribute),
       'locationRemarks': site?.remark,
       'decimalLatitude': coordinate?.decimalLatitude,
       'decimalLongitude': coordinate?.decimalLongitude,
@@ -595,12 +745,52 @@ class DwcBundleWriter extends AppServices {
       'recordedByID': _agentIds(recorders),
       'identifiedBy': determiner?.name,
       'identifiedByID': determiner?.id,
+      'identificationType': specimen.iDMethod,
+      'sex': _specimenSexLabel(specimenAttributes['sex']),
+      'lifeStage':
+          specimenAttributes['lifeStage'] ??
+          specimenAttributes['ontogeneticStage'],
+      'caste': _casteLabel(specimenAttributes['caste']),
+      'associatedTaxa': _hostAssociation(specimenAttributes['hostOrganism']),
+      'occurrenceRemarks': specimenAttributes['remark'],
     };
+  }
+
+  String? _specimenSexLabel(dynamic value) {
+    return value is int ? getSpecimenSexLabel(value) : null;
+  }
+
+  String? _hostAssociation(dynamic value) {
+    if (value is! String || value.trim().isEmpty) return null;
+    return 'host: ${value.trim()}';
+  }
+
+  String? _casteLabel(dynamic value) {
+    if (value is! int || value < 0 || value >= arthropodCasteList.length) {
+      return null;
+    }
+    return arthropodCasteList[value];
+  }
+
+  String? _habitat(SiteAttributeData? attribute) {
+    if (attribute == null) return null;
+    final values =
+        [
+              attribute.habitatType,
+              attribute.habitatCondition,
+              attribute.habitatDescription,
+            ]
+            .whereType<String>()
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty);
+    final habitat = values.join(' | ');
+    return habitat.isEmpty ? null : habitat;
   }
 
   Map<String, dynamic> _eventRow(
     CollEventData event,
-    SiteData? site,
+    SiteRecord? site,
+    SiteAttributeData? siteAttribute,
     String eventId,
     List<_ResolvedAgent> agents,
   ) {
@@ -616,12 +806,62 @@ class DwcBundleWriter extends AppServices {
       'samplingEffort': event.collMethodNotes,
       'locationID': site == null ? null : _locationId(site),
       'country': site?.country,
+      'islandGroup': site?.islandGroup,
       'stateProvince': site?.stateProvince,
       'county': site?.county,
       'municipality': site?.municipality,
       'locality': site?.locality,
-      'habitat': site?.habitatDescription ?? site?.habitatType,
+      'habitat': _habitat(siteAttribute),
     };
+  }
+
+  Future<void> _addEnvironmentAssertions(
+    CollEventData event,
+    SiteAttributeData? siteAttribute,
+    String eventId,
+    List<Map<String, dynamic>> output,
+  ) async {
+    EnvironmentData? environment;
+    try {
+      environment = await EnvironmentDataQuery(
+        dbAccess,
+      ).getEnvironmentDataByEventId(event.id);
+    } catch (_) {
+      environment = null;
+    }
+    if (environment == null && siteAttribute?.canopyCover == null) return;
+    final values = <String, (Object?, String?)>{
+      'lowest day temperature': (environment?.lowestDayTempC, '°C'),
+      'highest day temperature': (environment?.highestDayTempC, '°C'),
+      'lowest night temperature': (environment?.lowestNightTempC, '°C'),
+      'highest night temperature': (environment?.highestNightTempC, '°C'),
+      'average humidity': (environment?.averageHumidity, '%'),
+      'dew point': (environment?.dewPointTemp, '°C'),
+      'sunrise': (environment?.sunriseTime, 'hh:mm:ss'),
+      'sunset': (environment?.sunsetTime, 'hh:mm:ss'),
+      'moon phase': (environment?.moonPhase, null),
+      'cloud cover': (environment?.cloudCover, 'okta'),
+      'rainfall': (environment?.rainfallInMm, 'mm'),
+      'ambient temperature': (environment?.ambientTemperature, '°C'),
+      'ambient humidity': (environment?.ambientHumidity, '%'),
+      'water temperature': (environment?.waterTemperature, '°C'),
+      'pH': (environment?.pH, null),
+      'dissolved oxygen': (environment?.dissolvedOxygen, 'mg/L'),
+      'flow velocity': (environment?.flowVelocity, 'm/s'),
+      'canopy cover': (siteAttribute?.canopyCover, null),
+      'environmental notes': (environment?.notes, null),
+    };
+    for (final entry in values.entries) {
+      final value = entry.value.$1;
+      if (value == null || value.toString().trim().isEmpty) continue;
+      output.add({
+        'eventID': eventId,
+        'assertionID': '$eventId:environment:${entry.key.replaceAll(' ', '-')}',
+        'assertionType': entry.key,
+        'assertionValue': entry.value.$1,
+        'assertionUnit': entry.value.$2,
+      });
+    }
   }
 
   Future<List<Map<String, dynamic>>> _materialRows(
@@ -629,6 +869,8 @@ class DwcBundleWriter extends AppServices {
     String? eventId,
     Map<String, _ResolvedAgent> agents,
     List<Map<String, dynamic>> roles,
+    List<Map<String, dynamic>> assertionRows,
+    List<String> warnings,
   ) async {
     final parts = await SpecimenPartServices(
       ref: ref,
@@ -643,7 +885,7 @@ class DwcBundleWriter extends AppServices {
       final otherCatalogNumbers = part.barcodeID == part.tissueID
           ? null
           : part.barcodeID;
-      rows.add(<String, dynamic>{
+      final row = <String, dynamic>{
         'occurrenceID': specimenUuid,
         'eventID': eventId,
         'materialEntityID': materialEntityId,
@@ -652,7 +894,18 @@ class DwcBundleWriter extends AppServices {
         'otherCatalogNumbers': otherCatalogNumbers,
         'preparations': preparations,
         'materialEntityRemarks': part.remark,
-      });
+      };
+      _applyCustomFields(
+        await CustomFieldService(
+          dbAccess,
+        ).getExportEntries(CustomFieldOwner.specimenPart(part.id!)),
+        row,
+        assertionRows: assertionRows,
+        assertionOwnerKey: 'materialEntityID',
+        assertionOwnerId: materialEntityId,
+        warnings: warnings,
+      );
+      rows.add(row);
       final agent = await _resolveAgent(
         part.personnelId,
         null,
@@ -670,6 +923,158 @@ class DwcBundleWriter extends AppServices {
     }
     return rows;
   }
+
+  Future<
+    ({
+      List<Map<String, dynamic>> occurrences,
+      List<Map<String, dynamic>> interactions,
+    })
+  >
+  _parasiteRows(
+    SpecimenData host,
+    String? eventId,
+    List<Map<String, dynamic>> occurrenceAssertions,
+    List<Map<String, dynamic>> interactionAssertions,
+    List<String> warnings,
+  ) async {
+    final parasites = await (dbAccess.select(
+      dbAccess.parasite,
+    )..where((row) => row.specimenUuid.equals(host.uuid))).get();
+    final occurrences = <Map<String, dynamic>>[];
+    final interactions = <Map<String, dynamic>>[];
+    for (final parasite in parasites) {
+      final occurrenceId = parasite.parasiteUuid;
+      final taxon = parasite.speciesID == null
+          ? null
+          : await TaxonomyServices(ref: ref).getTaxonById(parasite.speciesID!);
+      final scientificName = [
+        taxon?.genus,
+        taxon?.specificEpithet,
+      ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+      final occurrence = <String, dynamic>{
+        'occurrenceID': occurrenceId,
+        'eventID': eventId,
+        'basisOfRecord': 'PreservedSpecimen',
+        'occurrenceStatus': 'detected',
+        'scientificName': scientificName,
+        'class': taxon?.taxonClass,
+        'order': taxon?.taxonOrder,
+        'family': taxon?.taxonFamily,
+        'genus': taxon?.genus,
+        'specificEpithet': taxon?.specificEpithet,
+        'lifeStage': parasite.lifeStage,
+        'individualCount': parasite.count,
+        'preparations': parasite.preparationMethod,
+        'occurrenceRemarks': parasite.remark,
+        'associatedOccurrences': 'host:${host.uuid}',
+      };
+      final interactionId = occurrenceId;
+      final interaction = <String, dynamic>{
+        'organismInteractionID': interactionId,
+        'subjectOccurrenceID': occurrenceId,
+        'relatedOccurrenceID': host.uuid,
+        'eventID': eventId,
+        'organismInteractionType': parasite.category,
+        'relatedOrganismPart': parasite.anatomicalLocation,
+        'organismInteractionDescription': parasite.associationStatus == null
+            ? null
+            : parasiteAssociationStatuses[parasite.associationStatus],
+      };
+      final entries = await CustomFieldService(
+        dbAccess,
+      ).getExportEntries(CustomFieldOwner.parasite(parasite.id!));
+      _applyCustomFields(
+        entries
+            .where(
+              (entry) =>
+                  entry.definition.dwcMapping?.target != 'organismInteraction',
+            )
+            .toList(growable: false),
+        occurrence,
+        assertionRows: occurrenceAssertions,
+        assertionOwnerKey: 'occurrenceID',
+        assertionOwnerId: occurrenceId,
+        warnings: warnings,
+      );
+      _applyCustomFields(
+        entries
+            .where(
+              (entry) =>
+                  entry.definition.dwcMapping?.target == 'organismInteraction',
+            )
+            .toList(growable: false),
+        interaction,
+        assertionRows: interactionAssertions,
+        assertionOwnerKey: 'organismInteractionID',
+        assertionOwnerId: interactionId,
+        warnings: warnings,
+        includeUnmapped: false,
+      );
+      occurrences.add(occurrence);
+      interactions.add(interaction);
+    }
+    return (occurrences: occurrences, interactions: interactions);
+  }
+
+  void _applyCustomFields(
+    List<CustomFieldEntry> entries,
+    Map<String, dynamic> row, {
+    required List<Map<String, dynamic>> assertionRows,
+    required String assertionOwnerKey,
+    required String assertionOwnerId,
+    required List<String> warnings,
+    bool includeUnmapped = true,
+  }) {
+    final dynamicProperties = <String, dynamic>{};
+    for (final entry in entries) {
+      final value = entry.value;
+      if (value == null) continue;
+      final definition = entry.definition;
+      final display = definition.displayValue(value.value);
+      final mapping = definition.dwcMapping;
+      if (mapping == null) {
+        if (includeUnmapped) {
+          dynamicProperties[definition.name] = _typedCustomValue(
+            definition,
+            value.value,
+          );
+        }
+        continue;
+      }
+      if (mapping.mode == DwcMappingMode.assertion) {
+        assertionRows.add({
+          assertionOwnerKey: assertionOwnerId,
+          'assertionID': '$assertionOwnerId:custom:${definition.uuid}',
+          'assertionType': definition.name,
+          'assertionValue': display,
+        });
+        continue;
+      }
+      final targetField = mapping.field.split(':').last;
+      final builtIn = row[targetField]?.toString().trim();
+      if (builtIn != null && builtIn.isNotEmpty) {
+        row[targetField] = '$builtIn | $display';
+        warnings.add(
+          '${definition.name} adds another value to ${mapping.field} for '
+          '$assertionOwnerId.',
+        );
+      } else {
+        row[targetField] = display;
+      }
+    }
+    if (dynamicProperties.isNotEmpty) {
+      row['dynamicProperties'] = jsonEncode(dynamicProperties);
+    }
+  }
+
+  Object _typedCustomValue(
+    CustomFieldDefinitionData definition,
+    String value,
+  ) => switch (definition.fieldType) {
+    FieldType.boolean => value == 'true',
+    FieldType.number => num.tryParse(value) ?? value,
+    FieldType.text || FieldType.dropdown => definition.displayValue(value),
+  };
 
   Future<List<Map<String, dynamic>>> _measurementRows(
     SpecimenData specimen,
@@ -703,6 +1108,15 @@ class DwcBundleWriter extends AppServices {
           return (await SpecimenServices(
             ref: ref,
           ).getHerpAttributeData(specimen.uuid)).toJson();
+        case 'Arthropods':
+          return (await SpecimenServices(
+            ref: ref,
+          ).getArthropodAttributeData(specimen.uuid)).toJson();
+        case 'Fossils':
+          return (await (dbAccess.select(dbAccess.fossilAttribute)
+                    ..where((row) => row.specimenUuid.equals(specimen.uuid)))
+                  .getSingle())
+              .toJson();
         default:
           return (await SpecimenServices(
             ref: ref,
@@ -904,7 +1318,7 @@ class DwcBundleWriter extends AppServices {
     return '$currentProjectUuid:event:$localId';
   }
 
-  String _locationId(SiteData site) =>
+  String _locationId(SiteRecord site) =>
       '$currentProjectUuid:site:${site.siteID ?? site.id}';
 
   String? _eventDate(String? start, String? end) {
@@ -916,33 +1330,16 @@ class DwcBundleWriter extends AppServices {
 
 List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
   return [
-    ..._enumMappingRows(
-      table: 'mammalAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'birdAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'herpAttribute',
-      column: 'sex',
-      enumType: 'SpecimenSex',
-      values: SpecimenSex.values,
-      displayNames: specimenSexList,
-    ),
-    ..._enumMappingRows(
-      table: 'mammalAttribute',
-      column: 'age',
-      enumType: 'mammals.SpecimenAge',
-      values: mammals.SpecimenAge.values,
-      displayNames: mammals.specimenAgeList,
+    ..._specimenSexMappingRows(table: 'mammalAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'birdAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'herpAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'arthropodAttribute', column: 'sex'),
+    ..._indexedMappingRows(
+      table: 'arthropodAttribute',
+      column: 'caste',
+      enumType: 'ArthropodCaste',
+      enumNames: arthropodCasteList,
+      displayNames: arthropodCasteList,
     ),
     ..._enumMappingRows(
       table: 'mammalAttribute',
@@ -1021,13 +1418,6 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
       values: birds.BodyMolt.values,
       displayNames: birds.bodyMoltList,
     ),
-    ..._enumMappingRows(
-      table: 'herpAttribute',
-      column: 'age',
-      enumType: 'herps.SpecimenAge',
-      values: herps.SpecimenAge.values,
-      displayNames: herps.specimenAgeList,
-    ),
     ..._indexedMappingRows(
       table: 'specimen',
       column: 'iDConfidence',
@@ -1035,6 +1425,23 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings() {
       enumNames: const ['low', 'medium', 'high'],
       displayNames: idConfidenceList,
     ),
+  ];
+}
+
+List<Map<String, dynamic>> _specimenSexMappingRows({
+  required String table,
+  required String column,
+}) {
+  return [
+    for (final entry in specimenSexByCode.entries)
+      <String, dynamic>{
+        'table': table,
+        'column': column,
+        'enum_type': 'SpecimenSex',
+        'sqlite_index': entry.key,
+        'enum_name': entry.value.name,
+        'display_name': specimenSexLabel[entry.value],
+      },
   ];
 }
 
@@ -1125,6 +1532,21 @@ const _nahpuControlledVocabularyDefinitions = [
     name: 'Specimen condition',
   ),
   _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: specimenSexPrefKey,
+    name: 'Specimen sex',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: idMethodPrefKey,
+    name: 'IdMethod',
+  ),
+  _NahpuControlledVocabularyDefinition(
+    section: 'specimens',
+    configKey: lifeStagePrefKey,
+    name: 'Life stage',
+  ),
+  _NahpuControlledVocabularyDefinition(
     section: 'parasites',
     configKey: parasiteCategoryPrefKey,
     name: 'Parasite category',
@@ -1197,6 +1619,11 @@ const _measurementDefinitions = <String, _MeasurementDefinition>{
     'frequency at maximum energy',
     'kHz',
   ),
+  'headWidth': _MeasurementDefinition('head width', 'mm'),
+  'bodyLength': _MeasurementDefinition('body length', 'mm'),
+  'wingspanUpper': _MeasurementDefinition('upper wingspan', 'mm'),
+  'wingspanLower': _MeasurementDefinition('lower wingspan', 'mm'),
+  'hostPart': _MeasurementDefinition('host part'),
 };
 
 /// Normalizes both current and legacy database labels to package choices.
@@ -1217,38 +1644,16 @@ String normalizeBundleTaxonGroup(String? value) {
       normalized.contains('amphib')) {
     return 'Herpetofauna';
   }
+  if (normalized.contains('arthropod') ||
+      normalized.contains('insect') ||
+      normalized.contains('arachnid')) {
+    return 'Arthropods';
+  }
+  if (normalized.contains('fossil') || normalized.contains('paleo')) {
+    return 'Fossils';
+  }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }
-
-const List<String> _nahpuTableNames = [
-  'project',
-  'site',
-  'coordinate',
-  'collEvent',
-  'weather',
-  'collPersonnel',
-  'collEffort',
-  'narrative',
-  'media',
-  'narrativeMedia',
-  'siteMedia',
-  'eventMedia',
-  'specimenMedia',
-  'associatedData',
-  'specimenAssociatedData',
-  'siteAssociatedData',
-  'eventAssociatedData',
-  'personnelList',
-  'personnel',
-  'taxonomy',
-  'specimen',
-  'mammalAttribute',
-  'birdAttribute',
-  'herpAttribute',
-  'parasiteDetection',
-  'parasite',
-  'specimenPart',
-];
 
 Map<String, dynamic> _removeEmpty(Map<String, dynamic> source) {
   return Map<String, dynamic>.fromEntries(

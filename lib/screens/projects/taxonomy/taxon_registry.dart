@@ -1,21 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/taxa.dart';
-import 'package:nahpu/screens/projects/taxonomy/import_taxa.dart';
-import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
+import 'package:nahpu/screens/projects/taxonomy/add_taxon.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
-import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/import/taxon_entry.dart';
+import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/screens/projects/taxonomy/specimen_list.dart';
-import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/providers/statistics.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class TaxonRegistryViewer extends ConsumerStatefulWidget {
-  const TaxonRegistryViewer({
-    super.key,
-  });
+  const TaxonRegistryViewer({super.key});
 
   @override
   TaxonRegistryViewerState createState() => TaxonRegistryViewerState();
@@ -26,42 +23,41 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Taxon Registry',
-      infoContent: const TaxonRegistryInfoContent(),
+      infoTopic: InfoTopic.taxonRegistry,
       mainAxisAlignment: MainAxisAlignment.start,
-      child: Center(
-        child: Column(
+      child: DashboardPanelBody(
+        content: const RegistryInfo(),
+        actions: Wrap(
+          key: const ValueKey('taxon-registry-actions'),
+          spacing: 8,
           children: [
-            const SizedBox(height: 20),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 460, maxHeight: 250),
-              padding: const EdgeInsets.all(8),
-              child: const RegistryInfo(),
+            SecondaryButton(
+              text: 'Manage',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const ManageTaxa()),
+                );
+              },
             ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 8,
-              children: [
-                SecondaryButton(
-                    text: 'Import from file',
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const TaxonImportForm(),
-                        ),
-                      );
-                    }),
-                PrimaryButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const NewTaxon(),
-                      ),
-                    );
-                  },
-                  label: 'Add taxon',
-                  icon: Icons.add,
-                ),
-              ],
+            PrimaryButton(
+              onPressed: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const AddTaxon()),
+                );
+                if (!context.mounted || result is! TaxonImportResult) {
+                  return;
+                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Imported ${result.importedTaxaCount} taxa across '
+                      '${result.importedFamilyCount} families.',
+                    ),
+                  ),
+                );
+              },
+              label: 'Add taxon',
+              icon: Icons.add,
             ),
           ],
         ),
@@ -71,23 +67,16 @@ class TaxonRegistryViewerState extends ConsumerState<TaxonRegistryViewer> {
 }
 
 class RegistryInfo extends ConsumerWidget {
-  const RegistryInfo({
-    super.key,
-  });
+  const RegistryInfo({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(taxonRegistryProvider).when(
-          data: (data) {
-            return data.isEmpty
-                ? const EmptyTaxa()
-                : TaxonRegistryLayout(
-                    children: [
-                      RegisteredTaxa(taxonData: data),
-                      const RecordedTaxa(),
-                    ],
-                  );
-          },
+    return ref
+        .watch(taxonRegistryProvider)
+        .when(
+          data: (data) => data.isEmpty
+              ? const EmptyTaxa()
+              : RegisteredTaxa(taxonData: data),
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text('Error: $error'),
         );
@@ -101,8 +90,7 @@ class EmptyTaxa extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'No taxon found.\n'
-        'Add/import taxa to start recording captures.',
+        'No taxon found.\nAdd/import taxa to start recording captures.',
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.labelLarge,
       ),
@@ -111,274 +99,181 @@ class EmptyTaxa extends StatelessWidget {
 }
 
 class RegisteredTaxa extends StatelessWidget {
-  const RegisteredTaxa({
-    super.key,
-    required this.taxonData,
-  });
+  const RegisteredTaxa({super.key, required this.taxonData});
 
   final List<TaxonomyData> taxonData;
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _metrics(taxonData);
     return TaxonDataContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const TaxonStatText(
-            text: 'Registered',
-          ),
-          FittedBox(
-              fit: BoxFit.fill,
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${taxonData.length}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    TextSpan(
-                      text: ' species\n',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    TextSpan(
-                      text: '${_countFamily(taxonData)}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    TextSpan(
-                      text: ' families',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ],
-                ),
-              )),
-          taxonData.isEmpty
-              ? const SizedBox.shrink()
-              : TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const TaxonRegistryPage(),
+      child: Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final useTwoColumns = constraints.maxWidth >= 320;
+              final hasTotalTaxa = metrics.any(
+                (metric) => metric.key == 'taxa',
+              );
+              final spacing = NahpuSpacing.lg;
+              final width = useTwoColumns
+                  ? (constraints.maxWidth - spacing) / 2
+                  : constraints.maxWidth;
+              final height = useTwoColumns ? 104.0 : 64.0;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  for (final metric in metrics)
+                    SizedBox(
+                      key: ValueKey('registry-stat-${metric.key}'),
+                      width: !hasTotalTaxa && metric.key == 'species'
+                          ? constraints.maxWidth
+                          : width,
+                      height: height,
+                      child: _RegistryMetric(
+                        metric: metric,
+                        compact: !useTwoColumns,
                       ),
-                    );
-                  },
-                  child: const Text('View all'),
-                )
-        ],
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
-  int _countFamily(List<TaxonomyData> data) {
-    return data.fold(<String, int>{}, (Map<String, int> map, e) {
-      if (e.taxonFamily != null) {
-        map[e.taxonFamily!] = (map[e.taxonFamily!] ?? 0) + 1;
+  List<_RegistryMetricData> _metrics(List<TaxonomyData> data) {
+    final species = <String>{};
+    final families = <String>{};
+    final orders = <String>{};
+    for (final taxon in data) {
+      _addNormalized(families, taxon.taxonFamily);
+      _addNormalized(orders, taxon.taxonOrder);
+      final speciesName = [taxon.genus, taxon.specificEpithet]
+          .whereType<String>()
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .join(' ')
+          .toLowerCase();
+      if (speciesName.isNotEmpty &&
+          taxon.genus?.trim().isNotEmpty == true &&
+          taxon.specificEpithet?.trim().isNotEmpty == true) {
+        species.add(speciesName);
       }
-      return map;
-    }).length;
+    }
+    final metrics = [
+      _RegistryMetricData(key: 'orders', label: 'orders', value: orders.length),
+      _RegistryMetricData(
+        key: 'families',
+        label: 'families',
+        value: families.length,
+      ),
+      _RegistryMetricData(
+        key: 'species',
+        label: 'species registered',
+        value: species.length,
+      ),
+    ];
+    if (data.length > species.length) {
+      metrics.add(
+        _RegistryMetricData(key: 'taxa', label: 'taxa', value: data.length),
+      );
+    }
+    return metrics;
+  }
+
+  void _addNormalized(Set<String> values, String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized?.isNotEmpty == true) values.add(normalized!);
   }
 }
 
-class RecordedTaxa extends ConsumerWidget {
-  const RecordedTaxa({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenEntryProvider).when(
-          data: (data) => RecordedTaxaView(data: data),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
-        );
-  }
-}
-
-class RecordedTaxaView extends ConsumerStatefulWidget {
-  const RecordedTaxaView({
-    super.key,
-    required this.data,
+class _RegistryMetricData {
+  const _RegistryMetricData({
+    required this.key,
+    required this.label,
+    required this.value,
   });
 
-  final List<SpecimenData> data;
-
-  @override
-  RecordedTaxaViewState createState() => RecordedTaxaViewState();
+  final String key;
+  final String label;
+  final int value;
 }
 
-class RecordedTaxaViewState extends ConsumerState<RecordedTaxaView> {
+class _RegistryMetric extends StatelessWidget {
+  const _RegistryMetric({required this.metric, required this.compact});
+
+  final _RegistryMetricData metric;
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
-    return TaxonDataContainer(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const TaxonStatText(
-            text: 'Recorded',
-          ),
-          widget.data.isEmpty
-              ? Text(
-                  'No record found',
-                  style: Theme.of(context).textTheme.labelLarge,
-                )
-              : const FittedBox(
-                  fit: BoxFit.fill,
-                  child: RecordedCounts(),
-                ),
-          widget.data.isEmpty
-              ? const SizedBox.shrink()
-              : TextButton(
-                  onPressed: () async {
-                    if (context.mounted) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => SpecimenListPage()),
-                      );
-                    }
-                  },
-                  child: const Text('View all'),
-                )
-        ],
-      ),
+    final colorScheme = Theme.of(context).colorScheme;
+    final foregroundColor = colorScheme.onSecondaryContainer;
+    final backgroundColor = colorScheme.secondaryContainer.withValues(
+      alpha: 0.16,
     );
-  }
-}
-
-class RecordedCounts extends ConsumerWidget {
-  const RecordedCounts({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(recordStatisticTotalsProvider).when(
-          data: (totals) => Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${totals.specimenCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' specimens\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${totals.speciesCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' species\n',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  TextSpan(
-                    text: '${totals.familyCount}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  TextSpan(
-                    text: ' families',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
+    return Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.fromLTRB(
+        compact ? NahpuSpacing.md : NahpuSpacing.lg,
+        compact ? NahpuSpacing.lg : NahpuSpacing.xl,
+        compact ? NahpuSpacing.md : NahpuSpacing.lg,
+        compact ? NahpuSpacing.xs : NahpuSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Text(
+              '${metric.value}',
+              textAlign: TextAlign.center,
+              style:
+                  (compact
+                          ? Theme.of(context).textTheme.titleMedium
+                          : Theme.of(context).textTheme.headlineSmall)
+                      ?.copyWith(color: foregroundColor),
             ),
           ),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, stackTrace) => Text('Unable to load counts: $error'),
-        );
-  }
-}
-
-class CountText extends StatelessWidget {
-  const CountText({
-    super.key,
-    required this.text,
-  });
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.titleMedium,
+          SizedBox(height: compact ? NahpuSpacing.xxs : NahpuSpacing.xs),
+          Text(
+            metric.label,
+            textAlign: TextAlign.center,
+            style:
+                (compact
+                        ? Theme.of(context).textTheme.bodySmall
+                        : Theme.of(context).textTheme.titleSmall)
+                    ?.copyWith(color: foregroundColor),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class TaxonDataContainer extends StatelessWidget {
-  const TaxonDataContainer({
-    super.key,
-    required this.child,
-  });
+  const TaxonDataContainer({super.key, required this.child});
 
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(8),
-        child: Container(
-          height: 220,
-          width: 200,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withAlpha(50),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(
-              20,
-            ),
-          ),
-          child: child,
-        ));
-  }
-}
-
-class TaxonStatText extends StatelessWidget {
-  const TaxonStatText({super.key, required this.text});
-  final String text;
-  @override
-  Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.topLeft,
-      padding: const EdgeInsets.only(left: 16),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
-    );
-  }
-}
-
-class TaxonRegistryInfoContent extends StatelessWidget {
-  const TaxonRegistryInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          header: 'Overview',
-          content: 'List of taxa registered in the project.'
-              ' You can add new taxa or import taxa from a file.',
-        ),
-        InfoContent(
-          content: 'For file input, preferred formats are .xlsx, .csv, and '
-              '.tsv. Delimiter follows extension (.csv = comma, .tsv = tab). '
-              'For other file types, NAHPU makes a best-effort parsing '
-              'attempt using auto detection and manual override options. '
-              'Best support is for .xlsx.',
-        ),
-        InfoContent(
-          header: 'Term definitions',
-          content: 'Registered taxa - The number of taxa that are registered '
-              'in the project. '
-              '\nRecorded taxa - Information about recorded specimens/captures.'
-              ' It will update when you add a new specimen/capture.',
-        ),
-      ],
+      width: double.infinity,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+      child: child,
     );
   }
 }

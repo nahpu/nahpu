@@ -60,7 +60,8 @@ class TemplateDynamicLayoutService {
     var high = math.max(0.0, renderedYmm);
     for (var i = 0; i < 48; i++) {
       final middle = (low + high) / 2;
-      final flowedY = middle +
+      final flowedY =
+          middle +
           verticalShiftMm(
             texts: texts,
             targetYmm: middle,
@@ -84,10 +85,11 @@ class TemplateDynamicLayoutService {
     required Map<String, double> contentHeightMmByTextId,
     String? excludeTextId,
   }) {
-    final sortedTexts = texts
-        .where((text) => _canFlow(text) && text.id != excludeTextId)
-        .toList()
-      ..sort((a, b) => a.yMm.compareTo(b.yMm));
+    final sortedTexts =
+        texts
+            .where((text) => _canFlow(text) && text.id != excludeTextId)
+            .toList()
+          ..sort((a, b) => a.yMm.compareTo(b.yMm));
     final flowed = <_FlowedDynamicText>[];
 
     for (final text in sortedTexts) {
@@ -104,10 +106,12 @@ class TemplateDynamicLayoutService {
           renderedTop = math.max(renderedTop, previous.clearanceBottomMm);
         }
       }
-      flowed.add(_FlowedDynamicText(
-        text: text,
-        clearanceBottomMm: renderedTop + contentHeight + verticalGapMm,
-      ));
+      flowed.add(
+        _FlowedDynamicText(
+          text: text,
+          clearanceBottomMm: renderedTop + contentHeight + verticalGapMm,
+        ),
+      );
     }
     return flowed;
   }
@@ -116,6 +120,7 @@ class TemplateDynamicLayoutService {
     return text.isVisible &&
         text.isDynamic &&
         !text.isQrCode &&
+        !isTemplatePictureTextType(text.textType) &&
         templateSpecimenSexIconFieldKeyFromBracketText(text.text) == null;
   }
 }

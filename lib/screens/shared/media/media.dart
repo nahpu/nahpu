@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -78,7 +78,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
               const TitleForm(
                 text: 'Media',
                 isCentered: false,
-                infoContent: MediaInfoContent(),
+                infoTopic: InfoTopic.media,
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -461,7 +461,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: ClipRRect(
               borderRadius: const BorderRadius.all(
-                Radius.circular(NahpuRadius.medium),
+                Radius.circular(NahpuRadius.md),
               ),
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
@@ -994,23 +994,5 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-}
-
-class MediaInfoContent extends StatelessWidget {
-  const MediaInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Media files of the project. Use Add to take photos or videos,'
-              ' record audio, or import supported media. Camera and gallery'
-              ' actions are available on Android and iOS.',
-        ),
-      ],
-    );
   }
 }

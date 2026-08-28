@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
@@ -10,53 +11,6 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/utility_services.dart';
-
-class TaxonRegistryLayout extends StatefulWidget {
-  const TaxonRegistryLayout({super.key, required this.children});
-
-  final List<Widget> children;
-
-  @override
-  State<TaxonRegistryLayout> createState() => _TaxonRegistryLayoutState();
-}
-
-class _TaxonRegistryLayoutState extends State<TaxonRegistryLayout> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CommonScrollbar(
-      scrollController: _scrollController,
-      child: ListView(
-        controller: _scrollController, // Assign the controller
-        scrollDirection: Axis.horizontal,
-        itemExtent: 340,
-        children: widget.children,
-      ),
-    );
-  }
-}
-
-class SliderView extends StatelessWidget {
-  const SliderView({super.key, required this.items});
-
-  final List<Widget> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      scrollDirection: Axis.horizontal,
-      itemExtent: 340,
-      children: items,
-    );
-  }
-}
 
 class NewTaxon extends StatelessWidget {
   const NewTaxon({super.key});
@@ -106,11 +60,15 @@ class TaxonRegistryForm extends ConsumerStatefulWidget {
     required this.taxonId,
     required this.ctr,
     required this.isEditing,
+    this.showActions = true,
+    this.disposeController = true,
   });
 
   final int? taxonId;
   final TaxonRegistryCtrModel ctr;
   final bool isEditing;
+  final bool showActions;
+  final bool disposeController;
 
   @override
   TaxonRegistryFormState createState() => TaxonRegistryFormState();
@@ -121,7 +79,7 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
 
   @override
   void dispose() {
-    widget.ctr.dispose();
+    if (widget.disposeController) widget.ctr.dispose();
     super.dispose();
   }
 
@@ -131,160 +89,186 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          DropdownButtonFormField<TaxonRank>(
-            decoration: const InputDecoration(
-              labelText: 'Taxon rank',
-              hintText: 'Select the rank represented by this record',
-            ),
-            initialValue: _rank,
-            items: TaxonRank.values
-                .map(
-                  (rank) => DropdownMenuItem(
-                    value: rank,
-                    child: CommonDropdownText(text: rank.label),
+          FormSection(
+            title: 'Classification',
+            child: Column(
+              children: [
+                DropdownButtonFormField<TaxonRank>(
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Taxon rank',
+                    hintText: 'Select the rank represented by this record',
                   ),
-                )
-                .toList(),
-            onChanged: (rank) {
-              setState(() {
-                widget.ctr.taxonRankCtr = rank?.databaseValue;
-              });
-            },
-          ),
-          _RankTextField(controller: widget.ctr.kingdomCtr, label: 'Kingdom'),
-          _RankTextField(controller: widget.ctr.phylumCtr, label: 'Phylum'),
-          if (_shows(TaxonRank.taxonClass))
-            _RankTextField(
-              controller: widget.ctr.taxonClassCtr,
-              label: 'Class',
-            ),
-          if (_shows(TaxonRank.order))
-            _RankTextField(
-              controller: widget.ctr.taxonOrderCtr,
-              label: 'Order',
-            ),
-          if (_shows(TaxonRank.family))
-            _RankTextField(
-              controller: widget.ctr.taxonFamilyCtr,
-              label: 'Family',
-            ),
-          if (_shows(TaxonRank.genus))
-            _RankTextField(controller: widget.ctr.genusCtr, label: 'Genus'),
-          if (_shows(TaxonRank.species))
-            _RankTextField(
-              controller: widget.ctr.specificEpithetCtr,
-              label: 'Specific epithet',
-              lowercase: true,
-            ),
-          if (_shows(TaxonRank.subspecies))
-            _RankTextField(
-              controller: widget.ctr.subspecificEpithetCtr,
-              label: 'Subspecific epithet',
-              lowercase: true,
-            ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.authorCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.authorCtr,
-              labelText: 'Authors',
-              hintText: 'Enter authors',
-              isLastField: false,
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.commonNameCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.commonNameCtr,
-              labelText: 'Common name',
-              hintText: 'Enter a common name',
-              isLastField: false,
-              onChanged: (String? value) {
-                if (value != null) {
-                  widget.ctr.commonNameCtr.value = TextEditingValue(
-                    text: value.toSentenceCase(),
-                    selection: widget.ctr.commonNameCtr.selection,
-                  );
-                }
-              },
+                  initialValue: _rank,
+                  items: TaxonRank.values
+                      .map(
+                        (rank) => DropdownMenuItem(
+                          value: rank,
+                          child: CommonDropdownText(text: rank.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (rank) {
+                    setState(() {
+                      widget.ctr.taxonRankCtr = rank?.databaseValue;
+                    });
+                  },
+                ),
+                _RankTextField(
+                  controller: widget.ctr.kingdomCtr,
+                  label: 'Kingdom',
+                ),
+                _RankTextField(
+                  controller: widget.ctr.phylumCtr,
+                  label: 'Phylum',
+                ),
+                if (_shows(TaxonRank.taxonClass))
+                  _RankTextField(
+                    controller: widget.ctr.taxonClassCtr,
+                    label: 'Class',
+                  ),
+                if (_shows(TaxonRank.order))
+                  _RankTextField(
+                    controller: widget.ctr.taxonOrderCtr,
+                    label: 'Order',
+                  ),
+                if (_shows(TaxonRank.family))
+                  _RankTextField(
+                    controller: widget.ctr.taxonFamilyCtr,
+                    label: 'Family',
+                  ),
+                if (_shows(TaxonRank.genus))
+                  _RankTextField(
+                    controller: widget.ctr.genusCtr,
+                    label: 'Genus',
+                  ),
+                if (_shows(TaxonRank.species))
+                  _RankTextField(
+                    controller: widget.ctr.specificEpithetCtr,
+                    label: 'Specific epithet',
+                    lowercase: true,
+                  ),
+                if (_shows(TaxonRank.subspecies))
+                  _RankTextField(
+                    controller: widget.ctr.subspecificEpithetCtr,
+                    label: 'Subspecific epithet',
+                    lowercase: true,
+                  ),
+              ],
             ),
           ),
-          Visibility(
-            visible:
-                _isShowMore || widget.ctr.redListCategoryCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.redListCategoryCtr,
-              labelText: 'IUCN RedList Category',
-              hintText: 'e.g. Endangered, Vulnerable, etc.',
-              isLastField: false,
-              onChanged: (String? value) {
-                if (value != null) {
-                  widget.ctr.redListCategoryCtr.value = TextEditingValue(
-                    text: value.toSentenceCase(),
-                    selection: widget.ctr.redListCategoryCtr.selection,
-                  );
-                }
-              },
+          FormSection(
+            title: 'Additional details',
+            child: Column(
+              children: [
+                CommonTextField(
+                  controller: widget.ctr.authorCtr,
+                  labelText: 'Authors',
+                  hintText: 'Enter authors',
+                  isLastField: false,
+                ),
+                CommonTextField(
+                  controller: widget.ctr.commonNameCtr,
+                  labelText: 'Common name',
+                  hintText: 'Enter a common name',
+                  isLastField: false,
+                  onChanged: (String? value) {
+                    if (value != null) {
+                      widget.ctr.commonNameCtr.value = TextEditingValue(
+                        text: value.toSentenceCase(),
+                        selection: widget.ctr.commonNameCtr.selection,
+                      );
+                    }
+                  },
+                ),
+                Visibility(
+                  visible:
+                      _isShowMore ||
+                      widget.ctr.redListCategoryCtr.text.isNotEmpty,
+                  child: CommonTextField(
+                    controller: widget.ctr.redListCategoryCtr,
+                    labelText: 'IUCN RedList Category',
+                    hintText: 'e.g. Endangered, Vulnerable, etc.',
+                    isLastField: false,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        widget.ctr.redListCategoryCtr.value = TextEditingValue(
+                          text: value.toSentenceCase(),
+                          selection: widget.ctr.redListCategoryCtr.selection,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible: _isShowMore || widget.ctr.citesCtr.text.isNotEmpty,
+                  child: CommonTextField(
+                    controller: widget.ctr.citesCtr,
+                    labelText: 'CITES Status',
+                    hintText: 'e.g. Appendix I, Appendix II, Non-CITES, etc.',
+                    isLastField: false,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        widget.ctr.citesCtr.value = TextEditingValue(
+                          text: value.toSentenceCase(),
+                          selection: widget.ctr.citesCtr.selection,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      _isShowMore ||
+                      widget.ctr.countryStatusCtr.text.isNotEmpty,
+                  child: CommonTextField(
+                    controller: widget.ctr.countryStatusCtr,
+                    labelText: 'Country conservation status',
+                    hintText: 'e.g. Protected, common, etc.',
+                    isLastField: false,
+                  ),
+                ),
+                Visibility(
+                  visible:
+                      _isShowMore || widget.ctr.sortingOrderCtr.text.isNotEmpty,
+                  child: CommonNumField(
+                    controller: widget.ctr.sortingOrderCtr,
+                    labelText: 'Sorting order',
+                    hintText: 'E.g., 1, 2, 3, etc.',
+                    isLastField: false,
+                  ),
+                ),
+                Visibility(
+                  visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
+                  child: CommonTextField(
+                    controller: widget.ctr.noteCtr,
+                    labelText: 'Notes',
+                    hintText: 'Enter notes',
+                    maxLines: 3,
+                    isLastField: false,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isShowMore = !_isShowMore;
+                    });
+                  },
+                  child: Text(_isShowMore ? 'Show less' : 'Show more'),
+                ),
+              ],
             ),
           ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.citesCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.citesCtr,
-              labelText: 'CITES Status',
-              hintText: 'e.g. Appendix I, Appendix II, Non-CITES, etc.',
-              isLastField: false,
-              onChanged: (String? value) {
-                if (value != null) {
-                  widget.ctr.citesCtr.value = TextEditingValue(
-                    text: value.toSentenceCase(),
-                    selection: widget.ctr.citesCtr.selection,
-                  );
-                }
-              },
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.countryStatusCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.countryStatusCtr,
-              labelText: 'Country conservation status',
-              hintText: 'e.g. Protected, common, etc.',
-              isLastField: false,
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.sortingOrderCtr.text.isNotEmpty,
-            child: CommonNumField(
-              controller: widget.ctr.sortingOrderCtr,
-              labelText: 'Sorting order',
-              hintText: 'E.g., 1, 2, 3, etc.',
-              isLastField: false,
-            ),
-          ),
-          Visibility(
-            visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
-            child: CommonTextField(
-              controller: widget.ctr.noteCtr,
-              labelText: 'Notes',
-              hintText: 'Enter notes',
-              maxLines: 3,
-              isLastField: false,
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _isShowMore = !_isShowMore;
-              });
-            },
-            child: Text(_isShowMore ? 'Show less' : 'Show more'),
-          ),
-          const SizedBox(height: 16),
-          FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
+          if (widget.showActions) ...[
+            const SizedBox(height: 16),
+            FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
+          ],
         ],
       ),
     );
   }
+
+  Future<void> submit() => _submit();
 
   TaxonRank? get _rank => taxonRankFromString(widget.ctr.taxonRankCtr);
 

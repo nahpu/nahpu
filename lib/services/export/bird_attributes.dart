@@ -30,7 +30,8 @@ class BirdAttributes {
       data.toeHex ?? '',
       data.tarsusColor ?? '',
       data.tarsusHex ?? '',
-      data.sex != null ? specimenSexList[data.sex!] : '',
+      getSpecimenSexLabel(data.sex) ?? '',
+      data.lifeStage ?? '',
       _getBroodPatch(),
       data.skullOssification?.toString() ?? '',
       _getHasBursa(),
@@ -76,15 +77,13 @@ class BirdAttributes {
     List<String> emptyMale = List.filled(3, '');
     List<String> emptyFemale = List.filled(9, '');
 
-    switch (sexEnum) {
-      case SpecimenSex.male:
-        return [..._getMaleGonad(), ...emptyFemale];
-      case SpecimenSex.female:
-        return [...emptyMale, ..._getFemaleGonad()];
-      case SpecimenSex.unknown:
-      default:
-        return [...emptyMale, ...emptyFemale];
-    }
+    final male = sexEnum?.supportsMaleAttributes == true
+        ? _getMaleGonad()
+        : emptyMale;
+    final female = sexEnum?.supportsFemaleAttributes == true
+        ? _getFemaleGonad()
+        : emptyFemale;
+    return [...male, ...female];
   }
 
   List<String> _getMaleGonad() {

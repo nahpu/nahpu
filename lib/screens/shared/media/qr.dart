@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:qr/qr.dart';
 
 enum ScannerMode { qr, barcode }
@@ -337,13 +338,13 @@ class QrImageView extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(NahpuRadius.xs),
           ),
           child: const Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Padding(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(NahpuSpacing.md),
                 child: Text(
                   'Data is too large for QR code.\n Try using file export feature instead.',
                   textAlign: TextAlign.center,
@@ -376,6 +377,40 @@ class QrImageView extends StatelessWidget {
       QrCode(
         payload: QrPayload.fromString(data),
         errorCorrectLevel: QrErrorCorrectLevel.low,
+      ),
+    );
+  }
+}
+
+/// Displays a QR code using scan-safe colors and a responsive square surface.
+///
+/// This is the shared viewer for exchange dialogs and compact project
+/// previews. The lower-level [QrImageView] remains configurable for document
+/// templates and other callers that intentionally use custom colors/shapes.
+class QrCodeViewer extends StatelessWidget {
+  const QrCodeViewer({super.key, required this.data, this.maxSize = 400});
+
+  final String data;
+  final double maxSize;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(maxSize > 0);
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxSize, maxHeight: maxSize),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: DefaultTextStyle(
+            style: const TextStyle(color: Colors.black),
+            child: QrImageView(
+              data: data,
+              color: Colors.black,
+              backgroundColor: Colors.white,
+              padding: NahpuSpacing.sm,
+            ),
+          ),
+        ),
       ),
     );
   }

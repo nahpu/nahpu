@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -8,6 +8,9 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 class AttributeForm extends StatefulWidget {
   const AttributeForm({super.key, required this.children});
@@ -25,7 +28,7 @@ class _AttributeFormState extends State<AttributeForm> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Specimen Attributes',
-      infoContent: const AttributeInfoContent(),
+      infoTopic: InfoTopic.specimenAttributes,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
         height: 484,
@@ -42,21 +45,109 @@ class _AttributeFormState extends State<AttributeForm> {
   }
 }
 
-class AttributeInfoContent extends StatelessWidget {
-  const AttributeInfoContent({super.key});
+class SpecimenAttributeSectionLabel extends StatelessWidget {
+  const SpecimenAttributeSectionLabel({super.key, required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Measurements and other biological attributes of the '
-              'specimen, including age, sex, reproductive condition, and '
-              'taxon-specific observations.',
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+      child: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
-      ],
+      ),
     );
+  }
+}
+
+class SpecimenSexDropdown extends ConsumerWidget {
+  const SpecimenSexDropdown({
+    super.key,
+    required this.currentCode,
+    required this.onChanged,
+  });
+
+  final int? currentCode;
+  final ValueChanged<SpecimenSex?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = getSpecimenSex(currentCode);
+    final configured = ref
+        .watch(specimenSexVocabularyProvider)
+        .maybeWhen(data: (value) => value, orElse: () => defaultSpecimenSexes);
+    final options = [...configured];
+    if (current != null && !options.contains(current)) options.add(current);
+
+    return DropdownButtonFormField<SpecimenSex>(
+      initialValue: current,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Sex',
+        hintText: 'Select specimen sex',
+      ),
+      items: [
+        for (final sex in options)
+          DropdownMenuItem(
+            value: sex,
+            child: CommonDropdownText(text: specimenSexLabel[sex]!),
+          ),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+class LifeStageDropdown extends ConsumerWidget {
+  const LifeStageDropdown({
+    super.key,
+    required this.currentValue,
+    required this.onChanged,
+  });
+
+  final String? currentValue;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(lifeStagePrefKey))
+        .when(
+          data: (configured) {
+            final options = includeCurrentVocabularyValue(
+              configured,
+              currentValue,
+            );
+            return DropdownButtonFormField<String?>(
+              initialValue: currentValue,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Life stage',
+                hintText: 'Select life stage',
+              ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: CommonDropdownText(text: 'Not assigned'),
+                ),
+                ...options.map(
+                  (value) => DropdownMenuItem<String?>(
+                    value: value,
+                    child: CommonDropdownText(text: value),
+                  ),
+                ),
+              ],
+              onChanged: onChanged,
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Unable to load life stages: $error'),
+        );
   }
 }
 
@@ -126,7 +217,7 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
     return Column(
       children: [
         const CommonDivider(),
-        Text('Parasites', style: Theme.of(context).textTheme.titleMedium),
+        const SpecimenAttributeSectionLabel(text: 'Parasites'),
         DropdownButtonFormField<int?>(
           key: ValueKey('examined-${detection?.parasiteExamined}'),
           initialValue: detection?.parasiteExamined,

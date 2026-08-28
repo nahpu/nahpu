@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -12,12 +12,14 @@ import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -159,6 +161,59 @@ void main() {
       expect(data['uri'], 'https://example.org/record');
       expect(data, isNot(contains('url')));
       expect(data['specimenUuid'], 'specimen-a');
+    });
+
+    test('normalizes v6 site, weather, age, and arthropod fields', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 6,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'site': [
+              {
+                'id': 7,
+                'siteID': 'Camp A',
+                'habitatType': 'Forest',
+                'habitatCondition': 'Intact',
+                'habitatDescription': 'Lowland rainforest',
+              },
+            ],
+            'weather': [
+              {'eventID': 9, 'averageHumidity': 80.0},
+            ],
+            'mammalAttribute': [
+              {'specimenUuid': 'mammal', 'age': 1},
+            ],
+            'herpAttribute': [
+              {'specimenUuid': 'herp', 'age': 3},
+            ],
+            'arthropodAttribute': [
+              {
+                'specimenUuid': 'arthropod',
+                'headWidth': 2.5,
+                'ambientTemperature': 26.0,
+                'canopyCover': '75%',
+              },
+            ],
+          },
+        }),
+      );
+
+      final site = decoded.rows('site').single;
+      expect(site, isNot(contains('habitatType')));
+      final attribute = decoded.rows('siteAttribute').single;
+      expect(attribute['siteID'], 7);
+      expect(attribute['habitatType'], 'Forest');
+      expect(attribute['habitatCondition'], 'Intact');
+      expect(attribute['habitatDescription'], 'Lowland rainforest');
+      expect(decoded.rows('environment').single['averageHumidity'], 80.0);
+      expect(decoded.rows('mammalAttribute').single['lifeStage'], 'Subadult');
+      expect(decoded.rows('herpAttribute').single['lifeStage'], 'Metamorph');
+      final arthropod = decoded.rows('arthropodAttribute').single;
+      expect(arthropod['headWidth'], 2.5);
+      expect(arthropod, isNot(contains('ambientTemperature')));
+      expect(arthropod, isNot(contains('canopyCover')));
     });
 
     test('rejects conflicting legacy and canonical collections', () {
@@ -369,6 +424,62 @@ void main() {
       expect(payload.rows('specimen'), hasLength(1));
     });
 
+    testWidgets('exports arthropod attributes with project specimens', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('arthropod-a'),
+              projectUuid: Value('project-a'),
+              taxonGroup: Value('Arthropods'),
+            ),
+          );
+      await database
+          .into(database.arthropodAttribute)
+          .insert(
+            const ArthropodAttributeCompanion(
+              specimenUuid: Value('arthropod-a'),
+              headWidth: Value(3.25),
+              lifeStage: Value('Adult'),
+            ),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.version, projectTransferVersion);
+      expect(payload.rows('arthropodAttribute'), hasLength(1));
+      expect(payload.rows('arthropodAttribute').single['headWidth'], 3.25);
+      expect(payload.rows('arthropodAttribute').single['lifeStage'], 'Adult');
+    });
+
+    testWidgets('exports fossil site attributes with project sites', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final siteId = await database
+          .into(database.site)
+          .insert(const SiteCompanion(projectUuid: Value('project-a')));
+      await database
+          .into(database.fossilSite)
+          .insert(
+            FossilSiteCompanion(
+              siteID: Value(siteId),
+              formation: const Value('Hell Creek'),
+            ),
+          );
+
+      final payload = await tester.runAsync(service.buildExport);
+
+      expect(payload!.rows('fossilSite'), hasLength(1));
+      expect(payload.rows('fossilSite').single['siteID'], siteId);
+      expect(payload.rows('fossilSite').single['formation'], 'Hell Creek');
+    });
+
     testWidgets('exports parasite identifiers and event data links', (
       tester,
     ) async {
@@ -437,6 +548,21 @@ void main() {
               associatedDataId: Value(dataId),
             ),
           );
+      final customFieldService = CustomFieldService(database);
+      final customField = await customFieldService.createDefinition(
+        const CustomFieldDraft(
+          name: 'Wind direction',
+          type: FieldType.text,
+          placement: FieldUISection.environmentalData,
+          scope: FieldScope.project,
+          projectUuid: 'project-a',
+        ),
+      );
+      await customFieldService.setValue(
+        CustomFieldOwner.environment(eventId),
+        customField.id!,
+        'Northwest',
+      );
 
       final payload = await tester.runAsync(service.buildExport);
 
@@ -446,6 +572,9 @@ void main() {
       expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
       expect(payload.rows('eventAssociatedData'), hasLength(1));
       expect(payload.rows('eventAssociatedData').single['eventID'], eventId);
+      expect(payload.rows('customFieldDefinition'), hasLength(1));
+      expect(payload.rows('customFieldValue'), hasLength(1));
+      expect(payload.rows('customFieldValue').single['eventId'], eventId);
     });
 
     testWidgets('export survives disposal of its originating widget', (
@@ -666,8 +795,31 @@ void main() {
               'leadStaffId': 'person-1',
             },
           ],
+          'fossilSite': [
+            {'siteID': 8, 'formation': 'Hell Creek'},
+          ],
           'collEvent': [
             {'id': 9, 'projectUuid': 'project-b', 'siteID': 8},
+          ],
+          'customFieldDefinition': [
+            {
+              'id': 30,
+              'uuid': 'environment-wind-direction',
+              'name': 'Wind direction',
+              'type': 'text',
+              'uiSection': 'environmentalData',
+              'scope': 'project',
+              'projectUuid': 'project-b',
+            },
+          ],
+          'customFieldValue': [
+            {
+              'id': 31,
+              'fieldDefinitionId': 30,
+              'projectUuid': 'project-b',
+              'value': 'Northwest',
+              'eventId': 9,
+            },
           ],
           'specimen': [
             {
@@ -710,6 +862,18 @@ void main() {
       expect(
         (await database.select(database.collEvent).get()).single.projectUuid,
         'project-b',
+      );
+      final importedEvent = await database
+          .select(database.collEvent)
+          .getSingle();
+      final customValue = await database
+          .select(database.customFieldValue)
+          .getSingle();
+      expect(customValue.eventId, importedEvent.id);
+      expect(customValue.value, 'Northwest');
+      expect(
+        (await database.select(database.fossilSite).get()).single.formation,
+        'Hell Creek',
       );
       final specimen = await database.select(database.specimen).getSingle();
       expect(specimen.projectUuid, 'project-b');
@@ -1062,17 +1226,21 @@ void main() {
       await tester.pump();
 
       final rail = tester.widget<Container>(
-        find.byKey(const ValueKey('project-transfer-step-rail')),
+        find.byKey(const ValueKey('nahpu-wizard-step-rail')),
       );
       final decoration = rail.decoration! as BoxDecoration;
       final theme = Theme.of(
-        tester.element(
-          find.byKey(const ValueKey('project-transfer-step-rail')),
-        ),
+        tester.element(find.byKey(const ValueKey('nahpu-wizard-step-rail'))),
       );
       final firstStep = tester.widget<ListTile>(find.byType(ListTile).first);
 
-      expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.large));
+      expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.lg));
+      // The rail carries the standard panel look: same fill and same border as
+      // the file settings card.
+      expect(
+        decoration.color,
+        theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      );
       expect(decoration.border, isA<Border>());
       expect(find.byType(VerticalDivider), findsNothing);
       expect(firstStep.selectedTileColor, theme.colorScheme.primaryContainer);
@@ -1101,23 +1269,45 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ChoiceChip), findsWidgets);
-    expect(
-      find.byKey(const ValueKey('project-transfer-step-rail')),
-      findsNothing,
-    );
+    expect(find.byKey(const ValueKey('nahpu-wizard-step-rail')), findsNothing);
   });
 
-  testWidgets('home menu exposes project creation and import', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
-    );
-    final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
-    scaffold.openDrawer();
-    await tester.pumpAndSettle();
+  testWidgets(
+    'home menu exposes project actions and How-to recipes before About',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(500, 1200);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
 
-    expect(find.text('Create project'), findsOneWidget);
-    expect(find.text('Import project'), findsOneWidget);
-  });
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
+      );
+      final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
+      scaffold.openDrawer();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Create project'), findsOneWidget);
+      expect(find.text('Import project'), findsOneWidget);
+      expect(find.text('How-to recipes'), findsOneWidget);
+      expect(find.text('How-to Recipes'), findsNothing);
+      expect(find.text('Learning resources'), findsNothing);
+
+      final drawerText = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(HomeMenuDrawer),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((text) => text.data)
+          .toList();
+      expect(
+        drawerText.indexOf('How-to recipes'),
+        lessThan(drawerText.indexOf('About')),
+      );
+    },
+  );
 
   testWidgets('home speed dial exposes project creation and import', (
     tester,

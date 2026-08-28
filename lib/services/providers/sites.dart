@@ -1,30 +1,46 @@
 import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
+import 'package:nahpu/services/database/geography_queries.dart';
 import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final siteEntryProvider =
-    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteData>>(SiteEntry.new);
+    AsyncNotifierProvider.autoDispose<SiteEntry, List<SiteRecord>>(
+      SiteEntry.new,
+    );
 
-class SiteEntry extends AsyncNotifier<List<SiteData>> {
-  Future<List<SiteData>> _fetchSiteEntry() async {
+/// Every shared locality, for the site form's geography autocomplete.
+///
+/// The table is small and read on every keystroke, so it is loaded once and
+/// filtered in memory, matching how the taxon provider backs the taxon field.
+final geographyListProvider = FutureProvider.autoDispose<List<GeographyData>>(
+  (ref) => GeographyQuery(ref.read(databaseProvider)).getAll(),
+);
+
+class SiteEntry extends AsyncNotifier<List<SiteRecord>> {
+  Future<List<SiteRecord>> _fetchSiteEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.site));
 
     final siteEntries = SiteQuery(
       ref.read(databaseProvider),
-    ).getAllSites(projectUuid);
+    ).getAllSites(projectUuid, sort: sort);
 
     return siteEntries;
   }
 
   @override
-  FutureOr<List<SiteData>> build() async {
+  FutureOr<List<SiteRecord>> build() async {
     return await _fetchSiteEntry();
   }
 
@@ -33,9 +49,14 @@ class SiteEntry extends AsyncNotifier<List<SiteData>> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       if (state.value == null) return [];
+      final database = ref.read(databaseProvider);
       final sites = await _fetchSiteEntry();
+      final attributes = await SiteQuery(
+        database,
+      ).getSiteAttributes(sites.map((site) => site.id));
       final filteredSites = SiteSearchServices(
         siteEntries: sites,
+        attributesBySite: attributes,
       ).search(query.toLowerCase());
       return filteredSites;
     });
@@ -49,6 +70,12 @@ final coordinateBySiteProvider = FutureProvider.family
       ).getCoordinatesBySiteID(siteId),
     );
 
+final siteAttributeProvider = FutureProvider.family
+    .autoDispose<SiteAttributeData?, int>(
+      (ref, siteId) =>
+          SiteQuery(ref.read(databaseProvider)).getSiteAttribute(siteId),
+    );
+
 final coordinateByProjectProvider =
     FutureProvider.autoDispose<List<CoordinateData>>((ref) {
       final projectUuid = ref.watch(projectUuidProvider);
@@ -59,13 +86,14 @@ final coordinateByProjectProvider =
 
 final coordinateByEventProvider = FutureProvider.family
     .autoDispose<List<CoordinateData>, int>((ref, collEventId) async {
+      final database = ref.read(databaseProvider);
       final collEvent = await CollEventQuery(
-        ref.read(databaseProvider),
+        database,
       ).getCollEventById(collEventId);
       if (collEvent.siteID != null) {
         final siteId = collEvent.siteID!;
         final coordinates = CoordinateQuery(
-          ref.read(databaseProvider),
+          database,
         ).getCoordinatesBySiteID(siteId);
         return coordinates;
       } else {
@@ -75,34 +103,32 @@ final coordinateByEventProvider = FutureProvider.family
 
 final siteMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, siteId) async {
+      final database = ref.read(databaseProvider);
       List<SiteMediaData> mediaList = await SiteQuery(
-        ref.read(databaseProvider),
+        database,
       ).getSiteMedia(siteId);
       List<MediaData> mediaDataList = [];
       for (SiteMediaData media in mediaList) {
         if (media.mediaId != null) {
           mediaDataList.add(
-            await MediaDbQuery(
-              ref.read(databaseProvider),
-            ).getMedia(media.mediaId!),
+            await MediaDbQuery(database).getMedia(media.mediaId!),
           );
         }
       }
       return mediaDataList;
     });
 
-final siteInEventProvider = FutureProvider.autoDispose<List<SiteData>>((
+final siteInEventProvider = FutureProvider.autoDispose<List<SiteRecord>>((
   ref,
 ) async {
+  final database = ref.read(databaseProvider);
   List<int?> siteList = await CollEventQuery(
-    ref.read(databaseProvider),
+    database,
   ).getAllDistinctSites(ref.read(projectUuidProvider));
-  List<SiteData> siteDataList = [];
+  List<SiteRecord> siteDataList = [];
   for (int? siteId in siteList) {
     if (siteId != null) {
-      siteDataList.add(
-        await SiteQuery(ref.read(databaseProvider)).getSiteById(siteId),
-      );
+      siteDataList.add(await SiteQuery(database).getSiteById(siteId));
     }
   }
   return siteDataList;

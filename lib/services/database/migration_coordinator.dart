@@ -25,6 +25,10 @@ class _MigrationCoordinator {
       14: (m) => _Version15Migration(db).upgrade(m),
       15: (m) => _Version16Migration(db).upgrade(m),
       16: (m) => _Version17Migration(db).upgrade(m),
+      17: (m) => _Version18Migration(db).upgrade(m),
+      18: (m) => _Version19Migration(db).upgrade(m),
+      19: (m) => _Version20Migration(db).upgrade(m),
+      20: (m) => _Version21Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -37,6 +41,829 @@ class _MigrationCoordinator {
       await step(migrator);
       currentVersion++;
     }
+  }
+}
+
+class _Version21Migration {
+  const _Version21Migration(this.db);
+
+  final Database db;
+
+  /// Columns moved off `site` and onto the shared `geography` table.
+  static const List<String> _geographyColumns = [
+    'country',
+    'islandGroup',
+    'stateProvince',
+    'county',
+    'municipality',
+    'locality',
+  ];
+
+  Future<void> upgrade(Migrator migrator) async {
+    await migrator.createTable(db.geography);
+    final geographyBySite = await _createGeography();
+    await _migrateSite(migrator, geographyBySite);
+    await _validate();
+  }
+
+  /// Inserts one geography row per distinct locality and returns the site to
+  /// geography mapping.
+  ///
+  /// The match keys are built in Dart rather than SQL so migration-time
+  /// deduplication folds case exactly the way the running app does. SQLite's
+  /// `lower()` only folds ASCII, which would leave accented duplicates behind.
+  Future<Map<int, int>> _createGeography() async {
+    final rows = await db
+        .customSelect(
+          'SELECT id, ${_geographyColumns.join(', ')} FROM site ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+
+    final idsByMatchKey = <String, int>{};
+    final geographyBySite = <int, int>{};
+    for (final row in rows) {
+      final draft = GeographyDraft(
+        country: row.readNullable<String>('country'),
+        islandGroup: row.readNullable<String>('islandGroup'),
+        stateProvince: row.readNullable<String>('stateProvince'),
+        county: row.readNullable<String>('county'),
+        municipality: row.readNullable<String>('municipality'),
+        locality: row.readNullable<String>('locality'),
+      );
+      if (draft.isEmpty) continue;
+
+      final siteId = row.read<int>('id');
+      final existing = idsByMatchKey[draft.matchKey];
+      if (existing != null) {
+        geographyBySite[siteId] = existing;
+        continue;
+      }
+      final geographyId = await db
+          .into(db.geography)
+          .insert(draft.toCompanion());
+      idsByMatchKey[draft.matchKey] = geographyId;
+      geographyBySite[siteId] = geographyId;
+    }
+    return geographyBySite;
+  }
+
+  Future<void> _migrateSite(
+    Migrator migrator,
+    Map<int, int> geographyBySite,
+  ) async {
+    await db.customStatement('PRAGMA legacy_alter_table = ON');
+    try {
+      await db.customStatement('DROP INDEX IF EXISTS site_project_idx');
+      await db.customStatement('ALTER TABLE site RENAME TO siteV20');
+      await migrator.createTable(db.site);
+      await db.customStatement('''
+        INSERT INTO site (
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          mediaID,
+          remark
+        )
+        SELECT
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          mediaID,
+          remark
+        FROM siteV20
+      ''');
+      for (final entry in geographyBySite.entries) {
+        await db.customStatement(
+          'UPDATE site SET geographyId = ? WHERE id = ?',
+          [entry.value, entry.key],
+        );
+      }
+      await db.customStatement('DROP TABLE siteV20');
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
+      );
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_geography_idx ON site(geographyId)',
+      );
+    } finally {
+      await db.customStatement('PRAGMA legacy_alter_table = OFF');
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    await db._requireTable('geography');
+
+    final siteColumns = await _columnNames('site');
+    if (!siteColumns.contains('geographyId')) {
+      throw StateError('Database migration did not add site.geographyId.');
+    }
+    final retained = siteColumns.intersection(_geographyColumns.toSet());
+    if (retained.isNotEmpty) {
+      throw StateError(
+        'Database migration retained site geography column(s): '
+        '${retained.join(', ')}.',
+      );
+    }
+
+    final duplicates = await db.customSelect('''
+      SELECT COUNT(*) AS count FROM (
+        SELECT matchKey FROM geography GROUP BY matchKey HAVING COUNT(*) > 1
+      )
+    ''', readsFrom: const {}).getSingle();
+    if (duplicates.read<int>('count') != 0) {
+      throw StateError('Database migration left duplicate geography records.');
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v21 migration.');
+    }
+  }
+}
+
+class _Version20Migration {
+  const _Version20Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    for (final name in const [
+      'custom_field_value_validate_insert',
+      'custom_field_value_validate_update',
+    ]) {
+      await db.customStatement('DROP TRIGGER IF EXISTS $name');
+    }
+    for (final name in const [
+      'custom_field_site_value_idx',
+      'custom_field_specimen_value_idx',
+      'custom_field_part_value_idx',
+      'custom_field_parasite_value_idx',
+    ]) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+
+    await db.customStatement(
+      'ALTER TABLE customFieldValue RENAME TO customFieldValueV19',
+    );
+    await migrator.createTable(db.customFieldValue);
+    await db.customStatement('''
+      INSERT INTO customFieldValue (
+        id,
+        fieldDefinitionId,
+        projectUuid,
+        value,
+        unit,
+        siteId,
+        specimenUuid,
+        specimenPartId,
+        parasiteId,
+        isLegacy
+      )
+      SELECT
+        id,
+        fieldDefinitionId,
+        projectUuid,
+        value,
+        unit,
+        siteId,
+        specimenUuid,
+        specimenPartId,
+        parasiteId,
+        isLegacy
+      FROM customFieldValueV19
+    ''');
+    await db.customStatement('DROP TABLE customFieldValueV19');
+
+    for (final statement in const [
+      'CREATE UNIQUE INDEX custom_field_event_value_idx '
+          'ON customFieldValue(fieldDefinitionId, eventId) '
+          'WHERE eventId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_site_value_idx '
+          'ON customFieldValue(fieldDefinitionId, siteId) '
+          'WHERE siteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_specimen_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenUuid) '
+          'WHERE specimenUuid IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_part_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenPartId) '
+          'WHERE specimenPartId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_parasite_value_idx '
+          'ON customFieldValue(fieldDefinitionId, parasiteId) '
+          'WHERE parasiteId IS NOT NULL',
+    ]) {
+      await db.customStatement(statement);
+    }
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+    await _validate();
+  }
+
+  Future<void> _validate() async {
+    final columns = await db
+        .customSelect(
+          'PRAGMA table_info(customFieldValue)',
+          readsFrom: const {},
+        )
+        .get();
+    if (!columns.map((row) => row.read<String>('name')).contains('eventId')) {
+      throw StateError(
+        'Database migration did not add event custom-field ownership.',
+      );
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError('Database migration introduced foreign-key violations.');
+    }
+  }
+}
+
+class _Version19Migration {
+  const _Version19Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await _migrateSite(migrator);
+    await _migrateEnvironment();
+    await _migrateMammalAttributes(migrator);
+    await _migrateBirdAttributes(migrator);
+    await _migrateHerpAttributes(migrator);
+    await _migrateArthropodAttributes(migrator);
+    await _migrateFossilAttributes(migrator);
+    await _validate();
+  }
+
+  Future<void> _migrateSite(Migrator migrator) async {
+    await db.customStatement('PRAGMA legacy_alter_table = ON');
+    try {
+      await db.customStatement('ALTER TABLE site RENAME TO siteV18');
+      // Spelled out rather than `migrator.createTable(db.site)` so this step
+      // keeps producing the v19 shape. The generated table has since moved
+      // geography to its own table, and v21 performs that move in turn.
+      await db.customStatement('''
+        CREATE TABLE site (
+          id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          siteID TEXT,
+          projectUuid TEXT,
+          leadStaffId TEXT,
+          siteType TEXT,
+          country TEXT,
+          islandGroup TEXT,
+          stateProvince TEXT,
+          county TEXT,
+          municipality TEXT,
+          mediaID TEXT,
+          locality TEXT,
+          remark TEXT,
+          FOREIGN KEY(mediaID) REFERENCES media(primaryId),
+          FOREIGN KEY(leadStaffId) REFERENCES personnel(uuid)
+        )
+      ''');
+      await db.customStatement('''
+        INSERT INTO site (
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          country,
+          stateProvince,
+          county,
+          municipality,
+          mediaID,
+          locality,
+          remark
+        )
+        SELECT
+          id,
+          siteID,
+          projectUuid,
+          leadStaffId,
+          siteType,
+          country,
+          stateProvince,
+          county,
+          municipality,
+          mediaID,
+          locality,
+          remark
+        FROM siteV18
+      ''');
+      await migrator.createTable(db.siteAttribute);
+      await db.customStatement('''
+        INSERT INTO siteAttribute (
+          siteID,
+          habitatType,
+          habitatCondition,
+          habitatDescription,
+          canopyCover
+        )
+        SELECT
+          id,
+          habitatType,
+          habitatCondition,
+          habitatDescription,
+          NULL
+        FROM siteV18
+      ''');
+      await db.customStatement('DROP TABLE siteV18');
+      await db.customStatement(
+        'CREATE INDEX IF NOT EXISTS site_project_idx ON site(projectUuid)',
+      );
+    } finally {
+      await db.customStatement('PRAGMA legacy_alter_table = OFF');
+    }
+  }
+
+  Future<void> _migrateEnvironment() async {
+    if (await db._tableExists('weather')) {
+      await db.customStatement('ALTER TABLE weather RENAME TO environment');
+    } else {
+      await db._requireTable('environment');
+    }
+    final columns = await _columnNames('environment');
+    for (final definition in const [
+      'cloudCover TEXT',
+      'rainfallInMm REAL',
+      'ambientTemperature REAL',
+      'ambientHumidity REAL',
+      'waterTemperature REAL',
+      'pH REAL',
+      'dissolvedOxygen REAL',
+      'flowVelocity REAL',
+    ]) {
+      final name = definition.split(' ').first;
+      if (!columns.contains(name)) {
+        await db.customStatement(
+          'ALTER TABLE environment ADD COLUMN $definition',
+        );
+      }
+    }
+  }
+
+  Future<void> _migrateMammalAttributes(Migrator migrator) async {
+    final columns = await _columnNames('mammalAttribute');
+    final lifeStageExpression = columns.contains('age')
+        ? '''CASE age
+          WHEN 0 THEN 'Adult'
+          WHEN 1 THEN 'Subadult'
+          WHEN 2 THEN 'Juvenile'
+          WHEN 3 THEN 'Unknown'
+          ELSE NULL
+        END'''
+        : columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE mammalAttribute RENAME TO mammalAttributeV18',
+    );
+    await migrator.createTable(db.mammalAttribute);
+    await db.customStatement('''
+      INSERT INTO mammalAttribute (
+        specimenUuid,
+        showBatFields,
+        totalLength,
+        tailLength,
+        hindFootLength,
+        earLength,
+        forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
+        weight,
+        weightUnit,
+        accuracy,
+        accuracySpecify,
+        sex,
+        lifeStage,
+        testisPosition,
+        testisLength,
+        testisWidth,
+        epididymisAppearance,
+        reproductiveStage,
+        leftPlacentalScars,
+        rightPlacentalScars,
+        mammaeCondition,
+        mammaeInguinalCount,
+        mammaeAxillaryCount,
+        mammaeAbdominalCount,
+        vaginaOpening,
+        pubicSymphysis,
+        embryoLeftCount,
+        embryoRightCount,
+        embryoCR,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        showBatFields,
+        totalLength,
+        tailLength,
+        hindFootLength,
+        earLength,
+        forearm,
+        tibia,
+        showEchoFields,
+        echolocation,
+        frequencyMax,
+        frequencyMin,
+        frequencyAtMaxEnergy,
+        duration,
+        weight,
+        weightUnit,
+        accuracy,
+        accuracySpecify,
+        sex,
+        $lifeStageExpression,
+        testisPosition,
+        testisLength,
+        testisWidth,
+        epididymisAppearance,
+        reproductiveStage,
+        leftPlacentalScars,
+        rightPlacentalScars,
+        mammaeCondition,
+        mammaeInguinalCount,
+        mammaeAxillaryCount,
+        mammaeAbdominalCount,
+        vaginaOpening,
+        pubicSymphysis,
+        embryoLeftCount,
+        embryoRightCount,
+        embryoCR,
+        remark
+      FROM mammalAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE mammalAttributeV18');
+  }
+
+  Future<void> _migrateBirdAttributes(Migrator migrator) async {
+    if (!(await _columnNames('birdAttribute')).contains('lifeStage')) {
+      await migrator.addColumn(db.birdAttribute, db.birdAttribute.lifeStage);
+    }
+  }
+
+  Future<void> _migrateHerpAttributes(Migrator migrator) async {
+    final columns = await _columnNames('herpAttribute');
+    final lifeStageExpression = columns.contains('age')
+        ? '''CASE age
+          WHEN 0 THEN 'Adult'
+          WHEN 1 THEN 'Juvenile'
+          WHEN 2 THEN 'Neonate'
+          WHEN 3 THEN 'Metamorph'
+          WHEN 4 THEN 'Unknown'
+          ELSE NULL
+        END'''
+        : columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE herpAttribute RENAME TO herpAttributeV18',
+    );
+    await migrator.createTable(db.herpAttribute);
+    await db.customStatement('''
+      INSERT INTO herpAttribute (
+        specimenUuid,
+        sex,
+        lifeStage,
+        weight,
+        weightUnit,
+        svl,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        sex,
+        $lifeStageExpression,
+        weight,
+        weightUnit,
+        svl,
+        remark
+      FROM herpAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE herpAttributeV18');
+  }
+
+  Future<void> _migrateArthropodAttributes(Migrator migrator) async {
+    final columns = await _columnNames('arthropodAttribute');
+    final lifeStageExpression = columns.contains('lifeStage')
+        ? 'lifeStage'
+        : 'NULL';
+    final casteExpression = columns.contains('caste') ? 'caste' : 'NULL';
+    await db.customStatement(
+      'ALTER TABLE arthropodAttribute RENAME TO arthropodAttributeV18',
+    );
+    await migrator.createTable(db.arthropodAttribute);
+    await db.customStatement('''
+      INSERT INTO arthropodAttribute (
+        specimenUuid,
+        headWidth,
+        bodyLength,
+        wingspanUpper,
+        wingspanLower,
+        sex,
+        hostOrganism,
+        hostPart,
+        lifeStage,
+        caste,
+        remark
+      )
+      SELECT
+        specimenUuid,
+        headWidth,
+        bodyLength,
+        wingspanUpper,
+        wingspanLower,
+        sex,
+        hostOrganism,
+        hostPart,
+        $lifeStageExpression,
+        $casteExpression,
+        remark
+      FROM arthropodAttributeV18
+    ''');
+    await db.customStatement('DROP TABLE arthropodAttributeV18');
+  }
+
+  Future<void> _migrateFossilAttributes(Migrator migrator) async {
+    final columns = await _columnNames('fossilAttribute');
+    for (final column in [
+      db.fossilAttribute.sex,
+      db.fossilAttribute.ontogeneticStage,
+      db.fossilAttribute.weight,
+      db.fossilAttribute.weightUnit,
+      db.fossilAttribute.remark,
+    ]) {
+      if (!columns.contains(column.name)) {
+        await migrator.addColumn(db.fossilAttribute, column);
+      }
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    for (final table in const [
+      'siteAttribute',
+      'environment',
+      'mammalAttribute',
+      'birdAttribute',
+      'herpAttribute',
+      'arthropodAttribute',
+      'fossilAttribute',
+    ]) {
+      await db._requireTable(table);
+    }
+    if (await db._tableExists('weather')) {
+      throw StateError('Database migration retained the weather table.');
+    }
+
+    final expectedColumns = {
+      'site': {'islandGroup'},
+      'siteAttribute': {
+        'siteID',
+        'habitatType',
+        'habitatCondition',
+        'habitatDescription',
+        'canopyCover',
+      },
+      'environment': {
+        'cloudCover',
+        'rainfallInMm',
+        'ambientTemperature',
+        'ambientHumidity',
+        'waterTemperature',
+        'pH',
+        'dissolvedOxygen',
+        'flowVelocity',
+      },
+      'mammalAttribute': {'lifeStage'},
+      'birdAttribute': {'lifeStage'},
+      'herpAttribute': {'lifeStage'},
+      'arthropodAttribute': {'lifeStage', 'caste'},
+      'fossilAttribute': {
+        'sex',
+        'ontogeneticStage',
+        'weight',
+        'weightUnit',
+        'remark',
+      },
+    };
+    for (final entry in expectedColumns.entries) {
+      final columns = await db
+          .customSelect('PRAGMA table_info(${entry.key})', readsFrom: const {})
+          .get();
+      final names = columns.map((row) => row.read<String>('name')).toSet();
+      if (!names.containsAll(entry.value)) {
+        throw StateError(
+          'Database migration did not add the v19 columns to ${entry.key}.',
+        );
+      }
+    }
+
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v19 migration.');
+    }
+  }
+}
+
+class _Version18Migration {
+  const _Version18Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await db.customStatement(
+      'ALTER TABLE customFieldValue RENAME TO customFieldValueV17',
+    );
+    await db.customStatement(
+      'ALTER TABLE customFieldDefinition RENAME TO customFieldDefinitionV17',
+    );
+    await migrator.createTable(db.customFieldDefinition);
+    await migrator.createTable(db.customFieldValue);
+
+    final definitions = await db
+        .customSelect(
+          'SELECT * FROM customFieldDefinitionV17 ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+    for (final row in definitions) {
+      final id = row.read<int>('id');
+      final hasLegacyValues = await db
+          .customSelect(
+            'SELECT 1 FROM customFieldValueV17 '
+            'WHERE fieldDefinitionId = ? LIMIT 1',
+            variables: [Variable.withInt(id)],
+            readsFrom: const {},
+          )
+          .getSingleOrNull();
+      final rawType = row.readNullable<String>('type') ?? 'text';
+      final rawSection =
+          row.readNullable<String>('uiSection') ?? 'specimenAttribute';
+      await db
+          .into(db.customFieldDefinition)
+          .insert(
+            CustomFieldDefinitionCompanion.insert(
+              id: Value(id),
+              uuid: const Uuid().v4(),
+              name: row.readNullable<String>('name')?.trim().isNotEmpty == true
+                  ? row.read<String>('name').trim()
+                  : 'Legacy custom field $id',
+              type: switch (rawType.split('.').last) {
+                'numeric' => 'number',
+                'boolean' => 'boolean',
+                'dropdown' => 'dropdown',
+                _ => 'text',
+              },
+              uiSection: switch (rawSection.split('.').last) {
+                'siteHabitat' => 'siteAttribute',
+                'siteAttribute' => 'siteAttribute',
+                _ => 'specimenAttribute',
+              },
+              scope: 'global',
+              options: Value(row.readNullable<String>('options')),
+              isArchived: Value(hasLegacyValues != null ? 1 : 0),
+              createdAt: Value(row.readNullable<String>('createdAt')),
+              updatedAt: Value(row.readNullable<String>('updatedAt')),
+            ),
+          );
+    }
+
+    final values = await db
+        .customSelect(
+          'SELECT * FROM customFieldValueV17 ORDER BY id',
+          readsFrom: const {},
+        )
+        .get();
+    for (final row in values) {
+      await db
+          .into(db.customFieldValue)
+          .insert(
+            CustomFieldValueCompanion.insert(
+              id: Value(row.read<int>('id')),
+              fieldDefinitionId: row.read<int>('fieldDefinitionId'),
+              projectUuid: Value(row.readNullable<String>('projectUuid')),
+              value: row.readNullable<String>('value') ?? '',
+              unit: Value(row.readNullable<String>('unit')),
+              isLegacy: const Value(1),
+            ),
+          );
+    }
+
+    await db.customStatement('DROP TABLE customFieldValueV17');
+    await db.customStatement('DROP TABLE customFieldDefinitionV17');
+    await _createIndexesAndTriggers(migrator);
+    await _validate();
+  }
+
+  Future<void> _createIndexesAndTriggers(Migrator migrator) async {
+    for (final statement in const [
+      'CREATE UNIQUE INDEX custom_field_site_value_idx '
+          'ON customFieldValue(fieldDefinitionId, siteId) '
+          'WHERE siteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_specimen_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenUuid) '
+          'WHERE specimenUuid IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_part_value_idx '
+          'ON customFieldValue(fieldDefinitionId, specimenPartId) '
+          'WHERE specimenPartId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_parasite_value_idx '
+          'ON customFieldValue(fieldDefinitionId, parasiteId) '
+          'WHERE parasiteId IS NOT NULL',
+      'CREATE UNIQUE INDEX custom_field_template_target_idx '
+          "ON customFieldDefinition(sourceTemplateUuid, scope, ifnull(projectUuid, '')) "
+          'WHERE sourceTemplateUuid IS NOT NULL',
+    ]) {
+      await db.customStatement(statement);
+    }
+
+    // Use the canonical trigger entities so an upgrade matches a fresh v18
+    // database exactly.
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+  }
+
+  Future<void> _validate() async {
+    final definitionColumns = await _columnNames('customFieldDefinition');
+    final valueColumns = await _columnNames('customFieldValue');
+    if (!definitionColumns.containsAll({
+          'uuid',
+          'projectUuid',
+          'catalogFormat',
+          'isArchived',
+          'dwcField',
+        }) ||
+        !valueColumns.containsAll({
+          'siteId',
+          'specimenUuid',
+          'specimenPartId',
+          'parasiteId',
+          'isLegacy',
+        })) {
+      throw StateError(
+        'Database migration did not create the v18 custom fields.',
+      );
+    }
+    final integrity = await db
+        .customSelect('PRAGMA integrity_check', readsFrom: const {})
+        .getSingle();
+    if (integrity.data.values.single != 'ok') {
+      throw StateError('Database integrity check failed after v18 migration.');
+    }
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
   }
 }
 

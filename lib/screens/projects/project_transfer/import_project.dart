@@ -1,13 +1,18 @@
 import 'dart:async';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
+import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
+import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
+import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -69,8 +74,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   final _forceConfirmationController = TextEditingController();
   final _destinationNameController = TextEditingController();
-  final _stepChipScrollController = ScrollController();
-  final _stepChipKeys = List<GlobalKey>.generate(10, (_) => GlobalKey());
   final Map<String, ProjectTransferConflictAction> _actions = {};
   final Map<String, bool> _importedProjectFields = {};
   ProjectTransferArchiveFile? _archiveFile;
@@ -89,6 +92,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   ProjectTransferProjectMatch? _existingProject;
   XFile? _selectedInput;
   int _nameValidationGeneration = 0;
+  ExportCancellation? _readCancellation;
+  StreamSubscription<ExportJobProgress>? _readSubscription;
+  ExportJobProgress? _readProgress;
+  bool _isCancellingRead = false;
 
   bool get _isNewProject => widget.mode == ProjectTransferImportMode.newProject;
   List<String> get _steps => _isNewProject ? _newProjectSteps : _mergeSteps;
@@ -112,7 +119,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   void dispose() {
     _forceConfirmationController.dispose();
     _destinationNameController.dispose();
-    _stepChipScrollController.dispose();
     final archive = _archiveFile;
     if (archive != null) unawaited(archive.dispose());
     super.dispose();
@@ -120,8 +126,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wide =
-        MediaQuery.sizeOf(context).width >= NahpuBreakpoints.projectWizardRail;
     return Scaffold(
       appBar: AppBar(
         title: Text(_isNewProject ? 'Import project' : 'Merge project'),
@@ -130,26 +134,15 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         child: Column(
           children: [
             Expanded(
-              child: wide
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
-                          child: SizedBox(width: 248, child: _buildStepRail()),
-                        ),
-                        Expanded(child: _buildStepBody()),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        SizedBox(height: 64, child: _buildStepChips()),
-                        const Divider(height: 2),
-                        Expanded(child: _buildStepBody()),
-                      ],
-                    ),
+              child: NahpuWizardScaffold(
+                steps: _steps,
+                currentStep: _step,
+                maxVisitedStep: _maxVisitedStep,
+                onStepSelected: (index) => setState(() => _step = index),
+                child: _stepContent(),
+              ),
             ),
-            _WizardActionBar(
+            NahpuWizardActionBar(
               step: _step,
               lastStep: _steps.length - 1,
               isRunning: _isImporting,
@@ -165,110 +158,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               onClose: _close,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepRail() {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: const ValueKey('project-transfer-step-rail'),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest.withAlpha(80),
-        border: Border.all(
-          color: colors.outlineVariant,
-          width: NahpuStroke.thin,
-        ),
-        borderRadius: BorderRadius.circular(NahpuRadius.large),
-      ),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(NahpuSpacing.lg),
-        itemCount: _steps.length,
-        itemBuilder: (context, index) {
-          final selected = index == _step;
-          final enabled = index <= _maxVisitedStep;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: NahpuSpacing.sm),
-            child: Material(
-              color: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(NahpuRadius.medium),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: ListTile(
-                selected: selected,
-                selectedTileColor: colors.primaryContainer,
-                selectedColor: colors.onPrimaryContainer,
-                enabled: enabled,
-                leading: _StepNumber(
-                  number: index + 1,
-                  selected: selected,
-                  complete: index < _step,
-                ),
-                title: Text(
-                  _steps[index],
-                  style: selected
-                      ? const TextStyle(fontWeight: FontWeight.w600)
-                      : null,
-                ),
-                onTap: enabled ? () => setState(() => _step = index) : null,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStepChips() {
-    return ListView.separated(
-      controller: _stepChipScrollController,
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      itemCount: _steps.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemBuilder: (context, index) {
-        final enabled = index <= _maxVisitedStep;
-        return ChoiceChip(
-          key: _stepChipKeys[index],
-          selected: index == _step,
-          label: Text('${index + 1}. ${_steps[index]}'),
-          onSelected: enabled
-              ? (_) {
-                  setState(() => _step = index);
-                  _scrollActiveStepChip();
-                }
-              : null,
-        );
-      },
-    );
-  }
-
-  void _scrollActiveStepChip() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final chipContext = _stepChipKeys[_step].currentContext;
-      if (chipContext == null) return;
-      Scrollable.ensureVisible(
-        chipContext,
-        alignment: 0.5,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
-  Widget _buildStepBody() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 960),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: KeyedSubtree(key: ValueKey(_step), child: _stepContent()),
-          ),
         ),
       ),
     );
@@ -297,7 +186,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _RoundedCard(
+        NahpuPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -311,22 +200,30 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 'contains records only; ZIP and TAR.GZ include media.',
               ),
               const SizedBox(height: 20),
-              Center(
-                child: FilledButton.tonalIcon(
-                  onPressed: _isReading ? null : _chooseArchive,
-                  icon: _isReading
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.upload_file_rounded),
-                  label: Text(
-                    _selectedInput == null
-                        ? 'Choose archive'
-                        : 'Choose another archive',
+              if (_isReading && _readProgress != null)
+                // Reading a media-heavy transfer decompresses gigabytes; a
+                // spinner in the button cannot say how far along that is.
+                ExportProgressPanel(
+                  title: 'Reading archive',
+                  progress: _readProgress!,
+                  hint:
+                      'Transfers that include media can take several minutes '
+                      'to unpack. Keep NAHPU open.',
+                  isCancelling: _isCancellingRead,
+                  onCancel: _requestReadCancel,
+                )
+              else
+                Center(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _isReading ? null : _chooseArchive,
+                    icon: const Icon(Icons.upload_file_rounded),
+                    label: Text(
+                      _selectedInput == null
+                          ? 'Choose archive'
+                          : 'Choose another archive',
+                    ),
                   ),
                 ),
-              ),
               if (plan != null) ...[
                 const SizedBox(height: 16),
                 ListTile(
@@ -356,7 +253,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           _existingProjectCard(_existingProject!),
         ],
         const SizedBox(height: 16),
-        _RoundedCard(
+        NahpuPanel(
           color: Theme.of(context).colorScheme.tertiaryContainer,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +311,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _newProjectIdentityCard(ProjectTransferImportPlan plan) {
-    return _RoundedCard(
+    return NahpuPanel(
       color: _nameConflict == null
           ? null
           : Theme.of(context).colorScheme.errorContainer,
@@ -456,7 +353,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _existingProjectCard(ProjectTransferProjectMatch project) {
-    return _RoundedCard(
+    return NahpuPanel(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +382,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Widget _forceMergeCard(ProjectTransferImportPlan plan) {
     final confirmed =
         _forceConfirmationController.text.trim() == plan.activeProjectName;
-    return _RoundedCard(
+    return NahpuPanel(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -547,7 +444,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: 'Project info',
           message:
               'Current values are kept by default. Select individual imported '
@@ -616,7 +513,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: section.label,
           message:
               'Review matches before continuing. “Keep current” maps imported '
@@ -710,14 +607,14 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepHeading(
+        NahpuStepHeading(
           title: _isNewProject ? 'Review and import' : 'Review and merge',
           message:
               'Nothing has been written yet. The database changes will be '
               'committed together; a failure rolls them all back.',
         ),
         const SizedBox(height: 16),
-        _RoundedCard(
+        NahpuPanel(
           child: Column(
             children: [
               _ReviewRow(
@@ -754,7 +651,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         ),
         if (plan.warnings.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _RoundedCard(
+          NahpuPanel(
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -786,7 +683,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 : 'Return to Review and merge and try again.'),
       );
     }
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         children: [
           Icon(
@@ -845,15 +742,27 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Future<void> _loadArchive(XFile input) async {
+    final reporter = ExportProgressReporter(
+      steps: ProjectTransferArchiveService.importPhases,
+    );
+    final cancellation = ExportCancellation();
     setState(() {
       _isReading = true;
+      _isCancellingRead = false;
       _error = null;
       _existingProject = null;
       _selectedInput = input;
+      _readCancellation = cancellation;
+      _readProgress = ExportJobProgress.pending(reporter.steps);
+    });
+    _readSubscription = reporter.stream.listen((progress) {
+      if (mounted) setState(() => _readProgress = progress);
     });
     ProjectTransferArchiveFile? opened;
     try {
-      opened = await ProjectTransferService(ref: ref).archive.read(input);
+      opened = await ProjectTransferService(
+        ref: ref,
+      ).archive.read(input, progress: reporter, cancel: cancellation);
       final plan = await ProjectTransferService(
         ref: ref,
       ).planImport(opened.payload, mode: widget.mode);
@@ -890,7 +799,14 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _forceConfirmationController.clear();
         _maxVisitedStep = 0;
       });
-      _scrollActiveStepChip();
+    } on ExportCancelledException {
+      if (opened != null) await opened.dispose();
+      if (!mounted) return;
+      setState(() {
+        _plan = null;
+        _selectedInput = null;
+        _error = null;
+      });
     } catch (error) {
       if (opened != null) await opened.dispose();
       if (!mounted) return;
@@ -904,8 +820,23 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         }
       });
     } finally {
-      if (mounted) setState(() => _isReading = false);
+      await _readSubscription?.cancel();
+      _readSubscription = null;
+      await reporter.dispose();
+      if (mounted) {
+        setState(() {
+          _isReading = false;
+          _isCancellingRead = false;
+          _readCancellation = null;
+          _readProgress = null;
+        });
+      }
     }
+  }
+
+  void _requestReadCancel() {
+    _readCancellation?.cancel();
+    setState(() => _isCancellingRead = true);
   }
 
   Future<void> _openBackup() async {
@@ -918,7 +849,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   void _back() {
     if (_step > 0) {
       setState(() => _step--);
-      _scrollActiveStepChip();
     }
   }
 
@@ -933,7 +863,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _step++;
         _maxVisitedStep = _maxVisitedStep < _step ? _step : _maxVisitedStep;
       });
-      _scrollActiveStepChip();
     }
   }
 
@@ -968,7 +897,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         _step = _resultStep;
         _maxVisitedStep = _resultStep;
       });
-      _scrollActiveStepChip();
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error.toString());
@@ -1039,73 +967,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 }
 
-class _WizardActionBar extends StatelessWidget {
-  const _WizardActionBar({
-    required this.step,
-    required this.lastStep,
-    required this.isRunning,
-    required this.canContinue,
-    required this.finalActionLabel,
-    required this.finalActionIcon,
-    required this.onBack,
-    required this.onContinue,
-    required this.onClose,
-  });
-
-  final int step;
-  final int lastStep;
-  final bool isRunning;
-  final bool canContinue;
-  final String finalActionLabel;
-  final IconData finalActionIcon;
-  final VoidCallback onBack;
-  final VoidCallback onContinue;
-  final VoidCallback onClose;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              if (step > 0 && step < lastStep)
-                OutlinedButton.icon(
-                  onPressed: isRunning ? null : onBack,
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Back'),
-                ),
-              const Spacer(),
-              if (step == lastStep)
-                FilledButton(onPressed: onClose, child: const Text('Done'))
-              else
-                FilledButton.icon(
-                  onPressed: canContinue ? onContinue : null,
-                  icon: isRunning
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          step == lastStep - 1
-                              ? finalActionIcon
-                              : Icons.arrow_forward_rounded,
-                        ),
-                  label: Text(
-                    step == lastStep - 1 ? finalActionLabel : 'Continue',
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ConflictCard extends StatelessWidget {
   const _ConflictCard({
     required this.conflict,
@@ -1119,7 +980,7 @@ class _ConflictCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1206,7 +1067,7 @@ class _ProjectFieldChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1241,41 +1102,6 @@ class _ProjectFieldChoice extends StatelessWidget {
       value == null || value.isEmpty ? 'Not set' : value;
 }
 
-class _RoundedCard extends StatelessWidget {
-  const _RoundedCard({required this.child, this.color});
-
-  final Widget child;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: color,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
-    );
-  }
-}
-
-class _StepHeading extends StatelessWidget {
-  const _StepHeading({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 6),
-        Text(message),
-      ],
-    );
-  }
-}
-
 class _MessageCard extends StatelessWidget {
   const _MessageCard({
     required this.icon,
@@ -1289,7 +1115,7 @@ class _MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _RoundedCard(
+    return NahpuPanel(
       child: Column(
         children: [
           Icon(icon, size: 44),
@@ -1311,13 +1137,8 @@ class _ComparisonPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return NahpuPanel(
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1352,33 +1173,6 @@ class _StatusChip extends StatelessWidget {
         ),
       ),
       label: Text(label),
-    );
-  }
-}
-
-class _StepNumber extends StatelessWidget {
-  const _StepNumber({
-    required this.number,
-    required this.selected,
-    required this.complete,
-  });
-
-  final int number;
-  final bool selected;
-  final bool complete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: NahpuRadius.medium,
-      backgroundColor: selected
-          ? colors.primary
-          : colors.surfaceContainerHighest,
-      foregroundColor: selected ? colors.onPrimary : colors.onSurfaceVariant,
-      child: complete
-          ? const Icon(Icons.check_rounded, size: 16)
-          : Text('$number', style: TextStyle(fontSize: 12)),
     );
   }
 }

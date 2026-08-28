@@ -9,6 +9,7 @@ import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -19,6 +20,8 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/associated_data/associated_data_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:path/path.dart';
@@ -36,8 +39,8 @@ String formatProjectFieldId(ProjectData project, int? number) {
 
 /// Coordinates specimen persistence, including taxon-specific attribute rows.
 ///
-/// Each specimen owns at most one mammal, bird, or herpetofauna attribute row,
-/// selected by its active catalog format.
+/// Each specimen owns at most one taxon-specific attribute row, selected by
+/// its active catalog format.
 class SpecimenServices extends AppServices {
   const SpecimenServices({required super.ref});
 
@@ -61,20 +64,24 @@ class SpecimenServices extends AppServices {
           projectFieldNumber: db.Value(currentProjectNumber),
         ),
       );
+      switch (catalogFmt) {
+        case CatalogFmt.birds:
+          await _createBirdSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.mammals:
+          await _createMammalSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.herpetofauna:
+          await _createHerpSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.arthropods:
+          await _createArthropodSpecimen(specimenUuid);
+          break;
+      }
+      if (supportsParasites(catalogFmt)) {
+        await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
+      }
     });
-    await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
-
-    switch (catalogFmt) {
-      case CatalogFmt.birds:
-        _createBirdSpecimen(specimenUuid);
-        break;
-      case CatalogFmt.mammals:
-        _createMammalSpecimen(specimenUuid);
-        break;
-      case CatalogFmt.herpetofauna:
-        _createHerpSpecimen(specimenUuid);
-        break;
-    }
     invalidateSpecimenList();
 
     return specimenUuid;
@@ -257,8 +264,8 @@ class SpecimenServices extends AppServices {
     }
   }
 
-  void _createMammalSpecimen(String specimenUuid) {
-    MammalSpecimenQuery(dbAccess).createMammalAttributes(
+  Future<void> _createMammalSpecimen(String specimenUuid) async {
+    await MammalSpecimenQuery(dbAccess).createMammalAttributes(
       MammalAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -270,6 +277,10 @@ class SpecimenServices extends AppServices {
     return MammalSpecimenQuery(dbAccess).getMammalAttributeByUuid(specimenUuid);
   }
 
+  Future<Set<int>> getDistinctSexCodes() {
+    return SpecimenQuery(dbAccess).getDistinctSexCodes();
+  }
+
   void updateMammalAttribute(
     String specimenUuid,
     MammalAttributeCompanion entries,
@@ -277,32 +288,56 @@ class SpecimenServices extends AppServices {
     MammalSpecimenQuery(dbAccess).updateMammalAttributes(specimenUuid, entries);
   }
 
-  void clearMammalSexAttributes(String specimenUuid) {
+  void clearMammalSexAttributes(
+    String specimenUuid, {
+    bool male = true,
+    bool female = true,
+  }) {
     updateMammalAttribute(
       specimenUuid,
-      const MammalAttributeCompanion(
-        testisPosition: db.Value(null),
-        testisLength: db.Value(null),
-        testisWidth: db.Value(null),
-        epididymisAppearance: db.Value(null),
-        vaginaOpening: db.Value(null),
-        pubicSymphysis: db.Value(null),
-        reproductiveStage: db.Value(null),
-        mammaeAxillaryCount: db.Value(null),
-        mammaeAbdominalCount: db.Value(null),
-        mammaeInguinalCount: db.Value(null),
-        mammaeCondition: db.Value(null),
-        embryoLeftCount: db.Value(null),
-        embryoRightCount: db.Value(null),
-        embryoCR: db.Value(null),
-        leftPlacentalScars: db.Value(null),
-        rightPlacentalScars: db.Value(null),
+      MammalAttributeCompanion(
+        testisPosition: male ? const db.Value(null) : const db.Value.absent(),
+        testisLength: male ? const db.Value(null) : const db.Value.absent(),
+        testisWidth: male ? const db.Value(null) : const db.Value.absent(),
+        epididymisAppearance: male
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        vaginaOpening: female ? const db.Value(null) : const db.Value.absent(),
+        pubicSymphysis: female ? const db.Value(null) : const db.Value.absent(),
+        reproductiveStage: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeAxillaryCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeAbdominalCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeInguinalCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        mammaeCondition: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoLeftCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoRightCount: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        embryoCR: female ? const db.Value(null) : const db.Value.absent(),
+        leftPlacentalScars: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        rightPlacentalScars: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
       ),
     );
   }
 
-  void _createHerpSpecimen(String specimenUuid) {
-    HerpSpecimenQuery(dbAccess).createHerpAttributes(
+  Future<void> _createHerpSpecimen(String specimenUuid) async {
+    await HerpSpecimenQuery(dbAccess).createHerpAttributes(
       HerpAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -325,8 +360,8 @@ class SpecimenServices extends AppServices {
     updateHerpAttribute(specimenUuid, const HerpAttributeCompanion());
   }
 
-  void _createBirdSpecimen(String specimenUuid) {
-    BirdSpecimenQuery(dbAccess).createBirdAttributes(
+  Future<void> _createBirdSpecimen(String specimenUuid) async {
+    await BirdSpecimenQuery(dbAccess).createBirdAttributes(
       BirdAttributeCompanion(
         specimenUuid: db.Value(specimenUuid),
         weightUnit: const db.Value('g'),
@@ -426,24 +461,55 @@ class SpecimenServices extends AppServices {
     BirdSpecimenQuery(dbAccess).updateBirdAttributes(specimenUuid, entries);
   }
 
-  void clearBirdSexAttributes(String specimenUuid) {
+  void clearBirdSexAttributes(
+    String specimenUuid, {
+    bool male = true,
+    bool female = true,
+  }) {
     updateBirdAttribute(
       specimenUuid,
-      const BirdAttributeCompanion(
-        testisLength: db.Value(null),
-        testisWidth: db.Value(null),
-        testisRemark: db.Value(null),
-        ovaryLength: db.Value(null),
-        ovaryWidth: db.Value(null),
-        ovaryAppearance: db.Value(null),
-        firstOvaSize: db.Value(null),
-        secondOvaSize: db.Value(null),
-        thirdOvaSize: db.Value(null),
-        oviductWidth: db.Value(null),
-        oviductAppearance: db.Value(null),
-        ovaryRemark: db.Value(null),
+      BirdAttributeCompanion(
+        testisLength: male ? const db.Value(null) : const db.Value.absent(),
+        testisWidth: male ? const db.Value(null) : const db.Value.absent(),
+        testisRemark: male ? const db.Value(null) : const db.Value.absent(),
+        ovaryLength: female ? const db.Value(null) : const db.Value.absent(),
+        ovaryWidth: female ? const db.Value(null) : const db.Value.absent(),
+        ovaryAppearance: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        firstOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        secondOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        thirdOvaSize: female ? const db.Value(null) : const db.Value.absent(),
+        oviductWidth: female ? const db.Value(null) : const db.Value.absent(),
+        oviductAppearance: female
+            ? const db.Value(null)
+            : const db.Value.absent(),
+        ovaryRemark: female ? const db.Value(null) : const db.Value.absent(),
       ),
     );
+  }
+
+  Future<void> _createArthropodSpecimen(String specimenUuid) async {
+    await ArthropodSpecimenQuery(dbAccess).createArthropodAttributes(
+      ArthropodAttributeCompanion(specimenUuid: db.Value(specimenUuid)),
+    );
+  }
+
+  Future<ArthropodAttributeData> getArthropodAttributeData(
+    String specimenUuid,
+  ) {
+    return ArthropodSpecimenQuery(
+      dbAccess,
+    ).getArthropodAttributeByUuid(specimenUuid);
+  }
+
+  Future<void> updateArthropodAttribute(
+    String specimenUuid,
+    ArthropodAttributeCompanion entries,
+  ) {
+    return ArthropodSpecimenQuery(
+      dbAccess,
+    ).updateArthropodAttributes(specimenUuid, entries);
   }
 
   Future<void> deleteBirdAttributes(String specimenUuid) async {
@@ -458,13 +524,21 @@ class SpecimenServices extends AppServices {
     await HerpSpecimenQuery(dbAccess).deleteHerpAttributes(specimenUuid);
   }
 
+  Future<void> deleteArthropodAttributes(String specimenUuid) async {
+    await ArthropodSpecimenQuery(
+      dbAccess,
+    ).deleteArthropodAttributes(specimenUuid);
+  }
+
   Future<void> deleteSpecimen(
     String specimenUuid,
     CatalogFmt catalogFmt,
   ) async {
     await deleteAllSpecimenParts(specimenUuid);
     await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
-    await AssociatedDataQuery(dbAccess).deleteAllAssociatedData(specimenUuid);
+    await AssociatedDataServices(
+      ref: ref,
+    ).detachAllFromTarget(AssociatedDataTarget.specimen(specimenUuid));
     switch (catalogFmt) {
       case CatalogFmt.birds:
         await deleteBirdAttributes(specimenUuid);
@@ -474,6 +548,9 @@ class SpecimenServices extends AppServices {
         break;
       case CatalogFmt.herpetofauna:
         await deleteHerpAttributes(specimenUuid);
+        break;
+      case CatalogFmt.arthropods:
+        await deleteArthropodAttributes(specimenUuid);
         break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
@@ -488,9 +565,9 @@ class SpecimenServices extends AppServices {
     for (var specimen in specimenList) {
       await deleteAllSpecimenParts(specimen.uuid);
       await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimen.uuid);
-      await AssociatedDataQuery(
-        dbAccess,
-      ).deleteAllAssociatedData(specimen.uuid);
+      await AssociatedDataServices(
+        ref: ref,
+      ).detachAllFromTarget(AssociatedDataTarget.specimen(specimen.uuid));
       await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimen.uuid);
       CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(specimen.taxonGroup);
       switch (catalogFmt) {
@@ -502,6 +579,9 @@ class SpecimenServices extends AppServices {
           break;
         case CatalogFmt.herpetofauna:
           await deleteHerpAttributes(specimen.uuid);
+          break;
+        case CatalogFmt.arthropods:
+          await deleteArthropodAttributes(specimen.uuid);
           break;
       }
     }
@@ -797,10 +877,11 @@ class TissueIdServices extends AppServices {
 class SpecimenPartServices extends AppServices {
   const SpecimenPartServices({required super.ref});
 
-  Future<void> createSpecimenPart(SpecimenPartCompanion form) async {
-    await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
+  Future<int> createSpecimenPart(SpecimenPartCompanion form) async {
+    final id = await SpecimenPartQuery(dbAccess).createSpecimenPart(form);
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
+    return id;
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {
@@ -826,6 +907,12 @@ class SpecimenPartServices extends AppServices {
 const String collectorFieldKey = 'isCollectorFieldAlwaysShown';
 const String batFieldsKey = 'isBatFieldsAlwaysShown';
 
+/// Records whether tissues are numbered separately from the specimen field ID.
+///
+/// The setup wizard asks this so it knows whether to collect a tissue prefix
+/// and starting number. Specimen forms still offer tissue IDs either way.
+const String separateTissueIdKey = 'usesSeparateTissueId';
+
 class SpecimenSettingServices {
   SpecimenSettingServices({required this.ref});
 
@@ -839,112 +926,6 @@ class SpecimenSettingServices {
 
   bool getSpecimenSettingField(String key) {
     return _prefs.getBool(key) ?? false;
-  }
-}
-
-class AssociatedDataServices extends AppServices {
-  const AssociatedDataServices({required super.ref});
-
-  Future<List<AssociatedDataData>> getAssociatedData(
-    String specimenUuid,
-  ) async {
-    return await AssociatedDataQuery(
-      dbAccess,
-    ).getAllAssociatedData(specimenUuid);
-  }
-
-  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
-    return AssociatedDataQuery(dbAccess).getAssociatedDataForSite(siteId);
-  }
-
-  Future<List<AssociatedDataData>> getProjectAssociatedData() {
-    return AssociatedDataQuery(
-      dbAccess,
-    ).getAssociatedDataForProject(currentProjectUuid);
-  }
-
-  Future<void> createAssociatedData(
-    String specimenUuid,
-    AssociatedDataCompanion form,
-  ) async {
-    await AssociatedDataQuery(
-      dbAccess,
-    ).createSpecimenDataAssociation(specimenUuid, form);
-    _invalidateData();
-  }
-
-  Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
-    final id = await AssociatedDataQuery(dbAccess).createProjectAssociatedData(
-      form.copyWith(projectUuid: db.Value(currentProjectUuid)),
-    );
-    _invalidateData();
-    return id;
-  }
-
-  Future<void> linkToSpecimen(int id, String specimenUuid) async {
-    await AssociatedDataQuery(dbAccess).linkToSpecimen(id, specimenUuid);
-    _invalidateData();
-  }
-
-  Future<void> linkToSite(int id, int siteId) async {
-    await AssociatedDataQuery(dbAccess).linkToSite(id, siteId);
-    _invalidateData();
-  }
-
-  Future<void> unlinkFromSpecimen(int id, String specimenUuid) async {
-    await AssociatedDataQuery(dbAccess).unlinkFromSpecimen(id, specimenUuid);
-    _invalidateData();
-  }
-
-  Future<void> unlinkFromSite(int id, int siteId) async {
-    await AssociatedDataQuery(dbAccess).unlinkFromSite(id, siteId);
-    _invalidateData();
-  }
-
-  Future<void> updateAssociatedData(
-    int associatedDataId,
-    AssociatedDataCompanion form,
-  ) async {
-    await AssociatedDataQuery(
-      dbAccess,
-    ).updateAssociatedData(associatedDataId, form);
-    _invalidateData();
-  }
-
-  Future<bool> isFileUsed(File file) async {
-    return await AssociatedDataQuery(dbAccess).isFileUsed(basename(file.path));
-  }
-
-  Future<void> deleteAssociatedData(int associatedDataId) async {
-    final query = AssociatedDataQuery(dbAccess);
-    final data = await query.getAssociatedDataById(associatedDataId);
-    await query.deleteAssociatedData(associatedDataId);
-    if (data?.type == 'File' &&
-        data?.projectUuid != null &&
-        data?.uri?.isNotEmpty == true &&
-        !await query.isFileUsed(data!.uri!)) {
-      final projectDir = await FileServices(
-        ref: ref,
-      ).getProjectDirByUUID(data.projectUuid!);
-      final file = File(join(projectDir.path, 'associatedData', data.uri));
-      if (file.existsSync()) {
-        await file.delete();
-      }
-    }
-    _invalidateData();
-  }
-
-  Future<File> copyAssociatedDataFile(File path) async {
-    final dataDir = Directory('associatedData');
-
-    File dataPath = await FileServices(
-      ref: ref,
-    ).copyFileToProjectDir(path, dataDir);
-    return dataPath;
-  }
-
-  void _invalidateData() {
-    ref.invalidate(associatedDataProvider);
   }
 }
 

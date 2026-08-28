@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 void main() {
   test('QR capacity helper detects oversized payloads', () {
@@ -50,21 +50,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('project QR viewer uses 8px padding and 16px corners', (
+  testWidgets('shared QR viewer uses black on white and stays square', (
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: ProjectQrCodeViewer(data: 'NAHPU project', isFullScreen: false),
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: const Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 120,
+            height: 140,
+            child: QrCodeViewer(data: 'NAHPU project', maxSize: 400),
+          ),
+        ),
       ),
     );
 
-    expect(find.byType(ProjectQrCodeViewer), findsOneWidget);
-    expect(find.byType(QrImageView), findsOneWidget);
-    final container = tester.widget<Container>(find.byType(Container));
-    expect(container.padding, const EdgeInsets.all(8));
-    final decoration = container.decoration! as BoxDecoration;
-    expect(decoration.borderRadius, BorderRadius.circular(16));
+    final qr = tester.widget<QrImageView>(find.byType(QrImageView));
+    expect(qr.color, Colors.black);
+    expect(qr.backgroundColor, Colors.white);
+    expect(qr.padding, NahpuSpacing.sm);
+    expect(tester.getSize(find.byType(QrImageView)), const Size(120, 120));
     expect(tester.takeException(), isNull);
   });
 }

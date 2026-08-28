@@ -81,7 +81,7 @@ class DocumentWriter {
   /// Each selected site in [picked] is converted to document field values before
   /// rendering.
   Future<File> writeSites({
-    required List<SiteData> picked,
+    required List<SiteRecord> picked,
     required Directory selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
@@ -168,7 +168,7 @@ class DocumentWriter {
   /// [sheetWidthPt] and [sheetHeightPt] are the physical output page dimensions
   /// in Typst points.
   Future<Uint8List> generateSitesPdf(
-    List<SiteData> sites, {
+    List<SiteRecord> sites, {
     required double sheetWidthPt,
     required double sheetHeightPt,
     required rust_config.DocumentLayoutPreset layout,
@@ -255,6 +255,16 @@ class DocumentWriter {
   }
 
   @visibleForTesting
+  static Future<Map<String, String>> mediaValuesForTesting({
+    required WidgetRef ref,
+    required Iterable<int> mediaIds,
+  }) async {
+    final values = <String, String>{};
+    await _addDocumentMediaValues(values, mediaIds, ref);
+    return values;
+  }
+
+  @visibleForTesting
   static List<Map<String, String>> sortRecordDataForTesting({
     required List<Map<String, String>> records,
     required rust_config.DocumentLayoutBlock block,
@@ -268,21 +278,68 @@ class DocumentWriter {
     required double wPt,
     required double hPt,
     Map<String, String> data = const {},
+    bool autoHeight = false,
+    double templatePadTopMm = 0,
+    double templatePadLeftMm = 0,
+    double templatePadRightMm = 0,
+    double templatePadBottomMm = 0,
   }) {
+    final renderPage = _formatPageForRenderingTest(page);
     final typst = StringBuffer();
-    const _DocumentTypstRenderer().writeSingleDocumentCell(
-      typst: typst,
-      page: page,
-      data: data,
-      wPt: wPt,
-      hPt: hPt,
-      templatePadTopMm: 0,
-      templatePadLeftMm: 0,
-      templatePadRightMm: 0,
-      templatePadBottomMm: 0,
-      mirror: false,
-    );
+    const renderer = _DocumentTypstRenderer();
+    if (autoHeight &&
+        renderPage.customTexts.any(
+          TemplateDynamicLayoutService.isFlowingDynamicText,
+        )) {
+      renderer.writeBreakableAutoHeightDocumentCell(
+        typst: typst,
+        page: renderPage,
+        data: data,
+        wPt: wPt,
+        hPt: hPt,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
+      );
+    } else {
+      renderer.writeSingleDocumentCell(
+        typst: typst,
+        page: renderPage,
+        data: data,
+        wPt: wPt,
+        hPt: hPt,
+        templatePadTopMm: templatePadTopMm,
+        templatePadLeftMm: templatePadLeftMm,
+        templatePadRightMm: templatePadRightMm,
+        templatePadBottomMm: templatePadBottomMm,
+        mirror: false,
+        autoHeight: autoHeight,
+      );
+    }
     return typst.toString();
+  }
+
+  static TemplatePage _formatPageForRenderingTest(TemplatePage page) {
+    return page.copyWith(
+      customTexts: page.customTexts
+          .map(
+            (text) => text.isQrCode || isTemplatePictureTextType(text.textType)
+                ? text
+                : text.copyWith(
+                    text: applyTextReplacementRules(
+                      formatExportTemplateText(
+                        text.text,
+                        text.textType,
+                        text.formatOption,
+                        text.caseFormat,
+                      ),
+                      text.replacementRules,
+                    ),
+                  ),
+          )
+          .toList(growable: false),
+    );
   }
 
   @visibleForTesting
@@ -292,7 +349,7 @@ class DocumentWriter {
     required double hPt,
   }) {
     return _DocumentPdfLayoutMetrics.estimateTemplatePageContentHeightPt(
-      page: page,
+      page: _formatPageForRenderingTest(page),
       wPt: wPt,
       hPt: hPt,
     );
@@ -309,7 +366,7 @@ class DocumentWriter {
     required double templatePadBottomMm,
   }) {
     return _DocumentPdfLayoutMetrics.estimateAutoFillCellHeightPt(
-      page: page,
+      page: _formatPageForRenderingTest(page),
       wPt: wPt,
       hPt: hPt,
       templatePadTopMm: templatePadTopMm,

@@ -3,7 +3,7 @@ import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -42,7 +42,7 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Capture Records',
-      infoContent: const CaptureRecordInfoContent(),
+      infoTopic: InfoTopic.specimenCapture,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -822,28 +822,5 @@ class PersonnelName extends ConsumerWidget {
     } catch (e) {
       return const CommonDropdownText(text: 'Error');
     }
-  }
-}
-
-class CaptureRecordInfoContent extends StatelessWidget {
-  const CaptureRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content:
-              'Capture records are used to record the date, time, and location of a specimen'
-              ' for each capture event. They also record the method used to capture the '
-              'specimen, and the personnel who collected it.',
-        ),
-        InfoContent(
-          content:
-              'If you choose to change a collecting event ID, all fields in this section '
-              'will be empty again, except for the capture date and time. ',
-        ),
-      ],
-    );
   }
 }

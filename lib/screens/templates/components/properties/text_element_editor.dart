@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
@@ -19,6 +19,29 @@ String _placeholderForDisplayOption(String label, String displayOption) {
   final parts = baseField.split('::');
   final shortField = parts.length > 1 ? parts.last : baseField;
   return isImageField ? '[$shortField-img]' : '[$shortField]';
+}
+
+class _ClearTextButton extends StatelessWidget {
+  const _ClearTextButton({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, child) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: value.text.isEmpty ? null : controller.clear,
+            icon: const Icon(Icons.clear),
+            label: const Text('Clear'),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class AvailableSymbolsWrap extends StatelessWidget {
@@ -160,6 +183,13 @@ class _AvailableFieldsSectionState
                               value: 'Herpetofauna',
                               child: Text(
                                 'Herpetofauna',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Arthropods',
+                              child: Text(
+                                'Arthropods',
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
@@ -360,6 +390,8 @@ class _TextElementEditorDialogState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 4.0),
+                  _ClearTextButton(controller: _controller),
                 ],
               ),
             ),
@@ -491,14 +523,16 @@ class _TextElementEditorBottomSheetState
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Edit Custom Text',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  'Edit Custom Text',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8.0),
               Row(
                 children: [
                   TextButton(
@@ -534,6 +568,8 @@ class _TextElementEditorBottomSheetState
               ),
             ),
           ),
+          const SizedBox(height: 4.0),
+          _ClearTextButton(controller: _controller),
           const SizedBox(height: 16.0),
           Expanded(
             child: SingleChildScrollView(
