@@ -218,7 +218,8 @@ void main() {
     );
 
     for (final imagePath in imagePaths) {
-      expect(typst, contains(imagePath));
+      final typstImagePath = imagePath.replaceAll(r'\', r'\\');
+      expect(typst, contains(typstImagePath));
     }
     expect(typst, contains('width: ${documentPdfMmToPt(40)}pt'));
     expect(typst, contains('height: ${documentPdfMmToPt(20)}pt'));
