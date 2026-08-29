@@ -2030,6 +2030,15 @@ dependencies = [
 [[package]]
 name = "nahpu_archive"
 version = "0.3.0"
+dependencies = [
+ "flate2",
+ "tar",
+ "zip 8.6.0",
+]
+
+[[package]]
+name = "nahpu_archive"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9438e4c80f3b2dfbb8fb63d1fdb499982c33f81786c9d6a9b55891cbdf7eecf6"
 dependencies = [
@@ -2077,9 +2086,7 @@ dependencies = [
 
 [[package]]
 name = "nahpu_dwc"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cab1e81f57a20aeed0fa37a5509a9ec58fa76ec24a5a85ff9ec08e677b9b7354"
+version = "0.5.0"
 dependencies = [
  "csv",
  "nahpu_archive 0.3.0",
@@ -2830,7 +2837,7 @@ name = "rust_lib_nahpu"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
- "nahpu_archive 0.3.0",
+ "nahpu_archive 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nahpu_configs",
  "nahpu_db",
  "nahpu_dp",

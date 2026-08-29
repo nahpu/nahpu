@@ -7,7 +7,6 @@ import 'package:nahpu/screens/settings/application/file_tree.dart';
 import 'package:nahpu/screens/settings/application/selection_review.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
-import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
@@ -64,6 +63,10 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   @override
   Widget build(BuildContext context) {
     final tree = ref.watch(appFileTreeProvider);
+    final scannedTree = tree.asData?.value;
+    final deletablePaths = scannedTree == null
+        ? const <String>[]
+        : collectDeletablePaths(scannedTree.root);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Data usage'),
@@ -76,6 +79,33 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                 : () => ref.read(appFileTreeProvider.notifier).refresh(),
           ),
         ],
+        bottom: !_isSelecting
+            ? null
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(
+                  NahpuControlSize.touchTarget,
+                ),
+                child: _SelectionToolbar(
+                  selectedCount: _selected.length,
+                  canSelectAll:
+                      scannedTree != null &&
+                      deletablePaths.any((path) => !_selected.contains(path)),
+                  onClear: _selected.isEmpty
+                      ? null
+                      : () => setState(_selected.clear),
+                  onSelectAll: scannedTree == null
+                      ? null
+                      : () => setState(() {
+                          _selected
+                            ..clear()
+                            ..addAll(deletablePaths);
+                        }),
+                  onDone: () => setState(() {
+                    _isSelecting = false;
+                    _selected.clear();
+                  }),
+                ),
+              ),
       ),
       body: tree.when(
         loading: () => const Center(child: CommonProgressIndicator()),
@@ -87,49 +117,23 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
             CommonSettingSection(
               title: 'Files',
               children: [
-                Padding(
-                  // Keeps the Select bar and its action clear of the section's
-                  // rounded border instead of sitting on it.
-                  padding: const EdgeInsets.fromLTRB(
-                    NahpuSpacing.xl,
-                    NahpuSpacing.md,
-                    NahpuSpacing.xl,
-                    NahpuSpacing.xs,
+                if (!_isSelecting)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      NahpuSpacing.xl,
+                      NahpuSpacing.md,
+                      NahpuSpacing.xl,
+                      NahpuSpacing.xs,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.checklist_rounded),
+                        label: const Text('Select'),
+                        onPressed: () => setState(() => _isSelecting = true),
+                      ),
+                    ),
                   ),
-                  child: SelectItemsInterface(
-                    isSelecting: _isSelecting,
-                    onClearPressed: _selected.isEmpty
-                        ? null
-                        : () => setState(_selected.clear),
-                    onSelectAllPressed: () => setState(() {
-                      _selected
-                        ..clear()
-                        ..addAll(collectDeletablePaths(data.root));
-                    }),
-                    onSelectPressed: () => setState(() {
-                      _isSelecting = !_isSelecting;
-                      if (!_isSelecting) _selected.clear();
-                    }),
-                    // The one filled button in this section, and it sits where
-                    // the selection was made rather than in its own strip.
-                    selectionAction: _selected.isEmpty
-                        ? null
-                        : FilledButton.icon(
-                            icon: _isExporting
-                                ? const SizedBox.square(
-                                    dimension: NahpuControlSize.indicator,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: NahpuStroke.regular,
-                                    ),
-                                  )
-                                : const Icon(Icons.fact_check_outlined),
-                            label: Text('Review ${_selected.length}'),
-                            onPressed: _isExporting
-                                ? null
-                                : () => _reviewSelection(data),
-                          ),
-                  ),
-                ),
                 NahpuFileTreeView(
                   root: data.root,
                   isSelecting: _isSelecting,
@@ -147,6 +151,23 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
           ],
         ),
       ),
+      floatingActionButton:
+          _isSelecting && _selected.isNotEmpty && scannedTree != null
+          ? FloatingActionButton.extended(
+              onPressed: _isExporting
+                  ? null
+                  : () => _reviewSelection(scannedTree),
+              icon: _isExporting
+                  ? const SizedBox.square(
+                      dimension: NahpuControlSize.indicator,
+                      child: CircularProgressIndicator(
+                        strokeWidth: NahpuStroke.regular,
+                      ),
+                    )
+                  : const Icon(Icons.fact_check_outlined),
+              label: Text('Review ${_selected.length}'),
+            )
+          : null,
     );
   }
 
@@ -361,6 +382,86 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   }
 }
 
+class _SelectionToolbar extends StatelessWidget {
+  const _SelectionToolbar({
+    required this.selectedCount,
+    required this.canSelectAll,
+    required this.onClear,
+    required this.onSelectAll,
+    required this.onDone,
+  });
+
+  final int selectedCount;
+  final bool canSelectAll;
+  final VoidCallback? onClear;
+  final VoidCallback? onSelectAll;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      child: SizedBox(
+        height: NahpuControlSize.touchTarget,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: NahpuContentWidth.settings,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 480;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '$selectedCount selected',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                      ),
+                      if (compact) ...[
+                        IconButton(
+                          tooltip: 'Clear',
+                          onPressed: onClear,
+                          icon: const Icon(Icons.deselect_rounded),
+                        ),
+                        IconButton(
+                          tooltip: 'Select all',
+                          onPressed: canSelectAll ? onSelectAll : null,
+                          icon: const Icon(Icons.select_all_rounded),
+                        ),
+                      ] else ...[
+                        TextButton.icon(
+                          onPressed: onClear,
+                          icon: const Icon(Icons.deselect_rounded),
+                          label: const Text('Clear'),
+                        ),
+                        TextButton.icon(
+                          onPressed: canSelectAll ? onSelectAll : null,
+                          icon: const Icon(Icons.select_all_rounded),
+                          label: const Text('Select all'),
+                        ),
+                      ],
+                      const SizedBox(width: NahpuSpacing.md),
+                      FilledButton.tonalIcon(
+                        onPressed: onDone,
+                        icon: const Icon(Icons.done_rounded),
+                        label: const Text('Done'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Shown when the reference index could not be built.
 ///
 /// The tree is deliberately not rendered in this state: without a trustworthy
@@ -468,71 +569,71 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
     final tree = widget.tree;
     final colors = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: NahpuSpacing.xl),
-      child: NahpuPanel(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Remove unlinked files',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: NahpuSpacing.md),
-            Text(
-              'Unlinked files sit in the application folder but no longer '
-              'belong to any record — leftovers from deleted media and '
-              'cancelled imports. Removing them deletes the files and the '
-              'empty folders they leave behind.\n\n'
-              'Your database and its backups, every file still linked to a '
-              'record, your custom fonts and map layers, and anything outside '
-              "the folders NAHPU manages are never touched.",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            if (tree.pruneBlockedReason != null) ...[
-              const SizedBox(height: NahpuSpacing.lg),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    size: NahpuControlSize.iconSmall,
-                    color: colors.error,
-                  ),
-                  const SizedBox(width: NahpuSpacing.md),
-                  Expanded(
-                    child: Text(
-                      tree.pruneBlockedReason!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: colors.error),
+    return CommonSettingSection(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(NahpuSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Remove unlinked files',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              Text(
+                'Unlinked files are no longer used by any record, such as '
+                'leftovers from deleted media or cancelled imports. Removing '
+                'them also deletes any empty folders they leave behind. Linked '
+                'files, databases and backups, custom fonts, map layers, and '
+                'files outside NAHPU-managed folders are not affected.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              if (tree.pruneBlockedReason != null) ...[
+                const SizedBox(height: NahpuSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: NahpuControlSize.iconSmall,
+                      color: colors.error,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: NahpuSpacing.md),
+                    Expanded(
+                      child: Text(
+                        tree.pruneBlockedReason!,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: colors.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: NahpuSpacing.xl),
+              Center(
+                child: tree.danglingCount == 0
+                    ? Text(
+                        'Nothing to reclaim.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      )
+                    : PrimaryButton(
+                        icon: Icons.cleaning_services_outlined,
+                        label:
+                            'Remove ${tree.danglingCount} unlinked '
+                            '${tree.danglingCount == 1 ? 'file' : 'files'} '
+                            '(${formatByteSize(tree.danglingBytes)})',
+                        isRunning: _isPruning,
+                        onPressed: tree.canPrune ? _confirmPrune : null,
+                      ),
               ),
             ],
-            const SizedBox(height: NahpuSpacing.xl),
-            Center(
-              child: tree.danglingCount == 0
-                  ? Text(
-                      'Nothing to reclaim.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    )
-                  : PrimaryButton(
-                      icon: Icons.cleaning_services_outlined,
-                      label:
-                          'Remove ${tree.danglingCount} unlinked '
-                          '${tree.danglingCount == 1 ? 'file' : 'files'} '
-                          '(${formatByteSize(tree.danglingBytes)})',
-                      isRunning: _isPruning,
-                      onPressed: tree.canPrune ? _confirmPrune : null,
-                    ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

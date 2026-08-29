@@ -375,15 +375,17 @@ class DwcBundleWriter extends AppServices {
       occurrenceRows.add(occurrenceRow);
       if (event != null) {
         if (!events.containsKey(eventId)) {
+          final environment = await _environmentForEvent(event.id);
           final eventRow = _eventRow(
             event,
             site,
             siteAttribute,
+            environment,
             eventId!,
             eventAgents,
           );
-          await _addEnvironmentAssertions(
-            event,
+          _addEnvironmentAssertions(
+            environment,
             siteAttribute,
             eventId,
             eventAssertionRows,
@@ -447,6 +449,8 @@ class DwcBundleWriter extends AppServices {
       final parasiteExport = await _parasiteRows(
         specimen,
         eventId,
+        agents,
+        occurrenceAgentRoles,
         occurrenceAssertionRows,
         interactionAssertionRows,
         warnings,
@@ -697,6 +701,7 @@ class DwcBundleWriter extends AppServices {
       'basisOfRecord': released ? 'HumanObservation' : 'PreservedSpecimen',
       'occurrenceStatus': 'detected',
       'catalogNumber': catalogNumber,
+      'taxonID': taxon?.id,
       'eventID': eventId,
       'eventDate':
           specimen.collectionDate ??
@@ -725,7 +730,6 @@ class DwcBundleWriter extends AppServices {
       'county': site?.county,
       'municipality': site?.municipality,
       'locality': site?.locality,
-      'habitat': _habitat(siteAttribute),
       'locationRemarks': site?.remark,
       'decimalLatitude': coordinate?.decimalLatitude,
       'decimalLongitude': coordinate?.decimalLongitude,
@@ -746,14 +750,32 @@ class DwcBundleWriter extends AppServices {
       'identifiedBy': determiner?.name,
       'identifiedByID': determiner?.id,
       'identificationType': specimen.iDMethod,
+      'identificationVerificationStatus': _indexedLabel(
+        specimen.iDConfidence,
+        idConfidenceList,
+      ),
       'sex': _specimenSexLabel(specimenAttributes['sex']),
       'lifeStage':
           specimenAttributes['lifeStage'] ??
           specimenAttributes['ontogeneticStage'],
+      'reproductiveCondition': _indexedLabel(
+        specimenAttributes['reproductiveStage'],
+        mammals.reproductiveStageList,
+      ),
       'caste': _casteLabel(specimenAttributes['caste']),
       'associatedTaxa': _hostAssociation(specimenAttributes['hostOrganism']),
-      'occurrenceRemarks': specimenAttributes['remark'],
+      'occurrenceRemarks':
+          specimenAttributes['specimenRemark'] ?? specimenAttributes['remark'],
+      'habitat': _joinedValues([
+        _habitat(siteAttribute),
+        specimenAttributes['habitatRemark'],
+      ]),
     };
+  }
+
+  String? _indexedLabel(dynamic index, List<String> labels) {
+    if (index is! int || index < 0 || index >= labels.length) return null;
+    return labels[index];
   }
 
   String? _specimenSexLabel(dynamic value) {
@@ -791,6 +813,7 @@ class DwcBundleWriter extends AppServices {
     CollEventData event,
     SiteRecord? site,
     SiteAttributeData? siteAttribute,
+    EnvironmentData? environment,
     String eventId,
     List<_ResolvedAgent> agents,
   ) {
@@ -804,6 +827,7 @@ class DwcBundleWriter extends AppServices {
       'eventTime': event.startTime,
       'samplingProtocol': event.primaryCollMethod,
       'samplingEffort': event.collMethodNotes,
+      'eventRemarks': environment?.notes,
       'locationID': site == null ? null : _locationId(site),
       'country': site?.country,
       'islandGroup': site?.islandGroup,
@@ -815,20 +839,12 @@ class DwcBundleWriter extends AppServices {
     };
   }
 
-  Future<void> _addEnvironmentAssertions(
-    CollEventData event,
+  void _addEnvironmentAssertions(
+    EnvironmentData? environment,
     SiteAttributeData? siteAttribute,
     String eventId,
     List<Map<String, dynamic>> output,
-  ) async {
-    EnvironmentData? environment;
-    try {
-      environment = await EnvironmentDataQuery(
-        dbAccess,
-      ).getEnvironmentDataByEventId(event.id);
-    } catch (_) {
-      environment = null;
-    }
+  ) {
     if (environment == null && siteAttribute?.canopyCover == null) return;
     final values = <String, (Object?, String?)>{
       'lowest day temperature': (environment?.lowestDayTempC, '°C'),
@@ -849,7 +865,6 @@ class DwcBundleWriter extends AppServices {
       'dissolved oxygen': (environment?.dissolvedOxygen, 'mg/L'),
       'flow velocity': (environment?.flowVelocity, 'm/s'),
       'canopy cover': (siteAttribute?.canopyCover, null),
-      'environmental notes': (environment?.notes, null),
     };
     for (final entry in values.entries) {
       final value = entry.value.$1;
@@ -861,6 +876,16 @@ class DwcBundleWriter extends AppServices {
         'assertionValue': entry.value.$1,
         'assertionUnit': entry.value.$2,
       });
+    }
+  }
+
+  Future<EnvironmentData?> _environmentForEvent(int eventId) async {
+    try {
+      return await EnvironmentDataQuery(
+        dbAccess,
+      ).getEnvironmentDataByEventId(eventId);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -890,6 +915,8 @@ class DwcBundleWriter extends AppServices {
         'eventID': eventId,
         'materialEntityID': materialEntityId,
         'materialEntityType': part.type,
+        'objectQuantity': part.count,
+        'objectQuantityType': part.type,
         'catalogNumber': part.tissueID ?? part.barcodeID,
         'otherCatalogNumbers': otherCatalogNumbers,
         'preparations': preparations,
@@ -933,6 +960,8 @@ class DwcBundleWriter extends AppServices {
   _parasiteRows(
     SpecimenData host,
     String? eventId,
+    Map<String, _ResolvedAgent> agents,
+    List<Map<String, dynamic>> occurrenceAgentRoles,
     List<Map<String, dynamic>> occurrenceAssertions,
     List<Map<String, dynamic>> interactionAssertions,
     List<String> warnings,
@@ -951,23 +980,47 @@ class DwcBundleWriter extends AppServices {
         taxon?.genus,
         taxon?.specificEpithet,
       ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
+      final identifier = await _resolveAgent(
+        parasite.identifierID,
+        null,
+        'determiner',
+        agents,
+      );
       final occurrence = <String, dynamic>{
         'occurrenceID': occurrenceId,
         'eventID': eventId,
         'basisOfRecord': 'PreservedSpecimen',
         'occurrenceStatus': 'detected',
+        'catalogNumber': parasite.parasiteID,
+        'taxonID': taxon?.id,
         'scientificName': scientificName,
         'class': taxon?.taxonClass,
         'order': taxon?.taxonOrder,
         'family': taxon?.taxonFamily,
         'genus': taxon?.genus,
         'specificEpithet': taxon?.specificEpithet,
+        'identifiedBy': identifier?.name,
+        'identifiedByID': identifier?.id,
         'lifeStage': parasite.lifeStage,
         'individualCount': parasite.count,
-        'preparations': parasite.preparationMethod,
+        'preparations': _joinedValues([
+          parasite.preparationMethod,
+          parasite.treatment,
+        ]),
+        'eventDate': parasite.dateCollected,
+        'eventTime': parasite.timeCollected,
+        'samplingProtocol': parasite.detectionMethod,
         'occurrenceRemarks': parasite.remark,
         'associatedOccurrences': 'host:${host.uuid}',
       };
+      if (identifier != null) {
+        _addAgentRoles(
+          targetId: occurrenceId,
+          targetKey: 'occurrenceID',
+          agents: [identifier],
+          output: occurrenceAgentRoles,
+        );
+      }
       final interactionId = occurrenceId;
       final interaction = <String, dynamic>{
         'organismInteractionID': interactionId,
@@ -1325,6 +1378,15 @@ class DwcBundleWriter extends AppServices {
     if (start == null || start.trim().isEmpty) return end;
     if (end == null || end.trim().isEmpty || end == start) return start;
     return '$start/$end';
+  }
+
+  String? _joinedValues(Iterable<Object?> values) {
+    final joined = values
+        .whereType<Object>()
+        .map((value) => value.toString().trim())
+        .where((value) => value.isNotEmpty)
+        .join(' | ');
+    return joined.isEmpty ? null : joined;
   }
 }
 

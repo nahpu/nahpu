@@ -34,3 +34,9 @@ Add focused `*_test.dart` files in `test/`. Prefer service tests for import/expo
 ## Agent-Specific Instructions
 
 Preserve user changes and avoid unrelated refactors. Always write the product name as `NAHPU`. Agents must not create commits, branches, pushes, or pull requests; leave Git under user control. After bridge API edits, regenerate bindings and verify analysis plus `cargo check` and `cargo clippy`. Add assets to `pubspec.yaml` only when needed.
+
+Any change to `lib/services/database/tables.drift` must also update the mirrored
+`crates/nahpu_db/schema/tables.drift` in `nahpu_api`. Review every added,
+removed, or renamed table and column in `nahpu_dwc`, update its schema-field
+classifications and tests, and update the Darwin Core audit in the Persistence
+data documentation in the same change.

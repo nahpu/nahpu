@@ -44,15 +44,6 @@ bool mappingRequiresHeaderOverride(
       mapping.nestedFields.length != 1;
 }
 
-/// Rewrites a `geography::` source key to the `site::` key the Darwin Core
-/// mapper upstream still recognizes.
-String _legacyDwcSourceKey(String sourceKey) {
-  const prefix = 'geography::';
-  if (!sourceKey.startsWith(prefix)) return sourceKey;
-  final field = sourceKey.substring(prefix.length);
-  return 'site::$field';
-}
-
 String formatDarwinCoreList(Iterable<String> values) => values
     .map((value) => value.trim())
     .where((value) => value.isNotEmpty)
@@ -126,19 +117,12 @@ class ExportHeaderResolver {
       return ExportHeaderResolver._(preset, const {}, labels);
     }
 
-    // The `nahpu_dwc` crate still maps geography under the `site::` namespace it
-    // had before geography moved to its own table, so the keys are translated
-    // across the bridge in both directions. Drop this once that crate publishes
-    // `geography::` source keys.
-    final bridgeKeys = {
-      for (final key in sourceKeys) _legacyDwcSourceKey(key): key,
-    };
     final resolved = await rust_dwc.getDwcHeaders(
-      sourceKeys: bridgeKeys.keys.toList(),
+      sourceKeys: sourceKeys.toList(),
     );
     final mappings = {
       for (final entry in resolved)
-        (bridgeKeys[entry.sourceKey] ?? entry.sourceKey): DwcSourceMapping(
+        entry.sourceKey: DwcSourceMapping(
           headers: entry.headers,
           measurementType: entry.measurementType,
           measurementUnit: entry.measurementUnit,

@@ -133,13 +133,24 @@ mod tests {
             header_for("specimen::iDMethod").header,
             "dwc:identificationType"
         );
-        // Nahpu v21 moved geography to its own table, but the Dart side
-        // translates `geography::*` back to `site::*` before this call until
-        // nahpu_dwc >= 0.4.4 is picked up. See export_header_resolver.dart.
         assert_eq!(header_for("site::islandGroup").header, "dwc:islandGroup");
         assert_eq!(
             header_for("siteAttribute::habitatType").header,
             "dwc:habitat"
         );
+    }
+
+    #[test]
+    fn resolves_schema_v21_geography_keys_directly() {
+        let headers = get_dwc_headers(vec![
+            "geography::country".to_string(),
+            "geography::locality".to_string(),
+        ]);
+
+        assert_eq!(headers.len(), 2);
+        assert_eq!(headers[0].source_key, "geography::country");
+        assert_eq!(headers[0].header, "dwc:country");
+        assert_eq!(headers[1].source_key, "geography::locality");
+        assert_eq!(headers[1].header, "dwc:verbatimLocality");
     }
 }

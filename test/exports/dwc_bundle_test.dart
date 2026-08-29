@@ -64,6 +64,163 @@ void main() {
     );
   });
 
+  testWidgets('DwC-DP plan includes aligned occurrence and material fields', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(
+            uuid: Value('project-dwc'),
+            name: Value('Darwin Core project'),
+          ),
+        );
+    final eventId = await database
+        .into(database.collEvent)
+        .insert(
+          const CollEventCompanion(
+            projectUuid: Value('project-dwc'),
+            startDate: Value('2026-08-20'),
+          ),
+        );
+    await database
+        .into(database.environment)
+        .insert(
+          EnvironmentCompanion(
+            eventID: Value(eventId),
+            ambientTemperature: const Value(24.5),
+            notes: const Value('Dry forest edge'),
+          ),
+        );
+    await database
+        .into(database.personnel)
+        .insert(
+          const PersonnelCompanion(
+            uuid: Value('identifier-a'),
+            name: Value('Identifier A'),
+          ),
+        );
+    final taxonId = await database
+        .into(database.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonClass: Value('Mammalia'),
+            genus: Value('Mus'),
+            specificEpithet: Value('musculus'),
+          ),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          SpecimenCompanion(
+            uuid: const Value('specimen-dwc'),
+            projectUuid: const Value('project-dwc'),
+            speciesID: Value(taxonId),
+            iDConfidence: const Value(2),
+            iDMethod: const Value('morphology'),
+            taxonGroup: const Value('Mammals'),
+            collEventID: Value(eventId),
+          ),
+        );
+    await database
+        .into(database.mammalAttribute)
+        .insert(
+          const MammalAttributeCompanion(
+            specimenUuid: Value('specimen-dwc'),
+            reproductiveStage: Value(2),
+          ),
+        );
+    await database
+        .into(database.specimenPart)
+        .insert(
+          const SpecimenPartCompanion(
+            specimenUuid: Value('specimen-dwc'),
+            type: Value('tissue'),
+            count: Value('2'),
+            remark: Value('Frozen aliquots'),
+          ),
+        );
+    await database
+        .into(database.parasite)
+        .insert(
+          ParasiteCompanion(
+            specimenUuid: const Value('specimen-dwc'),
+            speciesID: Value(taxonId),
+            identifierID: const Value('identifier-a'),
+            parasiteID: const Value('P-1'),
+            parasiteUuid: const Value('parasite-dwc'),
+            count: const Value(3),
+            preparationMethod: const Value('slide'),
+            treatment: const Value('stained'),
+            anatomicalLocation: const Value('fur'),
+            category: const Value('ectoparasite'),
+            associationStatus: const Value(1),
+            detectionMethod: const Value('visual inspection'),
+            dateCollected: const Value('2026-08-20'),
+          ),
+        );
+
+    WidgetRef? widgetRef;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ),
+    );
+    widgetRef!
+        .read(projectUuidProvider.notifier)
+        .updateProjectUuid('project-dwc');
+
+    final manifest = (await tester.runAsync(
+      () => DwcBundleWriter(ref: widgetRef!).plan(
+        format: DwcBundleFormat.darwinCoreDataPackage,
+        archiveFormat: BundleArchiveFormat.tarGzip,
+        selectedTaxonGroups: const {'Mammals'},
+      ),
+    ))!;
+    final files = {for (final file in manifest.files) file.path: file};
+
+    expect(
+      files['occurrence.csv']!.columns,
+      containsAll(<String>{
+        'identificationVerificationStatus',
+        'reproductiveCondition',
+        'catalogNumber',
+        'individualCount',
+        'samplingProtocol',
+        'identifiedByID',
+      }),
+    );
+    expect(files['event.csv']!.columns, contains('eventRemarks'));
+    expect(
+      files['material.csv']!.columns,
+      containsAll(<String>{
+        'materialEntityRemarks',
+        'objectQuantity',
+        'objectQuantityType',
+      }),
+    );
+    expect(
+      files['organism-interaction.csv']!.columns,
+      containsAll(<String>{
+        'subjectOccurrence_fk',
+        'relatedOccurrence_fk',
+        'relatedOrganismPart',
+      }),
+    );
+  });
+
   test('NAHPU package maps every SQLite enum index with table context', () {
     final mappings = buildNahpuSqliteEnumMappings();
     final keys = mappings

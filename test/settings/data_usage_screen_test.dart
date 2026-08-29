@@ -80,10 +80,13 @@ void main() {
   /// The scan does real database and filesystem work, which does not progress
   /// inside the fake-async zone widget tests run in, so the container is warmed
   /// under [WidgetTester.runAsync] and then handed to the widget tree.
-  Future<ProviderContainer> pumpScreen(WidgetTester tester) async {
+  Future<ProviderContainer> pumpScreen(
+    WidgetTester tester, {
+    Size size = const Size(1400, 2200),
+  }) async {
     // The tree sits below the summary and the prune panel, past the bottom of
     // the default test surface.
-    tester.view.physicalSize = const Size(1400, 2200);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
@@ -120,6 +123,10 @@ void main() {
     expect(find.text(projectUuid), findsOneWidget);
     expect(find.textContaining('2 files · Test Project'), findsOneWidget);
     expect(find.text('Remove unlinked files'), findsOneWidget);
+    expect(
+      find.textContaining('Unlinked files are no longer used by any record'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Remove 1 unlinked file'), findsOneWidget);
   });
 
@@ -164,29 +171,69 @@ void main() {
     expect(find.textContaining('Remove 1 unlinked'), findsNothing);
   });
 
-  testWidgets('the review action appears beside Select once something is '
-      'selected', (tester) async {
+  testWidgets('selection controls stay pinned and Review floats', (
+    tester,
+  ) async {
     await seed();
     writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
     writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
 
-    await pumpScreen(tester);
+    await pumpScreen(tester, size: const Size(900, 700));
 
-    // Nothing selected yet: Select is offered, the action is not.
+    await tester.ensureVisible(find.text('Select'));
+    await tester.pumpAndSettle();
     expect(find.text('Select'), findsOneWidget);
     expect(find.textContaining('Review'), findsNothing);
 
     await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Clear')),
+      findsOneWidget,
+    );
+    expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
+    expect(find.text('0 selected'), findsOneWidget);
     expect(find.textContaining('Review'), findsNothing);
 
-    await tester.tap(find.byType(Checkbox).last);
+    await tester.tap(find.text('Select all'));
     await tester.pumpAndSettle();
 
     expect(find.text('Review 1'), findsOneWidget);
-    // The old separate strip is gone.
-    expect(find.text('Remove selected'), findsNothing);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.text('1 selected'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clear'), findsOneWidget);
+    expect(find.text('Select all'), findsOneWidget);
+    expect(find.text('Done'), findsOneWidget);
+    expect(find.text('Review 1'), findsOneWidget);
+  });
+
+  testWidgets('Clear resets selection and Done exits selection mode', (
+    tester,
+  ) async {
+    await seed();
+    writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+    writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
+
+    await pumpScreen(tester);
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select all'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Clear'));
+    await tester.pumpAndSettle();
+    expect(find.text('0 selected'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Select'), findsOneWidget);
+    expect(find.textContaining('selected'), findsNothing);
   });
 
   testWidgets('selecting a folder picks up only its removable files', (
