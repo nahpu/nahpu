@@ -1,10 +1,3 @@
-const List<String> defaultCollMethods = [
-  'Hand',
-  'Net',
-  'Pitfall',
-];
+const List<String> defaultCollMethods = ['Hand', 'Net', 'Pitfall'];
 
-const List<String> defaultCollPersonnelRoles = [
-  'Leader',
-  'Helper',
-];
+const List<String> defaultCollRoles = ['Leader', 'Helper'];

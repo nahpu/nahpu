@@ -1,23 +1,103 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 
 part 'site_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   SiteQuery(super.db);
 
   Future<int> createSite(SiteCompanion form) => into(site).insert(form);
 
+  Future<int> createSiteAttribute(SiteAttributeCompanion form) =>
+      into(siteAttribute).insert(form);
+
   Future updateSiteEntry(int id, SiteCompanion entry) {
     return (update(site)..where((t) => t.id.equals(id))).write(entry);
   }
 
-  Future<List<SiteData>> getAllSites(String projectUuid) {
-    return (select(site)..where((t) => t.projectUuid.equals(projectUuid)))
-        .get();
+  Future<int> updateSiteAttributeEntry(
+    int siteId,
+    SiteAttributeCompanion entry,
+  ) {
+    return (update(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).write(entry);
+  }
+
+  Future<SiteAttributeData?> getSiteAttribute(int siteId) {
+    return (select(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).getSingleOrNull();
+  }
+
+  Future<Map<int, SiteAttributeData>> getSiteAttributes(
+    Iterable<int> siteIds,
+  ) async {
+    final ids = siteIds.toList(growable: false);
+    if (ids.isEmpty) return const {};
+    final rows = await (select(
+      siteAttribute,
+    )..where((table) => table.siteID.isIn(ids))).get();
+    final bySite = <int, SiteAttributeData>{};
+    for (final row in rows) {
+      final id = row.siteID;
+      if (id != null) bySite[id] = row;
+    }
+    return bySite;
+  }
+
+  /// Returns sites in [sort] order, each joined with its shared geography row.
+  ///
+  /// The default sort keeps insertion order, so new records are the final form
+  /// page.
+  Future<List<SiteRecord>> getAllSites(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+  }) async {
+    // Geography lives in its own table now, so every read joins it rather than
+    // fetching one row per site.
+    final query = select(site).join([
+      leftOuterJoin(geography, geography.id.equalsExp(site.geographyId)),
+    ])..where(site.projectUuid.equals(projectUuid));
+    query.orderBy(
+      sort.isDefault ? [OrderingTerm.asc(site.id)] : _orderingTerms(sort),
+    );
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SiteRecord(
+            site: row.readTable(site),
+            geography: row.readTableOrNull(geography),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(RecordSort sort) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        RecordSortField.siteName => textSortTerms(site.siteID, direction),
+        RecordSortField.stateProvince => textSortTerms(
+          geography.stateProvince,
+          direction,
+        ),
+        RecordSortField.locality => textSortTerms(
+          geography.locality,
+          direction,
+        ),
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(expression: site.id, mode: orderingModeFor(direction)),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(site.id),
+    ];
   }
 
   Future<void> createSiteMedia(SiteMediaCompanion form) {
@@ -25,18 +105,21 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<SiteMediaData>> getSiteMedia(int siteId) async {
-    return await (select(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .get();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).get();
   }
 
   Future<SiteMediaData> getSiteMediaById(int mediaId) async {
-    return await (select(siteMedia)..where((t) => t.mediaId.equals(mediaId)))
-        .getSingle();
+    return await (select(
+      siteMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).getSingle();
   }
 
   Future<void> updateSiteMedia(int siteId, SiteMediaCompanion form) {
-    return (update(siteMedia)..where((t) => t.siteId.equals(siteId)))
-        .write(form);
+    return (update(
+      siteMedia,
+    )..where((t) => t.siteId.equals(siteId))).write(form);
   }
 
   Future<void> deleteSiteMedia(int mediaId) {
@@ -51,8 +134,20 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
     return (delete(site)..where((t) => t.id.equals(id))).go();
   }
 
-  Future<SiteData> getSiteById(int id) async {
-    return await (select(site)..where((t) => t.id.equals(id))).getSingle();
+  Future<void> deleteSiteAttribute(int siteId) {
+    return (delete(
+      siteAttribute,
+    )..where((table) => table.siteID.equals(siteId))).go();
+  }
+
+  Future<SiteRecord> getSiteById(int id) async {
+    final row = await (select(site).join([
+      leftOuterJoin(geography, geography.id.equalsExp(site.geographyId)),
+    ])..where(site.id.equals(id))).getSingle();
+    return SiteRecord(
+      site: row.readTable(site),
+      geography: row.readTableOrNull(geography),
+    );
   }
 
   Future<void> deleteAllSites(String projectUuid) {
@@ -60,12 +155,22 @@ class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   }
 
   Future<List<String>> getDistinctHabitatTypes() async {
-    final query = selectOnly(site)
-      ..addColumns([site.habitatType])
-      ..where(site.habitatType.isNotNull())
-      ..groupBy([site.habitatType]);
-    
+    final query = selectOnly(siteAttribute)
+      ..addColumns([siteAttribute.habitatType])
+      ..where(siteAttribute.habitatType.isNotNull())
+      ..groupBy([siteAttribute.habitatType]);
+
     final result = await query.get();
-    return result.map((row) => row.read(site.habitatType)!).toList();
+    return result.map((row) => row.read(siteAttribute.habitatType)!).toList();
+  }
+
+  Future<List<String>> getDistinctSiteTypes() async {
+    final query = selectOnly(site)
+      ..addColumns([site.siteType])
+      ..where(site.siteType.isNotNull())
+      ..groupBy([site.siteType]);
+
+    final result = await query.get();
+    return result.map((row) => row.read(site.siteType)!).toList();
   }
 }

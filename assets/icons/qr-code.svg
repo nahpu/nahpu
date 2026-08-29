@@ -1,1 +1,21 @@
-<svg height="512" viewBox="0 0 32 32" width="512" xmlns="http://www.w3.org/2000/svg"><g id="Layer_2" data-name="Layer 2"><path d="m9 28h-4a1 1 0 0 1 -1-1v-4a1 1 0 0 0 -2 0v4a3 3 0 0 0 3 3h4a1 1 0 0 0 0-2z"/><path d="m29 22a1 1 0 0 0 -1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 0 0 2h4a3 3 0 0 0 3-3v-4a1 1 0 0 0 -1-1z"/><path d="m3 10a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h4a1 1 0 0 0 0-2h-4a3 3 0 0 0 -3 3v4a1 1 0 0 0 1 1z"/><path d="m27 2h-4a1 1 0 0 0 0 2h4a1 1 0 0 1 1 1v4a1 1 0 0 0 2 0v-4a3 3 0 0 0 -3-3z"/><path d="m11 19h-3a2 2 0 0 0 -2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0 -2-2zm-3 5v-3h3v3z"/><path d="m26 24v-3a2 2 0 0 0 -2-2h-3a2 2 0 0 0 -2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2zm-5-3h3v3h-3z"/><path d="m15 15h-8a1 1 0 0 0 0 2h8v8a1 1 0 0 0 2 0v-8a2 2 0 0 0 -2-2z"/><path d="m6 8v4a1 1 0 0 0 2 0v-4h4a1 1 0 0 0 0-2h-4a2 2 0 0 0 -2 2z"/><path d="m21 13h3a2 2 0 0 0 2-2v-3a2 2 0 0 0 -2-2h-3a2 2 0 0 0 -2 2v3a2 2 0 0 0 2 2zm0-5h3v3h-3z"/><path d="m20 17h1a1 1 0 0 0 0-2h-1a1 1 0 0 0 0 2z"/><path d="m24 15a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2z"/><path d="m16 11h-5a1 1 0 0 0 0 2h5a1 1 0 0 0 0-2z"/><path d="m16 6a1 1 0 0 0 -1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0 -1-1z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 6h13v13H6z" />
+  <path d="M29 6h13v13H29z" />
+  <path d="M6 29h13v13H6z" />
+  <g fill="currentColor" stroke="none">
+    <path d="M10 10h5v5h-5z" />
+    <path d="M33 10h5v5h-5z" />
+    <path d="M10 33h5v5h-5z" />
+  </g>
+  <g stroke-width="2">
+    <path d="M29 29h6v6h-6z" />
+    <path d="M40 29h2" />
+    <path d="M40 36h2" />
+    <path d="M29 41h6" />
+    <path d="M40 41h2" />
+    <path d="M24 6v6" />
+    <path d="M24 18v6" />
+    <path d="M6 24h6" />
+    <path d="M18 24h6" />
+  </g>
+</svg>

@@ -1,17 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/personnel.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 
 class CaptureRecordFields extends ConsumerStatefulWidget {
   const CaptureRecordFields({
@@ -31,6 +32,7 @@ class CaptureRecordFields extends ConsumerStatefulWidget {
 
 class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   bool _showMore = false;
+  int? _siteId;
   @override
   void initState() {
     super.initState();
@@ -40,15 +42,21 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Capture Records',
-      infoContent: const CaptureRecordInfoContent(),
+      infoTopic: InfoTopic.specimenCapture,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          SiteNameDisplay(siteId: _siteId),
           EventIdField(
             specimenUuid: widget.specimenUuid,
             useHorizontalLayout: widget.useHorizontalLayout,
             specimenCtr: widget.specimenCtr,
+            onSiteChanged: (siteId) {
+              setState(() {
+                _siteId = siteId;
+              });
+            },
           ),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
@@ -93,31 +101,37 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
           ),
+          CoordinateExtentField(
+            specimenUuid: widget.specimenUuid,
+            specimenCtr: widget.specimenCtr,
+          ),
           Visibility(
-              visible: _isCollectorFieldVisible,
-              child: CollPersonnelField(
-                specimenUuid: widget.specimenUuid,
-                specimenCtr: widget.specimenCtr,
-              )),
+            visible: _isCollectorFieldVisible,
+            child: CollPersonnelField(
+              specimenUuid: widget.specimenUuid,
+              specimenCtr: widget.specimenCtr,
+            ),
+          ),
           Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: TextButton(
-                  onPressed: () {
-                    setState(
-                      () {
-                        _showMore = !_showMore;
-                      },
-                    );
-                  },
-                  child: Text(_showMore ? 'Show less' : 'Show more'))),
+            padding: const EdgeInsets.only(top: 4),
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  _showMore = !_showMore;
+                });
+              },
+              child: Text(_showMore ? 'Show less' : 'Show more'),
+            ),
+          ),
         ],
       ),
     );
   }
 
   bool get _isCollectorFieldVisible {
-    bool isCollectorFieldAlwaysShown =
-        SpecimenSettingServices(ref: ref).isCollectorFieldAlwaysShown();
+    bool isCollectorFieldAlwaysShown = SpecimenSettingServices(
+      ref: ref,
+    ).getSpecimenSettingField(collectorFieldKey);
     return widget.specimenCtr.collPersonnelCtr != null ||
         _showMore ||
         isCollectorFieldAlwaysShown;
@@ -130,11 +144,13 @@ class EventIdField extends ConsumerStatefulWidget {
     required this.specimenUuid,
     required this.useHorizontalLayout,
     required this.specimenCtr,
+    required this.onSiteChanged,
   });
 
   final String specimenUuid;
   final bool useHorizontalLayout;
   final SpecimenFormCtrModel specimenCtr;
+  final ValueChanged<int?> onSiteChanged;
 
   @override
   EventIdFieldState createState() => EventIdFieldState();
@@ -157,115 +173,138 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
       useHorizontalLayout: widget.useHorizontalLayout,
       children: [
         DropdownButtonFormField<int?>(
-            isExpanded: true,
-            initialValue: siteIDctr,
-            decoration: const InputDecoration(
-              labelText: 'Site ID',
-              hintText: 'Choose a site',
-            ),
-            items: ref.watch(siteInEventProvider).when(
+          isExpanded: true,
+          initialValue: siteIDctr,
+          decoration: const InputDecoration(
+            labelText: 'Site ID',
+            hintText: 'Choose a site',
+          ),
+          items: ref
+              .watch(siteInEventProvider)
+              .when(
                 data: (data) {
                   return data.isEmpty
                       ? const []
                       : data
-                          .map((site) => DropdownMenuItem(
+                            .map(
+                              (site) => DropdownMenuItem(
                                 value: site.id,
-                                child:
-                                    CommonDropdownText(text: site.siteID ?? ''),
-                              ))
-                          .toList();
+                                child: CommonDropdownText(
+                                  text: site.siteID ?? '',
+                                ),
+                              ),
+                            )
+                            .toList();
                 },
                 loading: () => const [],
-                error: (error, stack) => const []),
-            onChanged: (int? newValue) async {
-              if (siteIDctr != null) {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Change site?'),
-                        content: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 350),
-                            child:
-                                const Text('Except for capture date and time,'
-                                    ' all fields in the collecting record'
-                                    ' section will be empty again.')),
-                        actions: [
-                          TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Cancel')),
-                          TextButton(
-                              onPressed: () async {
-                                await _updateSite(newValue);
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                              },
-                              child: const Text('OK')),
-                        ],
-                      );
-                    });
-              } else {
-                await _updateSite(newValue);
-              }
-            }),
+                error: (error, stack) => const [],
+              ),
+          onChanged: (int? newValue) async {
+            if (siteIDctr != null) {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Change site?'),
+                    content: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 350),
+                      child: const Text(
+                        'Except for capture date and time,'
+                        ' all fields in the collecting record'
+                        ' section will be empty again.',
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await _updateSite(newValue);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              await _updateSite(newValue);
+            }
+          },
+        ),
         DropdownButtonFormField<int?>(
-            isExpanded: true,
-            initialValue: widget.specimenCtr.collEventIDCtr,
-            decoration: const InputDecoration(
-              labelText: 'Event ID',
-              hintText: 'Choose a collecting event ID',
-            ),
-            items: ref.watch(collEventEntryProvider).when(
+          isExpanded: true,
+          initialValue: widget.specimenCtr.collEventIDCtr,
+          decoration: const InputDecoration(
+            labelText: 'Event ID',
+            hintText: 'Choose a collecting event ID',
+          ),
+          items: ref
+              .watch(collEventEntryProvider)
+              .when(
                 data: (data) {
                   return data.isEmpty
                       ? const []
                       : data.reversed
-                          .where((collEvent) => collEvent.siteID == siteIDctr)
-                          .map((event) => DropdownMenuItem(
+                            .where((collEvent) => collEvent.siteID == siteIDctr)
+                            .map(
+                              (event) => DropdownMenuItem(
                                 value: event.id,
                                 child: CollEventIDText(collEventData: event),
-                              ))
-                          .toList();
+                              ),
+                            )
+                            .toList();
                 },
                 loading: () => const [],
-                error: (error, stack) => const []),
-            onChanged: (int? newValue) async {
-              if (widget.specimenCtr.collEventIDCtr != null) {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Change collecting event ID?'),
-                        content: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 350),
-                            child: const Text(
-                                'Except for capture date and time,'
-                                ' all fields in the collecting record section'
-                                ' will be empty again.')),
-                        actions: [
-                          TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Cancel')),
-                          TextButton(
-                              onPressed: () async {
-                                await _updateSpecimen(newValue);
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                              },
-                              child: const Text('OK')),
-                        ],
-                      );
-                    });
-              } else {
-                await _updateSpecimen(newValue);
-              }
-            }),
+                error: (error, stack) => const [],
+              ),
+          onChanged: (int? newValue) async {
+            if (widget.specimenCtr.collEventIDCtr != null) {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Change collecting event ID?'),
+                    content: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 350),
+                      child: const Text(
+                        'Except for capture date and time,'
+                        ' all fields in the collecting record section'
+                        ' will be empty again.',
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await _updateSpecimen(newValue);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              await _updateSpecimen(newValue);
+            }
+          },
+        ),
       ],
     );
   }
@@ -273,20 +312,24 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
   Future<void> _updateSite(int? newValue) async {
     int? eventID;
     await _updateSpecimen(eventID);
+    if (!mounted) return;
     setState(() {
       ref.invalidate(collEventEntryProvider);
       siteIDctr = newValue;
     });
+    widget.onSiteChanged(newValue);
   }
 
   Future<void> _getSiteFromEventID() async {
     if (widget.specimenCtr.collEventIDCtr != null) {
-      CollEventData? data = await CollEventServices(ref: ref)
-          .getCollEvent(widget.specimenCtr.collEventIDCtr);
-      if (data != null) {
+      CollEventData? data = await CollEventServices(
+        ref: ref,
+      ).getCollEvent(widget.specimenCtr.collEventIDCtr);
+      if (data != null && mounted) {
         setState(() {
           siteIDctr = data.siteID;
         });
+        widget.onSiteChanged(data.siteID);
       }
     }
   }
@@ -310,11 +353,7 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
   }
 
   void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errors)));
   }
 }
 
@@ -331,43 +370,40 @@ class MethodField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<int?>(
-        initialValue: specimenCtr.collMethodCtr,
-        decoration: const InputDecoration(
-          labelText: 'Method',
-          hintText: 'Choose a method type',
-        ),
-        items: specimenCtr.collEventIDCtr != null
-            ? ref
+      initialValue: specimenCtr.collMethodCtr,
+      decoration: const InputDecoration(
+        labelText: 'Method',
+        hintText: 'Choose a method type',
+      ),
+      items: specimenCtr.collEventIDCtr != null
+          ? ref
                 .watch(collEffortByEventProvider(specimenCtr.collEventIDCtr!))
                 .when(
-                    data: (data) {
-                      return data.map((effort) {
-                        return DropdownMenuItem(
-                          value: effort.id,
-                          child: CommonDropdownText(text: effort.method ?? ''),
-                        );
-                      }).toList();
-                    },
-                    loading: () => const [],
-                    error: (error, stack) => const [])
-            : const [],
-        onChanged: (int? newValue) {
-          specimenCtr.collMethodCtr = newValue;
-          SpecimenServices(ref: ref).updateSpecimen(
-            specimenUuid,
-            SpecimenCompanion(
-              collMethodID: db.Value(specimenCtr.collMethodCtr),
-            ),
-          );
-        });
+                  data: (data) {
+                    return data.map((effort) {
+                      return DropdownMenuItem(
+                        value: effort.id,
+                        child: CommonDropdownText(text: effort.method ?? ''),
+                      );
+                    }).toList();
+                  },
+                  loading: () => const [],
+                  error: (error, stack) => const [],
+                )
+          : const [],
+      onChanged: (int? newValue) {
+        specimenCtr.collMethodCtr = newValue;
+        SpecimenServices(ref: ref).updateSpecimen(
+          specimenUuid,
+          SpecimenCompanion(collMethodID: db.Value(specimenCtr.collMethodCtr)),
+        );
+      },
+    );
   }
 }
 
 class CollEventIDText extends ConsumerStatefulWidget {
-  const CollEventIDText({
-    super.key,
-    required this.collEventData,
-  });
+  const CollEventIDText({super.key, required this.collEventData});
 
   final CollEventData collEventData;
 
@@ -495,18 +531,16 @@ class CaptureDate extends ConsumerWidget {
         SpecimenServices(ref: ref).updateSpecimen(
           specimenUuid,
           SpecimenCompanion(
-            captureDate: db.Value(specimenCtr.captureDateCtr.text),
+            captureDate: db.Value(specimenCtr.captureDateCtr.date),
           ),
         );
       },
       onClear: () {
         SpecimenServices(ref: ref).updateSpecimen(
           specimenUuid,
-          SpecimenCompanion(
-            captureDate: db.Value(null),
-          ),
+          SpecimenCompanion(captureDate: db.Value(null)),
         );
-      },      
+      },
     );
   }
 }
@@ -537,28 +571,91 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
         ),
         items: widget.specimenCtr.collEventIDCtr != null
             ? ref
-                .watch(coordinateByEventProvider(
-                    widget.specimenCtr.collEventIDCtr!))
-                .when(
-                  data: (data) {
-                    return data.map((coordinate) {
-                      return DropdownMenuItem(
-                        value: coordinate.id,
-                        child:
-                            CommonDropdownText(text: coordinate.nameId ?? ''),
-                      );
-                    }).toList();
-                  },
-                  loading: () => const [],
-                  error: (error, stack) => const [],
-                )
+                  .watch(
+                    coordinateByEventProvider(
+                      widget.specimenCtr.collEventIDCtr!,
+                    ),
+                  )
+                  .when(
+                    data: (data) {
+                      return data.map((coordinate) {
+                        return DropdownMenuItem(
+                          value: coordinate.id,
+                          child: CommonDropdownText(
+                            text: coordinate.nameId ?? '',
+                          ),
+                        );
+                      }).toList();
+                    },
+                    loading: () => const [],
+                    error: (error, stack) => const [],
+                  )
             : [],
         onChanged: (int? newValue) {
           setState(() {
             widget.specimenCtr.coordinateCtr = newValue;
-            SpecimenServices(ref: ref).updateSpecimen(widget.specimenUuid,
-                SpecimenCompanion(coordinateID: db.Value(newValue)));
+            SpecimenServices(ref: ref).updateSpecimen(
+              widget.specimenUuid,
+              SpecimenCompanion(coordinateID: db.Value(newValue)),
+            );
           });
+        },
+      ),
+    );
+  }
+}
+
+class CoordinateExtentField extends ConsumerStatefulWidget {
+  const CoordinateExtentField({
+    super.key,
+    required this.specimenUuid,
+    required this.specimenCtr,
+  });
+
+  final String specimenUuid;
+  final SpecimenFormCtrModel specimenCtr;
+
+  @override
+  ConsumerState<CoordinateExtentField> createState() =>
+      _CoordinateExtentFieldState();
+}
+
+class _CoordinateExtentFieldState extends ConsumerState<CoordinateExtentField> {
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonPadding(
+      child: CommonNumField(
+        controller: widget.specimenCtr.coordinateExtentCtr,
+        labelText: 'Coordinate extent (m)',
+        hintText: 'Add the coordinate extent',
+        isDouble: true,
+        isSigned: false,
+        isLastField: false,
+        errorText: _error,
+        onChanged: (value) {
+          final rawExtent = value?.trim() ?? '';
+          if (rawExtent.isEmpty) {
+            if (_error != null) setState(() => _error = null);
+            SpecimenServices(ref: ref).updateSpecimen(
+              widget.specimenUuid,
+              const SpecimenCompanion(coordinateExtentMeters: db.Value(null)),
+            );
+            return;
+          }
+          final extent = double.tryParse(rawExtent);
+          if (extent == null || !extent.isFinite || extent <= 0) {
+            setState(
+              () => _error = 'Extent must be a number greater than zero',
+            );
+            return;
+          }
+          if (_error != null) setState(() => _error = null);
+          SpecimenServices(ref: ref).updateSpecimen(
+            widget.specimenUuid,
+            SpecimenCompanion(coordinateExtentMeters: db.Value(extent)),
+          );
         },
       ),
     );
@@ -588,6 +685,7 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
               labelText: 'Capture time',
               hintText: 'Enter time',
             ),
+            initialValue: widget.specimenCtr.relativeCaptureTimeCtr.text,
             items: relativeTimeList
                 .map(
                   (e) => DropdownMenuItem(
@@ -598,12 +696,13 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
                 .toList(),
             onChanged: (String? newValue) {
               setState(() {
-                widget.specimenCtr.captureTimeCtr.text = newValue ?? '';
+                widget.specimenCtr.relativeCaptureTimeCtr.text = newValue ?? '';
                 SpecimenServices(ref: ref).updateSpecimen(
                   widget.specimenUuid,
                   SpecimenCompanion(
-                    captureTime:
-                        db.Value(widget.specimenCtr.captureTimeCtr.text),
+                    relativeCaptureTime: db.Value(
+                      widget.specimenCtr.relativeCaptureTimeCtr.text,
+                    ),
                   ),
                 );
               });
@@ -618,18 +717,16 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
               SpecimenServices(ref: ref).updateSpecimen(
                 widget.specimenUuid,
                 SpecimenCompanion(
-                  captureTime: db.Value(widget.specimenCtr.captureTimeCtr.text),
+                  captureTime: db.Value(widget.specimenCtr.captureTimeCtr.time),
                 ),
               );
             },
             onClear: () {
               SpecimenServices(ref: ref).updateSpecimen(
                 widget.specimenUuid,
-                SpecimenCompanion(
-                    captureTime: db.Value(null)
-                )
+                SpecimenCompanion(captureTime: db.Value(null)),
               );
-            }              
+            },
           );
   }
 }
@@ -660,28 +757,29 @@ class CollPersonnelField extends ConsumerWidget {
               ),
               items: specimenCtr.collEventIDCtr != null
                   ? ref
-                      .watch(collPersonnelProvider(specimenCtr.collEventIDCtr!))
-                      .when(
-                        data: (data) {
-                          return data.map((person) {
-                            return DropdownMenuItem(
+                        .watch(
+                          collPersonnelProvider(specimenCtr.collEventIDCtr!),
+                        )
+                        .when(
+                          data: (data) {
+                            return data.map((person) {
+                              return DropdownMenuItem(
                                 value: person.id,
                                 child: PersonnelName(
                                   personnelUuid: person.personnelId,
-                                ));
-                          }).toList();
-                        },
-                        loading: () => const [],
-                        error: (e, s) => const [],
-                      )
+                                ),
+                              );
+                            }).toList();
+                          },
+                          loading: () => const [],
+                          error: (e, s) => const [],
+                        )
                   : [],
               onChanged: (int? newValue) {
                 specimenCtr.collPersonnelCtr = newValue;
                 SpecimenServices(ref: ref).updateSpecimen(
                   specimenUuid,
-                  SpecimenCompanion(
-                    collPersonnelID: db.Value(newValue),
-                  ),
+                  SpecimenCompanion(collPersonnelID: db.Value(newValue)),
                 );
               },
             ),
@@ -692,9 +790,7 @@ class CollPersonnelField extends ConsumerWidget {
                     specimenCtr.collPersonnelCtr = null;
                     SpecimenServices(ref: ref).updateSpecimen(
                       specimenUuid,
-                      const SpecimenCompanion(
-                        collPersonnelID: db.Value(null),
-                      ),
+                      const SpecimenCompanion(collPersonnelID: db.Value(null)),
                     );
                   },
                   icon: const Icon(Icons.clear_rounded),
@@ -707,17 +803,16 @@ class CollPersonnelField extends ConsumerWidget {
 }
 
 class PersonnelName extends ConsumerWidget {
-  const PersonnelName({
-    super.key,
-    required this.personnelUuid,
-  });
+  const PersonnelName({super.key, required this.personnelUuid});
 
   final String? personnelUuid;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     try {
-      return ref.watch(personnelNameProvider(personnelUuid!)).when(
+      return ref
+          .watch(personnelNameProvider(personnelUuid!))
+          .when(
             data: (data) {
               return CommonDropdownText(text: data.name ?? '');
             },
@@ -727,26 +822,5 @@ class PersonnelName extends ConsumerWidget {
     } catch (e) {
       return const CommonDropdownText(text: 'Error');
     }
-  }
-}
-
-class CaptureRecordInfoContent extends StatelessWidget {
-  const CaptureRecordInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(content: [
-      InfoContent(
-        content:
-            'Capture records are used to record the date, time, and location of a specimen'
-            ' for each capture event. They also record the method used to capture the '
-            'specimen, and the personnel who collected it.',
-      ),
-      InfoContent(
-        content:
-            'If you choose to change a collecting event ID, all fields in this section '
-            'will be empty again, except for the capture date and time. ',
-      )
-    ]);
   }
 }

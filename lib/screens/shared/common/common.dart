@@ -1,0 +1,183 @@
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/styles/design_tokens.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:nahpu/styles/decoration.dart';
+
+/// Used by specimen forms to avoid the
+/// bottom sheet covering the last field
+class BottomPadding extends StatelessWidget {
+  const BottomPadding({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // Padding to avoid the bottom sheet covering the last field
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+    );
+  }
+}
+
+class CommonProgressIndicator extends StatelessWidget {
+  const CommonProgressIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: SizedBox(
+        height: NahpuControlSize.iconLarge,
+        width: NahpuControlSize.iconLarge,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+}
+
+class TileIcon extends StatelessWidget {
+  const TileIcon({super.key, required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(icon, size: 16);
+  }
+}
+
+class CommonDivider extends StatelessWidget {
+  const CommonDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(height: NahpuSpacing.xs);
+  }
+}
+
+class CommonLineDivider extends StatelessWidget {
+  const CommonLineDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Divider(color: Colors.grey);
+  }
+}
+
+class CommonAlertDialog extends StatelessWidget {
+  const CommonAlertDialog({
+    super.key,
+    required this.titleText,
+    this.descText,
+    required this.confirmFunction,
+    required this.cancelFunction,
+  });
+
+  final String titleText;
+  final String? descText;
+  final Function() confirmFunction;
+  final Function() cancelFunction;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(titleText),
+      content: descText == null
+          ? null
+          : ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: Text(descText!),
+            ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            cancelFunction();
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            confirmFunction();
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    );
+  }
+}
+
+class TileSvgIcon extends StatelessWidget {
+  const TileSvgIcon({super.key, required this.iconPath});
+
+  final String iconPath;
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      iconPath,
+      height: 28,
+      width: 28,
+      colorFilter: ColorFilter.mode(getIconColor(context), BlendMode.srcIn),
+    );
+  }
+}
+
+class SelectItemsInterface extends StatelessWidget {
+  const SelectItemsInterface({
+    super.key,
+    required this.isSelecting,
+    required this.onClearPressed,
+    required this.onSelectAllPressed,
+    required this.onSelectPressed,
+    this.leadingAction,
+    this.selectionAction,
+  });
+
+  final bool isSelecting;
+  final VoidCallback? onClearPressed;
+  final VoidCallback? onSelectAllPressed;
+  final VoidCallback? onSelectPressed;
+  final Widget? leadingAction;
+
+  /// The action the selection feeds, shown beside Done while selecting.
+  ///
+  /// Keeping it in this bar means the user finds it where they made the
+  /// selection, instead of in a separate strip below the list.
+  final Widget? selectionAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Visibility(
+          visible: isSelecting,
+          child: TextButton(
+            onPressed: onClearPressed,
+            child: const Text('Clear'),
+          ),
+        ),
+        Visibility(
+          visible: isSelecting,
+          child: TextButton(
+            onPressed: onSelectAllPressed,
+            child: const Text('Select all'),
+          ),
+        ),
+        const Spacer(),
+        if (!isSelecting && leadingAction != null) leadingAction!,
+        if (isSelecting && selectionAction != null) ...[
+          selectionAction!,
+          const SizedBox(width: NahpuSpacing.md),
+        ],
+        TextButton(
+          onPressed: onSelectPressed,
+          child: Text(isSelecting ? 'Done' : 'Select'),
+        ),
+      ],
+    );
+  }
+}

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/events/components/personnel.dart';
-import 'package:nahpu/screens/events/components/weather_data.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:nahpu/screens/events/components/environment_data.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/associated_data.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 
 class CollEventTabBar extends StatefulWidget {
   const CollEventTabBar({
@@ -22,7 +23,7 @@ class _CollEventTabBarState extends State<CollEventTabBar>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
-  final int _length = 2;
+  final int _length = 3;
 
   @override
   void initState() {
@@ -44,18 +45,20 @@ class _CollEventTabBarState extends State<CollEventTabBar>
       child: CommonTabBars(
         length: _length,
         tabController: _tabController,
-        height: 421,
+        height: 502,
         tabs: [
-          const Tab(
-            icon: Icon(Icons.groups_2_outlined),
-          ),
-          Tab(icon: Icon(MdiIcons.weatherPartlyCloudy)),
+          const Tab(icon: Icon(Icons.groups_2_outlined)),
+          const Tab(icon: Icon(Icons.wb_cloudy_outlined)),
+          const Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
           EventPersonnel(eventID: widget.eventID),
-          WeatherDataView(
+          EnvironmentDataView(
             useHorizontalLayout: widget.useHorizontalLayout,
             eventID: widget.eventID,
+          ),
+          AssociatedDataViewer(
+            target: AssociatedDataTarget.event(widget.eventID),
           ),
         ],
       ),

@@ -1,18 +1,11 @@
-import 'package:file_selector/file_selector.dart';
-import 'package:nahpu/services/types/file_format.dart';
-
-enum TaxonImportFmt { csv }
-
-const List<XTypeGroup> taxonImportFmt = [
-  csvFmt,
-];
-
 enum TaxonEntryHeader {
+  taxonRank,
   taxonClass,
   taxonOrder,
   taxonFamily,
   genus,
   specificEpithet,
+  subspecificEpithet,
   authors,
   commonName,
   redListCategory,
@@ -25,6 +18,8 @@ enum TaxonEntryHeader {
 
 String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
   switch (headerEnum) {
+    case TaxonEntryHeader.taxonRank:
+      return 'Taxon rank';
     case TaxonEntryHeader.taxonClass:
       return 'Class';
     case TaxonEntryHeader.taxonOrder:
@@ -35,6 +30,8 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
       return 'Genus';
     case TaxonEntryHeader.specificEpithet:
       return 'Specific epithet';
+    case TaxonEntryHeader.subspecificEpithet:
+      return 'Subspecific epithet';
     case TaxonEntryHeader.authors:
       return 'Authors';
     case TaxonEntryHeader.commonName:
@@ -55,6 +52,8 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
 }
 
 const Map<String, TaxonEntryHeader> knownTaxonHeader = {
+  'taxonrank': TaxonEntryHeader.taxonRank,
+  'rank': TaxonEntryHeader.taxonRank,
   'taxonclass': TaxonEntryHeader.taxonClass,
   'class': TaxonEntryHeader.taxonClass,
   'taxonorder': TaxonEntryHeader.taxonOrder,
@@ -65,6 +64,9 @@ const Map<String, TaxonEntryHeader> knownTaxonHeader = {
   'specificepithet': TaxonEntryHeader.specificEpithet,
   'epithet': TaxonEntryHeader.specificEpithet,
   'species': TaxonEntryHeader.specificEpithet,
+  'subspecificepithet': TaxonEntryHeader.subspecificEpithet,
+  'infraspecificepithet': TaxonEntryHeader.subspecificEpithet,
+  'subspecies': TaxonEntryHeader.subspecificEpithet,
   'author': TaxonEntryHeader.authors,
   'authors': TaxonEntryHeader.authors,
   'commonname': TaxonEntryHeader.commonName,
@@ -90,13 +92,24 @@ const List<TaxonEntryHeader> requiredTaxonImportHeaders = [
   TaxonEntryHeader.specificEpithet,
 ];
 
-enum MediaCategory { site, narrative, specimen, personnel, all }
+const List<TaxonEntryHeader> taxonImportRankHeaders = [
+  TaxonEntryHeader.taxonClass,
+  TaxonEntryHeader.taxonOrder,
+  TaxonEntryHeader.taxonFamily,
+  TaxonEntryHeader.genus,
+  TaxonEntryHeader.specificEpithet,
+  TaxonEntryHeader.subspecificEpithet,
+];
+
+enum MediaCategory { site, event, narrative, specimen, personnel, all }
 
 /// Returns the string representation of the media category
 String matchMediaCategory(MediaCategory category) {
   switch (category) {
     case MediaCategory.site:
       return 'site';
+    case MediaCategory.event:
+      return 'event';
     case MediaCategory.narrative:
       return 'narrative';
     case MediaCategory.specimen:
@@ -112,16 +125,23 @@ MediaCategory matchMediaCategoryString(String category) {
   switch (category) {
     case 'site':
       return MediaCategory.site;
+    case 'event':
+      return MediaCategory.event;
     case 'narrative':
       return MediaCategory.narrative;
     case 'specimen':
       return MediaCategory.specimen;
+    case 'personnel':
+      return MediaCategory.personnel;
+    case 'all':
+      return MediaCategory.all;
     default:
       return MediaCategory.site;
   }
 }
 
 const List<String> mediaCategory = [
+  'event',
   'narrative',
   'site',
   'specimen',

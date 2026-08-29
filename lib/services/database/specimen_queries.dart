@@ -1,13 +1,14 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/record_sort_terms.dart';
+import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/types/associated_data.dart';
+import 'package:nahpu/services/common/utility_services.dart';
 
 part 'specimen_queries.g.dart';
 
-@DriftAccessor(
-  include: {'tables.drift'},
-)
+@DriftAccessor(include: {'tables.drift'})
 class SpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   SpecimenQuery(super.db);
@@ -16,14 +17,131 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   Future<int> createSpecimen(SpecimenCompanion form) =>
       into(specimen).insert(form);
 
-  Future<List<SpecimenData>> getAllSpecimens(String projectUuid) {
-    return (select(specimen)..where((t) => t.projectUuid.equals(projectUuid)))
-        .get();
+  /// Returns specimens in [sort] order. The default keeps insertion order, so
+  /// new records are the final form page.
+  ///
+  /// [fieldIdMode] picks which column [RecordSortField.fieldId] reads —
+  /// coalescing the two would silently interleave two numbering schemes.
+  Future<List<SpecimenData>> getAllSpecimens(
+    String projectUuid, {
+    RecordSort sort = RecordSort.defaultSort,
+    FieldIdMode fieldIdMode = FieldIdMode.personnel,
+  }) async {
+    if (sort.isDefault) {
+      return (select(specimen)
+            ..where((t) => t.projectUuid.equals(projectUuid))
+            ..orderBy([(row) => OrderingTerm.asc(row.rowId)]))
+          .get();
+    }
+    final cataloger = alias(personnel, 'cataloger');
+    final query =
+        select(specimen).join([
+            leftOuterJoin(
+              cataloger,
+              specimen.catalogerID.equalsExp(cataloger.uuid),
+            ),
+            leftOuterJoin(taxonomy, specimen.speciesID.equalsExp(taxonomy.id)),
+          ])
+          ..where(specimen.projectUuid.equals(projectUuid))
+          ..orderBy(_orderingTerms(sort, cataloger.name, fieldIdMode));
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(specimen)).toList(growable: false);
+  }
+
+  List<OrderingTerm> _orderingTerms(
+    RecordSort sort,
+    Expression<String> catalogerName,
+    FieldIdMode fieldIdMode,
+  ) {
+    final direction = sort.direction;
+    return [
+      ...switch (sort.field) {
+        RecordSortField.fieldId => valueSortTerms(
+          fieldIdMode == FieldIdMode.project
+              ? specimen.projectFieldNumber
+              : specimen.fieldNumber,
+          direction,
+        ),
+        RecordSortField.cataloger => textSortTerms(catalogerName, direction),
+        RecordSortField.species => [
+          ...textSortTerms(taxonomy.genus, direction),
+          ...textSortTerms(taxonomy.specificEpithet, direction),
+          ...textSortTerms(taxonomy.subspecificEpithet, direction),
+        ],
+        // Insertion order, and any field this viewer does not offer.
+        _ => [
+          OrderingTerm(
+            expression: specimen.rowId,
+            mode: orderingModeFor(direction),
+          ),
+        ],
+      },
+      // Ties must break the same way on every refetch (see record_sort_terms).
+      OrderingTerm.asc(specimen.rowId),
+    ];
+  }
+
+  Future<List<SpecimenData>> searchSpecimens(
+    SpecimenSearchCriteria criteria, {
+    required int limit,
+    required int offset,
+  }) async {
+    final cataloger = alias(personnel, 'cataloger');
+    final preparator = alias(personnel, 'preparator');
+    final query =
+        select(specimen).join([
+            leftOuterJoin(
+              cataloger,
+              specimen.catalogerID.equalsExp(cataloger.uuid),
+            ),
+            leftOuterJoin(
+              preparator,
+              specimen.preparatorID.equalsExp(preparator.uuid),
+            ),
+            leftOuterJoin(taxonomy, specimen.speciesID.equalsExp(taxonomy.id)),
+          ])
+          ..where(_searchPredicate(criteria, cataloger, preparator))
+          ..orderBy([OrderingTerm.asc(specimen.fieldNumber)])
+          ..limit(limit, offset: offset);
+
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(specimen)).toList(growable: false);
+  }
+
+  Future<int> countSpecimens(SpecimenSearchCriteria criteria) async {
+    final cataloger = alias(personnel, 'cataloger');
+    final preparator = alias(personnel, 'preparator');
+    final count = specimen.uuid.count();
+    final query =
+        selectOnly(specimen).join([
+            leftOuterJoin(
+              cataloger,
+              specimen.catalogerID.equalsExp(cataloger.uuid),
+            ),
+            leftOuterJoin(
+              preparator,
+              specimen.preparatorID.equalsExp(preparator.uuid),
+            ),
+            leftOuterJoin(taxonomy, specimen.speciesID.equalsExp(taxonomy.id)),
+          ])
+          ..addColumns([count])
+          ..where(_searchPredicate(criteria, cataloger, preparator));
+
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
   }
 
   Future<List<SpecimenData>> getSpecimenPerEvent(int eventID) {
-    return (select(specimen)..where((t) => t.collEventID.equals(eventID)))
-        .get();
+    return (select(
+      specimen,
+    )..where((t) => t.collEventID.equals(eventID))).get();
+  }
+
+  Future<List<String>> getColumnNames() async {
+    List<String> columnNames = db.specimen.$columns
+        .map((e) => e.$name)
+        .toList();
+    return columnNames;
   }
 
   Future<List<String>> getAllSpecimenUuids(String projectUuid) {
@@ -34,16 +152,97 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   }
 
   Future<SpecimenData> getSpecimenByUuid(String uuid) async {
-    return await (select(specimen)..where((t) => t.uuid.equals(uuid)))
-        .getSingle();
+    return await (select(
+      specimen,
+    )..where((t) => t.uuid.equals(uuid))).getSingle();
   }
 
   Future<List<String>> getUniqueTaxonGroup(String projectUuid) async {
-    final specimenData = await (select(specimen, distinct: true)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..where((tbl) => tbl.taxonGroup.isNotNull()))
-        .get();
+    final specimenData =
+        await (select(specimen, distinct: true)
+              ..where((t) => t.projectUuid.equals(projectUuid))
+              ..where((tbl) => tbl.taxonGroup.isNotNull()))
+            .get();
     return getDistinctList(specimenData.map((e) => e.taxonGroup).toList());
+  }
+
+  Future<List<String>> getDistinctConditions() async {
+    final query = selectOnly(specimen)
+      ..addColumns([specimen.condition])
+      ..where(specimen.condition.isNotNull())
+      ..groupBy([specimen.condition]);
+    final result = await query.get();
+    return result
+        .map((row) => row.read(specimen.condition)!)
+        .where((value) => value.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<String>> getDistinctIdMethods() async {
+    final query = selectOnly(specimen, distinct: true)
+      ..addColumns([specimen.iDMethod])
+      ..where(specimen.iDMethod.isNotNull());
+    return (await query.get())
+        .map((row) => row.read(specimen.iDMethod))
+        .whereType<String>()
+        .where((value) => value.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<String>> getDistinctLifeStages() async {
+    final values = await Future.wait([
+      (selectOnly(mammalAttribute, distinct: true)
+            ..addColumns([mammalAttribute.lifeStage])
+            ..where(mammalAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(mammalAttribute.lifeStage))
+          .get(),
+      (selectOnly(birdAttribute, distinct: true)
+            ..addColumns([birdAttribute.lifeStage])
+            ..where(birdAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(birdAttribute.lifeStage))
+          .get(),
+      (selectOnly(herpAttribute, distinct: true)
+            ..addColumns([herpAttribute.lifeStage])
+            ..where(herpAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(herpAttribute.lifeStage))
+          .get(),
+      (selectOnly(arthropodAttribute, distinct: true)
+            ..addColumns([arthropodAttribute.lifeStage])
+            ..where(arthropodAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(arthropodAttribute.lifeStage))
+          .get(),
+    ]);
+    return values
+        .expand((entries) => entries)
+        .whereType<String>()
+        .where((value) => value.trim().isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+  }
+
+  Future<Set<int>> getDistinctSexCodes() async {
+    final codes = <int>{};
+    final mammalQuery = selectOnly(mammalAttribute, distinct: true)
+      ..addColumns([mammalAttribute.sex])
+      ..where(mammalAttribute.sex.isNotNull());
+    final birdQuery = selectOnly(birdAttribute, distinct: true)
+      ..addColumns([birdAttribute.sex])
+      ..where(birdAttribute.sex.isNotNull());
+    final herpQuery = selectOnly(herpAttribute, distinct: true)
+      ..addColumns([herpAttribute.sex])
+      ..where(herpAttribute.sex.isNotNull());
+    final arthropodQuery = selectOnly(arthropodAttribute, distinct: true)
+      ..addColumns([arthropodAttribute.sex])
+      ..where(arthropodAttribute.sex.isNotNull());
+
+    final results = await Future.wait([
+      mammalQuery.map((row) => row.read(mammalAttribute.sex)).get(),
+      birdQuery.map((row) => row.read(birdAttribute.sex)).get(),
+      herpQuery.map((row) => row.read(herpAttribute.sex)).get(),
+      arthropodQuery.map((row) => row.read(arthropodAttribute.sex)).get(),
+    ]);
+    codes.addAll(results.expand((values) => values).whereType<int>());
+    return codes;
   }
 
   Future<List<SpecimenData>> getAllAvianSpecimens(String projectUuid) {
@@ -68,20 +267,24 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<int?>> getAllSpecies(String uuid) {
-    return (select(specimen)..where((t) => t.projectUuid.equals(uuid)))
-        .map((e) => e.speciesID)
-        .get();
+    return (select(
+      specimen,
+    )..where((t) => t.projectUuid.equals(uuid))).map((e) => e.speciesID).get();
   }
 
   Future<int?> getSpeciesByUuid(String uuid) async {
-    SpecimenData? specimenData =
-        await (select(specimen)..where((t) => t.uuid.equals(uuid))).getSingle();
+    SpecimenData? specimenData = await (select(
+      specimen,
+    )..where((t) => t.uuid.equals(uuid))).getSingle();
 
     return specimenData.speciesID;
   }
 
   Future<SpecimenData?> getLastCatFieldNumber(
-      String projectUuid, String specimenUuid, String catalogerUuid) async {
+    String projectUuid,
+    String specimenUuid,
+    String catalogerUuid,
+  ) async {
     try {
       return await (select(specimen)
             ..where((t) => t.projectUuid.equals(projectUuid))
@@ -89,7 +292,9 @@ class SpecimenQuery extends DatabaseAccessor<Database>
             ..where((t) => t.catalogerID.equals(catalogerUuid))
             ..orderBy([
               (t) => OrderingTerm(
-                  expression: t.fieldNumber, mode: OrderingMode.desc)
+                expression: t.fieldNumber,
+                mode: OrderingMode.desc,
+              ),
             ])
             ..limit(1))
           .getSingle();
@@ -99,14 +304,15 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> createSpecimenMedia(
-      SpecimenMediaCompanion specimenMediaCompanion) {
+    SpecimenMediaCompanion specimenMediaCompanion,
+  ) {
     return into(specimenMedia).insert(specimenMediaCompanion);
   }
 
   Future<List<SpecimenMediaData>> getSpecimenMedia(String specimenUuid) async {
-    return await (select(specimenMedia)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .get();
+    return await (select(
+      specimenMedia,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).get();
   }
 
   Future<SpecimenMediaData> getSpecimenMediaByMediaId(int mediaId) async {
@@ -117,18 +323,21 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteSpecimenMedia(int mediaId) {
-    return (delete(specimenMedia)..where((t) => t.mediaId.equals(mediaId)))
-        .go();
+    return (delete(
+      specimenMedia,
+    )..where((t) => t.mediaId.equals(mediaId))).go();
   }
 
   Future<void> deleteAllSpecimenMedias(String specimenUuid) {
-    return (delete(specimenMedia)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .go();
+    return (delete(
+      specimenMedia,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
   }
 
   Future<void> updateSpecimenMedia(
-      String specimenUuid, SpecimenMediaCompanion specimenMediaCompanion) {
+    String specimenUuid,
+    SpecimenMediaCompanion specimenMediaCompanion,
+  ) {
     return (update(specimenMedia)
           ..where((t) => t.specimenUuid.equals(specimenUuid)))
         .write(specimenMediaCompanion);
@@ -139,69 +348,211 @@ class SpecimenQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllSpecimens(String projectUuid) {
-    return (delete(specimen)..where((t) => t.projectUuid.equals(projectUuid)))
-        .go();
+    return (delete(
+      specimen,
+    )..where((t) => t.projectUuid.equals(projectUuid))).go();
   }
 
   Future<int> updateSpecimenEntry(String uuid, SpecimenCompanion entry) async {
-    return await (update(specimen)..where((t) => t.uuid.equals(uuid)))
-        .write(entry);
+    return await (update(
+      specimen,
+    )..where((t) => t.uuid.equals(uuid))).write(entry);
   }
+
+  Expression<bool> _searchPredicate(
+    SpecimenSearchCriteria criteria,
+    Personnel cataloger,
+    Personnel preparator,
+  ) {
+    Expression<bool> predicate = specimen.projectUuid.equals(
+      criteria.projectUuid,
+    );
+
+    if (criteria.searchQuery.isNotEmpty) {
+      final pattern = '%${criteria.searchQuery}%';
+      final scientificName =
+          taxonomy.genus +
+          const Constant<String>(' ') +
+          taxonomy.specificEpithet;
+      predicate =
+          predicate &
+          (specimen.fieldNumber.cast<String>().like(pattern) |
+              cataloger.name.like(pattern) |
+              preparator.name.like(pattern) |
+              scientificName.like(pattern));
+    }
+
+    if (criteria.hasCollectionDate) {
+      predicate =
+          predicate &
+          specimen.collectionDate.isBiggerOrEqualValue(
+            criteria.collectionStartDate,
+          ) &
+          specimen.collectionDate.isSmallerOrEqualValue(
+            criteria.collectionEndDate,
+          );
+    }
+
+    if (criteria.hasPrepDate) {
+      predicate =
+          predicate &
+          specimen.prepDate.isBiggerOrEqualValue(criteria.prepStartDate) &
+          specimen.prepDate.isSmallerOrEqualValue(criteria.prepEndDate);
+    }
+
+    return predicate;
+  }
+}
+
+class SpecimenSearchCriteria {
+  const SpecimenSearchCriteria({
+    required this.projectUuid,
+    this.searchQuery = '',
+    this.hasCollectionDate = false,
+    this.collectionStartDate = '',
+    this.collectionEndDate = '',
+    this.hasPrepDate = false,
+    this.prepStartDate = '',
+    this.prepEndDate = '',
+  });
+
+  final String projectUuid;
+  final String searchQuery;
+  final bool hasCollectionDate;
+  final String collectionStartDate;
+  final String collectionEndDate;
+  final bool hasPrepDate;
+  final String prepStartDate;
+  final String prepEndDate;
 }
 
 class MammalSpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   MammalSpecimenQuery(super.db);
 
-  Future<int> createMammalMeasurements(MammalMeasurementCompanion form) =>
-      into(mammalMeasurement).insert(form);
+  Future<int> createMammalAttributes(MammalAttributeCompanion form) =>
+      into(mammalAttribute).insert(form);
 
-  Future updateMammalMeasurements(
-      String specimenUuid, MammalMeasurementCompanion form) {
-    return (update(mammalMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .write(form);
+  Future updateMammalAttributes(
+    String specimenUuid,
+    MammalAttributeCompanion form,
+  ) {
+    return (update(
+      mammalAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(form);
   }
 
-  Future<MammalMeasurementData> getMammalMeasurementByUuid(
-      String specimenUuid) async {
-    return await (select(mammalMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .getSingle();
+  Future<MammalAttributeData> getMammalAttributeByUuid(
+    String specimenUuid,
+  ) async {
+    return await (select(
+      mammalAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
   }
 
-  Future<void> deleteMammalMeasurements(String specimenUuid) {
-    return (delete(mammalMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .go();
+  Future<List<MammalAttributeData>> getMammalAttributesBySpecimenUuids(
+    List<String> specimenUuids,
+  ) {
+    if (specimenUuids.isEmpty) return Future.value([]);
+
+    return (select(
+      mammalAttribute,
+    )..where((t) => t.specimenUuid.isIn(specimenUuids))).get();
+  }
+
+  Future<void> deleteMammalAttributes(String specimenUuid) {
+    return (delete(
+      mammalAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
   }
 }
 
-class AvianSpecimenQuery extends DatabaseAccessor<Database>
+class BirdSpecimenQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
-  AvianSpecimenQuery(super.db);
+  BirdSpecimenQuery(super.db);
 
-  Future<int> createAvianMeasurements(AvianMeasurementCompanion form) =>
-      into(avianMeasurement).insert(form);
+  Future<int> createBirdAttributes(BirdAttributeCompanion form) =>
+      into(birdAttribute).insert(form);
 
-  Future updateAvianMeasurements(
-      String specimenUuid, AvianMeasurementCompanion entry) {
-    return (update(avianMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .write(entry);
+  Future updateBirdAttributes(
+    String specimenUuid,
+    BirdAttributeCompanion entry,
+  ) {
+    return (update(
+      birdAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
   }
 
-  Future<AvianMeasurementData> getAvianMeasurementByUuid(
-      String specimenUuid) async {
-    return await (select(avianMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .getSingle();
+  Future<BirdAttributeData> getBirdAttributeByUuid(String specimenUuid) async {
+    return await (select(
+      birdAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
   }
 
-  Future<void> deleteAvianMeasurements(String specimenUuid) {
-    return (delete(avianMeasurement)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .go();
+  Future<void> deleteBirdAttributes(String specimenUuid) {
+    return (delete(
+      birdAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
+class HerpSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  HerpSpecimenQuery(super.db);
+
+  Future<int> createHerpAttributes(HerpAttributeCompanion form) =>
+      into(herpAttribute).insert(form);
+
+  Future updateHerpAttributes(
+    String specimenUuid,
+    HerpAttributeCompanion entry,
+  ) {
+    return (update(
+      herpAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+  }
+
+  Future<HerpAttributeData> getHerpAttributeByUuid(String specimenUuid) async {
+    return await (select(
+      herpAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  }
+
+  Future<void> deleteHerpAttributes(String specimenUuid) {
+    return (delete(
+      herpAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
+class ArthropodSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  ArthropodSpecimenQuery(super.db);
+
+  Future<int> createArthropodAttributes(ArthropodAttributeCompanion form) =>
+      into(arthropodAttribute).insert(form);
+
+  Future<void> updateArthropodAttributes(
+    String specimenUuid,
+    ArthropodAttributeCompanion entry,
+  ) async {
+    await (update(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+  }
+
+  Future<ArthropodAttributeData> getArthropodAttributeByUuid(
+    String specimenUuid,
+  ) {
+    return (select(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  }
+
+  Future<void> deleteArthropodAttributes(String specimenUuid) async {
+    await (delete(
+      arthropodAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
   }
 }
 
@@ -213,9 +564,9 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
       into(specimenPart).insert(form);
 
   Future<List<String>> searchPrepType(String query) async {
-    List<SpecimenPartData> data = await (select(specimenPart)
-          ..where((t) => t.type.like('%$query%')))
-        .get();
+    List<SpecimenPartData> data = await (select(
+      specimenPart,
+    )..where((t) => t.type.like('%$query%'))).get();
 
     // Get specimen uuid only
     List<String> prepType = data
@@ -226,19 +577,54 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
   }
 
   Future<List<SpecimenPartData>> getSpecimenParts(String specimenUuid) {
-    return (select(specimenPart)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .get();
+    return (select(
+      specimenPart,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).get();
+  }
+
+  /// Returns printable parts in a project together with their parent specimen.
+  /// The inner join intentionally excludes orphaned part rows.
+  Future<List<SpecimenPartProjectRecord>> getSpecimenPartsForProject(
+    String projectUuid,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(specimen.projectUuid.equals(projectUuid))
+          ..orderBy([
+            OrderingTerm.asc(specimen.fieldNumber),
+            OrderingTerm.asc(specimenPart.tissueID),
+            OrderingTerm.asc(specimenPart.barcodeID),
+            OrderingTerm.asc(specimenPart.id),
+          ]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<String?> getLastEnteredTissueID(String uuid) async {
-    SpecimenPartData data = await (select(specimenPart)
-          ..where((t) => t.specimenUuid.equals(uuid))
-          ..orderBy([
-            (t) => OrderingTerm(expression: t.tissueID, mode: OrderingMode.desc)
-          ])
-          ..limit(1))
-        .getSingle();
+    SpecimenPartData data =
+        await (select(specimenPart)
+              ..where((t) => t.specimenUuid.equals(uuid))
+              ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.tissueID,
+                  mode: OrderingMode.desc,
+                ),
+              ])
+              ..limit(1))
+            .getSingle();
     return data.tissueID;
   }
 
@@ -251,8 +637,9 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
 
   Future<List<String>> getDistinctTreatments() async {
     List<SpecimenPartData> data = await (select(specimenPart)).get();
-    List<String> treatments =
-        getDistinctList(data.map((e) => e.treatment).toList());
+    List<String> treatments = getDistinctList(
+      data.map((e) => e.treatment).toList(),
+    );
     List<String> sortedTreatments = _sortTreatment(treatments);
     return sortedTreatments;
   }
@@ -295,15 +682,20 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
     return (delete(specimenPart)..where((t) => t.id.equals(partId))).go();
   }
 
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) {
+    return (delete(specimenPart)..where((t) => t.id.isIn(partIds))).go();
+  }
+
   Future<void> deleteAllSpecimenParts(String specimenUuid) {
-    return (delete(specimenPart)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .go();
+    return (delete(
+      specimenPart,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
   }
 
   Future updateSpecimenPartEntry(String uuid, SpecimenPartCompanion entry) {
-    return (update(specimenPart)..where((t) => t.specimenUuid.equals(uuid)))
-        .write(entry);
+    return (update(
+      specimenPart,
+    )..where((t) => t.specimenUuid.equals(uuid))).write(entry);
   }
 }
 
@@ -314,31 +706,239 @@ class SpecimenPartDistinctTypes {
   final List<String> treatment;
 }
 
+/// A specimen part paired with the specimen that owns it.
+class SpecimenPartProjectRecord {
+  const SpecimenPartProjectRecord({required this.part, required this.specimen});
+
+  final SpecimenPartData part;
+  final SpecimenData specimen;
+
+  String? get recordId => part.id?.toString();
+}
+
 class AssociatedDataQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   AssociatedDataQuery(super.db);
 
   Future<int> createSpecimenDataAssociation(
-          AssociatedDataCompanion form) async =>
-      await into(associatedData).insert(form);
+    String specimenUuid,
+    AssociatedDataCompanion form,
+  ) async {
+    final specimenRow = await (select(
+      specimen,
+    )..where((row) => row.uuid.equals(specimenUuid))).getSingle();
+    final projectUuid = specimenRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires a specimen project.');
+    }
+
+    return transaction(() async {
+      final id = await into(
+        associatedData,
+      ).insert(form.copyWith(projectUuid: Value(projectUuid)));
+      await into(specimenAssociatedData).insert(
+        SpecimenAssociatedDataCompanion.insert(
+          specimenUuid: specimenUuid,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createSiteDataAssociation(
+    int siteId,
+    AssociatedDataCompanion form,
+  ) async {
+    final siteRow = await (select(
+      site,
+    )..where((row) => row.id.equals(siteId))).getSingle();
+    final projectUuid = siteRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires a site project.');
+    }
+
+    return transaction(() async {
+      final id = await into(
+        associatedData,
+      ).insert(form.copyWith(projectUuid: Value(projectUuid)));
+      await into(siteAssociatedData).insert(
+        SiteAssociatedDataCompanion.insert(
+          siteId: siteId,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createEventDataAssociation(
+    int eventId,
+    AssociatedDataCompanion form,
+  ) async {
+    final eventRow = await (select(
+      collEvent,
+    )..where((row) => row.id.equals(eventId))).getSingle();
+    final projectUuid = eventRow.projectUuid;
+    if (projectUuid == null) {
+      throw StateError('Associated data requires an event project.');
+    }
+
+    return transaction(() async {
+      final id = await into(
+        associatedData,
+      ).insert(form.copyWith(projectUuid: Value(projectUuid)));
+      await into(eventAssociatedData).insert(
+        EventAssociatedDataCompanion.insert(
+          eventID: eventId,
+          associatedDataId: id,
+        ),
+      );
+      return id;
+    });
+  }
+
+  Future<int> createDataAssociation(
+    AssociatedDataTarget target,
+    AssociatedDataCompanion form,
+  ) => switch (target) {
+    SpecimenAssociatedDataTarget(:final specimenUuid) =>
+      createSpecimenDataAssociation(specimenUuid, form),
+    SiteAssociatedDataTarget(:final siteId) => createSiteDataAssociation(
+      siteId,
+      form,
+    ),
+    EventAssociatedDataTarget(:final eventId) => createEventDataAssociation(
+      eventId,
+      form,
+    ),
+  };
+
+  Future<int> createProjectAssociatedData(AssociatedDataCompanion form) async {
+    if (!form.projectUuid.present || form.projectUuid.value == null) {
+      throw ArgumentError('Associated data requires a project.');
+    }
+    return into(associatedData).insert(form);
+  }
+
+  Future<void> linkToSpecimen(int id, String specimenUuid) {
+    return into(specimenAssociatedData).insert(
+      SpecimenAssociatedDataCompanion.insert(
+        specimenUuid: specimenUuid,
+        associatedDataId: id,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> linkToSite(int id, int siteId) {
+    return into(siteAssociatedData).insert(
+      SiteAssociatedDataCompanion.insert(siteId: siteId, associatedDataId: id),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> linkToEvent(int id, int eventId) {
+    return into(eventAssociatedData).insert(
+      EventAssociatedDataCompanion.insert(
+        eventID: eventId,
+        associatedDataId: id,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> linkToTarget(int id, AssociatedDataTarget target) =>
+      switch (target) {
+        SpecimenAssociatedDataTarget(:final specimenUuid) => linkToSpecimen(
+          id,
+          specimenUuid,
+        ),
+        SiteAssociatedDataTarget(:final siteId) => linkToSite(id, siteId),
+        EventAssociatedDataTarget(:final eventId) => linkToEvent(id, eventId),
+      };
 
   Future<int> updateAssociatedData(int id, AssociatedDataCompanion form) async {
-    return (update(associatedData)..where((t) => t.primaryId.equals(id)))
-        .write(form);
+    return (update(
+      associatedData,
+    )..where((t) => t.primaryId.equals(id))).write(form);
   }
 
   Future<List<AssociatedDataData>> getAllAssociatedData(
-      String specimenUuid) async {
-    return await (select(associatedData)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
-        .get();
+    String specimenUuid,
+  ) async {
+    final linkedIds = selectOnly(specimenAssociatedData)
+      ..addColumns([specimenAssociatedData.associatedDataId])
+      ..where(specimenAssociatedData.specimenUuid.equals(specimenUuid));
+    return (select(
+      associatedData,
+    )..where((row) => row.primaryId.isInQuery(linkedIds))).get();
   }
 
-  Future<bool> isFileUsed(String baseName) async {
-    AssociatedDataData? data = await (select(associatedData)
-          ..where((t) => t.url.equals(baseName))
-          ..limit(1))
-        .getSingleOrNull();
+  Future<List<AssociatedDataData>> getAssociatedDataForSite(int siteId) {
+    final query = select(associatedData).join([
+      innerJoin(
+        siteAssociatedData,
+        siteAssociatedData.associatedDataId.equalsExp(associatedData.primaryId),
+      ),
+    ])..where(siteAssociatedData.siteId.equals(siteId));
+    return query.map((row) => row.readTable(associatedData)).get();
+  }
+
+  Future<List<AssociatedDataData>> getAssociatedDataForEvent(int eventId) {
+    final query = select(associatedData).join([
+      innerJoin(
+        eventAssociatedData,
+        eventAssociatedData.associatedDataId.equalsExp(
+          associatedData.primaryId,
+        ),
+      ),
+    ])..where(eventAssociatedData.eventID.equals(eventId));
+    return query.map((row) => row.readTable(associatedData)).get();
+  }
+
+  Future<List<AssociatedDataData>> getAssociatedDataForTarget(
+    AssociatedDataTarget target,
+  ) => switch (target) {
+    SpecimenAssociatedDataTarget(:final specimenUuid) => getAllAssociatedData(
+      specimenUuid,
+    ),
+    SiteAssociatedDataTarget(:final siteId) => getAssociatedDataForSite(siteId),
+    EventAssociatedDataTarget(:final eventId) => getAssociatedDataForEvent(
+      eventId,
+    ),
+  };
+
+  Future<List<AssociatedDataData>> getAssociatedDataForProject(
+    String projectUuid,
+  ) {
+    return (select(
+      associatedData,
+    )..where((row) => row.projectUuid.equals(projectUuid))).get();
+  }
+
+  /// Every associated data row, across all projects.
+  ///
+  /// Used by the file explorer to build its reference index in one read
+  /// instead of querying per file.
+  Future<List<AssociatedDataData>> getAllAssociatedRows() {
+    return select(associatedData).get();
+  }
+
+  Future<AssociatedDataData?> getAssociatedDataById(int id) {
+    return (select(
+      associatedData,
+    )..where((row) => row.primaryId.equals(id))).getSingleOrNull();
+  }
+
+  Future<bool> isFileUsed(String storageKey, {String? projectUuid}) async {
+    final query = select(associatedData)
+      ..where((row) => row.uri.equals(storageKey));
+    if (projectUuid != null) {
+      query.where((row) => row.projectUuid.equals(projectUuid));
+    }
+    query.limit(1);
+    final data = await query.getSingleOrNull();
     return data != null;
   }
 
@@ -347,8 +947,116 @@ class AssociatedDataQuery extends DatabaseAccessor<Database>
   }
 
   Future<void> deleteAllAssociatedData(String specimenUuid) {
-    return (delete(associatedData)
-          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+    return (delete(
+      specimenAssociatedData,
+    )..where((row) => row.specimenUuid.equals(specimenUuid))).go();
+  }
+
+  Future<void> unlinkFromSpecimen(int id, String specimenUuid) {
+    return (delete(specimenAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.specimenUuid.equals(specimenUuid)))
         .go();
+  }
+
+  Future<void> unlinkFromSite(int id, int siteId) {
+    return (delete(siteAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.siteId.equals(siteId)))
+        .go();
+  }
+
+  Future<void> unlinkFromEvent(int id, int eventId) {
+    return (delete(eventAssociatedData)
+          ..where((row) => row.associatedDataId.equals(id))
+          ..where((row) => row.eventID.equals(eventId)))
+        .go();
+  }
+
+  Future<void> unlinkFromTarget(int id, AssociatedDataTarget target) =>
+      switch (target) {
+        SpecimenAssociatedDataTarget(:final specimenUuid) => unlinkFromSpecimen(
+          id,
+          specimenUuid,
+        ),
+        SiteAssociatedDataTarget(:final siteId) => unlinkFromSite(id, siteId),
+        EventAssociatedDataTarget(:final eventId) => unlinkFromEvent(
+          id,
+          eventId,
+        ),
+      };
+
+  Future<bool> detachFromTarget(int id, AssociatedDataTarget target) async {
+    return transaction(() async {
+      await unlinkFromTarget(id, target);
+      final isStillLinked = await _isLinked(id);
+      if (!isStillLinked) {
+        await deleteAssociatedData(id);
+      }
+      return !isStillLinked;
+    });
+  }
+
+  Future<List<int>> getAssociatedDataIdsForTarget(
+    AssociatedDataTarget target,
+  ) async {
+    switch (target) {
+      case SpecimenAssociatedDataTarget(:final specimenUuid):
+        final rows = await (select(
+          specimenAssociatedData,
+        )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+      case SiteAssociatedDataTarget(:final siteId):
+        final rows = await (select(
+          siteAssociatedData,
+        )..where((row) => row.siteId.equals(siteId))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+      case EventAssociatedDataTarget(:final eventId):
+        final rows = await (select(
+          eventAssociatedData,
+        )..where((row) => row.eventID.equals(eventId))).get();
+        return rows.map((row) => row.associatedDataId).toList();
+    }
+  }
+
+  Future<void> unlinkAllFromSite(int siteId) {
+    return (delete(
+      siteAssociatedData,
+    )..where((row) => row.siteId.equals(siteId))).go();
+  }
+
+  Future<void> unlinkAllFromEvent(int eventId) {
+    return (delete(
+      eventAssociatedData,
+    )..where((row) => row.eventID.equals(eventId))).go();
+  }
+
+  Future<void> deleteAllAssociatedDataForProject(String projectUuid) {
+    return (delete(
+      associatedData,
+    )..where((row) => row.projectUuid.equals(projectUuid))).go();
+  }
+
+  Future<bool> _isLinked(int id) async {
+    final specimenLink =
+        await (select(specimenAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (specimenLink != null) return true;
+
+    final siteLink =
+        await (select(siteAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    if (siteLink != null) return true;
+
+    final eventLink =
+        await (select(eventAssociatedData)
+              ..where((row) => row.associatedDataId.equals(id))
+              ..limit(1))
+            .getSingleOrNull();
+    return eventLink != null;
   }
 }

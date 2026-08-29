@@ -1,25 +1,24 @@
-import 'package:flutter/material.dart';
-import 'package:nahpu/screens/events/event_view.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
+import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 
 Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
   CollEventServices services = CollEventServices(ref: ref);
 
-  return services.createNewCollEvents().then(
-    (_) {
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const CollEventViewer(),
-          ),
-        );
-      }
-    },
-  );
+  return services.createNewCollEvents().then((newId) {
+    // Refresh the always-mounted viewer in place and land on the new event.
+    ref
+        .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+        .updateState(newId);
+    ref.invalidate(collEventEntryProvider);
+  });
 }
 
 class NewCollEventTextButton extends ConsumerStatefulWidget {
@@ -51,7 +50,7 @@ class NewCollEventTextButtonState
         content: Text(
           errors.contains('SqliteException(787)')
               ? 'Failed to delete the events.'
-                  ' The events are currently in use by other records.'
+                    ' The events are currently in use by other records.'
               : errors.toString(),
         ),
       ),
@@ -74,10 +73,7 @@ class NewCollEvents extends ConsumerWidget {
 }
 
 class CollEventMenu extends ConsumerStatefulWidget {
-  const CollEventMenu({
-    super.key,
-    required this.collEventId,
-  });
+  const CollEventMenu({super.key, required this.collEventId});
 
   final int? collEventId;
 
@@ -100,7 +96,63 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
               : () async => await _duplicateEvent(),
           child: const DuplicateMenuButton(text: 'Duplicate event'),
         ),
-        const PopupMenuDivider(height: 10),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.collEvent,
+          ),
+          child: const SortMenuButton(),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          enabled: widget.collEventId != null,
+          onTap: widget.collEventId == null
+              ? null
+              : () => RecordExchangeActions(
+                  context: context,
+                  ref: ref,
+                ).showEventQr(widget.collEventId!),
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_outlined),
+            title: Text('Show QR'),
+          ),
+        ),
+        PopupMenuItem(
+          enabled: widget.collEventId != null,
+          onTap: widget.collEventId == null
+              ? null
+              : () => RecordExchangeActions(
+                  context: context,
+                  ref: ref,
+                ).exportEventRecord(widget.collEventId!),
+          child: const ListTile(
+            leading: Icon(Icons.file_upload_outlined),
+            title: Text('Export event'),
+          ),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem(
+          onTap: () => RecordExchangeActions(
+            context: context,
+            ref: ref,
+          ).scanEventQr(initialTargetId: widget.collEventId),
+          child: const ListTile(
+            leading: Icon(Icons.qr_code_scanner_outlined),
+            title: Text('Scan QR'),
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () => RecordExchangeActions(
+            context: context,
+            ref: ref,
+          ).importEventRecord(initialTargetId: widget.collEventId),
+          child: const ListTile(
+            leading: Icon(Icons.file_download_outlined),
+            title: Text('Import event'),
+          ),
+        ),
+        const PopupMenuDivider(height: 8),
         PopupMenuItem(
           child: const DeleteMenuButton(deleteAll: false),
           onTap: () => _deleteEvent(),
@@ -118,15 +170,19 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       showDeleteAlertOnMenu(
         context: context,
         title: 'Delete collecting event?',
-        deletePrompt: 'You will also delete collecting effort'
-            ', collecting personnel, and weather data in this event.',
+        deletePrompt:
+            'You will also delete collecting effort'
+            ', collecting personnel, environmental data, and media in this event.',
         onDelete: () async {
           try {
-            await CollEventServices(ref: ref)
-                .deleteCollEvent(widget.collEventId!);
-            if (context.mounted) {
-              _navigate();
+            await CollEventServices(
+              ref: ref,
+            ).deleteCollEvent(widget.collEventId!);
+            // Close the delete dialog.
+            if (mounted) {
+              Navigator.of(context).pop();
             }
+            ref.invalidate(collEventEntryProvider);
           } catch (e) {
             _showError(e.toString());
           }
@@ -135,23 +191,17 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
     }
   }
 
-  void _navigate() {
-    Navigator.of(context).pop();
-    // We need to trigger a rebuild of the CollEventViewer
-    // to update page numbers and the CollEventViewer
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const CollEventViewer(),
-      ),
-    );
-  }
-
   Future<void> _duplicateEvent() async {
     try {
-      await EventDuplicateService(ref: ref).duplicate(widget.collEventId!);
-      if (context.mounted) {
-        _navigate();
+      final newId = await EventDuplicateService(
+        ref: ref,
+      ).duplicate(widget.collEventId!);
+      if (newId != null) {
+        ref
+            .read(pendingRecordJumpProvider(RecordViewer.collEvent).notifier)
+            .updateState(newId);
       }
+      ref.invalidate(collEventEntryProvider);
     } catch (e) {
       _showError(e.toString());
     }
@@ -165,7 +215,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       deletePrompt:
           'Deleting all collecting events will also delete all associated'
           ' collecting effort, collecting personnel, '
-          'and weather data from the database.',
+          'environmental data, and media from the database.',
       onDelete: () async {
         try {
           final service = CollEventServices(ref: ref);
@@ -192,7 +242,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         content: Text(
           errors.contains('SqliteException(787)')
               ? 'Failed to delete the events.'
-                  ' The events are currently in use by other records.'
+                    ' The events are currently in use by other records.'
               : errors.toString(),
         ),
       ),

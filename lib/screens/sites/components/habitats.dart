@@ -1,20 +1,24 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/fields.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/site_services.dart';
-import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class Habitat extends ConsumerWidget {
-  const Habitat(
-      {super.key,
-      required this.id,
-      required this.useHorizontalLayout,
-      required this.siteFormCtr});
+  const Habitat({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
 
   final int id;
   final bool useHorizontalLayout;
@@ -23,88 +27,110 @@ class Habitat extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Habitat',
-      infoContent: const HabitatInfoContent(),
+      title: 'Site Attributes',
+      infoTopic: InfoTopic.siteHabitat,
       mainAxisAlignment: MainAxisAlignment.start,
-      child: Padding(
-        padding: const EdgeInsets.all(5),
-        child: Column(
-          children: [
-            ref.watch(habitatTypeProvider).when(
-                  data: (data) {
-                    return DropdownButtonFormField<String?>(
-                      initialValue: siteFormCtr.habitatTypeCtr.text.isEmpty
-                          ? null
-                          : siteFormCtr.habitatTypeCtr.text,
-                      decoration: const InputDecoration(
-                        labelText: 'Type',
-                        hintText: 'Select a habitat type',
-                      ),
-                      items: data
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: CommonDropdownText(text: e),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          siteFormCtr.habitatTypeCtr.text = newValue;
-                          SiteServices(ref: ref).updateSite(
-                            id,
-                            SiteCompanion(habitatType: db.Value(newValue)),
-                          );
-                        }
+      child: SizedBox(
+        height: 484,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Column(
+              children: [
+                ref
+                    .watch(
+                      effectiveUserDefinedFieldProvider(habitatTypePrefKey),
+                    )
+                    .when(
+                      data: (data) {
+                        final current = siteFormCtr.habitatTypeCtr.text;
+                        final options = includeCurrentVocabularyValue(
+                          data,
+                          current.isEmpty ? null : current,
+                        );
+                        final items = options
+                            .map(
+                              (e) => DropdownMenuItem<String?>(
+                                value: e,
+                                child: CommonDropdownText(text: e),
+                              ),
+                            )
+                            .toList();
+
+                        final initialValue = current.isEmpty ? null : current;
+
+                        return DropdownButtonFormField<String?>(
+                          isExpanded: true,
+                          initialValue: initialValue,
+                          decoration: const InputDecoration(
+                            labelText: 'Habitat Type',
+                            hintText: 'Select a habitat type',
+                          ),
+                          items: items,
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              siteFormCtr.habitatTypeCtr.text = newValue;
+                              SiteServices(ref: ref).updateSiteAttribute(
+                                id,
+                                SiteAttributeCompanion(
+                                  habitatType: db.Value(newValue),
+                                ),
+                              );
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
-                  loading: () => const CommonProgressIndicator(),
-                  error: (e, __) => Text(e.toString()),
+                      loading: () => const CommonProgressIndicator(),
+                      error: (e, _) => Text(e.toString()),
+                    ),
+                TextFormField(
+                  controller: siteFormCtr.habitatConditionCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Habitat Condition',
+                    hintText: 'E.g. "Pristine", "Disturbed", "etc."',
+                  ),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(
+                          habitatCondition: db.Value(value),
+                        ),
+                      ),
                 ),
-            TextFormField(
-              controller: siteFormCtr.habitatConditionCtr,
-              decoration: const InputDecoration(
-                labelText: 'Condition',
-                hintText: 'E.g. "Pristine", "Disturbed", "etc."',
-              ),
-              onChanged: (value) => SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(habitatCondition: db.Value(value)),
-              ),
+                TextFormField(
+                  maxLines: 10,
+                  controller: siteFormCtr.habitatDescriptionCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Habitat Description',
+                    hintText:
+                        'Describe the site, e.g. "A camp site in the middle of the forest."',
+                  ),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(
+                          habitatDescription: db.Value(value),
+                        ),
+                      ),
+                ),
+                TextFormField(
+                  controller: siteFormCtr.canopyCoverCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Canopy Cover',
+                    hintText: 'Enter canopy cover',
+                  ),
+                  onChanged: (value) =>
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(canopyCover: db.Value(value)),
+                      ),
+                ),
+                CustomFieldForm(owner: CustomFieldOwner.site(id)),
+              ],
             ),
-            TextFormField(
-              maxLines: 6,
-              controller: siteFormCtr.habitatDescriptionCtr,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                hintText:
-                    'Describe the site, e.g. "A camp site in the middle of the forest."',
-              ),
-              onChanged: (value) => SiteServices(ref: ref).updateSite(
-                id,
-                SiteCompanion(habitatDescription: db.Value(value)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class HabitatInfoContent extends StatelessWidget {
-  const HabitatInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-            content: 'Information about the habitat of the site.'
-                ' Note important information about the habitat in the description.'
-                ' For example, the dominant tree species, ground cover, etc.'),
-      ],
     );
   }
 }

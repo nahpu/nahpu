@@ -1,61 +1,37 @@
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/record_sort.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/types/specimens.dart';
-import 'package:nahpu/services/utility_services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:nahpu/services/database/parasite_queries.dart';
 
-part 'specimens.g.dart';
+final specimenEntryProvider =
+    AsyncNotifierProvider.autoDispose<SpecimenEntry, List<SpecimenData>>(
+      SpecimenEntry.new,
+    );
 
-const String specimenTypePrefKey = 'specimenTypes';
-const String treatmentPrefKey = 'specimenTreatment';
-const String catalogFmtPrefKey = 'catalogFmt';
-
-@riverpod
-class CatalogFmtNotifier extends _$CatalogFmtNotifier {
-  Future<CatalogFmt> _fetchSetting() async {
-    final prefs = ref.watch(settingProvider);
-    final savedFmt = prefs.getString(catalogFmtPrefKey);
-
-    // Set to default general mammals if no setting is found
-    final CatalogFmt currentFmt = matchTaxonGroupToCatFmt(savedFmt);
-    if (savedFmt == null) {
-      await prefs.setString(
-          catalogFmtPrefKey, matchCatFmtToTaxonGroup(currentFmt));
-    }
-
-    return currentFmt;
-  }
-
-  @override
-  FutureOr<CatalogFmt> build() async {
-    return await _fetchSetting();
-  }
-
-  Future<void> set(CatalogFmt fmt) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final value = prefs.getString(catalogFmtPrefKey);
-      final setFmt = matchTaxonGroupToCatFmt(value);
-      if (setFmt == fmt) return fmt;
-      await prefs.setString(catalogFmtPrefKey, matchCatFmtToTaxonGroup(fmt));
-      return fmt;
-    });
-  }
-}
-
-@riverpod
-class SpecimenEntry extends _$SpecimenEntry {
+class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
   Future<List<SpecimenData>> _fetchSpecimenEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.specimen));
+    // Which column the field-id sort reads follows the active mode. Resolved
+    // only for that sort: the mode lives in the Rust config store, and every
+    // other ordering would pay for a round trip it never reads.
+    final fieldIdMode = sort.field == RecordSortField.fieldId
+        ? await ref.watch(fieldIdModeNotifierProvider.future)
+        : FieldIdMode.personnel;
 
-    final specimenEntries = await SpecimenQuery(ref.read(databaseProvider))
-        .getAllSpecimens(projectUuid);
+    final specimenEntries = await SpecimenQuery(
+      ref.read(databaseProvider),
+    ).getAllSpecimens(projectUuid, sort: sort, fieldIdMode: fieldIdMode);
 
     return specimenEntries;
   }
@@ -67,184 +43,47 @@ class SpecimenEntry extends _$SpecimenEntry {
 }
 
 final partBySpecimenProvider = FutureProvider.family
-    .autoDispose<List<SpecimenPartData>, String>((ref, specimenUuid) =>
-        SpecimenPartQuery(ref.read(databaseProvider))
-            .getSpecimenParts(specimenUuid));
+    .autoDispose<List<SpecimenPartData>, String>(
+      (ref, specimenUuid) => SpecimenPartQuery(
+        ref.read(databaseProvider),
+      ).getSpecimenParts(specimenUuid),
+    );
 
-@riverpod
-Future<List<AssociatedDataData>> associatedData(Ref ref,
-    {required String specimenUuid}) async {
-  final associatedDataEntries =
-      await AssociatedDataQuery(ref.read(databaseProvider))
-          .getAllAssociatedData(specimenUuid);
+final parasiteDetectionProvider = FutureProvider.family
+    .autoDispose<ParasiteDetectionData?, String>(
+      (ref, specimenUuid) =>
+          ParasiteQuery(ref.read(databaseProvider)).getDetection(specimenUuid),
+    );
 
-  return associatedDataEntries;
-}
+final parasiteBySpecimenProvider = FutureProvider.family
+    .autoDispose<List<ParasiteData>, String>(
+      (ref, specimenUuid) =>
+          ParasiteQuery(ref.read(databaseProvider)).getParasites(specimenUuid),
+    );
 
-@riverpod
-Future<List<MediaData>> specimenMedia(Ref ref,
-    {required String specimenUuid}) async {
-  List<SpecimenMediaData> mediaList =
-      await SpecimenQuery(ref.read(databaseProvider))
-          .getSpecimenMedia(specimenUuid);
-  List<MediaData> mediaDataList = [];
-  for (SpecimenMediaData media in mediaList) {
-    if (media.mediaId != null) {
-      mediaDataList.add(
-        await MediaDbQuery(ref.read(databaseProvider)).getMedia(media.mediaId!),
-      );
-    }
-  }
-  return mediaDataList;
-}
+/// All printable parts in the active project, paired with their parent
+/// specimen. A part, not a specimen, is the document-record unit.
+final specimenPartEntryProvider =
+    FutureProvider.autoDispose<List<SpecimenPartProjectRecord>>((ref) async {
+      final projectUuid = ref.watch(projectUuidProvider);
+      return SpecimenPartQuery(
+        ref.read(databaseProvider),
+      ).getSpecimenPartsForProject(projectUuid);
+    });
 
-@riverpod
-class SpecimenTypes extends _$SpecimenTypes {
-  Future<List<String>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final typeList = prefs.getStringList(specimenTypePrefKey);
-
-    List<String> currentTypes = typeList ?? defaultSpecimenType;
-
-    if (typeList == null) {
-      await prefs.setStringList(specimenTypePrefKey, currentTypes);
-    }
-
-    return currentTypes;
-  }
-
-  @override
-  FutureOr<List<String>> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> add(String type) async {
-    if (type.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final typeList = prefs.getStringList(specimenTypePrefKey);
-      if (typeList != null && isListContains(typeList, type)) {
-        return typeList;
+final specimenMediaProvider = FutureProvider.family
+    .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
+      final database = ref.read(databaseProvider);
+      List<SpecimenMediaData> mediaList = await SpecimenQuery(
+        database,
+      ).getSpecimenMedia(specimenUuid);
+      List<MediaData> mediaDataList = [];
+      for (SpecimenMediaData media in mediaList) {
+        if (media.mediaId != null) {
+          mediaDataList.add(
+            await MediaDbQuery(database).getMedia(media.mediaId!),
+          );
+        }
       }
-
-      List<String> newList = [...typeList ?? [], type];
-      await prefs.setStringList(specimenTypePrefKey, newList);
-      return newList;
+      return mediaDataList;
     });
-  }
-
-  Future<void> replaceAll(List<String> newSpecimenTypes) async {
-    if (newSpecimenTypes.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setStringList(specimenTypePrefKey, newSpecimenTypes);
-      return newSpecimenTypes;
-    });
-  }
-
-  Future<void> remove(String type) async {
-    if (type.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final typeList = prefs.getStringList(specimenTypePrefKey);
-      if (typeList == null || typeList.isEmpty) return [];
-
-      if (!isListContains(typeList, type)) {
-        return typeList;
-      }
-
-      List<String> newList = [...typeList]..remove(type);
-      await prefs.setStringList(specimenTypePrefKey, newList);
-      return newList;
-    });
-  }
-
-  Future<void> clear() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.remove(specimenTypePrefKey);
-      return [];
-    });
-  }
-}
-
-@riverpod
-class TreatmentOptions extends _$TreatmentOptions {
-  Future<List<String>> _fetchSettings() async {
-    final prefs = ref.watch(settingProvider);
-    final treatmentList = prefs.getStringList(treatmentPrefKey);
-
-    List<String> currentTreatments = treatmentList ?? defaultSpecimenTreatment;
-
-    if (treatmentList == null) {
-      await prefs.setStringList(treatmentPrefKey, currentTreatments);
-    }
-
-    return currentTreatments;
-  }
-
-  @override
-  FutureOr<List<String>> build() async {
-    return await _fetchSettings();
-  }
-
-  Future<void> add(String treatment) async {
-    if (treatment.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final treatmentList = prefs.getStringList(treatmentPrefKey);
-      if (treatmentList != null && isListContains(treatmentList, treatment)) {
-        return treatmentList;
-      }
-
-      List<String> newList = [...treatmentList ?? [], treatment];
-      await prefs.setStringList(treatmentPrefKey, newList);
-      return newList;
-    });
-  }
-
-  Future<void> replaceAll(List<String> newTreatments) async {
-    if (newTreatments.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.setStringList(treatmentPrefKey, newTreatments);
-      return newTreatments;
-    });
-  }
-
-  Future<void> remove(String treatment) async {
-    if (treatment.isEmpty) return;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      final treatmentList = prefs.getStringList(treatmentPrefKey);
-
-      // We don't need to delete if the list is null
-      // or doesn't contain the item
-      if (treatmentList == null || treatmentList.isEmpty) return [];
-
-      if (!isListContains(treatmentList, treatment)) {
-        return treatmentList;
-      }
-
-      List<String> newList = [...treatmentList]..remove(treatment);
-      await prefs.setStringList(treatmentPrefKey, newList);
-      return newList;
-    });
-  }
-
-  Future<void> clear() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final prefs = ref.watch(settingProvider);
-      await prefs.remove(treatmentPrefKey);
-      return [];
-    });
-  }
-}

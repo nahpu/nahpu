@@ -1,17 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/events/event_form.dart';
 import 'package:nahpu/screens/events/components/menu_bar.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/navigation.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/navigation.dart';
 
 class CollEventViewer extends ConsumerStatefulWidget {
   const CollEventViewer({super.key});
@@ -20,22 +21,40 @@ class CollEventViewer extends ConsumerStatefulWidget {
   CollEventViewerState createState() => CollEventViewerState();
 }
 
-class CollEventViewerState extends ConsumerState<CollEventViewer> {
-  bool _isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class CollEventViewerState extends ConsumerState<CollEventViewer>
+    with RecordPageReconciler<CollEventData, CollEventEntry, CollEventViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _collEvenId;
   bool _isSearching = false;
   final FocusNode _focus = FocusNode();
 
   @override
-  void initState() {
-    super.initState();
+  RecordViewer get recordViewer => RecordViewer.collEvent;
+
+  @override
+  AsyncNotifierProvider<CollEventEntry, List<CollEventData>>
+  get entryProvider => collEventEntryProvider;
+
+  @override
+  Object recordIdOf(CollEventData entry) => entry.id;
+
+  @override
+  void selectRecord(CollEventData? entry) => _collEvenId = entry?.id;
+
+  @override
+  void invalidateEntries() => CollEventServices(ref: ref).invalidateCollEvent();
+
+  @override
+  bool get isSearching => _isSearching;
+
+  @override
+  void cancelSearch() {
+    _isSearching = false;
+    _searchController.clear();
   }
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -43,8 +62,8 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
   @override
   Widget build(BuildContext context) {
     final services = CollEventServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    listenEntries();
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Events"),
         actions: [
@@ -62,7 +81,8 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                                 services.invalidateCollEvent();
                               });
                             },
-                            icon: const Icon(Icons.clear_rounded))
+                            icon: const Icon(Icons.clear_rounded),
+                          )
                         : const SizedBox.shrink(),
                   ],
                   onChanged: (value) {
@@ -81,61 +101,39 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
                           });
                           _focus.requestFocus();
                         },
-                  icon: const Icon(Icons.search))
+                  icon: const Icon(Icons.search),
+                )
               : TextButton(
                   onPressed: () {
                     setState(() {
                       _isSearching = false;
                       _searchController.clear();
                       services.invalidateCollEvent();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => super.widget),
-                      );
                     });
                   },
-                  child: const Text("Cancel")),
+                  child: const Text("Cancel"),
+                ),
           !_isSearching ? const NewCollEvents() : const SizedBox.shrink(),
-          CollEventMenu(
-            collEventId: _collEvenId,
-          ),
+          CollEventMenu(collEventId: _collEvenId),
         ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
-          child: ref.watch(collEventEntryProvider).when(
+          child: ref
+              .watch(collEventEntryProvider)
+              .when(
                 data: (collEventEntries) {
                   if (collEventEntries.isEmpty) {
-                    setState(() {
-                      _isVisible = false;
-                      _collEvenId = null;
-                    });
-
                     return EmptyCollEvent(isButtonVisible: !_isSearching);
-                  } else {
-                    int collEventSize = collEventEntries.length;
-                    setState(() {
-                      if (collEventSize >= 2) {
-                        _isVisible = true;
-                      } else {
-                        _isVisible = false;
-                      }
-                      _pageNav.pageCounts = collEventSize;
-                      _pageNav.updatePageController();
-                    });
-                    return CollEventPages(
-                      collEventEntries: collEventEntries,
-                      pageNav: _pageNav,
-                      isNavButtonVisible: _isVisible,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _collEvenId = collEventEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return CollEventPages(
+                    collEventEntries: collEventEntries,
+                    pageNav: pageNav,
+                    isNavButtonVisible: isNavVisible,
+                    onPageChanged: (index) =>
+                        handlePageChanged(index, collEventEntries[index]),
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -143,23 +141,10 @@ class CollEventViewerState extends ConsumerState<CollEventViewer> {
         ),
       ),
       bottomSheet: Visibility(
-        visible: _isVisible,
-        child: PageNavButton(
-          pageNav: _pageNav,
-        ),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
-  }
-
-  void _updatePageNav(int value) {
-    setState(() {
-      _pageNav.currentPage = value + 1;
-      _pageNav.updatePageNavigation();
-      if (!_isSearching) {
-        CollEventServices(ref: ref).invalidateCollEvent();
-      }
-    });
+    );
   }
 }
 
@@ -180,6 +165,8 @@ class CollEventPages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: collEventEntries.length,
       itemBuilder: (context, index) {

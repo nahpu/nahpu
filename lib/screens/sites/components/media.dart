@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/media.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
+import 'package:nahpu/screens/shared/media/audio_recorder.dart';
+import 'package:nahpu/screens/shared/media/media_capture.dart';
 import 'package:nahpu/services/import/multimedia.dart';
-import 'package:nahpu/services/site_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/import.dart';
 
 class SiteMediaForm extends ConsumerStatefulWidget {
@@ -30,70 +33,103 @@ class SiteMediaFormState extends ConsumerState<SiteMediaForm> {
   @override
   Widget build(BuildContext context) {
     MediaCategory mediaCategory = MediaCategory.site;
-    return ref.watch(siteMediaProvider(siteId: widget.siteId)).when(
+    return ref
+        .watch(siteMediaProvider(widget.siteId))
+        .when(
           data: (data) {
             return MediaViewer(
               images: List.from(data),
+              onOpenGallery: () =>
+                  showMediaGallery(context, initialCategory: mediaCategory),
               onAddFromGallery: () async {
                 try {
                   List<String> images = await ImageServices(
                     ref: ref,
                     category: mediaCategory,
-                  ).pickFromGallery();
+                  ).pickMediaFromGallery();
                   if (images.isNotEmpty) {
-                    await SiteServices(ref: ref).createSiteMediaFromList(
-                      widget.siteId,
-                      images,
-                    );
+                    await SiteServices(
+                      ref: ref,
+                    ).createSiteMediaFromList(widget.siteId, images);
                     _doneSelecting();
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString(),
-                        ),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
                   }
                 }
               },
-              onAccessingCamera: () async {
+              onAddFromFiles: () async {
                 try {
-                  String? image = await ImageServices(
+                  List<String> mediaFiles = await ImageServices(
                     ref: ref,
                     category: mediaCategory,
-                  ).accessCamera();
-                  if (image != null) {
-                    await SiteServices(ref: ref).createSiteMedia(
-                      widget.siteId,
-                      image,
-                    );
+                  ).pickMediaFromFiles();
+                  if (mediaFiles.isNotEmpty) {
+                    await SiteServices(
+                      ref: ref,
+                    ).createSiteMediaFromList(widget.siteId, mediaFiles);
+                    _doneSelecting();
                   }
-                  setState(() {});
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString(),
-                        ),
-                      ),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
+                }
+              },
+              onTakeMedia: () async {
+                try {
+                  final captured = await showMediaCapture(context);
+                  if (captured == null) return;
+                  final media = await ImageServices(
+                    ref: ref,
+                    category: mediaCategory,
+                  ).importCapturedMedia(captured);
+                  await SiteServices(
+                    ref: ref,
+                  ).createSiteMedia(widget.siteId, media);
+                  _doneSelecting();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
+                }
+              },
+              onRecordAudio: () async {
+                try {
+                  final recording = await showAudioRecorder(context);
+                  if (recording == null) return;
+                  final media = await ImageServices(
+                    ref: ref,
+                    category: mediaCategory,
+                  ).importCapturedMedia(recording);
+                  await SiteServices(
+                    ref: ref,
+                  ).createSiteMedia(widget.siteId, media);
+                  _doneSelecting();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
                   }
                 }
               },
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (e, s) => Text(
-            e.toString(),
-          ),
+          error: (e, s) => Text(e.toString()),
         );
   }
 
   void _doneSelecting() {
-    setState(() {});
+    if (!mounted) return;
+    ref.invalidate(siteMediaProvider(widget.siteId));
   }
 }

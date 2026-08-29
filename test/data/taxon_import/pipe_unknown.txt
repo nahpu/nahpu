@@ -1,0 +1,3 @@
+class|Order|family|genus|epithet|scientific name|common name
+Mammalia|Rodentia|Muridae|Bunomys|coelestis|Bunomys coelestis|Heavenly hill rat
+Aves|Passeriformes|Corvidae|Corvus|brachyrhynchos|Corvus brachyrhynchos|American crow

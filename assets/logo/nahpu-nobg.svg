@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512" role="img" aria-label="NAHPU">
+  <title>NAHPU — track</title>
+  <g transform="translate(3 3.5)">
+    <g transform="rotate(-8 54 17) translate(3 0)"><path fill="#f2bf27" d="M50 15C61 32 71 51 66 69C63 80 54 85 50 76Z"></path></g>
+    <g transform="translate(94 0) scale(-1 1) rotate(-8 54 17) translate(3 0)"><path fill="#1b9e77" d="M50 15C61 32 71 51 66 69C63 80 54 85 50 76Z"></path></g>
+  </g>
+</svg>

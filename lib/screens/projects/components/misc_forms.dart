@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 
-class MiscForm extends ConsumerStatefulWidget {
-  const MiscForm({super.key});
+class StatViewer extends ConsumerStatefulWidget {
+  const StatViewer({super.key});
 
   @override
-  MiscFormState createState() => MiscFormState();
+  StatViewerState createState() => StatViewerState();
 }
 
-class MiscFormState extends ConsumerState<MiscForm>
+class StatViewerState extends ConsumerState<StatViewer>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final int _length = 1;
@@ -33,17 +33,18 @@ class MiscFormState extends ConsumerState<MiscForm>
     return FormCard(
       isWithTitle: false,
       isWithSidePadding: false,
-      child: CommonTabBars(
-        tabController: _tabController,
-        length: _length,
-        height: 392,
-        tabs: const [
-          Tab(icon: Icon(Icons.analytics_outlined)),
-        ],
-        children: const [
-          StatisticViewer(),
-        ],
-      ),
+      child: StatisticViewer(),
+      // CommonTabBars(
+      //   tabController: _tabController,
+      //   length: _length,
+      //   height: 392,
+      //   tabs: const [
+      //     Tab(icon: Icon(Icons.analytics_outlined)),
+      //   ],
+      //   children: const [
+      //     StatisticViewer(),
+      //   ],
+      // ),
     );
   }
 }

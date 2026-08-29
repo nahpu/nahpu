@@ -1,6 +1,6 @@
 //! Validation status model
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Sealed class acts as a base class for all the validation status classes
 /// [ValidationSuccess], [ValidationFailure], [ValidationWarning]

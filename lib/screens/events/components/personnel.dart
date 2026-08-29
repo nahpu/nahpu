@@ -1,22 +1,21 @@
 import 'package:drift/drift.dart' as db;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/personnel.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 
 class EventPersonnel extends ConsumerStatefulWidget {
-  const EventPersonnel({
-    super.key,
-    required this.eventID,
-  });
+  const EventPersonnel({super.key, required this.eventID});
 
   final int eventID;
 
@@ -26,6 +25,9 @@ class EventPersonnel extends ConsumerStatefulWidget {
 
 class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
   final ScrollController scrollController = ScrollController();
+  bool _isSelecting = false;
+  final List<int> _selectedCollPers = [];
+
   @override
   void initState() {
     super.initState();
@@ -33,72 +35,153 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 402,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const TitleForm(
-            text: 'Event Personnel',
-            infoContent: EventPersonnelInfoContent(),
-          ),
-          SizedBox(
-              height: 368,
-              child: ref.watch(collPersonnelProvider(widget.eventID)).when(
-                    data: (data) {
-                      return data.isEmpty
-                          ? EmptyPersonnel(onPressed: _addPersonnel)
-                          : Column(
-                              children: [
-                                Flexible(
-                                  child: CommonScrollbar(
-                                    scrollController: scrollController,
-                                    child: ListView(
-                                      shrinkWrap: true,
-                                      controller: scrollController,
-                                      children: data
-                                          .map(
-                                            (person) => EventPersonnelField(
-                                              eventID: widget.eventID,
-                                              controller:
-                                                  _addPersonnelCtr(person),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        const TitleForm(
+          text: 'Event Personnel',
+          infoTopic: InfoTopic.eventPersonnel,
+        ),
+        SizedBox(
+          height: 450,
+          child: ref
+              .watch(collPersonnelProvider(widget.eventID))
+              .when(
+                data: (data) {
+                  return data.isEmpty
+                      ? EmptyPersonnel(onPressed: _addPersonnel)
+                      : Column(
+                          children: [
+                            SelectItemsInterface(
+                              isSelecting: _isSelecting,
+                              onClearPressed: _selectedCollPers.isEmpty
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _selectedCollPers.clear();
+                                      });
+                                    },
+                              onSelectAllPressed: () {
+                                setState(() {
+                                  _selectedCollPers.clear();
+                                  _selectedCollPers.addAll(
+                                    data.map((e) => e.id).toList(),
+                                  );
+                                });
+                              },
+                              onSelectPressed: () {
+                                setState(() {
+                                  _isSelecting = !_isSelecting;
+                                  _selectedCollPers.clear();
+                                });
+                              },
+                            ),
+                            Flexible(
+                              child: CommonScrollbar(
+                                scrollController: scrollController,
+                                child: ListView(
+                                  shrinkWrap: true,
+                                  controller: scrollController,
+                                  children: data
+                                      .map(
+                                        (person) => EventPersonnelField(
+                                          eventID: widget.eventID,
+                                          isSelecting: _isSelecting,
+                                          selectedCollPers: _selectedCollPers,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              if (value == true) {
+                                                _selectedCollPers.add(
+                                                  person.id,
+                                                );
+                                              } else {
+                                                _selectedCollPers.remove(
+                                                  person.id,
+                                                );
+                                              }
+                                            });
+                                          },
+                                          controller: _addPersonnelCtr(person),
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            !_isSelecting
+                                ? AddPersonnelButton(onPressed: _addPersonnel)
+                                : DeleteItemsButton(
+                                    selectedItems: _selectedCollPers,
+                                    itemName: 'personnel',
+                                    onPressedFunction: () async {
+                                      await _deletePersonnel();
+                                      setState(() {
+                                        _selectedCollPers.clear();
+                                      });
+                                    },
+                                    customIconButtonText:
+                                        'Remove ${_selectedCollPers.length} personnel from event',
+                                    customDialogHeader:
+                                        'Remove event personnel',
+                                    customDialogText:
+                                        'Are you sure you want to remove the selected personnel from this event?',
+                                    customDialogButtonText: 'Remove',
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                AddPersonnelButton(
-                                  onPressed: _addPersonnel,
-                                ),
-                              ],
-                            );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (error, stack) => const Center(child: Text('Error')),
-                  )),
-        ],
-      ),
+                          ],
+                        );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => const Center(child: Text('Error')),
+              ),
+        ),
+      ],
     );
   }
 
   Future<void> _addPersonnel() async {
-    await CollEventServices(ref: ref)
-        .createCollPersonnel(CollPersonnelCompanion(
-      eventID: db.Value(widget.eventID),
-    ));
+    await CollEventServices(ref: ref).createCollPersonnel(
+      CollPersonnelCompanion(eventID: db.Value(widget.eventID)),
+    );
     if (context.mounted) {
       setState(() {});
     }
   }
 
   EventPersonnelCtrModel _addPersonnelCtr(CollPersonnelData form) {
-    final EventPersonnelCtrModel newPersonnel =
-        EventPersonnelCtrModel.fromData(form);
+    final EventPersonnelCtrModel newPersonnel = EventPersonnelCtrModel.fromData(
+      form,
+    );
     return newPersonnel;
+  }
+
+  Future<void> _deletePersonnel() async {
+    try {
+      await CollEventServices(
+        ref: ref,
+      ).deleteCollPersonnelFromList(_selectedCollPers);
+      ref.invalidate(collPersonnelProvider);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
+    );
   }
 }
 
@@ -139,10 +222,16 @@ class EventPersonnelField extends ConsumerStatefulWidget {
   const EventPersonnelField({
     super.key,
     required this.eventID,
+    required this.isSelecting,
+    required this.selectedCollPers,
+    required this.onChanged,
     required this.controller,
   });
 
   final int eventID;
+  final bool isSelecting;
+  final List<int> selectedCollPers;
+  final void Function(bool?) onChanged;
   final EventPersonnelCtrModel controller;
 
   @override
@@ -153,89 +242,93 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
   @override
   Widget build(BuildContext context) {
     return CommonPadding(
-        child: Row(
-      children: [
-        Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: widget.controller.nameIDCtr,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Personnel',
-              hintText: 'Enter a name',
-            ),
-            items: ref.watch(projectPersonnelProvider).when(
-                  data: (value) => value
-                      .map((person) => DropdownMenuItem(
-                            value: person.uuid,
-                            child: CommonDropdownText(
-                              text: person.name ?? '',
+      child: Row(
+        children: [
+          widget.isSelecting
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ListCheckBox(
+                    isDisabled: false,
+                    value: widget.selectedCollPers.contains(
+                      widget.controller.id!,
+                    ),
+                    onChanged: widget.onChanged,
+                    isDense: true,
+                  ),
+                )
+              : const SizedBox.shrink(),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: widget.controller.nameIDCtr,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Personnel',
+                hintText: 'Enter a name',
+              ),
+              items: ref
+                  .watch(projectPersonnelProvider)
+                  .when(
+                    data: (value) {
+                      final personnel = value
+                          .fold<Map<String, PersonnelData>>(
+                            {},
+                            (map, person) => map..[person.uuid] = person,
+                          )
+                          .values
+                          .toList();
+                      return personnel
+                          .map(
+                            (person) => DropdownMenuItem(
+                              value: person.uuid,
+                              child: CommonDropdownText(
+                                text: person.name ?? '',
+                              ),
                             ),
-                          ))
-                      .toList(),
-                  loading: () => const [],
-                  error: (error, stack) => const [],
-                ),
-            onChanged: (value) {
-              widget.controller.nameIDCtr = value ?? '';
-
-              CollEventServices(ref: ref).updateCollPersonnel(
-                widget.controller.id!,
-                CollPersonnelCompanion(
-                  eventID: db.Value(widget.eventID),
-                  personnelId: db.Value(value),
-                ),
-              );
-            },
+                          )
+                          .toList();
+                    },
+                    loading: () => const [],
+                    error: (error, stack) => const [],
+                  ),
+              onChanged: (value) {
+                widget.controller.nameIDCtr = value ?? '';
+                CollEventServices(ref: ref).updateCollPersonnel(
+                  widget.controller.id!,
+                  CollPersonnelCompanion(
+                    eventID: db.Value(widget.eventID),
+                    personnelId: db.Value(value),
+                    name: db.Value(_personnelNameFor(value)),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: PersonnelRole(
-            eventID: widget.eventID,
-            controller: widget.controller,
+          const SizedBox(width: 8),
+          Expanded(
+            child: PersonnelRole(
+              eventID: widget.eventID,
+              controller: widget.controller,
+            ),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () {
-            _deletePersonnel();
-          },
-        ),
-      ],
-    ));
-  }
-
-  void _deletePersonnel() {
-    showDeleteAlertOnMenu(
-      context: context,
-      title: 'Delete collecting personnel?',
-      deletePrompt: 'You will delete this personnel from the event',
-      onDelete: () async {
-        try {
-          await CollEventServices(ref: ref)
-              .deleteCollPersonnel(widget.controller.id!);
-          if (context.mounted) {
-            _pop();
-          }
-        } catch (e) {
-          if (context.mounted) {
-            _showError(e.toString());
-          }
-        }
-      },
-    );
-  }
-
-  void _showError(String errors) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errors),
+        ],
       ),
     );
   }
 
-  void _pop() {
-    Navigator.pop(context);
+  String? _personnelNameFor(String? personnelId) {
+    if (personnelId == null) return null;
+    return ref
+        .read(projectPersonnelProvider)
+        .when(
+          data: (personnel) {
+            for (final person in personnel) {
+              if (person.uuid == personnelId) return person.name;
+            }
+            return null;
+          },
+          loading: () => null,
+          error: (_, _) => null,
+        );
   }
 }
 
@@ -256,8 +349,14 @@ class PersonnelRole extends ConsumerStatefulWidget {
 class PersonnelRoleState extends ConsumerState<PersonnelRole> {
   @override
   Widget build(BuildContext context) {
-    return ref.watch(collPersonnelRoleProvider).when(
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(collRolePrefKey))
+        .when(
           data: (data) {
+            final roles = includeCurrentVocabularyValue(
+              data,
+              widget.controller.roleCtr,
+            );
             return DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: widget.controller.roleCtr,
@@ -265,11 +364,13 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
                 labelText: 'Role',
                 hintText: 'Enter a role',
               ),
-              items: data
-                  .map((role) => DropdownMenuItem(
-                        value: role,
-                        child: CommonDropdownText(text: role),
-                      ))
+              items: roles
+                  .map(
+                    (role) => DropdownMenuItem(
+                      value: role,
+                      child: CommonDropdownText(text: role),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -290,22 +391,5 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
             return const Text('Error');
           },
         );
-  }
-}
-
-class EventPersonnelInfoContent extends StatelessWidget {
-  const EventPersonnelInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-          content: 'Personnel involves in the event.'
-              ' We recommend adding anyone involved in the event.'
-              ' For instance, if someone drive you to the site, add them.',
-        ),
-      ],
-    );
   }
 }

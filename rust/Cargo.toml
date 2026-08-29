@@ -7,8 +7,27 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "=2.11.1"
-nahpu_api = { git = "https://github.com/nahpu/nahpu_api.git" }
+flutter_rust_bridge = "=2.13.0"
+nahpu_archive = "0.3.0"
+nahpu_db = "0.5.1"
+nahpu_export = "0.5.0"
+nahpu_gis = "0.5.0"
+serde_json = "1.0.150"
+nahpu_configs = "0.7.1"
+nahpu_dwc = "0.4.4"
+nahpu_dp = "0.3.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+# `nahpu_archive` 0.3.0 adds the progress-reporting archive APIs the export screens
+# stream from. Until that release and its dependents are published, the workspace is
+# built from the sibling `nahpu_api` checkout. Re-comment this block once they are.
+[patch.crates-io]
+# nahpu_archive = { path = "../../../Rust/nahpu_api/crates/nahpu_archive" }
+# nahpu_configs = { path = "../../../Rust/nahpu_api/crates/nahpu_configs" }
+# nahpu_db = { path = "../../../Rust/nahpu_api/crates/nahpu_db" }
+# nahpu_dp = { path = "../../../Rust/nahpu_api/crates/nahpu_dp" }
+# nahpu_dwc = { path = "../../../Rust/nahpu_api/crates/nahpu_dwc" }
+# nahpu_export = { path = "../../../Rust/nahpu_api/crates/nahpu_export" }
+# nahpu_gis = { path = "../../../Rust/nahpu_api/crates/nahpu_gis" }

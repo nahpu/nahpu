@@ -1,20 +1,32 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/projects/components/project_form.dart';
-import 'package:nahpu/services/database/database.dart';
 
 class EditProject extends ConsumerStatefulWidget {
-  const EditProject({super.key, required this.projectUuid});
+  const EditProject({
+    super.key,
+    required this.projectUuid,
+    this.returnToHome = false,
+  });
 
   final String projectUuid;
+  final bool returnToHome;
 
   @override
   EditProjectState createState() => EditProjectState();
 }
 
 class EditProjectState extends ConsumerState<EditProject> {
+  ProjectFormCtrModel? _projectCtr;
+
+  @override
+  void dispose() {
+    _projectCtr?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,19 +35,19 @@ class EditProjectState extends ConsumerState<EditProject> {
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: ref.watch(projectInfoProvider(widget.projectUuid)).when(
-            data: (data) => ProjectForm(
-                  projectCtr: getProjectCtr(data),
-                  projectUuid: widget.projectUuid,
-                  isEditing: true,
-                ),
-            loading: () => const CircularProgressIndicator(),
-            error: (error, stack) => Text(error.toString())),
+        child: ref
+            .watch(projectInfoProvider(widget.projectUuid))
+            .when(
+              data: (data) => ProjectForm(
+                projectCtr: _projectCtr ??= ProjectFormCtrModel.fromData(data),
+                projectUuid: widget.projectUuid,
+                isEditing: true,
+                returnToHome: widget.returnToHome,
+              ),
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stack) => Text(error.toString()),
+            ),
       ),
     );
-  }
-
-  ProjectFormCtrModel getProjectCtr(ProjectData? data) {
-    return ProjectFormCtrModel.fromData(data);
   }
 }

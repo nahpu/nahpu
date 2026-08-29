@@ -1,25 +1,33 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:nahpu/screens/shared/qr.dart';
-import 'package:nahpu/services/platform_services.dart';
-import 'package:nahpu/services/project_services.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/services/personnel_services.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
-import 'package:nahpu/services/specimen_services.dart';
-import 'package:nahpu/services/utility_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/custom_field.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({
@@ -38,13 +46,24 @@ class PartDataForm extends ConsumerStatefulWidget {
 class PartDataFormState extends ConsumerState<PartDataForm>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final int _length = 2;
+
+  int get _length => supportsParasites(widget.catalogFmt) ? 3 : 2;
 
   @override
   void initState() {
     super.initState();
 
     _tabController = TabController(length: _length, vsync: this);
+  }
+
+  @override
+  void didUpdateWidget(covariant PartDataForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (supportsParasites(oldWidget.catalogFmt) !=
+        supportsParasites(widget.catalogFmt)) {
+      _tabController.dispose();
+      _tabController = TabController(length: _length, vsync: this);
+    }
   }
 
   @override
@@ -57,7 +76,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
   Widget build(BuildContext context) {
     return FormCard(
       isWithTitle: false,
-      infoContent: const SpecimenPartInfoContent(),
+      infoTopic: InfoTopic.specimenParts,
       isWithSidePadding: false,
       child: CommonTabBars(
         tabController: _tabController,
@@ -65,18 +84,24 @@ class PartDataFormState extends ConsumerState<PartDataForm>
         height: 502,
         tabs: [
           Tab(
-            icon: Icon(matchCatFmtToPartIcon(widget.catalogFmt)),
+            icon: Icon(
+              matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
+            ),
           ),
-          Tab(
-            icon: Icon(MdiIcons.databaseOutline),
-          )
+          if (supportsParasites(widget.catalogFmt))
+            const Tab(icon: Icon(Icons.bug_report_outlined)),
+          Tab(icon: Icon(Icons.storage_rounded)),
         ],
         children: [
           SpecimenPartFields(
             specimenUuid: widget.specimenUuid,
             catalogFmt: widget.catalogFmt,
           ),
-          AssociatedDataViewer(specimenUuid: widget.specimenUuid),
+          if (supportsParasites(widget.catalogFmt))
+            ParasiteForms(specimenUuid: widget.specimenUuid),
+          AssociatedDataViewer(
+            target: AssociatedDataTarget.specimen(widget.specimenUuid),
+          ),
         ],
       ),
     );
@@ -101,15 +126,12 @@ class SpecimenPartFields extends StatelessWidget {
       children: [
         const TitleForm(
           text: 'Specimen Parts',
-          infoContent: SpecimenPartInfoContent(),
+          infoTopic: InfoTopic.specimenParts,
         ),
         SizedBox(
           height: 450,
-          child: PartList(
-            specimenUuid: specimenUuid,
-            catalogFmt: catalogFmt,
-          ),
-        )
+          child: PartList(specimenUuid: specimenUuid, catalogFmt: catalogFmt),
+        ),
       ],
     );
   }
@@ -131,6 +153,8 @@ class PartList extends ConsumerStatefulWidget {
 
 class PartListState extends ConsumerState<PartList> {
   final ScrollController _scrollController = ScrollController();
+  bool _isSelecting = false;
+  final List<int> _selectedparts = [];
 
   @override
   void dispose() {
@@ -140,14 +164,42 @@ class PartListState extends ConsumerState<PartList> {
 
   @override
   Widget build(BuildContext context) {
-    final specimenPartList =
-        ref.watch(partBySpecimenProvider(widget.specimenUuid));
+    final specimenPartList = ref.watch(
+      partBySpecimenProvider(widget.specimenUuid),
+    );
     return specimenPartList.when(
       data: (data) {
         return data.isEmpty
             ? EmptyPart(specimenUuid: widget.specimenUuid)
             : Column(
                 children: [
+                  SelectItemsInterface(
+                    isSelecting: _isSelecting,
+                    onClearPressed: _selectedparts.isEmpty
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedparts.clear();
+                            });
+                          },
+                    onSelectAllPressed: () {
+                      setState(() {
+                        _selectedparts.clear();
+                        _selectedparts.addAll(
+                          data
+                              .where((e) => e.id != null)
+                              .map((e) => e.id!)
+                              .toList(),
+                        );
+                      });
+                    },
+                    onSelectPressed: () {
+                      setState(() {
+                        _isSelecting = !_isSelecting;
+                        _selectedparts.clear();
+                      });
+                    },
+                  ),
                   Flexible(
                     child: CommonScrollbar(
                       scrollController: _scrollController,
@@ -158,9 +210,30 @@ class PartListState extends ConsumerState<PartList> {
                         itemBuilder: (context, index) {
                           final part = data[index];
                           return ListTile(
-                            leading: PartIcon(
-                              partType: part.type ?? 'unknown',
-                              catalogFmt: widget.catalogFmt,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                !_isSelecting
+                                    ? PartIcon(
+                                        partType: part.type ?? 'unknown',
+                                        catalogFmt: widget.catalogFmt,
+                                      )
+                                    : ListCheckBox(
+                                        isDisabled: false,
+                                        value: _selectedparts.contains(part.id),
+                                        onChanged: (bool? value) {
+                                          if (part.id != null) {
+                                            setState(() {
+                                              if (value == true) {
+                                                _selectedparts.add(part.id!);
+                                              } else {
+                                                _selectedparts.remove(part.id);
+                                              }
+                                            });
+                                          }
+                                        },
+                                      ),
+                              ],
                             ),
                             title: PartTitle(
                               partType: part.type,
@@ -169,32 +242,76 @@ class PartListState extends ConsumerState<PartList> {
                               preparator: part.personnelId,
                             ),
                             subtitle: PartSubTitle(part: part),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => EditPart(
-                                      specimenUuid: widget.specimenUuid,
-                                      specimenPartId: part.id,
-                                      partCtr: PartFormCtrModel.fromData(part),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                            trailing: !_isSelecting
+                                ? IconButton(
+                                    icon: const Icon(Icons.edit_outlined),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => EditPart(
+                                            specimenUuid: widget.specimenUuid,
+                                            specimenPartId: part.id,
+                                            partCtr: PartFormCtrModel.fromData(
+                                              part,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : SizedBox.shrink(),
                           );
                         },
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  AddPartButton(specimenUuid: widget.specimenUuid),
+                  !_isSelecting
+                      ? AddPartButton(specimenUuid: widget.specimenUuid)
+                      : DeleteItemsButton(
+                          selectedItems: _selectedparts,
+                          itemName:
+                              'specimen ${_selectedparts.length == 1 ? 'part' : 'parts'}',
+                          onPressedFunction: () async {
+                            await _deleteParts();
+                            setState(() {
+                              _selectedparts.clear();
+                            });
+                          },
+                        ),
                 ],
               );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) => Text('Error: $err'),
+    );
+  }
+
+  Future<void> _deleteParts() async {
+    try {
+      await SpecimenServices(
+        ref: ref,
+      ).deleteSpecimenPartsFromList(_selectedparts);
+      setState(() {
+        _isSelecting = false;
+      });
+      if (context.mounted) {
+        _pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(e.toString());
+      }
+    }
+  }
+
+  void _pop() {
+    Navigator.pop(context);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
     );
   }
 }
@@ -239,19 +356,13 @@ class EmptyPart extends StatelessWidget {
 }
 
 class PartIcon extends ConsumerWidget {
-  const PartIcon({
-    super.key,
-    required this.partType,
-    required this.catalogFmt,
-  });
+  const PartIcon({super.key, required this.partType, required this.catalogFmt});
 
   final String partType;
   final CatalogFmt catalogFmt;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return TileSvgIcon(
-      iconPath: _iconPath,
-    );
+    return TileSvgIcon(iconPath: _iconPath);
   }
 
   String get _iconPath {
@@ -284,16 +395,16 @@ class PartTitle extends ConsumerWidget {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return TitlePartText(
-                      text: '$_partText'
+                      text:
+                          '$_partText'
                           '$listTileSeparator'
                           '${snapshot.data}',
                     );
                   } else {
-                    return TitlePartText(
-                      text: _partText,
-                    );
+                    return TitlePartText(text: _partText);
                   }
-                })
+                },
+              )
             : TitlePartText(text: _partText),
         barcodeID.isNotEmpty
             ? BarcodeText(barcodeID: barcodeID)
@@ -309,8 +420,9 @@ class PartTitle extends ConsumerWidget {
   }
 
   Future<String> _getPreparatorName(WidgetRef ref) async {
-    PersonnelData person =
-        await PersonnelServices(ref: ref).getPersonnelByUuid(preparator!);
+    PersonnelData person = await PersonnelServices(
+      ref: ref,
+    ).getPersonnelByUuid(preparator!);
     return person.name ?? '';
   }
 }
@@ -331,10 +443,7 @@ class TitlePartText extends StatelessWidget {
 }
 
 class BarcodeText extends StatelessWidget {
-  const BarcodeText({
-    super.key,
-    required this.barcodeID,
-  });
+  const BarcodeText({super.key, required this.barcodeID});
 
   final String? barcodeID;
 
@@ -342,16 +451,19 @@ class BarcodeText extends StatelessWidget {
   Widget build(BuildContext context) {
     return RichText(
       overflow: TextOverflow.ellipsis,
-      text: TextSpan(children: [
-        WidgetSpan(
-            child: TileIcon(icon: MdiIcons.barcode),
-            alignment: PlaceholderAlignment.middle),
-        const TextSpan(text: ' '),
-        TextSpan(
-          text: barcodeIDText,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ]),
+      text: TextSpan(
+        children: [
+          WidgetSpan(
+            child: TileIcon(icon: Icons.abc),
+            alignment: PlaceholderAlignment.middle,
+          ),
+          const TextSpan(text: ' '),
+          TextSpan(
+            text: barcodeIDText,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 
@@ -377,8 +489,8 @@ class PartSubTitle extends StatelessWidget {
       '${_getTextFirst(part.tissueID)}'
       '$treatment'
       '${_getText(part.additionalTreatment)}'
-      '${_getText(part.dateTaken)}'
-      '${_getText(part.timeTaken)}'
+      '${_getText(dateStdToDateDisplay(part.dateTaken))}'
+      '${_getText(timeStdToTimeDisplay(part.timeTaken))}'
       '${_getPMI()}'
       '$remark',
       style: Theme.of(context).textTheme.bodyMedium,
@@ -438,10 +550,7 @@ class PartSubTitle extends StatelessWidget {
 }
 
 class NewPart extends StatelessWidget {
-  const NewPart({
-    super.key,
-    required this.specimenUuid,
-  });
+  const NewPart({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
@@ -515,9 +624,11 @@ class PartForm extends ConsumerStatefulWidget {
 
 class PartFormState extends ConsumerState<PartForm> {
   bool _showMore = false;
+  final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   @override
   void dispose() {
+    _customFields.dispose();
     widget.partCtr.dispose();
     super.dispose();
   }
@@ -525,6 +636,7 @@ class PartFormState extends ConsumerState<PartForm> {
   @override
   Widget build(BuildContext context) {
     return ScrollableConstrainedLayout(
+      footer: FormButton(isEditing: widget.isEditing, onSubmitted: _submit),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -532,15 +644,48 @@ class PartFormState extends ConsumerState<PartForm> {
             specimenUuid: widget.specimenUuid,
             partCtr: widget.partCtr,
           ),
-          SpecimenTypeField(
-            partCtr: widget.partCtr,
+          FormSection(
+            title: 'Preparation',
+            child: Column(
+              children: [
+                SpecimenTypeField(partCtr: widget.partCtr),
+                SpecimenCountField(partCtr: widget.partCtr),
+                SpecimenTreatmentFields(
+                  partCtr: widget.partCtr,
+                  isVisible: _showMore,
+                ),
+              ],
+            ),
           ),
-          SpecimenCountField(partCtr: widget.partCtr),
-          SpecimenTreatmentFields(
-            partCtr: widget.partCtr,
-            isVisible: _showMore,
+          FormSection(
+            title: 'Sampling',
+            child: PartSamplingFields(
+              visible: _showMore,
+              partCtr: widget.partCtr,
+            ),
           ),
-          AdditionalPartFields(visible: _showMore, partCtr: widget.partCtr),
+          Visibility(
+            visible: _showMore || _hasCurationData,
+            child: FormSection(
+              title: 'Curation',
+              child: PartCurationFields(
+                visible: _showMore,
+                partCtr: widget.partCtr,
+              ),
+            ),
+          ),
+          if (widget.isEditing)
+            CustomFieldForm(
+              owner: CustomFieldOwner.specimenPart(widget.specimenPartId!),
+              showAll: _showMore,
+            )
+          else
+            CustomFieldDraftForm(
+              placement: FieldUISection.specimenPart,
+              specimenUuid: widget.specimenUuid,
+              controller: _customFields,
+              showAll: _showMore,
+            ),
           ShowMoreButton(
             showMore: _showMore,
             onPressed: () {
@@ -549,37 +694,45 @@ class PartFormState extends ConsumerState<PartForm> {
               });
             },
           ),
-          const SizedBox(height: 16),
-          FormButtonWithDelete(
-            isEditing: widget.isEditing,
-            onDeleted: () {
-              if (widget.specimenPartId != null) {
-                SpecimenServices(ref: ref)
-                    .deleteSpecimenPart(widget.specimenPartId!);
-                Navigator.pop(context);
-              }
-            },
-            onSubmitted: () {
-              widget.isEditing ? _updatePart() : _createPart();
-              Navigator.of(context).pop();
-            },
-          ),
         ],
       ),
     );
   }
 
-  Future<void> _createPart() async {
-    SpecimenPartCompanion form = _getForm();
+  bool get _hasCurationData =>
+      widget.partCtr.storageCtr.text.trim().isNotEmpty ||
+      widget.partCtr.storageLocationCtr.text.trim().isNotEmpty ||
+      widget.partCtr.museumPermanentCtr.text.trim().isNotEmpty ||
+      widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
+      widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
-    await SpecimenPartServices(ref: ref).createSpecimenPart(form);
-  }
-
-  Future<void> _updatePart() async {
-    SpecimenPartCompanion form = _getForm();
-
-    await SpecimenPartServices(ref: ref)
-        .updateSpecimenPart(widget.specimenPartId!, form);
+  Future<void> _submit() async {
+    try {
+      if (widget.isEditing) {
+        await SpecimenPartServices(
+          ref: ref,
+        ).updateSpecimenPart(widget.specimenPartId!, _getForm());
+      } else {
+        final database = ref.read(databaseProvider);
+        await database.transaction(() async {
+          final id = await SpecimenPartServices(
+            ref: ref,
+          ).createSpecimenPart(_getForm());
+          await ref
+              .read(customFieldServiceProvider)
+              .setValues(
+                CustomFieldOwner.specimenPart(id),
+                _customFields.values,
+              );
+        });
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to save specimen part: $error')),
+      );
+    }
   }
 
   SpecimenPartCompanion _getForm() {
@@ -592,8 +745,10 @@ class PartFormState extends ConsumerState<PartForm> {
       count: db.Value(widget.partCtr.countCtr.text),
       treatment: db.Value(widget.partCtr.treatmentCtr.text),
       additionalTreatment: db.Value(widget.partCtr.additionalTreatmentCtr.text),
-      dateTaken: db.Value(widget.partCtr.dateTakenCtr.text),
-      timeTaken: db.Value(widget.partCtr.timeTakenCtr.text),
+      storage: db.Value(widget.partCtr.storageCtr.text),
+      storageLocation: db.Value(widget.partCtr.storageLocationCtr.text),
+      dateTaken: db.Value(widget.partCtr.dateTakenCtr.date),
+      timeTaken: db.Value(widget.partCtr.timeTakenCtr.time),
       pmi: db.Value(widget.partCtr.pmiCtr.text),
       museumPermanent: db.Value(widget.partCtr.museumPermanentCtr.text),
       museumLoan: db.Value(widget.partCtr.museumLoanCtr.text),
@@ -614,17 +769,25 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(treatmentOptionsProvider).when(
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(treatmentPrefKey))
+        .when(
           data: (data) {
+            final treatments = includeCurrentVocabularyValue(
+              data,
+              partCtr.treatmentCtr.text.trim().isEmpty
+                  ? null
+                  : partCtr.treatmentCtr.text.trim(),
+            );
             return Column(
               children: [
                 SpecimenTreatmentField(
                   partCtr: partCtr,
-                  treatmentList: data,
+                  treatmentList: treatments,
                 ),
                 AdditionalTreatmentField(
                   partCtr: partCtr,
-                  treatmentList: data,
+                  treatmentList: treatments,
                   isVisible: isVisible,
                 ),
               ],
@@ -637,10 +800,7 @@ class SpecimenTreatmentFields extends ConsumerWidget {
 }
 
 class SpecimenCountField extends StatelessWidget {
-  const SpecimenCountField({
-    super.key,
-    required this.partCtr,
-  });
+  const SpecimenCountField({super.key, required this.partCtr});
 
   final PartFormCtrModel partCtr;
 
@@ -656,24 +816,25 @@ class SpecimenCountField extends StatelessWidget {
 }
 
 class SpecimenTypeField extends ConsumerWidget {
-  const SpecimenTypeField({
-    super.key,
-    required this.partCtr,
-  });
+  const SpecimenTypeField({super.key, required this.partCtr});
 
   final PartFormCtrModel partCtr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(specimenTypesProvider).when(
+    return ref
+        .watch(effectiveUserDefinedFieldProvider(specimenTypePrefKey))
+        .when(
           data: (data) {
+            final options = includeCurrentVocabularyValue(data, _getValue());
             return DropdownButtonFormField(
+              isExpanded: true,
               initialValue: _getValue(),
               decoration: const InputDecoration(
                 labelText: 'Preparation type',
                 hintText: 'Enter preparation type',
               ),
-              items: data.map((String value) {
+              items: options.map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: CommonDropdownText(text: value),
@@ -716,6 +877,7 @@ class SpecimenTreatmentField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField(
+      isExpanded: true,
       initialValue: _getValue(),
       decoration: const InputDecoration(
         labelText: 'Treatment',
@@ -761,6 +923,7 @@ class AdditionalTreatmentField extends StatelessWidget {
     return Visibility(
       visible: isVisible,
       child: DropdownButtonFormField(
+        isExpanded: true,
         initialValue: _getValue(),
         decoration: const InputDecoration(
           labelText: 'Additional treatment',
@@ -790,8 +953,8 @@ class AdditionalTreatmentField extends StatelessWidget {
   }
 }
 
-class AdditionalPartFields extends ConsumerWidget {
-  const AdditionalPartFields({
+class PartSamplingFields extends ConsumerWidget {
+  const PartSamplingFields({
     super.key,
     required this.visible,
     required this.partCtr,
@@ -804,38 +967,30 @@ class AdditionalPartFields extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        CommonTimeField(
-          labelText: 'Time taken',
-          hintText: 'Enter time',
-          controller: partCtr.timeTakenCtr,
-          initialTime: TimeOfDay.now(),
-          onTap: () {},
-          onClear: () {},
-        ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Recommended for fresh tissues',
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-        ),
         Visibility(
           visible: visible || partCtr.preparatorCtr != null,
           child: DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: partCtr.preparatorCtr,
             decoration: const InputDecoration(
               labelText: 'Preparator',
               hintText: 'If different from voucher preparator',
             ),
-            items: ref.watch(projectPersonnelProvider).when(
+            items: ref
+                .watch(projectPersonnelProvider)
+                .when(
                   data: (data) => data
-                      .where((element) =>
-                          element.role == 'Cataloger' ||
-                          element.role == 'Preparator only')
-                      .map((e) => DropdownMenuItem(
-                            value: e.uuid,
-                            child: CommonDropdownText(text: e.name ?? ''),
-                          ))
+                      .where(
+                        (element) =>
+                            element.role == 'Cataloger' ||
+                            element.role == 'Preparator only',
+                      )
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e.uuid,
+                          child: CommonDropdownText(text: e.name ?? ''),
+                        ),
+                      )
                       .toList(),
                   loading: () => const [],
                   error: (e, s) => const [],
@@ -859,12 +1014,65 @@ class AdditionalPartFields extends ConsumerWidget {
             onClear: () {},
           ),
         ),
+        CommonTimeField(
+          labelText: 'Time taken',
+          hintText: 'Enter time',
+          controller: partCtr.timeTakenCtr,
+          initialTime: TimeOfDay.now(),
+          onTap: () {},
+          onClear: () {},
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Recommended for fresh tissues',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ),
         Visibility(
           visible: visible || partCtr.pmiCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.pmiCtr,
             labelText: 'PMI',
             hintText: 'e.g., 1:30, 1:40',
+            isLastField: false,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PartCurationFields extends StatelessWidget {
+  const PartCurationFields({
+    super.key,
+    required this.visible,
+    required this.partCtr,
+  });
+
+  final bool visible;
+  final PartFormCtrModel partCtr;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Visibility(
+          visible: visible || partCtr.storageCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageCtr,
+            labelText: 'Storage type',
+            hintText: 'Enter storage type',
+            isLastField: false,
+          ),
+        ),
+        Visibility(
+          visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
+          child: CommonTextField(
+            controller: partCtr.storageLocationCtr,
+            labelText: 'Storage location',
+            hintText:
+                'It can be cell or jar ID, following your museum convention',
             isLastField: false,
           ),
         ),
@@ -893,7 +1101,7 @@ class AdditionalPartFields extends ConsumerWidget {
             maxLines: 3,
             labelText: 'Remarks',
             hintText: 'Enter a remark specific to this part',
-            isLastField: false,
+            isLastField: true,
           ),
         ),
       ],
@@ -914,38 +1122,34 @@ class PartIdForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).colorScheme.primary,
-              width: 2.0,
-            ),
-            borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.fromLTRB(0, 0, 4, 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2.0,
           ),
-          child: Column(children: [
-            Text(
-              'Additional Part ID',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            SelectableText('Specimen UUID: $specimenUuid'),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
             ),
-            UniqueIDField(
-              barcodeIdCtr: partCtr.barcodeIdCtr,
-            ),
-          ]),
-        ));
+            UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class UniqueIDField extends StatefulWidget {
-  const UniqueIDField({
-    super.key,
-    required this.barcodeIdCtr,
-  });
+  const UniqueIDField({super.key, required this.barcodeIdCtr});
 
   final TextEditingController barcodeIdCtr;
 
@@ -967,41 +1171,46 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
             isLastField: false,
           ),
         ),
-        PopupMenuButton<String>(itemBuilder: (context) {
-          return [
-            if (systemPlatform == PlatformType.mobile)
+        PopupMenuButton<String>(
+          itemBuilder: (context) {
+            return [
+              if (systemPlatform == PlatformType.mobile)
+                PopupMenuItem(
+                  child: const ListTile(
+                    leading: Icon(Icons.qr_code_scanner_outlined),
+                    title: Text('Scan QR/Barcode'),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScannerScreen(
+                          supportedModes: const {
+                            ScannerMode.qr,
+                            ScannerMode.barcode,
+                          },
+                          onDetect: (barcode) {
+                            _onDetect(barcode);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              if (systemPlatform == PlatformType.mobile)
+                const PopupMenuDivider(),
               PopupMenuItem(
                 child: const ListTile(
-                  leading: Icon(Icons.qr_code_scanner_outlined),
-                  title: Text('Scan QR/Barcode'),
+                  leading: Icon(Icons.qr_code_2_outlined),
+                  title: Text('Generate UUID'),
                 ),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ScannerScreen(
-                        onDetect: (barcode) {
-                          _onDetect(barcode);
-                        },
-                      ),
-                    ),
-                  );
+                  _generateUuid();
                 },
               ),
-            if (systemPlatform == PlatformType.mobile) const PopupMenuDivider(),
-            PopupMenuItem(
-              child: const ListTile(
-                leading: Icon(
-                  Icons.qr_code_2_outlined,
-                ),
-                title: Text('Generate UUID'),
-              ),
-              onTap: () {
-                _generateUuid();
-              },
-            ),
-          ];
-        }),
+            ];
+          },
+        ),
       ],
     );
   }
@@ -1021,8 +1230,10 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
 
   void _generateUuid() {
     if (widget.barcodeIdCtr.text.isNotEmpty) {
-      _showError('QR/barcode ID already exists. '
-          'Clear the field to generate a new UUID');
+      _showError(
+        'QR/barcode ID already exists. '
+        'Clear the field to generate a new UUID',
+      );
       return;
     }
     setState(() {
@@ -1031,11 +1242,9 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -1098,11 +1307,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
           onNewNumber: widget.tissueIdCtr.text.isNotEmpty
               ? null
               : () {
-                  setState(
-                    () {
-                      _hasId = true;
-                    },
-                  );
+                  setState(() {
+                    _hasId = true;
+                  });
                 },
         ),
       ],
@@ -1110,8 +1317,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
   }
 
   Future<void> _repeatTissueNum() async {
-    String? tissueID =
-        await TissueIdServices(ref: ref).repeatNumber(widget.specimenUuid);
+    String? tissueID = await TissueIdServices(
+      ref: ref,
+    ).repeatNumber(widget.specimenUuid);
     if (tissueID == null || tissueID.isEmpty) {
       if (context.mounted) {
         _showError('Failed to repeat tissue number');
@@ -1122,11 +1330,9 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -1147,41 +1353,42 @@ class TissueIDMenu extends ConsumerStatefulWidget {
 class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<int>(itemBuilder: (BuildContext context) {
-      return [
-        PopupMenuItem(
-          value: 1,
-          enabled: _hasNoId(),
-          child: const ListTile(
-            leading: Icon(Icons.add),
-            title: Text('New number'),
+    return PopupMenuButton<int>(
+      itemBuilder: (BuildContext context) {
+        return [
+          PopupMenuItem(
+            value: 1,
+            enabled: _hasNoId(),
+            child: const ListTile(
+              leading: Icon(Icons.add),
+              title: Text('New number'),
+            ),
+            onTap: () => {
+              if (widget.onNewNumber != null)
+                {
+                  widget.onNewNumber!(),
+                  setState(() {
+                    _getNewNumber();
+                  }),
+                },
+            },
           ),
-          onTap: () => {
-            if (widget.onNewNumber != null)
-              {
-                widget.onNewNumber!(),
-                setState(() {
-                  _getNewNumber();
-                }),
-              }
-          },
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
+          const PopupMenuDivider(),
+          PopupMenuItem(
             value: 2,
             child: const ListTile(
               leading: Icon(Icons.settings_outlined),
               title: Text('Settings'),
             ),
             onTap: () => {
-                  Future.delayed(
-                    const Duration(milliseconds: 0),
-                  ).then(
-                    (value) => _showTissueSettings(),
-                  ),
-                }),
-      ];
-    });
+              Future.delayed(
+                const Duration(milliseconds: 0),
+              ).then((value) => _showTissueSettings()),
+            },
+          ),
+        ];
+      },
+    );
   }
 
   void _showTissueSettings() {
@@ -1218,10 +1425,9 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
             ),
             PrimaryButton(
               onPressed: () async {
-                String tissueID = await TissueIdServices(ref: ref).setTissueID(
-                  prefixCtr.text,
-                  numberCtr.text,
-                );
+                String tissueID = await TissueIdServices(
+                  ref: ref,
+                ).setTissueID(prefixCtr.text, numberCtr.text);
                 widget.tissueIDct.text = tissueID;
                 if (mounted) {
                   _pop();
@@ -1248,21 +1454,5 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
 
   bool _hasNoId() {
     return widget.tissueIDct.text.isEmpty;
-  }
-}
-
-class SpecimenPartInfoContent extends StatelessWidget {
-  const SpecimenPartInfoContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(content: [
-      InfoContent(
-        header: 'Overview',
-        content: 'List of specimen parts collected from the specimen, '
-            'such as skin, skull, liver, etc.'
-            ' You can edit the type and treatments list in the settings,',
-      ),
-    ]);
   }
 }

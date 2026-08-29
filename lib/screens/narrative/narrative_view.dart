@@ -1,16 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/services/narrative_services.dart';
-import 'package:nahpu/services/navigation_services.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
+import 'package:nahpu/services/common/navigation_services.dart';
+import 'package:nahpu/services/common/record_page_reconciler.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/narrative/components/menu_bar.dart';
 import 'package:nahpu/screens/narrative/narrative_form.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/navigation.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/services/database/database.dart';
 
 class NarrativeViewer extends ConsumerStatefulWidget {
@@ -20,13 +21,37 @@ class NarrativeViewer extends ConsumerStatefulWidget {
   NarrativeViewerState createState() => NarrativeViewerState();
 }
 
-class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
-  bool isVisible = false;
-  final PageNavigation _pageNav = PageNavigation.init();
+class NarrativeViewerState extends ConsumerState<NarrativeViewer>
+    with RecordPageReconciler<NarrativeData, NarrativeEntry, NarrativeViewer> {
   final TextEditingController _searchController = TextEditingController();
   int? _narrativeId;
   bool _isSearching = false;
   late FocusNode _focus;
+
+  @override
+  RecordViewer get recordViewer => RecordViewer.narrative;
+
+  @override
+  AsyncNotifierProvider<NarrativeEntry, List<NarrativeData>>
+  get entryProvider => narrativeEntryProvider;
+
+  @override
+  Object recordIdOf(NarrativeData entry) => entry.id;
+
+  @override
+  void selectRecord(NarrativeData? entry) => _narrativeId = entry?.id;
+
+  @override
+  void invalidateEntries() => NarrativeServices(ref: ref).invalidateNarrative();
+
+  @override
+  bool get isSearching => _isSearching;
+
+  @override
+  void cancelSearch() {
+    _isSearching = false;
+    _searchController.clear();
+  }
 
   @override
   void initState() {
@@ -36,7 +61,6 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
 
   @override
   void dispose() {
-    _pageNav.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -44,8 +68,8 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
   @override
   Widget build(BuildContext context) {
     final narrativeServices = NarrativeServices(ref: ref);
-    return FalseWillPop(
-        child: Scaffold(
+    listenEntries();
+    return Scaffold(
       appBar: AppBar(
         title: const Text("Narrative"),
         actions: [
@@ -63,7 +87,8 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                                 narrativeServices.invalidateNarrative();
                               });
                             },
-                            icon: const Icon(Icons.clear_rounded))
+                            icon: const Icon(Icons.clear_rounded),
+                          )
                         : const SizedBox.shrink(),
                   ],
                   onChanged: (value) {
@@ -90,54 +115,31 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
                       _isSearching = false;
                       _searchController.clear();
                       narrativeServices.invalidateNarrative();
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => super.widget));
                     });
                   },
-                  child: const Text('Cancel')),
+                  child: const Text('Cancel'),
+                ),
           !_isSearching ? const NewNarrative() : const SizedBox.shrink(),
-          NarrativeMenu(
-            narrativeId: _narrativeId,
-          ),
+          NarrativeMenu(narrativeId: _narrativeId),
         ],
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
-          child: ref.watch(narrativeEntryProvider).when(
+          child: ref
+              .watch(narrativeEntryProvider)
+              .when(
                 data: (narrativeEntries) {
                   if (narrativeEntries.isEmpty) {
-                    setState(() {
-                      isVisible = false;
-                      _narrativeId = null;
-                    });
-
                     return EmptyNarrative(isButtonVisible: !_isSearching);
-                  } else {
-                    int narrativeSize = narrativeEntries.length;
-                    setState(() {
-                      if (narrativeSize >= 2) {
-                        isVisible = true;
-                      } else {
-                        isVisible = false;
-                      }
-                      _pageNav.pageCounts = narrativeSize;
-                      _pageNav.updatePageController();
-                    });
-                    return NarrativePages(
-                      narrativeEntries: narrativeEntries,
-                      isNavButtonVisible: isVisible,
-                      pageNav: _pageNav,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _narrativeId = narrativeEntries[index].id;
-                          _updatePageNav(index);
-                        });
-                      },
-                    );
                   }
+                  return NarrativePages(
+                    narrativeEntries: narrativeEntries,
+                    isNavButtonVisible: isNavVisible,
+                    pageNav: pageNav,
+                    onPageChanged: (index) =>
+                        handlePageChanged(index, narrativeEntries[index]),
+                  );
                 },
                 loading: () => const CommonProgressIndicator(),
                 error: (error, stack) => Text(error.toString()),
@@ -145,21 +147,10 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer> {
         ),
       ),
       bottomSheet: Visibility(
-        visible: isVisible,
-        child: PageNavButton(
-          pageNav: _pageNav,
-        ),
+        visible: isNavVisible,
+        child: PageNavButton(pageNav: pageNav),
       ),
-      bottomNavigationBar: const ProjectBottomNavbar(),
-    ));
-  }
-
-  void _updatePageNav(int value) {
-    _pageNav.currentPage = value + 1;
-    _pageNav.updatePageNavigation();
-    if (!_isSearching) {
-      NarrativeServices(ref: ref).invalidateNarrative();
-    }
+    );
   }
 }
 
@@ -180,6 +171,8 @@ class NarrativePages extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
+      // Keyed by controller identity (see site_view.dart).
+      key: ObjectKey(pageNav.pageController),
       controller: pageNav.pageController,
       itemCount: narrativeEntries.length,
       itemBuilder: (context, index) {
@@ -198,21 +191,39 @@ class NarrativePages extends StatelessWidget {
   }
 
   NarrativeFormCtrModel _updateController(
-      List<NarrativeData> narrativeEntries, int index) {
+    List<NarrativeData> narrativeEntries,
+    int index,
+  ) {
+    // Prefer the separate `time` column if present; otherwise try
+    // to parse a time from the existing date string for backwards
+    // compatibility with old data.
+    String? timeStd = narrativeEntries[index].time;
+    if ((timeStd == null || timeStd.isEmpty) &&
+        narrativeEntries[index].date != null) {
+      final storedDate = narrativeEntries[index].date!;
+      final parsed = DateTime.tryParse(storedDate);
+      if (parsed != null) {
+        final hh = parsed.hour.toString().padLeft(2, '0');
+        final mm = parsed.minute.toString().padLeft(2, '0');
+        final ss = parsed.second.toString().padLeft(2, '0');
+        timeStd = '$hh:$mm:$ss';
+      }
+    }
+
     return NarrativeFormCtrModel(
-      dateCtr: TextEditingController(text: narrativeEntries[index].date),
+      dateCtr: DateEditingController(date: narrativeEntries[index].date),
+      timeCtr: TimeEditingController(time: timeStd),
       siteCtr: narrativeEntries[index].siteID,
-      narrativeCtr:
-          TextEditingController(text: narrativeEntries[index].narrative),
+      writerCtr: narrativeEntries[index].writerId,
+      narrativeCtr: TextEditingController(
+        text: narrativeEntries[index].narrative,
+      ),
     );
   }
 }
 
 class EmptyNarrative extends StatelessWidget {
-  const EmptyNarrative({
-    super.key,
-    required this.isButtonVisible,
-  });
+  const EmptyNarrative({super.key, required this.isButtonVisible});
 
   final bool isButtonVisible;
 

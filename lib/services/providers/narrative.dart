@@ -1,21 +1,28 @@
+import 'dart:async';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/record_sort.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/database/narrative_queries.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'narrative.g.dart';
+final narrativeEntryProvider =
+    AsyncNotifierProvider.autoDispose<NarrativeEntry, List<NarrativeData>>(
+      NarrativeEntry.new,
+    );
 
-@riverpod
-class NarrativeEntry extends _$NarrativeEntry {
+class NarrativeEntry extends AsyncNotifier<List<NarrativeData>> {
   Future<List<NarrativeData>> _fetchNarrativeEntry() async {
     final projectUuid = ref.watch(projectUuidProvider);
+    // Watched, not read: changing the sort has to refetch the list.
+    final sort = ref.watch(recordSortProvider(RecordViewer.narrative));
 
-    final narrativeEntries =
-        NarrativeQuery(ref.read(databaseProvider)).getAllNarrative(projectUuid);
+    final narrativeEntries = NarrativeQuery(
+      ref.read(databaseProvider),
+    ).getAllNarrative(projectUuid, sort: sort);
 
     return narrativeEntries;
   }
@@ -31,27 +38,27 @@ class NarrativeEntry extends _$NarrativeEntry {
     state = await AsyncValue.guard(() async {
       if (state.value == null) return [];
       final narratives = await _fetchNarrativeEntry();
-      final filteredNarratives =
-          NarrativeSearchServices(narrativeEntries: narratives)
-              .search(query.toLowerCase());
+      final filteredNarratives = NarrativeSearchServices(
+        narrativeEntries: narratives,
+      ).search(query.toLowerCase());
       return filteredNarratives;
     });
   }
 }
 
-@riverpod
-Future<List<MediaData>> narrativeMedia(Ref ref,
-    {required int narrativeId}) async {
-  List<NarrativeMediaData> mediaList =
-      await NarrativeQuery(ref.read(databaseProvider))
-          .getNarrativeMedia(narrativeId);
-  List<MediaData> mediaDataList = [];
-  for (NarrativeMediaData media in mediaList) {
-    if (media.mediaId != null) {
-      mediaDataList.add(
-        await MediaDbQuery(ref.read(databaseProvider)).getMedia(media.mediaId!),
-      );
-    }
-  }
-  return mediaDataList;
-}
+final narrativeMediaProvider = FutureProvider.family
+    .autoDispose<List<MediaData>, int>((ref, narrativeId) async {
+      final database = ref.read(databaseProvider);
+      List<NarrativeMediaData> mediaList = await NarrativeQuery(
+        database,
+      ).getNarrativeMedia(narrativeId);
+      List<MediaData> mediaDataList = [];
+      for (NarrativeMediaData media in mediaList) {
+        if (media.mediaId != null) {
+          mediaDataList.add(
+            await MediaDbQuery(database).getMedia(media.mediaId!),
+          );
+        }
+      }
+      return mediaDataList;
+    });

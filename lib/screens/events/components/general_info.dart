@@ -1,16 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/screens/shared/features.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/screens/shared/forms/features.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/sites.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart';
-import 'package:nahpu/services/collevent_services.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/site_name_display.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/types/geography.dart';
 
 class EventInfoField extends ConsumerStatefulWidget {
   const EventInfoField({
@@ -29,7 +31,7 @@ class EventInfoField extends ConsumerStatefulWidget {
 }
 
 class EventInfoFieldState extends ConsumerState<EventInfoField> {
-  List<SiteData> data = [];
+  List<SiteRecord> data = [];
   String? siteID;
 
   @override
@@ -45,29 +47,26 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
   @override
   Widget build(BuildContext context) {
     final siteEntry = ref.watch(siteEntryProvider);
-    siteEntry.whenData(
-      (siteEntry) => {
-        data = siteEntry,
-      },
-    );
+    siteEntry.whenData((siteEntry) => {data = siteEntry});
     return FormCard(
-      title: 'General Information',
+      title: 'Event Details',
       isPrimary: true,
-      infoContent: const CollInfoHelpContent(),
+      infoTopic: InfoTopic.eventOverview,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 5, right: 5, top: 10),
+            padding: const EdgeInsets.only(left: 4, right: 4, top: 8),
             child: CollEventIdTile(
               collEventId: widget.collEventId,
               collEventCtr: widget.collEventCtr,
             ),
           ),
+          SiteNameDisplay(siteId: widget.collEventCtr.siteIDCtr),
           Padding(
             // Match adaptive layout padding
-            padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             child: SiteIdField(
               value: widget.collEventCtr.siteIDCtr,
               siteData: data,
@@ -76,10 +75,9 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
                   setState(() {
                     widget.collEventCtr.siteIDCtr = value;
                     CollEventServices(ref: ref).updateCollEvent(
-                        widget.collEventId,
-                        CollEventCompanion(
-                          siteID: db.Value(value),
-                        ));
+                      widget.collEventId,
+                      CollEventCompanion(siteID: db.Value(value)),
+                    );
                   });
                 }
               },
@@ -98,19 +96,18 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
                   CollEventServices(ref: ref).updateCollEvent(
                     widget.collEventId,
                     CollEventCompanion(
-                      startDate:
-                          db.Value(widget.collEventCtr.startDateCtr.text),
+                      startDate: db.Value(
+                        widget.collEventCtr.startDateCtr.date,
+                      ),
                     ),
                   );
                 },
                 onClear: () {
                   CollEventServices(ref: ref).updateCollEvent(
                     widget.collEventId,
-                    CollEventCompanion(
-                      startDate: db.Value(null),
-                    ),
+                    CollEventCompanion(startDate: db.Value(null)),
                   );
-                }
+                },
               ),
               EndDateField(
                 collEventId: widget.collEventId,
@@ -129,24 +126,25 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
   }
 
   DateTime _getInitialStartDate() {
-    return ref.read(catalogFmtNotifierProvider).when(
-      data: (catalogFmt) {
-        switch (catalogFmt) {
-          case CatalogFmt.birds:
+    return ref
+        .read(catalogFmtNotifierProvider)
+        .when(
+          data: (catalogFmt) {
+            switch (catalogFmt) {
+              case CatalogFmt.mammals:
+                return DateTime.now().subtract(const Duration(days: 1));
+              default:
+                // Birds, herpetofauna
+                return DateTime.now();
+            }
+          },
+          loading: () {
             return DateTime.now();
-          case CatalogFmt.generalMammals:
-            return DateTime.now().subtract(const Duration(days: 1));
-          case CatalogFmt.bats:
-            return DateTime.now().subtract(const Duration(days: 1));
-        }
-      },
-      loading: () {
-        return DateTime.now();
-      },
-      error: (e, s) {
-        return DateTime.now();
-      },
-    );
+          },
+          error: (e, s) {
+            return DateTime.now();
+          },
+        );
   }
 }
 
@@ -171,19 +169,15 @@ class EndDateField extends ConsumerWidget {
       onTap: () {
         CollEventServices(ref: ref).updateCollEvent(
           collEventId,
-          CollEventCompanion(
-            endDate: db.Value(collEventCtr.endDateCtr.text),
-          ),
+          CollEventCompanion(endDate: db.Value(collEventCtr.endDateCtr.date)),
         );
       },
       onClear: () {
         CollEventServices(ref: ref).updateCollEvent(
           collEventId,
-          CollEventCompanion(
-            startDate: db.Value(null),
-          ),
+          CollEventCompanion(endDate: db.Value(null)),
         );
-      }      
+      },
     );
   }
 }
@@ -221,14 +215,15 @@ class CollEventIdTile extends ConsumerWidget {
                         content: TextFormField(
                           controller: collEventCtr.idSuffixCtr,
                           decoration: InputDecoration(
-                              labelText: 'ID suffix',
-                              hintText: 'Enter ID suffix',
-                              suffix: IconButton(
-                                icon: const Icon(Icons.clear_rounded),
-                                onPressed: () {
-                                  collEventCtr.idSuffixCtr.clear();
-                                },
-                              )),
+                            labelText: 'ID suffix',
+                            hintText: 'Enter ID suffix',
+                            suffix: IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                collEventCtr.idSuffixCtr.clear();
+                              },
+                            ),
+                          ),
                         ),
                         actions: [
                           TextButton(
@@ -242,8 +237,9 @@ class CollEventIdTile extends ConsumerWidget {
                               CollEventServices(ref: ref).updateCollEvent(
                                 collEventId,
                                 CollEventCompanion(
-                                  idSuffix:
-                                      db.Value(collEventCtr.idSuffixCtr.text),
+                                  idSuffix: db.Value(
+                                    collEventCtr.idSuffixCtr.text,
+                                  ),
                                 ),
                               );
                               ref.invalidate(siteEntryProvider);
@@ -298,7 +294,8 @@ class EventIDTextState extends ConsumerState<EventIDText> {
                     )
                   : const SizedBox.shrink();
             },
-            future: _getEventID())
+            future: _getEventID(),
+          )
         : const SizedBox.shrink();
   }
 
@@ -339,18 +336,16 @@ class EventTimeField extends ConsumerWidget {
             CollEventServices(ref: ref).updateCollEvent(
               collEventId,
               CollEventCompanion(
-                startTime: db.Value(collEventCtr.startTimeCtr.text),
+                startTime: db.Value(collEventCtr.startTimeCtr.time),
               ),
             );
           },
           onClear: () {
             CollEventServices(ref: ref).updateCollEvent(
               collEventId,
-              CollEventCompanion(
-                  startTime: db.Value(null)
-              )
+              CollEventCompanion(startTime: db.Value(null)),
             );
-          }            
+          },
         ),
         CommonTimeField(
           labelText: 'End Time',
@@ -361,68 +356,36 @@ class EventTimeField extends ConsumerWidget {
             CollEventServices(ref: ref).updateCollEvent(
               collEventId,
               CollEventCompanion(
-                endTime: db.Value(collEventCtr.endTimeCtr.text),
+                endTime: db.Value(collEventCtr.endTimeCtr.time),
               ),
             );
           },
           onClear: () {
             CollEventServices(ref: ref).updateCollEvent(
               collEventId,
-              CollEventCompanion(
-                  endTime: db.Value(null)
-              )
+              CollEventCompanion(endTime: db.Value(null)),
             );
-          }         
+          },
         ),
       ],
     );
   }
 
   TimeOfDay _getInitialTime(WidgetRef ref) {
-    return ref.read(catalogFmtNotifierProvider).when(
+    return ref
+        .read(catalogFmtNotifierProvider)
+        .when(
           data: (catalogFmt) {
             switch (catalogFmt) {
-              case CatalogFmt.birds:
-                return TimeOfDay.now();
-              case CatalogFmt.generalMammals:
+              case CatalogFmt.mammals:
                 return const TimeOfDay(hour: 7, minute: 0);
-              case CatalogFmt.bats:
+              default:
+                // Birds, bats, herpetofauna
                 return TimeOfDay.now();
             }
           },
           loading: () => TimeOfDay.now(),
           error: (err, stack) => TimeOfDay.now(),
         );
-  }
-}
-
-class CollInfoHelpContent extends StatelessWidget {
-  const CollInfoHelpContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const InfoContainer(
-      content: [
-        InfoContent(
-            header: 'Overview',
-            content: 'General information about the event.'
-                ' Event helps you keep track of collecting efforts.'),
-        InfoContent(
-          content: 'The event ID is automatically generated'
-              ' based on the site ID and the start date of the event.'
-              ' You can add suffix for the event ID'
-              ' by using the edit icon.',
-        ),
-        InfoContent(
-          content: 'We recommend creating a new event'
-              ' for each day for each site, even if the effort is the same.'
-              ' You can use duplicate button in the menu to duplicated a event.'
-              ' The new events will have the same information as the original event,'
-              ' except the weather data, and the dates'
-              ' Weather data will be empty. '
-              'The date will be auto-incremented by one day',
-        )
-      ],
-    );
   }
 }

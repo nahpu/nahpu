@@ -1,100 +1,293 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/utility_services.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
-class ProjectInfo extends ConsumerWidget {
-  const ProjectInfo({super.key, required this.projectData});
+class ProjectInfo extends StatelessWidget {
+  const ProjectInfo({
+    super.key,
+    required this.projectData,
+    this.onEdit,
+    this.showExport = true,
+    this.showActions = true,
+    this.useSectionContainers = true,
+    this.qrData,
+    this.useHorizontalQrLayout = false,
+  });
 
   final ProjectData? projectData;
+  final VoidCallback? onEdit;
+  final bool showExport;
+  final bool showActions;
+  final bool useSectionContainers;
+  final String? qrData;
+  final bool useHorizontalQrLayout;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final projectQrData = qrData;
+    final showQrBesideIdentity = projectQrData != null && useHorizontalQrLayout;
+    final identitySection = _ProjectInfoSection(
+      title: 'Identity',
+      useContainer: useSectionContainers,
+      children: [_ProjectIdentityDetails(projectData: projectData)],
+    );
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ProjectQrIcon(data: _getProjectJson(projectData)),
+        if (projectQrData != null && !useHorizontalQrLayout)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Center(child: ProjectQrIcon(data: projectQrData)),
+          ),
+        if (showQrBesideIdentity)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: identitySection),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+                child: ProjectQrIcon(data: projectQrData),
+              ),
+            ],
+          )
+        else
+          identitySection,
+        _ProjectInfoSection(
+          title: 'Description',
+          useContainer: useSectionContainers,
+          children: [
+            Text(
+              _displayValue(projectData?.description),
+              softWrap: true,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
+        ),
         const SizedBox(height: 4),
-        ProjectInfoText(
-          title: 'Project name: ',
-          text: projectData?.name,
+        _ProjectInfoSection(
+          title: 'Project details',
+          useContainer: useSectionContainers,
+          children: [
+            _ProjectInfoField(
+              label: 'Principal investigator',
+              value: _displayValue(projectData?.principalInvestigator),
+            ),
+            _ProjectInfoField(
+              label: 'Accession',
+              value: _displayValue(projectData?.accession),
+            ),
+            _ProjectInfoField(
+              label: 'Location',
+              value: _displayValue(projectData?.location),
+            ),
+            _ProjectInfoField(
+              label: 'Time zone',
+              value: _displayValue(projectData?.timeZone),
+            ),
+          ],
         ),
-        ProjectInfoText(title: 'UUID: ', text: projectData?.uuid),
-        ProjectInfoText(
-            title: 'Project description: ', text: projectData?.description),
-        ProjectInfoText(
-          title: 'Principal investigator: ',
-          text: projectData?.principalInvestigator,
+        _ProjectInfoSection(
+          title: 'Schedule',
+          useContainer: useSectionContainers,
+          children: [
+            _ProjectInfoField(
+              label: 'Start date',
+              value: _displayValue(
+                dateStdToDateDisplay(projectData?.startDate),
+              ),
+            ),
+            _ProjectInfoField(
+              label: 'End date',
+              value: _displayValue(dateStdToDateDisplay(projectData?.endDate)),
+            ),
+          ],
         ),
-        ProjectInfoText(
-          title: 'Location: ',
-          text: projectData?.location,
-        ),
-        ProjectInfoText(
-          title: 'Start date: ',
-          text: projectData?.startDate,
-        ),
-        ProjectInfoText(
-          title: 'End date: ',
-          text: projectData?.endDate,
-        ),
-        const SizedBox(height: 24),
-        ProjectInfoText(
-          title: 'Created: ',
-          text: _parseDate(projectData?.created),
-          isSmall: true,
-        ),
-        ProjectInfoText(
-          title: 'Last accessed: ',
-          text: _parseDate(projectData?.lastAccessed),
-          isSmall: true,
+        _ProjectInfoSection(
+          title: 'Record metadata',
+          useContainer: useSectionContainers,
+          children: [
+            _ProjectInfoField(
+              label: 'Created',
+              value: _parseDate(projectData?.created),
+              isSmall: true,
+            ),
+            _ProjectInfoField(
+              label: 'Last accessed',
+              value: _parseDate(projectData?.lastAccessed),
+              isSmall: true,
+            ),
+            if (showActions)
+              ProjectInfoActions(
+                projectData: projectData,
+                onEdit: onEdit,
+                showExport: showExport,
+              ),
+          ],
         ),
       ],
     );
   }
 
+  String _displayValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Not provided';
+    }
+    return value;
+  }
+
   String _parseDate(String? date) {
+    if (date == null || date.trim().isEmpty) {
+      return 'Not provided';
+    }
     final value = parseDate(date);
     return '${value.date} ${value.time}';
   }
+}
 
-  String _getProjectJson(ProjectData? projectData) {
-    final data = projectData?.toJson();
-    return data != null ? jsonEncode(data) : '';
+class _ProjectIdentityDetails extends StatelessWidget {
+  const _ProjectIdentityDetails({required this.projectData});
+
+  final ProjectData? projectData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _displayValue(projectData?.name),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 12),
+        _ProjectInfoField(
+          label: 'UUID',
+          value: _displayValue(projectData?.uuid),
+          isSelectable: true,
+        ),
+      ],
+    );
+  }
+
+  String _displayValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Not provided';
+    }
+    return value;
   }
 }
 
-class ProjectInfoText extends StatelessWidget {
-  const ProjectInfoText({
+class ProjectInfoActions extends StatelessWidget {
+  const ProjectInfoActions({
     super.key,
+    required this.projectData,
+    this.onEdit,
+    this.showExport = true,
+  });
+
+  final ProjectData? projectData;
+  final VoidCallback? onEdit;
+  final bool showExport;
+
+  @override
+  Widget build(BuildContext context) {
+    if (projectData == null || (onEdit == null && !showExport)) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        children: [
+          if (onEdit != null)
+            TextButton(onPressed: onEdit, child: const Text('Edit')),
+          if (showExport)
+            TextButton(
+              onPressed: () => showProjectExportDialog(
+                context: context,
+                projectData: projectData!,
+              ),
+              child: const Text('Export info'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProjectInfoSection extends StatelessWidget {
+  const _ProjectInfoSection({
     required this.title,
-    required this.text,
-    this.isSmall = false,
+    required this.children,
+    required this.useContainer,
   });
 
   final String title;
-  final String? text;
+  final List<Widget> children;
+  final bool useContainer;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 6),
+        ...children,
+      ],
+    );
+    if (!useContainer) {
+      return Padding(padding: const EdgeInsets.all(8), child: content);
+    }
+
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withAlpha(80),
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: content,
+    );
+  }
+}
+
+class _ProjectInfoField extends StatelessWidget {
+  const _ProjectInfoField({
+    required this.label,
+    required this.value,
+    this.isSelectable = false,
+    this.isSmall = false,
+  });
+
+  final String label;
+  final String value;
+  final bool isSelectable;
   final bool isSmall;
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        text: title,
-        style: isSmall
-            ? Theme.of(context).textTheme.labelMedium
-            : Theme.of(context).textTheme.titleSmall,
+    final valueStyle = isSmall
+        ? Theme.of(context).textTheme.bodySmall
+        : Theme.of(context).textTheme.bodyLarge;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextSpan(
-            text: text ?? '',
-            style: isSmall
-                ? Theme.of(context).textTheme.labelMedium
-                : Theme.of(context).textTheme.bodyLarge,
-          )
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 2),
+          if (isSelectable)
+            SelectableText(value, style: valueStyle)
+          else
+            Text(value, softWrap: true, style: valueStyle),
         ],
       ),
     );
@@ -112,92 +305,22 @@ class ProjectQrIcon extends StatelessWidget {
       message: 'Project QR code. Tap to view full.',
       child: GestureDetector(
         child: SizedBox(
-          width: 96,
-          height: 96,
-          child: ProjectQrCodeViewer(
-            data: data,
-            isFullScreen: false,
-          ),
+          width: 112,
+          height: 112,
+          child: QrCodeViewer(data: data, maxSize: 112),
         ),
         onTap: () {
           showDialog(
             context: context,
-            builder: (context) {
-              return AlertDialog(
-                content: ProjectQrCodeViewer(
-                  data: data,
-                  isFullScreen: true,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Close'),
-                  ),
-                ],
-              );
-            },
+            builder: (context) => QrCodeDialog(
+              title: 'Project QR code',
+              data: data,
+              description:
+                  'Scan this code when creating a new project to transfer '
+                  'project information.',
+            ),
           );
         },
-      ),
-    );
-  }
-}
-
-class ProjectQrCodeViewer extends StatelessWidget {
-  const ProjectQrCodeViewer({
-    super.key,
-    required this.data,
-    required this.isFullScreen,
-  });
-
-  final String data;
-  final bool isFullScreen;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: isFullScreen ? 400 : 80,
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ProjectQrCode(
-        data: data,
-        color: Colors.black,
-        backgroundColor: Colors.transparent,
-      ),
-    );
-  }
-}
-
-class ProjectQrCode extends StatelessWidget {
-  const ProjectQrCode({
-    super.key,
-    required this.data,
-    required this.color,
-    required this.backgroundColor,
-  });
-
-  final Color? color;
-  final Color? backgroundColor;
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    return QrImageView(
-      data: data,
-      version: QrVersions.auto,
-      backgroundColor: backgroundColor ?? Colors.transparent,
-      eyeStyle: QrEyeStyle(
-        eyeShape: QrEyeShape.circle,
-        color: color,
-      ),
-      dataModuleStyle: QrDataModuleStyle(
-        dataModuleShape: QrDataModuleShape.circle,
-        color: color,
       ),
     );
   }

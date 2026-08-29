@@ -1,0 +1,451 @@
+import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_details.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
+import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
+import 'package:nahpu/screens/settings/settings.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/styles/themes.dart';
+
+void main() {
+  testWidgets('manage taxa uses outlined tap-driven details and search', (
+    tester,
+  ) async {
+    final fixture = await _pumpManageTaxa(tester, size: const Size(1000, 900));
+
+    expect(
+      find.byKey(const ValueKey('manage-taxa-wide-layout')),
+      findsOneWidget,
+    );
+    expect(find.byType(TaxonManagementDetails), findsNothing);
+    expect(find.text('Select a taxon to view details'), findsOneWidget);
+
+    final myotisTile = find.byKey(
+      ValueKey('managed-taxon-${fixture.myotisId}'),
+    );
+    final outlinedMaterial = tester
+        .widgetList<Material>(
+          find.descendant(of: myotisTile, matching: find.byType(Material)),
+        )
+        .firstWhere((material) => material.shape is RoundedRectangleBorder);
+    final shape = outlinedMaterial.shape! as RoundedRectangleBorder;
+    expect(
+      shape.side.color,
+      Theme.of(tester.element(myotisTile)).colorScheme.outlineVariant,
+    );
+
+    await tester.tap(myotisTile);
+    await tester.pump();
+
+    expect(find.byType(TaxonManagementDetails), findsOneWidget);
+    expect(find.text('Myotis lucifugus'), findsAtLeastNWidgets(1));
+    expect(find.text('Edit taxon'), findsOneWidget);
+
+    final searchField = find.descendant(
+      of: find.byType(CommonSearchBar),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(searchField, 'nobody');
+    await tester.pump();
+
+    expect(find.text('No taxa match “nobody”.'), findsOneWidget);
+    expect(find.byType(TaxonManagementDetails), findsNothing);
+    expect(find.text('Select a taxon to view details'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Clear search'));
+    await tester.pump();
+    expect(myotisTile, findsOneWidget);
+
+    await tester.tap(find.text('Edit taxon'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditTaxon), findsOneWidget);
+  });
+
+  testWidgets('compact manage taxa opens a detail sheet', (tester) async {
+    final fixture = await _pumpManageTaxa(tester, size: const Size(390, 844));
+
+    expect(find.byKey(const ValueKey('manage-taxa-wide-layout')), findsNothing);
+    expect(find.byType(TaxonManagementDetails), findsNothing);
+
+    await tester.tap(find.byKey(ValueKey('managed-taxon-${fixture.myotisId}')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TaxonManagementDetails), findsOneWidget);
+    expect(find.text('Edit taxon'), findsOneWidget);
+  });
+
+  testWidgets('taxon registry manage action opens Manage taxa', (tester) async {
+    final fixture = await _taxonFixture();
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ManageTaxa), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Manage taxa'), findsOneWidget);
+  });
+
+  testWidgets('taxon registry shows modern rank metrics and total taxa', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture(includeGenusTaxon: true);
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<FormCard>(find.byType(FormCard)).mainAxisAlignment,
+      MainAxisAlignment.start,
+    );
+    expect(find.byKey(const ValueKey('registry-stat-orders')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('registry-stat-families')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('registry-stat-species')), findsOneWidget);
+    expect(find.byKey(const ValueKey('registry-stat-taxa')), findsOneWidget);
+    expect(find.text('Registered'), findsNothing);
+    expect(find.text('species registered'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(RegisteredTaxa),
+        matching: find.byType(Icon),
+      ),
+      findsNothing,
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('registry-stat-orders'))).height,
+      greaterThanOrEqualTo(104),
+    );
+    final registeredContainer = find.byType(TaxonDataContainer);
+    expect(
+      find.descendant(of: registeredContainer, matching: find.byType(Divider)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('taxon registry expands species when total taxa is absent', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture();
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(home: Scaffold(body: TaxonRegistryViewer())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('registry-stat-taxa')), findsNothing);
+    final ordersWidth = tester
+        .getSize(find.byKey(const ValueKey('registry-stat-orders')))
+        .width;
+    final speciesWidth = tester
+        .getSize(find.byKey(const ValueKey('registry-stat-species')))
+        .width;
+    expect(speciesWidth, greaterThan(ordersWidth));
+  });
+
+  testWidgets('taxon registry uses accessible secondary tile colors', (
+    tester,
+  ) async {
+    final fixture = await _taxonFixture(includeGenusTaxon: true);
+    addTearDown(fixture.database.close);
+
+    for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [databaseProvider.overrideWithValue(fixture.database)],
+          child: MaterialApp(
+            theme: theme,
+            home: const Scaffold(body: TaxonRegistryViewer()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      const labels = ['orders', 'families', 'species', 'taxa'];
+      for (final label in labels) {
+        final tile = find.byKey(ValueKey('registry-stat-$label'));
+        final container = tester.widget<Container>(
+          find.descendant(of: tile, matching: find.byType(Container)),
+        );
+        final decoration = container.decoration! as BoxDecoration;
+        final foregroundColor = theme.colorScheme.onSecondaryContainer;
+        final backgroundColor = theme.colorScheme.secondaryContainer.withValues(
+          alpha: 0.16,
+        );
+
+        expect(decoration.color, backgroundColor);
+        final texts = tester
+            .widgetList<Text>(
+              find.descendant(of: tile, matching: find.byType(Text)),
+            )
+            .toList();
+        expect(texts, hasLength(2));
+        expect(texts[0].style?.color, foregroundColor);
+        expect(texts[0].textAlign, TextAlign.center);
+        expect(texts[1].style?.color, foregroundColor);
+        expect(texts[1].textAlign, TextAlign.center);
+        expect(
+          _contrastRatio(
+            foregroundColor,
+            Color.alphaBlend(backgroundColor, theme.colorScheme.surface),
+          ),
+          greaterThanOrEqualTo(4.5),
+        );
+      }
+    }
+  });
+
+  testWidgets('manage taxa category picker filters by selected field', (
+    tester,
+  ) async {
+    await _pumpManageTaxa(tester, size: const Size(1000, 900));
+
+    await tester.tap(
+      find.byKey(const ValueKey('taxon-search-category-button')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('All fields'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+    await tester.pump();
+    expect(find.text('Common name'), findsOneWidget);
+    expect(find.byType(Divider), findsAtLeastNWidgets(1));
+
+    await tester.tap(find.text('Common name'));
+    await tester.pumpAndSettle();
+    final searchField = find.descendant(
+      of: find.byType(CommonSearchBar),
+      matching: find.byType(TextField),
+    );
+    expect(tester.getSize(find.byType(SearchBar)).height, 48);
+    await tester.enterText(searchField, 'little brown');
+    await tester.pump();
+
+    expect(find.text('Myotis lucifugus'), findsOneWidget);
+    expect(find.text('Rattus rattus'), findsNothing);
+  });
+
+  testWidgets('compact manage taxa category picker uses a bottom sheet', (
+    tester,
+  ) async {
+    await _pumpManageTaxa(tester, size: const Size(390, 844));
+
+    await tester.tap(
+      find.byKey(const ValueKey('taxon-search-category-button')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('All fields'), findsOneWidget);
+  });
+
+  testWidgets('settings Taxa entry opens Manage taxa', (tester) async {
+    final fixture = await _taxonFixture();
+    addTearDown(fixture.database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(fixture.database)],
+        child: const MaterialApp(
+          home: Scaffold(body: DatabaseSettingSections()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Taxa'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ManageTaxa), findsOneWidget);
+    expect(find.widgetWithText(AppBar, 'Manage taxa'), findsOneWidget);
+  });
+
+  testWidgets('manage taxa selection mode protects used taxa', (tester) async {
+    final fixture = await _pumpManageTaxa(
+      tester,
+      size: const Size(1000, 900),
+      useMyotis: true,
+    );
+
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+
+    final myotisTile = find.byKey(
+      ValueKey('managed-taxon-${fixture.myotisId}'),
+    );
+    final rattusTile = find.byKey(
+      ValueKey('managed-taxon-${fixture.rattusId}'),
+    );
+    Checkbox checkboxFor(Finder tile) => tester.widget<Checkbox>(
+      find.descendant(of: tile, matching: find.byType(Checkbox)),
+    );
+
+    expect(checkboxFor(myotisTile).onChanged, isNull);
+    await tester.tap(myotisTile);
+    await tester.pump();
+    expect(checkboxFor(myotisTile).value, isFalse);
+
+    await tester.tap(rattusTile);
+    await tester.pump();
+    expect(checkboxFor(rattusTile).value, isTrue);
+    expect(find.byType(TaxonManagementDetails), findsNothing);
+  });
+
+  testWidgets('manage taxa stays open after deletion', (tester) async {
+    final fixture = await _pumpManageTaxa(tester, size: const Size(1000, 900));
+
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(ValueKey('managed-taxon-${fixture.rattusId}')));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ManageTaxa), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(
+      find.byKey(ValueKey('managed-taxon-${fixture.rattusId}')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(ValueKey('managed-taxon-${fixture.myotisId}')),
+      findsOneWidget,
+    );
+  });
+}
+
+double _contrastRatio(Color first, Color second) {
+  final firstLuminance = first.computeLuminance();
+  final secondLuminance = second.computeLuminance();
+  final lighter = firstLuminance > secondLuminance
+      ? firstLuminance
+      : secondLuminance;
+  final darker = firstLuminance > secondLuminance
+      ? secondLuminance
+      : firstLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+Future<_TaxonFixture> _pumpManageTaxa(
+  WidgetTester tester, {
+  required Size size,
+  bool useMyotis = false,
+}) async {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPhysicalSize);
+
+  final fixture = await _taxonFixture(useMyotis: useMyotis);
+  addTearDown(fixture.database.close);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(fixture.database)],
+      child: const MaterialApp(home: ManageTaxa()),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return fixture;
+}
+
+Future<_TaxonFixture> _taxonFixture({
+  bool useMyotis = false,
+  bool includeGenusTaxon = false,
+}) async {
+  final database = Database.forTesting(
+    DatabaseConnection(NativeDatabase.memory()),
+  );
+  final myotisId = await database
+      .into(database.taxonomy)
+      .insert(
+        const TaxonomyCompanion(
+          taxonRank: Value('species'),
+          taxonClass: Value('Mammalia'),
+          taxonOrder: Value('Chiroptera'),
+          taxonFamily: Value('Vespertilionidae'),
+          genus: Value('Myotis'),
+          specificEpithet: Value('lucifugus'),
+          commonName: Value('little brown bat'),
+        ),
+      );
+  final rattusId = await database
+      .into(database.taxonomy)
+      .insert(
+        const TaxonomyCompanion(
+          taxonRank: Value('species'),
+          taxonClass: Value('Mammalia'),
+          taxonOrder: Value('Rodentia'),
+          taxonFamily: Value('Muridae'),
+          genus: Value('Rattus'),
+          specificEpithet: Value('rattus'),
+        ),
+      );
+  if (useMyotis) {
+    await database
+        .into(database.specimen)
+        .insert(
+          SpecimenCompanion(
+            uuid: const Value('used-myotis'),
+            speciesID: Value(myotisId),
+          ),
+        );
+  }
+  if (includeGenusTaxon) {
+    await database
+        .into(database.taxonomy)
+        .insert(
+          const TaxonomyCompanion(
+            taxonRank: Value('genus'),
+            taxonClass: Value('Mammalia'),
+            taxonOrder: Value('Chiroptera'),
+            taxonFamily: Value('Vespertilionidae'),
+            genus: Value('Pipistrellus'),
+          ),
+        );
+  }
+  return _TaxonFixture(
+    database: database,
+    myotisId: myotisId,
+    rattusId: rattusId,
+  );
+}
+
+class _TaxonFixture {
+  const _TaxonFixture({
+    required this.database,
+    required this.myotisId,
+    required this.rattusId,
+  });
+
+  final Database database;
+  final int myotisId;
+  final int rattusId;
+}

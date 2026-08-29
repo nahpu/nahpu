@@ -1,351 +1,460 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/services/providers/taxa.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/common.dart';
-import 'package:nahpu/screens/shared/fields.dart';
-import 'package:nahpu/screens/shared/layout.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_details.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/utility_services.dart';
-
+import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
-import 'package:nahpu/services/taxonomy_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
-class TaxonRegistryPage extends ConsumerStatefulWidget {
-  const TaxonRegistryPage({super.key});
+class ManageTaxa extends StatelessWidget {
+  const ManageTaxa({super.key});
 
-  @override
-  TaxonRegistryPageState createState() => TaxonRegistryPageState();
-}
-
-class TaxonRegistryPageState extends ConsumerState<TaxonRegistryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Taxon registry'),
-      ),
-      body: ref.watch(taxonRegistryProvider).when(
-            data: (data) {
-              if (data.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No taxon found',
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
-              return TaxonList(taxonList: data);
-            },
-            loading: () => const CommonProgressIndicator(),
-            error: (error, stack) => Text('Error: $error'),
-          ),
+      appBar: AppBar(title: const Text('Manage taxa')),
+      body: const SafeArea(child: ManageTaxaList()),
     );
   }
 }
 
-class TaxonList extends StatefulWidget {
-  const TaxonList({
-    super.key,
-    required this.taxonList,
-  });
-
-  final List<TaxonomyData> taxonList;
+class ManageTaxaList extends ConsumerStatefulWidget {
+  const ManageTaxaList({super.key});
 
   @override
-  State<TaxonList> createState() => _TaxonListState();
+  ConsumerState<ManageTaxaList> createState() => _ManageTaxaListState();
 }
 
-class _TaxonListState extends State<TaxonList> {
-  List<TaxonomyData> _filteredTaxonList = [];
+class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final FocusNode _focus = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  final Set<int> _selectedTaxonIds = {};
+  Set<int> _usedTaxonIds = {};
+  int? _focusedTaxonId;
+  String _query = '';
+  TaxonSearchCategory _searchCategory = TaxonSearchCategory.allFields;
+  bool _isSelecting = false;
 
   @override
   void dispose() {
     _focus.dispose();
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ScrollableConstrainedLayout(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CommonSearchBar(
-              controller: _searchController,
-              focusNode: _focus,
-              hintText: 'Search taxa',
-              trailing: [
-                _searchController.text.isNotEmpty
-                    ? IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _filteredTaxonList.clear();
-                          });
-                        },
-                        icon: const Icon(Icons.clear_rounded))
-                    : const SizedBox.shrink()
-              ],
-              onChanged: (String value) {
-                String searchValue = value.toLowerCase();
-                setState(() {
-                  _filteredTaxonList = TaxonFilterServices()
-                      .filterTaxonList(widget.taxonList, searchValue);
-                });
-              },
+    return ref
+        .watch(taxonRegistryProvider)
+        .when(
+          data: (taxa) {
+            if (taxa.isEmpty) {
+              return const Center(child: Text('No taxa found'));
+            }
+            final filteredTaxa = _query.isEmpty
+                ? taxa
+                : TaxonFilterServices().filterTaxonList(
+                    taxa,
+                    _query,
+                    category: _searchCategory,
+                  );
+            final focusedTaxon = _focusedTaxon(filteredTaxa);
+            final isWide =
+                MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
+            return ResponsiveMasterDetail(
+              wideLayoutKey: const ValueKey('manage-taxa-wide-layout'),
+              listPane: _listPane(
+                filteredTaxa,
+                focusedTaxon: focusedTaxon,
+                isWide: isWide,
+              ),
+              detailsPane: focusedTaxon == null
+                  ? const EmptyDetailsPrompt(
+                      message: 'Select a taxon to view details',
+                    )
+                  : TaxonManagementDetails(
+                      taxon: focusedTaxon,
+                      onEdit: () => _openEditor(focusedTaxon),
+                    ),
+            );
+          },
+          loading: () => const Center(child: CommonProgressIndicator()),
+          error: (error, stack) => Center(child: Text(error.toString())),
+        );
+  }
+
+  Widget _listPane(
+    List<TaxonomyData> taxa, {
+    required TaxonomyData? focusedTaxon,
+    required bool isWide,
+  }) {
+    final allowedTaxa = taxa
+        .where((taxon) => !_usedTaxonIds.contains(taxon.id))
+        .toList();
+    final allVisibleSelected =
+        allowedTaxa.isNotEmpty &&
+        allowedTaxa.every((taxon) => _selectedTaxonIds.contains(taxon.id));
+    return Column(
+      key: const ValueKey('manage-taxa-list-pane'),
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(NahpuSpacing.md),
+          child: CommonSearchBar(
+            controller: _searchController,
+            focusNode: _focus,
+            constraints: const BoxConstraints.tightFor(
+              height: NahpuControlSize.touchTarget,
             ),
-            const SizedBox(height: 8),
-            _filteredTaxonList.isEmpty
-                ? const SizedBox.shrink()
-                : Text('Results: ${_filteredTaxonList.length}'),
-            SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: TaxonListView(
-                  taxonList: _filteredTaxonList.isNotEmpty
-                      ? _filteredTaxonList
-                      : widget.taxonList,
-                ))
-          ],
+            hintText: 'Search ${_searchCategory.label.toLowerCase()}',
+            trailing: [
+              if (_query.isNotEmpty)
+                IconButton(
+                  tooltip: 'Clear search',
+                  onPressed: _clearSearch,
+                  icon: const Icon(Icons.clear_rounded),
+                ),
+              IconButton(
+                key: const ValueKey('taxon-search-category-button'),
+                tooltip: 'Search category: ${_searchCategory.label}',
+                onPressed: _chooseSearchCategory,
+                icon: Icon(
+                  _searchCategory == TaxonSearchCategory.allFields
+                      ? Icons.tune_rounded
+                      : Icons.filter_alt_rounded,
+                ),
+              ),
+            ],
+            onChanged: (query) => setState(() => _query = query.trim()),
+          ),
+        ),
+        SelectItemsInterface(
+          isSelecting: _isSelecting,
+          onClearPressed: _selectedTaxonIds.isEmpty
+              ? null
+              : () => setState(_selectedTaxonIds.clear),
+          onSelectAllPressed: allowedTaxa.isEmpty || allVisibleSelected
+              ? null
+              : () {
+                  setState(() {
+                    _selectedTaxonIds
+                      ..clear()
+                      ..addAll(allowedTaxa.map((taxon) => taxon.id));
+                  });
+                },
+          onSelectPressed: _toggleSelectionMode,
+        ),
+        const Divider(height: NahpuStroke.thin),
+        Expanded(
+          child: taxa.isEmpty
+              ? _NoTaxaMatches(query: _query, category: _searchCategory)
+              : CommonScrollbar(
+                  scrollController: _scrollController,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: taxa.length,
+                    itemBuilder: (context, index) {
+                      final taxon = taxa[index];
+                      final isProtected = _usedTaxonIds.contains(taxon.id);
+                      final classification = _taxonClassification(taxon);
+                      return OutlinedListTile(
+                        key: ValueKey('managed-taxon-${taxon.id}'),
+                        isFocused: focusedTaxon?.id == taxon.id,
+                        onTap: () => _onTaxonTap(
+                          taxon,
+                          isProtected: isProtected,
+                          isWide: isWide,
+                        ),
+                        leading: _isSelecting
+                            ? ListCheckBox(
+                                isDisabled: isProtected,
+                                value: _selectedTaxonIds.contains(taxon.id),
+                                onChanged: (selected) => _changeSelection(
+                                  taxon.id,
+                                  selected,
+                                  isProtected,
+                                ),
+                              )
+                            : null,
+                        title: Text(getTaxonDisplayName(taxon)),
+                        subtitle: classification.isEmpty
+                            ? null
+                            : Text(classification),
+                        trailing: _isSelecting && isProtected
+                            ? const Tooltip(
+                                message:
+                                    'Taxon is currently used by a specimen',
+                                child: Icon(Icons.inventory_2_outlined),
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+                ),
+        ),
+        if (_isSelecting) ...[
+          const Divider(height: NahpuStroke.thin),
+          Padding(
+            padding: const EdgeInsets.all(NahpuSpacing.xl),
+            child: DeleteItemsButton(
+              selectedItems: _selectedTaxonIds.toList(),
+              itemName: _selectedTaxonIds.length == 1 ? 'taxon' : 'taxa',
+              onPressedFunction: _deleteTaxa,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  TaxonomyData? _focusedTaxon(List<TaxonomyData> taxa) {
+    if (_focusedTaxonId == null) return null;
+    for (final taxon in taxa) {
+      if (taxon.id == _focusedTaxonId) return taxon;
+    }
+    return null;
+  }
+
+  Future<void> _toggleSelectionMode() async {
+    if (!_isSelecting) {
+      final usedTaxa = await TaxonomyServices(ref: ref).getUsedTaxa();
+      if (!mounted) return;
+      _usedTaxonIds = usedTaxa.toSet();
+    }
+    setState(() {
+      _isSelecting = !_isSelecting;
+      _selectedTaxonIds.clear();
+    });
+  }
+
+  Future<void> _onTaxonTap(
+    TaxonomyData taxon, {
+    required bool isProtected,
+    required bool isWide,
+  }) async {
+    if (_isSelecting) {
+      _changeSelection(
+        taxon.id,
+        !_selectedTaxonIds.contains(taxon.id),
+        isProtected,
+      );
+      return;
+    }
+    setState(() => _focusedTaxonId = taxon.id);
+    if (isWide) return;
+    final editRequested = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * 0.85,
+          child: TaxonManagementDetails(
+            taxon: taxon,
+            onEdit: () => Navigator.pop(sheetContext, true),
+          ),
+        ),
+      ),
+    );
+    if (editRequested == true && mounted) await _openEditor(taxon);
+  }
+
+  void _changeSelection(int id, bool? selected, bool isProtected) {
+    if (isProtected) return;
+    setState(() {
+      if (selected == true) {
+        _selectedTaxonIds.add(id);
+      } else {
+        _selectedTaxonIds.remove(id);
+      }
+    });
+  }
+
+  Future<void> _openEditor(TaxonomyData taxon) async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditTaxon(
+          taxonId: taxon.id,
+          ctr: TaxonRegistryCtrModel.fromData(taxon),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteTaxa() async {
+    final selectedCount = _selectedTaxonIds.length;
+    final deletableIds = _selectedTaxonIds.difference(_usedTaxonIds).toList();
+    try {
+      await TaxonomyServices(ref: ref).deleteTaxonFromList(deletableIds);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      setState(() {
+        if (deletableIds.contains(_focusedTaxonId)) {
+          _focusedTaxonId = null;
+        }
+        _selectedTaxonIds.clear();
+        _isSelecting = false;
+      });
+      _showSuccess(deletableIds.length, selectedCount);
+    } catch (error) {
+      if (mounted) _showError(error.toString());
+    }
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _query = '';
+    });
+  }
+
+  Future<void> _chooseSearchCategory() async {
+    final isCompact =
+        MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    final selected = isCompact
+        ? await showModalBottomSheet<TaxonSearchCategory>(
+            context: context,
+            showDragHandle: true,
+            isScrollControlled: true,
+            builder: (sheetContext) => _TaxonSearchCategoryPicker(
+              selected: _searchCategory,
+              useSheetLayout: true,
+            ),
+          )
+        : await showDialog<TaxonSearchCategory>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Search category'),
+              content: SizedBox(
+                width: 360,
+                height: 520,
+                child: _TaxonSearchCategoryPicker(
+                  selected: _searchCategory,
+                  useSheetLayout: false,
+                ),
+              ),
+            ),
+          );
+    if (selected != null && mounted) {
+      setState(() => _searchCategory = selected);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showSuccess(int deleted, int selected) {
+    final protected = selected - deleted;
+    final message = protected == 0
+        ? '$deleted ${deleted == 1 ? 'taxon' : 'taxa'} deleted.'
+        : '$deleted taxa deleted. $protected taxa could not be deleted because '
+              'they are used by specimens.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 10)),
+    );
+  }
+}
+
+class _NoTaxaMatches extends StatelessWidget {
+  const _NoTaxaMatches({required this.query, required this.category});
+
+  final String query;
+  final TaxonSearchCategory category;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
+        child: Text(
+          category == TaxonSearchCategory.allFields
+              ? 'No taxa match “$query”.'
+              : 'No taxa match “$query” in ${category.label}.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     );
   }
 }
 
-class TaxonListView extends ConsumerStatefulWidget {
-  const TaxonListView({
-    super.key,
-    required this.taxonList,
+class _TaxonSearchCategoryPicker extends StatelessWidget {
+  const _TaxonSearchCategoryPicker({
+    required this.selected,
+    required this.useSheetLayout,
   });
 
-  final List<TaxonomyData> taxonList;
-
-  @override
-  TaxonListViewState createState() => TaxonListViewState();
-}
-
-class TaxonListViewState extends ConsumerState<TaxonListView> {
-  final ScrollController _scrollController = ScrollController();
-  final List<int> _selectedTaxon = [];
-  List<int> _allowedTaxa = [];
-  List<int> _usedTaxon = [];
-  bool _isSelecting = false;
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  final TaxonSearchCategory selected;
+  final bool useSheetLayout;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(children: [
-          Visibility(
-            visible: _isSelecting,
-            child: TextButton(
-              onPressed: _selectedTaxon.isEmpty
-                  ? null
-                  : () {
-                      setState(() {
-                        _selectedTaxon.clear();
-                      });
-                    },
-              child: const Text('Clear'),
-            ),
-          ),
-          Visibility(
-              visible: _isSelecting,
-              child: TextButton(
-                onPressed: _selectedTaxon.length == widget.taxonList.length ||
-                        _selectedTaxon.length == _allowedTaxa.length
-                    ? null
-                    : () {
-                        setState(() {
-                          _selectedTaxon.clear();
-                          _selectedTaxon.addAll(_allowedTaxa);
-                        });
-                      },
-                child: const Text('Select all'),
-              )),
-          const Spacer(),
-          TextButton(
-            onPressed: () async {
-              _usedTaxon = await _getUsedTaxa();
-              _allowedTaxa = _getAllowedTaxa();
-              setState(() {
-                _isSelecting = !_isSelecting;
-                _selectedTaxon.clear();
-              });
-            },
-            child: Text(_isSelecting ? 'Cancel' : 'Select'),
-          ),
-        ]),
-        Expanded(
-          child: CommonScrollbar(
-            scrollController: _scrollController,
-            child: ListView.builder(
-              controller: _scrollController,
-              shrinkWrap: true,
-              itemCount: widget.taxonList.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                      '${widget.taxonList[index].genus} ${widget.taxonList[index].specificEpithet}'),
-                  subtitle: Text(
-                    '${widget.taxonList[index].taxonClass}'
-                    '$listTileSeparator'
-                    '${widget.taxonList[index].taxonOrder}'
-                    '$listTileSeparator'
-                    '${widget.taxonList[index].taxonFamily}',
-                  ),
-                  leading: _isSelecting
-                      ? ListCheckBox(
-                          isDisabled:
-                              _usedTaxon.contains(widget.taxonList[index].id),
-                          value: _selectedTaxon
-                              .contains(widget.taxonList[index].id),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedTaxon.add(widget.taxonList[index].id);
-                              } else {
-                                _selectedTaxon
-                                    .remove(widget.taxonList[index].id);
-                              }
-                            });
-                          },
-                        )
-                      : null,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => EditTaxon(
-                            taxonId: widget.taxonList[index].id,
-                            ctr: TaxonRegistryCtrModel.fromData(
-                                widget.taxonList[index]),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        _isSelecting
-            ? DeleteTaxonButton(
-                selectedTaxon: _selectedTaxon,
-                onPressed: () async {
-                  await _deleteTaxon();
-                  setState(() {
-                    _selectedTaxon.clear();
-                  });
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              )
+    final options = TaxonSearchCategory.values;
+    final list = RadioGroup<TaxonSearchCategory>(
+      groupValue: selected,
+      onChanged: (value) {
+        if (value != null) Navigator.of(context).pop(value);
+      },
+      child: ListView.separated(
+        shrinkWrap: !useSheetLayout,
+        itemCount: options.length,
+        separatorBuilder: (context, index) => index == 0
+            ? const Divider(height: NahpuStroke.thin)
             : const SizedBox.shrink(),
-      ],
+        itemBuilder: (context, index) {
+          final option = options[index];
+          return RadioListTile<TaxonSearchCategory>(
+            value: option,
+            title: Text(option.label),
+            contentPadding: EdgeInsets.zero,
+          );
+        },
+      ),
     );
-  }
-
-  Future<List<int>> _getUsedTaxa() async {
-    return await TaxonomyServices(ref: ref).getUsedTaxa();
-  }
-
-  List<int> _getAllowedTaxa() {
-    List<int> allowedTaxa = [];
-    for (var taxon in widget.taxonList) {
-      if (!_usedTaxon.contains(taxon.id)) {
-        allowedTaxa.add(taxon.id);
-      }
-    }
-    return allowedTaxa;
-  }
-
-  Future<void> _deleteTaxon() async {
-    await TaxonomyServices(ref: ref).deleteTaxonFromList(_selectedTaxon);
+    if (!useSheetLayout) return list;
+    return SafeArea(
+      child: FractionallySizedBox(
+        heightFactor: 0.8,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.xl,
+            0,
+            NahpuSpacing.xl,
+            NahpuSpacing.xl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Search category',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              Expanded(child: list),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-class DeleteTaxonButton extends StatelessWidget {
-  const DeleteTaxonButton({
-    super.key,
-    required this.selectedTaxon,
-    required this.onPressed,
-  });
-
-  final List<int> selectedTaxon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        IconButton(
-          color: Theme.of(context).colorScheme.error,
-          onPressed: selectedTaxon.isEmpty
-              ? null
-              : () {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Delete taxon'),
-                          content: const Text(
-                              'Are you sure you want to delete the selected taxon?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: onPressed,
-                              child: Text('Delete',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.error,
-                                  )),
-                            ),
-                          ],
-                        );
-                      });
-                },
-          icon: const Icon(Icons.delete_outline),
-        ),
-        Visibility(
-            visible: selectedTaxon.isNotEmpty,
-            child: Text('Delete ${_taxonCount()}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                )))
-      ],
-    );
-  }
-
-  String _taxonCount() {
-    return selectedTaxon.length == 1
-        ? '1 taxon'
-        : '${selectedTaxon.length} taxa';
-  }
+String _taxonClassification(TaxonomyData taxon) {
+  return [
+    taxon.taxonClass,
+    taxon.taxonOrder,
+    taxon.taxonFamily,
+  ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' • ');
 }

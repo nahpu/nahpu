@@ -1,25 +1,30 @@
-import 'package:nahpu/screens/narrative/narrative_view.dart';
-import 'package:nahpu/screens/shared/buttons.dart';
-import 'package:nahpu/screens/shared/forms.dart';
-import 'package:nahpu/services/narrative_services.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/record_sort_dialog.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/services/narrative/narrative_services.dart';
+import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum MenuSelection {
   newNarrative,
   duplicate,
   pdfExport,
+  sortRecords,
   deleteRecords,
-  deleteAllRecords
+  deleteAllRecords,
 }
 
 Future<void> createNewNarrative(BuildContext context, WidgetRef ref) {
-  return NarrativeServices(ref: ref).createNewNarrative().then((_) {
-    if (context.mounted) {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const NarrativeViewer()));
-    }
+  return NarrativeServices(ref: ref).createNewNarrative().then((newId) {
+    // Refresh the always-mounted viewer in place and land on the new
+    // narrative.
+    ref
+        .read(pendingRecordJumpProvider(RecordViewer.narrative).notifier)
+        .updateState(newId);
+    ref.invalidate(narrativeEntryProvider);
   });
 }
 
@@ -40,11 +45,9 @@ class NewNarrativeTextButtonState
           await createNewNarrative(context, ref);
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString()),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
           }
         }
       },
@@ -80,28 +83,34 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<MenuSelection>(
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
-              PopupMenuItem<MenuSelection>(
-                value: MenuSelection.newNarrative,
-                child: const CreateMenuButton(text: 'Create narrative'),
-                onTap: () => createNewNarrative(context, ref),
-              ),
-              const PopupMenuDivider(height: 10),
-              PopupMenuItem<MenuSelection>(
-                value: MenuSelection.deleteRecords,
-                child: const DeleteMenuButton(
-                  deleteAll: false,
-                ),
-                onTap: () => _deleteNarrative(),
-              ),
-              PopupMenuItem<MenuSelection>(
-                value: MenuSelection.deleteAllRecords,
-                child: const DeleteMenuButton(
-                  deleteAll: true,
-                ),
-                onTap: () => _deleteAllNarrative(),
-              ),
-            ]);
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuSelection>>[
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.newNarrative,
+          child: const CreateMenuButton(text: 'Create narrative'),
+          onTap: () => createNewNarrative(context, ref),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.sortRecords,
+          onTap: () => showRecordSortDialog(
+            context: context,
+            viewer: RecordViewer.narrative,
+          ),
+          child: const SortMenuButton(),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.deleteRecords,
+          child: const DeleteMenuButton(deleteAll: false),
+          onTap: () => _deleteNarrative(),
+        ),
+        PopupMenuItem<MenuSelection>(
+          value: MenuSelection.deleteAllRecords,
+          child: const DeleteMenuButton(deleteAll: true),
+          onTap: () => _deleteAllNarrative(),
+        ),
+      ],
+    );
   }
 
   void _deleteNarrative() {
@@ -112,11 +121,14 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
       onDelete: () async {
         if (widget.narrativeId != null) {
           try {
-            await NarrativeServices(ref: ref)
-                .deleteNarrative(widget.narrativeId!);
-            if (context.mounted) {
-              _navigateToNarrative();
+            await NarrativeServices(
+              ref: ref,
+            ).deleteNarrative(widget.narrativeId!);
+            // Close the delete dialog.
+            if (mounted) {
+              Navigator.of(context).pop();
             }
+            ref.invalidate(narrativeEntryProvider);
           } catch (e) {
             if (context.mounted) {
               _showError(e.toString());
@@ -125,12 +137,6 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
         }
       },
     );
-  }
-
-  void _navigateToNarrative() {
-    Navigator.of(context).pop();
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (_) => const NarrativeViewer()));
   }
 
   void _showError(String errors) {
@@ -167,10 +173,8 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
 
   void _showSuccess() {
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Narrative deleted'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Narrative deleted')));
   }
 }

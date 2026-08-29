@@ -18,8 +18,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+36
 
 environment:
-  sdk: ">=3.4.0 <=4.1.0"
-  flutter: ">=3.0.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,76 +33,85 @@ dependencies:
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
-  drift: ^2.18.0
-  sqlite3_flutter_libs: ^0.5.9
+  drift: 2.34.0
   path_provider: ^2.0.15
   path: ^1.8.2
   uuid: ^4.1.0
-  dynamic_color: ^1.6.5
   url_launcher: ^6.1.5
   intl: ^0.20.0
+  yaml: ^3.1.3
+  http: ^1.2.0
+  crypto: ^3.0.6
   freezed_annotation: ^3.0.0
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  flutter_riverpod: ^3.3.2
   shared_preferences: ^2.1.1
-  material_design_icons_flutter: ^7.0.7096
   fl_chart: ^1.0.0
-  flex_color_scheme: ^8.2.0
-  pdf: ^3.8.4
-  csv: ^6.0.0
+  camera: ^0.11.2+1
   image_picker: ^1.0.0
-  share_plus: ^11.0.0
+  share_plus: ^13.1.0
   exif: ^3.1.4
-  printing: ^5.11.0
-  package_info_plus: ^8.0.0
-  qr_flutter: ^4.1.0
+  package_info_plus: ^10.1.0
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
-  file_picker: ^10.0.0
+  file_picker: ^12.0.0
   geolocator: ^14.0.0
-  xml: ^6.3.0
-  flutter_rust_bridge: ^2.11.1
+  flutter_rust_bridge: 2.13.0
   mobile_scanner: ^7.0.0
-  sqlite3: ^2.4.4
+  sqlite3: ^3.1.5
   rust_lib_nahpu:
     path: rust_builder
-  open_file_manager: ^2.0.1
-
+  timezone: ^0.11.0
+  material_ui: ^1.0.0
+  qr: ^4.0.0
+  mime: ^2.0.0
+  flutter_markdown_plus: ^1.0.7
+  flex_color_picker: ^3.8.0
+  google_fonts: ^8.1.0
+  pdfrx: ^2.4.7
+  flutter_map: ^8.3.1
+  flutter_map_pmtiles: ^1.0.5
+  pmtiles: ^1.2.0
+  latlong2: ^0.9.1
+  maplibre: ^0.3.5
+  maplibre_webview: ^0.3.5
+  video_player: ^2.13.0
+  fvp: ^0.37.3
+  record: ^7.1.1
+  cupertino_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  drift_dev: ^2.3.3
+  drift_dev: ^2.34.0
   build_runner: ^2.2.0
-  flutter_launcher_icons: ^0.14.1
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
-  freezed: ^3.0.0
-  custom_lint: ^0.7.5
-  riverpod_lint: ^2.0.2
-  riverpod_generator: ^2.3.7
+  flutter_lints: ^6.0.0
   integration_test:
     sdk: flutter
 
-flutter_icons:
+flutter_launcher_icons:
   ios: true
   android: true
+  image_path_ios: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
+  image_path_ios_dark_transparent: "assets/launcher/ios/iosNahpuIcon-iOS-Dark-1024x1024@1x.png"
+  image_path_ios_tinted_grayscale: "assets/launcher/ios/iosNahpuIcon-iOS-TintedLight-1024x1024@1x.png"
+  desaturate_tinted_to_grayscale_ios: true
+  image_path_android: "assets/launcher/nahpu-bg.png"
   remove_alpha_ios: true
-  image_path_ios: "assets/launcher/icon.png"
-  image_path_android: "assets/launcher/icon.png"
-  adaptive_icon_background: "#1b9e77"
-  adaptive_icon_foreground: "assets/launcher/icon_android.png"
+  adaptive_icon_background: "#f4f1de"
+  adaptive_icon_foreground: "assets/launcher/nahpu-fg.png"
   windows:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/nahpu-no-bg.png"
   macos:
     generate: true
-    image_path: "assets/launcher/icon_desktop.png"
+    image_path: "assets/launcher/ios/iosNahpuIcon-iOS-Default-1024x1024@1x.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -113,12 +122,38 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
+  # These assets are bundled with the application.
+  # Do not add assets/web here. They are not used inside the app bundle.
   assets:
-    - assets/images/
+    - assets/logo/
     - assets/avatars/
     - assets/icons/
-  #   - images/a_dot_ham.jpeg
+    - assets/configs/
+    - assets/maps/
+    - assets/docs/info/en/
+    - assets/docs/info/pt/
+    - assets/docs/info/es/
+    - assets/docs/info/id/
+    - assets/docs/cookbook/en/
+    - assets/docs/cookbook/en/prepare/
+    - assets/docs/cookbook/en/collect/
+    - assets/docs/cookbook/en/protect-and-collaborate/
+    - assets/docs/cookbook/en/export-and-print/
+    - assets/docs/cookbook/pt/
+    - assets/docs/cookbook/pt/prepare/
+    - assets/docs/cookbook/pt/collect/
+    - assets/docs/cookbook/pt/protect-and-collaborate/
+    - assets/docs/cookbook/pt/export-and-print/
+    - assets/docs/cookbook/es/
+    - assets/docs/cookbook/es/prepare/
+    - assets/docs/cookbook/es/collect/
+    - assets/docs/cookbook/es/protect-and-collaborate/
+    - assets/docs/cookbook/es/export-and-print/
+    - assets/docs/cookbook/id/
+    - assets/docs/cookbook/id/prepare/
+    - assets/docs/cookbook/id/collect/
+    - assets/docs/cookbook/id/protect-and-collaborate/
+    - assets/docs/cookbook/id/export-and-print/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -135,13 +170,59 @@ flutter:
     - family: "Merriweather"
       fonts:
         - asset: assets/fonts/Merriweather-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
+        - asset: assets/fonts/Merriweather-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Merriweather-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Merriweather-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Merriweather-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Merriweather-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Merriweather-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Merriweather-BlackItalic.ttf
+          weight: 900
+          style: italic
+    - family: "NahpuIcons"
+      fonts:
+        - asset: assets/fonts/nahpu_font.ttf
+    - family: "DejaVuSans"
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
+          weight: 700
+    - family: "DejaVuSerif"
+      fonts:
+        - asset: assets/fonts/DejaVuSerif.ttf
+        - asset: assets/fonts/DejaVuSerif-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/DejaVuSerif-Italic.ttf
+          style: italic
+    - family: "LibertinusSans"
+      fonts:
+        - asset: assets/fonts/LibertinusSans-Regular.ttf
+        - asset: assets/fonts/LibertinusSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSans-Bold.ttf
+          weight: 700
+    - family: "LibertinusSerif"
+      fonts:
+        - asset: assets/fonts/LibertinusSerif-Regular.ttf
+        - asset: assets/fonts/LibertinusSerif-Italic.ttf
+          style: italic
+        - asset: assets/fonts/LibertinusSerif-Bold.ttf
+          weight: 700
+    - family: "PlusJakartaSans"
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Italic.ttf
+          style: italic
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

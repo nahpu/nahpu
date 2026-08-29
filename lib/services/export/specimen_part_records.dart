@@ -1,49 +1,81 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/collecting_records.dart';
 import 'package:nahpu/services/export/common.dart';
-import 'package:nahpu/services/io_services.dart';
-import 'package:nahpu/services/specimen_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/src/rust/api/export.dart';
 
 class SpecimenPartWriter extends AppServices {
   const SpecimenPartWriter({
     required super.ref,
+    this.useFieldNamesOnly = false,
+    this.selectedColumns,
+    this.customColumnNames,
   });
 
-  Future<void> writeDelimited(File filePath, bool isCsv) async {
-    String delimiter = isCsv ? csvDelimiter : tsvDelimiter;
-    final file = await filePath.create(recursive: true);
-    final writer = file.openWrite();
+  final bool useFieldNamesOnly;
+  final List<String>? selectedColumns;
+  final Map<String, String>? customColumnNames;
+
+  Future<void> writeDelimited(File filePath, ExportFmt format) async {
     List<String> header = [
       ...partExportListDelimited,
       ...collectingRecordExportList,
     ];
-    writer.writeln(header.toDelimitedText(delimiter));
 
     List<String> specimenList = await _getSpecimenList();
+    List<Map<String, dynamic>> jsonList = [];
 
     for (var uuid in specimenList) {
       List<List<String>> parts = await SpecimenPartWriterServices(
         ref: ref,
         isWithLabel: false,
       ).getPartList(uuid, isWithEmpty: true);
-      SpecimenData specimenData =
-          await SpecimenServices(ref: ref).getSpecimen(uuid);
+      SpecimenData specimenData = await SpecimenServices(
+        ref: ref,
+      ).getSpecimen(uuid);
       for (var part in parts) {
         List<String> collectingRecords = await CollectingRecordWriterServices(
           ref: ref,
         ).getRecord(specimenData);
-        List<String> content = [
-          ...part,
-          ...collectingRecords,
-        ];
-        writer.writeln(content.toDelimitedText(delimiter));
+        List<String> content = [...part, ...collectingRecords];
+
+        Map<String, dynamic> row = {};
+        for (int i = 0; i < header.length; i++) {
+          if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+            String key = customColumnNames?.containsKey(header[i]) == true
+                ? customColumnNames![header[i]]!
+                : useFieldNamesOnly
+                ? header[i].split('::').last
+                : header[i];
+            row[key] = content[i];
+          }
+        }
+        jsonList.add(row);
       }
     }
 
-    writer.close();
+    String jsonContent = jsonEncode(jsonList);
+    List<String> filteredHeader = selectedColumns == null
+        ? header
+        : header.where((h) => selectedColumns!.contains(h)).toList();
+
+    final writer = RecordWriter(
+      jsonContent: jsonContent,
+      outputPath: filePath.path,
+      columnNames: customColumnNames != null
+          ? filteredHeader.map((e) => customColumnNames![e] ?? e).toList()
+          : useFieldNamesOnly
+          ? filteredHeader.map((e) => e.split('::').last).toList()
+          : filteredHeader,
+      exportFormat: format.name,
+      concatenateMultiEntries: true,
+    );
+    await writer.write();
   }
 
   Future<List<String>> _getSpecimenList() async {
@@ -60,18 +92,23 @@ class SpecimenPartWriterServices extends AppServices {
   final bool isWithLabel;
 
   Future<String> getPartListStr(String specimenUuid) async {
-    List<List<String>> partList =
-        await getPartList(specimenUuid, isWithEmpty: false);
+    List<List<String>> partList = await getPartList(
+      specimenUuid,
+      isWithEmpty: false,
+    );
 
     String partListStr = partList.map((e) => e.join(';')).join(writerSeparator);
 
     return partListStr;
   }
 
-  Future<List<List<String>>> getPartList(String specimenUuid,
-      {required bool isWithEmpty}) async {
-    List<SpecimenPartData> data =
-        await SpecimenPartServices(ref: ref).getSpecimenParts(specimenUuid);
+  Future<List<List<String>>> getPartList(
+    String specimenUuid, {
+    required bool isWithEmpty,
+  }) async {
+    List<SpecimenPartData> data = await SpecimenPartServices(
+      ref: ref,
+    ).getSpecimenParts(specimenUuid);
 
     List<List<String>> partList = [];
     for (SpecimenPartData part in data) {
@@ -88,8 +125,9 @@ class SpecimenPartWriterServices extends AppServices {
     String type = _getType(data.type);
     String count = _getCount(data.count);
     String treatment = _getTreatment(data.treatment);
-    String additionalTreatment =
-        _getAdditionalTreatment(data.additionalTreatment);
+    String additionalTreatment = _getAdditionalTreatment(
+      data.additionalTreatment,
+    );
     String dateTaken = _getDateTaken(data.dateTaken);
     String timeTaken = _getTimeTaken(data.timeTaken);
     String museumPermanent = _getMuseumPermanent(data.museumPermanent);
@@ -106,7 +144,7 @@ class SpecimenPartWriterServices extends AppServices {
       timeTaken,
       museumPermanent,
       museumLoan,
-      remarks
+      remarks,
     ];
 
     if (isWithEmpty) {

@@ -1,27 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="512" height="512">
-<g>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M33.639,435.935c3.142,3.835,6.5,7.553,10.08,11.133"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M76.065,478.361c-3.835-3.142-7.553-6.5-11.133-10.08"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M258.679,232.108L11.893,478.893c-5.858,5.858-5.858,15.355,0,21.213c5.858,5.858,15.355,5.858,21.213,0L400.303,132.91&#10;&#9;&#9;c43.374-43.374,77.711-86.044,95.459-116.673c-30.628,17.748-73.299,52.086-116.673,95.459l-99.198,99.197&#10;&#9;&#9;c53.033-53.033,10.607-95.459,63.64-148.492"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M455.439,162.628l-5.841,5.84c-53.033,53.033-95.459,10.607-148.492,63.64"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M86.145,404.641c53.033-53.033,10.607-95.459,63.64-148.492L343.532,62.402c36.198-36.198,83.515-54.495,130.957-54.901&#10;&#9;&#9;c16.574-0.142,30.151,13.436,30.01,30.01c-0.361,42.203-14.893,84.299-43.576,118.565L240.075,419.905&#10;&#9;&#9;c-1.71,2.042-3.518,4.03-5.437,5.95c-35.147,35.147-92.132,35.147-127.279,0"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M46.392,401.968c5.035,8.525,11.215,16.562,18.54,23.887"/>
-	<path style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;M110.032,465.608c-8.525-5.035-16.562-11.215-23.887-18.54"/>
-</g>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M40 8c-6-4-16-2-24 6S6 32 6 42c10 0 20-2 28-10s6-20 6-24z" />
+  <path d="M6 42 42 6" />
+  <g stroke-width="2">
+    <path d="m26 22 8-4" />
+    <path d="m18 30 8-4" />
+    <path d="m22 14 8-4" />
+    <path d="m21 27-4 8" />
+    <path d="m29 19-4 8" />
+  </g>
 </svg>
