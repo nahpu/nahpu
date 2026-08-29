@@ -52,6 +52,7 @@ void main() {
     expect(card.isPrimary, isTrue);
     expect(card.infoTopic, InfoTopic.specimenGeneralRecord);
     expect(find.byType(FormCardSectionLabel), findsOneWidget);
+    expect(find.text('Specimen UUID: specimen-a'), findsOneWidget);
     final identificationY = tester.getCenter(find.text('Identification')).dy;
 
     expect(
@@ -92,6 +93,10 @@ void main() {
     await tester.tap(showMore);
     await tester.pumpAndSettle();
     expect(find.text('Museum ID'), findsOneWidget);
+    expect(
+      tester.getBottomRight(find.text('Specimen UUID: specimen-a')).dy,
+      lessThan(tester.getTopLeft(find.text('Museum ID')).dy),
+    );
     expect(
       tester.getCenter(find.text('Museum ID')).dy,
       lessThan(identificationY),

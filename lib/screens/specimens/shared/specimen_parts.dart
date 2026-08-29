@@ -1135,7 +1135,6 @@ class PartIdForm extends ConsumerWidget {
         child: Column(
           children: [
             Text('IDs', style: Theme.of(context).textTheme.titleLarge),
-            SelectableText('Specimen UUID: $specimenUuid'),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,

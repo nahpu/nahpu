@@ -23,7 +23,7 @@ void main() {
     _expectOutsideScroll(tester, 'Cancel');
     _expectOutsideScroll(tester, 'Add');
     expect(find.text('IDs'), findsOneWidget);
-    expect(find.text('Specimen UUID: specimen'), findsOneWidget);
+    expect(find.text('Specimen UUID: specimen'), findsNothing);
     expect(find.text('Additional Part ID'), findsNothing);
     expect(find.text('Preparation'), findsOneWidget);
     expect(find.text('Sampling'), findsOneWidget);

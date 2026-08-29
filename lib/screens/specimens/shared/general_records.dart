@@ -692,42 +692,47 @@ class IdTile extends ConsumerWidget {
             showMore ||
             specimenCtr.museumIDCtr.text.isNotEmpty;
 
-        return Visibility(
-          visible: showIdArea,
-          child: CommonIDForm(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Visibility(
-                    visible:
-                        showMore || specimenCtr.museumIDCtr.text.isNotEmpty,
-                    child: CommonTextField(
-                      controller: specimenCtr.museumIDCtr,
-                      labelText: 'Museum ID',
-                      hintText: 'Enter museum ID (if applicable)',
-                      isLastField: true,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          SpecimenServices(
-                            ref: ref,
-                          ).updateSpecimenSkipInvalidation(
-                            specimenUuid,
-                            SpecimenCompanion(museumID: db.Value(value)),
-                          );
-                        }
-                      },
-                    ),
+        return CommonIDForm(
+          child: Column(
+            children: [
+              SelectableText(
+                'Specimen UUID: $specimenUuid',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Visibility(
+                  visible: showMore || specimenCtr.museumIDCtr.text.isNotEmpty,
+                  child: CommonTextField(
+                    controller: specimenCtr.museumIDCtr,
+                    labelText: 'Museum ID',
+                    hintText: 'Enter museum ID (if applicable)',
+                    isLastField: true,
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        SpecimenServices(
+                          ref: ref,
+                        ).updateSpecimenSkipInvalidation(
+                          specimenUuid,
+                          SpecimenCompanion(museumID: db.Value(value)),
+                        );
+                      }
+                    },
                   ),
                 ),
-                SpecimenIdTile(
+              ),
+              Visibility(
+                visible: showIdArea,
+                child: SpecimenIdTile(
                   specimenUuid: specimenUuid,
                   specimenCtr: specimenCtr,
                   catalogerUuid: catalogerUuid,
                   fieldIdMode: fieldIdMode,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
