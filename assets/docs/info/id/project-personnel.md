@@ -13,4 +13,8 @@ Catatan personel mewakili orang-orang yang terlibat dalam proyek. Seseorang disi
 - **Preparator only:** mempreparasi spesimen, tetapi tidak mengatalognya.
 - **None:** ikut dalam kerja lapangan tanpa peran perawatan spesimen.
 
-Ini adalah peran alur kerja NAHPU. Kolom agen pada hasil ekspor, seperti `dwc:recordedBy` dan `dwc:identifiedBy`, diisi menurut hubungan yang sebenarnya pada setiap catatan.
+Ini adalah peran alur kerja NAHPU yang menentukan pada apa seseorang dapat ditugaskan di dalam aplikasi. Peran ini berbeda dari peran yang dilaporkan dalam hasil ekspor, yang mengikuti hubungan sebenarnya pada setiap catatan.
+
+## Konteks Darwin Core
+
+Seseorang diekspor sebagai agen dengan pengenal `dwc:agentID`, yang diambil dari ORCID bila tercatat dan dari pengenal NAHPU bila tidak; keterangan personel menjadi `dwc:agentRemarks`. Hubungan pada catatan spesimen mengisi kolom agen: pengumpul mengisi `dwc:recordedBy` dan `dwc:recordedByID`, sedangkan penentu identifikasi mengisi `dwc:identifiedBy` dan `dwc:identifiedByID`.

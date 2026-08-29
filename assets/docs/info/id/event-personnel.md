@@ -4,6 +4,10 @@ sidebar:
   order: 0
 ---
 
-Tambahkan setiap orang yang ikut serta atau memberi dukungan berarti pada kegiatan pengumpulan, lalu tetapkan peran kegiatan yang telah didefinisikan di proyek untuk menggambarkan pekerjaannya. Ini dapat mencakup pengumpul lapangan, personel jalur perangkap, pemandu, pengemudi, atau kontributor lain bila pencatatan keikutsertaan mereka memang layak.
+Tambahkan semua orang yang ikut serta atau memberi dukungan berarti pada kegiatan pengumpulan, lalu berikan peran kegiatan yang ditetapkan proyek sesuai pekerjaan mereka. Ini dapat mencakup pengumpul lapangan, personel jalur perangkap, pemandu, pengemudi, dan kontributor lain bila partisipasinya memang perlu dicatat.
 
-Keikutsertaan dalam kegiatan berbeda dari peran perawatan spesimen di NAHPU, seperti Cataloger, Preparator, dan Determiner. Hubungan agen yang diekspor harus mencerminkan apa yang benar-benar dilakukan setiap orang; nama yang terkait dengan pelaksanaan atau pencatatan kegiatan dapat mengisi kolom agen Darwin Core seperti `dwc:eventConductedBy` atau `dwc:recordedBy`.
+Partisipasi dalam kegiatan berbeda dari peran perawatan spesimen NAHPU, yaitu Cataloger, Preparator, dan Determiner. Orang yang terdaftar di sini menunjukkan siapa yang hadir dan bekerja, bukan siapa yang mempreparasi atau mengidentifikasi spesimen.
+
+## Konteks Darwin Core
+
+Ekspor tabel memetakan personel kegiatan ke `dwc:recordedBy` dan `dwc:recordedByID`. Dalam Darwin Core Data Package, orang yang sama muncul pada `eventConductedBy` dan `eventConductedByID` milik kegiatan, serta sebagai baris agen dengan peran kegiatannya.

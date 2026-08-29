@@ -4,6 +4,12 @@ sidebar:
   order: 0
 ---
 
-Media menyimpan gambar, audio, dan video yang didukung dan terkait dengan sebuah catatan proyek. Gunakan `Add` untuk mengimpor berkas atau, bila tersedia, mengambil foto, merekam video, atau merekam audio.
+Media menyimpan gambar, audio, dan video yang terkait dengan catatan proyek. Gunakan `Add` untuk mengimpor berkas atau, bila perangkat mendukung, untuk mengambil foto atau video maupun merekam audio.
 
-Catat judul yang jelas, jenis media, pembuat atau juru foto, tanggal, dan catatan bila diketahui. Data ini menjelaskan sumber daya medianya dan dapat mengisi metadata `ac:Media` Audiovisual Core; data ini tidak menggantikan data spesimen, kegiatan, atau lokalitas. Pastikan berkas terkelola dapat dibuka sebelum meninggalkan lapangan, dan sertakan media dalam cadangan atau transfer proyek lengkap bila media harus ikut berpindah ke perangkat lain.
+Sunting nama berkas, keterangan gambar, tag, dan fotografernya agar orang lain tahu isi berkas tersebut. Kategori mengikuti tipe berkas, sedangkan tanggal pengambilan, kamera, dan lensa dibaca dari metadata berkas itu sendiri bila ada. Pastikan berkas terkelola dapat dibuka sebelum meninggalkan lapangan, dan sertakan media dalam cadangan atau transfer proyek penuh bila media harus berpindah ke perangkat lain.
+
+Media menjelaskan sumber dayanya, bukan spesimennya. Simpan pengamatan tentang organisme pada catatan spesimen.
+
+## Konteks Darwin Core
+
+Media yang terlampir pada spesimen diekspor bersama kejadiannya sebagai catatan `ac:Media` dari Audiovisual Core: keterangan gambar atau nama berkas menjadi judul, tanggal pengambilan menjadi tanggal pembuatan, dan fotografer menjadi pembuatnya. Dalam ekspor tabel, kolom media dipetakan ke istilah Dublin Core seperti `dcterms:title`, `dcterms:created`, `dcterms:type`, dan `dcterms:identifier`.

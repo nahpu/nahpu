@@ -4,8 +4,12 @@ sidebar:
   order: 0
 ---
 
-O registro contém os nomes taxonômicos disponíveis para este projeto. Um táxon não é o mesmo que um espécime ou um `dwc:Occurrence`; os registros de espécimes se referem a um táxon registrado para a sua identificação.
+O registro contém os nomes taxonômicos disponíveis para este projeto. Um táxon é um nome, não um espécime; os registros de espécimes apontam para um táxon registrado para sua identificação.
 
-Adicione táxons manualmente ou importe arquivos `.xlsx`, `.csv` ou `.tsv`. O registro manual pede primeiro uma `Taxon rank` e depois exibe os campos de nome até essa categoria. As importações também podem registrar entradas de classe, ordem, família, gênero, espécie e subespécie quando uma coluna `taxon rank` é incluída. Uma categoria ausente ou vazia é tratada como espécie somente quando classe, ordem, família, gênero e epíteto específico estão completos; caso contrário, adicione uma categoria. Cada linha requer os campos de classificação desde classe até a categoria selecionada. Revise cada mapeamento de coluna detectado antes de importar.
+Adicione táxons manualmente ou importe arquivos `.xlsx`, `.csv` ou `.tsv`. O registro manual pede primeiro um `Taxon rank` e depois mostra os campos de nome até esse nível. As importações podem registrar classe, ordem, família, gênero, espécie e subespécie quando há uma coluna `taxon rank`. Um nível ausente ou vazio é tratado como espécie somente se classe, ordem, família, gênero e epíteto específico estiverem completos; caso contrário, informe um nível. Cada linha exige os campos de classificação de classe até o nível selecionado. Revise cada mapeamento de coluna detectado antes de importar.
 
-**Registered taxa** conta os nomes atribuídos ao projeto. **Recorded taxa** resume os táxons referenciados por registros de espécime ou de captura e muda conforme os registros são adicionados.
+O painel conta as ordens, as famílias e os nomes de espécie completos distintos existentes no registro. Um total de táxons aparece quando o registro também contém nomes acima do nível de espécie. Essas são contagens do registro; o painel de estatísticas informa os táxons que os registros de espécimes de fato usam.
+
+## Contexto do Darwin Core
+
+Um nome registrado fornece os termos de identificação de uma exportação: `dwc:taxonID`, `dwc:kingdom`, `dwc:phylum`, `dwc:class`, `dwc:order`, `dwc:family`, `dwc:genus`, `dwc:specificEpithet`, `dwc:infraspecificEpithet`, `dwc:taxonRank`, `dwc:scientificNameAuthorship`, `dwc:vernacularName` e `dwc:taxonRemarks`.

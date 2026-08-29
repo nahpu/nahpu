@@ -11,3 +11,7 @@ A project groups the personnel, taxa, sites, collecting events, specimen records
 NAHPU assigns every new project a universally unique identifier (UUID). Importing project information preserves that UUID so collaborating devices can identify copies of the same project. Project information does not include records or media; use project transfer when those must move too.
 
 Keep the project description concise. Record detailed daily context in Narratives.
+
+## Darwin Core context
+
+The project UUID identifies the dataset in exports and is written to `dwc:datasetID`.

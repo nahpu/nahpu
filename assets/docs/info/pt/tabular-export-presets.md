@@ -4,6 +4,12 @@ sidebar:
   order: 0
 ---
 
-Uma predefinição de exportação tabular salva um tipo de registro repetível, o escopo taxonômico, a seleção de campos, a ordenação, o estilo de cabeçalho e o comportamento para valores repetidos. O formato de saída, o nome do arquivo e o destino são escolhidos no momento da exportação.
+Uma predefinição de exportação tabular salva uma definição repetível: o tipo de registro, o grupo taxonômico do espécime, os campos selecionados e sua ordem, o formato de cabeçalho gerado e como os valores repetidos são escritos. O formato de saída, o nome do arquivo e o destino são escolhidos no momento da exportação.
 
-Use mapeamentos padronizados apenas quando o campo do NAHPU tiver o mesmo significado do termo de destino. Cabeçalhos do Darwin Core como `dwc:scientificName` ou `dwc:samplingProtocol` não devem ser atribuídos apenas porque os rótulos se parecem. Teste uma predefinição com registros representativos, incluindo valores ausentes e repetidos, e transfira as configurações de usuário quando colaboradores precisarem da mesma definição de exportação.
+Valores repetidos podem ser escritos em uma única coluna com um separador ou distribuídos em colunas indexadas como `field_1`, `field_2`. Teste uma predefinição com registros representativos, incluindo valores ausentes e repetidos, antes de depender dela, e transfira as configurações de usuário quando colaboradores precisarem da mesma definição.
+
+## Contexto do Darwin Core
+
+`Generated header format` escolhe como os cabeçalhos são nomeados: `table::fieldName`, `fieldName`, Darwin Core (`dwc:`/`dcterms:`) ou o namespace do NAHPU. Cabeçalhos do Darwin Core são produzidos apenas para saídas CSV, TSV e Excel, e apenas para campos que tenham equivalente no Darwin Core; um campo sem equivalente mantém seu nome do NAHPU. Valores repetidos em uma exportação do Darwin Core sempre usam o separador recomendado " | ".
+
+Mapeie um campo personalizado para um termo do Darwin Core apenas quando ele significar a mesma coisa que aquele termo. Rótulos parecidos não bastam: um termo reaproveitado para outro conceito torna a exportação mais difícil de interpretar do que uma coluna do NAHPU sem mapeamento.

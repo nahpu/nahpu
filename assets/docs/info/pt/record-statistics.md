@@ -8,7 +8,7 @@ As estatísticas de registros resumem o projeto ativo e são atualizadas conform
 
 **Specimens** é o número total de registros de espécimes. **Species** conta identificações distintas que tenham gênero e epíteto específico, enquanto **Families** conta nomes de família distintos e não vazios referenciados por esses espécimes. Diferenças de maiúsculas ou espaços ao redor não criam espécies ou famílias adicionais.
 
-Um espécime não identificado, ou uma identificação com nome de espécie incompleto, ainda contribui para **Specimens**, mas não aumenta **Species**. Uma família ausente não aumenta **Families**. Essas contagens de táxons registrados descrevem os nomes usados pelos registros de espécimes, não todos os nomes disponíveis no registro de táxons.
+Um espécime não identificado, ou uma identificação com nome de espécie incompleto, ainda contribui para **Specimens**, mas não aumenta **Species**. Uma família ausente não aumenta **Families**. Essas contagens descrevem os nomes usados pelos registros de espécimes, não todos os nomes disponíveis no registro de táxons.
 
 O painel abre em **Top recorded species**, as cinco espécies com mais registros de espécimes, cada uma com uma barra dimensionada pela maior contagem. Use o botão no canto superior direito para alternar entre esse gráfico e **Record counts**, o resumo numérico descrito acima.
 

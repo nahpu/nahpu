@@ -4,8 +4,12 @@ sidebar:
   order: 0
 ---
 
-El registro contiene los nombres taxonómicos disponibles para este proyecto. Un taxón no es lo mismo que un espécimen o un `dwc:Occurrence`; los registros de especímenes se refieren a un taxón registrado para su identificación.
+El registro contiene los nombres taxonómicos disponibles para este proyecto. Un taxón es un nombre, no un espécimen; los registros de especímenes apuntan a un taxón registrado para su identificación.
 
-Agregue taxones manualmente o importe archivos `.xlsx`, `.csv` o `.tsv`. El registro manual pide primero una `Taxon rank` y luego muestra los campos de nombre hasta esa categoría. Las importaciones también pueden registrar entradas de clase, orden, familia, género, especie y subespecie cuando se incluye una columna `taxon rank`. Una categoría ausente o vacía se interpreta como especie solo si la clase, el orden, la familia, el género y el epíteto específico están completos; de lo contrario, agregue una categoría. Cada fila requiere los campos de clasificación desde clase hasta la categoría seleccionada. Revise cada asignación de columna detectada antes de importar.
+Agregue taxones manualmente o importe archivos `.xlsx`, `.csv` o `.tsv`. El registro manual pide primero un `Taxon rank` y luego muestra los campos de nombre hasta ese rango. Las importaciones pueden registrar clase, orden, familia, género, especie y subespecie cuando se incluye una columna `taxon rank`. Un rango ausente o vacío se toma como especie solo si clase, orden, familia, género y epíteto específico están completos; de lo contrario, agregue un rango. Cada fila requiere los campos de clasificación desde clase hasta el rango seleccionado. Revise cada asignación de columna detectada antes de importar.
 
-**Registered taxa** cuenta los nombres asignados al proyecto. **Recorded taxa** resume los taxones referenciados por registros de espécimen o de captura y cambia a medida que se agregan registros.
+El panel cuenta los órdenes, las familias y los nombres de especie completos distintos que contiene el registro. Un total de taxones aparece cuando el registro también contiene nombres por encima del rango de especie. Estos son conteos del registro; el panel de estadísticas informa los taxones que realmente usan los registros de especímenes.
+
+## Contexto de Darwin Core
+
+Un nombre registrado provee los términos de identificación de una exportación: `dwc:taxonID`, `dwc:kingdom`, `dwc:phylum`, `dwc:class`, `dwc:order`, `dwc:family`, `dwc:genus`, `dwc:specificEpithet`, `dwc:infraspecificEpithet`, `dwc:taxonRank`, `dwc:scientificNameAuthorship`, `dwc:vernacularName` y `dwc:taxonRemarks`.

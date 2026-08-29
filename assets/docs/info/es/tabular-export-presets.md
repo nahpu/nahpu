@@ -4,6 +4,12 @@ sidebar:
   order: 0
 ---
 
-Un preajuste de exportación tabular guarda un tipo de registro repetible, el alcance taxonómico, la selección de campos, el orden, el estilo de encabezado y el comportamiento ante valores repetidos. El formato de salida, el nombre del archivo y el destino se eligen al ejecutar la exportación.
+Un preajuste de exportación tabular guarda una definición repetible: el tipo de registro, el grupo taxonómico del espécimen, los campos seleccionados y su orden, el formato de encabezado generado y cómo se escriben los valores repetidos. El formato de salida, el nombre del archivo y el destino se eligen al ejecutar la exportación.
 
-Use asignaciones estándar solo cuando el campo de NAHPU tenga el mismo significado que el término de destino. Los encabezados de Darwin Core como `dwc:scientificName` o `dwc:samplingProtocol` no deben asignarse solo porque las etiquetas se parezcan. Pruebe un preajuste con registros representativos, incluidos valores faltantes y repetidos, y transfiera las configuraciones de usuario cuando quienes colaboran necesiten la misma definición de exportación.
+Los valores repetidos pueden escribirse en una sola columna con un separador, o repartirse en columnas indexadas como `field_1`, `field_2`. Pruebe un preajuste con registros representativos, incluidos valores faltantes y repetidos, antes de depender de él, y transfiera las configuraciones de usuario cuando quienes colaboran necesiten la misma definición.
+
+## Contexto de Darwin Core
+
+`Generated header format` elige cómo se nombran los encabezados: `table::fieldName`, `fieldName`, Darwin Core (`dwc:`/`dcterms:`) o el espacio de nombres de NAHPU. Los encabezados de Darwin Core solo se producen para salidas CSV, TSV y Excel, y solo para campos que tienen un equivalente en Darwin Core; un campo sin equivalente conserva su nombre de NAHPU. Los valores repetidos en una exportación de Darwin Core siempre usan el separador recomendado " | ".
+
+Asigne un campo personalizado a un término de Darwin Core solo cuando signifique lo mismo que ese término. Que las etiquetas coincidan no basta: un término reutilizado para otro concepto vuelve la exportación más difícil de interpretar que una columna de NAHPU sin asignar.

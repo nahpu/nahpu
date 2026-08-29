@@ -4,6 +4,10 @@ sidebar:
   order: 0
 ---
 
-Elija la actividad principal que mejor describa el evento de recolecta. Registre las actividades secundarias, las circunstancias inusuales o el trabajo representado por `Other` en las notas.
+Elija la actividad principal que mejor describa el evento de recolecta. Use las notas para actividades secundarias, circunstancias inusuales o el trabajo representado por `Other`.
 
-La actividad es una categorización a nivel de proyecto, para filtrar y generar informes de forma consistente. El procedimiento real de muestreo pertenece a los registros de esfuerzo y puede exportarse como `dwc:samplingProtocol`. No use la etiqueta de actividad como sustituto del equipo, la duración, la cantidad u otros detalles del esfuerzo de muestreo.
+La actividad es una categorización a nivel de proyecto que mantiene consistentes el filtrado y los informes, y sus valores disponibles se configuran en Settings. El equipo, los conteos, las dimensiones y otros detalles de muestreo pertenecen a los registros de esfuerzo, no a la etiqueta de actividad.
+
+## Contexto de Darwin Core
+
+La actividad principal se exporta como `dwc:samplingProtocol` y las notas de actividad como `dwc:samplingEffort`, tanto para el evento como para cada espécimen recolectado durante él.
