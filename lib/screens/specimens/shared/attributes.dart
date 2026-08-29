@@ -45,26 +45,6 @@ class _AttributeFormState extends State<AttributeForm> {
   }
 }
 
-class SpecimenAttributeSectionLabel extends StatelessWidget {
-  const SpecimenAttributeSectionLabel({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-      child: Center(
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-      ),
-    );
-  }
-}
-
 class SpecimenSexDropdown extends ConsumerWidget {
   const SpecimenSexDropdown({
     super.key,
@@ -217,7 +197,7 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
     return Column(
       children: [
         const CommonDivider(),
-        const SpecimenAttributeSectionLabel(text: 'Parasites'),
+        const FormCardSectionLabel(text: 'Parasites'),
         DropdownButtonFormField<int?>(
           key: ValueKey('examined-${detection?.parasiteExamined}'),
           initialValue: detection?.parasiteExamined,

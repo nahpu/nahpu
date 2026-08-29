@@ -6,6 +6,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
@@ -477,7 +478,7 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Male gonads'),
+          const FormCardSectionLabel(text: 'Male gonads'),
           Text(
             'Left testis size (mm)',
             style: Theme.of(context).textTheme.titleSmall,
@@ -626,8 +627,8 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Female gonads'),
-          const SpecimenAttributeSectionLabel(text: 'Ovary size'),
+          const FormCardSectionLabel(text: 'Female gonads'),
+          const FormCardSectionLabel(text: 'Ovary size'),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
@@ -694,7 +695,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               useHorizontalLayout: widget.useHorizontalLayout,
             ),
           ),
-          const SpecimenAttributeSectionLabel(text: 'Oviduct'),
+          const FormCardSectionLabel(text: 'Oviduct'),
           OviductForm(
             specimenUuid: widget.specimenUuid,
             ctr: widget.ctr,
@@ -806,9 +807,7 @@ class OvumSizeForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        const SpecimenAttributeSectionLabel(
-          text: 'Diameter of three largest ova (mm)',
-        ),
+        const FormCardSectionLabel(text: 'Diameter of three largest ova (mm)'),
         AdaptiveLayout(
           useHorizontalLayout: useHorizontalLayout,
           children: [
@@ -1021,7 +1020,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Molt'),
+          const FormCardSectionLabel(text: 'Molt'),
           BodyMoltForm(specimenUuid: widget.specimenUuid, ctr: widget.ctr),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
@@ -1216,7 +1215,7 @@ class Notes extends ConsumerWidget {
       padding: const EdgeInsets.all(4),
       child: Column(
         children: [
-          const SpecimenAttributeSectionLabel(text: 'Notes'),
+          const FormCardSectionLabel(text: 'Notes'),
           CommonTextField(
             controller: ctr.habitatRemarkCtr,
             maxLines: 3,

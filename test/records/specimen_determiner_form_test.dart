@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/general_records.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -24,6 +25,77 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(controller.determinerCtr, 'identifier-a');
+  });
+
+  testWidgets('general record uses one card with an identification section', (
+    tester,
+  ) async {
+    final harness = await _SpecimenFormHarness.create();
+    addTearDown(harness.dispose);
+    final controller = SpecimenFormCtrModel.empty()
+      ..catalogerCtr = 'cataloger-a'
+      ..persFieldNumberCtr.text = '7'
+      ..idConfidenceCtr = 2;
+    addTearDown(controller.dispose);
+
+    await harness.pump(
+      tester,
+      GeneralRecordField(
+        specimenUuid: 'specimen-a',
+        specimenCtr: controller,
+        useHorizontalLayout: false,
+      ),
+    );
+
+    final card = tester.widget<FormCard>(find.byType(FormCard));
+    expect(card.title, 'Collection & Identification');
+    expect(card.isPrimary, isTrue);
+    expect(card.infoTopic, InfoTopic.specimenGeneralRecord);
+    expect(find.byType(FormCardSectionLabel), findsOneWidget);
+    final identificationY = tester.getCenter(find.text('Identification')).dy;
+
+    expect(
+      tester.getBottomRight(find.byType(SpecimenIdTile)).dy,
+      lessThan(identificationY),
+    );
+    for (final label in const [
+      'Cataloger',
+      'Preparator',
+      'Condition',
+      'Collection date',
+      'Collection time',
+      'Prep. date',
+      'Prep. time',
+    ]) {
+      expect(
+        tester.getCenter(find.text(label)).dy,
+        lessThan(identificationY),
+        reason: label,
+      );
+    }
+
+    for (final label in const [
+      'Taxon',
+      'Determiner',
+      'ID Confidence',
+      'Identification Method',
+    ]) {
+      expect(
+        tester.getCenter(find.text(label)).dy,
+        greaterThan(identificationY),
+        reason: label,
+      );
+    }
+
+    final showMore = find.text('Show more');
+    await tester.ensureVisible(showMore);
+    await tester.tap(showMore);
+    await tester.pumpAndSettle();
+    expect(find.text('Museum ID'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Museum ID')).dy,
+      lessThan(identificationY),
+    );
   });
 
   testWidgets(
@@ -66,7 +138,6 @@ void main() {
       PersonnelRecords(
         specimenUuid: 'specimen-a',
         specimenCtr: controller,
-        showMore: false,
         onCatalogerChanged: () {},
       ),
     );
@@ -106,7 +177,6 @@ void main() {
         PersonnelRecords(
           specimenUuid: 'specimen-a',
           specimenCtr: controller,
-          showMore: false,
           onCatalogerChanged: () {},
         ),
       );
@@ -151,7 +221,10 @@ void main() {
       expect(find.text('ID Confidence'), findsOneWidget);
       expect(find.text('Identification Method'), findsNothing);
 
-      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      final confidenceField = find.byType(DropdownButtonFormField<int?>);
+      await tester.ensureVisible(confidenceField);
+      await tester.pumpAndSettle();
+      await tester.tap(confidenceField);
       await tester.pumpAndSettle();
       await tester.tap(find.text('High').last);
       await tester.pumpAndSettle();
@@ -162,7 +235,10 @@ void main() {
         greaterThan(tester.getTopLeft(find.text('ID Confidence')).dy),
       );
 
-      await tester.tap(find.byType(DropdownButtonFormField<String?>).last);
+      final methodField = find.byType(DropdownButtonFormField<String?>).last;
+      await tester.ensureVisible(methodField);
+      await tester.pumpAndSettle();
+      await tester.tap(methodField);
       await tester.pumpAndSettle();
       for (final option in [...defaultIdMethods, 'legacy microscopy']) {
         expect(find.text(option), findsWidgets);
@@ -170,7 +246,9 @@ void main() {
       await tester.tap(find.text('legacy microscopy').last);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(DropdownButtonFormField<int?>));
+      await tester.ensureVisible(confidenceField);
+      await tester.pumpAndSettle();
+      await tester.tap(confidenceField);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Not assigned').last);
       await tester.pumpAndSettle();

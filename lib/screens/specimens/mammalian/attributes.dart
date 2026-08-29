@@ -6,6 +6,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
@@ -872,7 +873,7 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Testes'),
+          const FormCardSectionLabel(text: 'Testes'),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<TestisPosition>(
@@ -1145,9 +1146,7 @@ class FemaleGonadForm extends ConsumerWidget {
       child: Column(
         children: [
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(
-            text: 'Female reproductive attributes',
-          ),
+          const FormCardSectionLabel(text: 'Female reproductive attributes'),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<ReproductiveStage>(
@@ -1178,7 +1177,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Mammae counts (pairs)'),
+          const FormCardSectionLabel(text: 'Mammae counts (pairs)'),
           MammaeForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1214,7 +1213,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Embryo'),
+          const FormCardSectionLabel(text: 'Embryo'),
           EmbryoForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1240,7 +1239,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const SpecimenAttributeSectionLabel(text: 'Placental scars'),
+          const FormCardSectionLabel(text: 'Placental scars'),
           PlacentalScarForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,

@@ -126,6 +126,31 @@ class CommonIDForm extends StatelessWidget {
   }
 }
 
+class FormCardSectionLabel extends StatelessWidget {
+  const FormCardSectionLabel({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        NahpuSpacing.md,
+        NahpuSpacing.md,
+        NahpuSpacing.md,
+        NahpuSpacing.xs,
+      ),
+      child: Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+    );
+  }
+}
+
 class FormSection extends StatelessWidget {
   const FormSection({
     super.key,

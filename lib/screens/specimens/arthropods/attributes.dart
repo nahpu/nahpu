@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -108,7 +109,7 @@ class _ArthropodAttributeFormsState
             ),
           ],
         ),
-        const SpecimenAttributeSectionLabel(text: 'Ecological interactions'),
+        const FormCardSectionLabel(text: 'Ecological interactions'),
         _EcologicalInteractionSection(
           ctr: _ctr,
           useHorizontalLayout: widget.useHorizontalLayout,
@@ -137,7 +138,7 @@ class _ArthropodAttributeFormsState
           ],
         ),
         if (_showMorphometrics) ...[
-          const SpecimenAttributeSectionLabel(text: 'Specimen morphometrics'),
+          const FormCardSectionLabel(text: 'Specimen morphometrics'),
           _MorphometricsSection(
             ctr: _ctr,
             useHorizontalLayout: widget.useHorizontalLayout,

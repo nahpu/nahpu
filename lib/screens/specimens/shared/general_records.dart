@@ -56,31 +56,18 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       child: Column(
         children: [
+          CommonPadding(
+            child: IdTile(
+              specimenUuid: widget.specimenUuid,
+              specimenCtr: widget.specimenCtr,
+              catalogerUuid: widget.specimenCtr.catalogerCtr ?? '',
+              showMore: _showMore,
+            ),
+          ),
           PersonnelRecords(
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
-            showMore: _showMore,
             onCatalogerChanged: () => setState(() {}),
-          ),
-          SpeciesFieldCtr(
-            specimenUuid: widget.specimenUuid,
-            speciesCtr: widget.specimenCtr.speciesCtr,
-          ),
-          DeterminerField(
-            specimenUuid: widget.specimenUuid,
-            specimenCtr: widget.specimenCtr,
-          ),
-          IDConfidence(
-            specimenUuid: widget.specimenUuid,
-            specimenCtr: widget.specimenCtr,
-            onChanged: () => setState(() {}),
-          ),
-          Visibility(
-            visible: widget.specimenCtr.idConfidenceCtr != null,
-            child: IDMethod(
-              specimenUuid: widget.specimenUuid,
-              specimenCtr: widget.specimenCtr,
-            ),
           ),
           SpecimenConditionField(
             specimenCtr: widget.specimenCtr,
@@ -111,6 +98,27 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
                 specimenUuid: widget.specimenUuid,
               ),
             ],
+          ),
+          const FormCardSectionLabel(text: 'Identification'),
+          SpeciesFieldCtr(
+            specimenUuid: widget.specimenUuid,
+            speciesCtr: widget.specimenCtr.speciesCtr,
+          ),
+          DeterminerField(
+            specimenUuid: widget.specimenUuid,
+            specimenCtr: widget.specimenCtr,
+          ),
+          IDConfidence(
+            specimenUuid: widget.specimenUuid,
+            specimenCtr: widget.specimenCtr,
+            onChanged: () => setState(() {}),
+          ),
+          Visibility(
+            visible: widget.specimenCtr.idConfidenceCtr != null,
+            child: IDMethod(
+              specimenUuid: widget.specimenUuid,
+              specimenCtr: widget.specimenCtr,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -510,13 +518,11 @@ class PersonnelRecords extends ConsumerStatefulWidget {
     super.key,
     required this.specimenUuid,
     required this.specimenCtr,
-    required this.showMore,
     required this.onCatalogerChanged,
   });
 
   final SpecimenFormCtrModel specimenCtr;
   final String specimenUuid;
-  final bool showMore;
   final VoidCallback onCatalogerChanged;
 
   @override
@@ -531,12 +537,6 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
     return CommonPadding(
       child: Column(
         children: [
-          IdTile(
-            specimenUuid: widget.specimenUuid,
-            specimenCtr: widget.specimenCtr,
-            catalogerUuid: widget.specimenCtr.catalogerCtr ?? '',
-            showMore: widget.showMore,
-          ),
           DropdownButtonFormField<String>(
             initialValue: widget.specimenCtr.catalogerCtr,
             isExpanded: true,
