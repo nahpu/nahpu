@@ -11,6 +11,46 @@ permissions:
   contents: read
 
 jobs:
+  schema-parity:
+    name: Schema parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout NAHPU
+        uses: actions/checkout@v6
+
+      - name: Resolve nahpu_api ref
+        id: counterpart
+        shell: bash
+        env:
+          CANDIDATE_REF: ${{ github.head_ref || github.ref_name }}
+          TARGET_REF: ${{ github.base_ref || github.event.repository.default_branch }}
+          COUNTERPART_URL: https://github.com/nahpu/nahpu_api.git
+        run: |
+          for ref in "$CANDIDATE_REF" "$TARGET_REF" main; do
+            if [[ -n "$ref" ]] && git ls-remote --exit-code --heads \
+              "$COUNTERPART_URL" "refs/heads/$ref" >/dev/null 2>&1; then
+              echo "ref=$ref" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "::error::No matching nahpu_api branch found."
+          exit 1
+
+      - name: Checkout nahpu_api
+        uses: actions/checkout@v6
+        with:
+          repository: nahpu/nahpu_api
+          ref: ${{ steps.counterpart.outputs.ref }}
+          path: counterpart
+
+      - name: Compare database schemas
+        run: |
+          diff --unified \
+            --label nahpu/lib/services/database/tables.drift \
+            --label nahpu_api/crates/nahpu_db/schema/tables.drift \
+            lib/services/database/tables.drift \
+            counterpart/crates/nahpu_db/schema/tables.drift
+
   check:
     name: Test
     runs-on: ${{ matrix.os }}

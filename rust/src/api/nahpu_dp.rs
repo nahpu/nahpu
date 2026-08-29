@@ -28,7 +28,7 @@ fn enrich_request(request_json: &str) -> Result<String, String> {
         ("nahpu_db", nahpu_db::VERSION),
         ("nahpu_dp", nahpu_dp::VERSION),
         ("nahpu_dwc", nahpu_dwc::VERSION),
-        ("nahpu_export", "0.5.0"),
+        ("nahpu_export", nahpu_export::VERSION),
         ("nahpu_gis", "0.5.0"),
         ("rust_lib_nahpu", env!("CARGO_PKG_VERSION")),
     ]);
