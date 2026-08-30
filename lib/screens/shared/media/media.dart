@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/media/media_batch_export.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_export_dialog.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
@@ -126,6 +127,12 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                       _selectedMedia.clear();
                     });
                   },
+            selectionAction: _selectedMedia.isEmpty
+                ? null
+                : TextButton(
+                    onPressed: _showSelectedMediaActions,
+                    child: const Text('Actions'),
+                  ),
           ),
         ),
         SizedBox(
@@ -133,25 +140,11 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
               widget.contentHeight ?? MediaQuery.of(context).size.height * 0.5,
           child: widget.images.isEmpty
               ? const Center(child: EmptyMedia())
-              : Column(
-                  children: [
-                    Expanded(
-                      child: MediaViewerBuilder(
-                        images: widget.images,
-                        isSelecting: _isSelecting,
-                        selectedMedia: _selectedMedia,
-                        onSelectionChanged: _toggleSelection,
-                      ),
-                    ),
-                    if (_isSelecting)
-                      DeleteItemsButton(
-                        selectedItems: _selectedMedia.toList(),
-                        itemName: _selectedMedia.length == 1
-                            ? 'media file'
-                            : 'media files',
-                        onPressedFunction: _deleteSelectedMedia,
-                      ),
-                  ],
+              : MediaViewerBuilder(
+                  images: widget.images,
+                  isSelecting: _isSelecting,
+                  selectedMedia: _selectedMedia,
+                  onSelectionChanged: _toggleSelection,
                 ),
         ),
       ],
@@ -168,8 +161,54 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
     });
   }
 
+  Future<void> _showSelectedMediaActions() async {
+    final selected = widget.images
+        .where((media) => _selectedMedia.contains(media.primaryId))
+        .toList(growable: false);
+    if (selected.isEmpty) return;
+    final action = await _showMediaSelectionActionPicker(
+      context,
+      selected.length,
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _MediaSelectionAction.export:
+        await showBatchMediaExport(context, media: selected);
+        return;
+      case _MediaSelectionAction.delete:
+        await _confirmDeleteSelectedMedia();
+        return;
+    }
+  }
+
+  Future<void> _confirmDeleteSelectedMedia() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete selected media?'),
+        content: const Text(
+          'Delete the selected media from all NAHPU records and from disk? '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await _deleteSelectedMedia();
+  }
+
   Future<void> _deleteSelectedMedia() async {
-    Navigator.of(context).pop();
     var recordsDeleted = false;
     try {
       await MediaServices(ref: ref).deleteMediaItems(
@@ -197,6 +236,79 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
         _isSelecting = false;
       });
     }
+  }
+}
+
+enum _MediaSelectionAction { export, delete }
+
+Future<_MediaSelectionAction?> _showMediaSelectionActionPicker(
+  BuildContext context,
+  int selectedCount,
+) {
+  final content = _MediaSelectionActionPicker(selectedCount: selectedCount);
+  if (MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact) {
+    return showModalBottomSheet<_MediaSelectionAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(child: content),
+    );
+  }
+  return showDialog<_MediaSelectionAction>(
+    context: context,
+    builder: (context) => AlertDialog(
+      contentPadding: const EdgeInsets.fromLTRB(
+        NahpuSpacing.md,
+        NahpuSpacing.lg,
+        NahpuSpacing.md,
+        NahpuSpacing.md,
+      ),
+      content: SizedBox(width: 400, child: content),
+    ),
+  );
+}
+
+class _MediaSelectionActionPicker extends StatelessWidget {
+  const _MediaSelectionActionPicker({required this.selectedCount});
+
+  final int selectedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.lg,
+            NahpuSpacing.sm,
+            NahpuSpacing.lg,
+            NahpuSpacing.md,
+          ),
+          child: Text(
+            '$selectedCount selected',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.file_upload_outlined),
+          title: const Text('Export'),
+          onTap: () => Navigator.of(context).pop(_MediaSelectionAction.export),
+        ),
+        const Divider(),
+        ListTile(
+          leading: Icon(
+            Icons.delete_outline,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          title: Text(
+            'Delete',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          onTap: () => Navigator.of(context).pop(_MediaSelectionAction.delete),
+        ),
+      ],
+    );
   }
 }
 

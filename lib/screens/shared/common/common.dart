@@ -134,6 +134,7 @@ class SelectItemsInterface extends StatelessWidget {
     required this.onSelectAllPressed,
     required this.onSelectPressed,
     this.leadingAction,
+    this.selectionAction,
   });
 
   final bool isSelecting;
@@ -141,6 +142,7 @@ class SelectItemsInterface extends StatelessWidget {
   final VoidCallback? onSelectAllPressed;
   final VoidCallback? onSelectPressed;
   final Widget? leadingAction;
+  final Widget? selectionAction;
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +164,7 @@ class SelectItemsInterface extends StatelessWidget {
         ),
         const Spacer(),
         if (!isSelecting && leadingAction != null) leadingAction!,
+        if (isSelecting && selectionAction != null) selectionAction!,
         TextButton(
           onPressed: onSelectPressed,
           child: Text(isSelecting ? 'Done' : 'Select'),

@@ -10,10 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_batch_export.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:path/path.dart' as path;
@@ -410,12 +412,17 @@ void main() {
     );
     expect(find.byType(Checkbox), findsNWidgets(2));
     expect(find.byTooltip('Media actions'), findsNothing);
+    expect(find.text('Actions'), findsNothing);
 
     await tester.tap(find.text('Select all'));
     await tester.pump();
     final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox));
     expect(checkboxes.every((checkbox) => checkbox.value == true), isTrue);
-    expect(find.text('Delete 2 media files'), findsOneWidget);
+    expect(find.text('Actions'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Actions')).dx,
+      lessThan(tester.getCenter(find.text('Done')).dx),
+    );
 
     await tester.tap(find.text('Clear'));
     await tester.pump();
@@ -425,6 +432,113 @@ void main() {
           .every((checkbox) => checkbox.value == false),
       isTrue,
     );
+  });
+
+  testWidgets('form selection opens batch export with only checked media', (
+    tester,
+  ) async {
+    final mediaList = seedImages(2);
+    await _pumpMediaViewer(tester, db, mediaList);
+    await _flushMediaLoad(tester);
+
+    await tester.tap(find.text('Select'));
+    await tester.pump();
+    await tester.tap(find.byType(Checkbox).first);
+    await tester.pump();
+
+    expect(find.text('Actions'), findsOneWidget);
+    await tester.tap(find.text('Actions'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.text('1 selected'), findsOneWidget);
+    expect(find.text('Export'), findsOneWidget);
+    expect(find.byIcon(Icons.file_upload_outlined), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+    await tester.tap(find.text('Export'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final screen = tester.widget<BatchMediaExportScreen>(
+      find.byType(BatchMediaExportScreen),
+    );
+    expect(screen.media.map((media) => media.primaryId), [1]);
+  });
+
+  testWidgets('form selection actions use a bottom sheet on compact layouts', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final mediaList = seedImages(1);
+    await _pumpMediaViewer(tester, db, mediaList);
+    await _flushMediaLoad(tester);
+
+    await tester.tap(find.text('Select'));
+    await tester.pump();
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    await tester.tap(find.text('Actions'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byType(Dialog), findsNothing);
+    expect(find.text('1 selected'), findsOneWidget);
+  });
+
+  testWidgets('batch export settings retain the converted-image pixel limit', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final mediaList = seedImages(1);
+    await _pumpBatchExportScreen(tester, db, mediaList);
+    await _flushMediaLoad(tester);
+
+    final archiveSelector = tester
+        .widget<SegmentedButton<MediaBatchArchiveFormat>>(
+          find.byType(SegmentedButton<MediaBatchArchiveFormat>),
+        );
+    expect(archiveSelector.selected, {MediaBatchArchiveFormat.tarGzip});
+    expect(
+      tester
+          .widgetList<TextField>(find.byType(TextField))
+          .singleWhere((field) => field.controller?.text == 'nahpu-media')
+          .controller
+          ?.text,
+      'nahpu-media',
+    );
+    expect(find.text('Maximum width or height (px)'), findsNothing);
+    expect(find.text('JPEG quality'), findsNothing);
+
+    await _selectImageFormat(tester, 'JPEG (.jpg)');
+    expect(find.text('Limit image dimensions'), findsOneWidget);
+    expect(find.text('JPEG quality'), findsOneWidget);
+    expect(find.text('85%'), findsOneWidget);
+
+    await tester.tap(find.text('Limit image dimensions'));
+    await tester.pump();
+    final maximumField = find.widgetWithText(
+      TextField,
+      'Maximum width or height (px)',
+    );
+    expect(maximumField, findsOneWidget);
+    await tester.enterText(maximumField, '1200');
+    await tester.pump();
+    expect(
+      tester
+          .widget<PrimaryButton>(
+            find.widgetWithText(PrimaryButton, 'Export media'),
+          )
+          .onPressed,
+      isNotNull,
+    );
+
+    await _selectImageFormat(tester, 'Original');
+    expect(find.text('Maximum width or height (px)'), findsNothing);
+    await _selectImageFormat(tester, 'JPEG (.jpg)');
+    expect(tester.widget<TextField>(maximumField).controller?.text, '1200');
   });
 
   testWidgets('empty media grid still opens the project gallery', (
@@ -536,6 +650,29 @@ Future<void> _pumpMediaViewer(
   );
   await tester.pump();
   widgetRef!.read(projectUuidProvider.notifier).updateProjectUuid(_projectUuid);
+}
+
+Future<void> _pumpBatchExportScreen(
+  WidgetTester tester,
+  Database db,
+  List<MediaData> mediaList,
+) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(db)],
+      child: MaterialApp(home: BatchMediaExportScreen(media: mediaList)),
+    ),
+  );
+  await tester.pump();
+}
+
+Future<void> _selectImageFormat(WidgetTester tester, String label) async {
+  final dropdown = find.byType(DropdownButtonFormField<MediaExportFormat>);
+  await tester.ensureVisible(dropdown);
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label).last);
+  await tester.pumpAndSettle();
 }
 
 File _writeMediaFile(Directory appDir, String fileName, List<int> bytes) {

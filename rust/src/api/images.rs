@@ -1,8 +1,12 @@
 //! Image inspection and export API for Flutter.
 
+use std::sync::mpsc;
+
+use crate::frb_generated::StreamSink;
 use nahpu_images::{
     ImageFileFormat as CoreImageFileFormat, ImageOptions, ImageProcessor, ResizeOptions,
 };
+use rayon::prelude::*;
 
 /// Static image formats supported for conversion and export.
 #[derive(Clone, Copy)]
@@ -25,6 +29,26 @@ pub struct ImageExportResult {
     pub height: u32,
     pub bytes: u64,
     pub resized: bool,
+}
+
+/// One image conversion requested by the batch media exporter.
+pub struct BatchImageExportRequest {
+    pub input_path: String,
+    pub output_path: String,
+    pub output_format: ImageExportFormat,
+    pub resize_width: Option<u32>,
+    pub resize_height: Option<u32>,
+    pub jpeg_quality: u8,
+}
+
+/// Completion event for one image in a parallel conversion batch.
+pub struct BatchImageExportEvent {
+    pub output_path: String,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub bytes: Option<u64>,
+    pub resized: bool,
+    pub error: Option<String>,
 }
 
 /// Inspects a static JPEG, PNG, or WebP without re-encoding it.
@@ -62,6 +86,70 @@ pub fn export_image(
         bytes: info.output_bytes,
         resized: info.resized,
     })
+}
+
+/// Converts images on Rayon's worker pool and streams each result as it completes.
+pub fn export_images_batch(
+    requests: Vec<BatchImageExportRequest>,
+    sink: StreamSink<BatchImageExportEvent>,
+) -> Result<(), String> {
+    if requests.is_empty() {
+        return Ok(());
+    }
+    let request_count = requests.len();
+    let (sender, receiver) = mpsc::channel();
+    rayon::spawn(move || {
+        requests
+            .into_par_iter()
+            .for_each_with(sender, |sender, request| {
+                let _ = sender.send(export_batch_image(request));
+            });
+    });
+
+    for _ in 0..request_count {
+        let event = receiver
+            .recv()
+            .map_err(|error| format!("parallel image conversion stopped: {error}"))?;
+        let _ = sink.add(event);
+    }
+    Ok(())
+}
+
+fn export_batch_image(request: BatchImageExportRequest) -> BatchImageExportEvent {
+    let BatchImageExportRequest {
+        input_path,
+        output_path,
+        output_format,
+        resize_width,
+        resize_height,
+        jpeg_quality,
+    } = request;
+    let event_path = output_path.clone();
+    match export_image(
+        input_path,
+        output_path,
+        output_format,
+        resize_width,
+        resize_height,
+        jpeg_quality,
+    ) {
+        Ok(result) => BatchImageExportEvent {
+            output_path: event_path,
+            width: Some(result.width),
+            height: Some(result.height),
+            bytes: Some(result.bytes),
+            resized: result.resized,
+            error: None,
+        },
+        Err(error) => BatchImageExportEvent {
+            output_path: event_path,
+            width: None,
+            height: None,
+            bytes: None,
+            resized: false,
+            error: Some(error),
+        },
+    }
 }
 
 impl From<ImageExportFormat> for CoreImageFileFormat {

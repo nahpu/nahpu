@@ -41,6 +41,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<BatchImageExportEvent>
+  dco_decode_StreamSink_batch_image_export_event_Sse(dynamic raw);
+
+  @protected
   String dco_decode_String(dynamic raw);
 
   @protected
@@ -48,6 +52,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ArchiveProgress dco_decode_archive_progress(dynamic raw);
+
+  @protected
+  BatchImageExportEvent dco_decode_batch_image_export_event(dynamic raw);
+
+  @protected
+  BatchImageExportRequest dco_decode_batch_image_export_request(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
@@ -86,6 +96,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
   ZipExtractor dco_decode_box_autoadd_zip_extractor(dynamic raw);
@@ -178,6 +191,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<BatchImageExportRequest> dco_decode_list_batch_image_export_request(
+    dynamic raw,
+  );
 
   @protected
   List<ConfigCombinedField> dco_decode_list_config_combined_field(dynamic raw);
@@ -275,6 +293,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
+
+  @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
 
   @protected
@@ -360,10 +381,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<BatchImageExportEvent>
+  sse_decode_StreamSink_batch_image_export_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
   ArchiveProgress sse_decode_archive_progress(SseDeserializer deserializer);
+
+  @protected
+  BatchImageExportEvent sse_decode_batch_image_export_event(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  BatchImageExportRequest sse_decode_batch_image_export_request(
+    SseDeserializer deserializer,
+  );
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
@@ -416,6 +453,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
@@ -544,6 +584,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
+  List<BatchImageExportRequest> sse_decode_list_batch_image_export_request(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<ConfigCombinedField> sse_decode_list_config_combined_field(
     SseDeserializer deserializer,
   );
@@ -655,6 +700,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
   @protected
@@ -757,11 +805,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_batch_image_export_event_Sse(
+    RustStreamSink<BatchImageExportEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
   void sse_encode_archive_progress(
     ArchiveProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_batch_image_export_event(
+    BatchImageExportEvent self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_batch_image_export_request(
+    BatchImageExportRequest self,
     SseSerializer serializer,
   );
 
@@ -827,6 +893,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_zip_extractor(
@@ -991,6 +1060,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
+  void sse_encode_list_batch_image_export_request(
+    List<BatchImageExportRequest> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_config_combined_field(
     List<ConfigCombinedField> self,
     SseSerializer serializer,
@@ -1130,6 +1205,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);

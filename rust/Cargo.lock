@@ -2928,6 +2928,7 @@ dependencies = [
  "nahpu_export",
  "nahpu_gis",
  "nahpu_images",
+ "rayon",
  "serde_json",
 ]
 

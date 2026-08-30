@@ -7,8 +7,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_batch_export.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
 import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
@@ -142,6 +144,22 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Select'));
       await tester.pump();
+      expect(
+        tester
+            .widget<IconButton>(
+              find.ancestor(
+                of: find.byIcon(Icons.delete_outline),
+                matching: find.byType(IconButton),
+              ),
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(find.text('0 selected'), findsOneWidget);
+      expect(
+        tester.widget<PrimaryButton>(find.byType(PrimaryButton)).onPressed,
+        isNull,
+      );
       await tester.tap(find.text('Select all'));
       await tester.pump();
 
@@ -151,17 +169,49 @@ void main() {
             .every((checkbox) => checkbox.value == true),
         isTrue,
       );
-      expect(find.text('Delete 2 media files'), findsOneWidget);
+      expect(find.text('2 selected'), findsOneWidget);
+      expect(find.text('Export'), findsOneWidget);
+      expect(find.byIcon(Icons.file_upload_outlined), findsOneWidget);
+      expect(find.byTooltip('Delete selected media'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'Specimen'));
       await tester.pump();
       expect(find.byType(Checkbox), findsOneWidget);
       expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
-      expect(find.text('Delete 1 media file'), findsOneWidget);
+      expect(find.text('1 selected'), findsOneWidget);
+
+      final deleteX = tester
+          .getCenter(find.byTooltip('Delete selected media'))
+          .dx;
+      final countX = tester.getCenter(find.text('1 selected')).dx;
+      final exportX = tester.getCenter(find.text('Export')).dx;
+      expect(deleteX, lessThan(countX));
+      expect(countX, lessThan(exportX));
 
       await tester.tap(find.text('Clear'));
       await tester.pump();
       expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+    },
+  );
+
+  _testGalleryWidgets(
+    'gallery selection opens batch export with only checked media',
+    (tester) async {
+      await _pumpGallery(tester, db);
+      await tester.tap(find.text('Select'));
+      await tester.pump();
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+
+      expect(find.text('1 selected'), findsOneWidget);
+      await tester.tap(find.text('Export'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final screen = tester.widget<BatchMediaExportScreen>(
+        find.byType(BatchMediaExportScreen),
+      );
+      expect(screen.media.map((media) => media.primaryId), [1]);
     },
   );
 

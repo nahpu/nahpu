@@ -6,6 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `export_batch_image`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `from`, `from`
 
 /// Inspects a static JPEG, PNG, or WebP without re-encoding it.
@@ -28,6 +29,91 @@ Future<ImageExportResult> exportImage({
   resizeHeight: resizeHeight,
   jpegQuality: jpegQuality,
 );
+
+/// Converts images on Rayon's worker pool and streams each result as it completes.
+Stream<BatchImageExportEvent> exportImagesBatch({
+  required List<BatchImageExportRequest> requests,
+}) => RustLib.instance.api.crateApiImagesExportImagesBatch(requests: requests);
+
+/// Completion event for one image in a parallel conversion batch.
+class BatchImageExportEvent {
+  final String outputPath;
+  final int? width;
+  final int? height;
+  final BigInt? bytes;
+  final bool resized;
+  final String? error;
+
+  const BatchImageExportEvent({
+    required this.outputPath,
+    this.width,
+    this.height,
+    this.bytes,
+    required this.resized,
+    this.error,
+  });
+
+  @override
+  int get hashCode =>
+      outputPath.hashCode ^
+      width.hashCode ^
+      height.hashCode ^
+      bytes.hashCode ^
+      resized.hashCode ^
+      error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BatchImageExportEvent &&
+          runtimeType == other.runtimeType &&
+          outputPath == other.outputPath &&
+          width == other.width &&
+          height == other.height &&
+          bytes == other.bytes &&
+          resized == other.resized &&
+          error == other.error;
+}
+
+/// One image conversion requested by the batch media exporter.
+class BatchImageExportRequest {
+  final String inputPath;
+  final String outputPath;
+  final ImageExportFormat outputFormat;
+  final int? resizeWidth;
+  final int? resizeHeight;
+  final int jpegQuality;
+
+  const BatchImageExportRequest({
+    required this.inputPath,
+    required this.outputPath,
+    required this.outputFormat,
+    this.resizeWidth,
+    this.resizeHeight,
+    required this.jpegQuality,
+  });
+
+  @override
+  int get hashCode =>
+      inputPath.hashCode ^
+      outputPath.hashCode ^
+      outputFormat.hashCode ^
+      resizeWidth.hashCode ^
+      resizeHeight.hashCode ^
+      jpegQuality.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BatchImageExportRequest &&
+          runtimeType == other.runtimeType &&
+          inputPath == other.inputPath &&
+          outputPath == other.outputPath &&
+          outputFormat == other.outputFormat &&
+          resizeWidth == other.resizeWidth &&
+          resizeHeight == other.resizeHeight &&
+          jpegQuality == other.jpegQuality;
+}
 
 /// Static image formats supported for conversion and export.
 enum ImageExportFormat { jpeg, png, webP }

@@ -13,6 +13,7 @@ nahpu_db = "0.5.2"
 nahpu_export = "0.6.0"
 nahpu_gis = "0.5.0"
 nahpu_images = { path = "../../../Rust/nahpu_api/crates/nahpu_images" }
+rayon = "1.12.0"
 serde_json = "1.0.150"
 nahpu_configs = "0.7.1"
 nahpu_dwc = "0.5.0"

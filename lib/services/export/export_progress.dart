@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 enum ExportPhase {
   preparing,
   collecting,
+  processingFiles,
   copyingFiles,
   compressing,
   extracting,

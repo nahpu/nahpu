@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
+import 'package:nahpu/screens/shared/media/media_batch_export.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/media/media_gallery_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
@@ -173,16 +174,47 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
                 ),
         ),
         if (_isSelecting)
-          DeleteItemsButton(
-            selectedItems: selectedVisible.toList(),
-            itemName: selectedVisible.length == 1
-                ? 'media file'
-                : 'media files',
-            customDialogHeader: 'Delete selected media?',
-            customDialogText:
-                'Delete the selected media from all NAHPU records and from '
-                'disk? This cannot be undone.',
-            onPressedFunction: () => _deleteSelected(allMedia),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              NahpuSpacing.md,
+              NahpuSpacing.sm,
+              NahpuSpacing.md,
+              NahpuSpacing.md,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: 'Delete selected media',
+                  color: Theme.of(context).colorScheme.error,
+                  onPressed: selectedVisible.isEmpty
+                      ? null
+                      : () => _confirmDeleteSelected(allMedia),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+                Expanded(
+                  child: Text(
+                    '${selectedVisible.length} selected',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                PrimaryButton(
+                  label: 'Export',
+                  icon: Icons.file_upload_outlined,
+                  onPressed: selectedVisible.isEmpty
+                      ? null
+                      : () => showBatchMediaExport(
+                          context,
+                          media: visibleMedia
+                              .where(
+                                (media) =>
+                                    selectedVisible.contains(media.primaryId),
+                              )
+                              .toList(growable: false),
+                        ),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -246,7 +278,6 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
   }
 
   Future<void> _deleteSelected(List<MediaData> allMedia) async {
-    Navigator.of(context).pop();
     final selected = allMedia
         .where((media) => _selectedMedia.contains(media.primaryId))
         .toList(growable: false);
@@ -266,6 +297,33 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
         _isSelecting = false;
       });
     }
+  }
+
+  Future<void> _confirmDeleteSelected(List<MediaData> allMedia) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete selected media?'),
+        content: const Text(
+          'Delete the selected media from all NAHPU records and from disk? '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await _deleteSelected(allMedia);
   }
 
   void _showError(Object error) {
