@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `build_config_transfer_preview`, `config_label`, `display_json_value`, `is_controlled_vocabulary`, `read_config_export`, `validate_specimen_sex_values`

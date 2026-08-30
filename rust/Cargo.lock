@@ -2206,7 +2206,9 @@ dependencies = [
 
 [[package]]
 name = "nahpu_images"
-version = "0.1.0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "124a04b705c296505c57be2e5b7cdba0f131ebe3decc25715a548024de13a814"
 dependencies = [
  "image",
  "little_exif",
