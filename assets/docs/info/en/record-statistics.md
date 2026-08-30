@@ -13,3 +13,7 @@ An unidentified specimen or an identification with an incomplete species name st
 The panel opens on **Top recorded species**, the five species with the most specimen records, each with a bar scaled to the highest count. Use the toggle in the upper right to switch between that chart and **Record counts**, the numeric summary described above.
 
 **Sites**, **Events**, and **Narratives** count those project record types independently. Select **Explore more stats** for detailed charts, tables, filters, and exports.
+
+## Exporting statistics
+
+Select **Explore more stats**, choose a measure and grouping, then switch the panel to **Table**. The `Export table` button writes the rows currently shown to CSV, TSV, Excel, or JSON. The spatial panel exports the same way, one row per site coordinate.

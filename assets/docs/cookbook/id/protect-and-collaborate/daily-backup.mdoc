@@ -1,28 +1,30 @@
 ---
-title: "Buat backup basis data harian"
+title: "Cadangkan satu hari lapangan"
 sidebar:
   order: 2
 ---
 
-Buat salinan yang dapat dipulihkan dari basis data serta, bila dipilih, managed file dan media.
+Tutup setiap hari lapangan dengan ekspor proyek, dan simpan backup basis data lengkap untuk pemeriksaan mingguan.
 
 ## Langkah
 
 {% steps %}
 
-1. Buka drawer utama atau proyek lalu pilih `Backup database`.
-2. Pilih apakah project data, managed file, dan media disertakan dalam arsip.
-3. Gunakan nama berkas yang jelas berisi tanggal dan nama perangkat atau tim.
-4. Simpan backup pada penyimpanan yang terpisah dari perangkat kerja.
-5. Pastikan berkas hasil tersedia dan dapat dibuka oleh alur restore yang dimaksud.
+1. Buka drawer proyek lalu pilih `Export project`.
+2. Periksa jumlah catatan dan peringatan tentang media yang hilang.
+3. Pilih ZIP atau TAR.GZ agar media ikut terbawa, atau aktifkan `Light export` untuk `JSON.GZ` kecil bila unggahannya harus ringan.
+4. Simpan pada penyimpanan yang terpisah dari perangkat kerja, dengan nama berisi proyek dan tanggal.
+5. Sekali seminggu, dan selalu sebelum menggabungkan proyek, jalankan `Backup database` untuk menyalin seluruh instalasi.
 {% /steps %}
 
-{% aside type="caution" %}
-
-Ekspor CSV atau light project transfer bukan backup basis data yang dapat dipulihkan.
-
+{% aside type="tip" %}
+Ekspor proyek adalah kebiasaan harian yang lebih baik: ukurannya lebih kecil, prosesnya lebih cepat, dan lebih hemat baterai daripada backup basis data, dan `Merge project` memulihkannya ke perangkat pengganti bila satu perangkat hilang atau rusak. Paket Darwin Core dan ekspor CSV tidak dapat diimpor kembali, jadi keduanya tidak pernah dihitung sebagai cadangan.
 {% /aside %}
 
 ## Pelajari lebih lanjut
 
-[Buka panduan lengkap](https://nahpu.app/id/usages/export/#backup-database)
+- [Buka panduan lengkap](https://nahpu.app/id/usages/export/#backup-strategy)
+- [Ekspor proyek untuk perangkat lain](https://nahpu.app/id/how-to-recipes/protect-and-collaborate/export-project/)
+- [Gabungkan proyek dan selesaikan konflik](https://nahpu.app/id/how-to-recipes/protect-and-collaborate/merge-project/)
+- [Pulihkan atau ganti basis data](https://nahpu.app/id/how-to-recipes/protect-and-collaborate/restore-database/)
+- [Pengelolaan Proyek](https://nahpu.app/id/best-practices/project-management/)

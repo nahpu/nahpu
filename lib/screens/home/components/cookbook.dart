@@ -7,35 +7,39 @@ import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-class HowToRecipesScreen extends ConsumerStatefulWidget {
-  const HowToRecipesScreen({super.key});
+class CookbookScreen extends ConsumerStatefulWidget {
+  const CookbookScreen({super.key});
 
   @override
-  ConsumerState<HowToRecipesScreen> createState() => _HowToRecipesScreenState();
+  ConsumerState<CookbookScreen> createState() => _CookbookScreenState();
 }
 
-class _HowToRecipesScreenState extends ConsumerState<HowToRecipesScreen> {
+class _CookbookScreenState extends ConsumerState<CookbookScreen> {
   DocsLanguage _language = DocsLanguage.english;
+
+  /// A null selection shows Day One, which opens the Cookbook.
   String? _selectedRecipeId;
-  Future<List<CookbookCategory>>? _categories;
+  Future<Cookbook>? _cookbook;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('How-to Recipes')),
+      appBar: AppBar(title: const Text('Cookbook')),
       body: SafeArea(
-        child: FutureBuilder<List<CookbookCategory>>(
-          future: _categories ??= _loadCategories(),
+        child: FutureBuilder<Cookbook>(
+          future: _cookbook ??= _loadCookbook(),
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Center(child: CircularProgressIndicator());
             }
-            final categories = snapshot.data;
-            if (snapshot.hasError || categories == null || categories.isEmpty) {
+            final cookbook = snapshot.data;
+            if (snapshot.hasError ||
+                cookbook == null ||
+                cookbook.categories.isEmpty) {
               return DocumentationErrorView(onRetry: _retry);
             }
             return _CookbookLayout(
-              categories: categories,
+              cookbook: cookbook,
               language: _language,
               selectedRecipeId: _selectedRecipeId,
               onLanguageSelected: _selectLanguage,
@@ -47,40 +51,40 @@ class _HowToRecipesScreenState extends ConsumerState<HowToRecipesScreen> {
     );
   }
 
-  Future<List<CookbookCategory>> _loadCategories() {
+  Future<Cookbook> _loadCookbook() {
     return ref.read(documentationRepositoryProvider).loadCookbook(_language);
   }
 
   void _selectLanguage(DocsLanguage language) {
     setState(() {
       _language = language;
-      _categories = _loadCategories();
+      _cookbook = _loadCookbook();
     });
   }
 
-  void _selectRecipe(String recipeId) {
+  void _selectRecipe(String? recipeId) {
     setState(() => _selectedRecipeId = recipeId);
   }
 
   void _retry() {
-    setState(() => _categories = _loadCategories());
+    setState(() => _cookbook = _loadCookbook());
   }
 }
 
 class _CookbookLayout extends StatefulWidget {
   const _CookbookLayout({
-    required this.categories,
+    required this.cookbook,
     required this.language,
     required this.selectedRecipeId,
     required this.onLanguageSelected,
     required this.onRecipeSelected,
   });
 
-  final List<CookbookCategory> categories;
+  final Cookbook cookbook;
   final DocsLanguage language;
   final String? selectedRecipeId;
   final ValueChanged<DocsLanguage> onLanguageSelected;
-  final ValueChanged<String> onRecipeSelected;
+  final ValueChanged<String?> onRecipeSelected;
 
   @override
   State<_CookbookLayout> createState() => _CookbookLayoutState();
@@ -92,7 +96,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
   @override
   void didUpdateWidget(covariant _CookbookLayout oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final categoryIds = widget.categories
+    final categoryIds = widget.cookbook.categories
         .map((category) => category.id)
         .toSet();
     _collapsedCategoryIds.retainAll(categoryIds);
@@ -103,7 +107,6 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= NahpuBreakpoints.compact;
-        final selectedRecipe = _findSelectedRecipe();
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
@@ -123,9 +126,9 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                         ? _wideLayout(
                             context,
                             constraints.maxWidth,
-                            selectedRecipe,
+                            _findSelectedDocument(),
                           )
-                        : OutlinedSurface(child: _recipeList(context, false)),
+                        : OutlinedSurface(child: _contentList(context, false)),
                   ),
                 ],
               ),
@@ -139,7 +142,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
   Widget _wideLayout(
     BuildContext context,
     double availableWidth,
-    CookbookRecipe selectedRecipe,
+    MarkdownDocument selectedDocument,
   ) {
     final listWidth = math.min(380.0, availableWidth * 0.38);
     return Row(
@@ -159,7 +162,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                       Padding(
                         padding: const EdgeInsets.all(NahpuSpacing.lg),
                         child: Text(
-                          'Recipes',
+                          'Contents',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
@@ -168,7 +171,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                     ],
                   ),
                 ),
-                Expanded(child: ClipRect(child: _recipeList(context, true))),
+                Expanded(child: ClipRect(child: _contentList(context, true))),
               ],
             ),
           ),
@@ -178,7 +181,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
           child: OutlinedSurface(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(NahpuSpacing.xl),
-              child: MarkdownDocumentView(document: selectedRecipe.document),
+              child: MarkdownDocumentView(document: selectedDocument),
             ),
           ),
         ),
@@ -186,11 +189,29 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
     );
   }
 
-  Widget _recipeList(BuildContext context, bool isWide) {
+  Widget _contentList(BuildContext context, bool isWide) {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
       children: [
-        for (final category in widget.categories) ...[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.lg,
+            NahpuSpacing.lg,
+            NahpuSpacing.lg,
+            NahpuSpacing.xs,
+          ),
+          child: _entryTile(
+            context,
+            isWide: isWide,
+            title: widget.cookbook.dayOne.title,
+            isSelected: widget.selectedRecipeId == null,
+            onTap: () {
+              widget.onRecipeSelected(null);
+              if (!isWide) _showDocumentSheet(context, null);
+            },
+          ),
+        ),
+        for (final category in widget.cookbook.categories) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(
               NahpuSpacing.lg,
@@ -234,23 +255,14 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
                   horizontal: NahpuSpacing.xl,
                   vertical: NahpuSpacing.xs,
                 ),
-                child: ListTile(
-                  selected: isWide && recipe.id == _findSelectedRecipe().id,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(NahpuRadius.md),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                  ),
-                  title: Text(recipe.document.title),
-                  trailing: isWide
-                      ? null
-                      : const Icon(Icons.chevron_right_rounded),
+                child: _entryTile(
+                  context,
+                  isWide: isWide,
+                  title: recipe.document.title,
+                  isSelected: recipe.id == widget.selectedRecipeId,
                   onTap: () {
                     widget.onRecipeSelected(recipe.id);
-                    if (!isWide) {
-                      _showRecipeSheet(context, recipe.id);
-                    }
+                    if (!isWide) _showDocumentSheet(context, recipe.id);
                   },
                 ),
               ),
@@ -259,19 +271,45 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
     );
   }
 
+  Widget _entryTile(
+    BuildContext context, {
+    required bool isWide,
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      selected: isWide && isSelected,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      title: Text(title),
+      trailing: isWide ? null : const Icon(Icons.chevron_right_rounded),
+      onTap: onTap,
+    );
+  }
+
   bool _isCategoryExpanded(CookbookCategory category) {
     return !_collapsedCategoryIds.contains(category.id);
   }
 
-  CookbookRecipe _findSelectedRecipe() {
-    final recipes = widget.categories.expand((category) => category.recipes);
-    return recipes.firstWhere(
-      (recipe) => recipe.id == widget.selectedRecipeId,
-      orElse: () => widget.categories.first.recipes.first,
+  MarkdownDocument _findSelectedDocument() {
+    final selectedId = widget.selectedRecipeId;
+    if (selectedId == null) return widget.cookbook.dayOne;
+    final recipes = widget.cookbook.categories.expand(
+      (category) => category.recipes,
     );
+    for (final recipe in recipes) {
+      if (recipe.id == selectedId) return recipe.document;
+    }
+    return widget.cookbook.dayOne;
   }
 
-  Future<void> _showRecipeSheet(BuildContext context, String recipeId) async {
+  Future<void> _showDocumentSheet(
+    BuildContext context,
+    String? recipeId,
+  ) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -279,7 +317,7 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
       useSafeArea: true,
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.92,
-        child: _RecipeBottomSheet(
+        child: _CookbookBottomSheet(
           recipeId: recipeId,
           initialLanguage: widget.language,
           onLanguageSelected: widget.onLanguageSelected,
@@ -289,24 +327,26 @@ class _CookbookLayoutState extends State<_CookbookLayout> {
   }
 }
 
-class _RecipeBottomSheet extends ConsumerStatefulWidget {
-  const _RecipeBottomSheet({
+class _CookbookBottomSheet extends ConsumerStatefulWidget {
+  const _CookbookBottomSheet({
     required this.recipeId,
     required this.initialLanguage,
     required this.onLanguageSelected,
   });
 
-  final String recipeId;
+  /// A null recipe shows Day One.
+  final String? recipeId;
   final DocsLanguage initialLanguage;
   final ValueChanged<DocsLanguage> onLanguageSelected;
 
   @override
-  ConsumerState<_RecipeBottomSheet> createState() => _RecipeBottomSheetState();
+  ConsumerState<_CookbookBottomSheet> createState() =>
+      _CookbookBottomSheetState();
 }
 
-class _RecipeBottomSheetState extends ConsumerState<_RecipeBottomSheet> {
+class _CookbookBottomSheetState extends ConsumerState<_CookbookBottomSheet> {
   late DocsLanguage _language = widget.initialLanguage;
-  Future<List<CookbookCategory>>? _categories;
+  Future<Cookbook>? _cookbook;
 
   @override
   Widget build(BuildContext context) {
@@ -318,23 +358,19 @@ class _RecipeBottomSheetState extends ConsumerState<_RecipeBottomSheet> {
         ),
         const Divider(),
         Expanded(
-          child: FutureBuilder<List<CookbookCategory>>(
-            future: _categories ??= _loadCategories(),
+          child: FutureBuilder<Cookbook>(
+            future: _cookbook ??= _loadCookbook(),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return const Center(child: CircularProgressIndicator());
               }
-              final categories = snapshot.data;
-              if (snapshot.hasError || categories == null) {
+              final cookbook = snapshot.data;
+              if (snapshot.hasError || cookbook == null) {
                 return DocumentationErrorView(onRetry: _retry);
               }
-              final recipes = categories.expand((category) => category.recipes);
-              final recipe = recipes.firstWhere(
-                (recipe) => recipe.id == widget.recipeId,
-              );
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(NahpuSpacing.xl),
-                child: MarkdownDocumentView(document: recipe.document),
+                child: MarkdownDocumentView(document: _document(cookbook)),
               );
             },
           ),
@@ -343,19 +379,29 @@ class _RecipeBottomSheetState extends ConsumerState<_RecipeBottomSheet> {
     );
   }
 
-  Future<List<CookbookCategory>> _loadCategories() {
+  MarkdownDocument _document(Cookbook cookbook) {
+    final recipeId = widget.recipeId;
+    if (recipeId == null) return cookbook.dayOne;
+    final recipes = cookbook.categories.expand((category) => category.recipes);
+    for (final recipe in recipes) {
+      if (recipe.id == recipeId) return recipe.document;
+    }
+    return cookbook.dayOne;
+  }
+
+  Future<Cookbook> _loadCookbook() {
     return ref.read(documentationRepositoryProvider).loadCookbook(_language);
   }
 
   void _selectLanguage(DocsLanguage language) {
     setState(() {
       _language = language;
-      _categories = _loadCategories();
+      _cookbook = _loadCookbook();
     });
     widget.onLanguageSelected(language);
   }
 
   void _retry() {
-    setState(() => _categories = _loadCategories());
+    setState(() => _cookbook = _loadCookbook());
   }
 }

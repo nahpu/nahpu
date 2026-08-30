@@ -1273,7 +1273,7 @@ void main() {
   });
 
   testWidgets(
-    'home menu exposes project actions and How-to recipes before About',
+    'home menu exposes project actions and Cookbook before About',
     (tester) async {
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(500, 1200);
@@ -1289,8 +1289,8 @@ void main() {
 
       expect(find.text('Create project'), findsOneWidget);
       expect(find.text('Import project'), findsOneWidget);
-      expect(find.text('How-to recipes'), findsOneWidget);
-      expect(find.text('How-to Recipes'), findsNothing);
+      expect(find.text('Cookbook'), findsOneWidget);
+      expect(find.text('How-to recipes'), findsNothing);
       expect(find.text('Learning resources'), findsNothing);
 
       final drawerText = tester
@@ -1303,7 +1303,7 @@ void main() {
           .map((text) => text.data)
           .toList();
       expect(
-        drawerText.indexOf('How-to recipes'),
+        drawerText.indexOf('Cookbook'),
         lessThan(drawerText.indexOf('About')),
       );
     },

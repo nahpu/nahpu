@@ -1,28 +1,30 @@
 ---
-title: "Faça um backup diário do banco de dados"
+title: "Faça o backup de um dia de campo"
 sidebar:
   order: 2
 ---
 
-Crie uma cópia restaurável do banco de dados e, quando selecionado, dos arquivos gerenciados e da mídia.
+Encerre cada dia de campo com uma exportação de projeto e reserve o backup completo do banco de dados para um checkpoint semanal.
 
 ## Etapas
 
 {% steps %}
 
-1. Abra o menu inicial ou do projeto e selecione `Backup database`.
-2. Escolha se deseja incluir dados do projeto, arquivos gerenciados e mídia no arquivo.
-3. Use um nome de arquivo descritivo com data e nome do dispositivo ou equipe.
-4. Salve o backup em armazenamento separado do dispositivo de trabalho.
-5. Confirme que o arquivo resultante existe e pode ser aberto pelo fluxo de restauração previsto.
+1. Abra o menu do projeto e selecione `Export project`.
+2. Revise as contagens de registros e os avisos sobre mídia ausente.
+3. Escolha ZIP ou TAR.GZ para levar a mídia, ou ative `Light export` para um `JSON.GZ` pequeno quando o envio precisar ser mínimo.
+4. Salve em armazenamento separado do dispositivo de trabalho, nomeando com o projeto e a data.
+5. Uma vez por semana, e sempre antes de mesclar um projeto, use `Backup database` para uma cópia de toda a instalação.
 {% /steps %}
 
-{% aside type="caution" %}
-
-Uma exportação CSV ou transferência leve de projeto não é um backup restaurável do banco de dados.
-
+{% aside type="tip" %}
+A exportação de projeto é o melhor hábito diário: é menor, mais rápida e consome menos bateria do que um backup do banco de dados, e o `Merge project` a restaura em um dispositivo substituto caso um seja perdido ou quebre. Pacotes Darwin Core e exportações CSV não podem ser importados de volta, então nunca contam como backup.
 {% /aside %}
 
 ## Saiba mais
 
-[Abra o guia completo](https://nahpu.app/pt/usages/export/#backup-database)
+- [Abra o guia completo](https://nahpu.app/pt/usages/export/#backup-strategy)
+- [Exporte um projeto para outro dispositivo](https://nahpu.app/pt/how-to-recipes/protect-and-collaborate/export-project/)
+- [Mescle um projeto e resolva conflitos](https://nahpu.app/pt/how-to-recipes/protect-and-collaborate/merge-project/)
+- [Restaure ou substitua um banco de dados](https://nahpu.app/pt/how-to-recipes/protect-and-collaborate/restore-database/)
+- [Gerenciamento de Projetos](https://nahpu.app/pt/best-practices/project-management/)

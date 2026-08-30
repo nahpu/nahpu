@@ -266,7 +266,7 @@ void main() {
     expect(find.text('Set up NAHPU'), findsOneWidget);
   });
 
-  testWidgets('the home drawer shows Setup NAHPU above How-to recipes', (
+  testWidgets('the home drawer shows Setup NAHPU above Cookbook', (
     tester,
   ) async {
     useWideSurface(tester);
@@ -285,7 +285,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final setup = tester.getTopLeft(find.text('Setup NAHPU')).dy;
-    final recipes = tester.getTopLeft(find.text('How-to recipes')).dy;
+    final recipes = tester.getTopLeft(find.text('Cookbook')).dy;
     expect(setup, lessThan(recipes));
   });
 }

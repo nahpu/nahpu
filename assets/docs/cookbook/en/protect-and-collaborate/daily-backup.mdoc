@@ -1,28 +1,30 @@
 ---
-title: "Make a daily database backup"
+title: "Back up a field day"
 sidebar:
   order: 2
 ---
 
-Create a restorable copy of the database and, when selected, managed files and media.
+Close each field day with a project export, and keep the full database backup for a weekly checkpoint.
 
 ## Steps
 
 {% steps %}
 
-1. Open the home or project drawer and select `Backup database`.
-2. Choose whether to include project data, managed files, and media in the archive.
-3. Use a descriptive filename containing the date and device or team name.
-4. Save the backup to storage separate from the working device.
-5. Confirm that the resulting file exists and can be opened by the intended restore workflow.
+1. Open the project drawer and select `Export project`.
+2. Review the record counts and any warnings about missing media.
+3. Choose ZIP or TAR.GZ to carry media, or turn on `Light export` for a small `JSON.GZ` when the upload must be tiny.
+4. Save it to storage separate from the working device, naming it with the project and date.
+5. Once a week, and always before merging a project, run `Backup database` instead for a copy of the whole installation.
 {% /steps %}
 
-{% aside type="caution" %}
-
-A CSV export or light project transfer is not a restorable database backup.
-
+{% aside type="tip" %}
+A project export is the better daily habit: it is smaller, faster, and easier on the battery than a database backup, and `Merge project` restores it onto a replacement device if one is lost or broken. Darwin Core bundles and CSV exports cannot be imported back, so they never count as a backup.
 {% /aside %}
 
 ## Learn more
 
-[Open the full guide](https://nahpu.app/en/usages/export/#backup-database)
+- [Open the full guide](https://nahpu.app/en/usages/export/#backup-strategy)
+- [Export a project for another device](https://nahpu.app/en/how-to-recipes/protect-and-collaborate/export-project/)
+- [Merge a project and resolve conflicts](https://nahpu.app/en/how-to-recipes/protect-and-collaborate/merge-project/)
+- [Restore or replace a database](https://nahpu.app/en/how-to-recipes/protect-and-collaborate/restore-database/)
+- [Project Management](https://nahpu.app/en/best-practices/project-management/)

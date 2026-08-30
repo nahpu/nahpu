@@ -1,6 +1,8 @@
 import 'dart:io';
 
 const _locales = ['en', 'pt', 'es', 'id'];
+const _dayOneFile = 'day-one.mdoc';
+const _websiteOrigin = 'https://nahpu.app';
 
 void main(List<String> arguments) {
   final docsRoot = _optionValue(arguments, '--docs-root');
@@ -52,10 +54,19 @@ void main(List<String> arguments) {
       }
     }
     for (final relativePath in destinationFiles.keys) {
+      if (relativePath == _dayOneFile) continue;
       if (!sourceFiles.containsKey(relativePath)) {
         differences.add('Extra app file: $locale/$relativePath');
       }
     }
+
+    final dayOneDifference = _syncDayOne(
+      canonicalRoot: canonicalRoot,
+      destination: destination,
+      locale: locale,
+      write: write,
+    );
+    if (dayOneDifference != null) differences.add(dayOneDifference);
   }
 
   if (differences.isEmpty) {
@@ -76,6 +87,44 @@ void main(List<String> arguments) {
     stderr.writeln('- $difference');
   }
   exitCode = 1;
+}
+
+/// Copies Day One into the Cookbook, rewriting its site-relative links.
+///
+/// The app has no router for documentation pages, so a link only works when it
+/// carries a scheme. Recipes already use absolute website URLs; Day One is
+/// authored for the website and is converted on the way in.
+String? _syncDayOne({
+  required Directory canonicalRoot,
+  required Directory destination,
+  required String locale,
+  required bool write,
+}) {
+  final source = File('${canonicalRoot.path}/$locale/$_dayOneFile');
+  if (!source.existsSync()) {
+    return 'Missing canonical Day One: ${source.path}';
+  }
+  final expected = absoluteWebsiteLinks(source.readAsStringSync());
+  final destinationFile = File('${destination.path}/$_dayOneFile');
+  if (destinationFile.existsSync() &&
+      destinationFile.readAsStringSync() == expected) {
+    return null;
+  }
+  if (write) {
+    destinationFile.parent.createSync(recursive: true);
+    destinationFile.writeAsStringSync(expected);
+  }
+  return '$locale/$_dayOneFile';
+}
+
+/// Turns `](/en/usages/settings/#tab)` into a full `https://nahpu.app` URL.
+///
+/// Day One links to the website with root-absolute paths, which resolve only
+/// inside a browser on that site.
+String absoluteWebsiteLinks(String source) {
+  return source.replaceAllMapped(RegExp(r'\]\(/([^)\s]+)\)'), (match) {
+    return ']($_websiteOrigin/${match.group(1)})';
+  });
 }
 
 String? _optionValue(List<String> arguments, String option) {

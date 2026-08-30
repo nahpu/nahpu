@@ -10,6 +10,10 @@ Edit the file name, caption, tag, and photographer so another person can tell wh
 
 Media describes the resource, not the specimen. Keep observations about the organism in the specimen record.
 
+## Exporting media
+
+Use `Export` on a media item to save one file, with options to convert it to JPEG, PNG, or WebP and to resize it. To save several files at once, open the media gallery, turn on selection, and select `Export`. That writes one TAR.GZ or ZIP archive, with the images converted and resized together and audio and video copied unchanged.
+
 ## Darwin Core context
 
 Media attached to a specimen is exported alongside the occurrence as an Audiovisual Core `ac:Media` record: the caption or file name becomes the title, the capture date the creation date, and the photographer the creator. In tabular exports the media fields map to Dublin Core terms such as `dcterms:title`, `dcterms:created`, `dcterms:type`, and `dcterms:identifier`.

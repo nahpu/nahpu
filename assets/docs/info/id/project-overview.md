@@ -12,6 +12,12 @@ NAHPU memberikan pengenal unik universal (UUID) kepada setiap proyek baru. Mengi
 
 Jaga agar deskripsi proyek tetap ringkas. Catat konteks harian yang rinci di Narratives.
 
+## Mencadangkan di lapangan
+
+`Export project` adalah cadangan lapangan harian. Ukurannya lebih kecil dan prosesnya lebih cepat daripada cadangan basis data serta lebih hemat baterai, dan `Merge project` membacanya kembali di perangkat lain, sehingga perangkat yang hilang atau rusak paling banyak menghabiskan satu hari kerja. Pilih ZIP atau TAR.GZ agar media ikut terbawa, atau ekspor ringan `JSON.GZ` bila unggahannya harus kecil.
+
+Simpan `Backup database` untuk pemeriksaan mingguan dan untuk saat sebelum penggabungan apa pun. Cadangan itu menyalin seluruh instalasi, bukan satu proyek saja.
+
 ## Konteks Darwin Core
 
 UUID proyek menjadi pengenal kumpulan data dalam hasil ekspor dan ditulis ke `dwc:datasetID`.

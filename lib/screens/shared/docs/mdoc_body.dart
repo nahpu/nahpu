@@ -74,7 +74,7 @@ class MdocParser {
         if (closingIndex != null) {
           final innerLines = lines.sublist(index + 1, closingIndex);
           final steps = _parseSteps(innerLines);
-          if (steps != null && !_containsMarkdocTag(innerLines)) {
+          if (steps != null && _stepsAllowNesting(innerLines)) {
             flushMarkdown();
             blocks.add(MdocStepsBlock(steps));
             index = closingIndex + 1;
@@ -92,7 +92,7 @@ class MdocParser {
         final closingIndex = _findClosing(lines, index + 1, _asideClose);
         if (attributes != null && closingIndex != null) {
           final innerLines = lines.sublist(index + 1, closingIndex);
-          if (!_containsMarkdocTag(innerLines)) {
+          if (!innerLines.any(_markdocLine.hasMatch)) {
             flushMarkdown();
             blocks.add(
               MdocAsideBlock(
@@ -165,8 +165,29 @@ class MdocParser {
     return line;
   }
 
-  bool _containsMarkdocTag(List<String> lines) {
-    return lines.any(_markdocLine.hasMatch);
+  /// Steps may wrap asides, which Day One uses, but never other steps.
+  ///
+  /// Every Markdoc line inside the block must belong to a balanced aside;
+  /// anything else falls back to a plain Markdown block so the source stays
+  /// readable.
+  bool _stepsAllowNesting(List<String> lines) {
+    var openAsides = 0;
+    for (final line in lines) {
+      if (!_markdocLine.hasMatch(line)) continue;
+      if (_asideClose.hasMatch(line)) {
+        openAsides--;
+        if (openAsides < 0) return false;
+        continue;
+      }
+      final asideMatch = _asideOpen.firstMatch(line);
+      if (asideMatch == null) return false;
+      if (_parseAsideAttributes(asideMatch.group(1) ?? '') == null) {
+        return false;
+      }
+      openAsides++;
+      if (openAsides > 1) return false;
+    }
+    return openAsides == 0;
   }
 
   _MdocAsideAttributes? _parseAsideAttributes(String source) {
@@ -252,6 +273,7 @@ class _MdocBlockView extends StatelessWidget {
       MdocMarkdownBlock(:final markdown) => _markdownBody(markdown),
       MdocStepsBlock(:final steps) => _MdocSteps(
         steps: steps,
+        language: language,
         styleSheet: styleSheet,
         onTapLink: onTapLink,
       ),
@@ -279,11 +301,13 @@ class _MdocBlockView extends StatelessWidget {
 class _MdocSteps extends StatelessWidget {
   const _MdocSteps({
     required this.steps,
+    required this.language,
     required this.styleSheet,
     required this.onTapLink,
   });
 
   final List<MdocStep> steps;
+  final DocsLanguage language;
   final MarkdownStyleSheet styleSheet;
   final MarkdownTapLinkCallback? onTapLink;
 
@@ -341,11 +365,9 @@ class _MdocSteps extends StatelessWidget {
                     padding: EdgeInsets.only(
                       bottom: index == steps.length - 1 ? 0 : NahpuSpacing.lg,
                     ),
-                    child: MarkdownBody(
+                    child: MdocBody(
                       data: steps[index].markdown,
-                      selectable: false,
-                      listItemCrossAxisAlignment:
-                          MarkdownListItemCrossAxisAlignment.start,
+                      language: language,
                       styleSheet: styleSheet,
                       onTapLink: onTapLink,
                     ),

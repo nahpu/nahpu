@@ -55,6 +55,49 @@ Tip body.
       expect(asides[2].markdown, 'Tip body.');
     });
 
+    test('keeps an aside nested inside a step', () {
+      final blocks = const MdocParser().parse('''
+{% steps %}
+
+1. **Create a new project**
+
+    Use the `+` button.
+
+    {% aside type="tip" %}
+
+    Transfer the UUID with a QR export.
+
+    {% /aside %}
+
+2. **Open the dashboard**
+
+    Four panels appear.
+{% /steps %}
+''');
+
+      final steps = blocks.whereType<MdocStepsBlock>().single.steps;
+      expect(steps, hasLength(2));
+      expect(steps.first.markdown, contains('{% aside type="tip" %}'));
+
+      final nested = const MdocParser().parse(steps.first.markdown);
+      expect(nested.whereType<MdocAsideBlock>().single.markdown, contains('QR'));
+    });
+
+    test('falls back to Markdown when steps nest another steps block', () {
+      final blocks = const MdocParser().parse('''
+{% steps %}
+1. Outer step.
+
+    {% steps %}
+    1. Inner step.
+    {% /steps %}
+{% /steps %}
+''');
+
+      expect(blocks.whereType<MdocStepsBlock>(), isEmpty);
+      expect(blocks.single, isA<MdocMarkdownBlock>());
+    });
+
     test('keeps unsupported and malformed tags as Markdown', () {
       const source = '''
 {% tabs %}
@@ -103,6 +146,40 @@ Unsupported aside.
       ),
     );
     expect(stepMarkdown.any((body) => body.data.contains('[guide]')), isTrue);
+  });
+
+  testWidgets('renders an aside inside a step', (tester) async {
+    await tester.pumpWidget(
+      _testApp(
+        data: '''
+{% steps %}
+
+1. **Create a new project**
+
+    Use the `+` button.
+
+    {% aside type="tip" %}
+
+    Transfer the UUID with a QR export.
+
+    {% /aside %}
+
+2. Finish.
+{% /steps %}
+''',
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('mdoc-steps')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mdoc-aside-tip')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('mdoc-steps')),
+        matching: find.byKey(const ValueKey('mdoc-aside-tip')),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('QR export'), findsOneWidget);
   });
 
   testWidgets('step colors meet WCAG AA in both themes', (tester) async {

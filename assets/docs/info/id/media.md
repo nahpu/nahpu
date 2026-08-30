@@ -10,6 +10,10 @@ Sunting nama berkas, keterangan gambar, tag, dan fotografernya agar orang lain t
 
 Media menjelaskan sumber dayanya, bukan spesimennya. Simpan pengamatan tentang organisme pada catatan spesimen.
 
+## Mengekspor media
+
+Gunakan `Export` pada satu item media untuk menyimpan satu berkas, lengkap dengan pilihan mengonversinya ke JPEG, PNG, atau WebP dan mengubah ukurannya. Untuk menyimpan beberapa berkas sekaligus, buka galeri media, aktifkan seleksi, lalu pilih `Export`. Langkah itu menulis satu arsip TAR.GZ atau ZIP, dengan gambar dikonversi dan diubah ukurannya bersama-sama, sedangkan audio dan video disalin apa adanya.
+
 ## Konteks Darwin Core
 
 Media yang terlampir pada spesimen diekspor bersama kejadiannya sebagai catatan `ac:Media` dari Audiovisual Core: keterangan gambar atau nama berkas menjadi judul, tanggal pengambilan menjadi tanggal pembuatan, dan fotografer menjadi pembuatnya. Dalam ekspor tabel, kolom media dipetakan ke istilah Dublin Core seperti `dcterms:title`, `dcterms:created`, `dcterms:type`, dan `dcterms:identifier`.

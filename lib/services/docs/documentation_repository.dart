@@ -79,6 +79,16 @@ class CookbookRecipe {
   final MarkdownDocument document;
 }
 
+/// The bundled Cookbook: the Day One walkthrough plus the how-to recipes.
+class Cookbook {
+  const Cookbook({required this.dayOne, required this.categories});
+
+  /// The getting-started guide, mirrored from the NAHPU documentation site.
+  final MarkdownDocument dayOne;
+
+  final List<CookbookCategory> categories;
+}
+
 class CookbookCategory {
   const CookbookCategory({
     required this.id,
@@ -111,7 +121,7 @@ class DocumentationRepository {
   final AssetBundle _assetBundle;
   final DocumentationAssetPathsLoader? _assetPathsLoader;
   final Map<String, Future<MarkdownDocument>> _documentCache = {};
-  final Map<DocsLanguage, Future<List<CookbookCategory>>> _cookbookCache = {};
+  final Map<DocsLanguage, Future<Cookbook>> _cookbookCache = {};
 
   Future<MarkdownDocument> loadInfo(
     InfoTopic topic,
@@ -129,7 +139,7 @@ class DocumentationRepository {
     }
   }
 
-  Future<List<CookbookCategory>> loadCookbook(DocsLanguage language) {
+  Future<Cookbook> loadCookbook(DocsLanguage language) {
     return _cookbookCache.putIfAbsent(
       language,
       () => _loadCookbookWithFallback(language),
@@ -205,9 +215,7 @@ class DocumentationRepository {
     ];
   }
 
-  Future<List<CookbookCategory>> _loadCookbookWithFallback(
-    DocsLanguage language,
-  ) async {
+  Future<Cookbook> _loadCookbookWithFallback(DocsLanguage language) async {
     try {
       return await _loadCookbook(language);
     } on Object {
@@ -216,9 +224,10 @@ class DocumentationRepository {
     }
   }
 
-  Future<List<CookbookCategory>> _loadCookbook(DocsLanguage language) async {
+  Future<Cookbook> _loadCookbook(DocsLanguage language) async {
     final assets = await _loadAssetPaths();
     final prefix = 'assets/docs/cookbook/${language.code}/';
+    final dayOne = await loadDocument('${prefix}day-one.mdoc');
     final recipePaths = assets.where((path) {
       if (!path.startsWith(prefix) || !path.endsWith('.mdoc')) return false;
       final relativeParts = path.substring(prefix.length).split('/');
@@ -264,7 +273,7 @@ class DocumentationRepository {
       final order = left.order.compareTo(right.order);
       return order != 0 ? order : left.title.compareTo(right.title);
     });
-    return categories;
+    return Cookbook(dayOne: dayOne, categories: categories);
   }
 
   Future<List<String>> _loadAssetPaths() async {

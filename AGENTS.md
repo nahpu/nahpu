@@ -35,6 +35,12 @@ Add focused `*_test.dart` files in `test/`. Prefer service tests for import/expo
 
 Preserve user changes and avoid unrelated refactors. Always write the product name as `NAHPU`. Agents must not create commits, branches, pushes, or pull requests; leave Git under user control. After bridge API edits, regenerate bindings and verify analysis plus `cargo check` and `cargo clippy`. Add assets to `pubspec.yaml` only when needed.
 
+The bundled Cookbook under `assets/docs/cookbook/` is generated from
+`nahpu-docs`, Day One included. Edit the website copy, then run
+`dart run tool/sync_cookbook.dart --docs-root ../nahpu-docs --write`; never
+hand-edit files under `assets/docs/cookbook/`. `assets/docs/info/` is app-only
+and is edited here.
+
 Any change to `lib/services/database/tables.drift` must also update the mirrored
 `crates/nahpu_db/schema/tables.drift` in `nahpu_api`. Review every added,
 removed, or renamed table and column in `nahpu_dwc`, update its schema-field

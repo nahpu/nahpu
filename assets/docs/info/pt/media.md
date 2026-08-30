@@ -10,6 +10,10 @@ Edite o nome do arquivo, a legenda, a etiqueta e quem fotografou, para que outra
 
 A mídia descreve o recurso, não o espécime. Mantenha as observações sobre o organismo no registro do espécime.
 
+## Exportando mídia
+
+Use `Export` em um item de mídia para salvar um arquivo, com opções de converter para JPEG, PNG ou WebP e de redimensionar. Para salvar vários arquivos de uma vez, abra a galeria de mídia, ative a seleção e escolha `Export`. Isso grava um único pacote TAR.GZ ou ZIP, com as imagens convertidas e redimensionadas em conjunto e áudio e vídeo copiados sem alteração.
+
 ## Contexto do Darwin Core
 
 A mídia anexada a um espécime é exportada junto com a ocorrência como um registro `ac:Media` do Audiovisual Core: a legenda ou o nome do arquivo vira o título, a data de captura vira a data de criação e quem fotografou vira a pessoa criadora. Em exportações tabulares, os campos de mídia são mapeados para termos do Dublin Core, como `dcterms:title`, `dcterms:created`, `dcterms:type` e `dcterms:identifier`.

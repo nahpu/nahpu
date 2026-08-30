@@ -1,0 +1,233 @@
+---
+title: NAHPU Day 1
+sidebar:
+    label: NAHPU Day 1
+    order: 2
+---
+
+NAHPU is optimized for mobile and desktop screens and is designed to record natural history specimens both in the lab and in the field.
+
+## Key Concepts
+
+### Understanding Projects
+
+NAHPU organizes data by project. A project is a dataset, and what counts as a project is up to you. It can be a field expedition, a collection of specimens prepared in a lab for a given year, or a long-term monitoring effort. If a single expedition covers several localities and each locality has its own reporting requirement, it often makes more sense to create one project per locality.
+
+Each project has its own unique identifier (UUID) and is managed independently. Search, export, import, and data statistics all work at the project level. If your institution uses accession numbers, you can assign one to a project or reuse the same accession number across several projects.
+
+{% aside type="note" %}
+Future NAHPU updates will provide global search, export, and data statistics across multiple projects.
+{% /aside %}
+
+### Site and Collecting Event Relationships
+
+If you are coming from a paper-based catalog, this may be a new concept: think of a collecting event as the "session" during which specimens were collected, separate from the site where it happened.
+
+A site holds information that usually does not change over a short period, such as geography, habitat conditions, and coordinates. A collecting event holds the details that vary at a specific site during a specific period, such as the personnel involved, trap counts, weather, and astronomy data. It captures the effort and the environmental conditions at that time. Specimen records link to a collecting event rather than directly to a site.
+
+### Location, Locality, and Site Scopes
+
+These three terms are often used interchangeably within the museum community, and the ontologies behind them can lead to [an "exhausting" debate](https://naomicleghorn.weebly.com/blog/site-vs-locality-and-the-paleocore-workshop). NAHPU keeps them at three scopes.
+
+Location is the broad place that covers the whole project, and you record it in the project information. Locality is the precise place description stored in the site geography, and it is shared between sites so you can reuse it. Site is the narrowest scope. The camp, the hotel where you stay during an expedition, a net or trap line, and so on are all sites.
+
+You can add any number of coordinates to a single site. When collecting with traps, for example, you can record a coordinate for each trap and assign a specimen to that coordinate. This gives specimen location down to GPS accuracy, which with a modern GPS can be as good as a 3 to 5 meter radius. The app also provides a coordinate extent field to estimate the distance from the recorded coordinate.
+
+### Controlled Vocabularies
+
+Controlled vocabularies are predefined lists of terms that keep data entry consistent, which is common practice in data management systems. We did our best to align the default terms in NAHPU with terms used by collection management software such as [Arctos](https://arctosdb.org/), while still letting you customize them.
+
+### Field Identifiers
+
+The practice of assigning a unique identifier to a specimen in the field falls into three types: personal, institutional, and project-specific field IDs.
+
+NAHPU supports personal field IDs through the `cataloger` role. Add your initials and current field number in the personnel form, and the app generates a unique field ID by combining them. The number is auto-incremented and can be overridden manually.
+
+For the other two types, NAHPU uses `project ID`. You can set a prefix, suffix, and starting number, with an auto-increment option.
+
+{% aside type="note" %}
+NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design. It automatically assigns a UUID to each specimen record. This guarantees that every specimen always has a unique identifier in case of a field-ID conflict, such as when two catalogers use the same initials and similar ranges of field numbers.
+{% /aside %}
+
+### Cataloger vs Collector Roles
+
+NAHPU defines a collector as someone who collects a specimen but does not necessarily catalog it. This is a specific field in the specimen form, and anyone can be assigned to it with or without a specimen-care role. Your field guide who brought the specimen to you, or someone who donated an unprepared specimen to the collection, can be assigned as a collector.
+
+A person who catalogs the specimen is a cataloger. This role provides access to field IDs, and a person with this role can also be assigned as a preparator, collector, or any other personnel field.
+
+## Getting Started
+
+{% steps %}
+
+1. **Set up NAHPU**
+
+    When you first install NAHPU, the setup button is visible on the home
+    screen. If you do not see it or need to set it up later, you can access it
+    through the menu drawer. The setup wizard guides you through choosing a
+    field identifier and all customizable controlled-vocabulary fields. You can
+    also import and export those settings, so setup only needs to be completed
+    once for your entire team.
+
+2. **Create a new project**
+
+    Use the `+` button in the bottom-right corner of the home screen and select
+    `New project`. The setup wizard collects project information, offers an
+    optional main taxon and field-ID setup, requests a Cataloger when personnel
+    IDs are selected, and finishes with a review. The project name must be 3 to
+    25 characters long.
+
+    You can skip device setup and complete it later in
+    [Settings](https://nahpu.app/en/usages/settings/). See [Projects](https://nahpu.app/en/usages/projects/) for the
+    complete wizard and project-information import workflow.
+
+    After the review, `Create project` opens the dashboard.
+
+    NAHPU generates a project UUID for every new project. We use
+    [UUID version 4](https://en.wikipedia.org/wiki/Universally_unique_identifier).
+    When you import project information from another device, NAHPU retains the
+    imported UUID.
+
+    {% aside type="tip" %}
+
+    You can transfer project information and its UUID using QR or JSON export.
+    This is especially useful when several people catalog the same project on
+    their own devices, because keeping the same UUID simplifies data merging
+    later. See [Transfer a Project](https://nahpu.app/en/usages/export/project-transfer/) for more
+    details.
+
+    {% /aside %}
+
+3. **Get to know the dashboard**
+
+    The dashboard is the main project interface. It is divided into four
+    panels.
+
+    - **The top-left panel** is the project overview. Use `Edit` and `Export info` to manage project information. Use `Export project` when you need to transfer records and media.
+    - **The top-right panel** contains personnel data. Use this panel to add and manage personnel for the project. Personnel appear as a list in this panel after they are created.
+    - **The bottom-left panel** is the taxon registry. Use this panel to add and manage taxon information for the project.
+    - **The bottom-right panel** contains the record statistics. It shows the number of records added to the project. Select `Explore more stats` for detailed charts, tables, and filters.
+
+    {% aside type="note" %}
+
+    On a smartphone screen, the panels are arranged in this order: **project information**, **personnel**, **taxon registry**, and **record statistics**.
+    {% /aside %}
+
+4. **Add new personnel**
+
+    **Every project needs at least one Cataloger.** The create-project wizard asks for one as soon as you choose personnel field IDs, and it will not let you finish without one. The cataloger owns the field number that generates each specimen's field ID, so add this person before you start cataloging. Once that is done, add as many other people as the project needs.
+
+    - **[Cataloger](https://nahpu.app/en/usages/personnel/#cataloger)** is responsible for cataloging the specimen. Their initials and field number generate the Field ID on the specimen catalog page. Their name also appears wherever a field asks for personnel, such as collecting personnel and preparator. The app does not allow you to change the cataloger role after it is created.
+
+    - **[Determiner only](https://nahpu.app/en/usages/personnel/#determiner-only)** is a person who identifies specimens but does not catalog or prepare them. Select them in the specimen form's `Determiner` field.
+
+    - **[Preparator only](https://nahpu.app/en/usages/personnel/#preparator-only)** is a person who helps prepare the specimen but is not involved in managing the data. Their name does not appear in the cataloger field on the specimen page, but it can appear elsewhere, such as in the `Preparator` and `Collecting personnel` fields.
+
+    - **[None](https://nahpu.app/en/usages/personnel/#none)** is reserved for personnel who are not directly involved in specimen care. NAHPU aims to ensure that everyone involved in the field is recorded in the field data. You can assign this role to your driver, local guides, cooks, and others. Their names appear only in the `Collecting personnel` field. If they are involved in obtaining a specimen, you can also associate them as a collector.
+
+5. **Add a new taxon**
+
+    You can add a taxon manually using the Add taxon button or import it from a file. The preferred formats are `.xlsx`, `.csv`, and `.tsv`. NAHPU will make a best-effort attempt to parse other file types.
+
+    Manual entry and file import both support class, order, family, genus, species, and subspecies records. In an import file, add a `taxon rank` column. You may omit it only when class, order, family, genus, and specific epithet are all present, in which case the row defaults to species.
+
+    - For recognized delimited files, the app selects the delimiter by extension (`.csv` = comma, `.tsv` = tab).
+    - For unrecognized extensions, auto-detect tries Excel, comma, tab, and semicolon first. If that fails, use the advanced parser override and enter a custom raw delimiter.
+    - `.xlsx` has the best support; older or other Excel formats may fail.
+
+    Each row requires the classification columns from `class` through its selected rank. A subspecies row therefore also needs `subspecific epithet`. You can include `authors`, `common name`, `IUCN Category`, `CITES status`, `country status`, `sorting order`, and `notes`. The app automatically detects supported header aliases, such as `taxonRank`, `taxonClass`, `taxonOrder`, `taxonFamily`, `specificEpithet`, and `infraspecificEpithet`. You can manually select the column type using the dropdown menu if the app does not automatically assign the correct type to each column. Other columns are ignored.
+
+    Example taxon import table:
+
+    ```text
+    | taxon rank | class    | order    | family  | genus   | epithet   | common name       |
+    | ---------- | -------- | -------- | ------- | ------- | --------- | ----------------- |
+    | species    | Mammalia | Rodentia | Muridae | Bunomys | coelestis | Heavenly hill rat |
+    | species    | Mammalia | Rodentia | Muridae | Bunomys | penitus   | Inland hill rat   |
+    ```
+
+6. **Create a site**
+
+    Navigate to the site page using the navigation bar. To create a new site, use the `+` button in the top-right corner. Fill in at least the `Site ID`. The app limits the Site ID to 20 characters and enforces uppercase formatting. You will refer to this ID throughout the record form whenever it asks for a site.
+
+    {% aside type="tip" %}
+
+    We recommend creating a unique Site ID convention for your team. Here is an example for mammalogy fieldwork:
+
+    - City, town, or village names are used as they are. For example, the city of Bogor is `BOGOR`.
+    - A campsite uses the `{2-letter locality abbreviation}-CAMP{camp number}` format. For example, camp 1 on Mt. Gede-Pangrango is `GP-CAMP1`.
+    - A trap line uses the `{2-letter locality abbreviation}{trapline leader initial}-L{line number}` format. For example, line 1 on Mt. Gede-Pangrango led by Heru Handika is `GPHH-L1`.
+    - A pitfall line uses the `{2-letter locality abbreviation}{pitfall line leader initial}-P{line number}` format. For example, line 1 on Mt. Gede-Pangrango led by Heru Handika is `GPHH-P1`.
+
+    {% /aside %}
+
+7. **Add a narrative**
+
+    This is your field journal. It is good practice to write a narrative every day, and you can write about anything that happened that day. Navigate to the Narrative page using the bottom navigation bar and select `+`. Add the date, time, site, writer, and Markdown-supported narrative text. Plain text is fine; when a long entry reads better with headings, lists, or emphasis, the [Markdown cheat sheet](https://nahpu.app/en/usages/narrative/#markdown-cheat-sheet) shows everything the narrative editor understands. You can also attach media and search or preview entries later. See [Narrative](https://nahpu.app/en/usages/narrative/).
+
+8. **Add collecting events**
+
+    To create a collecting event, use the `+` button in the top-right corner of the collecting event page. Select `site ID`, `start date`, `start time`, `end date`, and `end time`. Then fill out the rest of the form.
+
+    The app combines the Site ID and start date to create a unique ID for each collecting event, such as `GP-L1-March, 23 2023`. You will use this ID to refer to the collecting event in the specimen record. If you run multiple collecting events at the same site on the same day, add a suffix to distinguish them, such as `Line1-Mar 26, 2023-1`, `Line1-Mar 26, 2023-2`, `Line1-Mar 26, 2023-day`, or `Line1-Mar 26, 2023-night`.
+
+    {% aside type="tip" %}
+    Unlike sites, which you create once for each new location, we recommend creating a new collecting event for **each individual collection effort** at the same site. For example, when studying nocturnal rodents, traps are typically set the evening before and checked the following morning. In this case:
+
+    - **Start date** = the evening the traps were set
+
+    - **End date** = the morning the traps were checked and specimens were collected
+
+    This approach accurately captures the trapping effort and lets you track changes in trap numbers or personnel across events.
+    {% /aside %}
+
+9. **Add specimen records**
+
+    To create a specimen record, use the `+` button in the top-right corner of the specimen-record page. NAHPU generates the record in the currently active catalog format. The only difference between catalog formats is the measurement fields. After creating a new specimen record, fill in the relevant information, then repeat for the next specimen.
+
+    {% aside type="note" %}
+    NAHPU lets collectors document multiple taxon groups within a single project. The `Specimen Record` icon in the navigation bar reflects the currently active format, and the icon in the specimen parts tells you which catalog the current page uses. For example, a `paw` represents the mammal catalog, while a `bird head` signifies the bird catalog.
+
+    To switch formats, go to Settings, select **Format**, choose a different catalog format, then return to Specimen Record and create a specimen.
+    {% /aside %}
+
+10. **Export records**
+
+    To export records, go to the dashboard menu, indicated by the hamburger icon (three horizontal lines) in the top-left corner. You have multiple export options:
+
+    - Create a report. Generate a species list, media, and site coordinates in a delimited format (`.csv` or `.tsv`).
+
+    - Bundle records. Create a Darwin Core Archive, Darwin Core Data Package, or complete NAHPU Data Package. Data Packages can use TAR.GZ or ZIP. See [Bundle records](https://nahpu.app/en/usages/export/export-bundles/).
+
+    - Export records. Choose which records to export. This option supports delimited formats (`.csv` or `.tsv`).
+
+    {% aside type="tip" %}
+    NAHPU can also export summary statistic tables and images separately from the project exports. This is useful when you need a summary table or a set of photographs for a grant or permit report. Images can be exported as JPEG, PNG, or WebP, with options to resize and compress them. See [Export Statistics](https://nahpu.app/en/usages/export/export-statistics/) and [Export Images](https://nahpu.app/en/usages/export/export-images/).
+    {% /aside %}
+
+11. **Back up your day**
+
+    At the end of each field day, open the dashboard menu and select
+    `Export project`. Choose ZIP or TAR.GZ so the available media travels with
+    the records, or turn on `Light export` for a small `JSON.GZ` when the upload
+    has to fit a weak connection. Save it somewhere other than the working
+    device.
+
+    Once a week, and always before you merge a project, select
+    `backup database` instead. By default the database is exported as a SQLite
+    file; use the `include project data` toggle to add project data, and the app
+    generates a ZIP containing the database and media.
+
+    {% aside type="tip" %}
+
+    Make the project export your daily habit rather than the database backup. It
+    is smaller, faster, and easier on a battery you may not be able to recharge
+    for days, and `Merge project` reads it back into NAHPU on a replacement
+    device if one is lost or broken. The database backup is the heavier tool:
+    it restores an entire installation, which is what you want weekly and
+    immediately before a merge. See
+    [Backup strategy](https://nahpu.app/en/usages/export/#backup-strategy) and
+    [Project Management](https://nahpu.app/en/best-practices/project-management/).
+
+    {% /aside %}
+
+{% /steps %}

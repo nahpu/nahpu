@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/shared/docs/mdoc_body.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:path/path.dart' as path;
 
@@ -28,7 +29,7 @@ void main() {
 
   test('Cookbook paths and ordering match across locales', () {
     final english = _cookbookMetadata(DocsLanguage.english, repository);
-    expect(english.recipePaths, hasLength(29));
+    expect(english.recipePaths, hasLength(31));
     expect(english.categoryPaths, hasLength(4));
     expect(english.orders[path.join('prepare', 'index.md')], 1);
     expect(english.orders[path.join('collect', 'index.md')], 2);
@@ -56,6 +57,44 @@ void main() {
     }
   });
 
+  test('Day One ships with the Cookbook in every language', () {
+    final repository = DocumentationRepository();
+    for (final language in DocsLanguage.values) {
+      final path = 'assets/docs/cookbook/${language.code}/day-one.mdoc';
+      final file = File(path);
+      expect(file.existsSync(), isTrue, reason: 'Missing $path');
+
+      final document = repository.parseDocument(
+        assetPath: path,
+        source: file.readAsStringSync(),
+      );
+      expect(document.title, isNotEmpty, reason: path);
+      expect(document.language, language, reason: path);
+
+      // The app cannot resolve website-relative paths, so `sync_cookbook.dart`
+      // rewrites every link on the way in.
+      final links = RegExp(r'\[[^\]]+\]\(([^)]+)\)')
+          .allMatches(document.markdown)
+          .map((match) => match.group(1)!);
+      for (final link in links) {
+        expect(link, startsWith('https://'), reason: '$path: $link');
+      }
+      expect(
+        document.markdown,
+        contains('https://nahpu.app/${language.code}/'),
+        reason: path,
+      );
+
+      // Day One nests asides inside its steps, so the whole walkthrough is
+      // one steps block rather than a wall of literal Markdoc tags.
+      final blocks = const MdocParser().parse(document.markdown);
+      expect(blocks.whereType<MdocStepsBlock>(), hasLength(1), reason: path);
+      for (final block in blocks.whereType<MdocMarkdownBlock>()) {
+        expect(block.markdown, isNot(contains('{%')), reason: path);
+      }
+    }
+  });
+
   test('every recipe follows the concise numbered format', () {
     const stepsHeadings = {
       DocsLanguage.english: '## Steps',
@@ -76,7 +115,10 @@ void main() {
           .listSync(recursive: true)
           .whereType<File>()
           .where(
-            (file) => file.path.endsWith('.mdoc') && !_isIndexFile(file.path),
+            (file) =>
+                file.path.endsWith('.mdoc') &&
+                !_isIndexFile(file.path) &&
+                !_isDayOne(file.path),
           );
 
       for (final file in recipes) {
@@ -126,11 +168,22 @@ void main() {
           r'{%\s+/?([a-z-]+)',
         ).allMatches(document.markdown).map((match) => match.group(1)).toSet();
         expect(tagNames.difference({'steps', 'aside'}), isEmpty);
-        expect(
-          document.markdown,
-          contains('https://nahpu.app/${language.code}/'),
-          reason: file.path,
+        final prose = document.markdown.replaceAll(
+          RegExp('```.*?```', dotAll: true),
+          '',
         );
+        final links = RegExp(r'\[[^\]]+\]\(([^)]+)\)')
+            .allMatches(prose)
+            .map((match) => match.group(1)!)
+            .toList();
+        expect(links, isNotEmpty, reason: file.path);
+        for (final link in links) {
+          expect(
+            link,
+            startsWith('https://nahpu.app/${language.code}/'),
+            reason: file.path,
+          );
+        }
       }
     }
   });
@@ -158,7 +211,7 @@ _CookbookMetadata _cookbookMetadata(
     titles[relativePath] = document.title;
     if (_isCategoryIndex(relativePath)) {
       categoryPaths.add(relativePath);
-    } else if (!_isIndexFile(relativePath)) {
+    } else if (!_isIndexFile(relativePath) && !_isDayOne(relativePath)) {
       recipePaths.add(relativePath);
     }
   }
@@ -173,6 +226,9 @@ _CookbookMetadata _cookbookMetadata(
 
 bool _isIndexFile(String path) =>
     path.split(Platform.pathSeparator).last.toLowerCase() == 'index.md';
+
+bool _isDayOne(String path) =>
+    path.split(Platform.pathSeparator).last == 'day-one.mdoc';
 
 bool _isCategoryIndex(String path) =>
     _isIndexFile(path) && path.contains(Platform.pathSeparator);

@@ -12,6 +12,12 @@ NAHPU asigna a cada proyecto nuevo un identificador único universal (UUID). Imp
 
 Mantenga breve la descripción del proyecto. Registre el contexto diario detallado en Narratives.
 
+## Copias de seguridad en el campo
+
+`Export project` es la copia de campo diaria. Es más pequeña y rápida que una copia de la base de datos y consume menos batería, y `Merge project` la vuelve a leer en otro dispositivo, así que un dispositivo perdido o roto cuesta como máximo un día de trabajo. Elija ZIP o TAR.GZ para llevar los medios, o una exportación ligera `JSON.GZ` cuando la carga deba ser pequeña.
+
+Reserve `Backup database` para un punto de control semanal y para el momento previo a cualquier fusión. Copia toda la instalación y no un solo proyecto.
+
 ## Contexto de Darwin Core
 
 El UUID del proyecto identifica al conjunto de datos en las exportaciones y se escribe en `dwc:datasetID`.

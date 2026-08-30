@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/home/components/how_to_recipes.dart';
+import 'package:nahpu/screens/home/components/cookbook.dart';
 import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -156,13 +156,14 @@ void main() {
     expect(unselected.tooltip, 'Português');
   });
 
-  testWidgets('How-to Recipes categories expand and collapse independently', (
+  testWidgets('Cookbook categories expand and collapse independently', (
     tester,
   ) async {
     _setSize(tester, const Size(900, 800));
-    await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
+    await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
 
+    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'English recipe'), findsOneWidget);
     expect(find.widgetWithText(ListTile, 'Collect recipe'), findsOneWidget);
     expect(find.byTooltip('Collapse Prepare'), findsOneWidget);
@@ -179,6 +180,7 @@ void main() {
     await tester.tap(find.byTooltip('Collapse Collect'));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(ListTile, 'Collect recipe'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Day One'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Expand Prepare'));
     await tester.pumpAndSettle();
@@ -193,30 +195,34 @@ void main() {
     expect(find.text('Collection steps.'), findsOneWidget);
   });
 
-  testWidgets('wide Cookbook selects the first recipe in a split view', (
+  testWidgets('wide Cookbook opens on Day One in a split view', (
     tester,
   ) async {
     _setSize(tester, const Size(900, 800));
-    await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
+    await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
 
-    expect(find.text('How-to Recipes'), findsOneWidget);
-    final sidePanelTitle = tester.widget<Text>(find.text('Recipes'));
+    expect(find.text('Cookbook'), findsOneWidget);
+    final sidePanelTitle = tester.widget<Text>(find.text('Contents'));
     expect(sidePanelTitle.textAlign, TextAlign.center);
     expect(find.text('Prepare'), findsOneWidget);
-    expect(find.text('English recipe'), findsNWidgets(2));
-    expect(find.text('English purpose.'), findsOneWidget);
+    expect(find.text('Day One'), findsNWidgets(2));
+    expect(find.text('Day One purpose.'), findsOneWidget);
 
-    final recipeTile = tester.widget<ListTile>(
-      find.widgetWithText(ListTile, 'English recipe'),
+    final dayOneTile = tester.widget<ListTile>(
+      find.widgetWithText(ListTile, 'Day One'),
     );
-    final tileBorder = recipeTile.shape! as RoundedRectangleBorder;
+    final tileBorder = dayOneTile.shape! as RoundedRectangleBorder;
     expect(
       tileBorder.side.color,
       Theme.of(
         tester.element(find.byType(ListTile).first),
       ).colorScheme.outlineVariant,
     );
+
+    await tester.tap(find.text('English recipe'));
+    await tester.pumpAndSettle();
+    expect(find.text('English purpose.'), findsOneWidget);
 
     await tester.tap(find.text('ES'));
     await tester.pumpAndSettle();
@@ -229,7 +235,7 @@ void main() {
   ) async {
     _setSize(tester, const Size(900, 600));
     await tester.pumpWidget(
-      _testApp(child: const HowToRecipesScreen(), recipeCount: 20),
+      _testApp(child: const CookbookScreen(), recipeCount: 20),
     );
     await tester.pumpAndSettle();
 
@@ -417,7 +423,7 @@ void main() {
     tester,
   ) async {
     _setSize(tester, const Size(500, 800));
-    await tester.pumpWidget(_testApp(child: const HowToRecipesScreen()));
+    await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();
 
     expect(find.text('English recipe'), findsOneWidget);
@@ -428,6 +434,21 @@ void main() {
 
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.text('English purpose.'), findsOneWidget);
+  });
+
+  testWidgets('phone Cookbook opens Day One in a bottom sheet', (tester) async {
+    _setSize(tester, const Size(500, 800));
+    await tester.pumpWidget(_testApp(child: const CookbookScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Day One'), findsOneWidget);
+    expect(find.text('Day One purpose.'), findsNothing);
+
+    await tester.tap(find.text('Day One'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('Day One purpose.'), findsOneWidget);
   });
 }
 
@@ -460,9 +481,21 @@ Widget _testApp({
     'es': ('Recopilar', 'Receta de recopilación'),
     'id': ('Mengumpulkan', 'Resep pengumpulan'),
   };
+  const dayOneTitles = {
+    'en': ('Day One', 'Day One purpose.'),
+    'pt': ('Dia 1', 'Objetivo do Dia 1.'),
+    'es': ('Día 1', 'Propósito del Día 1.'),
+    'id': ('Hari Ke-1', 'Tujuan Hari Ke-1.'),
+  };
 
   for (final language in localized.entries) {
     final values = language.value;
+    final dayOne = dayOneTitles[language.key]!;
+    assets['assets/docs/cookbook/${language.key}/day-one.mdoc'] = _markdown(
+      dayOne.$1,
+      0,
+      dayOne.$2,
+    );
     assets['assets/docs/cookbook/${language.key}/prepare/index.md'] = _markdown(
       values.$1,
       1,

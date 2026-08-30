@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
-import 'package:nahpu/screens/home/components/how_to_recipes.dart';
+import 'package:nahpu/screens/home/components/cookbook.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
@@ -112,7 +112,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         const SetupWizardTile(),
         const CommonLineDivider(),
-        const HowToRecipesTile(),
+        const CookbookTile(),
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.info_outlined),
@@ -200,18 +200,18 @@ class SetupWizardTile extends StatelessWidget {
   }
 }
 
-class HowToRecipesTile extends StatelessWidget {
-  const HowToRecipesTile({super.key});
+class CookbookTile extends StatelessWidget {
+  const CookbookTile({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
-      title: const Text('How-to recipes'),
+      title: const Text('Cookbook'),
       onTap: () async {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const HowToRecipesScreen()),
+          MaterialPageRoute(builder: (context) => const CookbookScreen()),
         );
       },
     );

@@ -13,3 +13,7 @@ Un espécimen sin identificar, o una identificación con un nombre de especie in
 El panel abre en **Top recorded species**, las cinco especies con más registros de especímenes, cada una con una barra escalada al conteo más alto. Use el control de la esquina superior derecha para alternar entre ese gráfico y **Record counts**, el resumen numérico descrito arriba.
 
 **Sites**, **Events** y **Narratives** cuentan esos tipos de registro del proyecto de forma independiente. Seleccione **Explore more stats** para ver gráficos, tablas, filtros y exportaciones detallados.
+
+## Exportar estadísticas
+
+Seleccione **Explore more stats**, elija una medida y una agrupación, y cambie el panel a **Table**. El botón `Export table` escribe las filas mostradas en ese momento en CSV, TSV, Excel o JSON. El panel espacial exporta de la misma forma, una fila por coordenada de sitio.

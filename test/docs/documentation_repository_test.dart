@@ -91,6 +91,7 @@ Do the useful thing.
     'Cookbook discovery sorts categories and recipes by front matter',
     () async {
       final assets = {
+        'assets/docs/cookbook/en/day-one.mdoc': _document('Day One', 0),
         'assets/docs/cookbook/en/second/index.md': _document('Second', 2),
         'assets/docs/cookbook/en/second/later.mdoc': _document('Later', 8),
         'assets/docs/cookbook/en/first/index.md': _document('First', 1),
@@ -102,8 +103,10 @@ Do the useful thing.
         assetPathsLoader: () async => assets.keys.toList(),
       );
 
-      final categories = await repository.loadCookbook(DocsLanguage.english);
+      final cookbook = await repository.loadCookbook(DocsLanguage.english);
+      final categories = cookbook.categories;
 
+      expect(cookbook.dayOne.title, 'Day One');
       expect(categories.map((category) => category.title), ['First', 'Second']);
       expect(categories.first.recipes.map((recipe) => recipe.document.title), [
         'A recipe',
@@ -112,8 +115,28 @@ Do the useful thing.
     },
   );
 
+  test('Day One is not listed as a recipe', () async {
+    final assets = {
+      'assets/docs/cookbook/en/day-one.mdoc': _document('Day One', 0),
+      'assets/docs/cookbook/en/prepare/index.md': _document('Prepare', 1),
+      'assets/docs/cookbook/en/prepare/first.mdoc': _document('Recipe', 1),
+    };
+    final repository = DocumentationRepository(
+      assetBundle: _MapAssetBundle(assets),
+      assetPathsLoader: () async => assets.keys.toList(),
+    );
+
+    final cookbook = await repository.loadCookbook(DocsLanguage.english);
+    final recipeTitles = cookbook.categories
+        .expand((category) => category.recipes)
+        .map((recipe) => recipe.document.title);
+
+    expect(recipeTitles, ['Recipe']);
+  });
+
   test('missing localized Cookbook falls back to English', () async {
     final assets = {
+      'assets/docs/cookbook/en/day-one.mdoc': _document('Day One', 0),
       'assets/docs/cookbook/en/prepare/index.md': _document('Prepare', 1),
       'assets/docs/cookbook/en/prepare/first.mdoc': _document(
         'English recipe',
@@ -125,10 +148,14 @@ Do the useful thing.
       assetPathsLoader: () async => assets.keys.toList(),
     );
 
-    final categories = await repository.loadCookbook(DocsLanguage.indonesian);
+    final cookbook = await repository.loadCookbook(DocsLanguage.indonesian);
 
-    expect(categories.single.title, 'Prepare');
-    expect(categories.single.recipes.single.document.title, 'English recipe');
+    expect(cookbook.dayOne.title, 'Day One');
+    expect(cookbook.categories.single.title, 'Prepare');
+    expect(
+      cookbook.categories.single.recipes.single.document.title,
+      'English recipe',
+    );
   });
 
   test('missing English documentation reports an error', () async {
