@@ -98,6 +98,31 @@ void main() {
     expect(find.text('a.jpg'), findsOneWidget);
   });
 
+  testWidgets('large trees use a 560px lazy scrolling viewport', (
+    tester,
+  ) async {
+    final root = buildDir('root', [
+      buildDir('media', [
+        for (var index = 0; index < 100; index++)
+          buildFile('file-$index.jpg', status: NahpuFileStatus.dangling),
+      ]),
+    ]);
+
+    await pump(tester, root);
+
+    expect(tester.getSize(find.byType(NahpuFileTreeView)).height, 560);
+    expect(find.text('file-99.jpg'), findsNothing);
+
+    final treeScroll = find.descendant(
+      of: find.byType(NahpuFileTreeView),
+      matching: find.byType(Scrollable),
+    );
+    await tester.drag(treeScroll, const Offset(0, -5000));
+    await tester.pumpAndSettle();
+
+    expect(find.text('file-99.jpg'), findsOneWidget);
+  });
+
   testWidgets('a linked file offers no delete control', (tester) async {
     final root = buildDir('root', [
       buildDir('media', [

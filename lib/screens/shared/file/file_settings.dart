@@ -50,6 +50,7 @@ class FileSettingsDirectoryPicker extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 selectedDir?.path ?? 'Select directory',
+                maxLines: 1,
                 style: Theme.of(context).textTheme.bodyMedium,
                 overflow: TextOverflow.ellipsis,
               ),

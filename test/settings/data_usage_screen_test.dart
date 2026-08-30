@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
+import 'package:nahpu/screens/settings/application/file_tree.dart';
+import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -171,9 +173,28 @@ void main() {
     expect(find.textContaining('Remove 1 unlinked'), findsNothing);
   });
 
-  testWidgets('selection controls stay pinned and Review floats', (
-    tester,
-  ) async {
+  testWidgets('empty file tree fills the settings container', (tester) async {
+    await seed();
+    await pumpScreen(tester, size: const Size(900, 700));
+
+    final emptyMessage = find.text('The application folder is empty.');
+    await tester.ensureVisible(emptyMessage);
+    await tester.pumpAndSettle();
+
+    final fileSection = find.ancestor(
+      of: emptyMessage,
+      matching: find.byType(CommonSettingSection),
+    );
+    final fileTreeSurface = find
+        .ancestor(of: emptyMessage, matching: find.byType(Material))
+        .first;
+    expect(
+      tester.getSize(fileTreeSurface).width,
+      tester.getSize(fileSection).width,
+    );
+  });
+
+  testWidgets('selection controls stay in the bottom panel', (tester) async {
     await seed();
     writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
     writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
@@ -183,33 +204,77 @@ void main() {
     await tester.ensureVisible(find.text('Select'));
     await tester.pumpAndSettle();
     expect(find.text('Select'), findsOneWidget);
+    expect(find.text('Expand all'), findsOneWidget);
     expect(find.textContaining('Review'), findsNothing);
+
+    final filesTop = tester.getTopLeft(find.text('Files').last).dy;
+    final expandTop = tester.getTopLeft(find.text('Expand all')).dy;
+    final selectTop = tester.getTopLeft(find.text('Select')).dy;
+    expect(expandTop, closeTo(filesTop, 16));
+    expect(selectTop, closeTo(filesTop, 16));
+
+    final fileSection = find.ancestor(
+      of: find.text('Expand all'),
+      matching: find.byType(CommonSettingSection),
+    );
+    expect(
+      tester.getSize(find.byType(NahpuFileTreeView)).width,
+      tester.getSize(fileSection).width,
+    );
+
+    await tester.tap(find.text('Expand all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Collapse all'), findsOneWidget);
+    await tester.tap(find.text('Collapse all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Expand all'), findsOneWidget);
 
     await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
     expect(
       find.descendant(of: find.byType(AppBar), matching: find.text('Clear')),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
-    expect(find.text('0 selected'), findsOneWidget);
-    expect(find.textContaining('Review'), findsNothing);
+    expect(find.text('Review 0'), findsOneWidget);
+
+    final clear = tester.getCenter(find.text('Clear'));
+    final review = tester.getCenter(find.text('Review 0'));
+    final done = tester.getCenter(find.text('Done'));
+    expect(clear.dx, lessThan(review.dx));
+    expect(review.dx, lessThan(done.dx));
 
     await tester.tap(find.text('Select all'));
     await tester.pumpAndSettle();
 
     expect(find.text('Review 1'), findsOneWidget);
-    expect(find.byType(FloatingActionButton), findsOneWidget);
-    expect(find.text('1 selected'), findsOneWidget);
-
-    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
-    await tester.pumpAndSettle();
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.textContaining('selected'), findsNothing);
 
     expect(find.text('Clear'), findsOneWidget);
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('Review 1'), findsOneWidget);
+  });
+
+  testWidgets('selection panel fits a compact screen', (tester) async {
+    await seed();
+    writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
+    writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
+
+    await pumpScreen(tester, size: const Size(320, 700));
+    await tester.drag(
+      find.byType(ListView).first,
+      const Offset(0, -1000),
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review 0'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Clear resets selection and Done exits selection mode', (
@@ -227,7 +292,6 @@ void main() {
 
     await tester.tap(find.text('Clear'));
     await tester.pumpAndSettle();
-    expect(find.text('0 selected'), findsOneWidget);
     expect(find.byType(FloatingActionButton), findsNothing);
 
     await tester.tap(find.text('Done'));
@@ -246,7 +310,6 @@ void main() {
     await pumpScreen(tester);
     await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
-
     // The first checkbox belongs to the outermost folder.
     await tester.tap(find.byType(Checkbox).first);
     await tester.pumpAndSettle();

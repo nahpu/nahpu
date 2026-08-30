@@ -1,5 +1,13 @@
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/exports/components/file_settings.dart';
+import 'package:nahpu/services/common/file_export_services.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -7,6 +15,34 @@ import 'package:path/path.dart' as path;
 
 /// What the user chose to do with a selection.
 enum SelectionAction { export, delete }
+
+/// The settings needed to write a selected-file archive.
+class SelectionExportSettings {
+  const SelectionExportSettings({
+    required this.format,
+    required this.fileStem,
+    required this.appendDate,
+    required this.destination,
+  });
+
+  final DbArchiveFormat format;
+  final String fileStem;
+  final bool appendDate;
+  final Directory destination;
+}
+
+/// The result of the review surface.
+class SelectionReviewResult {
+  const SelectionReviewResult._({required this.action, this.exportSettings});
+
+  const SelectionReviewResult.delete() : this._(action: SelectionAction.delete);
+
+  const SelectionReviewResult.export(SelectionExportSettings settings)
+    : this._(action: SelectionAction.export, exportSettings: settings);
+
+  final SelectionAction action;
+  final SelectionExportSettings? exportSettings;
+}
 
 /// One top-level location in the selection summary.
 ///
@@ -103,77 +139,304 @@ List<SelectionGroup> summarizeSelection({
 }
 
 /// Shows what the user selected and offers the two ways out of it.
-Future<SelectionAction?> showSelectionReview({
+Future<SelectionReviewResult?> showSelectionReview({
   required BuildContext context,
   required List<SelectionGroup> groups,
   required int fileCount,
   required int sizeBytes,
+  Directory? initialDirectory,
+  bool? isDesktop,
 }) {
-  return showDialog<SelectionAction>(
+  final desktop = isDesktop ?? systemPlatform == PlatformType.desktop;
+  final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+  final dialog = SelectionReviewDialog(
+    groups: groups,
+    fileCount: fileCount,
+    sizeBytes: sizeBytes,
+    initialDirectory: initialDirectory,
+    isDesktop: desktop,
+    isBottomSheet: compact,
+  );
+  if (compact) {
+    return showModalBottomSheet<SelectionReviewResult>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => dialog,
+    );
+  }
+  return showDialog<SelectionReviewResult>(
     context: context,
-    builder: (context) => SelectionReviewDialog(
-      groups: groups,
-      fileCount: fileCount,
-      sizeBytes: sizeBytes,
-    ),
+    builder: (context) => dialog,
   );
 }
 
-class SelectionReviewDialog extends StatelessWidget {
+class SelectionReviewDialog extends StatefulWidget {
   const SelectionReviewDialog({
     super.key,
     required this.groups,
     required this.fileCount,
     required this.sizeBytes,
+    this.initialDirectory,
+    this.isDesktop,
+    this.isBottomSheet = false,
   });
 
   final List<SelectionGroup> groups;
   final int fileCount;
   final int sizeBytes;
+  final Directory? initialDirectory;
+  final bool? isDesktop;
+  final bool isBottomSheet;
+
+  @override
+  State<SelectionReviewDialog> createState() => _SelectionReviewDialogState();
+}
+
+class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
+  late final FileOpCtrModel _exportController;
+  late final bool _isDesktop;
+  DbArchiveFormat _format = DbArchiveFormat.tarGzip;
+  Directory? _selectedDirectory;
+  bool _appendDate = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _isDesktop = widget.isDesktop ?? systemPlatform == PlatformType.desktop;
+    _selectedDirectory = widget.initialDirectory;
+    _exportController = FileOpCtrModel.empty();
+    _exportController.fileNameCtr.text = selectionExportStem;
+  }
+
+  @override
+  void dispose() {
+    _exportController.dispose();
+    super.dispose();
+  }
+
+  bool get _canExport =>
+      _isDesktop &&
+      _selectedDirectory != null &&
+      _exportController.isValid &&
+      _exportController.fileNameCtr.text.trim().isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    return widget.isBottomSheet ? _buildSheet(context) : _buildDialog(context);
+  }
+
+  Widget _buildDialog(BuildContext context) {
     return AlertDialog(
-      title: Text('$fileCount selected ${fileCount == 1 ? 'file' : 'files'}'),
+      title: Text(
+        '${widget.fileCount} selected '
+        '${widget.fileCount == 1 ? 'file' : 'files'}',
+      ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
-        child: SingleChildScrollView(
+        child: _scrollableContent(context),
+      ),
+      actions: [
+        _ReviewActions(
+          compact: MediaQuery.sizeOf(context).width < 480,
+          onDelete: _delete,
+          onExport: _canExport ? _export : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSheet(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          NahpuSpacing.xl,
+          NahpuSpacing.md,
+          NahpuSpacing.xl,
+          NahpuSpacing.xl,
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.86,
+            maxWidth: NahpuContentWidth.form,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                formatByteSize(sizeBytes),
+                '${widget.fileCount} selected '
+                '${widget.fileCount == 1 ? 'file' : 'files'}',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
+              Flexible(child: _scrollableContent(context)),
               const SizedBox(height: NahpuSpacing.lg),
-              for (final group in groups) _GroupRow(group: group),
-              const SizedBox(height: NahpuSpacing.lg),
-              Text(
-                'Exporting writes these files to one compressed archive outside '
-                'NAHPU, then offers to remove the originals. Deleting removes '
-                'them straight away and cannot be undone.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+              _ReviewActions(
+                compact: true,
+                onDelete: _delete,
+                onExport: _canExport ? _export : null,
               ),
             ],
           ),
         ),
       ),
-      actions: [
+    );
+  }
+
+  Widget _scrollableContent(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: NahpuSpacing.sm),
+          Center(
+            child: Text(
+              formatByteSize(widget.sizeBytes),
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: NahpuSpacing.lg),
+          for (final group in widget.groups) _GroupRow(group: group),
+          const SizedBox(height: NahpuSpacing.lg),
+          if (_isDesktop)
+            GenericFileSettingsCard<DbArchiveFormat>(
+              exportCtr: _exportController,
+              selectedDir: _selectedDirectory,
+              format: _format,
+              formats: DbArchiveFormat.values,
+              formatLabel: (format) => format.label,
+              extensionForFormat: (format) => format.extension,
+              formatFieldLabel: 'Archive format',
+              onFormatChanged: (format) => setState(() => _format = format),
+              onFileNameChanged: (_) => setState(() {}),
+              appendDate: _appendDate,
+              onAppendDateChanged: (value) =>
+                  setState(() => _appendDate = value),
+              onSelectDir: _selectDirectory,
+              onClearDir: _clearDirectory,
+            )
+          else
+            Text(
+              'Selected-file export is available on desktop. On this device, '
+              'you can delete the selected files permanently after reviewing '
+              'them.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+            ),
+          const SizedBox(height: NahpuSpacing.lg),
+          Text(
+            _isDesktop
+                ? 'Exporting writes these files to one compressed archive, then '
+                      'offers to remove the originals. Deleting removes them '
+                      'straight away and cannot be undone.'
+                : 'Deleting removes the selected files straight away and '
+                      'cannot be undone.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectDirectory() async {
+    final directory = await FilePickerServices().selectDir();
+    if (!mounted || directory == null) return;
+    setState(() => _selectedDirectory = directory);
+  }
+
+  void _clearDirectory() {
+    setState(() => _selectedDirectory = null);
+  }
+
+  void _delete() {
+    Navigator.pop(context, const SelectionReviewResult.delete());
+  }
+
+  void _export() {
+    final directory = _selectedDirectory;
+    final fileStem = _exportController.fileNameCtr.text.trim();
+    if (!_canExport || directory == null || fileStem.isEmpty) return;
+    Navigator.pop(
+      context,
+      SelectionReviewResult.export(
+        SelectionExportSettings(
+          format: _format,
+          fileStem: fileStem,
+          appendDate: _appendDate,
+          destination: directory,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewActions extends StatelessWidget {
+  const _ReviewActions({
+    required this.compact,
+    required this.onDelete,
+    required this.onExport,
+  });
+
+  final bool compact;
+  final VoidCallback onDelete;
+  final VoidCallback? onExport;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    if (compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              style: TextButton.styleFrom(foregroundColor: colors.error),
+              onPressed: onDelete,
+              child: const Text('Delete permanently'),
+            ),
+          ),
+          const SizedBox(height: NahpuSpacing.xs),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: NahpuSpacing.sm),
+              FilledButton.icon(
+                onPressed: onExport,
+                icon: const Icon(Icons.archive_outlined),
+                label: const Text('Export'),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          style: TextButton.styleFrom(foregroundColor: colors.error),
+          onPressed: onDelete,
+          child: const Text('Delete permanently'),
+        ),
+        const Spacer(),
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        TextButton(
-          style: TextButton.styleFrom(foregroundColor: colors.error),
-          onPressed: () => Navigator.pop(context, SelectionAction.delete),
-          child: const Text('Delete permanently'),
-        ),
+        const SizedBox(width: NahpuSpacing.sm),
         FilledButton.icon(
-          onPressed: () => Navigator.pop(context, SelectionAction.export),
+          onPressed: onExport,
           icon: const Icon(Icons.archive_outlined),
           label: const Text('Export'),
         ),
@@ -201,12 +464,14 @@ class _GroupRow extends StatelessWidget {
               children: [
                 Text(
                   group.label,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 if (group.detail.isNotEmpty)
                   Text(
                     group.detail,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
@@ -216,11 +481,16 @@ class _GroupRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: NahpuSpacing.lg),
-          Text(
-            '${group.fileCount} · ${formatByteSize(group.sizeBytes)}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          Flexible(
+            child: Text(
+              '${group.fileCount} · ${formatByteSize(group.sizeBytes)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+            ),
           ),
         ],
       ),

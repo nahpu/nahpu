@@ -29,27 +29,45 @@ class CommonSettingSection extends StatelessWidget {
   const CommonSettingSection({
     super.key,
     this.title,
+    this.titleTrailing,
     required this.children,
     this.isDivided = false,
   });
 
   final String? title;
+  final Widget? titleTrailing;
   final List<Widget> children;
   final bool isDivided;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (title != null)
-          Text(
-            title!,
-            textAlign: TextAlign.left,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title!,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(180),
+                  ),
+                ),
+              ),
+              if (titleTrailing != null)
+                Flexible(
+                  flex: 4,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: titleTrailing!,
+                  ),
+                ),
+            ],
           ),
         Material(
           clipBehavior: Clip.hardEdge,

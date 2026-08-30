@@ -139,4 +139,21 @@ void main() {
     expect(first.archive.existsSync(), isTrue);
     expect(second.archive.existsSync(), isTrue);
   });
+
+  test('uses a caller-provided filename stem', () async {
+    final file = writeFile(['project-a', 'media', 'site', 'one.jpg']);
+
+    final result = await const SelectionExportService().export(
+      root: root.path,
+      paths: [file.path],
+      destination: destination,
+      format: DbArchiveFormat.tarGzip,
+      fileStem: 'selected-media-2026-08-29',
+    );
+
+    expect(
+      path.basename(result.archive.path),
+      'selected-media-2026-08-29.tar.gz',
+    );
+  });
 }

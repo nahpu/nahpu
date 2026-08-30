@@ -11,7 +11,6 @@ import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
-import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -59,6 +58,13 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   bool _isSelecting = false;
   bool _isExporting = false;
   final Set<String> _selected = <String>{};
+  final NahpuFileTreeController _fileTreeController = NahpuFileTreeController();
+
+  @override
+  void dispose() {
+    _fileTreeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,33 +85,6 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
                 : () => ref.read(appFileTreeProvider.notifier).refresh(),
           ),
         ],
-        bottom: !_isSelecting
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(
-                  NahpuControlSize.touchTarget,
-                ),
-                child: _SelectionToolbar(
-                  selectedCount: _selected.length,
-                  canSelectAll:
-                      scannedTree != null &&
-                      deletablePaths.any((path) => !_selected.contains(path)),
-                  onClear: _selected.isEmpty
-                      ? null
-                      : () => setState(_selected.clear),
-                  onSelectAll: scannedTree == null
-                      ? null
-                      : () => setState(() {
-                          _selected
-                            ..clear()
-                            ..addAll(deletablePaths);
-                        }),
-                  onDone: () => setState(() {
-                    _isSelecting = false;
-                    _selected.clear();
-                  }),
-                ),
-              ),
       ),
       body: tree.when(
         loading: () => const Center(child: CommonProgressIndicator()),
@@ -114,61 +93,80 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
           sections: [
             _SummarySection(tree: data),
             _PrunePanel(tree: data),
-            CommonSettingSection(
-              title: 'Files',
-              children: [
-                if (!_isSelecting)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      NahpuSpacing.xl,
-                      NahpuSpacing.md,
-                      NahpuSpacing.xl,
-                      NahpuSpacing.xs,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.checklist_rounded),
-                        label: const Text('Select'),
-                        onPressed: () => setState(() => _isSelecting = true),
-                      ),
-                    ),
+            SizedBox(
+              width: double.infinity,
+              child: CommonSettingSection(
+                title: 'Files',
+                titleTrailing: !_isSelecting
+                    ? _FileTreeActions(
+                        root: data.root,
+                        controller: _fileTreeController,
+                        onSelect: () => setState(() => _isSelecting = true),
+                      )
+                    : null,
+                children: [
+                  NahpuFileTreeView(
+                    root: data.root,
+                    controller: _fileTreeController,
+                    isSelecting: _isSelecting,
+                    selected: _selected,
+                    onSelectionChanged: (node) => setState(() {
+                      if (!_selected.remove(node.path)) {
+                        _selected.add(node.path);
+                      }
+                    }),
+                    onDirectorySelectionChanged: _toggleDirectory,
+                    onDeleteDirectory: _confirmDeleteDirectory,
+                    onSaveCopy: _saveCopy,
+                    onDeleteFile: _confirmDeleteFile,
                   ),
-                NahpuFileTreeView(
-                  root: data.root,
-                  isSelecting: _isSelecting,
-                  selected: _selected,
-                  onSelectionChanged: (node) => setState(() {
-                    if (!_selected.remove(node.path)) _selected.add(node.path);
-                  }),
-                  onDirectorySelectionChanged: _toggleDirectory,
-                  onDeleteDirectory: _confirmDeleteDirectory,
-                  onSaveCopy: _saveCopy,
-                  onDeleteFile: _confirmDeleteFile,
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton:
-          _isSelecting && _selected.isNotEmpty && scannedTree != null
-          ? FloatingActionButton.extended(
-              onPressed: _isExporting
-                  ? null
-                  : () => _reviewSelection(scannedTree),
-              icon: _isExporting
-                  ? const SizedBox.square(
-                      dimension: NahpuControlSize.indicator,
-                      child: CircularProgressIndicator(
-                        strokeWidth: NahpuStroke.regular,
-                      ),
-                    )
-                  : const Icon(Icons.fact_check_outlined),
-              label: Text('Review ${_selected.length}'),
+      bottomNavigationBar: _isSelecting
+          ? SizedBox(
+              height: _selectionToolbarHeight(context),
+              child: _SelectionToolbar(
+                selectedCount: _selected.length,
+                canSelectAll:
+                    scannedTree != null &&
+                    deletablePaths.any((path) => !_selected.contains(path)),
+                canReview: _selected.isNotEmpty && scannedTree != null,
+                isReviewing: _isExporting,
+                onClear: _selected.isEmpty
+                    ? null
+                    : () => setState(_selected.clear),
+                onSelectAll: scannedTree == null
+                    ? null
+                    : () => setState(() {
+                        _selected
+                          ..clear()
+                          ..addAll(deletablePaths);
+                      }),
+                onReview: scannedTree == null
+                    ? null
+                    : () => _reviewSelection(scannedTree),
+                onDone: () => setState(() {
+                  _isSelecting = false;
+                  _selected.clear();
+                }),
+              ),
             )
           : null,
     );
+  }
+
+  double _selectionToolbarHeight(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    final rows = compact ? 2 : 1;
+    final contentHeight =
+        rows * NahpuControlSize.touchTarget +
+        (rows - 1) * NahpuSpacing.xs +
+        NahpuSpacing.md * 2;
+    return contentHeight + MediaQuery.paddingOf(context).bottom;
   }
 
   /// Selects or clears every removable file in a folder.
@@ -203,19 +201,22 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
     );
     final totalBytes = groups.fold<int>(0, (sum, g) => sum + g.sizeBytes);
 
-    final action = await showSelectionReview(
+    final review = await showSelectionReview(
       context: context,
       groups: groups,
       fileCount: paths.length,
       sizeBytes: totalBytes,
     );
-    if (!mounted || action == null) return;
+    if (!mounted || review == null) return;
 
-    switch (action) {
+    switch (review.action) {
       case SelectionAction.delete:
         await _confirmDeleteSelection();
       case SelectionAction.export:
-        await _exportSelection(root, paths);
+        final settings = review.exportSettings;
+        if (settings != null) {
+          await _exportSelection(root, paths, settings);
+        }
     }
   }
 
@@ -223,21 +224,22 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   ///
   /// The removal prompt is only reached once the archive is on disk and
   /// non-empty, so a failed or cancelled export never costs the user a file.
-  Future<void> _exportSelection(String root, List<String> paths) async {
-    final format = await _chooseFormat();
-    if (!mounted || format == null) return;
-
-    final destination = await FilePickerServices().selectDir();
-    if (!mounted || destination == null) return;
-
+  Future<void> _exportSelection(
+    String root,
+    List<String> paths,
+    SelectionExportSettings settings,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _isExporting = true);
     try {
       final result = await const SelectionExportService().export(
         root: root,
         paths: paths,
-        destination: destination,
-        format: format,
+        destination: settings.destination,
+        format: settings.format,
+        fileStem: settings.appendDate
+            ? appendDateToFileStem(settings.fileStem, DateTime.now())
+            : settings.fileStem.trim(),
       );
       if (!mounted) return;
       setState(() => _isExporting = false);
@@ -263,22 +265,6 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
       if (mounted) setState(() => _isExporting = false);
       messenger.showSnackBar(SnackBar(content: Text('Export failed: $error')));
     }
-  }
-
-  Future<DbArchiveFormat?> _chooseFormat() {
-    return showDialog<DbArchiveFormat>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Archive format'),
-        children: [
-          for (final format in DbArchiveFormat.values)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, format),
-              child: Text(format.label),
-            ),
-        ],
-      ),
-    );
   }
 
   /// Saves a copy out of the app folder, so a file can be kept before it goes.
@@ -338,13 +324,18 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   Future<void> _confirmDeleteSelection() async {
     final count = _selected.length;
     final confirmed = await _confirm(
-      title: 'Remove $count selected ${count == 1 ? 'file' : 'files'}?',
+      title: 'Delete $count selected ${count == 1 ? 'file' : 'files'}?',
       body: 'These files are not linked to any record. This cannot be undone.',
+      confirmLabel: 'Delete permanently',
     );
     if (confirmed) await _delete(_selected.toList());
   }
 
-  Future<bool> _confirm({required String title, required String body}) async {
+  Future<bool> _confirm({
+    required String title,
+    required String body,
+    String confirmLabel = 'Remove',
+  }) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -360,7 +351,7 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
@@ -382,73 +373,129 @@ class _DataUsageSettingsState extends ConsumerState<DataUsageSettings> {
   }
 }
 
+class _FileTreeActions extends StatelessWidget {
+  const _FileTreeActions({
+    required this.root,
+    required this.controller,
+    required this.onSelect,
+  });
+
+  final NahpuDirectoryNode root;
+  final NahpuFileTreeController controller;
+  final VoidCallback onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final allExpanded = controller.areAllExpanded(root);
+        final hasDirectories = controller.hasDirectories(root);
+        return FittedBox(
+          alignment: Alignment.centerRight,
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton.icon(
+                icon: Icon(allExpanded ? Icons.unfold_less : Icons.unfold_more),
+                label: Text(allExpanded ? 'Collapse all' : 'Expand all'),
+                onPressed: hasDirectories
+                    ? () {
+                        if (allExpanded) {
+                          controller.collapseAll(root);
+                        } else {
+                          controller.expandAll(root);
+                        }
+                      }
+                    : null,
+              ),
+              const SizedBox(width: NahpuSpacing.xs),
+              TextButton.icon(
+                icon: const Icon(Icons.checklist_rounded),
+                label: const Text('Select'),
+                onPressed: onSelect,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _SelectionToolbar extends StatelessWidget {
   const _SelectionToolbar({
     required this.selectedCount,
     required this.canSelectAll,
+    required this.canReview,
+    required this.isReviewing,
     required this.onClear,
     required this.onSelectAll,
+    required this.onReview,
     required this.onDone,
   });
 
   final int selectedCount;
   final bool canSelectAll;
+  final bool canReview;
+  final bool isReviewing;
   final VoidCallback? onClear;
   final VoidCallback? onSelectAll;
+  final VoidCallback? onReview;
   final VoidCallback onDone;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.surfaceContainer,
-      child: SizedBox(
-        height: NahpuControlSize.touchTarget,
+      elevation: NahpuElevation.low,
+      child: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
               maxWidth: NahpuContentWidth.settings,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+              padding: const EdgeInsets.all(NahpuSpacing.md),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final compact = constraints.maxWidth < 480;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '$selectedCount selected',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ),
-                      if (compact) ...[
-                        IconButton(
-                          tooltip: 'Clear',
-                          onPressed: onClear,
-                          icon: const Icon(Icons.deselect_rounded),
-                        ),
-                        IconButton(
-                          tooltip: 'Select all',
-                          onPressed: canSelectAll ? onSelectAll : null,
-                          icon: const Icon(Icons.select_all_rounded),
-                        ),
-                      ] else ...[
-                        TextButton.icon(
-                          onPressed: onClear,
-                          icon: const Icon(Icons.deselect_rounded),
-                          label: const Text('Clear'),
-                        ),
-                        TextButton.icon(
-                          onPressed: canSelectAll ? onSelectAll : null,
-                          icon: const Icon(Icons.select_all_rounded),
-                          label: const Text('Select all'),
-                        ),
+                  final compact =
+                      constraints.maxWidth < NahpuBreakpoints.compact;
+                  final left = _SelectionActions(
+                    compact: compact,
+                    onClear: onClear,
+                    onSelectAll: canSelectAll ? onSelectAll : null,
+                  );
+                  final right = _ReviewActions(
+                    compact: compact,
+                    selectedCount: selectedCount,
+                    isReviewing: isReviewing,
+                    canReview: canReview,
+                    onReview: onReview,
+                    onDone: onDone,
+                  );
+                  if (compact) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(alignment: Alignment.centerLeft, child: left),
+                        const SizedBox(height: NahpuSpacing.xs),
+                        Align(alignment: Alignment.centerRight, child: right),
                       ],
-                      const SizedBox(width: NahpuSpacing.md),
-                      FilledButton.tonalIcon(
-                        onPressed: onDone,
-                        icon: const Icon(Icons.done_rounded),
-                        label: const Text('Done'),
+                    );
+                  }
+
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(child: left),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: right,
+                        ),
                       ),
                     ],
                   );
@@ -458,6 +505,102 @@ class _SelectionToolbar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SelectionActions extends StatelessWidget {
+  const _SelectionActions({
+    required this.compact,
+    required this.onClear,
+    required this.onSelectAll,
+  });
+
+  final bool compact;
+  final VoidCallback? onClear;
+  final VoidCallback? onSelectAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonStyle = TextButton.styleFrom(
+      minimumSize: const Size(0, NahpuControlSize.touchTarget),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? NahpuSpacing.sm : NahpuSpacing.md,
+      ),
+    );
+    return Wrap(
+      spacing: NahpuSpacing.xs,
+      runSpacing: NahpuSpacing.xs,
+      alignment: compact ? WrapAlignment.start : WrapAlignment.start,
+      children: [
+        TextButton(
+          style: buttonStyle,
+          onPressed: onClear,
+          child: const Text('Clear'),
+        ),
+        TextButton(
+          style: buttonStyle,
+          onPressed: onSelectAll,
+          child: const Text('Select all'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReviewActions extends StatelessWidget {
+  const _ReviewActions({
+    required this.compact,
+    required this.selectedCount,
+    required this.isReviewing,
+    required this.canReview,
+    required this.onReview,
+    required this.onDone,
+  });
+
+  final bool compact;
+  final int selectedCount;
+  final bool isReviewing;
+  final bool canReview;
+  final VoidCallback? onReview;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final review = FilledButton.icon(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(0, NahpuControlSize.touchTarget),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? NahpuSpacing.sm : NahpuSpacing.md,
+        ),
+      ),
+      onPressed: canReview && !isReviewing ? onReview : null,
+      icon: isReviewing
+          ? const SizedBox.square(
+              dimension: NahpuControlSize.indicator,
+              child: CircularProgressIndicator(
+                strokeWidth: NahpuStroke.regular,
+              ),
+            )
+          : const Icon(Icons.fact_check_outlined),
+      label: Text('Review $selectedCount'),
+    );
+    final done = OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, NahpuControlSize.touchTarget),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? NahpuSpacing.sm : NahpuSpacing.md,
+        ),
+      ),
+      onPressed: onDone,
+      icon: const Icon(Icons.done_rounded),
+      label: const Text('Done'),
+    );
+    return Wrap(
+      alignment: compact ? WrapAlignment.end : WrapAlignment.end,
+      spacing: NahpuSpacing.md,
+      runSpacing: NahpuSpacing.xs,
+      children: [review, done],
     );
   }
 }

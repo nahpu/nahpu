@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/application/selection_review.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:path/path.dart' as path;
 
@@ -97,11 +100,13 @@ void main() {
   });
 
   group('SelectionReviewDialog', () {
-    Future<SelectionAction?> pumpAndTap(
+    Future<SelectionReviewResult?> pumpAndTap(
       WidgetTester tester,
-      String buttonText,
-    ) async {
-      SelectionAction? result;
+      String buttonText, {
+      Directory? initialDirectory,
+      bool? isDesktop,
+    }) async {
+      SelectionReviewResult? result;
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -120,6 +125,8 @@ void main() {
                     ],
                     fileCount: 2,
                     sizeBytes: 2048,
+                    initialDirectory: initialDirectory,
+                    isDesktop: isDesktop,
                   );
                 },
                 child: const Text('open'),
@@ -156,23 +163,95 @@ void main() {
       expect(find.text('2 selected files'), findsOneWidget);
       expect(find.text('backup'), findsOneWidget);
       expect(find.textContaining('2 ·'), findsOneWidget);
+      expect(find.text('File Settings'), findsOneWidget);
+      expect(find.text('nahpu_export'), findsOneWidget);
+      expect(find.text('Append current date'), findsOneWidget);
       expect(find.text('Export'), findsOneWidget);
       expect(find.text('Delete permanently'), findsOneWidget);
+
+      final delete = tester.getCenter(find.text('Delete permanently'));
+      final export = tester.getCenter(find.text('Export'));
+      expect(delete.dx, lessThan(export.dx));
     });
 
     testWidgets('returns the export choice', (tester) async {
-      expect(await pumpAndTap(tester, 'Export'), SelectionAction.export);
+      final result = await pumpAndTap(
+        tester,
+        'Export',
+        initialDirectory: Directory('/tmp/exports'),
+      );
+      expect(result?.action, SelectionAction.export);
+      expect(result?.exportSettings?.format, DbArchiveFormat.tarGzip);
+      expect(result?.exportSettings?.fileStem, 'nahpu_export');
+      expect(result?.exportSettings?.appendDate, isTrue);
+      expect(result?.exportSettings?.destination.path, '/tmp/exports');
     });
 
     testWidgets('returns the delete choice', (tester) async {
       expect(
         await pumpAndTap(tester, 'Delete permanently'),
-        SelectionAction.delete,
+        isA<SelectionReviewResult>().having(
+          (result) => result.action,
+          'action',
+          SelectionAction.delete,
+        ),
       );
     });
 
     testWidgets('cancel returns nothing', (tester) async {
       expect(await pumpAndTap(tester, 'Cancel'), isNull);
+    });
+
+    testWidgets('uses a scrollable bottom sheet on compact screens', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      SelectionReviewResult? result;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  result = await showSelectionReview(
+                    context: context,
+                    groups: [
+                      const SelectionGroup(
+                        label:
+                            'a-very-long-folder-name-that-must-not-overflow-the-review-surface',
+                        detail:
+                            'a-very-long-project-description-and-file-kind-summary',
+                        fileCount: 2,
+                        sizeBytes: 2048,
+                      ),
+                    ],
+                    fileCount: 2,
+                    sizeBytes: 2048,
+                    initialDirectory: Directory('/tmp/exports'),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(find.textContaining('a-very-long-folder-name'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.drag(
+        find.byType(SingleChildScrollView).last,
+        const Offset(0, -300),
+      );
+      await tester.pumpAndSettle();
+      expect(result, isNull);
+      expect(tester.takeException(), isNull);
     });
   });
 }

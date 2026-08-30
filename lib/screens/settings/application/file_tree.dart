@@ -19,6 +19,68 @@ const double _indentStep = NahpuSpacing.xl;
 /// directly under the folder icons above them.
 const double _chevronGutter = NahpuControlSize.iconMedium + NahpuSpacing.lg;
 
+/// Maximum height of the independently scrollable file-tree viewport.
+const double _maxTreeHeight = 560;
+
+/// Controls which directory rows are open in a [NahpuFileTreeView].
+class NahpuFileTreeController extends ChangeNotifier {
+  Set<String>? _expandedPaths;
+
+  /// Whether the tree contains at least one directory that can be expanded.
+  bool hasDirectories(NahpuDirectoryNode root) =>
+      _directoryPaths(root).isNotEmpty;
+
+  /// Whether every directory below [root] is currently open.
+  bool areAllExpanded(NahpuDirectoryNode root) {
+    final directories = _directoryPaths(root);
+    if (directories.isEmpty) return false;
+    final expanded = expandedPaths(root);
+    return directories.every(expanded.contains);
+  }
+
+  /// Expands every directory below [root].
+  void expandAll(NahpuDirectoryNode root) {
+    _expandedPaths = _directoryPaths(root).toSet();
+    notifyListeners();
+  }
+
+  /// Collapses every directory below [root].
+  void collapseAll(NahpuDirectoryNode root) {
+    _expandedPaths = <String>{};
+    notifyListeners();
+  }
+
+  Set<String> expandedPaths(NahpuDirectoryNode root) {
+    return _expandedPaths ?? _initialExpandedPaths(root);
+  }
+
+  void toggleDirectory(NahpuDirectoryNode root, String path) {
+    final expanded = _expandedPaths ??= _initialExpandedPaths(root);
+    if (!expanded.remove(path)) expanded.add(path);
+    notifyListeners();
+  }
+
+  Set<String> _initialExpandedPaths(NahpuDirectoryNode root) {
+    return {
+      for (final child in root.children)
+        if (child case NahpuDirectoryNode()) child.path,
+    };
+  }
+
+  List<String> _directoryPaths(NahpuDirectoryNode root) {
+    final paths = <String>[];
+    void visit(NahpuTreeNode node) {
+      if (node case NahpuDirectoryNode()) {
+        paths.add(node.path);
+        node.children.forEach(visit);
+      }
+    }
+
+    root.children.forEach(visit);
+    return paths;
+  }
+}
+
 /// Expandable tree of the application directory.
 ///
 /// Rows are flattened to the currently visible set and rendered through a
@@ -29,6 +91,7 @@ class NahpuFileTreeView extends StatefulWidget {
     super.key,
     required this.root,
     required this.onDeleteFile,
+    this.controller,
     this.onSaveCopy,
     this.isSelecting = false,
     this.selected = const <String>{},
@@ -39,6 +102,7 @@ class NahpuFileTreeView extends StatefulWidget {
 
   final NahpuDirectoryNode root;
   final ValueChanged<NahpuFileNode> onDeleteFile;
+  final NahpuFileTreeController? controller;
 
   /// Saves a copy of a file out of the app folder before it is removed.
   final ValueChanged<NahpuFileNode>? onSaveCopy;
@@ -68,11 +132,32 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
     for (final child in widget.root.children) {
       if (child is NahpuDirectoryNode) _expanded.add(child.path);
     }
+    widget.controller?.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant NahpuFileTreeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?.removeListener(_onControllerChanged);
+      widget.controller?.addListener(_onControllerChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_onControllerChanged);
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final rows = flattenVisibleRows(widget.root, _expanded);
+    final expanded = widget.controller?.expandedPaths(widget.root) ?? _expanded;
+    final rows = flattenVisibleRows(widget.root, expanded);
     if (rows.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
@@ -83,48 +168,55 @@ class _NahpuFileTreeViewState extends State<NahpuFileTreeView> {
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      // Keeps the last row off the section's bottom border.
-      padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
-      itemCount: rows.length,
-      itemBuilder: (context, index) {
-        final row = rows[index];
-        final node = row.node;
-        if (node is NahpuDirectoryNode) {
-          return _DirectoryRow(
-            node: node,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: _maxTreeHeight),
+      child: ListView.builder(
+        primary: false,
+        shrinkWrap: true,
+        // Keeps the last row off the section's bottom border.
+        padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
+        itemCount: rows.length,
+        itemBuilder: (context, index) {
+          final row = rows[index];
+          final node = row.node;
+          if (node is NahpuDirectoryNode) {
+            return _DirectoryRow(
+              node: node,
+              depth: row.depth,
+              isExpanded: expanded.contains(node.path),
+              isSelecting: widget.isSelecting,
+              selectionState: directorySelectionState(node, widget.selected),
+              onSelectionChanged: widget.onDirectorySelectionChanged == null
+                  ? null
+                  : () => widget.onDirectorySelectionChanged!(node),
+              onDelete: widget.onDeleteDirectory == null
+                  ? null
+                  : () => widget.onDeleteDirectory!(node),
+              onToggle: () => widget.controller == null
+                  ? setState(() {
+                      if (!_expanded.remove(node.path)) {
+                        _expanded.add(node.path);
+                      }
+                    })
+                  : widget.controller!.toggleDirectory(widget.root, node.path),
+            );
+          }
+          final file = node as NahpuFileNode;
+          return _FileRow(
+            node: file,
             depth: row.depth,
-            isExpanded: _expanded.contains(node.path),
             isSelecting: widget.isSelecting,
-            selectionState: directorySelectionState(node, widget.selected),
-            onSelectionChanged: widget.onDirectorySelectionChanged == null
+            isSelected: widget.selected.contains(file.path),
+            onSelectionChanged: widget.onSelectionChanged == null
                 ? null
-                : () => widget.onDirectorySelectionChanged!(node),
-            onDelete: widget.onDeleteDirectory == null
+                : () => widget.onSelectionChanged!(file),
+            onSaveCopy: widget.onSaveCopy == null
                 ? null
-                : () => widget.onDeleteDirectory!(node),
-            onToggle: () => setState(() {
-              if (!_expanded.remove(node.path)) _expanded.add(node.path);
-            }),
+                : () => widget.onSaveCopy!(file),
+            onDelete: () => widget.onDeleteFile(file),
           );
-        }
-        final file = node as NahpuFileNode;
-        return _FileRow(
-          node: file,
-          depth: row.depth,
-          isSelecting: widget.isSelecting,
-          isSelected: widget.selected.contains(file.path),
-          onSelectionChanged: widget.onSelectionChanged == null
-              ? null
-              : () => widget.onSelectionChanged!(file),
-          onSaveCopy: widget.onSaveCopy == null
-              ? null
-              : () => widget.onSaveCopy!(file),
-          onDelete: () => widget.onDeleteFile(file),
-        );
-      },
+        },
+      ),
     );
   }
 }
@@ -235,11 +327,17 @@ class _DirectoryRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: NahpuSpacing.lg),
-        Text(
-          formatByteSize(node.sizeBytes),
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+        Flexible(
+          fit: FlexFit.loose,
+          child: Text(
+            formatByteSize(node.sizeBytes),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+          ),
         ),
         const SizedBox(width: NahpuSpacing.lg),
         _DirectoryAffordance(
@@ -354,11 +452,17 @@ class _FileRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: NahpuSpacing.lg),
-        Text(
-          formatByteSize(node.sizeBytes),
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+        Flexible(
+          fit: FlexFit.loose,
+          child: Text(
+            formatByteSize(node.sizeBytes),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
         ),
         const SizedBox(width: NahpuSpacing.lg),
         _StatusAffordance(

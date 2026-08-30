@@ -54,6 +54,7 @@ class SelectionExportService {
     required List<String> paths,
     required Directory destination,
     required DbArchiveFormat format,
+    String? fileStem,
     ExportProgressReporter? progress,
     ExportCancellation? cancel,
   }) async {
@@ -78,7 +79,7 @@ class SelectionExportService {
       );
     }
 
-    final output = await _outputFile(destination, format);
+    final output = await _outputFile(destination, format, fileStem: fileStem);
     try {
       progress?.beginPhase(ExportPhase.compressing, totalUnits: sources.length);
       cancel?.throwIfCancelled();
@@ -153,12 +154,15 @@ class SelectionExportService {
   /// Picks a free filename, so a second export never overwrites the first.
   Future<File> _outputFile(
     Directory destination,
-    DbArchiveFormat format,
-  ) async {
+    DbArchiveFormat format, {
+    String? fileStem,
+  }) async {
     if (!destination.existsSync()) {
       await destination.create(recursive: true);
     }
-    final stem = '$selectionExportStem-$dateStamp';
+    final stem = fileStem == null || fileStem.trim().isEmpty
+        ? '$selectionExportStem-$dateStamp'
+        : fileStem.trim();
     var candidate = File(
       path.join(destination.path, '$stem.${format.extension}'),
     );
