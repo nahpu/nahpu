@@ -505,6 +505,17 @@ void main() {
 
     expect(paths, contains('nahpu-project.json'));
     expect(paths, isNot(contains('database/nahpu.sqlite3')));
+    expect(paths, contains('mappings/sqlite_enums.csv'));
+    expect(paths, contains('vocabularies/parasites.csv'));
+    expect(paths, isNot(contains('tables/environment.csv')));
+    expect(paths, isNot(contains('tables/parasite.csv')));
+    expect(paths, isNot(contains('tables/fossilSite.csv')));
+    expect(
+      manifest.files
+          .where((file) => file.path.startsWith('tables/'))
+          .every((file) => file.records > 0),
+      isTrue,
+    );
 
     for (final archive in BundleArchiveFormat.values) {
       final extension = archive == BundleArchiveFormat.zip ? 'zip' : 'tar.gz';
@@ -521,21 +532,25 @@ void main() {
       expect(File(outputPath).existsSync(), isTrue);
       expect(
         written!.files.any((file) => file.path == 'tables/environment.csv'),
-        isTrue,
+        isFalse,
       );
       expect(
         written.files.any((file) => file.path == 'tables/parasite.csv'),
-        isTrue,
+        isFalse,
       );
       expect(
         written.files.any((file) => file.path == 'tables/fossilSite.csv'),
+        isFalse,
+      );
+      expect(
+        written.files
+            .where((file) => file.path.startsWith('tables/'))
+            .every((file) => file.records > 0),
         isTrue,
       );
-      // Localities are their own table, so the package carries them as their
-      // own resource rather than repeating them on every site row.
       expect(
         written.files.any((file) => file.path == 'tables/geography.csv'),
-        isTrue,
+        isFalse,
       );
     }
   });
