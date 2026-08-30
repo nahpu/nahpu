@@ -9,11 +9,13 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/media_details.dart';
+import 'package:nahpu/screens/shared/media/media_export_dialog.dart';
 import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
+import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -586,7 +588,7 @@ class _MediaTypeFallback extends StatelessWidget {
   }
 }
 
-enum _MediaMenuAction { edit, info, share, delete }
+enum _MediaMenuAction { edit, info, export, share, delete }
 
 class MediaPopUpMenu extends ConsumerStatefulWidget {
   const MediaPopUpMenu({super.key, required this.media});
@@ -617,7 +619,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
       onSelected: _onSelected,
       itemBuilder: (context) => [
         for (final action in _MediaMenuAction.values) ...[
-          if (action == _MediaMenuAction.delete) const PopupMenuDivider(),
+          if (_hasDividerBefore(action)) const PopupMenuDivider(),
           PopupMenuItem(
             value: action,
             child: _MediaMenuTile(action: action),
@@ -636,7 +638,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final action in _MediaMenuAction.values) ...[
-              if (action == _MediaMenuAction.delete) const Divider(),
+              if (_hasDividerBefore(action)) const Divider(),
               _MediaMenuTile(
                 action: action,
                 onTap: () => Navigator.of(context).pop(action),
@@ -659,6 +661,9 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
         return;
       case _MediaMenuAction.info:
         await _showInfo();
+        return;
+      case _MediaMenuAction.export:
+        await _showExport();
         return;
       case _MediaMenuAction.share:
         await _shareFile();
@@ -761,6 +766,32 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     }
   }
 
+  Future<void> _showExport() async {
+    final service = MediaExportService(ref: ref);
+    await showMediaExportDialog(
+      context: context,
+      prepare: () => service.prepare(widget.media),
+      onExport:
+          ({
+            required source,
+            required format,
+            required fileStem,
+            destinationDirectory,
+            width,
+            height,
+            required jpegQuality,
+          }) => service.export(
+            source: source,
+            format: format,
+            fileStem: fileStem,
+            destinationDirectory: destinationDirectory,
+            width: width,
+            height: height,
+            jpegQuality: jpegQuality,
+          ),
+    );
+  }
+
   Future<void> _confirmDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -806,6 +837,9 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
   }
 }
 
+bool _hasDividerBefore(_MediaMenuAction action) =>
+    action == _MediaMenuAction.export || action == _MediaMenuAction.delete;
+
 class _MediaMenuTile extends StatelessWidget {
   const _MediaMenuTile({required this.action, this.onTap});
 
@@ -831,6 +865,7 @@ class _MediaMenuTile extends StatelessWidget {
   IconData get _icon => switch (action) {
     _MediaMenuAction.edit => Icons.edit_outlined,
     _MediaMenuAction.info => Icons.info_outline,
+    _MediaMenuAction.export => Icons.file_upload_outlined,
     _MediaMenuAction.share => Icons.adaptive.share,
     _MediaMenuAction.delete => Icons.delete_outline,
   };
@@ -838,6 +873,7 @@ class _MediaMenuTile extends StatelessWidget {
   String get _label => switch (action) {
     _MediaMenuAction.edit => 'Edit',
     _MediaMenuAction.info => 'Show info',
+    _MediaMenuAction.export => 'Export',
     _MediaMenuAction.share => 'Share',
     _MediaMenuAction.delete => 'Delete',
   };

@@ -76,7 +76,7 @@ String fileNameFieldSuffix(
   final dateSuffix = appendDate
       ? formatFileDateSuffix(date ?? DateTime.now())
       : '';
-  return '$dateSuffix.$extension';
+  return extension.isEmpty ? dateSuffix : '$dateSuffix.$extension';
 }
 
 class SaveSecondaryButton extends StatelessWidget {

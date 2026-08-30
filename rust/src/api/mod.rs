@@ -8,5 +8,6 @@ pub mod document;
 pub mod dwc;
 pub mod export;
 pub mod gis;
+pub mod images;
 pub mod import;
 pub mod nahpu_dp;

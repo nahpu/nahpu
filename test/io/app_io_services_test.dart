@@ -25,4 +25,16 @@ void main() {
       expect(second.path, endsWith('coordinate(1).geojson'));
     },
   );
+
+  test('supports original files without an extension', () async {
+    final root = await Directory.systemTemp.createTemp('nahpu-output-test-');
+    addTearDown(() => root.delete(recursive: true));
+    final output = await AppIOServices(
+      dir: root,
+      fileStem: 'extensionless',
+      ext: '',
+    ).getSavePath();
+
+    expect(output.path, endsWith('extensionless'));
+  });
 }

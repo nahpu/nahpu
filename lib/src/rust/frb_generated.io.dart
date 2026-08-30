@@ -10,6 +10,7 @@ import 'api/document.dart';
 import 'api/dwc.dart';
 import 'api/export.dart';
 import 'api/gis.dart';
+import 'api/images.dart';
 import 'api/import.dart';
 import 'api/nahpu_dp.dart';
 import 'dart:async';
@@ -80,6 +81,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   TarGzipWriter dco_decode_box_autoadd_tar_gzip_writer(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
 
   @protected
   ZipExtractor dco_decode_box_autoadd_zip_extractor(dynamic raw);
@@ -157,6 +161,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_i_32(dynamic raw);
+
+  @protected
+  ImageExportFormat dco_decode_image_export_format(dynamic raw);
+
+  @protected
+  ImageExportResult dco_decode_image_export_result(dynamic raw);
+
+  @protected
+  ImageSourceInfo dco_decode_image_source_info(dynamic raw);
 
   @protected
   ImportedVectorLayer dco_decode_imported_vector_layer(dynamic raw);
@@ -255,6 +268,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GeographicBoundsFfi? dco_decode_opt_box_autoadd_geographic_bounds_ffi(
     dynamic raw,
   );
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
   List<String>? dco_decode_opt_list_String(dynamic raw);
@@ -397,6 +413,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
   ZipExtractor sse_decode_box_autoadd_zip_extractor(
     SseDeserializer deserializer,
   );
@@ -500,6 +519,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
+  ImageExportFormat sse_decode_image_export_format(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ImageExportResult sse_decode_image_export_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ImageSourceInfo sse_decode_image_source_info(SseDeserializer deserializer);
 
   @protected
   ImportedVectorLayer sse_decode_imported_vector_layer(
@@ -616,6 +648,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   GeographicBoundsFfi? sse_decode_opt_box_autoadd_geographic_bounds_ffi(
     SseDeserializer deserializer,
   );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
   List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
@@ -789,6 +824,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_zip_extractor(
     ZipExtractor self,
     SseSerializer serializer,
@@ -922,6 +960,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_image_export_format(
+    ImageExportFormat self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_image_export_result(
+    ImageExportResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_image_source_info(
+    ImageSourceInfo self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_imported_vector_layer(
@@ -1069,6 +1125,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     GeographicBoundsFfi? self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);

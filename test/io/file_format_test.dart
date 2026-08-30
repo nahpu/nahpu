@@ -13,6 +13,7 @@ void main() {
     expect(matchNahpuFormatFromPath('video.webm'), NahpuFileFormat.video);
     expect(matchNahpuFormatFromPath('document.pdf'), NahpuFileFormat.pdf);
     expect(matchNahpuFormatFromPath('image.heic'), NahpuFileFormat.image);
+    expect(matchNahpuFormatFromPath('image.webp'), NahpuFileFormat.image);
     expect(
       matchNahpuFormatFromPath('database.sqlite3'),
       NahpuFileFormat.database,
@@ -22,6 +23,7 @@ void main() {
 
   test('match media kind from path', () {
     expect(matchMediaKindFromPath('photo.jpeg'), MediaKind.image);
+    expect(matchMediaKindFromPath('photo.webp'), MediaKind.image);
     expect(matchMediaKindFromPath('voice.m4a'), MediaKind.audio);
     expect(matchMediaKindFromPath('movie.mov'), MediaKind.video);
     expect(matchMediaKindFromPath('report.pdf'), MediaKind.other);
@@ -31,6 +33,7 @@ void main() {
   test('match supported media path and format helpers', () {
     expect(isSupportedMediaPath('photo.jpeg'), isTrue);
     expect(isSupportedMediaPath('PHOTO.JPG'), isTrue);
+    expect(isSupportedMediaPath('PHOTO.WEBP'), isTrue);
     expect(isSupportedMediaPath('voice.m4a'), isTrue);
     expect(isSupportedMediaPath('VOICE.MP3'), isTrue);
     expect(isSupportedMediaPath('movie.mov'), isTrue);

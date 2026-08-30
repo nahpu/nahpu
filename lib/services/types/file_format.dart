@@ -11,6 +11,7 @@ const Map<String, NahpuFileFormat> formatByExtension = {
   'jpg': NahpuFileFormat.image,
   'jpeg': NahpuFileFormat.image,
   'png': NahpuFileFormat.image,
+  'webp': NahpuFileFormat.image,
   'gif': NahpuFileFormat.image,
   'heic': NahpuFileFormat.image,
   'mp3': NahpuFileFormat.audio,
@@ -30,7 +31,14 @@ const Map<String, NahpuFileFormat> formatByExtension = {
   'db': NahpuFileFormat.database,
 };
 
-const Set<String> imageExtensions = {'jpg', 'jpeg', 'png', 'gif', 'heic'};
+const Set<String> imageExtensions = {
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'gif',
+  'heic',
+};
 const Set<String> audioExtensions = {'mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'};
 const Set<String> videoExtensions = {'mp4', 'mov', 'm4v', 'avi', 'mkv', 'webm'};
 
@@ -132,6 +140,7 @@ const XTypeGroup mediaFmt = XTypeGroup(
     'jpg',
     'jpeg',
     'png',
+    'webp',
     'gif',
     'heic',
     'mp3',
@@ -151,6 +160,7 @@ const XTypeGroup mediaFmt = XTypeGroup(
   mimeTypes: [
     'image/jpeg',
     'image/png',
+    'image/webp',
     'image/gif',
     'image/heic',
     'audio/mpeg',
@@ -169,9 +179,15 @@ const XTypeGroup mediaFmt = XTypeGroup(
 
 const XTypeGroup imageFmt = XTypeGroup(
   label: 'Image files',
-  extensions: ['jpg', 'jpeg', 'png', 'gif', 'heic'],
+  extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic'],
   uniformTypeIdentifiers: ['public.image'],
-  mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/heic'],
+  mimeTypes: [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/heic',
+  ],
 );
 
 const XTypeGroup jpegFmt = XTypeGroup(
@@ -186,6 +202,13 @@ const XTypeGroup pngFmt = XTypeGroup(
   extensions: ['png'],
   uniformTypeIdentifiers: ['public.png'],
   mimeTypes: ['image/png'],
+);
+
+const XTypeGroup webpFmt = XTypeGroup(
+  label: 'WebP (.webp)',
+  extensions: ['webp'],
+  uniformTypeIdentifiers: ['org.webmproject.webp'],
+  mimeTypes: ['image/webp'],
 );
 
 const XTypeGroup gifFmt = XTypeGroup(

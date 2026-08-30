@@ -305,6 +305,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Edit'), findsOneWidget);
     expect(find.text('Show info'), findsOneWidget);
+    expect(find.text('Export'), findsOneWidget);
+    expect(find.byType(Divider), findsNWidgets(2));
 
     await tester.tap(find.text('Edit'));
     await tester.pumpAndSettle();

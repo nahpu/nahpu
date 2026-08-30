@@ -204,19 +204,21 @@ class AppIOServices {
   final String ext;
 
   Future<File> getSavePath() async {
-    String fileName = '$fileStem.$ext';
+    String fileName = _fileName(fileStem);
     // Check if file exists
     File file = await _createSavePath(fileName);
     if (file.existsSync()) {
       int i = 1;
       while (file.existsSync()) {
-        fileName = '$fileStem($i).$ext';
+        fileName = _fileName('$fileStem($i)');
         file = await _createSavePath(fileName);
         i++;
       }
     }
     return file;
   }
+
+  String _fileName(String stem) => ext.isEmpty ? stem : '$stem.$ext';
 
   Future<File> _createSavePath(String fileName) async {
     Directory finalDir = await _getSaveDir();
