@@ -17,7 +17,7 @@ class _SiteSelectionState extends State<SiteSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Site Settings')),
+      appBar: AppBar(title: const Text('Site settings')),
       body: SafeArea(
         child: CommonSettingList(
           sections: const [

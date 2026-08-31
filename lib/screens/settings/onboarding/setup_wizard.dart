@@ -192,11 +192,11 @@ class _WelcomeStep extends StatelessWidget {
           title: 'Already have settings from your team?',
           message:
               'A team only needs to set this up once. If a colleague has '
-              'already configured NAHPU, import their settings file and you '
-              'can skip the rest of this wizard. You can export yours for '
-              'everyone else at the end.',
+              'already configured NAHPU, import their user configs file and '
+              'you can skip the rest of this wizard. You can export yours '
+              'for everyone else at the end.',
           icon: Icons.download_outlined,
-          label: 'Import settings',
+          label: 'Import user configs',
           onPressed: (context) => Navigator.push(
             context,
             MaterialPageRoute<void>(
@@ -708,7 +708,7 @@ class _SpecimensStep extends StatelessWidget {
           'here.',
       vocabularies: [
         _Vocabulary(
-          title: 'Identification Method',
+          title: 'Identification methods',
           typePrefKey: idMethodPrefKey,
           fmtPrefKey: idMethodFmtPrefKey,
           typeName: 'identification method',
@@ -909,11 +909,11 @@ class _FinishStep extends ConsumerWidget {
         _SetupActionPanel(
           title: 'Share this setup with your team',
           message:
-              'Your team only needs to do this once. Export these settings '
-              'and colleagues can import them to work from the same '
+              'Your team only needs to do this once. Export these user '
+              'configs and colleagues can import them to work from the same '
               'controlled vocabularies and identifier scheme.',
           icon: Icons.ios_share_outlined,
-          label: 'Export settings',
+          label: 'Export user configs',
           onPressed: (context) => Navigator.push(
             context,
             MaterialPageRoute<void>(
@@ -938,7 +938,7 @@ class _FinishStep extends ConsumerWidget {
     ('Primary activities', collActivityPrefKey),
     ('Collection methods', collMethodPrefKey),
     ('Personnel roles', collRolePrefKey),
-    ('Identification Method', idMethodPrefKey),
+    ('Identification methods', idMethodPrefKey),
     ('Life stages', lifeStagePrefKey),
     ('Specimen types', specimenTypePrefKey),
     ('Treatments', treatmentPrefKey),

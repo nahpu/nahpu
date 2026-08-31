@@ -346,7 +346,7 @@ class QrImageView extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(NahpuSpacing.md),
                 child: Text(
-                  'Data is too large for QR code.\n Try using file export feature instead.',
+                  'Data is too large for a QR code.\nExport it as a file instead.',
                   textAlign: TextAlign.center,
                 ),
               ),

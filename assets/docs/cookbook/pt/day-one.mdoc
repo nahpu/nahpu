@@ -37,6 +37,20 @@ Você pode adicionar qualquer quantidade de coordenadas a um único local. Ao co
 
 Vocabulários controlados são listas predefinidas de termos que mantêm a entrada de dados consistente, uma prática comum em sistemas de gerenciamento de dados. Fizemos o possível para alinhar os termos padrão do NAHPU aos usados por softwares de gestão de coleções, como o [Arctos](https://arctosdb.org/), sem deixar de permitir que você os personalize.
 
+No aplicativo, eles aparecem como listas suspensas. Sempre que um campo se apoia em um vocabulário, como tipo de local, tipo de hábitat, datum da coordenada, atividade principal, método de coleta, papel do pessoal, estágio de vida, condição do espécime, tipo e tratamento das partes e todos os campos de parasitas, você escolhe em uma lista em vez de digitar texto livre. Assim, a mesma ideia é escrita da mesma forma em todos os registros.
+
+As listas são suas para alterar e suas para compartilhar. Adicione termos, remova os que não vai usar, defina um formato de maiúsculas e minúsculas e execute `Export user configs` uma vez para que toda a equipe importe os mesmos vocabulários. Veja [Configurações](https://nahpu.app/pt/usages/settings/).
+
+E se esse compartilhamento nunca acontecer? O NAHPU dá conta assim mesmo. Toda lista suspensa também oferece os valores distintos já armazenados no banco de dados, de modo que nada que um colega digitou desaparece da lista. Para incorporar esses valores à sua própria configuração, abra o vocabulário em Settings e escolha `Match database`. `Append missing` acrescenta apenas o que falta na sua lista, e `Override all` substitui a sua lista pelos valores que os dados realmente contêm. Um conjunto de dados consegue reconstruir o vocabulário que o produziu, que é exatamente o que registros reprodutíveis exigem.
+
+### Compartilhável por concepção, personalizável por você
+
+Quase tudo no NAHPU foi feito para viajar. Registros do projeto, a identidade do projeto e seu UUID, listas de táxons, pessoal, vocabulários controlados, predefinições de exportação, modelos de documentos, layouts de impressão e campos personalizados podem ser exportados e entregues a outra pessoa. Configure o NAHPU do jeito que sua equipe realmente trabalha, exporte uma vez e todos os aparelhos partem das mesmas convenções. Esse é o argumento da reprodutibilidade em uma única frase: quem recebe seus dados também pode receber as regras que os produziram.
+
+A maior parte disso está a apenas um QR code de distância. Sem cabo, sem conta na nuvem, sem sinal. Levante um aparelho, aponte o outro para ele e pronto, o que faz diferença quando a barra de sinal mais próxima está a dois dias de caminhada. Uma identidade de projeto, um local, um evento de coleta, uma coordenada, um táxon ou uma lista inteira de táxons, seus campos personalizados, uma predefinição de exportação e um modelo de documento têm, cada um, `Show QR` em um aparelho e `Scan QR` no outro. Coisas maiores, como projetos completos, mídia e o banco de dados, continuam viajando como arquivos, e o NAHPU avisa quando um registro é grande demais para um código e oferece o arquivo. Veja [Transferir um projeto](https://nahpu.app/pt/usages/export/project-transfer/).
+
+Uma coisa nós deliberadamente deixamos em casa: a aparência do aplicativo na sua tela. O seu tema, seja `System`, `Light` ou `Dark`, fica no seu aparelho, assim como a sua escolha de camada base do mapa. Ler uma tela dentro de uma barraca escura às duas da manhã e ler outra em um laboratório claro são problemas diferentes, e nenhum arquivo de projeto deveria opinar sobre qual deles você está enfrentando. Compartilhe a ciência; o estilo fica com você.
+
 ### Identificadores de campo
 
 A prática de atribuir um identificador exclusivo a um espécime no campo se divide em três tipos: identificadores de campo pessoais, institucionais e específicos do projeto.
@@ -64,10 +78,11 @@ A pessoa que cataloga o espécime é o catalogador. Esse papel dá acesso aos id
     Quando você instala o NAHPU pela primeira vez, o botão de configuração fica
     visível na tela inicial. Se não o encontrar ou precisar configurá-lo mais
     tarde, você poderá acessá-lo pelo menu lateral. O assistente de configuração
-    orientará você na escolha de um identificador de campo e de todos os campos
-    de vocabulário controlado personalizáveis. Você também pode importar e
-    exportar essas configurações, portanto a configuração só precisa ser
-    concluída uma vez para toda a equipe.
+    percorre o formato de catálogo, os identificadores de campo e de tecido, os
+    vocabulários controlados de locais, eventos de coleta e espécimes, e se você
+    coleta parasitas. Você também pode importar e exportar essas configurações,
+    portanto a configuração só precisa ser concluída uma vez para toda a
+    equipe.
 
 2. **Criar um novo projeto**
 
@@ -198,11 +213,11 @@ A pessoa que cataloga o espécime é o catalogador. Esse papel dá acesso aos id
 
     Para exportar registros, acesse o menu do painel de controle, indicado pelo ícone de hambúrguer (três linhas horizontais) no canto superior esquerdo. Você tem várias opções de exportação:
 
-    - Create a report. Gera uma lista de espécies, arquivos de mídia e coordenadas dos locais em um formato delimitado (`.csv` ou `.tsv`).
+    - `Export records`. Escolha uma predefinição de exportação tabular e grave um tipo de registro em `.csv`, `.tsv`, `.xlsx` ou `.json`. A predefinição define o tipo de registro, os cabeçalhos e o mapeamento dos campos. Consulte [Exportar registros](https://nahpu.app/pt/usages/export/export-records/).
 
-    - Bundle records. Cria um Darwin Core Archive, um Darwin Core Data Package ou um NAHPU Data Package completo. Os Data Packages podem usar TAR.GZ ou ZIP. Consulte [Bundle records](https://nahpu.app/pt/usages/export/export-bundles/).
+    - `Bundle records`. Cria um Darwin Core Archive, um Darwin Core Data Package ou um NAHPU Data Package completo. Os Data Packages podem usar TAR.GZ ou ZIP. Consulte [Bundle records](https://nahpu.app/pt/usages/export/export-bundles/).
 
-    - Export records. Permite escolher quais registros exportar. Essa opção aceita formatos delimitados (`.csv` ou `.tsv`).
+    - `Export documents`. Gera etiquetas, tags e outros documentos imprimíveis em PDF a partir de um modelo de documento e de um layout de impressão. Consulte [Exportar documentos](https://nahpu.app/pt/usages/export/export-documents/).
 
     {% aside type="tip" %}
     O NAHPU também pode exportar tabelas de estatísticas resumidas e imagens separadamente das exportações do projeto. Isso é útil quando você precisa de uma tabela resumida ou de um conjunto de fotografias para um relatório de financiamento ou de licença. As imagens podem ser exportadas em JPEG, PNG ou WebP, com opções para redimensionar e comprimir. Consulte [Exportar estatísticas](https://nahpu.app/pt/usages/export/export-statistics/) e [Exportar imagens](https://nahpu.app/pt/usages/export/export-images/).

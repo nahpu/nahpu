@@ -59,7 +59,7 @@ class _CollEventSelectionState extends State<CollEventSelection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Collection Event Settings')),
+      appBar: AppBar(title: const Text('Collection event settings')),
       body: SafeArea(
         child: CommonSettingList(
           sections: const [

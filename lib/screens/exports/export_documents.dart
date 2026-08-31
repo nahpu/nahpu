@@ -322,7 +322,9 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   Future<void> _exportDocuments() async {
     if (!exportCtr.isValid || _selectedDir == null || _layout == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Set valid file name and directory')),
+        const SnackBar(
+          content: Text('Enter a file name and choose a directory first.'),
+        ),
       );
       return;
     }

@@ -87,7 +87,7 @@ class HomeMenuDrawer extends StatelessWidget {
 
         ListTile(
           leading: Icon(Icons.adaptive.share_outlined),
-          title: const Text('Export settings'),
+          title: const Text('Export user configs'),
           onTap: () {
             Navigator.push(
               context,
@@ -99,7 +99,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Import settings'),
+          title: const Text('Import user configs'),
           onTap: () {
             Navigator.push(
               context,

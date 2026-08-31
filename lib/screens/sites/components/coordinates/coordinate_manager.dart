@@ -782,7 +782,7 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
                           ],
                         ),
                         trailing: IconButton(
-                          tooltip: 'Show QR code',
+                          tooltip: 'Show QR',
                           onPressed: () =>
                               showCoordinateQrDialog(context, coordinate),
                           icon: const Icon(Icons.qr_code_outlined),

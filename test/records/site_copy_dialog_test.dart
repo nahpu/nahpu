@@ -108,7 +108,7 @@ void main() {
       find.byKey(ValueKey('copy-source-site-tile-$sourceId')),
       findsOneWidget,
     );
-    expect(find.byTooltip('Show QR code'), findsNothing);
+    expect(find.byTooltip('Show QR'), findsNothing);
 
     await tester.tap(find.byKey(ValueKey('copy-source-site-tile-$sourceId')));
     await tester.pump();
