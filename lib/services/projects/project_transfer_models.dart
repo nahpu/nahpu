@@ -430,6 +430,14 @@ class ProjectTransferPayload {
   }
 }
 
+/// Advice shown on every duplicate-identifier conflict.
+///
+/// Identifiers such as field IDs and tissue IDs end up on physical labels and
+/// in published exports, so NAHPU never renumbers them silently.
+const String duplicateIdentifierAdvice =
+    'Check the imported records, change the ID and import again, or skip this '
+    'record.';
+
 class ProjectTransferConflict {
   const ProjectTransferConflict({
     required this.id,
@@ -439,6 +447,8 @@ class ProjectTransferConflict {
     required this.importedSummary,
     this.allowedActions = ProjectTransferConflictAction.values,
     this.warning,
+    this.requiresChoice = false,
+    this.parentConflictIds = const [],
   });
 
   final String id;
@@ -448,7 +458,54 @@ class ProjectTransferConflict {
   final String importedSummary;
   final List<ProjectTransferConflictAction> allowedActions;
   final String? warning;
+
+  /// Whether the user must pick an action before the import can run.
+  ///
+  /// Duplicate identifiers have no safe default, so the wizard leaves the
+  /// action empty and blocks until the user chooses.
+  final bool requiresChoice;
+
+  /// Conflicts whose resolution decides whether this record is written at all.
+  ///
+  /// A record is only written when every gating conflict resolves to something
+  /// other than `Keep current` or `Skip`, so this conflict goes quiet
+  /// otherwise.
+  final List<String> parentConflictIds;
 }
+
+/// Whether [conflict] still applies given the currently chosen [actions].
+///
+/// Child conflicts fall away when their parent record is kept or skipped,
+/// because [ProjectTransferService] never writes children in those cases.
+bool isConflictActive(
+  ProjectTransferConflict conflict,
+  Map<String, ProjectTransferConflictAction> actions,
+) {
+  for (final parentId in conflict.parentConflictIds) {
+    final parentAction = actions[parentId];
+    if (parentAction == ProjectTransferConflictAction.skip ||
+        parentAction == ProjectTransferConflictAction.keepCurrent) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Blocking conflicts that still apply and have no chosen action.
+///
+/// Both the wizard and [ProjectTransferService] gate on this, so the rule
+/// lives in one place.
+List<ProjectTransferConflict> unresolvedConflicts(
+  ProjectTransferImportPlan plan,
+  Map<String, ProjectTransferConflictAction> actions,
+) => plan.conflicts
+    .where(
+      (conflict) =>
+          conflict.requiresChoice &&
+          actions[conflict.id] == null &&
+          isConflictActive(conflict, actions),
+    )
+    .toList(growable: false);
 
 class ProjectTransferProjectMatch {
   const ProjectTransferProjectMatch({required this.uuid, required this.name});
@@ -510,6 +567,7 @@ class ProjectTransferImportResult {
     required this.skipped,
     required this.mediaCopied,
     required this.warnings,
+    this.skippedByConflict = 0,
   });
 
   final int imported;
@@ -517,4 +575,7 @@ class ProjectTransferImportResult {
   final int skipped;
   final int mediaCopied;
   final List<String> warnings;
+
+  /// Records left out because the user resolved a conflict with `Skip`.
+  final int skippedByConflict;
 }

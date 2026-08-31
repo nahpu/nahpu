@@ -13,6 +13,7 @@ class NahpuPanel extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(NahpuSpacing.xl),
     this.color,
+    this.borderColor,
   });
 
   final Widget child;
@@ -22,6 +23,9 @@ class NahpuPanel extends StatelessWidget {
 
   /// Override only to mark a panel as an error or a highlight.
   final Color? color;
+
+  /// Override only to mark a panel as needing the user's attention.
+  final Color? borderColor;
 
   /// The panel look for surfaces that cannot be a [NahpuPanel] themselves,
   /// such as the wizard step rails, whose padding belongs to their scroll view.
@@ -41,7 +45,10 @@ class NahpuPanel extends StatelessWidget {
       elevation: NahpuElevation.none,
       color: color ?? colors.surfaceContainerHighest.withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: colors.outlineVariant, width: NahpuStroke.thin),
+        side: BorderSide(
+          color: borderColor ?? colors.outlineVariant,
+          width: borderColor == null ? NahpuStroke.thin : NahpuStroke.regular,
+        ),
         borderRadius: BorderRadius.circular(NahpuRadius.lg),
       ),
       child: Padding(padding: padding, child: child),

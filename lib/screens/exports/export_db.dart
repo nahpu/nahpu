@@ -401,9 +401,9 @@ class _BackupSettingsCard extends StatelessWidget {
           Text('Backup archive', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           const Text(
-            'This creates a full NAHPU backup, including all projects, '
-            'records, media, and user configs. The app theme stays on this '
-            'device. For a project-only backup, use Export project.',
+            'This creates a full NAHPU database backup, including all projects, '
+            'records, media, and user configs. '
+            'For a project-only backup, use Export project.',
           ),
           const SizedBox(height: 20),
           SegmentedButton<DbArchiveFormat>(

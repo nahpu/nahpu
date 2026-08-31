@@ -32,9 +32,43 @@ const String tissueIDPrefixKey = 'tissueIDPrefix';
 const String tissueIDNumberKey = 'tissueIDNumber';
 String formatProjectFieldId(ProjectData project, int? number) {
   if (number == null) return '';
-  return '${project.catalogNumberPrefix ?? ''}'
-      '$number'
-      '${project.catalogNumberSuffix ?? ''}';
+  return formatProjectFieldIdParts(
+    prefix: project.catalogNumberPrefix,
+    suffix: project.catalogNumberSuffix,
+    number: number,
+  );
+}
+
+String formatProjectFieldIdParts({
+  String? prefix,
+  String? suffix,
+  int? number,
+}) {
+  if (number == null) return '';
+  return '${prefix ?? ''}$number${suffix ?? ''}';
+}
+
+/// Renders the specimen field ID the user sees on labels and in exports.
+///
+/// Project mode wins when [projectFieldNumber] is set; otherwise the personnel
+/// mode ID is the cataloger initial followed by their running field number.
+/// Returns an empty string when the specimen has no number in either mode.
+String formatSpecimenFieldId({
+  String? catalogNumberPrefix,
+  String? catalogNumberSuffix,
+  String? catalogerInitial,
+  int? fieldNumber,
+  int? projectFieldNumber,
+}) {
+  if (projectFieldNumber != null) {
+    return formatProjectFieldIdParts(
+      prefix: catalogNumberPrefix,
+      suffix: catalogNumberSuffix,
+      number: projectFieldNumber,
+    );
+  }
+  if (fieldNumber == null) return '';
+  return '${catalogerInitial ?? ''}$fieldNumber';
 }
 
 /// Coordinates specimen persistence, including taxon-specific attribute rows.

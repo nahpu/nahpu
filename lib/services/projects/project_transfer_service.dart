@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/projects/project_transfer_archive.dart';
 import 'package:nahpu/services/projects/project_transfer_models.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -15,6 +16,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
@@ -257,6 +259,9 @@ class ProjectTransferService extends AppServices {
     _validateReferences(payload.records);
     late final String destinationProjectUuid;
     late final String destinationProjectName;
+    // Imported specimens land in the destination project, so its catalog
+    // prefix and suffix govern how every project field ID renders.
+    late final Map<String, dynamic> destinationProject;
     ProjectTransferProjectMatch? nameConflict;
     if (mode == ProjectTransferImportMode.merge) {
       final activeRows = await _query('SELECT * FROM project WHERE uuid = ?', [
@@ -267,6 +272,7 @@ class ProjectTransferService extends AppServices {
       }
       destinationProjectUuid = currentProjectUuid;
       destinationProjectName = activeRows.single['name'] as String;
+      destinationProject = activeRows.single;
     } else {
       final uuidMatch = await findProjectUuidMatch(payload.sourceProjectUuid);
       if (uuidMatch != null) {
@@ -274,6 +280,7 @@ class ProjectTransferService extends AppServices {
       }
       destinationProjectUuid = payload.sourceProjectUuid;
       destinationProjectName = (destinationName ?? payload.projectName).trim();
+      destinationProject = payload.project;
       nameConflict = await findProjectNameMatch(destinationProjectName);
     }
     final conflicts = <ProjectTransferConflict>[];
@@ -343,14 +350,37 @@ class ProjectTransferService extends AppServices {
     // both sides need a lookup keyed by geography id.
     final localGeography = _rowsById(await _query('SELECT * FROM geography'));
     final importedGeography = _rowsById(payload.rows('geography'));
+    final localSitesById = _rowsById(localSites);
+    final importedSitesById = _rowsById(payload.rows('site'));
     final sourceSiteMatches = <int, int>{};
     for (final imported in payload.rows('site')) {
-      final current = _findSite(localSites, imported);
+      final sourceId = imported['id'] as int;
+      final match = _findSite(localSites, imported);
+      if (match.ambiguous) {
+        conflicts.add(
+          ProjectTransferConflict(
+            id: _conflictId('siteAmbiguous', sourceId),
+            section: ProjectTransferSection.sites,
+            label: _siteName(imported, importedGeography),
+            currentSummary:
+                'More than one site in this project already uses this site ID.',
+            importedSummary: _siteSummary(imported, importedGeography),
+            allowedActions: const [ProjectTransferConflictAction.skip],
+            requiresChoice: true,
+            warning:
+                'Site ID “${imported['siteID'] ?? ''}” matches more than one '
+                'site already in this project, so NAHPU cannot tell which one '
+                'to merge into. Give those sites distinct IDs and import '
+                'again, or skip this record.',
+          ),
+        );
+        continue;
+      }
+      final current = match.row;
       if (current == null) {
         fresh[ProjectTransferSection.sites] =
             fresh[ProjectTransferSection.sites]! + 1;
       } else {
-        final sourceId = imported['id'] as int;
         sourceSiteMatches[sourceId] = current['id'] as int;
         matched[ProjectTransferSection.sites] =
             matched[ProjectTransferSection.sites]! + 1;
@@ -370,7 +400,30 @@ class ProjectTransferService extends AppServices {
         ? await _projectRows('collEvent', projectUuid: destinationProjectUuid)
         : <Map<String, dynamic>>[];
     for (final imported in payload.rows('collEvent')) {
-      final current = _findEvent(localEvents, imported, sourceSiteMatches);
+      final sourceId = imported['id'] as int;
+      final match = _findEvent(localEvents, imported, sourceSiteMatches);
+      if (match.ambiguous) {
+        conflicts.add(
+          ProjectTransferConflict(
+            id: _conflictId('eventAmbiguous', sourceId),
+            section: ProjectTransferSection.events,
+            label: _eventName(imported, importedSitesById),
+            currentSummary:
+                'More than one event in this project already uses this '
+                'event ID.',
+            importedSummary: _eventSummary(imported, importedSitesById),
+            allowedActions: const [ProjectTransferConflictAction.skip],
+            requiresChoice: true,
+            warning:
+                'Event ID “${_eventName(imported, importedSitesById)}” '
+                'matches more than one event already in this project, so '
+                'NAHPU cannot tell which one to merge into. Give those events '
+                'distinct suffixes and import again, or skip this record.',
+          ),
+        );
+        continue;
+      }
+      final current = match.row;
       if (current == null) {
         fresh[ProjectTransferSection.events] =
             fresh[ProjectTransferSection.events]! + 1;
@@ -379,54 +432,28 @@ class ProjectTransferService extends AppServices {
             matched[ProjectTransferSection.events]! + 1;
         conflicts.add(
           ProjectTransferConflict(
-            id: _conflictId('event', imported['id']),
+            id: _conflictId('event', sourceId),
             section: ProjectTransferSection.events,
-            label: _eventName(imported),
-            currentSummary: _eventName(current),
-            importedSummary: _eventName(imported),
+            label: _eventName(imported, importedSitesById),
+            currentSummary: _eventSummary(current, localSitesById),
+            importedSummary: _eventSummary(imported, importedSitesById),
           ),
         );
       }
     }
 
-    final localSpecimens = {
-      for (final row in await _query('SELECT * FROM specimen'))
-        row['uuid'] as String: row,
-    };
-    for (final imported in payload.rows('specimen')) {
-      final uuid = imported['uuid'] as String;
-      final current = localSpecimens[uuid];
-      if (current == null) {
-        fresh[ProjectTransferSection.specimens] =
-            fresh[ProjectTransferSection.specimens]! + 1;
-      } else {
-        matched[ProjectTransferSection.specimens] =
-            matched[ProjectTransferSection.specimens]! + 1;
-        final belongsToDestination =
-            current['projectUuid'] == destinationProjectUuid;
-        conflicts.add(
-          ProjectTransferConflict(
-            id: _conflictId('specimen', uuid),
-            section: ProjectTransferSection.specimens,
-            label: uuid,
-            currentSummary: 'Project ${current['projectUuid'] ?? 'unknown'}',
-            importedSummary: 'Source project ${payload.sourceProjectUuid}',
-            allowedActions:
-                mode == ProjectTransferImportMode.merge && belongsToDestination
-                ? ProjectTransferConflictAction.values
-                : const [
-                    ProjectTransferConflictAction.importAsNew,
-                    ProjectTransferConflictAction.skip,
-                  ],
-            warning:
-                mode == ProjectTransferImportMode.merge && belongsToDestination
-                ? null
-                : 'This UUID belongs to another project and cannot be '
-                      'replaced.',
-          ),
-        );
-      }
-    }
+    conflicts.addAll(
+      await _findSpecimenConflicts(
+        payload: payload,
+        mode: mode,
+        destinationProjectUuid: destinationProjectUuid,
+        destinationProject: destinationProject,
+        localPersonnel: localPersonnel,
+        importedSitesById: importedSitesById,
+        matched: matched,
+        fresh: fresh,
+      ),
+    );
 
     final localNarratives = mode == ProjectTransferImportMode.merge
         ? await _projectRows('narrative', projectUuid: destinationProjectUuid)
@@ -466,6 +493,226 @@ class ProjectTransferService extends AppServices {
       warnings: [...payload.warnings],
       nameConflict: nameConflict,
     );
+  }
+
+  /// Collects every specimen-section conflict, including duplicate identifiers.
+  ///
+  /// Field IDs, tissue IDs, and barcode IDs are compared as the strings users
+  /// read off labels, so two catalogers sharing initials still collide. Local
+  /// rows the archive also carries are left out of the comparison because they
+  /// are the same record rather than a new duplicate, which keeps detection
+  /// independent of the actions the user picks later.
+  Future<List<ProjectTransferConflict>> _findSpecimenConflicts({
+    required ProjectTransferPayload payload,
+    required ProjectTransferImportMode mode,
+    required String destinationProjectUuid,
+    required Map<String, dynamic> destinationProject,
+    required Map<String, Map<String, dynamic>> localPersonnel,
+    required Map<int, Map<String, dynamic>> importedSitesById,
+    required Map<ProjectTransferSection, int> matched,
+    required Map<ProjectTransferSection, int> fresh,
+  }) async {
+    const section = ProjectTransferSection.specimens;
+    final isMerge = mode == ProjectTransferImportMode.merge;
+    final conflicts = <ProjectTransferConflict>[];
+    final specimenRows = payload.rows('specimen');
+    final importedUuids = {
+      for (final row in specimenRows) row['uuid'] as String,
+    };
+
+    final personnelInitials = <String, String?>{
+      for (final row in localPersonnel.values)
+        row['uuid'] as String: row['initial'] as String?,
+      for (final row in payload.rows('personnel'))
+        row['uuid'] as String: row['initial'] as String?,
+    };
+    final importedTaxonomy = _rowsById(payload.rows('taxonomy'));
+    final importedEvents = _rowsById(payload.rows('collEvent'));
+
+    final index = _identifierIndex(destinationProject, personnelInitials);
+    String fieldIdOf(Map<String, dynamic> row) => index.fieldIdOf(row);
+
+    String labelOf(Map<String, dynamic> row) {
+      final fieldId = fieldIdOf(row);
+      final taxon = importedTaxonomy[row['speciesID'] as int?];
+      final event = importedEvents[row['collEventID'] as int?];
+      return [
+        fieldId.isEmpty ? 'Unnumbered specimen' : fieldId,
+        if (taxon != null) _taxonName(taxon),
+        if (event != null) _eventName(event, importedSitesById),
+      ].where((value) => value.trim().isNotEmpty).join(' · ');
+    }
+
+    final importedSpecimens = {
+      for (final row in specimenRows) row['uuid'] as String: row,
+    };
+    String labelForUuid(String? specimenUuid) {
+      final row = specimenUuid == null ? null : importedSpecimens[specimenUuid];
+      return row == null ? 'an imported specimen' : labelOf(row);
+    }
+
+    final localSpecimens = {
+      for (final row in await _query('SELECT * FROM specimen'))
+        row['uuid'] as String: row,
+    };
+    final destinationSpecimens = isMerge
+        ? (await _projectRows(
+            'specimen',
+            projectUuid: destinationProjectUuid,
+          )).where((row) => !importedUuids.contains(row['uuid'])).toList()
+        : const <Map<String, dynamic>>[];
+    final destinationParts = isMerge
+        ? (await _query(
+                'SELECT part.* FROM specimenPart part '
+                'JOIN specimen record ON record.uuid = part.specimenUuid '
+                'WHERE record.projectUuid = ?',
+                [destinationProjectUuid],
+              ))
+              .where((row) => !importedUuids.contains(row['specimenUuid']))
+              .toList()
+        : const <Map<String, dynamic>>[];
+    final localParasiteUuids = {
+      for (final row in await _query(
+        'SELECT parasite.parasiteUuid AS parasiteUuid, '
+        'parasite.specimenUuid AS specimenUuid FROM parasite',
+      ))
+        if (!importedUuids.contains(row['specimenUuid']))
+          _normalize(row['parasiteUuid']),
+    }..remove('');
+
+    for (final row in destinationSpecimens) {
+      index.addSpecimen(row);
+    }
+    for (final row in destinationParts) {
+      index.addTissueId(row['tissueID']);
+      index.addBarcodeId(row['barcodeID']);
+    }
+
+    // Conflicts that decide whether each imported specimen is written at all.
+    final gates = <String, List<String>>{};
+
+    for (final imported in specimenRows) {
+      final uuid = imported['uuid'] as String;
+      final label = labelOf(imported);
+      final current = localSpecimens[uuid];
+      final specimenGates = <String>[];
+      if (current == null) {
+        fresh[section] = fresh[section]! + 1;
+      } else {
+        matched[section] = matched[section]! + 1;
+        final belongsToDestination =
+            current['projectUuid'] == destinationProjectUuid;
+        final sameProject = isMerge && belongsToDestination;
+        final conflictId = _conflictId('specimen', uuid);
+        specimenGates.add(conflictId);
+        conflicts.add(
+          ProjectTransferConflict(
+            id: conflictId,
+            section: section,
+            label: label,
+            currentSummary: sameProject
+                ? 'Already in this project'
+                : 'Belongs to another project',
+            importedSummary: 'From ${payload.projectName}',
+            allowedActions: sameProject
+                ? ProjectTransferConflictAction.values
+                : const [
+                    ProjectTransferConflictAction.importAsNew,
+                    ProjectTransferConflictAction.skip,
+                  ],
+            requiresChoice: !sameProject,
+            warning: sameProject
+                ? (fieldIdOf(imported).isEmpty
+                      ? null
+                      : '“Import as new” keeps field ID '
+                            '“${fieldIdOf(imported)}”, leaving two specimens '
+                            'with the same ID.')
+                : 'Specimen UUID $uuid already belongs to another project. '
+                      '“Import as new” gives the imported copy a fresh UUID. '
+                      '$duplicateIdentifierAdvice',
+          ),
+        );
+      }
+
+      if (!index.addSpecimen(imported)) {
+        final conflictId = _conflictId('specimenFieldId', uuid);
+        conflicts.add(
+          ProjectTransferConflict(
+            id: conflictId,
+            section: section,
+            label: fieldIdOf(imported),
+            currentSummary: 'Field ID already used in this project',
+            importedSummary: label,
+            allowedActions: const [ProjectTransferConflictAction.skip],
+            requiresChoice: true,
+            parentConflictIds: List.of(specimenGates),
+            warning:
+                'Field ID “${fieldIdOf(imported)}” is already in use. '
+                '$duplicateIdentifierAdvice',
+          ),
+        );
+        specimenGates.add(conflictId);
+      }
+      gates[uuid] = specimenGates;
+    }
+
+    for (final row in payload.rows('specimenPart')) {
+      final specimenUuid = row['specimenUuid'] as String?;
+      final parentGates = gates[specimenUuid] ?? const <String>[];
+      for (final (column, name, claim) in [
+        ('tissueID', 'Tissue ID', index.addTissueId),
+        ('barcodeID', 'Barcode ID', index.addBarcodeId),
+      ]) {
+        if (claim(row[column])) continue;
+        conflicts.add(
+          ProjectTransferConflict(
+            id: _conflictId('specimenPart.$column', row['id']),
+            section: section,
+            label: '${row[column]}',
+            currentSummary: '$name already used in this project',
+            importedSummary: 'Part of ${labelForUuid(specimenUuid)}',
+            allowedActions: const [ProjectTransferConflictAction.skip],
+            requiresChoice: true,
+            parentConflictIds: parentGates,
+            warning:
+                '$name “${row[column]}” is already in use. '
+                '$duplicateIdentifierAdvice',
+          ),
+        );
+      }
+    }
+
+    final seenParasiteUuids = <String>{};
+    for (final row in payload.rows('parasite')) {
+      final parasiteUuid = _normalize(row['parasiteUuid']);
+      if (parasiteUuid.isEmpty) continue;
+      final specimenUuid = row['specimenUuid'] as String?;
+      if (!localParasiteUuids.contains(parasiteUuid) &&
+          seenParasiteUuids.add(parasiteUuid)) {
+        continue;
+      }
+      conflicts.add(
+        ProjectTransferConflict(
+          id: _conflictId('parasiteUuid', row['id']),
+          section: section,
+          label: '${row['parasiteID'] ?? row['parasiteUuid']}',
+          currentSummary: 'Parasite UUID already in the database',
+          importedSummary: 'Parasite of ${labelForUuid(specimenUuid)}',
+          allowedActions: const [
+            ProjectTransferConflictAction.importAsNew,
+            ProjectTransferConflictAction.skip,
+          ],
+          requiresChoice: true,
+          parentConflictIds: gates[specimenUuid] ?? const <String>[],
+          warning:
+              'Parasite UUID ${row['parasiteUuid']} is already in use. '
+              '“Import as new” gives the imported copy a fresh UUID. '
+              '$duplicateIdentifierAdvice',
+        ),
+      );
+    }
+
+    return conflicts;
   }
 
   Future<ProjectTransferProjectMatch?> findProjectUuidMatch(String uuid) async {
@@ -509,10 +756,19 @@ class ProjectTransferService extends AppServices {
         'The project UUID does not match the active project.',
       );
     }
+    final unresolved = unresolvedConflicts(plan, conflictActions);
+    if (unresolved.isNotEmpty) {
+      final names = unresolved.take(3).map((item) => item.label).join(', ');
+      throw FormatException(
+        '${unresolved.length} conflict(s) still need an action before the '
+        'import can run: $names${unresolved.length > 3 ? ', …' : ''}',
+      );
+    }
     final copiedFiles = <File>[];
     var imported = 0;
     var updated = 0;
     var skipped = 0;
+    var skippedByConflict = 0;
     final targetProjectUuid = plan.destinationProjectUuid;
     final targetProjectName =
         (destinationProjectName ?? plan.destinationProjectName).trim();
@@ -629,7 +885,14 @@ class ProjectTransferService extends AppServices {
         );
         for (final row in plan.payload.rows('site')) {
           final sourceId = row['id'] as int;
-          final current = _findSite(localSites, row);
+          final match = _findSite(localSites, row);
+          if (match.ambiguous) {
+            siteMap[sourceId] = null;
+            skipped++;
+            skippedByConflict++;
+            continue;
+          }
+          final current = match.row;
           final conflict = _findConflict(plan, 'site', sourceId);
           final action = _actionFor(conflict, conflictActions);
           if (current != null && action == ProjectTransferConflictAction.skip) {
@@ -751,7 +1014,14 @@ class ProjectTransferService extends AppServices {
         );
         for (final row in plan.payload.rows('collEvent')) {
           final sourceId = row['id'] as int;
-          final current = _findEvent(localEvents, row, siteMap);
+          final match = _findEvent(localEvents, row, siteMap);
+          if (match.ambiguous) {
+            eventMap[sourceId] = null;
+            skipped++;
+            skippedByConflict++;
+            continue;
+          }
+          final current = match.row;
           final conflict = _findConflict(plan, 'event', sourceId);
           final action = _actionFor(conflict, conflictActions);
           final targetSite = siteMap[row['siteID'] as int?];
@@ -863,6 +1133,36 @@ class ProjectTransferService extends AppServices {
           }
         }
 
+        // Backstop against ever writing a duplicate identifier: the plan
+        // gates every known case, and a miss rolls the merge back whole
+        // instead of landing a duplicate ID on a label or an export.
+        final guard = _identifierIndex(
+          (await _query('SELECT * FROM project WHERE uuid = ?', [
+            targetProjectUuid,
+          ])).single,
+          {
+            for (final row in await _query(
+              'SELECT uuid, initial FROM personnel',
+            ))
+              row['uuid'] as String: row['initial'] as String?,
+          },
+        );
+        for (final row in await _projectRows(
+          'specimen',
+          projectUuid: targetProjectUuid,
+        )) {
+          guard.addSpecimen(row);
+        }
+        for (final row in await _query(
+          'SELECT part.* FROM specimenPart part '
+          'JOIN specimen record ON record.uuid = part.specimenUuid '
+          'WHERE record.projectUuid = ?',
+          [targetProjectUuid],
+        )) {
+          guard.addTissueId(row['tissueID']);
+          guard.addBarcodeId(row['barcodeID']);
+        }
+
         final specimenMap = <String, String?>{};
         final specimenPartMap = <int, int?>{};
         final parasiteMap = <int, int?>{};
@@ -879,6 +1179,18 @@ class ProjectTransferService extends AppServices {
           if (current != null && action == ProjectTransferConflictAction.skip) {
             specimenMap[sourceUuid] = null;
             skipped++;
+            skippedByConflict++;
+            continue;
+          }
+          if (_isSkipped(
+            plan,
+            conflictActions,
+            'specimenFieldId',
+            sourceUuid,
+          )) {
+            specimenMap[sourceUuid] = null;
+            skipped++;
+            skippedByConflict++;
             continue;
           }
           if (row['speciesID'] != null &&
@@ -920,19 +1232,29 @@ class ProjectTransferService extends AppServices {
               action == ProjectTransferConflictAction.useImported &&
               current['projectUuid'] == targetProjectUuid) {
             await _deleteSpecimenChildren(sourceUuid);
+            // Replacing a record keeps its identity, so the field ID is
+            // claimed rather than checked.
+            guard.addSpecimen(targetRow);
             await _update('specimen', targetRow, 'uuid', sourceUuid);
             specimenMap[sourceUuid] = sourceUuid;
             specimensUsingImportedChildren.add(sourceUuid);
             updated++;
           } else {
+            _requireUnique(
+              guard.addSpecimen(targetRow),
+              'Field ID',
+              guard.fieldIdOf(targetRow),
+            );
             await _insert('specimen', targetRow);
             specimenMap[sourceUuid] = targetUuid;
             specimensUsingImportedChildren.add(sourceUuid);
             imported++;
           }
         }
-        await _importSpecimenChildren(
-          plan.payload,
+        skippedByConflict += await _importSpecimenChildren(
+          plan,
+          conflictActions,
+          guard,
           specimenMap,
           personnelMap,
           taxonomyMap,
@@ -1059,6 +1381,7 @@ class ProjectTransferService extends AppServices {
       skipped: skipped,
       mediaCopied: copiedFiles.length,
       warnings: plan.warnings,
+      skippedByConflict: skippedByConflict,
     );
   }
 
@@ -1218,8 +1541,10 @@ class ProjectTransferService extends AppServices {
     }
   }
 
-  Future<void> _importSpecimenChildren(
-    ProjectTransferPayload payload,
+  Future<int> _importSpecimenChildren(
+    ProjectTransferImportPlan plan,
+    Map<String, ProjectTransferConflictAction> conflictActions,
+    _IdentifierIndex guard,
     Map<String, String?> specimenMap,
     Map<String, String?> personnelMap,
     Map<int, int?> taxonomyMap,
@@ -1227,6 +1552,8 @@ class ProjectTransferService extends AppServices {
     Map<int, int?> specimenPartMap,
     Map<int, int?> parasiteMap,
   ) async {
+    final payload = plan.payload;
+    var skippedByConflict = 0;
     for (final table in [
       'mammalAttribute',
       'birdAttribute',
@@ -1251,9 +1578,34 @@ class ProjectTransferService extends AppServices {
     for (final row in payload.rows('specimenPart')) {
       final sourceUuid = row['specimenUuid'] as String?;
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
+      if (_isSkipped(
+            plan,
+            conflictActions,
+            'specimenPart.tissueID',
+            row['id'],
+          ) ||
+          _isSkipped(
+            plan,
+            conflictActions,
+            'specimenPart.barcodeID',
+            row['id'],
+          )) {
+        skippedByConflict++;
+        continue;
+      }
       final uuid = specimenMap[sourceUuid];
       final personnelId = personnelMap[row['personnelId'] as String?];
       if (uuid != null && (row['personnelId'] == null || personnelId != null)) {
+        _requireUnique(
+          guard.addTissueId(row['tissueID']),
+          'Tissue ID',
+          '${row['tissueID']}',
+        );
+        _requireUnique(
+          guard.addBarcodeId(row['barcodeID']),
+          'Barcode ID',
+          '${row['barcodeID']}',
+        );
         specimenPartMap[row['id'] as int] = await _insert(
           'specimenPart',
           {...row, 'specimenUuid': uuid, 'personnelId': personnelId},
@@ -1280,7 +1632,19 @@ class ProjectTransferService extends AppServices {
           (row['identifierID'] != null && identifierId == null)) {
         continue;
       }
+      final parasiteConflict = _findConflict(plan, 'parasiteUuid', row['id']);
       var parasiteUuid = row['parasiteUuid'] as String?;
+      if (parasiteConflict != null &&
+          isConflictActive(parasiteConflict, conflictActions)) {
+        if (_actionFor(parasiteConflict, conflictActions) ==
+            ProjectTransferConflictAction.skip) {
+          skippedByConflict++;
+          continue;
+        }
+        parasiteUuid = const Uuid().v4();
+      }
+      // The unique index is the last line of defence; a UUID that slipped
+      // past the plan still gets a fresh one rather than failing the merge.
       final duplicate = parasiteUuid == null
           ? const <Map<String, dynamic>>[]
           : await _query('SELECT id FROM parasite WHERE parasiteUuid = ?', [
@@ -1301,6 +1665,7 @@ class ProjectTransferService extends AppServices {
         omit: {'id'},
       );
     }
+    return skippedByConflict;
   }
 
   Future<void> _importCustomFields(
@@ -1938,6 +2303,16 @@ class ProjectTransferService extends AppServices {
     return {...row, column: source == null ? null : personnelMap[source]};
   }
 
+  /// Builds an identifier index for the project rows will be written into.
+  static _IdentifierIndex _identifierIndex(
+    Map<String, dynamic> project,
+    Map<String, String?> initials,
+  ) => _IdentifierIndex(
+    catalogNumberPrefix: project['catalogNumberPrefix'] as String?,
+    catalogNumberSuffix: project['catalogNumberSuffix'] as String?,
+    initials: initials,
+  );
+
   ProjectTransferConflict? _findConflict(
     ProjectTransferImportPlan plan,
     String kind,
@@ -1945,6 +2320,31 @@ class ProjectTransferService extends AppServices {
   ) {
     final id = _conflictId(kind, sourceId);
     return plan.conflicts.where((item) => item.id == id).firstOrNull;
+  }
+
+  /// Fails the merge rather than writing a duplicate identifier.
+  void _requireUnique(bool claimed, String name, String value) {
+    if (claimed) return;
+    throw FormatException(
+      '$name “$value” would be duplicated by this import. '
+      '$duplicateIdentifierAdvice',
+    );
+  }
+
+  /// Whether the user resolved the conflict on [kind]:[sourceId] with `Skip`.
+  ///
+  /// A conflict whose parent record is kept or skipped is inactive, so it never
+  /// reports a skip of its own.
+  bool _isSkipped(
+    ProjectTransferImportPlan plan,
+    Map<String, ProjectTransferConflictAction> actions,
+    String kind,
+    Object? sourceId,
+  ) {
+    if (sourceId == null) return false;
+    final conflict = _findConflict(plan, kind, sourceId);
+    if (conflict == null || !isConflictActive(conflict, actions)) return false;
+    return _actionFor(conflict, actions) == ProjectTransferConflictAction.skip;
   }
 
   ProjectTransferConflictAction _actionFor(
@@ -1970,33 +2370,43 @@ class ProjectTransferService extends AppServices {
     return matches.length == 1 ? matches.single : null;
   }
 
-  Map<String, dynamic>? _findSite(
+  /// Finds the destination site carrying the same site ID.
+  ///
+  /// Two local sites sharing one site ID are reported as [ambiguous] rather
+  /// than silently importing a third copy.
+  _RecordMatch _findSite(
     List<Map<String, dynamic>> rows,
     Map<String, dynamic> imported,
   ) {
     final key = _normalize(imported['siteID']);
-    if (key.isEmpty) return null;
+    if (key.isEmpty) return const _RecordMatch.none();
     final matches = rows
         .where((row) => _normalize(row['siteID']) == key)
         .toList();
-    return matches.length == 1 ? matches.single : null;
+    return _RecordMatch.from(matches);
   }
 
-  Map<String, dynamic>? _findEvent(
+  /// Finds the destination event carrying the same event ID.
+  ///
+  /// Events are matched on the parts NAHPU presents as the event ID — the
+  /// site, the start date, and the suffix — so the same field event still
+  /// matches when its start time was recorded differently.
+  _RecordMatch _findEvent(
     List<Map<String, dynamic>> rows,
     Map<String, dynamic> imported,
     Map<int, int?> siteMap,
   ) {
     final sourceSite = imported['siteID'] as int?;
     final targetSite = sourceSite == null ? null : siteMap[sourceSite];
-    if (sourceSite != null && targetSite == null) return null;
+    if (sourceSite != null && targetSite == null) {
+      return const _RecordMatch.none();
+    }
     final matches = rows.where((row) {
       return row['siteID'] == targetSite &&
           _normalize(row['startDate']) == _normalize(imported['startDate']) &&
-          _normalize(row['startTime']) == _normalize(imported['startTime']) &&
           _normalize(row['idSuffix']) == _normalize(imported['idSuffix']);
     }).toList();
-    return matches.length == 1 ? matches.single : null;
+    return _RecordMatch.from(matches);
   }
 
   Map<String, dynamic>? _findNarrative(
@@ -2126,11 +2536,28 @@ class ProjectTransferService extends AppServices {
     Map<int, Map<String, dynamic>> geography,
   ) => geography[row['geographyId'] as int?];
 
-  static String _eventName(Map<String, dynamic> row) => [
-    row['startDate'],
-    row['startTime'],
-    row['idSuffix'],
-  ].whereType<String>().where((value) => value.isNotEmpty).join(' · ');
+  /// Renders the event ID exactly as the rest of the app presents it.
+  static String _eventName(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> sites,
+  ) => formatCollEventIdParts(
+    siteId: sites[row['siteID'] as int?]?['siteID'] as String?,
+    startDate: row['startDate'] as String?,
+    idSuffix: row['idSuffix'] as String?,
+  );
+
+  /// Adds the times to the event ID so the two panes of a card differ visibly.
+  static String _eventSummary(
+    Map<String, dynamic> row,
+    Map<int, Map<String, dynamic>> sites,
+  ) => [
+    _eventName(row, sites),
+    [
+      row['startTime'],
+      row['endDate'],
+      row['endTime'],
+    ].whereType<String>().where((value) => value.isNotEmpty).join(' · '),
+  ].where((value) => value.isNotEmpty).join(' — ');
 
   static String _personSummary(Map<String, dynamic> row) => [
     row['name'],
@@ -2155,5 +2582,68 @@ class ProjectTransferService extends AppServices {
         .basename(value)
         .replaceAll(RegExp(r'[^a-zA-Z0-9._-]+'), '_');
     return name.isEmpty ? 'media' : name;
+  }
+}
+
+/// Outcome of matching one imported record against the destination project.
+///
+/// [ambiguous] means the destination already holds more than one record with
+/// that identifier, which the user has to resolve before the import can run.
+class _RecordMatch {
+  const _RecordMatch.none() : row = null, ambiguous = false;
+
+  const _RecordMatch.ambiguous() : row = null, ambiguous = true;
+
+  const _RecordMatch.single(this.row) : ambiguous = false;
+
+  factory _RecordMatch.from(List<Map<String, dynamic>> matches) =>
+      switch (matches.length) {
+        0 => const _RecordMatch.none(),
+        1 => _RecordMatch.single(matches.single),
+        _ => const _RecordMatch.ambiguous(),
+      };
+
+  final Map<String, dynamic>? row;
+  final bool ambiguous;
+}
+
+/// Tracks the identifiers that have to stay unique inside one project.
+///
+/// Field IDs are compared as the strings users read off labels, so two
+/// catalogers who share initials still collide. Blank identifiers never clash.
+class _IdentifierIndex {
+  _IdentifierIndex({
+    required this.catalogNumberPrefix,
+    required this.catalogNumberSuffix,
+    required this.initials,
+  });
+
+  final String? catalogNumberPrefix;
+  final String? catalogNumberSuffix;
+  final Map<String, String?> initials;
+  final Set<String> _fieldIds = {};
+  final Set<String> _tissueIds = {};
+  final Set<String> _barcodeIds = {};
+
+  String fieldIdOf(Map<String, dynamic> row) => formatSpecimenFieldId(
+    catalogNumberPrefix: catalogNumberPrefix,
+    catalogNumberSuffix: catalogNumberSuffix,
+    catalogerInitial: initials[row['catalogerID'] as String?],
+    fieldNumber: row['fieldNumber'] as int?,
+    projectFieldNumber: row['projectFieldNumber'] as int?,
+  );
+
+  /// Claims the specimen's field ID, returning `false` when it is taken.
+  bool addSpecimen(Map<String, dynamic> row) => _add(_fieldIds, fieldIdOf(row));
+
+  /// Claims the part's tissue ID, returning `false` when it is taken.
+  bool addTissueId(Object? value) => _add(_tissueIds, value);
+
+  /// Claims the part's barcode ID, returning `false` when it is taken.
+  bool addBarcodeId(Object? value) => _add(_barcodeIds, value);
+
+  static bool _add(Set<String> target, Object? value) {
+    final key = ProjectTransferService._normalize(value);
+    return key.isEmpty || target.add(key);
   }
 }

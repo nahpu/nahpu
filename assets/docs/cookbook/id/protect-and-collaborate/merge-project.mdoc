@@ -15,8 +15,19 @@ Gabungkan record dari salinan lain proyek yang sama melalui peninjauan konflik t
 3. Pilih proyek JSON.GZ, ZIP, TAR.GZ, atau NAHPU Data Package yang kompatibel.
 4. Tinjau informasi proyek, personnel, taxonomy, site, event, specimen, dan narrative secara berurutan.
 5. Untuk setiap konflik, pilih `Keep current`, `Use imported`, `Import as new`, atau `Skip`.
-6. Tinjau ringkasan akhir, jalankan merge, lalu periksa jumlah record dan media.
+6. Selesaikan semua kartu bertanda `Needs attention` sebelum melanjutkan.
+7. Tinjau ringkasan akhir, jalankan merge, lalu periksa jumlah record dan media.
 {% /steps %}
+
+## Cara record dicocokkan
+
+Event dicocokkan berdasarkan bagian yang ditampilkan NAHPU sebagai event ID: site, tanggal mulai, dan suffix. Event lapangan yang sama tetap cocok meskipun waktu mulainya dicatat berbeda.
+
+## Identifier ganda
+
+Field ID, project ID, tissue ID, dan barcode ID berakhir di label fisik dan di ekspor yang dipublikasikan, jadi NAHPU tidak pernah menomori ulang secara otomatis. Identifier ganda, UUID specimen atau parasit yang sudah ada di basis data, serta site ID atau event ID yang cocok dengan lebih dari satu record menjadi kartu bertanda `Needs attention`. Wizard tidak akan lanjut sampai setiap kartu punya tindakan.
+
+Periksa record yang diimpor, ubah ID lalu impor ulang, atau lewati record tersebut.
 
 {% aside type="caution" %}
 
