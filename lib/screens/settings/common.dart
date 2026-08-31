@@ -16,9 +16,12 @@ class CommonSettingList extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: NahpuContentWidth.settings),
-        child: Padding(
-          padding: const EdgeInsets.all(NahpuSpacing.md),
-          child: ListView(children: sections),
+        child: ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: NahpuSpacing.xl,
+            vertical: NahpuSpacing.md,
+          ),
+          children: sections,
         ),
       ),
     );

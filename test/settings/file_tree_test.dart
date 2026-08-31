@@ -1,9 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/application/file_tree.dart';
+import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/services/types/file_format.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 NahpuFileNode buildFile(
   String name, {
@@ -53,6 +55,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     NahpuDirectoryNode root, {
+    EdgeInsets padding = EdgeInsets.zero,
     ValueChanged<NahpuFileNode>? onDelete,
     ValueChanged<NahpuFileNode>? onSaveCopy,
     bool isSelecting = false,
@@ -65,6 +68,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
+            padding: padding,
             child: NahpuFileTreeView(
               root: root,
               onDeleteFile: onDelete ?? (_) {},
@@ -121,6 +125,120 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('file-99.jpg'), findsOneWidget);
+  });
+
+  for (final isSelecting in [false, true]) {
+    testWidgets('row details align right with selection $isSelecting', (
+      tester,
+    ) async {
+      final lockedFiles = [
+        for (var index = 1; index <= 3; index++)
+          buildFile(
+            'locked-$index.jpg',
+            status: NahpuFileStatus.linked,
+            reason: NahpuLockReason.mediaRecord,
+            size: index * 1024,
+          ),
+      ];
+      final removable = buildFile(
+        'orphan.jpg',
+        status: NahpuFileStatus.dangling,
+      );
+      final nested = buildDir('nested', [lockedFiles[2], removable]);
+      final media = buildDir('media', [lockedFiles[1], nested]);
+      final root = buildDir('root', [lockedFiles[0], media]);
+      await pump(tester, root, isSelecting: isSelecting, onSaveCopy: (_) {});
+      await tester.tap(find.text('nested'));
+      await tester.pumpAndSettle();
+
+      final rightEdge =
+          tester.getTopRight(find.byType(NahpuFileTreeView)).dx -
+          NahpuSpacing.lg;
+      for (final node in [...lockedFiles, media, nested, removable]) {
+        final row = find
+            .ancestor(of: find.text(node.name), matching: find.byType(Row))
+            .first;
+        final size = find.descendant(
+          of: row,
+          matching: find.text(formatByteSize(node.sizeBytes)),
+        );
+        expect(tester.getRect(row).right, closeTo(rightEdge, 0.01));
+        if (node is NahpuDirectoryNode) {
+          expect(
+            tester.getRect(size).right,
+            closeTo(
+              rightEdge - NahpuControlSize.touchTarget - NahpuSpacing.lg,
+              0.01,
+            ),
+          );
+        } else if (node is NahpuFileNode && !node.isManuallyDeletable) {
+          final lock = find.descendant(
+            of: row,
+            matching: find.byTooltip('Linked to a media record'),
+          );
+          final lockRect = tester.getRect(lock);
+          expect(lockRect.right, closeTo(rightEdge, 0.01));
+          expect(lockRect.width, NahpuControlSize.touchTarget);
+          expect(
+            tester.getRect(size).right,
+            closeTo(lockRect.left - NahpuSpacing.lg, 0.01),
+          );
+        } else {
+          final actions = isSelecting
+              ? find.descendant(of: row, matching: find.byType(Checkbox))
+              : find
+                    .ancestor(
+                      of: find.descendant(
+                        of: row,
+                        matching: find.byIcon(Icons.delete_outline_rounded),
+                      ),
+                      matching: find.byType(Row),
+                    )
+                    .first;
+          final actionsRect = tester.getRect(actions);
+          expect(actionsRect.right, closeTo(rightEdge, 0.01));
+          expect(
+            tester.getRect(size).right,
+            closeTo(actionsRect.left - NahpuSpacing.lg, 0.01),
+          );
+        }
+      }
+    });
+  }
+
+  testWidgets('long nested filenames fit a compact viewport', (tester) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const name = 'a-very-long-specimen-photo-name-that-must-be-truncated.jpg';
+    final root = buildDir('root', [
+      buildDir('project', [
+        buildDir('media', [
+          buildDir('specimen', [
+            buildFile(name, status: NahpuFileStatus.dangling, size: 123456789),
+          ]),
+        ]),
+      ]),
+    ]);
+    await pump(
+      tester,
+      root,
+      onSaveCopy: (_) {},
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+    );
+    await tester.tap(find.text('media'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('specimen'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(tester.getSize(find.text(name)).width, greaterThan(0));
+    expect(
+      tester.widget<Text>(find.text(name)).overflow,
+      TextOverflow.ellipsis,
+    );
+    expect(find.byTooltip('Save a copy'), findsOneWidget);
+    expect(find.byTooltip('Remove this file'), findsOneWidget);
   });
 
   testWidgets('a linked file offers no delete control', (tester) async {

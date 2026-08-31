@@ -15,10 +15,6 @@ const double _rowInset = NahpuSpacing.xxl;
 /// One indent step per depth level.
 const double _indentStep = NahpuSpacing.xl;
 
-/// Width of the chevron column. File rows reserve it so their format icons sit
-/// directly under the folder icons above them.
-const double _chevronGutter = NahpuControlSize.iconMedium + NahpuSpacing.lg;
-
 /// Maximum height of the independently scrollable file-tree viewport.
 const double _maxTreeHeight = 560;
 
@@ -234,13 +230,20 @@ class _TreeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    // Bound compact indentation so deeply nested files still have room for
+    // their names, sizes, and actions.
+    final leftInset = compact
+        ? NahpuSpacing.md +
+              (depth * NahpuSpacing.md).clamp(0.0, NahpuSpacing.xxl)
+        : _rowInset + depth * _indentStep;
     final row = ConstrainedBox(
       constraints: const BoxConstraints(
         minHeight: NahpuControlSize.touchTarget,
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-          _rowInset + depth * _indentStep,
+          leftInset,
           NahpuSpacing.xs,
           // A trailing gutter, so row buttons and checkboxes keep clear of the
           // section's rounded border.
@@ -286,6 +289,8 @@ class _DirectoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    final spacing = compact ? NahpuSpacing.sm : NahpuSpacing.lg;
     return _TreeRow(
       depth: depth,
       onTap: onToggle,
@@ -299,13 +304,13 @@ class _DirectoryRow extends StatelessWidget {
             color: colors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(width: NahpuSpacing.lg),
+        SizedBox(width: spacing),
         Icon(
           isExpanded ? Icons.folder_open_outlined : Icons.folder_outlined,
           size: NahpuControlSize.iconMedium,
           color: colors.primary,
         ),
-        const SizedBox(width: NahpuSpacing.lg),
+        SizedBox(width: spacing),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -326,20 +331,17 @@ class _DirectoryRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: NahpuSpacing.lg),
-        Flexible(
-          fit: FlexFit.loose,
-          child: Text(
-            formatByteSize(node.sizeBytes),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
-          ),
+        SizedBox(width: spacing),
+        Text(
+          formatByteSize(node.sizeBytes),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.right,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
         ),
-        const SizedBox(width: NahpuSpacing.lg),
+        SizedBox(width: spacing),
         _DirectoryAffordance(
           node: node,
           isSelecting: isSelecting,
@@ -433,17 +435,19 @@ class _FileRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
+    final spacing = compact ? NahpuSpacing.sm : NahpuSpacing.lg;
     return _TreeRow(
       depth: depth,
       children: [
         // Reserve the chevron column so file icons align with folder icons.
-        const SizedBox(width: _chevronGutter),
+        SizedBox(width: NahpuControlSize.iconMedium + spacing),
         Icon(
           _formatIcon(node.format),
           size: NahpuControlSize.iconMedium,
           color: colors.onSurfaceVariant,
         ),
-        const SizedBox(width: NahpuSpacing.lg),
+        SizedBox(width: spacing),
         Expanded(
           child: Text(
             node.name,
@@ -451,20 +455,17 @@ class _FileRow extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
-        const SizedBox(width: NahpuSpacing.lg),
-        Flexible(
-          fit: FlexFit.loose,
-          child: Text(
-            formatByteSize(node.sizeBytes),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-          ),
+        SizedBox(width: spacing),
+        Text(
+          formatByteSize(node.sizeBytes),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.right,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
         ),
-        const SizedBox(width: NahpuSpacing.lg),
+        SizedBox(width: spacing),
         _StatusAffordance(
           node: node,
           isSelecting: isSelecting,

@@ -13,7 +13,15 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
+
+Finder buttonWithLabel(String label) => find
+    .ancestor(
+      of: find.text(label),
+      matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+    )
+    .first;
 
 /// Drives the real screen against a real scan, so the provider, the classifier,
 /// and the tree are exercised together rather than in isolation.
@@ -171,30 +179,57 @@ void main() {
 
     expect(find.text('Nothing to reclaim.'), findsOneWidget);
     expect(find.textContaining('Remove 1 unlinked'), findsNothing);
-  });
-
-  testWidgets('empty file tree fills the settings container', (tester) async {
-    await seed();
-    await pumpScreen(tester, size: const Size(900, 700));
-
-    final emptyMessage = find.text('The application folder is empty.');
-    await tester.ensureVisible(emptyMessage);
+    await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
-
-    final fileSection = find.ancestor(
-      of: emptyMessage,
-      matching: find.byType(CommonSettingSection),
-    );
-    final fileTreeSurface = find
-        .ancestor(of: emptyMessage, matching: find.byType(Material))
-        .first;
     expect(
-      tester.getSize(fileTreeSurface).width,
-      tester.getSize(fileSection).width,
+      tester.widget<TextButton>(buttonWithLabel('Select all')).onPressed,
+      isNull,
     );
   });
 
-  testWidgets('selection controls stay in the bottom panel', (tester) async {
+  for (final width in [320.0, 900.0]) {
+    testWidgets('empty file tree fills the container at $width pixels', (
+      tester,
+    ) async {
+      await seed();
+      await pumpScreen(tester, size: Size(width, 700));
+
+      final emptyMessage = find.text('The application folder is empty.');
+      await tester.scrollUntilVisible(
+        emptyMessage,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      final fileSection = find.ancestor(
+        of: emptyMessage,
+        matching: find.byType(CommonSettingSection),
+      );
+      final fileTreeSurface = find
+          .ancestor(of: emptyMessage, matching: find.byType(Material))
+          .first;
+      expect(
+        tester.getSize(fileTreeSurface).width,
+        tester.getSize(fileSection).width,
+      );
+      expect(
+        tester.widget<TextButton>(buttonWithLabel('Expand all')).onPressed,
+        isNull,
+      );
+      await tester.tap(find.text('Select'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextButton>(buttonWithLabel('Select all')).onPressed,
+        isNull,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('tree controls stay inside the file container header', (
+    tester,
+  ) async {
     await seed();
     writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
     writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
@@ -207,11 +242,28 @@ void main() {
     expect(find.text('Expand all'), findsOneWidget);
     expect(find.textContaining('Review'), findsNothing);
 
-    final filesTop = tester.getTopLeft(find.text('Files').last).dy;
-    final expandTop = tester.getTopLeft(find.text('Expand all')).dy;
-    final selectTop = tester.getTopLeft(find.text('Select')).dy;
-    expect(expandTop, closeTo(filesTop, 16));
-    expect(selectTop, closeTo(filesTop, 16));
+    final fileTree = find.byType(NahpuFileTreeView);
+    final surface = find
+        .ancestor(of: fileTree, matching: find.byType(Material))
+        .first;
+    final surfaceRect = tester.getRect(surface);
+    expect(
+      tester.getBottomLeft(find.text('Files').last).dy,
+      lessThanOrEqualTo(surfaceRect.top),
+    );
+    for (final label in ['Expand all', 'Select']) {
+      final buttonRect = tester.getRect(buttonWithLabel(label));
+      expect(buttonRect.intersect(surfaceRect), buttonRect);
+      expect(buttonRect.bottom, lessThan(tester.getTopLeft(fileTree).dy));
+    }
+    expect(
+      tester.getTopRight(buttonWithLabel('Select')).dx,
+      closeTo(surfaceRect.right - NahpuSpacing.md, 0.01),
+    );
+    expect(
+      find.descendant(of: surface, matching: find.byType(Divider)),
+      findsOneWidget,
+    );
 
     final fileSection = find.ancestor(
       of: find.text('Expand all'),
@@ -238,12 +290,30 @@ void main() {
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('Review 0'), findsOneWidget);
+    expect(
+      find.descendant(of: surface, matching: find.text('Select all')),
+      findsOneWidget,
+    );
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    final toolbar = find.byWidget(scaffold.bottomNavigationBar!);
+    expect(
+      find.descendant(of: toolbar, matching: find.text('Select all')),
+      findsNothing,
+    );
+    for (final label in ['Clear', 'Review 0', 'Done']) {
+      expect(
+        find.descendant(of: toolbar, matching: find.text(label)),
+        findsOneWidget,
+      );
+    }
 
     final clear = tester.getCenter(find.text('Clear'));
     final review = tester.getCenter(find.text('Review 0'));
     final done = tester.getCenter(find.text('Done'));
     expect(clear.dx, lessThan(review.dx));
     expect(review.dx, lessThan(done.dx));
+    expect(clear.dy, closeTo(review.dy, 0.01));
+    expect(done.dy, closeTo(review.dy, 0.01));
 
     await tester.tap(find.text('Select all'));
     await tester.pumpAndSettle();
@@ -256,9 +326,62 @@ void main() {
     expect(find.text('Select all'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('Review 1'), findsOneWidget);
+    expect(
+      tester.widget<TextButton>(buttonWithLabel('Select all')).onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.text('Expand all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Collapse all'), findsOneWidget);
+    expect(find.text('Review 1'), findsOneWidget);
+    await tester.tap(find.text('Collapse all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Expand all'), findsOneWidget);
+    expect(find.text('Review 1'), findsOneWidget);
   });
 
-  testWidgets('selection panel fits a compact screen', (tester) async {
+  testWidgets('file header stays fixed while a large tree scrolls', (
+    tester,
+  ) async {
+    await seed();
+    for (var index = 0; index < 100; index++) {
+      writeFile([
+        projectUuid,
+        mediaDir,
+        'specimen',
+        'file-${index.toString().padLeft(3, '0')}.jpg',
+      ]);
+    }
+    await pumpScreen(tester);
+    await tester.tap(find.text('Expand all'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+
+    final tree = find.byType(NahpuFileTreeView);
+    final collapseBefore = tester.getRect(buttonWithLabel('Collapse all'));
+    final selectBefore = tester.getRect(buttonWithLabel('Select all'));
+    expect(tester.getSize(tree).height, 560);
+    expect(find.text('file-099.jpg'), findsNothing);
+
+    await tester.drag(
+      find.descendant(of: tree, matching: find.byType(Scrollable)),
+      const Offset(0, -6000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('file-099.jpg'), findsOneWidget);
+    expect(tester.getRect(buttonWithLabel('Collapse all')), collapseBefore);
+    expect(tester.getRect(buttonWithLabel('Select all')), selectBefore);
+    await tester.tap(find.text('Select all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Review 100'), findsOneWidget);
+  });
+
+  testWidgets('header and selection panel fit a compact screen', (
+    tester,
+  ) async {
     await seed();
     writeFile([projectUuid, mediaDir, 'specimen', 'kept.jpg']);
     writeFile([projectUuid, mediaDir, 'specimen', 'orphan.jpg']);
@@ -270,10 +393,31 @@ void main() {
       warnIfMissed: false,
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Expand all'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
     await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
 
     expect(find.text('Review 0'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    final clear = tester.getRect(buttonWithLabel('Clear'));
+    final review = tester.getRect(buttonWithLabel('Review 0'));
+    final done = tester.getRect(buttonWithLabel('Done'));
+    expect(clear.center.dy, closeTo(review.center.dy, 0.01));
+    expect(done.center.dy, closeTo(review.center.dy, 0.01));
+    expect(clear.height, review.height);
+    expect(done.height, review.height);
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(
+      tester.getSize(find.byWidget(scaffold.bottomNavigationBar!)).height,
+      NahpuControlSize.touchTarget + NahpuSpacing.md * 2,
+    );
+    await tester.ensureVisible(find.text('Select all'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Review 1'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -293,10 +437,16 @@ void main() {
     await tester.tap(find.text('Clear'));
     await tester.pumpAndSettle();
     expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.text('Review 0'), findsOneWidget);
+    expect(
+      tester.widget<TextButton>(buttonWithLabel('Select all')).onPressed,
+      isNotNull,
+    );
 
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(find.text('Select'), findsOneWidget);
+    expect(find.text('Select all'), findsNothing);
     expect(find.textContaining('selected'), findsNothing);
   });
 

@@ -44,6 +44,7 @@ class DashboardState extends ConsumerState<Dashboard> {
           bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
           return SafeArea(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
               child: Column(
                 children: [
                   TopPanel(useHorizontalLayout: useHorizontalLayout),

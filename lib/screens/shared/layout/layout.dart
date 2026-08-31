@@ -189,7 +189,10 @@ class FocusDetectedLayout extends StatelessWidget {
       onTap: () {
         FocusManager.instance.primaryFocus?.unfocus();
       },
-      child: ListView(children: children),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
+        children: children,
+      ),
     );
   }
 }
