@@ -4,7 +4,7 @@ sidebar:
   order: 6
 ---
 
-Register several taxa from a spreadsheet or delimited file.
+Import taxa from CSV (.csv), TSV (.tsv), Excel (.xlsx), or NAHPU taxon QR codes.
 
 ## Steps
 
@@ -13,10 +13,19 @@ Register several taxa from a spreadsheet or delimited file.
 1. Prepare `.xlsx`, `.csv`, or `.tsv` data with the classification fields through the intended rank. A species list can omit `taxon rank`, `kingdom`, `phylum`, and `class` when all rows share a supported class; keep `order`, `family`, `genus`, and `specific epithet`.
 2. Open `Taxon Registry`, select `Add taxon`, and switch to `Import`.
 3. Choose the file and review the detected column mapping.
-4. If no `Class` column is mapped, use `Select a class` to choose the supported class shared by all rows. If the class is not listed or the file contains multiple classes, include `Taxon rank`, `Kingdom`, `Phylum`, `Class`, and all columns through the selected rank, with required values.
-5. Correct unmapped columns or use the parser override when the delimiter was not detected.
+4. If no `Class` column is mapped, use `Select the class shared by all rows` to choose the supported class shared by all rows. If the class is not listed or the file contains multiple classes, include `Taxon rank`, `Kingdom`, `Phylum`, `Class`, and all columns through the selected rank, with required values.
+5. Correct unmapped columns or use `Advanced options` when the delimiter was not detected.
 6. Select `Review taxa`, check the preview, and import the selected taxa before recording specimens.
 {% /steps %}
+
+## From a QR code
+
+1. Open `Taxon Registry` → `Add taxon` → `Import` → `Scan QR`.
+2. Choose `Single taxon` for one code, or `Multiple taxa` to scan several codes while the camera stays open.
+3. Scan codes displayed by another NAHPU Taxon Registry. For multiple taxa, select `Done` when finished.
+4. Review and import the selected taxa. Existing taxa are disabled and never overwritten. No data is saved until you confirm.
+
+Cancelling keeps the previous import. Completing a scan session replaces it. QR imports need no column mapping or class selection; use the camera, not image files or pasted text.
 
 ## Learn more
 

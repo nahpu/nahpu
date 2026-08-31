@@ -9,12 +9,15 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/taxonomy/add_taxon.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
 import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
+
+import '../helpers/taxon_camera.dart';
 
 void main() => taxonImportFlowTests();
 
@@ -148,10 +151,119 @@ void taxonImportFlowTests({bool useAppLibrary = false}) {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('QR and file sources replace each other only after selection', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 900);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final directory = Directory.systemTemp.createTempSync(
+      'nahpu-taxon-sources-',
+    );
+    addTearDown(() => directory.deleteSync(recursive: true));
+    final file = File('${directory.path}/taxa.csv')
+      ..writeAsStringSync('Taxon rank,Class\nclass,Mammalia\n');
+    final previousPicker = FilePickerPlatform.instance;
+    final picker = _TaxonFilePicker(file.path);
+    FilePickerPlatform.instance = picker;
+    addTearDown(() => FilePickerPlatform.instance = previousPicker);
+    final previousCamera = MobileScannerPlatform.instance;
+    final camera = FakeTaxonCamera();
+    MobileScannerPlatform.instance = camera;
+    addTearDown(() async {
+      MobileScannerPlatform.instance = previousCamera;
+      await camera.captures.close();
+    });
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: const MaterialApp(home: AddTaxon()),
+      ),
+    );
+    await tester.tap(find.text('Import'));
+    await tester.pumpAndSettle();
+    await _chooseFile(tester);
+    expect(find.text('Parsing details'), findsNothing);
+    await tester.tap(find.text('Advanced options'));
+    await tester.pumpAndSettle();
+    expect(find.text('Parsing details'), findsOneWidget);
+    await tester.tap(find.text('Hide advanced options'));
+    await tester.pumpAndSettle();
+    expect(find.text('Parsing details'), findsNothing);
+    await _runButton(tester, find.widgetWithText(PrimaryButton, 'Review taxa'));
+    expect(find.text('Mammalia'), findsOneWidget);
+    expect(find.text('Import 1 selected'), findsOneWidget);
+
+    // Cancel the mode dialog and then an actual scan session.
+    await tester.tap(find.text('Scan QR'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.text('Single taxon'))).pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Mammalia'), findsOneWidget);
+    await tester.tap(find.text('Scan QR'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Multiple taxa'));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Mammalia'), findsOneWidget);
+    expect(find.text('taxa.csv'), findsOneWidget);
+
+    await tester.tap(find.text('Scan QR'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Single taxon'));
+    await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      camera.captures.add(
+        BarcodeCapture(
+          barcodes: [
+            const Barcode(
+              format: BarcodeFormat.qrCode,
+              rawValue: '{"nahpu_taxon":1,"taxon":{"genus":"Rattus"}}',
+            ),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+    });
+    await tester.pumpAndSettle();
+    expect(find.text('Rattus'), findsOneWidget);
+    expect(find.text('Mammalia'), findsNothing);
+    expect(find.text('taxa.csv'), findsNothing);
+    expect(find.text('Map columns'), findsNothing);
+    expect(find.text('Advanced options'), findsNothing);
+    picker.path = null;
+    await _chooseFile(tester);
+    expect(find.text('Rattus'), findsOneWidget);
+    expect(find.text('Import 1 selected'), findsOneWidget);
+    picker.path = file.path;
+    await _chooseFile(tester);
+    expect(find.text('Rattus'), findsNothing);
+    expect(find.text('taxa.csv'), findsOneWidget);
+    expect(find.text('Map columns'), findsOneWidget);
+    expect(find.text('Import 0 selected'), findsOneWidget);
+    expect(await database.select(database.taxonomy).get(), isEmpty);
+    // Failed parsing opens recovery options automatically.
+    file.writeAsStringSync('');
+    await _chooseFile(tester);
+    expect(find.text('Parsing error'), findsOneWidget);
+    expect(find.text('Hide advanced options'), findsOneWidget);
+    expect(find.text('Retry parse'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+  });
 }
 
 Future<void> _chooseFile(WidgetTester tester) async {
-  final field = tester.widget<SelectFileField>(find.byType(SelectFileField));
+  final field = tester.widget<FilledButton>(
+    find.widgetWithText(FilledButton, 'Select file'),
+  );
   await tester.runAsync(field.onPressed as Future<void> Function());
   await tester.pumpAndSettle();
 }
@@ -177,7 +289,7 @@ Future<void> _scrollTo(WidgetTester tester, Finder finder, double delta) async {
 
 final class _TaxonFilePicker extends FilePickerPlatform {
   _TaxonFilePicker(this.path);
-  final String path;
+  String? path;
 
   @override
   Future<PlatformFile?> pickFile({
@@ -191,7 +303,7 @@ final class _TaxonFilePicker extends FilePickerPlatform {
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
-  }) async => _TaxonPlatformFile(path);
+  }) async => path == null ? null : _TaxonPlatformFile(path!);
 }
 
 base class _TaxonPlatformFile extends PlatformFile {

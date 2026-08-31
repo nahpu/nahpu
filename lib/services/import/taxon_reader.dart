@@ -9,6 +9,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
+import 'package:nahpu/services/record_exchange/taxon_exchange_service.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/utility_services.dart';
 
@@ -769,32 +770,21 @@ class TaxonEntryReader extends AppServices {
       throw Exception('Invalid import data: ${problems.join(', ')}');
     }
 
-    final existingTaxa = await TaxonomyServices(ref: ref).getTaxonList();
-    final existingKeys = existingTaxa.map(_taxonomyKey).toSet();
-    final seenKeys = <String>{};
-    final parsedData = _parseData(data);
-    final candidates = <TaxonImportCandidate>[];
+    final entries = _parseData(data)
+        .map(
+          (parsedEntry) => _normalizeData(
+            data.headerMap.containsValue(TaxonEntryHeader.taxonClass)
+                ? parsedEntry
+                : parsedEntry.copyWith(taxonClass: selectedClass?.label),
+          ),
+        )
+        .toList();
+    return _reviewEntries(entries, firstSourceRow: 2);
+  }
 
-    for (var index = 0; index < parsedData.length; index++) {
-      final parsedEntry = parsedData[index];
-      final entry = _normalizeData(
-        data.headerMap.containsValue(TaxonEntryHeader.taxonClass)
-            ? parsedEntry
-            : parsedEntry.copyWith(taxonClass: selectedClass?.label),
-      );
-      final key = _entryKey(entry);
-      final status = existingKeys.contains(key)
-          ? TaxonImportStatus.alreadyRegistered
-          : seenKeys.contains(key)
-          ? TaxonImportStatus.duplicateInFile
-          : TaxonImportStatus.ready;
-      seenKeys.add(key);
-      candidates.add(
-        TaxonImportCandidate(sourceRow: index + 2, data: entry, status: status),
-      );
-    }
-
-    return TaxonImportReview(candidates: candidates);
+  Future<TaxonImportReview> reviewQrData(List<TaxonEntryData> entries) {
+    final validated = entries.map(TaxonExchangeService.validateQrData).toList();
+    return _reviewEntries(validated, firstSourceRow: 1);
   }
 
   Future<TaxonImportResult> importSelected(
@@ -846,6 +836,34 @@ class TaxonEntryReader extends AppServices {
     } catch (e) {
       throw Exception("Error parsing data: $e");
     }
+  }
+
+  Future<TaxonImportReview> _reviewEntries(
+    List<TaxonEntryData> entries, {
+    required int firstSourceRow,
+  }) async {
+    final existingTaxa = await TaxonomyServices(ref: ref).getTaxonList();
+    final existingKeys = existingTaxa.map(_taxonomyKey).toSet();
+    final seenKeys = <String>{};
+    final candidates = <TaxonImportCandidate>[];
+    for (var index = 0; index < entries.length; index++) {
+      final entry = entries[index];
+      final key = _entryKey(entry);
+      final status = existingKeys.contains(key)
+          ? TaxonImportStatus.alreadyRegistered
+          : seenKeys.contains(key)
+          ? TaxonImportStatus.duplicateInFile
+          : TaxonImportStatus.ready;
+      seenKeys.add(key);
+      candidates.add(
+        TaxonImportCandidate(
+          sourceRow: index + firstSourceRow,
+          data: entry,
+          status: status,
+        ),
+      );
+    }
+    return TaxonImportReview(candidates: candidates);
   }
 
   TaxonomyCompanion _getDbForm(TaxonEntryData data) {
@@ -933,7 +951,7 @@ class TaxonEntryReader extends AppServices {
       data: data,
       status: TaxonImportStatus.ready,
     );
-    return _rankNameKey(candidate.rank, candidate.displayName);
+    return candidate.identityKey;
   }
 
   String _taxonomyKey(TaxonomyData data) {

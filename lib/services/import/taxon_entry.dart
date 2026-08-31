@@ -266,6 +266,9 @@ class TaxonImportCandidate {
   };
 
   bool get usesItalicName => rank.index >= TaxonRank.genus.index;
+
+  String get identityKey =>
+      '${rank.databaseValue}|${displayName.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase()}';
 }
 
 class TaxonImportReview {

@@ -308,7 +308,7 @@ class TaxonQrIcon extends StatelessWidget {
           builder: (context) => QrCodeDialog(
             title: 'Taxon QR code',
             data: data,
-            description: 'Scan this code to view the registered taxon data.',
+            description: 'Scan this code in NAHPU to import this taxon.',
           ),
         ),
         child: SizedBox(

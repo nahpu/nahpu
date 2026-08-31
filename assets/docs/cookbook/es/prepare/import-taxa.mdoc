@@ -4,7 +4,7 @@ sidebar:
   order: 6
 ---
 
-Registre varios taxones desde una hoja de cálculo o un archivo delimitado.
+Importe taxones desde CSV (.csv), TSV (.tsv), Excel (.xlsx) o códigos QR de taxón de NAHPU.
 
 ## Pasos
 
@@ -13,10 +13,19 @@ Registre varios taxones desde una hoja de cálculo o un archivo delimitado.
 1. Prepare datos `.xlsx`, `.csv` o `.tsv` con los campos de clasificación hasta la categoría deseada. Una lista de especies puede omitir `taxon rank`, `kingdom`, `phylum` y `class` cuando todas las filas comparten una clase admitida; mantenga `order`, `family`, `genus` y `specific epithet`.
 2. Abra `Taxon Registry`, seleccione `Add taxon` y cambie a `Import`.
 3. Elija el archivo y revise la asignación de columnas detectada.
-4. Si ninguna columna `Class` está asignada, use `Select a class` para elegir la clase admitida común a todas las filas. Si la clase no aparece o el archivo contiene varias clases, incluya `Taxon rank`, `Kingdom`, `Phylum`, `Class` y todas las columnas hasta la categoría seleccionada, con los valores obligatorios.
-5. Corrija las columnas no asignadas o use la opción avanzada del analizador si no se detectó el delimitador.
+4. Si ninguna columna `Class` está asignada, use `Select the class shared by all rows` para elegir la clase admitida común a todas las filas. Si la clase no aparece o el archivo contiene varias clases, incluya `Taxon rank`, `Kingdom`, `Phylum`, `Class` y todas las columnas hasta la categoría seleccionada, con los valores obligatorios.
+5. Corrija las columnas no asignadas o use `Advanced options` si no se detectó el delimitador.
 6. Seleccione `Review taxa`, compruebe la vista previa e importe los taxones seleccionados antes de registrar especímenes.
 {% /steps %}
+
+## Desde un código QR
+
+1. Abra `Taxon Registry` → `Add taxon` → `Import` → `Scan QR`.
+2. Elija `Single taxon` para un código o `Multiple taxa` para escanear varios sin cerrar la cámara.
+3. Escanee los códigos mostrados por otro Taxon Registry de NAHPU. Para varios taxones, seleccione `Done` al terminar.
+4. Revise e importe los taxones seleccionados. Los existentes están deshabilitados y nunca se sobrescriben. No se guardan datos hasta confirmar.
+
+Cancelar conserva la importación anterior. Completar la sesión de escaneo la sustituye. La importación QR no requiere asignar columnas ni elegir una clase; use la cámara, no archivos de imagen ni texto pegado.
 
 ## Más información
 

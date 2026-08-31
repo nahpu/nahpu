@@ -1,15 +1,17 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/taxonomy/new_taxa.dart';
+import 'package:nahpu/screens/projects/taxonomy/taxon_qr_import.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
-import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
+import 'package:nahpu/services/import/taxon_qr_session.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
@@ -50,6 +52,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
   InferableTaxonClass? _selectedClass;
   TaxonFileParseDetails? _parseDetails;
   String? _parseError;
+  bool _isQrImport = false;
   bool _isLoadingFile = false;
   bool _isRunning = false;
   bool _hasData = false;
@@ -76,18 +79,26 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.lg,
+            NahpuSpacing.md,
+            NahpuSpacing.lg,
+            NahpuSpacing.xxl,
+          ),
           child: _buildActions(),
         ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 600;
+            final isWide = constraints.maxWidth >= NahpuBreakpoints.desktop;
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: NahpuSpacing.lg,
+                    vertical: NahpuSpacing.md,
+                  ),
                   child: SegmentedButton<_AddTaxonMode>(
                     showSelectedIcon: false,
                     segments: const [
@@ -124,8 +135,18 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                       : TabBarView(
                           controller: _compactTabController,
                           children: [
-                            _TaxonSurfacePanel(child: _buildImportSetup()),
-                            _TaxonSurfacePanel(child: _buildImportPreview()),
+                            Padding(
+                              padding: const EdgeInsets.all(NahpuSpacing.lg),
+                              child: _TaxonSurfacePanel(
+                                child: _buildImportSetup(),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(NahpuSpacing.lg),
+                              child: _TaxonSurfacePanel(
+                                child: _buildImportPreview(),
+                              ),
+                            ),
                           ],
                         ),
                 ),
@@ -136,6 +157,8 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       ),
     );
   }
+
+  bool get _isBusy => _isRunning || _isLoadingFile;
 
   Widget _buildManual() {
     return TaxonRegistryForm(
@@ -150,56 +173,56 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
 
   Widget _buildWideImport() {
     return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: _TaxonSurfacePanel(child: _buildImportSetup()),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: _TaxonSurfacePanel(child: _buildImportPreview())),
-        ],
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: math.min(
+                NahpuContentWidth.form,
+                (constraints.maxWidth - NahpuSpacing.lg) / 2,
+              ),
+              child: _TaxonSurfacePanel(child: _buildImportSetup()),
+            ),
+            const SizedBox(width: NahpuSpacing.lg),
+            Expanded(child: _TaxonSurfacePanel(child: _buildImportPreview())),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildImportSetup() {
     final csvData = _csvData;
+    if (_filePath == null && !_isQrImport) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(NahpuSpacing.xxl),
+          child: _TaxonImportSources(
+            sourceName: null,
+            isLoading: _isLoadingFile,
+            onSelectFile: _isBusy ? null : _getFile,
+            onScanQr: _isBusy || !supportsTaxonQrScanning ? null : _scanQr,
+            onClear: null,
+          ),
+        ),
+      );
+    }
     return CommonScrollbar(
       scrollController: _importScrollController,
       child: ListView(
         key: const ValueKey('taxon-import-setup'),
         controller: _importScrollController,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(NahpuSpacing.xl),
         children: [
-          SelectFileField(
-            filePath: _filePath,
+          _TaxonImportSources(
+            sourceName: _isQrImport ? 'NAHPU taxon QR' : _filePath?.name,
             isLoading: _isLoadingFile,
-            supportedFormat: '.xlsx, .csv, .tsv',
-            formatLabel: 'Preferred formats',
-            onCleared: _clearFile,
-            width: 500,
-            maxWidth: double.infinity,
-            onPressed: _getFile,
+            onSelectFile: _isBusy ? null : _getFile,
+            onScanQr: _isBusy || !supportsTaxonQrScanning ? null : _scanQr,
+            onClear: _isBusy ? null : _clearFile,
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Preferred formats are .xlsx, .csv, and .tsv. NAHPU will make a '
-            'best-effort attempt to parse other file types.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Known formats select delimiters automatically: .csv uses comma, '
-            '.tsv uses tab, and .xlsx uses Excel parsing.',
-            textAlign: TextAlign.center,
-          ),
-          if (_parseDetails != null) ...[
-            const SizedBox(height: 12),
-            _ParseDetailsCard(details: _parseDetails!),
-          ],
           if (csvData != null && _hasData) ...[
             if (!csvData.headerMap.containsValue(
               TaxonEntryHeader.taxonClass,
@@ -207,7 +230,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
               const SizedBox(height: NahpuSpacing.xl),
               _ImportClassSelection(
                 selectedClass: _selectedClass,
-                onChanged: _isRunning
+                onChanged: _isBusy
                     ? null
                     : (value) => setState(() {
                         _selectedClass = value;
@@ -215,62 +238,76 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                       }),
               ),
             ],
-            const SizedBox(height: 16),
-            Text('Map columns', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            const _ColumnRowTitle(),
+            const SizedBox(height: NahpuSpacing.xl),
+            Text(
+              'Map columns',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: NahpuSpacing.md),
             ..._buildHeaderFields(csvData),
           ],
           if (_parseError != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: NahpuSpacing.lg),
             _ErrorMessage(title: 'Parsing error', message: _parseError!),
           ],
           if (_problems.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: NahpuSpacing.lg),
             _ErrorMessage(
-              title: 'Parsing issues',
+              title: 'Check columns',
               message: _problems.join('\n'),
             ),
           ],
-          if (_parseDetails != null && _parseError == null) ...[
-            const SizedBox(height: 12),
-            TertiaryButton(
-              text: _showAdvancedDelimiterOptions
-                  ? 'Hide delimiter options'
-                  : 'Use custom delimiter',
-              onPressed: () => setState(() {
-                _showAdvancedDelimiterOptions = !_showAdvancedDelimiterOptions;
-              }),
+          if (_filePath != null) ...[
+            const SizedBox(height: NahpuSpacing.lg),
+            TextButton(
+              onPressed: _isBusy
+                  ? null
+                  : () => setState(() {
+                      _showAdvancedDelimiterOptions =
+                          !_showAdvancedDelimiterOptions;
+                    }),
+              child: Text(
+                _showAdvancedDelimiterOptions
+                    ? 'Hide advanced options'
+                    : 'Advanced options',
+              ),
             ),
           ],
           if (_shouldShowDelimiterOverride()) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: NahpuSpacing.lg),
+            if (_parseDetails != null) ...[
+              _ParseDetailsCard(details: _parseDetails!),
+              const SizedBox(height: NahpuSpacing.lg),
+            ],
             _DelimiterOverrideSection(
               option: _delimiterOverride,
               customDelimiterController: _customDelimiterController,
               customOnly: _customOnlyRecovery,
-              onOptionChanged: (value) {
-                if (value == null) return;
-                setState(() {
-                  _delimiterOverride = value;
-                  _parseError = null;
-                  _customOnlyRecovery = false;
-                  _review = null;
-                  _selectedImports = {};
-                });
-              },
-              onRetry: () => _parseFile(useOverrideSelection: true),
+              onOptionChanged: _isBusy
+                  ? null
+                  : (value) {
+                      if (value == null) return;
+                      setState(() {
+                        _delimiterOverride = value;
+                        _parseError = null;
+                        _customOnlyRecovery = false;
+                        _review = null;
+                        _selectedImports = {};
+                      });
+                    },
+              onRetry: _isBusy ? null : _retryParse,
             ),
           ],
           if (_hasData) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: NahpuSpacing.xxl),
             Align(
               alignment: Alignment.center,
               child: PrimaryButton(
                 label: 'Review taxa',
                 icon: Icons.preview_outlined,
                 onPressed:
-                    _isRunning || _parseError != null || _problems.isNotEmpty
+                    _isBusy || _parseError != null || _problems.isNotEmpty
                     ? null
                     : _reviewImport,
               ),
@@ -286,10 +323,9 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
     if (review == null) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(NahpuSpacing.xxl),
           child: Text(
-            'Select a file, map its columns, and review the taxa to see an '
-            'import preview.',
+            'Select a file or scan a taxon QR to preview imports.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -306,7 +342,12 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.xl,
+            NahpuSpacing.lg,
+            NahpuSpacing.xl,
+            NahpuSpacing.xs,
+          ),
           child: Row(
             children: [
               Expanded(
@@ -316,13 +357,13 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
                 ),
               ),
               TextButton(
-                onPressed: selectable == 0 || allSelected
+                onPressed: _isBusy || selectable == 0 || allSelected
                     ? null
                     : _selectAllImports,
                 child: const Text('Select all'),
               ),
               TextButton(
-                onPressed: _selectedImports.isEmpty
+                onPressed: _isBusy || _selectedImports.isEmpty
                     ? null
                     : () => setState(_selectedImports.clear),
                 child: const Text('Clear all'),
@@ -332,10 +373,10 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
         ),
         if (review.alreadyRegisteredCount > 0 || review.duplicateCount > 0)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
             child: Text(
               '${review.alreadyRegisteredCount} already registered · '
-              '${review.duplicateCount} duplicate in file',
+              '${review.duplicateCount} duplicate',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -347,11 +388,12 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
               final status = switch (candidate.status) {
                 TaxonImportStatus.ready => null,
                 TaxonImportStatus.alreadyRegistered => 'Already registered',
-                TaxonImportStatus.duplicateInFile => 'Duplicate in file',
+                TaxonImportStatus.duplicateInFile => 'Duplicate',
               };
               final details = [
                 candidate.rank.label,
-                candidate.data.taxonClass,
+                if (candidate.data.taxonClass.trim().isNotEmpty)
+                  candidate.data.taxonClass,
                 if (candidate.data.taxonFamily.trim().isNotEmpty)
                   candidate.data.taxonFamily,
                 if (candidate.data.commonName?.trim().isNotEmpty == true)
@@ -360,7 +402,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
               ].join(' · ');
               return CheckboxListTile(
                 value: _selectedImports.contains(index),
-                onChanged: candidate.isSelectable
+                onChanged: candidate.isSelectable && !_isBusy
                     ? (selected) => setState(() {
                         if (selected == true) {
                           _selectedImports.add(index);
@@ -389,12 +431,12 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
     final selectedCount = review == null ? 0 : _selectedImports.length;
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 16,
-      runSpacing: 8,
+      spacing: NahpuSpacing.xl,
+      runSpacing: NahpuSpacing.md,
       children: [
         SecondaryButton(
           text: 'Cancel',
-          onPressed: _isRunning ? () {} : () => Navigator.of(context).pop(),
+          onPressed: _isBusy ? () {} : () => Navigator.of(context).pop(),
         ),
         PrimaryButton(
           label: _mode == _AddTaxonMode.import
@@ -403,7 +445,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
           icon: _mode == _AddTaxonMode.import
               ? Icons.download_outlined
               : Icons.add,
-          onPressed: _isRunning
+          onPressed: _isBusy
               ? null
               : _mode == _AddTaxonMode.import
               ? review == null || _selectedImports.isEmpty
@@ -420,7 +462,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       return _TaxonHeaderMappingRow(
         header: entry.value,
         value: csvData.headerMap[entry.key],
-        onChanged: _isRunning
+        onChanged: _isBusy
             ? null
             : (value) {
                 if (value == null) return;
@@ -451,12 +493,46 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
     _selectedImports = {};
   }
 
+  Future<void> _scanQr() async {
+    setState(() => _isRunning = true);
+    try {
+      final mode = await showDialog<TaxonQrImportMode>(
+        context: context,
+        builder: (_) => const TaxonQrImportModeDialog(),
+      );
+      if (mode == null || !mounted) return;
+      final review = await Navigator.of(context).push<TaxonImportReview>(
+        MaterialPageRoute(builder: (_) => TaxonQrImportScreen(mode: mode)),
+      );
+      if (review == null || !mounted) return;
+      _clearFile();
+      setState(() {
+        _isQrImport = true;
+        _review = review;
+      });
+      _selectAllImports();
+      _compactTabController.animateTo(1);
+    } finally {
+      if (mounted) setState(() => _isRunning = false);
+    }
+  }
+
+  Future<void> _retryParse() async {
+    setState(() => _isLoadingFile = true);
+    try {
+      await _parseFile(useOverrideSelection: true);
+    } finally {
+      if (mounted) setState(() => _isLoadingFile = false);
+    }
+  }
+
   Future<void> _getFile() async {
     setState(() => _isLoadingFile = true);
     try {
       final file = await FilePickerServices().selectAnyFile();
       if (file == null || !mounted) return;
       setState(() {
+        _isQrImport = false;
         _filePath = file;
         _csvData = null;
         _review = null;
@@ -479,6 +555,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
 
   void _clearFile() {
     setState(() {
+      _isQrImport = false;
       _filePath = null;
       _csvData = null;
       _review = null;
@@ -662,17 +739,14 @@ class _TaxonSurfacePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: child,
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }
@@ -692,13 +766,9 @@ class _ImportClassSelection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select a class', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: NahpuSpacing.md),
-        const Text(
-          'No Class column is mapped. Select the class shared by all rows. '
-          'NAHPU can fill missing Kingdom and Phylum values for these classes. '
-          'Without Taxon rank, rows must have Order, Family, Genus, and '
-          'Specific epithet; Subspecific epithet identifies subspecies.',
+        Text(
+          'Select the class shared by all rows',
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: NahpuSpacing.md),
         DropdownButton<InferableTaxonClass>(
@@ -721,8 +791,6 @@ class _ImportClassSelection extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
-        const SizedBox(height: NahpuSpacing.md),
-        const Text(taxonImportRequiredColumnsGuidance),
       ],
     );
   }
@@ -741,49 +809,23 @@ class _TaxonHeaderMappingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(child: Text(header.toSentenceCase())),
-        SizedBox(
-          width: 190,
-          child: DropdownButton<TaxonEntryHeader>(
-            key: ValueKey('taxon-import-${header.toLowerCase()}'),
-            isExpanded: true,
-            value: value,
-            items: TaxonEntryHeader.values
-                .map(
-                  (entry) => DropdownMenuItem(
-                    value: entry,
-                    child: CommonDropdownText(
-                      text: matchTaxonEntryHeader(entry),
-                    ),
-                  ),
-                )
-                .toList(),
-            onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ColumnRowTitle extends StatelessWidget {
-  const _ColumnRowTitle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            'Column names',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-        ),
-        const SizedBox(width: 190, child: Text('Taxon field')),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
+      child: DropdownButtonFormField<TaxonEntryHeader>(
+        key: ValueKey('taxon-import-${header.toLowerCase()}'),
+        isExpanded: true,
+        initialValue: value,
+        decoration: InputDecoration(labelText: header.toSentenceCase()),
+        items: TaxonEntryHeader.values
+            .map(
+              (entry) => DropdownMenuItem(
+                value: entry,
+                child: CommonDropdownText(text: matchTaxonEntryHeader(entry)),
+              ),
+            )
+            .toList(),
+        onChanged: onChanged,
+      ),
     );
   }
 }
@@ -804,10 +846,10 @@ class _ParseDetailsCard extends StatelessWidget {
         ? r'Tab ("\t")'
         : details.delimiter ?? 'Custom';
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -816,7 +858,7 @@ class _ParseDetailsCard extends StatelessWidget {
             'Parsing details',
             style: Theme.of(context).textTheme.titleSmall,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: NahpuSpacing.sm),
           Text('Parser: $parser'),
           Text('Delimiter: $delimiter'),
         ],
@@ -842,7 +884,7 @@ class _ErrorMessage extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: NahpuSpacing.md),
         Text(message, textAlign: TextAlign.center),
       ],
     );
@@ -861,33 +903,29 @@ class _DelimiterOverrideSection extends StatelessWidget {
   final _DelimiterOverrideOption option;
   final TextEditingController customDelimiterController;
   final bool customOnly;
-  final ValueChanged<_DelimiterOverrideOption?> onOptionChanged;
-  final VoidCallback onRetry;
+  final ValueChanged<_DelimiterOverrideOption?>? onOptionChanged;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
       decoration: BoxDecoration(
         border: Border.all(
           color: Theme.of(context).colorScheme.secondary.withAlpha(40),
-          width: 2,
+          width: NahpuStroke.regular,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
       ),
       child: Column(
         children: [
           customOnly
               ? const Text(
-                  'Auto detection already tried Excel, comma, tab, and '
-                  'semicolon. Enter a custom delimiter to continue.',
+                  'Enter a custom delimiter to continue.',
                   textAlign: TextAlign.center,
                 )
               : DropdownButtonFormField<_DelimiterOverrideOption>(
-                  decoration: const InputDecoration(
-                    labelText: 'Advanced parser override',
-                    helperText: 'Delimiter is the character between columns.',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Parser'),
                   initialValue: option,
                   items: const [
                     DropdownMenuItem(
@@ -924,12 +962,7 @@ class _DelimiterOverrideSection extends StatelessWidget {
               controller: customDelimiterController,
               isLastField: true,
             ),
-          const SizedBox(height: 8),
-          const Text(
-            'Excel note: best support is for .xlsx. Older/other Excel formats may fail.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: NahpuSpacing.md),
           PrimaryButton(
             label: 'Retry parse',
             icon: Icons.refresh,
@@ -937,6 +970,89 @@ class _DelimiterOverrideSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TaxonImportSources extends StatelessWidget {
+  const _TaxonImportSources({
+    required this.sourceName,
+    required this.isLoading,
+    required this.onSelectFile,
+    required this.onScanQr,
+    required this.onClear,
+  });
+
+  final String? sourceName;
+  final bool isLoading;
+  final VoidCallback? onSelectFile;
+  final VoidCallback? onScanQr;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Supported inputs:',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        const SizedBox(height: NahpuSpacing.xs),
+        Text(
+          'CSV (.csv), TSV (.tsv), Excel (.xlsx), NAHPU taxon QR',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: NahpuSpacing.xl),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: NahpuSpacing.lg,
+          runSpacing: NahpuSpacing.lg,
+          children: [
+            OutlinedButton.icon(
+              onPressed: onScanQr,
+              icon: const Icon(Icons.qr_code_scanner_outlined),
+              label: const Text('Scan QR'),
+            ),
+            FilledButton.icon(
+              onPressed: onSelectFile,
+              icon: isLoading
+                  ? const SizedBox.square(
+                      dimension: NahpuControlSize.iconSmall,
+                      child: CircularProgressIndicator(
+                        strokeWidth: NahpuStroke.regular,
+                      ),
+                    )
+                  : const Icon(Icons.file_open_outlined),
+              label: Text(isLoading ? 'Reading file…' : 'Select file'),
+            ),
+          ],
+        ),
+        if (!supportsTaxonQrScanning) ...[
+          const SizedBox(height: NahpuSpacing.md),
+          Text(
+            'QR scanning is unavailable on this platform.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        if (sourceName != null) ...[
+          const SizedBox(height: NahpuSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: Text(sourceName!, overflow: TextOverflow.ellipsis),
+              ),
+              IconButton(
+                tooltip: 'Clear import',
+                onPressed: onClear,
+                icon: const Icon(Icons.close),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

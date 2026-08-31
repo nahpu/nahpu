@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
+import 'package:nahpu/services/record_exchange/taxon_exchange_service.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
 
@@ -307,6 +308,73 @@ void main() {
       'supplied phylum',
     ]);
   });
+  testWidgets(
+    'QR review preserves sparse data and only saves selected new taxa',
+    (tester) async {
+      final database = Database.forTesting(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+      final existingId = await database
+          .into(database.taxonomy)
+          .insert(
+            const TaxonomyCompanion(
+              genus: Value('Rattus'),
+              authors: Value('Original'),
+            ),
+          );
+      final source = TaxonomyData(
+        id: 99,
+        taxonRank: 'genus',
+        genus: 'BUNOMYS',
+        commonName: 'Common Name',
+        authors: '(Author, 1900)',
+        citesStatus: 'II',
+        redListCategory: 'LC',
+        countryStatus: 'Protected',
+      );
+      await _run(tester, database, (ref) async {
+        final reader = TaxonEntryReader(ref: ref);
+        final entry = TaxonExchangeService.decodeQr(
+          TaxonExchangeService.encodeQr(source),
+        );
+        final review = await reader.reviewQrData([
+          TaxonEntryData.empty()
+            ..genus = 'rattus'
+            ..authors = 'Changed',
+          entry,
+          entry.copyWith(genus: 'Bunomys'),
+          TaxonEntryData.empty()
+            ..taxonRank = 'species'
+            ..specificEpithet = 'foetida',
+        ]);
+        expect(review.candidates.map((c) => c.status), [
+          TaxonImportStatus.alreadyRegistered,
+          TaxonImportStatus.ready,
+          TaxonImportStatus.duplicateInFile,
+          TaxonImportStatus.ready,
+        ]);
+        expect(await database.select(database.taxonomy).get(), hasLength(1));
+        final result = await reader.importSelected(review, {0, 1, 2});
+        expect(result.importedTaxaCount, 1);
+        // Re-check the database at confirmation, even if the old preview says ready.
+        expect((await reader.importSelected(review, {1})).importedTaxaCount, 0);
+      });
+      final rows = await database.select(database.taxonomy).get();
+      expect(rows, hasLength(2));
+      expect(rows.firstWhere((r) => r.id == existingId).authors, 'Original');
+      final imported = rows.firstWhere((r) => r.id != existingId);
+      expect(imported.genus, 'BUNOMYS');
+      expect(imported.taxonClass, isNull);
+      expect(imported.kingdom, isNull);
+      expect(imported.phylum, isNull);
+      expect(imported.commonName, source.commonName);
+      expect(imported.authors, source.authors);
+      expect(imported.citesStatus, source.citesStatus);
+      expect(imported.redListCategory, source.redListCategory);
+      expect(imported.countryStatus, source.countryStatus);
+    },
+  );
 }
 
 CsvData _csv(List<List<String>> rows) {

@@ -44,7 +44,7 @@ void main() {
 
     await tester.tap(find.text('Preview'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('map its columns'), findsOneWidget);
+    expect(find.textContaining('scan a taxon QR'), findsOneWidget);
   });
 }
 
