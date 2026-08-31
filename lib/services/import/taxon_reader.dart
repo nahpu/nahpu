@@ -536,12 +536,22 @@ class TaxonFileParser {
 List<String> findTaxonImportProblems(
   Map<int, TaxonEntryHeader> headerMap, {
   List<List<String>>? rows,
+  InferableTaxonClass? selectedClass,
 }) {
   final problems = _findDuplicateValues(headerMap);
+  final hasClass = headerMap.containsValue(TaxonEntryHeader.taxonClass);
+  if (!hasClass && selectedClass == null) {
+    problems.add(
+      'Missing Class. Select a class for all rows to let NAHPU infer the '
+      'missing classification. $taxonImportRequiredColumnsGuidance',
+    );
+  }
   if (rows == null) {
     final hasRank = headerMap.containsValue(TaxonEntryHeader.taxonRank);
     final hasSpeciesFields = requiredTaxonImportHeaders.every(
-      headerMap.containsValue,
+      (header) =>
+          headerMap.containsValue(header) ||
+          (header == TaxonEntryHeader.taxonClass && selectedClass != null),
     );
     if (!hasRank && !hasSpeciesFields) {
       problems.add(
@@ -551,39 +561,78 @@ List<String> findTaxonImportProblems(
     return problems;
   }
 
-  problems.addAll(_findRankAwareProblems(headerMap, rows));
+  problems.addAll(
+    _findRankAwareProblems(headerMap, rows, selectedClass: selectedClass),
+  );
   return problems;
 }
 
 List<String> _findRankAwareProblems(
   Map<int, TaxonEntryHeader> headerMap,
-  List<List<String>> rows,
-) {
+  List<List<String>> rows, {
+  InferableTaxonClass? selectedClass,
+}) {
   final issues = <String>[];
   final requiredRows = <TaxonEntryHeader, Set<int>>{};
   final invalidRanks = <String>[];
   final missingRankRows = <int>[];
   final rankColumn = _columnFor(headerMap, TaxonEntryHeader.taxonRank);
+  final classColumn = _columnFor(headerMap, TaxonEntryHeader.taxonClass);
+  final unsupportedClassRows = <int>[];
 
   for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     final row = rows[rowIndex];
+    final className = classColumn == null
+        ? selectedClass?.label ?? ''
+        : _valueAt(row, classColumn).trim();
+    final knownClass = InferableTaxonClass.fromString(className);
     final rawRank = _valueAt(row, rankColumn).trim();
-    if (rawRank.isEmpty && !_hasCompleteSpeciesFields(headerMap, row)) {
+    if (className.isNotEmpty && knownClass == null) {
+      final missingClassification =
+          [
+            TaxonEntryHeader.taxonRank,
+            TaxonEntryHeader.kingdom,
+            TaxonEntryHeader.phylum,
+          ].any(
+            (header) =>
+                _valueAt(row, _columnFor(headerMap, header)).trim().isEmpty,
+          );
+      if (missingClassification) unsupportedClassRows.add(rowIndex + 2);
+    }
+    // The class prompt already explains how to recover these rows. Do not
+    // suggest adding a rank until the user has supplied a class.
+    if (classColumn == null && selectedClass == null) continue;
+    if (rawRank.isEmpty &&
+        !_hasCompleteSpeciesFields(headerMap, row, selectedClass)) {
       missingRankRows.add(rowIndex + 2);
       continue;
     }
     final rank = rawRank.isEmpty
-        ? TaxonRank.species
+        ? _inferredSpeciesRank(
+            _valueAt(
+              row,
+              _columnFor(headerMap, TaxonEntryHeader.subspecificEpithet),
+            ),
+          )
         : taxonRankFromString(rawRank);
     if (rank == null) {
       invalidRanks.add('$rawRank (row ${rowIndex + 2})');
       continue;
     }
     for (final header in taxonImportRankHeaders.take(rank.index + 1)) {
+      if (header == TaxonEntryHeader.taxonClass && classColumn == null) {
+        continue;
+      }
       requiredRows.putIfAbsent(header, () => <int>{}).add(rowIndex);
     }
   }
 
+  if (unsupportedClassRows.isNotEmpty) {
+    issues.add(
+      'NAHPU cannot infer classification for the Class values in rows '
+      '${unsupportedClassRows.join(', ')}. $taxonImportRequiredColumnsGuidance',
+    );
+  }
   if (invalidRanks.isNotEmpty) {
     issues.add(
       'Invalid Taxon rank values in ${invalidRanks.length} row(s): '
@@ -619,11 +668,21 @@ List<String> _findRankAwareProblems(
 bool _hasCompleteSpeciesFields(
   Map<int, TaxonEntryHeader> headerMap,
   List<String> row,
+  InferableTaxonClass? selectedClass,
 ) {
   return requiredTaxonImportHeaders.every((header) {
     final column = _columnFor(headerMap, header);
+    if (header == TaxonEntryHeader.taxonClass && column == null) {
+      return selectedClass != null;
+    }
     return _valueAt(row, column).trim().isNotEmpty;
   });
+}
+
+TaxonRank _inferredSpeciesRank(String subspecificEpithet) {
+  return subspecificEpithet.trim().isEmpty
+      ? TaxonRank.species
+      : TaxonRank.subspecies;
 }
 
 int? _columnFor(Map<int, TaxonEntryHeader> headerMap, TaxonEntryHeader header) {
@@ -666,12 +725,20 @@ class TaxonEntryReader extends AppServices {
   List<String> findProblems(
     Map<int, TaxonEntryHeader> headerMap, {
     List<List<String>>? rows,
+    InferableTaxonClass? selectedClass,
   }) {
-    return findTaxonImportProblems(headerMap, rows: rows);
+    return findTaxonImportProblems(
+      headerMap,
+      rows: rows,
+      selectedClass: selectedClass,
+    );
   }
 
-  Future<ParsedCSVdata> parseData(CsvData data) async {
-    final review = await reviewData(data);
+  Future<ParsedCSVdata> parseData(
+    CsvData data, {
+    InferableTaxonClass? selectedClass,
+  }) async {
+    final review = await reviewData(data, selectedClass: selectedClass);
     final selected = {
       for (var index = 0; index < review.candidates.length; index++)
         if (review.candidates[index].isSelectable) index,
@@ -689,8 +756,15 @@ class TaxonEntryReader extends AppServices {
     return importData;
   }
 
-  Future<TaxonImportReview> reviewData(CsvData data) async {
-    final problems = findProblems(data.headerMap, rows: data.data);
+  Future<TaxonImportReview> reviewData(
+    CsvData data, {
+    InferableTaxonClass? selectedClass,
+  }) async {
+    final problems = findProblems(
+      data.headerMap,
+      rows: data.data,
+      selectedClass: selectedClass,
+    );
     if (problems.isNotEmpty) {
       throw Exception('Invalid import data: ${problems.join(', ')}');
     }
@@ -702,7 +776,12 @@ class TaxonEntryReader extends AppServices {
     final candidates = <TaxonImportCandidate>[];
 
     for (var index = 0; index < parsedData.length; index++) {
-      final entry = _normalizeData(parsedData[index]);
+      final parsedEntry = parsedData[index];
+      final entry = _normalizeData(
+        data.headerMap.containsValue(TaxonEntryHeader.taxonClass)
+            ? parsedEntry
+            : parsedEntry.copyWith(taxonClass: selectedClass?.label),
+      );
       final key = _entryKey(entry);
       final status = existingKeys.contains(key)
           ? TaxonImportStatus.alreadyRegistered
@@ -773,6 +852,8 @@ class TaxonEntryReader extends AppServices {
     final rank = taxonRankFromString(data.taxonRank) ?? TaxonRank.species;
     return TaxonomyCompanion(
       taxonRank: db.Value(rank.databaseValue),
+      kingdom: db.Value(_nullable(data.kingdom)),
+      phylum: db.Value(_nullable(data.phylum)),
       taxonClass: db.Value(_nullable(data.taxonClass)),
       taxonOrder: db.Value(_nullable(data.taxonOrder)),
       taxonFamily: db.Value(_nullable(data.taxonFamily)),
@@ -790,9 +871,14 @@ class TaxonEntryReader extends AppServices {
   }
 
   TaxonEntryData _normalizeData(TaxonEntryData data) {
-    final rank = taxonRankFromString(data.taxonRank) ?? TaxonRank.species;
+    final rank =
+        taxonRankFromString(data.taxonRank) ??
+        _inferredSpeciesRank(data.subspecificEpithet);
+    final knownClass = InferableTaxonClass.fromString(data.taxonClass);
     return data.copyWith(
       taxonRank: rank.databaseValue,
+      kingdom: _nullable(data.kingdom) ?? knownClass?.kingdom,
+      phylum: _nullable(data.phylum) ?? knownClass?.phylum,
       taxonClass: _throughRank(
         rank,
         TaxonRank.taxonClass,

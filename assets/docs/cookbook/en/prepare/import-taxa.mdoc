@@ -10,11 +10,12 @@ Register several taxa from a spreadsheet or delimited file.
 
 {% steps %}
 
-1. Prepare `.xlsx`, `.csv`, or `.tsv` data with a `taxon rank` column and the classification fields through that rank. Use `class`, `order`, `family`, `genus`, `species`, or `subspecies`; omit the rank only for rows with a complete species classification.
+1. Prepare `.xlsx`, `.csv`, or `.tsv` data with the classification fields through the intended rank. A species list can omit `taxon rank`, `kingdom`, `phylum`, and `class` when all rows share a supported class; keep `order`, `family`, `genus`, and `specific epithet`.
 2. Open `Taxon Registry`, select `Add taxon`, and switch to `Import`.
 3. Choose the file and review the detected column mapping.
-4. Correct unmapped columns or use the parser override when the delimiter was not detected.
-5. Import and review the registered taxa before recording specimens.
+4. If no `Class` column is mapped, use `Select a class` to choose the supported class shared by all rows. If the class is not listed or the file contains multiple classes, include `Taxon rank`, `Kingdom`, `Phylum`, `Class`, and all columns through the selected rank, with required values.
+5. Correct unmapped columns or use the parser override when the delimiter was not detected.
+6. Select `Review taxa`, check the preview, and import the selected taxa before recording specimens.
 {% /steps %}
 
 ## Learn more

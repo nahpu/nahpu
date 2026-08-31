@@ -88,6 +88,12 @@ class TaxonParser {
         case TaxonEntryHeader.taxonRank:
           taxonEntryCsv.taxonRank = value;
           break;
+        case TaxonEntryHeader.kingdom:
+          taxonEntryCsv.kingdom = value;
+          break;
+        case TaxonEntryHeader.phylum:
+          taxonEntryCsv.phylum = value;
+          break;
         case TaxonEntryHeader.taxonClass:
           taxonEntryCsv.taxonClass = value;
           break;
@@ -139,6 +145,8 @@ class TaxonParser {
 class TaxonEntryData {
   TaxonEntryData({
     this.taxonRank,
+    this.kingdom,
+    this.phylum,
     required this.taxonClass,
     required this.taxonOrder,
     required this.taxonFamily,
@@ -155,6 +163,8 @@ class TaxonEntryData {
   });
 
   String? taxonRank;
+  String? kingdom;
+  String? phylum;
   String taxonClass;
   String taxonOrder;
   String taxonFamily;
@@ -190,6 +200,8 @@ class TaxonEntryData {
 
   TaxonEntryData copyWith({
     String? taxonRank,
+    String? kingdom,
+    String? phylum,
     String? taxonClass,
     String? taxonOrder,
     String? taxonFamily,
@@ -206,6 +218,8 @@ class TaxonEntryData {
   }) {
     return TaxonEntryData(
       taxonRank: taxonRank ?? this.taxonRank,
+      kingdom: kingdom ?? this.kingdom,
+      phylum: phylum ?? this.phylum,
       taxonClass: taxonClass ?? this.taxonClass,
       taxonOrder: taxonOrder ?? this.taxonOrder,
       taxonFamily: taxonFamily ?? this.taxonFamily,

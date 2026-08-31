@@ -1,5 +1,7 @@
 enum TaxonEntryHeader {
   taxonRank,
+  kingdom,
+  phylum,
   taxonClass,
   taxonOrder,
   taxonFamily,
@@ -20,6 +22,10 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
   switch (headerEnum) {
     case TaxonEntryHeader.taxonRank:
       return 'Taxon rank';
+    case TaxonEntryHeader.kingdom:
+      return 'Kingdom';
+    case TaxonEntryHeader.phylum:
+      return 'Phylum';
     case TaxonEntryHeader.taxonClass:
       return 'Class';
     case TaxonEntryHeader.taxonOrder:
@@ -54,6 +60,8 @@ String matchTaxonEntryHeader(TaxonEntryHeader headerEnum) {
 const Map<String, TaxonEntryHeader> knownTaxonHeader = {
   'taxonrank': TaxonEntryHeader.taxonRank,
   'rank': TaxonEntryHeader.taxonRank,
+  'kingdom': TaxonEntryHeader.kingdom,
+  'phylum': TaxonEntryHeader.phylum,
   'taxonclass': TaxonEntryHeader.taxonClass,
   'class': TaxonEntryHeader.taxonClass,
   'taxonorder': TaxonEntryHeader.taxonOrder,
@@ -100,6 +108,46 @@ const List<TaxonEntryHeader> taxonImportRankHeaders = [
   TaxonEntryHeader.specificEpithet,
   TaxonEntryHeader.subspecificEpithet,
 ];
+
+/// Classes whose higher classification NAHPU can supply during an import.
+/// Keep this explicit: an unrecognized class must never default to Chordata.
+enum InferableTaxonClass {
+  mammalia('Mammalia', 'Chordata'),
+  aves('Aves', 'Chordata'),
+  reptilia('Reptilia', 'Chordata'),
+  amphibia('Amphibia', 'Chordata'),
+  osteichthyes('Osteichthyes', 'Chordata'),
+  chondrichthyes('Chondrichthyes', 'Chordata'),
+  agnatha('Agnatha', 'Chordata'),
+  insecta('Insecta', 'Arthropoda'),
+  arachnida('Arachnida', 'Arthropoda'),
+  chilopoda('Chilopoda', 'Arthropoda'),
+  diplopoda('Diplopoda', 'Arthropoda'),
+  gastropoda('Gastropoda', 'Mollusca'),
+  bivalvia('Bivalvia', 'Mollusca'),
+  cephalopoda('Cephalopoda', 'Mollusca');
+
+  const InferableTaxonClass(this.label, this.phylum);
+
+  final String label;
+  final String phylum;
+
+  String get kingdom => 'Animalia';
+
+  static InferableTaxonClass? fromString(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    for (final taxonClass in values) {
+      if (taxonClass.label.toLowerCase() == normalized) return taxonClass;
+    }
+    return null;
+  }
+}
+
+const taxonImportRequiredColumnsGuidance =
+    'If your class is not listed or the file contains multiple classes, '
+    'include Taxon rank, Kingdom, Phylum, Class, and every classification '
+    'column through the selected rank (Order, Family, Genus, Specific epithet, '
+    'and Subspecific epithet as applicable), with values in every required cell.';
 
 enum MediaCategory { site, event, narrative, specimen, personnel, all }
 

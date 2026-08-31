@@ -14,6 +14,7 @@ import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
@@ -46,6 +47,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
   TaxonImportReview? _review;
   Set<int> _selectedImports = {};
   List<String> _problems = [];
+  InferableTaxonClass? _selectedClass;
   TaxonFileParseDetails? _parseDetails;
   String? _parseError;
   bool _isLoadingFile = false;
@@ -168,6 +170,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
     return CommonScrollbar(
       scrollController: _importScrollController,
       child: ListView(
+        key: const ValueKey('taxon-import-setup'),
         controller: _importScrollController,
         padding: const EdgeInsets.all(16),
         children: [
@@ -198,6 +201,20 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
             _ParseDetailsCard(details: _parseDetails!),
           ],
           if (csvData != null && _hasData) ...[
+            if (!csvData.headerMap.containsValue(
+              TaxonEntryHeader.taxonClass,
+            )) ...[
+              const SizedBox(height: NahpuSpacing.xl),
+              _ImportClassSelection(
+                selectedClass: _selectedClass,
+                onChanged: _isRunning
+                    ? null
+                    : (value) => setState(() {
+                        _selectedClass = value;
+                        _updateImportValidation();
+                      }),
+              ),
+            ],
             const SizedBox(height: 16),
             Text('Map columns', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -334,6 +351,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
               };
               final details = [
                 candidate.rank.label,
+                candidate.data.taxonClass,
                 if (candidate.data.taxonFamily.trim().isNotEmpty)
                   candidate.data.taxonFamily,
                 if (candidate.data.commonName?.trim().isNotEmpty == true)
@@ -402,19 +420,35 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       return _TaxonHeaderMappingRow(
         header: entry.value,
         value: csvData.headerMap[entry.key],
-        onChanged: (value) {
-          if (value == null) return;
-          setState(() {
-            csvData.headerMap[entry.key] = value;
-            _problems = TaxonEntryReader(
-              ref: ref,
-            ).findProblems(csvData.headerMap, rows: csvData.data);
-            _review = null;
-            _selectedImports = {};
-          });
-        },
+        onChanged: _isRunning
+            ? null
+            : (value) {
+                if (value == null) return;
+                setState(() {
+                  if (value == TaxonEntryHeader.taxonClass ||
+                      csvData.headerMap[entry.key] ==
+                          TaxonEntryHeader.taxonClass) {
+                    _selectedClass = null;
+                  }
+                  csvData.headerMap[entry.key] = value;
+                  _updateImportValidation();
+                });
+              },
       );
     }).toList();
+  }
+
+  void _updateImportValidation() {
+    final data = _csvData;
+    _problems = data == null
+        ? []
+        : findTaxonImportProblems(
+            data.headerMap,
+            rows: data.data,
+            selectedClass: _selectedClass,
+          );
+    _review = null;
+    _selectedImports = {};
   }
 
   Future<void> _getFile() async {
@@ -428,6 +462,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
         _review = null;
         _selectedImports = {};
         _problems = [];
+        _selectedClass = null;
         _parseError = null;
         _parseDetails = null;
         _hasData = false;
@@ -449,6 +484,7 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       _review = null;
       _selectedImports = {};
       _problems = [];
+      _selectedClass = null;
       _parseError = null;
       _parseDetails = null;
       _hasData = false;
@@ -478,9 +514,8 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       final data = parsed.data;
       setState(() {
         _csvData = data;
-        _problems = TaxonEntryReader(
-          ref: ref,
-        ).findProblems(data.headerMap, rows: data.data);
+        _selectedClass = null;
+        _updateImportValidation();
         _parseDetails = parsed.details;
         _parseError = null;
         _hasData = true;
@@ -492,6 +527,8 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
       if (!mounted) return;
       final exception = error is TaxonFileParseException ? error : null;
       setState(() {
+        _csvData = null;
+        _selectedClass = null;
         _hasData = false;
         _parseError = _toMessage(error);
         _parseDetails = null;
@@ -514,7 +551,9 @@ class _AddTaxonState extends ConsumerState<AddTaxon>
     if (data == null) return;
     try {
       setState(() => _isRunning = true);
-      final review = await TaxonEntryReader(ref: ref).reviewData(data);
+      final review = await TaxonEntryReader(
+        ref: ref,
+      ).reviewData(data, selectedClass: _selectedClass);
       if (!mounted) return;
       setState(() {
         _review = review;
@@ -638,6 +677,57 @@ class _TaxonSurfacePanel extends StatelessWidget {
   }
 }
 
+class _ImportClassSelection extends StatelessWidget {
+  const _ImportClassSelection({
+    required this.selectedClass,
+    required this.onChanged,
+  });
+
+  final InferableTaxonClass? selectedClass;
+  final ValueChanged<InferableTaxonClass?>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final classification = selectedClass;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select a class', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: NahpuSpacing.md),
+        const Text(
+          'No Class column is mapped. Select the class shared by all rows. '
+          'NAHPU can fill missing Kingdom and Phylum values for these classes. '
+          'Without Taxon rank, rows must have Order, Family, Genus, and '
+          'Specific epithet; Subspecific epithet identifies subspecies.',
+        ),
+        const SizedBox(height: NahpuSpacing.md),
+        DropdownButton<InferableTaxonClass>(
+          key: const ValueKey('taxon-import-class-selection'),
+          isExpanded: true,
+          hint: const Text('Class for all rows'),
+          value: classification,
+          items: InferableTaxonClass.values
+              .map(
+                (value) =>
+                    DropdownMenuItem(value: value, child: Text(value.label)),
+              )
+              .toList(),
+          onChanged: onChanged,
+        ),
+        if (classification != null) ...[
+          const SizedBox(height: NahpuSpacing.md),
+          Text(
+            'Kingdom: ${classification.kingdom} · Phylum: ${classification.phylum}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        const SizedBox(height: NahpuSpacing.md),
+        const Text(taxonImportRequiredColumnsGuidance),
+      ],
+    );
+  }
+}
+
 class _TaxonHeaderMappingRow extends StatelessWidget {
   const _TaxonHeaderMappingRow({
     required this.header,
@@ -647,7 +737,7 @@ class _TaxonHeaderMappingRow extends StatelessWidget {
 
   final String header;
   final TaxonEntryHeader? value;
-  final ValueChanged<TaxonEntryHeader?> onChanged;
+  final ValueChanged<TaxonEntryHeader?>? onChanged;
 
   @override
   Widget build(BuildContext context) {

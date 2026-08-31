@@ -9,6 +9,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/taxon_entry.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/types/import.dart';
 
 void main() {
   testWidgets(
@@ -67,6 +68,8 @@ void main() {
       expect(result.importedFamilyCount, 1);
       final imported = await database.select(database.taxonomy).getSingle();
       expect(imported.taxonRank, 'species');
+      expect(imported.kingdom, 'Animalia');
+      expect(imported.phylum, 'Chordata');
     },
   );
 
@@ -198,6 +201,110 @@ void main() {
       TaxonImportStatus.alreadyRegistered,
       TaxonImportStatus.ready,
       TaxonImportStatus.duplicateInFile,
+    ]);
+  });
+
+  testWidgets('class selection is required before review or database writes', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final csv = CsvData.empty()
+      ..parseTaxonEntryFromList([
+        ['Order', 'Family', 'Genus', 'Specific epithet'],
+        ['Rodentia', 'Muridae', 'Rattus', 'rattus'],
+      ]);
+    await _run(tester, database, (ref) async {
+      await expectLater(
+        TaxonEntryReader(ref: ref).reviewData(csv),
+        throwsA(
+          predicate((error) => error.toString().contains('Select a class')),
+        ),
+      );
+    });
+    expect(await database.select(database.taxonomy).get(), isEmpty);
+  });
+
+  testWidgets('selected class imports infer species and preserve subspecies', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final csv = CsvData.empty()
+      ..parseTaxonEntryFromList([
+        ['Order', 'Family', 'Genus', 'Specific epithet', 'Subspecific epithet'],
+        ['Rodentia', 'Muridae', 'Rattus', 'rattus', ''],
+        ['Rodentia', 'Muridae', 'Rattus', 'rattus', 'RATTUS'],
+        ['Rodentia', 'Muridae', 'Rattus', 'rattus', 'rattus'],
+      ]);
+    await _run(tester, database, (ref) async {
+      final reader = TaxonEntryReader(ref: ref);
+      final review = await reader.reviewData(
+        csv,
+        selectedClass: InferableTaxonClass.mammalia,
+      );
+      expect(review.candidates[2].status, TaxonImportStatus.duplicateInFile);
+      expect(review.candidates[1].displayName, 'Rattus rattus rattus');
+      final result = await reader.importSelected(review, {0, 1, 2});
+      expect(result.importedTaxaCount, 2);
+    });
+    final imported = await database.select(database.taxonomy).get();
+    expect(imported.map((row) => row.taxonRank), ['species', 'subspecies']);
+    for (final row in imported) {
+      expect(row.taxonClass, 'Mammalia');
+      expect(row.kingdom, 'Animalia');
+      expect(row.phylum, 'Chordata');
+    }
+    // A subsequent file or mapping must not inherit synthetic columns.
+    expect(csv.headerMap.containsValue(TaxonEntryHeader.taxonClass), isFalse);
+    expect(csv.data.first, ['Rodentia', 'Muridae', 'Rattus', 'rattus', '']);
+  });
+
+  testWidgets('inferred and supplied higher classification persist per row', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final csv = CsvData.empty()
+      ..parseTaxonEntryFromList([
+        ['Taxon rank', 'Kingdom', 'Phylum', 'Class'],
+        ['class', '', '', 'INSECTA'],
+        ['class', '', '', ' Gastropoda '],
+        ['class', 'Plantae', 'Tracheophyta', 'Magnoliopsida'],
+        ['class', ' supplied kingdom ', ' supplied phylum ', 'Mammalia'],
+      ]);
+    await _run(tester, database, (ref) async {
+      final reader = TaxonEntryReader(ref: ref);
+      final review = await reader.reviewData(
+        csv,
+        selectedClass: InferableTaxonClass.aves,
+      );
+      await reader.importSelected(review, {0, 1, 2, 3});
+    });
+    final imported = await database.select(database.taxonomy).get();
+    expect(imported.map((row) => row.taxonClass), [
+      'Insecta',
+      'Gastropoda',
+      'Magnoliopsida',
+      'Mammalia',
+    ]);
+    expect(imported.map((row) => row.kingdom), [
+      'Animalia',
+      'Animalia',
+      'Plantae',
+      'supplied kingdom',
+    ]);
+    expect(imported.map((row) => row.phylum), [
+      'Arthropoda',
+      'Mollusca',
+      'Tracheophyta',
+      'supplied phylum',
     ]);
   });
 }

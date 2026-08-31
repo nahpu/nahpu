@@ -10,11 +10,12 @@ Registre vários táxons a partir de uma planilha ou arquivo delimitado.
 
 {% steps %}
 
-1. Prepare dados `.xlsx`, `.csv` ou `.tsv` com uma coluna `taxon rank` e os campos de classificação até essa categoria. Use `class`, `order`, `family`, `genus`, `species` ou `subspecies`; omita a categoria apenas em linhas com uma classificação de espécie completa.
+1. Prepare dados `.xlsx`, `.csv` ou `.tsv` com os campos de classificação até a categoria desejada. Uma lista de espécies pode omitir `taxon rank`, `kingdom`, `phylum` e `class` quando todas as linhas compartilham uma classe compatível; mantenha `order`, `family`, `genus` e `specific epithet`.
 2. Abra `Taxon Registry`, selecione `Add taxon` e mude para `Import`.
 3. Escolha o arquivo e revise o mapeamento de colunas detectado.
-4. Corrija colunas não mapeadas ou use a substituição do parser quando o delimitador não for detectado.
-5. Importe e revise os táxons registrados antes de registrar espécimes.
+4. Se nenhuma coluna `Class` estiver mapeada, use `Select a class` para escolher a classe compatível comum a todas as linhas. Se a classe não estiver listada ou o arquivo contiver várias classes, inclua `Taxon rank`, `Kingdom`, `Phylum`, `Class` e todas as colunas até a categoria selecionada, com os valores obrigatórios.
+5. Corrija colunas não mapeadas ou use a substituição do parser quando o delimitador não for detectado.
+6. Selecione `Review taxa`, confira a prévia e importe os táxons selecionados antes de registrar espécimes.
 {% /steps %}
 
 ## Saiba mais
