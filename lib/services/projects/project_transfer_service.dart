@@ -2057,6 +2057,8 @@ class ProjectTransferService extends AppServices {
     ref.invalidate(taxonRegistryProvider);
     ref.invalidate(taxonProvider);
     ref.invalidate(siteEntryProvider);
+    ref.invalidate(fossilSiteProvider);
+    ref.invalidate(fossilAttributeProvider);
     ref.invalidate(coordinateByProjectProvider);
     ref.invalidate(collEventEntryProvider);
     ref.invalidate(specimenEntryProvider);

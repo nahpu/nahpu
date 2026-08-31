@@ -82,6 +82,12 @@ Future<Map<String, String>> documentFieldValuesForSite(
     m['geography::${entry.key}'] = entry.value?.toString() ?? '';
   }
   final attribute = await SiteServices(ref: ref).getSiteAttribute(s.id);
+  final fossil = await FossilSiteServices(ref: ref).getFossilSite(s.id);
+  if (fossil != null) {
+    for (final entry in fossil.toJson().entries) {
+      m['fossilSite::${entry.key}'] = entry.value?.toString() ?? '';
+    }
+  }
   if (attribute != null) {
     for (final entry in attribute.toJson().entries) {
       if (entry.key == 'siteID') continue;

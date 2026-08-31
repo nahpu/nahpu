@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
@@ -478,7 +480,10 @@ void main() {
     WidgetRef? widgetRef;
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [databaseProvider.overrideWithValue(database)],
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          catalogFmtNotifierProvider.overrideWith(_ExportCatalogFormat.new),
+        ],
         child: MaterialApp(
           home: Consumer(
             builder: (context, ref, child) {
@@ -559,3 +564,8 @@ void main() {
 void _ignoreTaxonGroups(Set<String> _) {}
 
 void _ignoreSelectionMode(BundleTaxonSelectionMode _) {}
+
+class _ExportCatalogFormat extends CatalogFmtNotifier {
+  @override
+  Future<CatalogFmt> build() async => CatalogFmt.mammals;
+}

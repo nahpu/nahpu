@@ -40,7 +40,7 @@ class CollectingRecordWriterServices extends AppServices {
 
   Future<List<String>> _getSpeciesName(int? speciesId) async {
     if (speciesId == null) {
-      return [''];
+      return List.filled(4, '');
     } else {
       TaxonomyData taxon = await TaxonomyServices(
         ref: ref,

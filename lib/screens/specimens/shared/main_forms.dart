@@ -8,6 +8,7 @@ import 'package:nahpu/screens/specimens/arthropods/attributes.dart';
 import 'package:nahpu/screens/specimens/birds/attributes.dart';
 import 'package:nahpu/screens/specimens/mammalian/attributes.dart';
 import 'package:nahpu/screens/specimens/herpetofauna/attributes.dart';
+import 'package:nahpu/screens/specimens/fossils/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/capture_records.dart';
 import 'package:nahpu/screens/specimens/shared/general_records.dart';
 import 'package:nahpu/screens/specimens/shared/media.dart';
@@ -79,7 +80,11 @@ class MainFormsState extends ConsumerState<MainForms> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomSpecimenRecordHeight,
               children: [
-                getAttributeForm(widget.catalogFmt, useHorizontalLayout),
+                SpecimenAttributeForms(
+                  catalogFmt: widget.catalogFmt,
+                  specimenUuid: widget.specimenUuid,
+                  useHorizontalLayout: useHorizontalLayout,
+                ),
                 PartDataForm(
                   specimenUuid: widget.specimenUuid,
                   catalogFmt: widget.catalogFmt,
@@ -93,28 +98,47 @@ class MainFormsState extends ConsumerState<MainForms> {
       },
     );
   }
+}
 
-  Widget getAttributeForm(CatalogFmt fmt, bool useHorizontalLayout) {
-    switch (widget.catalogFmt) {
+class SpecimenAttributeForms extends StatelessWidget {
+  const SpecimenAttributeForms({
+    super.key,
+    required this.catalogFmt,
+    required this.specimenUuid,
+    required this.useHorizontalLayout,
+  });
+
+  final CatalogFmt catalogFmt;
+  final String specimenUuid;
+  final bool useHorizontalLayout;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (catalogFmt) {
       case CatalogFmt.birds:
         return BirdAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
-          specimenUuid: widget.specimenUuid,
+          specimenUuid: specimenUuid,
         );
       case CatalogFmt.mammals:
         return MammalAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
-          specimenUuid: widget.specimenUuid,
+          specimenUuid: specimenUuid,
         );
       case CatalogFmt.herpetofauna:
         return HerpAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
-          specimenUuid: widget.specimenUuid,
+          specimenUuid: specimenUuid,
         );
       case CatalogFmt.arthropods:
         return ArthropodAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
-          specimenUuid: widget.specimenUuid,
+          specimenUuid: specimenUuid,
+        );
+      case CatalogFmt.fossils:
+        return FossilAttributeForms(
+          useHorizontalLayout: useHorizontalLayout,
+          specimenUuid: specimenUuid,
         );
     }
   }

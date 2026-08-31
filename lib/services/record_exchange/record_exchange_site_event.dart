@@ -49,6 +49,7 @@ class RecordExchangeSiteEvent extends AppServices {
       type: RecordExchangeType.site,
       data: {
         'site': support.portableSite(siteRecord),
+        'fossilSite': await support.portableFossilSite(site.id),
         'siteAttribute': siteAttribute == null
             ? null
             : support.portableSiteAttribute(siteAttribute),
@@ -111,6 +112,7 @@ class RecordExchangeSiteEvent extends AppServices {
         ).getSiteAttribute(site.id);
         linkedSite = {
           'site': support.portableSite(await _withGeography(site)),
+          'fossilSite': await support.portableFossilSite(site.id),
           'siteAttribute': siteAttribute == null
               ? null
               : support.portableSiteAttribute(siteAttribute),
@@ -219,6 +221,7 @@ class RecordExchangeSiteEvent extends AppServices {
       await (dbAccess.delete(
         dbAccess.siteAttribute,
       )..where((row) => row.siteID.equals(targetId))).go();
+      await FossilSiteQuery(dbAccess).deleteFossilSite(targetId);
       final orphaned = await AssociatedDataServices(ref: ref)
           .detachAllFromTarget(
             AssociatedDataTarget.site(targetId),
@@ -229,6 +232,7 @@ class RecordExchangeSiteEvent extends AppServices {
     await dbAccess
         .into(dbAccess.siteAttribute)
         .insert(support.siteAttributeCompanion(siteAttributeJson, siteId));
+    await support.importFossilSite(payload.data['fossilSite'], siteId);
     for (final coordinateJson in RecordExchangePayload.mapList(
       payload.data['coordinates'],
     )) {
@@ -277,6 +281,7 @@ class RecordExchangeSiteEvent extends AppServices {
         RecordExchangePayload.mapList(linked['coordinates']),
         personnelIds,
       );
+      await support.importFossilSite(linked['fossilSite'], createdSiteId);
       await RecordExchangeCustomFields(
         ref: ref,
       ).import(linked['customFields'], siteId: createdSiteId);

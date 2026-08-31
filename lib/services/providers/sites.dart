@@ -76,6 +76,13 @@ final siteAttributeProvider = FutureProvider.family
           SiteQuery(ref.read(databaseProvider)).getSiteAttribute(siteId),
     );
 
+final fossilSiteProvider = FutureProvider.autoDispose
+    .family<FossilSiteData?, int>((ref, siteId) {
+      return FossilSiteQuery(
+        ref.watch(databaseProvider),
+      ).getFossilSiteBySiteId(siteId);
+    });
+
 final coordinateByProjectProvider =
     FutureProvider.autoDispose<List<CoordinateData>>((ref) {
       final projectUuid = ref.watch(projectUuidProvider);

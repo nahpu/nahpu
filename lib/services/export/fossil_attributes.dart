@@ -3,7 +3,7 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
-/// Formats fossil attribute records for the all-taxa standard export.
+/// Formats fossil attribute records for fossil and all-taxa standard exports.
 class FossilAttributes {
   const FossilAttributes({required this.ref, required this.specimenUuid});
 

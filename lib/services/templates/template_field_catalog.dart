@@ -21,6 +21,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'personnel',
         'coordinate',
       };
@@ -31,6 +32,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'environment',
         'coordinate',
         'collEffort',
@@ -48,6 +50,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'coordinate',
         'environment',
         'mammalAttribute',
@@ -69,6 +72,13 @@ Map<String, List<String>> availableTemplateFieldGroups(
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('arthropodAttribute');
+      } else if (selectedTaxon == 'Fossils') {
+        allowedTables.removeAll({
+          'mammalAttribute',
+          'birdAttribute',
+          'herpAttribute',
+          'arthropodAttribute',
+        });
       } else if (selectedTaxon == 'Arthropods') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');

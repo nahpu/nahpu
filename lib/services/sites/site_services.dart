@@ -77,6 +77,7 @@ class SiteServices extends AppServices {
           canopyCover: db.Value(attribute?.canopyCover),
         ),
       );
+      await FossilSiteQuery(dbAccess).duplicate(originID, id);
       return id;
     });
     invalidateSite();
@@ -165,6 +166,7 @@ class SiteServices extends AppServices {
         ref: ref,
       ).detachAllFromTarget(AssociatedDataTarget.site(id));
       await SiteQuery(dbAccess).deleteSiteAttribute(id);
+      await FossilSiteQuery(dbAccess).deleteFossilSite(id);
       await SiteQuery(dbAccess).deleteSite(id);
     } catch (e) {
       rethrow;
@@ -186,6 +188,7 @@ class SiteServices extends AppServices {
           ref: ref,
         ).detachAllFromTarget(AssociatedDataTarget.site(site.id));
         await SiteQuery(dbAccess).deleteSiteAttribute(site.id);
+        await FossilSiteQuery(dbAccess).deleteFossilSite(site.id);
       }
       await SiteQuery(dbAccess).deleteAllSites(projectUuid);
       invalidateSite();
@@ -196,6 +199,19 @@ class SiteServices extends AppServices {
 
   void invalidateSite() {
     ref.invalidate(siteEntryProvider);
+  }
+}
+
+class FossilSiteServices extends AppServices {
+  const FossilSiteServices({required super.ref});
+
+  Future<FossilSiteData?> getFossilSite(int siteId) {
+    return FossilSiteQuery(dbAccess).getFossilSiteBySiteId(siteId);
+  }
+
+  Future<void> updateFossilSite(int siteId, FossilSiteCompanion entries) async {
+    await FossilSiteQuery(dbAccess).save(siteId, entries);
+    if (ref.context.mounted) ref.invalidate(fossilSiteProvider(siteId));
   }
 }
 

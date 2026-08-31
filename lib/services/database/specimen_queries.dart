@@ -556,6 +556,33 @@ class ArthropodSpecimenQuery extends DatabaseAccessor<Database>
   }
 }
 
+class FossilSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  FossilSpecimenQuery(super.db);
+
+  Future<FossilAttributeData?> getByUuid(String specimenUuid) {
+    return (select(
+      fossilAttribute,
+    )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+  }
+
+  Future<void> save(String specimenUuid, FossilAttributeCompanion entries) {
+    return transaction(() async {
+      final form = entries.copyWith(specimenUuid: Value(specimenUuid));
+      final updated = await (update(
+        fossilAttribute,
+      )..where((row) => row.specimenUuid.equals(specimenUuid))).write(form);
+      if (updated == 0) await into(fossilAttribute).insert(form);
+    });
+  }
+
+  Future<void> deleteAttributes(String specimenUuid) async {
+    await (delete(
+      fossilAttribute,
+    )..where((row) => row.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
 class SpecimenPartQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   SpecimenPartQuery(super.db);

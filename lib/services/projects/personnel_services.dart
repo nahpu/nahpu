@@ -186,6 +186,7 @@ class PersonnelImageService {
         return _getMammalAvatar();
       case CatalogFmt.herpetofauna:
       case CatalogFmt.arthropods:
+      case CatalogFmt.fossils:
         return _getMammalAvatar();
     }
   }

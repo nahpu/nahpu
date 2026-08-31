@@ -6,6 +6,37 @@ import 'package:nahpu/services/types/record_sort.dart';
 
 part 'site_queries.g.dart';
 
+/// Optional sedimentological and stratigraphic data belonging to a site.
+class FossilSiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
+  FossilSiteQuery(super.db);
+
+  Future<FossilSiteData?> getFossilSiteBySiteId(int siteId) {
+    return (select(
+      fossilSite,
+    )..where((row) => row.siteID.equals(siteId))).getSingleOrNull();
+  }
+
+  /// The legacy table has no unique key, so update-or-insert must be atomic.
+  Future<void> save(int siteId, FossilSiteCompanion entries) {
+    return transaction(() async {
+      final form = entries.copyWith(siteID: Value(siteId));
+      final updated = await (update(
+        fossilSite,
+      )..where((row) => row.siteID.equals(siteId))).write(form);
+      if (updated == 0) await into(fossilSite).insert(form);
+    });
+  }
+
+  Future<void> duplicate(int sourceId, int targetId) async {
+    final source = await getFossilSiteBySiteId(sourceId);
+    if (source != null) await save(targetId, source.toCompanion(true));
+  }
+
+  Future<void> deleteFossilSite(int siteId) async {
+    await (delete(fossilSite)..where((row) => row.siteID.equals(siteId))).go();
+  }
+}
+
 @DriftAccessor(include: {'tables.drift'})
 class SiteQuery extends DatabaseAccessor<Database> with _$SiteQueryMixin {
   SiteQuery(super.db);

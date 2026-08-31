@@ -84,6 +84,8 @@ class SiteWriterServices extends AppServices {
         return List.filled(emptySite, '');
       } else {
         final attribute = await SiteServices(ref: ref).getSiteAttribute(siteID);
+        final fossil = await FossilSiteServices(ref: ref).getFossilSite(siteID);
+        final fossilJson = fossil?.toJson() ?? const <String, dynamic>{};
         String verbatimLocality = _createVerbatimLocality(data);
 
         List<String> siteDelimited = _getSiteDelimited(data);
@@ -97,6 +99,8 @@ class SiteWriterServices extends AppServices {
           ...siteDelimited,
           verbatimLocality,
           coordinates,
+          for (final field in fossilSiteExportList)
+            fossilJson[field.split('::').last]?.toString() ?? '',
         ];
         return siteDetails;
       }

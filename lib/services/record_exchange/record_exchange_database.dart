@@ -3,6 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/database.dart' as nahpu_db;
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/geography_queries.dart';
+import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/types/geography.dart';
 
 class RecordExchangeDatabase extends AppServices {
@@ -110,6 +111,23 @@ class RecordExchangeDatabase extends AppServices {
 
   Map<String, dynamic> portableSiteAttribute(SiteAttributeData value) =>
       without(value.toJson(), {'siteID'});
+
+  Future<Map<String, dynamic>?> portableFossilSite(int siteId) async {
+    final value = await FossilSiteQuery(dbAccess).getFossilSiteBySiteId(siteId);
+    return value == null ? null : without(value.toJson(), {'siteID'});
+  }
+
+  Future<void> importFossilSite(Object? json, int siteId) async {
+    if (json == null) return;
+    if (json is! Map) {
+      throw const FormatException('Fossil site data is invalid.');
+    }
+    final data = FossilSiteData.fromJson({
+      ...Map<String, dynamic>.from(json),
+      'siteID': siteId,
+    });
+    await FossilSiteQuery(dbAccess).save(siteId, data.toCompanion(true));
+  }
 
   Map<String, dynamic> portableCoordinate(CoordinateData value) =>
       without(value.toJson(), {'id', 'siteID'});

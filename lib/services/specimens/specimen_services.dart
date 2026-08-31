@@ -77,6 +77,12 @@ class SpecimenServices extends AppServices {
         case CatalogFmt.arthropods:
           await _createArthropodSpecimen(specimenUuid);
           break;
+        case CatalogFmt.fossils:
+          await FossilSpecimenQuery(dbAccess).save(
+            specimenUuid,
+            const FossilAttributeCompanion(weightUnit: db.Value('g')),
+          );
+          break;
       }
       if (supportsParasites(catalogFmt)) {
         await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
@@ -516,6 +522,16 @@ class SpecimenServices extends AppServices {
     await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
 
+  Future<void> updateFossilAttribute(
+    String specimenUuid,
+    FossilAttributeCompanion entries,
+  ) async {
+    await FossilSpecimenQuery(dbAccess).save(specimenUuid, entries);
+    if (ref.context.mounted) {
+      ref.invalidate(fossilAttributeProvider(specimenUuid));
+    }
+  }
+
   Future<void> deleteMammalAttributes(String specimenUuid) async {
     await MammalSpecimenQuery(dbAccess).deleteMammalAttributes(specimenUuid);
   }
@@ -552,6 +568,9 @@ class SpecimenServices extends AppServices {
       case CatalogFmt.arthropods:
         await deleteArthropodAttributes(specimenUuid);
         break;
+      case CatalogFmt.fossils:
+        await FossilSpecimenQuery(dbAccess).deleteAttributes(specimenUuid);
+        break;
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
     await SpecimenQuery(dbAccess).deleteSpecimen(specimenUuid);
@@ -582,6 +601,9 @@ class SpecimenServices extends AppServices {
           break;
         case CatalogFmt.arthropods:
           await deleteArthropodAttributes(specimen.uuid);
+          break;
+        case CatalogFmt.fossils:
+          await FossilSpecimenQuery(dbAccess).deleteAttributes(specimen.uuid);
           break;
       }
     }

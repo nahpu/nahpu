@@ -240,6 +240,12 @@ class DynamicRecordExporter {
             if (siteAttribute != null) {
               _addData(record, 'siteAttribute', siteAttribute.toJson());
             }
+            final fossilSite = await FossilSiteServices(
+              ref: ref,
+            ).getFossilSite(site.id);
+            if (fossilSite != null) {
+              _addData(record, 'fossilSite', fossilSite.toJson());
+            }
             await _addCustomFieldData(
               CustomFieldOwner.site(site.id),
               'customSite',

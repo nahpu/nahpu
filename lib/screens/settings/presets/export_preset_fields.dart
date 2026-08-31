@@ -582,6 +582,7 @@ Map<String, List<String>> _availableFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'personnel',
         'coordinate',
       };
@@ -592,6 +593,7 @@ Map<String, List<String>> _availableFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'environment',
         'coordinate',
         'collEffort',
@@ -611,6 +613,7 @@ Map<String, List<String>> _availableFieldGroups(
         'site',
         'geography',
         'siteAttribute',
+        'fossilSite',
         'coordinate',
         'environment',
         'mammalAttribute',
@@ -634,6 +637,13 @@ Map<String, List<String>> _availableFieldGroups(
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('arthropodAttribute');
+      } else if (specimenRecordType == SpecimenRecordType.fossils) {
+        allowedTables.removeAll({
+          'mammalAttribute',
+          'birdAttribute',
+          'herpAttribute',
+          'arthropodAttribute',
+        });
       } else if (specimenRecordType == SpecimenRecordType.arthropods) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
@@ -691,6 +701,7 @@ bool _matchesSpecimenRecordType(
     SpecimenRecordType.allMammals => catalog == CatalogFmt.mammals,
     SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetofauna,
     SpecimenRecordType.arthropods => catalog == CatalogFmt.arthropods,
+    SpecimenRecordType.fossils => catalog == CatalogFmt.fossils,
     SpecimenRecordType.allTaxa => true,
   };
 }

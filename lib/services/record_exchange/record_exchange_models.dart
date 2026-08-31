@@ -134,6 +134,9 @@ class RecordExchangePayload {
     mapList(data['personnel']);
     mapList(data['coordinates']);
     if (type == RecordExchangeType.site) {
+      if (data['fossilSite'] != null && data['fossilSite'] is! Map) {
+        throw const FormatException('Fossil site data is invalid.');
+      }
       final attribute = data['siteAttribute'];
       if (attribute != null && attribute is! Map) {
         throw const FormatException('Site attribute data is invalid.');
@@ -158,6 +161,9 @@ class RecordExchangePayload {
       }
       if (site is Map) {
         final linked = Map<String, dynamic>.from(site);
+        if (linked['fossilSite'] != null && linked['fossilSite'] is! Map) {
+          throw const FormatException('Event fossil site data is invalid.');
+        }
         if (linked['site'] is! Map) {
           throw const FormatException('Event linked site data is missing.');
         }

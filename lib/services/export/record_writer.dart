@@ -140,6 +140,8 @@ class SpecimenRecordWriter {
         return herpAttributeExportList;
       case SpecimenRecordType.arthropods:
         return arthropodAttributeExportList;
+      case SpecimenRecordType.fossils:
+        return fossilAttributeExportList;
       case SpecimenRecordType.allTaxa:
         return <String>{
           ...mammalAttributeExportList,
@@ -224,6 +226,10 @@ class SpecimenRecordWriter {
         keys = arthropodAttributeExportList;
         values = await _getArthropodAttributes(data.uuid);
         break;
+      case SpecimenRecordType.fossils:
+        keys = fossilAttributeExportList;
+        values = await _getFossilAttributes(data.uuid);
+        break;
       case SpecimenRecordType.allTaxa:
         keys = [];
         values = [];
@@ -282,7 +288,9 @@ class SpecimenRecordWriter {
     return await arthropods.getAttributes();
   }
 
-  bool get _includeParasites => recordType != SpecimenRecordType.arthropods;
+  bool get _includeParasites =>
+      recordType != SpecimenRecordType.arthropods &&
+      recordType != SpecimenRecordType.fossils;
 
   Future<String> _getSpecimenMedia(String specimenUuid) async {
     String specimenMedia = await MediaWriterServices(

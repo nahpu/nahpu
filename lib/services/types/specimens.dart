@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'nahpu_icons.dart';
 
-enum CatalogFmt { mammals, birds, herpetofauna, arthropods }
+enum CatalogFmt { mammals, birds, herpetofauna, arthropods, fossils }
 
 enum SpecimenSex {
   male,
@@ -261,6 +261,7 @@ const List<String> taxonGroupList = [
   'Mammals',
   'Herpetofauna',
   'Arthropods',
+  'Fossils',
 ];
 
 CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
@@ -274,6 +275,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
       return CatalogFmt.herpetofauna;
     case 'Arthropods':
       return CatalogFmt.arthropods;
+    case 'Fossils':
+      return CatalogFmt.fossils;
     default:
       return CatalogFmt.mammals;
   }
@@ -289,6 +292,8 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
       return SpecimenRecordType.herpetofauna;
     case CatalogFmt.arthropods:
       return SpecimenRecordType.arthropods;
+    case CatalogFmt.fossils:
+      return SpecimenRecordType.fossils;
   }
 }
 
@@ -304,6 +309,8 @@ String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
       return 'Herpetofauna';
     case SpecimenRecordType.arthropods:
       return 'Arthropods';
+    case SpecimenRecordType.fossils:
+      return 'Fossils';
     default:
       throw Exception('Invalid record type');
   }
@@ -322,6 +329,8 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.herpetofauna;
     case 'Arthropods':
       return SpecimenRecordType.arthropods;
+    case 'Fossils':
+      return SpecimenRecordType.fossils;
     default:
       return SpecimenRecordType.generalMammals;
   }
@@ -337,6 +346,8 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Herpetofauna';
     case CatalogFmt.arthropods:
       return 'Arthropods';
+    case CatalogFmt.fossils:
+      return 'Fossils';
   }
 }
 
@@ -350,6 +361,8 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
       return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
     case CatalogFmt.arthropods:
       return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
+    case CatalogFmt.fossils:
+      return isFilledIcon ? NahpuIcons.fossilFilled : NahpuIcons.fossilOutlined;
   }
 }
 
@@ -381,6 +394,8 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
       return 'assets/icons/frog.svg';
     case CatalogFmt.arthropods:
       return 'assets/icons/beetle.svg';
+    case CatalogFmt.fossils:
+      return 'assets/icons/mammal_skeleton.svg';
   }
 }
 

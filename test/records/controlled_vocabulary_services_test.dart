@@ -205,6 +205,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           databaseProvider.overrideWithValue(database),
+          catalogFmtNotifierProvider.overrideWith(_VocabularyCatalog.new),
           userDefinedFieldProvider.overrideWith(
             (ref, prefKey) => configured.future,
           ),
@@ -223,4 +224,9 @@ void main() {
       expect(await result, const ['Configured site']);
     },
   );
+}
+
+class _VocabularyCatalog extends CatalogFmtNotifier {
+  @override
+  Future<CatalogFmt> build() async => CatalogFmt.mammals;
 }

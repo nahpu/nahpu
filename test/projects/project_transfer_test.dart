@@ -456,7 +456,7 @@ void main() {
       expect(payload.rows('arthropodAttribute').single['lifeStage'], 'Adult');
     });
 
-    testWidgets('exports fossil site attributes with project sites', (
+    testWidgets('exports native fossil site and specimen attributes', (
       tester,
     ) async {
       await setUpService(tester);
@@ -470,14 +470,42 @@ void main() {
             FossilSiteCompanion(
               siteID: Value(siteId),
               formation: const Value('Hell Creek'),
+              rockType: const Value('Mudstone'),
+              sedimentologyRemark: const Value('Cross-bedded'),
             ),
           );
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('fossil'),
+              projectUuid: Value('project-a'),
+              taxonGroup: Value('Fossils'),
+            ),
+          );
+      await FossilSpecimenQuery(database).save(
+        'fossil',
+        const FossilAttributeCompanion(
+          fossilType: Value('Body fossil'),
+          ontogeneticStage: Value('Juvenile'),
+        ),
+      );
 
       final payload = await tester.runAsync(service.buildExport);
 
       expect(payload!.rows('fossilSite'), hasLength(1));
       expect(payload.rows('fossilSite').single['siteID'], siteId);
       expect(payload.rows('fossilSite').single['formation'], 'Hell Creek');
+      expect(payload.rows('fossilSite').single['rockType'], 'Mudstone');
+      expect(
+        payload.rows('fossilSite').single['sedimentologyRemark'],
+        'Cross-bedded',
+      );
+      expect(payload.rows('fossilAttribute').single['specimenUuid'], 'fossil');
+      expect(
+        payload.rows('fossilAttribute').single['fossilType'],
+        'Body fossil',
+      );
     });
 
     testWidgets('exports parasite identifiers and event data links', (
@@ -796,7 +824,12 @@ void main() {
             },
           ],
           'fossilSite': [
-            {'siteID': 8, 'formation': 'Hell Creek'},
+            {
+              'siteID': 8,
+              'formation': 'Hell Creek',
+              'rockType': 'Sandstone',
+              'sedimentologyRemark': 'Reworked',
+            },
           ],
           'collEvent': [
             {'id': 9, 'projectUuid': 'project-b', 'siteID': 8},
@@ -876,6 +909,10 @@ void main() {
         'Hell Creek',
       );
       final specimen = await database.select(database.specimen).getSingle();
+      final fossilSite = await database.select(database.fossilSite).getSingle();
+      expect(fossilSite.siteID, importedEvent.siteID);
+      expect(fossilSite.rockType, 'Sandstone');
+      expect(fossilSite.sedimentologyRemark, 'Reworked');
       expect(specimen.projectUuid, 'project-b');
       expect(specimen.speciesID, taxonId);
       expect(
@@ -913,6 +950,13 @@ void main() {
           'specimen': [
             {'uuid': 'shared-specimen', 'projectUuid': 'project-b'},
           ],
+          'fossilAttribute': [
+            {
+              'specimenUuid': 'shared-specimen',
+              'fossilType': 'Trace fossil',
+              'specimenDescription': 'Trackway',
+            },
+          ],
         },
       );
       final plan = await service.planImport(
@@ -945,6 +989,12 @@ void main() {
         database.specimen,
       )..where((row) => row.projectUuid.equals('project-b'))).getSingle();
       expect(imported.uuid, isNot('shared-specimen'));
+      final fossil = await database
+          .select(database.fossilAttribute)
+          .getSingle();
+      expect(fossil.specimenUuid, imported.uuid);
+      expect(fossil.fossilType, 'Trace fossil');
+      expect(fossil.specimenDescription, 'Trackway');
     });
 
     testWidgets('blocks UUID mismatch unless force merge is enabled', (

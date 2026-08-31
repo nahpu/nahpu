@@ -61,6 +61,43 @@ void main() {
     expect(find.text('Import project-info JSON'), findsOneWidget);
   });
 
+  testWidgets('cancelling a fossil draft preserves the device catalog', (
+    tester,
+  ) async {
+    await pumpWizard(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CreateProjectForm)),
+    );
+    await tester.tap(find.text('Create new project'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Project name*'),
+      'Fossil project',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mammals'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fossils').last);
+    await tester.pumpAndSettle();
+    expect(
+      await container.read(catalogFmtNotifierProvider.future),
+      CatalogFmt.mammals,
+    );
+    await tester.tap(find.text('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Back'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(await database.select(database.project).get(), isEmpty);
+    expect(
+      await container.read(catalogFmtNotifierProvider.future),
+      CatalogFmt.mammals,
+    );
+  });
+
   testWidgets('wide wizard uses a rounded step rail without a divider', (
     tester,
   ) async {
@@ -81,6 +118,11 @@ void main() {
   });
 
   testWidgets('compact wizard keeps the horizontal step chips', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 600);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
     await pumpWizard(tester);
 
     expect(find.byType(ChoiceChip), findsWidgets);

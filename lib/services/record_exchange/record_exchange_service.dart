@@ -13,6 +13,8 @@ import 'package:nahpu/services/record_exchange/record_exchange_models.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_site_event.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_specimen.dart';
 import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 
 export 'record_exchange_models.dart';
 export 'record_exchange_archive.dart';
@@ -142,6 +144,10 @@ class RecordExchangeService extends AppServices {
     final associatedData = AssociatedDataServices(ref: ref);
     for (final data in deferredAssociatedDataCleanup) {
       await associatedData.cleanupManagedFileIfUnused(data);
+    }
+    if (ref.context.mounted) {
+      ref.invalidate(fossilSiteProvider);
+      ref.invalidate(fossilAttributeProvider);
     }
     return result;
   }

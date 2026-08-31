@@ -42,6 +42,13 @@ class SpecimenEntry extends AsyncNotifier<List<SpecimenData>> {
   }
 }
 
+final fossilAttributeProvider = FutureProvider.autoDispose
+    .family<FossilAttributeData?, String>((ref, specimenUuid) {
+      return FossilSpecimenQuery(
+        ref.watch(databaseProvider),
+      ).getByUuid(specimenUuid);
+    });
+
 final partBySpecimenProvider = FutureProvider.family
     .autoDispose<List<SpecimenPartData>, String>(
       (ref, specimenUuid) => SpecimenPartQuery(

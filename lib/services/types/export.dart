@@ -67,6 +67,7 @@ enum SpecimenRecordType {
   herpetofauna,
   arthropods,
   allTaxa,
+  fossils,
 }
 
 enum SpecimenExportFmt { standard, allFields, selectFields }
@@ -191,6 +192,26 @@ const siteExportList = [
   'site::siteNotes',
   'geography::verbatimLocality',
   'site::coordinates',
+  ...fossilSiteExportList,
+];
+
+const fossilSiteExportList = [
+  'fossilSite::formation',
+  'fossilSite::geologicEra',
+  'fossilSite::geologicPeriod',
+  'fossilSite::geologicSeries',
+  'fossilSite::geologicEpoch',
+  'fossilSite::narrowerGeologicStage',
+  'fossilSite::broaderGeologicStage',
+  'fossilSite::biozone',
+  'fossilSite::rockType',
+  'fossilSite::depositionalEnvironmentType',
+  'fossilSite::depositionalContinent',
+  'fossilSite::depositionalMarine',
+  'fossilSite::standardPreservationType',
+  'fossilSite::stratigraphyRemark',
+  'fossilSite::stratigraphicSource',
+  'fossilSite::sedimentologyRemark',
 ];
 
 const mammalAttributeExportList = [

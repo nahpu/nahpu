@@ -7,6 +7,7 @@ import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/fossils.dart';
 
 const controlledVocabularyPrefKeys = [
   siteTypePrefKey,
@@ -34,8 +35,12 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
       final configuredFuture = ref.watch(
         userDefinedFieldProvider(prefKey).future,
       );
+      final catalogFuture = prefKey == siteTypePrefKey
+          ? ref.watch(catalogFmtNotifierProvider.future)
+          : null;
       final database = ref.watch(databaseProvider);
       final configured = await configuredFuture;
+      final catalog = await catalogFuture;
       if (prefKey == specimenSexPrefKey) {
         return normalizeSpecimenSexOptions(
           configured,
@@ -90,7 +95,10 @@ final effectiveUserDefinedFieldProvider = FutureProvider.autoDispose
         _ => const <String>[],
       };
 
-      return mergeVocabularyOptions(configured, stored);
+      return mergeVocabularyOptions(configured, [
+        ...stored,
+        if (catalog == CatalogFmt.fossils) ...defaultFossilSiteTypes,
+      ]);
     });
 
 final specimenSexVocabularyProvider =
