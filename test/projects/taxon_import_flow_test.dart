@@ -16,6 +16,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
+import 'package:path/path.dart' as p;
 
 import '../helpers/taxon_camera.dart';
 
@@ -26,13 +27,28 @@ void taxonImportFlowTests({bool useAppLibrary = false}) {
     if (useAppLibrary) {
       await RustLib.init();
     } else {
-      final libraryPath = Platform.isMacOS
-          ? 'rust/target/debug/librust_lib_nahpu.dylib'
+      final libraryName = Platform.isMacOS
+          ? 'librust_lib_nahpu.dylib'
           : Platform.isWindows
-          ? 'rust/target/debug/rust_lib_nahpu.dll'
-          : 'rust/target/debug/librust_lib_nahpu.so';
+          ? 'rust_lib_nahpu.dll'
+          : 'librust_lib_nahpu.so';
+      final libraryPath = p.join('rust', 'target', 'debug', libraryName);
       await RustLib.init(externalLibrary: ExternalLibrary.open(libraryPath));
     }
+  });
+
+  test('picker preserves native paths and file names', () {
+    final filePath = p.join(
+      Directory.systemTemp.path,
+      'nahpu-taxon-flow',
+      'taxa.csv',
+    );
+    final file = _TaxonPlatformFile(filePath);
+
+    expect(file.path, filePath);
+    expect(file.name, 'taxa.csv');
+    expect(file.xFile.name, 'taxa.csv');
+    expect(file.uri.toFilePath(), filePath);
   });
 
   testWidgets('table import requires class selection and resets stale reviews', (
@@ -44,7 +60,7 @@ void taxonImportFlowTests({bool useAppLibrary = false}) {
     addTearDown(tester.view.resetPhysicalSize);
     final directory = Directory.systemTemp.createTempSync('nahpu-taxon-flow-');
     addTearDown(() => directory.deleteSync(recursive: true));
-    final file = File('${directory.path}/taxa.csv')
+    final file = File(p.join(directory.path, 'taxa.csv'))
       ..writeAsStringSync(
         'Order,Family,Genus,Specific epithet\nRodentia,Muridae,Rattus,rattus\n',
       );
@@ -162,7 +178,7 @@ void taxonImportFlowTests({bool useAppLibrary = false}) {
       'nahpu-taxon-sources-',
     );
     addTearDown(() => directory.deleteSync(recursive: true));
-    final file = File('${directory.path}/taxa.csv')
+    final file = File(p.join(directory.path, 'taxa.csv'))
       ..writeAsStringSync('Taxon rank,Class\nclass,Mammalia\n');
     final previousPicker = FilePickerPlatform.instance;
     final picker = _TaxonFilePicker(file.path);
@@ -312,7 +328,7 @@ base class _TaxonPlatformFile extends PlatformFile {
   final String path;
 
   @override
-  String get name => path.split('/').last;
+  String get name => p.basename(path);
   @override
   Uri get uri => Uri.file(path);
   @override
