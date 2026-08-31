@@ -5,7 +5,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/hhandika/nahpu)](https://github.com/hhandika/nahpu/commits/main)
 [![GitHub license](https://img.shields.io/github/license/hhandika/nahpu)](https://github.com/hhandika/nahpu/blob/main/LICENSE)
 
-NAHPU (NAtural History Project Utility) is a cross-platform application designed for cataloging ntiatural history specimens. It modernizes data recording and management for field and museum work.
+NAHPU (NAtural History Project Utility) is a cross-platform application designed for cataloging natural history specimens. It modernizes data recording and management for field and museum work.
 
 Visit our website to learn more: [nahpu.app](https://nahpu.app)
 
