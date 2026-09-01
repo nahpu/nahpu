@@ -147,7 +147,7 @@ class DatabaseSettingSections extends StatelessWidget {
           isNavigation: true,
           icon: Icons.backup_outlined,
           title: 'Backup database',
-          label: 'Full archive with all media (.zip or .tar.gz)',
+          label: 'Full database backup of all records and settings',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ExportDbForm()),
