@@ -14,11 +14,11 @@ Encerre cada dia de campo com uma exportação de projeto e reserve o backup com
 2. Revise as contagens de registros e os avisos sobre mídia ausente.
 3. Escolha ZIP ou TAR.GZ para levar a mídia, ou ative `Light export` para um `JSON.GZ` pequeno quando o envio precisar ser mínimo.
 4. Salve em armazenamento separado do dispositivo de trabalho, nomeando com o projeto e a data.
-5. Uma vez por semana, e sempre antes de mesclar um projeto, use `Backup database` para uma cópia de toda a instalação.
+5. Uma vez por semana, e sempre antes de mesclar um projeto, use `Backup database`: ele copia toda a instalação, então mantenha-o ocasional no campo.
 {% /steps %}
 
 {% aside type="tip" %}
-A exportação de projeto é o melhor hábito diário: é menor, mais rápida e consome menos bateria do que um backup do banco de dados, e o `Merge project` a restaura em um dispositivo substituto caso um seja perdido ou quebre. Pacotes Darwin Core e exportações CSV não podem ser importados de volta, então nunca contam como backup.
+A exportação de projeto é o melhor hábito diário: é menor, mais rápida e consome menos bateria do que um backup do banco de dados, e o `Merge project` a restaura em um dispositivo substituto caso um seja perdido ou quebre. Um backup do banco de dados copia diretórios inteiros, então leva todos os arquivos dos dados do aplicativo NAHPU, estejam eles vinculados a um projeto ou não; no campo, execute-o ocasionalmente, quando o consumo de bateria não for uma preocupação. Pacotes Darwin Core e exportações CSV não podem ser importados de volta, então nunca contam como backup.
 {% /aside %}
 
 ## Saiba mais

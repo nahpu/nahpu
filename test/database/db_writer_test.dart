@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/db_writer.dart';
@@ -63,17 +65,90 @@ void main() {
         isAssociatedBackupArchivePath('UserConfigs/fonts/custom.ttf'),
         isTrue,
       );
+      expect(
+        isAssociatedBackupArchivePath('UserConfigs/document_layouts/a.json'),
+        isTrue,
+      );
+      expect(isAssociatedBackupArchivePath('UserConfigs/notes.txt'), isTrue);
+      expect(isAssociatedBackupArchivePath('UserConfigs/legacy.db'), isFalse);
       expect(isAssociatedBackupArchivePath('backup/old.sqlite3'), isFalse);
       expect(isAssociatedBackupArchivePath('other/random.txt'), isFalse);
     });
   });
 
-  test('global template media is collected by full backups', () {
-    expect(
-      globalBackupDirectoryPaths('/documents/nahpu'),
-      contains(
-        path.join('/documents/nahpu', appMediaDirName, templateMediaDirName),
-      ),
-    );
+  test('full backups sweep the whole managed directories', () {
+    final root = path.join('documents', 'nahpu');
+
+    // The two roots subsume personnel, template media, fonts, and maps, so
+    // files the database no longer points at still reach the archive.
+    expect(globalBackupDirectoryPaths(root), [
+      path.join(root, userConfigDirName),
+      path.join(root, appMediaDirName),
+    ]);
+  });
+
+  test('full backups sweep every project directory', () {
+    final root = path.join('documents', 'nahpu');
+
+    expect(projectBackupDirectoryPaths(root, const ['uuid-a', 'uuid-b']), [
+      path.join(root, 'uuid-a', mediaDir),
+      path.join(root, 'uuid-a', associatedDataDir),
+      path.join(root, 'uuid-b', mediaDir),
+      path.join(root, 'uuid-b', associatedDataDir),
+    ]);
+  });
+
+  group('hasIdenticalFileContent', () {
+    late Directory tempDir;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('db_writer_test');
+    });
+
+    tearDown(() async {
+      if (tempDir.existsSync()) await tempDir.delete(recursive: true);
+    });
+
+    File write(String name, List<int> bytes) {
+      final file = File(path.join(tempDir.path, name));
+      file.writeAsBytesSync(bytes);
+      return file;
+    }
+
+    test('is false when the target does not exist', () async {
+      final source = write('source.bin', [1, 2, 3]);
+      final target = File(path.join(tempDir.path, 'missing.bin'));
+
+      expect(await hasIdenticalFileContent(source, target), isFalse);
+    });
+
+    test('is false when the lengths differ', () async {
+      final source = write('source.bin', [1, 2, 3]);
+      final target = write('target.bin', [1, 2]);
+
+      expect(await hasIdenticalFileContent(source, target), isFalse);
+    });
+
+    test('is false when the bytes differ at the same length', () async {
+      final source = write('source.bin', List.filled(64 * 1024, 7));
+      final target = write('target.bin', [...List.filled(64 * 1024 - 1, 7), 8]);
+
+      expect(await hasIdenticalFileContent(source, target), isFalse);
+    });
+
+    test('is true for byte-identical files', () async {
+      final bytes = List<int>.generate(96 * 1024, (index) => index % 256);
+      final source = write('source.bin', bytes);
+      final target = write('target.bin', bytes);
+
+      expect(await hasIdenticalFileContent(source, target), isTrue);
+    });
+
+    test('is true for two empty files', () async {
+      final source = write('source.bin', const []);
+      final target = write('target.bin', const []);
+
+      expect(await hasIdenticalFileContent(source, target), isTrue);
+    });
   });
 }

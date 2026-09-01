@@ -16,7 +16,7 @@ Mantenha a descrição do projeto concisa. Registre o contexto diário detalhado
 
 O `Export project` é o backup diário de campo. Ele é menor e mais rápido que um backup do banco de dados e consome menos bateria, e o `Merge project` o lê de volta em outro dispositivo, então um aparelho perdido ou quebrado custa no máximo um dia de trabalho. Escolha ZIP ou TAR.GZ para levar a mídia, ou uma exportação leve `JSON.GZ` quando o envio precisar ser pequeno.
 
-Reserve o `Backup database` para um checkpoint semanal e para o momento anterior a qualquer mesclagem. Ele copia a instalação inteira, e não um único projeto.
+Reserve o `Backup database` para um checkpoint semanal e para o momento anterior a qualquer mesclagem. Ele copia todos os projetos e todos os arquivos dos dados do aplicativo NAHPU, estejam eles vinculados a um projeto ou não. No campo, execute-o ocasionalmente, quando o consumo de bateria não for uma preocupação.
 
 ## Contexto do Darwin Core
 

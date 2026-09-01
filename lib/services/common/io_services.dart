@@ -13,7 +13,8 @@
 ///     ├── backup/                        # SQLite database backups (`nahpuBackupDir`)
 ///     │   └── nahpu_backup_YYYY-MM-DD-HH-MM-SS.sqlite3
 ///     ├── appMedia/                      # Global app media directory
-///     │   └── personnel/                 # Personnel photos/images
+///     │   ├── personnel/                 # Personnel photos/images
+///     │   └── template/                  # Shared template media (`templateMediaDirName`)
 ///     ├── UserConfigs/                   # User configuration directory (`userConfigDirName`)
 ///     │   └── fonts/                     # Custom user fonts (`userFontDirName`)
 ///     │   └── maps/                      # Custom user maps (`userMapDirName`)

@@ -374,10 +374,12 @@ class DbFileInputField extends StatelessWidget {
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.lg),
             child: Text(
-              'Replacing database overwrites every record and every media file in '
-              'NAHPU. Backing up first writes a full archive of your current '
-              'data, including all media, to the backup folder. It can take '
-              'several minutes on a large library.',
+              'Replacing the database replaces every record in NAHPU. Any media '
+              'or config file whose name matches one in the archive is '
+              'overwritten in place and cannot be recovered afterwards. '
+              'Backing up first writes a full archive of your current data, '
+              'including all media, to the backup folder. It can take several '
+              'minutes on a large library.',
               textAlign: TextAlign.center,
             ),
           ),
@@ -503,8 +505,9 @@ class DbWarningText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      'Replacing the database will delete all the current data. '
-      'Remember to backup your data before proceeding. Continue?',
+      'This replaces every record in NAHPU, and overwrites any media or '
+      'config file that matches one in the archive. It cannot be undone '
+      'without a backup. Continue?',
       textAlign: TextAlign.center,
     );
   }

@@ -694,9 +694,8 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
               ),
               const SizedBox(height: NahpuSpacing.md),
               Text(
-                'Unlinked files are no longer used by any record, such as '
-                'leftovers from deleted media or cancelled imports. Removing '
-                'them also deletes any empty folders they leave behind. Linked '
+                'Files no longer used by any record, such as '
+                'leftovers from deleted media or cancelled imports. Linked '
                 'files, databases and backups, custom fonts, map layers, and '
                 'files outside NAHPU-managed folders are not affected.',
                 style: Theme.of(context).textTheme.bodyMedium,
