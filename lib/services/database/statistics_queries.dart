@@ -26,12 +26,37 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     END
   ''';
 
-  static const _familyLabel = '''
+  /// Label expression for a taxon rank, falling back to a `No <rank>` bucket.
+  static String _taxonRankLabel(StatisticTaxonRank rank) {
+    if (rank == StatisticTaxonRank.species) return _speciesLabel;
+    final column = 'taxonomy.${rank.column}';
+    return '''
     CASE
-      WHEN trim(coalesce(taxonomy.taxonFamily, '')) = '' THEN 'No family'
-      ELSE trim(taxonomy.taxonFamily)
+      WHEN trim(coalesce($column, '')) = ''
+      THEN 'No ${rank.label.toLowerCase()}'
+      ELSE trim($column)
     END
   ''';
+  }
+
+  /// Scalar subquery counting the distinct taxa at [rank] across the specimens
+  /// recorded in a project. Takes one positional project UUID.
+  static String _taxonRankCount(StatisticTaxonRank rank, String alias) {
+    final value = rank == StatisticTaxonRank.species
+        ? _identifiedSpecies
+        : 'lower(trim(taxonomy.${rank.column}))';
+    final presence = rank == StatisticTaxonRank.species
+        ? ''
+        : "AND trim(coalesce(taxonomy.${rank.column}, '')) != ''";
+    return '''
+          (
+            SELECT COUNT(DISTINCT $value)
+            FROM specimen
+            INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
+            WHERE specimen.projectUuid = ?
+              $presence
+          ) AS $alias''';
+  }
 
   static const _siteLabel = '''
     CASE
@@ -220,8 +245,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
   }
 
   Stream<RecordStatisticTotals> watchRecordTotals(String projectUuid) {
-    return customSelect(
-      '''
+    final sql =
+        '''
         WITH RECURSIVE recorded_sites AS (
           SELECT DISTINCT coalesce(collEvent.siteID, specimenCoordinate.siteID) AS id
           FROM specimen
@@ -265,19 +290,11 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           (SELECT COUNT(*) FROM recorded_sites) AS sampled_site_count,
           (SELECT COUNT(*) FROM collEvent WHERE projectUuid = ?) AS event_count,
           (SELECT COUNT(*) FROM specimen WHERE projectUuid = ?) AS specimen_count,
-          (
-            SELECT COUNT(DISTINCT $_identifiedSpecies)
-            FROM specimen
-            INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
-            WHERE specimen.projectUuid = ?
-          ) AS species_count,
-          (
-            SELECT COUNT(DISTINCT lower(trim(taxonomy.taxonFamily)))
-            FROM specimen
-            INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
-            WHERE specimen.projectUuid = ?
-              AND trim(coalesce(taxonomy.taxonFamily, '')) != ''
-          ) AS family_count,
+${_taxonRankCount(StatisticTaxonRank.taxonClass, 'class_count')},
+${_taxonRankCount(StatisticTaxonRank.order, 'order_count')},
+${_taxonRankCount(StatisticTaxonRank.family, 'family_count')},
+${_taxonRankCount(StatisticTaxonRank.genus, 'genus_count')},
+${_taxonRankCount(StatisticTaxonRank.species, 'species_count')},
           (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count,
           (
             SELECT MIN(coordinate.elevationInMeter)
@@ -312,8 +329,15 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
           (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,
           (SELECT COUNT(DISTINCT day) FROM capture_days) AS total_capture_days
-      ''',
-      variables: List.generate(15, (_) => Variable(projectUuid)),
+      ''';
+    // Every placeholder in this query is the project UUID, so the count is read
+    // back off the statement instead of being kept in sync by hand. Keep it
+    // that way: a fragment carrying a literal `?` (such as `_sexLabel`) would
+    // inflate this count.
+    final placeholderCount = '?'.allMatches(sql).length;
+    return customSelect(
+      sql,
+      variables: List.filled(placeholderCount, Variable(projectUuid)),
       readsFrom: {
         db.project,
         db.site,
@@ -329,8 +353,11 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         sampledSiteCount: row.read<int>('sampled_site_count'),
         eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
-        speciesCount: row.read<int>('species_count'),
+        classCount: row.read<int>('class_count'),
+        orderCount: row.read<int>('order_count'),
         familyCount: row.read<int>('family_count'),
+        genusCount: row.read<int>('genus_count'),
+        speciesCount: row.read<int>('species_count'),
         narrativeCount: row.read<int>('narrative_count'),
         minimumRecordedElevationInMeter: row.readNullable<double>(
           'minimum_recorded_elevation',
@@ -461,7 +488,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       variables.add(Variable(request.siteId!));
     }
 
-    final label = _specimenDimension(request.group);
+    final label = _specimenDimension(request);
     final series = switch (request.breakdown) {
       StatisticBreakdown.sex => _sexLabel,
       StatisticBreakdown.lifeStage => _lifeStageLabel,
@@ -553,17 +580,18 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     );
   }
 
-  String _specimenDimension(StatisticGroup group) => switch (group) {
-    StatisticGroup.species => _speciesLabel,
-    StatisticGroup.family => _familyLabel,
-    StatisticGroup.site => _siteLabel,
-    StatisticGroup.date => _dateLabel,
-    StatisticGroup.method => _methodLabel,
-    StatisticGroup.sex => _sexLabel,
-    StatisticGroup.lifeStage => _lifeStageLabel,
-    StatisticGroup.partType || StatisticGroup.partTreatment =>
-      throw ArgumentError('Part group used for specimen statistics'),
-  };
+  String _specimenDimension(StatisticRequest request) =>
+      switch (request.group) {
+        StatisticGroup.species => _speciesLabel,
+        StatisticGroup.taxonRank => _taxonRankLabel(request.resolvedRank),
+        StatisticGroup.site => _siteLabel,
+        StatisticGroup.date => _dateLabel,
+        StatisticGroup.method => _methodLabel,
+        StatisticGroup.sex => _sexLabel,
+        StatisticGroup.lifeStage => _lifeStageLabel,
+        StatisticGroup.partType || StatisticGroup.partTreatment =>
+          throw ArgumentError('Part group used for specimen statistics'),
+      };
 
   _StatisticsSql _spatialStatisticsSql(SpatialStatisticRequest request) {
     const coordinateColumns = '''
@@ -604,7 +632,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         };
       case SpatialStatisticKind.family:
         sql = _spatialCountSql(
-          'COUNT(DISTINCT $_familyLabel)',
+          'COUNT(DISTINCT ${_taxonRankLabel(StatisticTaxonRank.family)})',
           coordinateColumns,
           taxonomy: true,
         );

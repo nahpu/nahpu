@@ -163,8 +163,11 @@ class AppAbout extends StatelessWidget {
             applicationIcon: const Icon(Icons.info_outline),
             children: [
               Text(
-                'Rethinking species inventories in the digital age',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Rethinking biodiversity inventories in the digital age',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Merriweather',
+                ),
               ),
               const SizedBox(height: 8),
               const Text(

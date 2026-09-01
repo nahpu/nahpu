@@ -334,7 +334,7 @@ class _RecordStatisticTile extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    kind.icon,
+                    kind.icon!,
                     size: NahpuControlSize.iconSmall,
                     color: labelColor,
                   ),
@@ -427,6 +427,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
   StatisticFilterOption? _speciesFilter;
   late StatisticMeasure _measure;
   late StatisticGroup _group;
+  late StatisticTaxonRank _rank;
   StatisticBreakdown? _breakdown;
   _DetailMode _detailMode = _DetailMode.chart;
 
@@ -435,6 +436,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     super.initState();
     _measure = widget.startingSelection.measure;
     _group = widget.startingSelection.group;
+    _rank =
+        widget.startingSelection.rank ?? StatisticTaxonRank.defaultGroupable;
     _breakdown = widget.startingSelection.breakdown;
   }
 
@@ -458,6 +461,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       projectUuid: projectUuid,
       measure: _measure,
       group: _group,
+      rank: _usesTaxonRank ? _rank : null,
       breakdown: _breakdown,
       siteId: _usesSiteFilter ? _siteFilter?.id : null,
       speciesId: _usesSpeciesFilter ? _speciesFilter?.id : null,
@@ -546,6 +550,21 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 });
                               },
                             ),
+                            if (_usesTaxonRank) ...[
+                              const SizedBox(height: 12),
+                              _StatisticControl<StatisticTaxonRank>(
+                                key: const ValueKey(
+                                  'statistics-taxon-rank-control',
+                                ),
+                                label: 'Taxon rank',
+                                values: StatisticTaxonRank.groupable,
+                                selected: _rank,
+                                valueLabel: (value) => value.label,
+                                onSelected: (value) {
+                                  setState(() => _rank = value);
+                                },
+                              ),
+                            ],
                             if (_canBreakDown) ...[
                               const SizedBox(height: 12),
                               _BreakdownControl(
@@ -660,6 +679,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                             data: rows,
                                             measure: request.measure,
                                             group: request.group,
+                                            rank: request.rank,
                                             usePieByDefault:
                                                 _shouldUseStandalonePieChart(
                                                   request,
@@ -676,6 +696,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                           data: rows,
                                           measure: request.measure,
                                           group: request.group,
+                                          rank: request.rank,
                                           breakdown: request.breakdown,
                                           height: constraints.maxHeight,
                                           fitHeight: true,
@@ -686,7 +707,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                       );
                                       return StatisticDataTable(
                                         rows: tableRows,
-                                        categoryLabel: request.group.label,
+                                        categoryLabel: request.categoryLabel,
                                         seriesLabel: request.seriesLabel,
                                         countLabel: request.measure.countLabel,
                                         onExport: tableRows.isEmpty
@@ -700,7 +721,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                     ),
                                                 rows: tableRows,
                                                 categoryLabel:
-                                                    request.group.label,
+                                                    request.categoryLabel,
                                                 seriesLabel:
                                                     request.seriesLabel,
                                                 countLabel:
@@ -731,6 +752,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     );
   }
 
+  bool get _usesTaxonRank => _group == StatisticGroup.taxonRank;
+
   bool get _usesSiteFilter =>
       _measure == StatisticMeasure.specimens &&
       _group == StatisticGroup.species;
@@ -753,6 +776,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     setState(() {
       _measure = selection.measure;
       _group = selection.group;
+      _rank = selection.rank ?? _rank;
       _breakdown = selection.breakdown;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -834,8 +858,8 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _SummaryGroup(
-          key: const ValueKey('full-screen-record-stat-records'),
-          title: 'Records',
+          key: const ValueKey('full-screen-record-stat-record-summary'),
+          title: 'Record summary',
           children: [
             _SummaryMetric(
               key: RecordMetricKind.specimens.fullScreenKey,
@@ -844,27 +868,10 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
               emphasis: true,
             ),
             _SummaryMetric(
-              key: RecordMetricKind.species.fullScreenKey,
-              kind: RecordMetricKind.species,
-              value: totals.speciesCount.toString(),
-            ),
-            _SummaryMetric(
-              key: RecordMetricKind.families.fullScreenKey,
-              kind: RecordMetricKind.families,
-              value: totals.familyCount.toString(),
-            ),
-            _SummaryMetric(
               key: RecordMetricKind.narratives.fullScreenKey,
               kind: RecordMetricKind.narratives,
               value: totals.narrativeCount.toString(),
             ),
-          ],
-        ),
-        const SizedBox(height: NahpuSpacing.md),
-        _SummaryGroup(
-          key: const ValueKey('full-screen-record-stat-sampling'),
-          title: 'Sampling',
-          children: [
             _SummaryMetric(
               key: RecordMetricKind.recordedSites.fullScreenKey,
               kind: RecordMetricKind.recordedSites,
@@ -907,6 +914,38 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
                 totals.maximumSampledElevationInMeter,
               ),
               span: 2,
+            ),
+          ],
+        ),
+        const SizedBox(height: NahpuSpacing.md),
+        _SummaryGroup(
+          key: const ValueKey('full-screen-record-stat-taxonomy'),
+          title: 'Taxonomic breakdown',
+          children: [
+            _SummaryMetric(
+              key: RecordMetricKind.classes.fullScreenKey,
+              kind: RecordMetricKind.classes,
+              value: totals.classCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.orders.fullScreenKey,
+              kind: RecordMetricKind.orders,
+              value: totals.orderCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.families.fullScreenKey,
+              kind: RecordMetricKind.families,
+              value: totals.familyCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.genera.fullScreenKey,
+              kind: RecordMetricKind.genera,
+              value: totals.genusCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.species.fullScreenKey,
+              kind: RecordMetricKind.species,
+              value: totals.speciesCount.toString(),
             ),
           ],
         ),
@@ -1063,7 +1102,7 @@ class _SummaryMetric extends StatelessWidget {
           children: [
             if (kind.hasIcon) ...[
               Icon(
-                kind.icon,
+                kind.icon!,
                 size: NahpuControlSize.iconMedium,
                 color: foregroundColor,
               ),
@@ -1157,6 +1196,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
       projectUuid: projectUuid,
       measure: definition.selection.measure,
       group: definition.selection.group,
+      rank: definition.selection.rank,
       limit: isAdaptiveChart ? null : topStatisticCount,
     );
     final value = ref.watch(statisticDataProvider(request));
@@ -1187,6 +1227,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                     data: rows.take(topStatisticCount).toList(growable: false),
                     measure: request.measure,
                     group: request.group,
+                    rank: request.rank,
                     usePieByDefault: _shouldUseStandalonePieChart(
                       request,
                       rows,
@@ -1202,6 +1243,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                   data: rows.take(topStatisticCount).toList(growable: false),
                   measure: request.measure,
                   group: request.group,
+                  rank: request.rank,
                   compact: true,
                   height: 280,
                 );
@@ -1356,7 +1398,8 @@ const _summaryDefinitions = [
     title: 'Specimens by family',
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
-      group: StatisticGroup.family,
+      group: StatisticGroup.taxonRank,
+      rank: StatisticTaxonRank.family,
     ),
   ),
   _SummaryDefinition(

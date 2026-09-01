@@ -2,7 +2,7 @@ enum StatisticMeasure { specimens, species, partQuantity }
 
 enum StatisticGroup {
   species,
-  family,
+  taxonRank,
   site,
   date,
   method,
@@ -10,6 +10,50 @@ enum StatisticGroup {
   lifeStage,
   partType,
   partTreatment,
+}
+
+/// Taxonomic ranks reported by the record summary and by the taxon rank
+/// grouping, declared from the highest rank to the lowest.
+///
+/// This mirrors `TaxonRank` in `services/projects/taxonomy_services.dart`, but
+/// stays separate so this types library keeps its database and provider
+/// imports out.
+enum StatisticTaxonRank {
+  taxonClass(label: 'Class', pluralLabel: 'Classes', column: 'taxonClass'),
+  order(label: 'Order', pluralLabel: 'Orders', column: 'taxonOrder'),
+  family(label: 'Family', pluralLabel: 'Families', column: 'taxonFamily'),
+  genus(label: 'Genus', pluralLabel: 'Genera', column: 'genus'),
+  species(label: 'Species', pluralLabel: 'Species');
+
+  const StatisticTaxonRank({
+    required this.label,
+    required this.pluralLabel,
+    this.column,
+  });
+
+  final String label;
+  final String pluralLabel;
+
+  /// Column in the `taxonomy` table that stores this rank.
+  ///
+  /// Species has none: it is derived from genus plus specific epithet, so the
+  /// queries build it from both columns instead.
+  final String? column;
+
+  String get fileSlug => label.toLowerCase();
+
+  /// Ranks offered by the taxon rank picker.
+  ///
+  /// Species is left out because [StatisticGroup.species] already covers it and
+  /// is the only group that carries the site filter and the breakdowns.
+  static const List<StatisticTaxonRank> groupable = [
+    taxonClass,
+    order,
+    family,
+    genus,
+  ];
+
+  static const StatisticTaxonRank defaultGroupable = family;
 }
 
 enum StatisticBreakdown { sex, lifeStage }
@@ -38,7 +82,7 @@ extension StatisticMeasureLabels on StatisticMeasure {
   List<StatisticGroup> groups({required bool hasLifeStage}) => switch (this) {
     StatisticMeasure.specimens => [
       StatisticGroup.species,
-      StatisticGroup.family,
+      StatisticGroup.taxonRank,
       StatisticGroup.site,
       StatisticGroup.date,
       StatisticGroup.method,
@@ -46,7 +90,7 @@ extension StatisticMeasureLabels on StatisticMeasure {
       if (hasLifeStage) StatisticGroup.lifeStage,
     ],
     StatisticMeasure.species => [
-      StatisticGroup.family,
+      StatisticGroup.taxonRank,
       StatisticGroup.site,
       StatisticGroup.date,
       StatisticGroup.method,
@@ -63,7 +107,7 @@ extension StatisticMeasureLabels on StatisticMeasure {
 extension StatisticGroupLabels on StatisticGroup {
   String get label => switch (this) {
     StatisticGroup.species => 'Species',
-    StatisticGroup.family => 'Family',
+    StatisticGroup.taxonRank => 'Taxon rank',
     StatisticGroup.site => 'Site',
     StatisticGroup.date => 'Date',
     StatisticGroup.method => 'Method',
@@ -75,7 +119,7 @@ extension StatisticGroupLabels on StatisticGroup {
 
   String get fileSlug => switch (this) {
     StatisticGroup.species => 'species',
-    StatisticGroup.family => 'family',
+    StatisticGroup.taxonRank => 'taxon-rank',
     StatisticGroup.site => 'site',
     StatisticGroup.date => 'date',
     StatisticGroup.method => 'method',
@@ -88,6 +132,13 @@ extension StatisticGroupLabels on StatisticGroup {
   bool get displaysSpeciesCategories => this == StatisticGroup.species;
 }
 
+/// Whether category labels for [group] and [rank] are scientific names, and so
+/// are rendered in italics.
+bool italicizesCategories(StatisticGroup? group, StatisticTaxonRank? rank) =>
+    (group?.displaysSpeciesCategories ?? false) ||
+    rank == StatisticTaxonRank.genus ||
+    rank == StatisticTaxonRank.species;
+
 extension StatisticBreakdownLabels on StatisticBreakdown {
   String get label => switch (this) {
     StatisticBreakdown.sex => 'Sex',
@@ -99,11 +150,15 @@ class StatisticSelection {
   const StatisticSelection({
     required this.measure,
     required this.group,
+    this.rank,
     this.breakdown,
   });
 
   final StatisticMeasure measure;
   final StatisticGroup group;
+
+  /// Rank to group by when [group] is [StatisticGroup.taxonRank].
+  final StatisticTaxonRank? rank;
   final StatisticBreakdown? breakdown;
 }
 
@@ -131,6 +186,7 @@ class StatisticRequest {
     required this.projectUuid,
     required this.measure,
     required this.group,
+    this.rank,
     this.breakdown,
     this.siteId,
     this.speciesId,
@@ -140,21 +196,39 @@ class StatisticRequest {
   final String projectUuid;
   final StatisticMeasure measure;
   final StatisticGroup group;
+
+  /// Rank to group by when [group] is [StatisticGroup.taxonRank].
+  final StatisticTaxonRank? rank;
   final StatisticBreakdown? breakdown;
   final int? siteId;
   final int? speciesId;
   final int? limit;
 
+  /// Rank the request groups by, falling back to the picker default.
+  StatisticTaxonRank get resolvedRank =>
+      rank ?? StatisticTaxonRank.defaultGroupable;
+
+  /// Label for the grouped dimension.
+  ///
+  /// Taxon rank groupings read as the rank itself, so a chart title, a table
+  /// header, and an export file name all say `Family` rather than `Taxon rank`.
+  String get categoryLabel =>
+      group == StatisticGroup.taxonRank ? resolvedRank.label : group.label;
+
+  String get _categorySlug => group == StatisticGroup.taxonRank
+      ? resolvedRank.fileSlug
+      : group.fileSlug;
+
   String title({String? siteLabel, String? speciesLabel}) {
     if (measure == StatisticMeasure.partQuantity) {
       final suffix = speciesLabel == null ? '' : ' for $speciesLabel';
-      return 'Part quantity by ${group.label.toLowerCase()}$suffix';
+      return 'Part quantity by ${categoryLabel.toLowerCase()}$suffix';
     }
     final breakdownSuffix = breakdown == null
         ? ''
         : ' and ${breakdown!.label.toLowerCase()}';
     final siteSuffix = siteLabel == null ? '' : ' at $siteLabel';
-    return '${measure.label} by ${group.label.toLowerCase()}'
+    return '${measure.label} by ${categoryLabel.toLowerCase()}'
         '$breakdownSuffix$siteSuffix';
   }
 
@@ -162,7 +236,7 @@ class StatisticRequest {
     final breakdownSlug = breakdown == null
         ? ''
         : '-by-${breakdown!.name.replaceAll('lifeStage', 'life-stage')}';
-    return '${measure.fileSlug}-by-${group.fileSlug}$breakdownSlug';
+    return '${measure.fileSlug}-by-$_categorySlug$breakdownSlug';
   }
 
   String? get seriesLabel => breakdown?.label;
@@ -174,6 +248,7 @@ class StatisticRequest {
           other.projectUuid == projectUuid &&
           other.measure == measure &&
           other.group == group &&
+          other.rank == rank &&
           other.breakdown == breakdown &&
           other.siteId == siteId &&
           other.speciesId == speciesId &&
@@ -184,6 +259,7 @@ class StatisticRequest {
     projectUuid,
     measure,
     group,
+    rank,
     breakdown,
     siteId,
     speciesId,
@@ -207,8 +283,11 @@ class RecordStatisticTotals {
     required this.sampledSiteCount,
     required this.eventCount,
     required this.specimenCount,
-    required this.speciesCount,
+    required this.classCount,
+    required this.orderCount,
     required this.familyCount,
+    required this.genusCount,
+    required this.speciesCount,
     required this.narrativeCount,
     this.minimumRecordedElevationInMeter,
     this.maximumRecordedElevationInMeter,
@@ -226,8 +305,14 @@ class RecordStatisticTotals {
 
   final int eventCount;
   final int specimenCount;
-  final int speciesCount;
+
+  /// Distinct taxa at each rank across the specimens recorded in the project.
+  final int classCount;
+  final int orderCount;
   final int familyCount;
+  final int genusCount;
+  final int speciesCount;
+
   final int narrativeCount;
 
   /// Elevation range across every site recorded in the project.

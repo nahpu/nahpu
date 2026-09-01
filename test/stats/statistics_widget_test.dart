@@ -193,8 +193,41 @@ void main() {
       find.text('Record totals and top five counts by category.'),
       findsOneWidget,
     );
-    expect(find.text('Records'), findsOneWidget);
-    expect(find.text('Sampling'), findsOneWidget);
+    expect(find.text('Records'), findsNothing);
+    expect(find.text('Sampling'), findsNothing);
+    expect(find.text('Record summary'), findsOneWidget);
+    expect(find.text('Taxonomic breakdown'), findsOneWidget);
+    for (final kind in const [
+      RecordMetricKind.specimens,
+      RecordMetricKind.narratives,
+    ]) {
+      expect(
+        find.descendant(
+          of: find.byKey(
+            const ValueKey('full-screen-record-stat-record-summary'),
+          ),
+          matching: find.byKey(kind.fullScreenKey),
+        ),
+        findsOneWidget,
+        reason: '${kind.label} belongs to the record summary group',
+      );
+    }
+    for (final kind in const [
+      RecordMetricKind.classes,
+      RecordMetricKind.orders,
+      RecordMetricKind.families,
+      RecordMetricKind.genera,
+      RecordMetricKind.species,
+    ]) {
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('full-screen-record-stat-taxonomy')),
+          matching: find.text(kind.label),
+        ),
+        findsOneWidget,
+        reason: '${kind.label} belongs to the taxonomic breakdown',
+      );
+    }
     expect(find.text('Recorded elevation'), findsOneWidget);
     expect(find.text('Sampled elevation'), findsOneWidget);
     expect(find.text('120.5–350.25 m'), findsNWidgets(2));
@@ -293,7 +326,7 @@ void main() {
     expect(find.text('Capture days'), findsOneWidget);
   });
 
-  testWidgets('wide summary stacks records above sampling at full width', (
+  testWidgets('wide summary stacks records above taxonomy at full width', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(
@@ -308,43 +341,57 @@ void main() {
     }
 
     final records = tester.getRect(
-      find.byKey(const ValueKey('full-screen-record-stat-records')),
+      find.byKey(const ValueKey('full-screen-record-stat-record-summary')),
     );
-    final sampling = tester.getRect(
-      find.byKey(const ValueKey('full-screen-record-stat-sampling')),
+    final taxonomy = tester.getRect(
+      find.byKey(const ValueKey('full-screen-record-stat-taxonomy')),
     );
-    expect(records.width, closeTo(sampling.width, 0.1));
-    expect(sampling.top, greaterThanOrEqualTo(records.bottom));
-    final specimens = tester.getRect(
-      find.byKey(RecordMetricKind.specimens.fullScreenKey),
-    );
-    final narratives = tester.getRect(
-      find.byKey(RecordMetricKind.narratives.fullScreenKey),
-    );
-    final samplingRows = <double, List<Rect>>{};
-    for (final kind in const [
-      RecordMetricKind.recordedSites,
-      RecordMetricKind.sampledSites,
-      RecordMetricKind.events,
-      RecordMetricKind.captureDays,
-      RecordMetricKind.projectDays,
-      RecordMetricKind.recordedElevation,
-      RecordMetricKind.sampledElevation,
+    expect(records.width, closeTo(taxonomy.width, 0.1));
+    expect(taxonomy.top, greaterThanOrEqualTo(records.bottom));
+    for (final group in const <List<RecordMetricKind>>[
+      [
+        RecordMetricKind.specimens,
+        RecordMetricKind.narratives,
+        RecordMetricKind.recordedSites,
+        RecordMetricKind.sampledSites,
+        RecordMetricKind.events,
+        RecordMetricKind.captureDays,
+        RecordMetricKind.projectDays,
+        RecordMetricKind.recordedElevation,
+        RecordMetricKind.sampledElevation,
+      ],
+      [
+        RecordMetricKind.classes,
+        RecordMetricKind.orders,
+        RecordMetricKind.families,
+        RecordMetricKind.genera,
+        RecordMetricKind.species,
+      ],
     ]) {
-      final rect = tester.getRect(find.byKey(kind.fullScreenKey));
-      samplingRows.putIfAbsent(rect.top, () => <Rect>[]).add(rect);
-    }
-    for (final row in samplingRows.values) {
+      final gridRows = <double, List<Rect>>{};
+      for (final kind in group) {
+        final rect = tester.getRect(find.byKey(kind.fullScreenKey));
+        gridRows.putIfAbsent(rect.top, () => <Rect>[]).add(rect);
+      }
       expect(
-        row.map((rect) => rect.left).reduce(min),
-        closeTo(specimens.left, 0.1),
-        reason: 'every sampling row should start at the records grid edge',
+        gridRows.length,
+        greaterThan(1),
+        reason: '${group.first.label} group should wrap onto several rows',
       );
-      expect(
-        row.map((rect) => rect.right).reduce(max),
-        closeTo(narratives.right, 0.1),
-        reason: 'every sampling row should fill the group width',
-      );
+      final left = gridRows.values.first.map((rect) => rect.left).reduce(min);
+      final right = gridRows.values.first.map((rect) => rect.right).reduce(max);
+      for (final row in gridRows.values) {
+        expect(
+          row.map((rect) => rect.left).reduce(min),
+          closeTo(left, 0.1),
+          reason: 'every row should start at the grid edge',
+        );
+        expect(
+          row.map((rect) => rect.right).reduce(max),
+          closeTo(right, 0.1),
+          reason: 'every row should fill the group width',
+        );
+      }
     }
     for (final kind in const [
       RecordMetricKind.recordedElevation,
@@ -359,7 +406,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(kind.fullScreenKey),
-          matching: find.byIcon(kind.icon),
+          matching: find.byIcon(kind.icon!),
         ),
         findsOneWidget,
         reason: '${kind.label} should keep its icon on the full-screen page',
@@ -367,13 +414,17 @@ void main() {
     }
     for (final kind in const [
       RecordMetricKind.specimens,
-      RecordMetricKind.species,
+      RecordMetricKind.classes,
+      RecordMetricKind.orders,
       RecordMetricKind.families,
+      RecordMetricKind.genera,
+      RecordMetricKind.species,
     ]) {
+      expect(kind.hasIcon, isFalse, reason: '${kind.label} declares no icon');
       expect(
         find.descendant(
           of: find.byKey(kind.fullScreenKey),
-          matching: find.byIcon(kind.icon),
+          matching: find.byType(Icon),
         ),
         findsNothing,
         reason: '${kind.label} is iconless on the dashboard, so also here',
@@ -460,6 +511,65 @@ void main() {
       expect(find.text('All species'), findsOneWidget);
     },
   );
+
+  testWidgets('taxon rank grouping picks a rank in the third row', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final groupControl = find.byKey(const ValueKey('statistics-group-control'));
+    final rankControl = find.byKey(
+      const ValueKey('statistics-taxon-rank-control'),
+    );
+    await tester.ensureVisible(groupControl);
+    expect(
+      find.descendant(of: groupControl, matching: find.text('Family')),
+      findsNothing,
+      reason: 'family is now reached through the taxon rank picker',
+    );
+    expect(rankControl, findsNothing);
+
+    await tester.tap(
+      find.descendant(of: groupControl, matching: find.text('Taxon rank')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(rankControl, findsOneWidget);
+    expect(
+      tester.getRect(rankControl).top,
+      greaterThan(tester.getRect(groupControl).bottom - 1),
+      reason: 'the rank picker sits in the row below Group by',
+    );
+    for (final rank in StatisticTaxonRank.groupable) {
+      expect(
+        find.descendant(of: rankControl, matching: find.text(rank.label)),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.descendant(
+        of: rankControl,
+        matching: find.text(StatisticTaxonRank.species.label),
+      ),
+      findsNothing,
+      reason: 'species keeps its own group chip',
+    );
+    expect(find.text('Specimens by family'), findsWidgets);
+
+    await tester.tap(
+      find.descendant(of: rankControl, matching: find.text('Order')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(find.text('Specimens by order'), findsOneWidget);
+  });
 
   testWidgets('detailed pie chart fills its card', (tester) async {
     await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
@@ -1117,14 +1227,18 @@ void _expectTileColors(
   expect(texts.last.style?.color, labelColor);
   expect(texts.last.textAlign, TextAlign.center);
 
-  final iconFinder = find.descendant(
-    of: tile,
-    matching: find.byIcon(kind.icon),
-  );
   if (!hasIcon) {
-    expect(iconFinder, findsNothing);
+    expect(kind.hasIcon, isFalse);
+    expect(
+      find.descendant(of: tile, matching: find.byType(Icon)),
+      findsNothing,
+    );
     return;
   }
+  final iconFinder = find.descendant(
+    of: tile,
+    matching: find.byIcon(kind.icon!),
+  );
   expect(tester.widget<Icon>(iconFinder).color, labelColor);
 }
 
@@ -1158,7 +1272,10 @@ void _expectRecordMetricValue(
     findsOneWidget,
   );
   expect(
-    find.descendant(of: metric, matching: find.byIcon(kind.icon)),
+    find.descendant(
+      of: metric,
+      matching: expectIcon ? find.byIcon(kind.icon!) : find.byType(Icon),
+    ),
     expectIcon ? findsOneWidget : findsNothing,
   );
 }

@@ -32,7 +32,8 @@ void main() {
           const StatisticRequest(
             projectUuid: 'project-a',
             measure: StatisticMeasure.specimens,
-            group: StatisticGroup.family,
+            group: StatisticGroup.taxonRank,
+            rank: StatisticTaxonRank.family,
           ),
         )
         .first;
@@ -45,6 +46,36 @@ void main() {
     expect(families.map((row) => (row.label, row.count)), [
       ('Vespertilionidae', 3),
       ('No family', 1),
+    ]);
+  });
+
+  test('taxon rank grouping covers every offered rank', () async {
+    Future<List<(String, int)>> countsFor(StatisticTaxonRank rank) async {
+      final rows = await query
+          .watchStatistics(
+            StatisticRequest(
+              projectUuid: 'project-a',
+              measure: StatisticMeasure.specimens,
+              group: StatisticGroup.taxonRank,
+              rank: rank,
+            ),
+          )
+          .first;
+      return rows.map((row) => (row.label, row.count)).toList();
+    }
+
+    expect(await countsFor(StatisticTaxonRank.taxonClass), [
+      ('Mammalia', 3),
+      ('No class', 1),
+    ]);
+    expect(await countsFor(StatisticTaxonRank.order), [
+      ('Chiroptera', 3),
+      ('No order', 1),
+    ]);
+    expect(await countsFor(StatisticTaxonRank.genus), [
+      ('Myotis', 2),
+      ('Eptesicus', 1),
+      ('No genus', 1),
     ]);
   });
 
@@ -381,8 +412,11 @@ void main() {
     expect(totals.sampledSiteCount, 1);
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
-    expect(totals.speciesCount, 2);
+    expect(totals.classCount, 1);
+    expect(totals.orderCount, 1);
     expect(totals.familyCount, 1);
+    expect(totals.genusCount, 2);
+    expect(totals.speciesCount, 2);
     expect(totals.narrativeCount, 1);
     expect(totals.minimumRecordedElevationInMeter, 120.5);
     expect(totals.maximumRecordedElevationInMeter, 350.25);
@@ -396,8 +430,11 @@ void main() {
     expect(otherProjectTotals.sampledSiteCount, 0);
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
-    expect(otherProjectTotals.speciesCount, 1);
+    expect(otherProjectTotals.classCount, 1);
+    expect(otherProjectTotals.orderCount, 1);
     expect(otherProjectTotals.familyCount, 1);
+    expect(otherProjectTotals.genusCount, 1);
+    expect(otherProjectTotals.speciesCount, 1);
     expect(otherProjectTotals.narrativeCount, 1);
     expect(otherProjectTotals.minimumRecordedElevationInMeter, equals(null));
     expect(otherProjectTotals.maximumRecordedElevationInMeter, equals(null));
@@ -440,8 +477,11 @@ void main() {
 
     final updatedTotals = await query.watchRecordTotals('project-a').first;
     expect(updatedTotals.specimenCount, 6);
-    expect(updatedTotals.speciesCount, 2);
+    expect(updatedTotals.classCount, 1);
+    expect(updatedTotals.orderCount, 1);
     expect(updatedTotals.familyCount, 2);
+    expect(updatedTotals.genusCount, 3);
+    expect(updatedTotals.speciesCount, 2);
     expect(updatedTotals.totalCaptureDays, 0);
   });
 
@@ -580,6 +620,8 @@ Future<void> _seedStatistics(Database db) async {
       .into(db.taxonomy)
       .insert(
         const TaxonomyCompanion(
+          taxonClass: Value('Mammalia'),
+          taxonOrder: Value('Chiroptera'),
           taxonFamily: Value('Vespertilionidae'),
           genus: Value('Myotis'),
           specificEpithet: Value('lucifugus'),
@@ -589,6 +631,8 @@ Future<void> _seedStatistics(Database db) async {
       .into(db.taxonomy)
       .insert(
         const TaxonomyCompanion(
+          taxonClass: Value('Mammalia'),
+          taxonOrder: Value('Chiroptera'),
           taxonFamily: Value('Vespertilionidae'),
           genus: Value('Eptesicus'),
           specificEpithet: Value('fuscus'),

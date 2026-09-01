@@ -6,17 +6,12 @@ import 'package:material_ui/material_ui.dart';
 /// Both surfaces read labels, icons, and widget keys from here so they cannot
 /// drift apart.
 enum RecordMetricKind {
-  specimens(
-    label: 'Specimens',
-    slug: 'specimens',
-    icon: Icons.inventory_2_outlined,
-  ),
-  species(label: 'Species', slug: 'species', icon: Icons.category_outlined),
-  families(
-    label: 'Families',
-    slug: 'families',
-    icon: Icons.account_tree_outlined,
-  ),
+  specimens(label: 'Specimens', slug: 'specimens'),
+  classes(label: 'Classes', slug: 'classes'),
+  orders(label: 'Orders', slug: 'orders'),
+  families(label: 'Families', slug: 'families'),
+  genera(label: 'Genera', slug: 'genera'),
+  species(label: 'Species', slug: 'species'),
   recordedSites(
     label: 'Recorded sites',
     slug: 'recorded-sites',
@@ -54,27 +49,20 @@ enum RecordMetricKind {
     icon: Icons.landscape_outlined,
   );
 
-  const RecordMetricKind({
-    required this.label,
-    required this.slug,
-    required this.icon,
-  });
+  const RecordMetricKind({required this.label, required this.slug, this.icon});
 
   final String label;
   final String slug;
-  final IconData icon;
 
-  /// Whether this metric is rendered with its icon.
+  /// Icon for this metric, or null when it is rendered without one.
   ///
-  /// The headline record counts lean on type scale and fill for emphasis, so
-  /// they stay iconless on both the dashboard panel and the full-screen
-  /// summary. Every other metric carries [icon].
-  bool get hasIcon => switch (this) {
-    RecordMetricKind.specimens ||
-    RecordMetricKind.species ||
-    RecordMetricKind.families => false,
-    _ => true,
-  };
+  /// The specimen headline and the taxonomic rank counts lean on type scale and
+  /// fill for emphasis, and the rank counts read as one ladder, so they stay
+  /// iconless on both the dashboard panel and the full-screen summary.
+  final IconData? icon;
+
+  /// Whether this metric is rendered with its [icon].
+  bool get hasIcon => icon != null;
 
   ValueKey<String> get dashboardKey => ValueKey('record-stat-$slug');
 
