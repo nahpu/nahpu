@@ -16,7 +16,7 @@ Jaga agar deskripsi proyek tetap ringkas. Catat konteks harian yang rinci di Nar
 
 `Export project` adalah cadangan lapangan harian. Ukurannya lebih kecil dan prosesnya lebih cepat daripada cadangan basis data serta lebih hemat baterai, dan `Merge project` membacanya kembali di perangkat lain, sehingga perangkat yang hilang atau rusak paling banyak menghabiskan satu hari kerja. Pilih ZIP atau TAR.GZ agar media ikut terbawa, atau ekspor ringan `JSON.GZ` bila unggahannya harus kecil.
 
-Simpan `Backup database` untuk pemeriksaan mingguan dan untuk saat sebelum penggabungan apa pun. Cadangan itu menyalin seluruh instalasi, bukan satu proyek saja.
+Simpan `Backup database` untuk pemeriksaan mingguan dan untuk saat sebelum penggabungan apa pun. Cadangan itu menyalin semua proyek dan setiap berkas di data aplikasi NAHPU, baik yang tertaut ke suatu proyek maupun tidak. Di lapangan, jalankan sesekali saja, saat pemakaian baterai bukan masalah.
 
 ## Konteks Darwin Core
 

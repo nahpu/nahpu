@@ -134,7 +134,7 @@ void main() {
     expect(find.textContaining('2 files · Test Project'), findsOneWidget);
     expect(find.text('Remove unlinked files'), findsOneWidget);
     expect(
-      find.textContaining('Unlinked files are no longer used by any record'),
+      find.textContaining('Files no longer used by any record'),
       findsOneWidget,
     );
     expect(find.textContaining('Remove 1 unlinked file'), findsOneWidget);

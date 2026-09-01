@@ -18,6 +18,7 @@ import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/media_queries.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
+import 'package:nahpu/services/templates/user_font_service.dart';
 import 'package:nahpu/services/templates/nested_list_service.dart';
 import 'package:nahpu/services/templates/dynamic_layout_service.dart';
 import 'package:nahpu/services/providers/database.dart';

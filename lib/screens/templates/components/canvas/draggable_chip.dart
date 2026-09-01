@@ -152,14 +152,6 @@ class DraggableChipState extends State<DraggableChip> {
   bool _contentSizeNotificationQueued = false;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.isCustom) {
-      _scheduleCanvasGoogleFontPrime();
-    }
-  }
-
-  @override
   void didUpdateWidget(covariant DraggableChip oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isSelected && !widget.isSelected) {
@@ -168,12 +160,6 @@ class DraggableChipState extends State<DraggableChip> {
     if (oldWidget.snapEnabled && !widget.snapEnabled) {
       _snapSession.reset();
       _snapResult = null;
-    }
-    if (!widget.isCustom) return;
-    if (oldWidget.fontFamily != widget.fontFamily ||
-        oldWidget.bold != widget.bold ||
-        oldWidget.italic != widget.italic) {
-      _scheduleCanvasGoogleFontPrime();
     }
   }
 
@@ -790,25 +776,6 @@ class DraggableChipState extends State<DraggableChip> {
       _dragLiveMm = snapResult.position;
       _snapResult = snapResult.hasGuide ? snapResult : null;
     });
-  }
-
-  void _scheduleCanvasGoogleFontPrime() {
-    if (!templateCanvasFontUsesGoogle(widget.fontFamily)) return;
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _loadCanvasGoogleFontIfNeeded(),
-    );
-  }
-
-  Future<void> _loadCanvasGoogleFontIfNeeded() async {
-    if (!mounted || !widget.isCustom) return;
-    try {
-      await preloadGoogleFontForTemplateCanvas(
-        widget.fontFamily,
-        widget.bold ? FontWeight.bold : FontWeight.normal,
-        widget.italic ? FontStyle.italic : FontStyle.normal,
-      );
-    } catch (_) {}
-    if (mounted) setState(() {});
   }
 }
 

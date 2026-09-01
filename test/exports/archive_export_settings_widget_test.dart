@@ -132,6 +132,30 @@ void main() {
     expect(find.text('Select directory'), findsOneWidget);
   });
 
+  testWidgets('backup settings hint at the field backup cadence', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ExportDbForm()),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(seconds: 1)),
+    );
+    await tester.pump();
+
+    expect(
+      find.textContaining('whether or not a project links to it'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('when battery use is not a concern'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('project export keeps matching archive controls', (tester) async {
     await tester.pumpWidget(
       UncontrolledProviderScope(

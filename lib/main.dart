@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:nahpu/src/rust/api/common.dart';
 import 'package:timezone/data/latest.dart';
 import 'package:nahpu/src/rust/frb_generated.dart';
@@ -10,18 +9,19 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/settings/config_services.dart';
+import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:fvp/fvp.dart' as fvp;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
   final prefs = await SharedPreferences.getInstance();
   await RustLib.init();
   final configService = ConfigDbService();
   await configService.initDb();
   await configService.migrate(prefs);
   await configService.loadDefaultDocumentPresetsOnce(prefs);
+  await registerUserFonts();
   pdfrxFlutterInitialize();
   fvp.registerWith(
     options: {

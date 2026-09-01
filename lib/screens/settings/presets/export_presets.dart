@@ -175,12 +175,24 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     }
   }
 
-  Future<void> _exportPresetsFile() async {
+  Future<void> _exportPresetsFile() => _exportPresets();
+
+  /// Writes presets to a JSON file.
+  ///
+  /// One preset and all presets share the same name-keyed envelope, so either
+  /// file imports through the same path.
+  Future<void> _exportPresets({String? onlyName}) async {
     try {
       final currentPresets = await ref.read(
         exportPresetNotifierProvider.future,
       );
-      if (currentPresets.isEmpty) {
+      final selected = onlyName == null
+          ? currentPresets
+          : {
+              for (final entry in currentPresets.entries)
+                if (entry.key == onlyName) entry.key: entry.value,
+            };
+      if (selected.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -191,13 +203,20 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
       final dir = await FilePickerServices().selectDir();
       if (dir == null) return;
 
-      final savePath = File(path.join(dir.path, 'nahpu_export_presets.json'));
-      await savePath.writeAsString(jsonEncode(currentPresets));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Exported presets to ${savePath.path}')),
-        );
-      }
+      final fileName = onlyName == null
+          ? 'nahpu_export_presets.json'
+          : 'preset_${_sanitizeFileStem(onlyName)}.json';
+      final savePath = File(path.join(dir.path, fileName));
+      await savePath.writeAsString(jsonEncode(selected));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Exported ${selected.length} preset'
+            '${selected.length == 1 ? '' : 's'} to ${savePath.path}',
+          ),
+        ),
+      );
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -205,6 +224,11 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
         );
       }
     }
+  }
+
+  String _sanitizeFileStem(String name) {
+    final safe = name.trim().replaceAll(RegExp(r'[^\w.\-]'), '_');
+    return safe.isEmpty ? 'preset' : safe;
   }
 
   @override
@@ -219,7 +243,10 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
             onCreate: _addNewPreset,
             onScanQr: _scanPresetQr,
             onImport: _importPresetsFile,
-            onExport: _exportPresetsFile,
+            onExportAll: _exportPresetsFile,
+            onExportSelected: _selectedPresetName == null
+                ? null
+                : () => _exportPresets(onlyName: _selectedPresetName),
           ),
         ],
       ),
@@ -234,6 +261,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       selectedPresetName: _selectedPresetName,
                       onPresetSelected: _selectPreset,
                       tabController: _tabController,
+                      onExportPreset: (name) => _exportPresets(onlyName: name),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -276,6 +304,8 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                         selectedPresetName: _selectedPresetName,
                         onPresetSelected: _selectPreset,
                         tabController: _tabController,
+                        onExportPreset: (name) =>
+                            _exportPresets(onlyName: name),
                       ),
                       PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
@@ -301,11 +331,13 @@ class PresetListColumn extends ConsumerStatefulWidget {
     required this.selectedPresetName,
     required this.onPresetSelected,
     required this.tabController,
+    this.onExportPreset,
   });
 
   final String? selectedPresetName;
   final void Function(String?, ExportPresetModel?) onPresetSelected;
   final TabController tabController;
+  final ValueChanged<String>? onExportPreset;
 
   @override
   ConsumerState<PresetListColumn> createState() => _PresetListColumnState();
@@ -358,10 +390,24 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                               subtitle: Text(
                                 '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Delete',
-                                onPressed: () => _deletePreset(name),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (widget.onExportPreset != null)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.file_upload_outlined,
+                                      ),
+                                      tooltip: 'Export this preset',
+                                      onPressed: () =>
+                                          widget.onExportPreset!(name),
+                                    ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: 'Delete',
+                                    onPressed: () => _deletePreset(name),
+                                  ),
+                                ],
                               ),
                               onTap: () {
                                 widget.onPresetSelected(name, preset);

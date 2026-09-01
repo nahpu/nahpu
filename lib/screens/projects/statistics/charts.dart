@@ -19,6 +19,7 @@ class StatisticBarChart extends StatelessWidget {
     required this.data,
     this.measure = StatisticMeasure.specimens,
     this.group,
+    this.rank,
     this.breakdown,
     this.compact = false,
     this.height = 300,
@@ -28,6 +29,9 @@ class StatisticBarChart extends StatelessWidget {
   final List<StatisticDatum> data;
   final StatisticMeasure measure;
   final StatisticGroup? group;
+
+  /// Rank the data is grouped by, when [group] is [StatisticGroup.taxonRank].
+  final StatisticTaxonRank? rank;
   final StatisticBreakdown? breakdown;
   final bool compact;
   final double height;
@@ -211,7 +215,7 @@ class StatisticBarChart extends StatelessWidget {
                       width: compact ? _compactSlotWidth : _detailSlotWidth,
                       child: _StatisticAxisLabel(
                         label: category.label,
-                        isSpecies: group?.displaysSpeciesCategories ?? false,
+                        isSpecies: italicizesCategories(group, rank),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ),
@@ -571,6 +575,7 @@ class StatisticChartSwitcher extends StatefulWidget {
     required this.data,
     required this.measure,
     required this.group,
+    this.rank,
     this.breakdown,
     required this.usePieByDefault,
     this.compact = false,
@@ -582,6 +587,9 @@ class StatisticChartSwitcher extends StatefulWidget {
   final List<StatisticDatum> data;
   final StatisticMeasure measure;
   final StatisticGroup group;
+
+  /// Rank the data is grouped by, when [group] is [StatisticGroup.taxonRank].
+  final StatisticTaxonRank? rank;
   final StatisticBreakdown? breakdown;
   final bool usePieByDefault;
   final bool compact;
@@ -603,6 +611,7 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.measure != widget.measure ||
         oldWidget.group != widget.group ||
+        oldWidget.rank != widget.rank ||
         oldWidget.breakdown != widget.breakdown ||
         oldWidget.usePieByDefault != widget.usePieByDefault ||
         !_sameData(oldWidget.data, widget.data)) {
@@ -675,6 +684,7 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
       data: widget.data,
       measure: widget.measure,
       group: widget.group,
+      rank: widget.rank,
       breakdown: widget.breakdown,
       compact: widget.compact,
       height: height,

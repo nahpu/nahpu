@@ -4,10 +4,12 @@ import 'package:nahpu/services/types/export.dart';
 
 class TemplateSettingsResult {
   const TemplateSettingsResult({
+    required this.name,
     required this.description,
     required this.isDuplex,
   });
 
+  final String name;
   final String description;
   final bool isDuplex;
 }
@@ -17,10 +19,14 @@ class TemplateSettingsDialog extends StatelessWidget {
     super.key,
     required this.template,
     required this.isDuplex,
+    this.takenNames = const {},
   });
 
   final Template template;
   final bool isDuplex;
+
+  /// Names of the other saved templates, used to reject a duplicate rename.
+  final Set<String> takenNames;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +37,7 @@ class TemplateSettingsDialog extends StatelessWidget {
         child: TemplateSettingsForm(
           template: template,
           isDuplex: isDuplex,
+          takenNames: takenNames,
           onCancel: () => Navigator.pop(context),
           onApply: (result) => Navigator.pop(context, result),
         ),
@@ -44,10 +51,14 @@ class TemplateSettingsBottomSheet extends StatelessWidget {
     super.key,
     required this.template,
     required this.isDuplex,
+    this.takenNames = const {},
   });
 
   final Template template;
   final bool isDuplex;
+
+  /// Names of the other saved templates, used to reject a duplicate rename.
+  final Set<String> takenNames;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +73,7 @@ class TemplateSettingsBottomSheet extends StatelessWidget {
             child: TemplateSettingsForm(
               template: template,
               isDuplex: isDuplex,
+              takenNames: takenNames,
               showTitle: true,
               onCancel: () => Navigator.pop(context),
               onApply: (result) => Navigator.pop(context, result),
@@ -80,6 +92,7 @@ class TemplateSettingsForm extends StatefulWidget {
     required this.isDuplex,
     required this.onCancel,
     required this.onApply,
+    this.takenNames = const {},
     this.showTitle = false,
   });
 
@@ -87,6 +100,9 @@ class TemplateSettingsForm extends StatefulWidget {
   final bool isDuplex;
   final VoidCallback onCancel;
   final ValueChanged<TemplateSettingsResult> onApply;
+
+  /// Names of the other saved templates, used to reject a duplicate rename.
+  final Set<String> takenNames;
   final bool showTitle;
 
   @override
@@ -94,12 +110,15 @@ class TemplateSettingsForm extends StatefulWidget {
 }
 
 class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
+  late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   late bool _isDuplex;
+  String? _nameError;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: widget.template.name);
     _descriptionController = TextEditingController(
       text: widget.template.description,
     );
@@ -108,8 +127,35 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  /// Returns the error for [value], or null when it is a usable name.
+  String? _validateName(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return 'Enter a name';
+    if (trimmed != widget.template.name &&
+        widget.takenNames.contains(trimmed)) {
+      return 'A template with this name already exists';
+    }
+    return null;
+  }
+
+  void _apply() {
+    final error = _validateName(_nameController.text);
+    if (error != null) {
+      setState(() => _nameError = error);
+      return;
+    }
+    widget.onApply(
+      TemplateSettingsResult(
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        isDuplex: _isDuplex,
+      ),
+    );
   }
 
   @override
@@ -137,11 +183,20 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
           ),
           const SizedBox(height: 16),
         ],
-        Text(
-          widget.template.name,
-          style: Theme.of(context).textTheme.titleMedium,
+        TextField(
+          controller: _nameController,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: 'Template name',
+            border: const OutlineInputBorder(),
+            errorText: _nameError,
+          ),
+          onChanged: (value) {
+            final error = _validateName(value);
+            if (error != _nameError) setState(() => _nameError = error);
+          },
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 12),
         Text(
           'Record type: ${_recordTypeLabel(widget.template.recordType)}',
           style: Theme.of(
@@ -181,12 +236,7 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
             TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: () => widget.onApply(
-                TemplateSettingsResult(
-                  description: _descriptionController.text.trim(),
-                  isDuplex: _isDuplex,
-                ),
-              ),
+              onPressed: _nameError == null ? _apply : null,
               child: const Text('Apply'),
             ),
           ],

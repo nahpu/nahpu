@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_exists_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_image_picker_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_name_dialogs.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_settings_dialog.dart';
 import 'package:nahpu/screens/templates/components/layout/template_border_panel.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_loading.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
-import 'package:nahpu/screens/templates/template_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/export/common.dart';
@@ -400,7 +400,6 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     _lastSavedJson = _templateWithCurrentPrintOptions().toJsonString();
     if (mounted) {
       setState(() => _loading = false);
-      unawaited(_warmCustomTextGoogleFonts());
     }
   }
 
@@ -541,22 +540,6 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     } catch (_) {}
   }
 
-  Future<void> _warmCustomTextGoogleFonts() async {
-    try {
-      for (final page in [_template.page1, _template.page2]) {
-        for (final ct in page.customTexts) {
-          if (!templateCanvasFontUsesGoogle(ct.fontFamily)) continue;
-          await preloadGoogleFontForTemplateCanvas(
-            ct.fontFamily,
-            ct.bold ? FontWeight.bold : FontWeight.normal,
-            ct.italic ? FontStyle.italic : FontStyle.normal,
-          );
-        }
-      }
-      if (mounted) setState(() {});
-    } catch (_) {}
-  }
-
   void _syncDuplexTabIndex() {
     if (!_isDuplex && _tabController.index != 0) {
       _tabController.index = 0;
@@ -621,12 +604,16 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
 
   Future<void> _openTemplateSettings() async {
     final isLargeScreen = MediaQuery.sizeOf(context).width >= 600;
+    final takenNames = _savedNames
+        .where((name) => name != _template.name)
+        .toSet();
     final result = isLargeScreen
         ? await showDialog<TemplateSettingsResult>(
             context: context,
             builder: (context) => TemplateSettingsDialog(
               template: _template,
               isDuplex: _isDuplex,
+              takenNames: takenNames,
             ),
           )
         : await showModalBottomSheet<TemplateSettingsResult>(
@@ -635,6 +622,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             builder: (context) => TemplateSettingsBottomSheet(
               template: _template,
               isDuplex: _isDuplex,
+              takenNames: takenNames,
             ),
           );
     if (result == null || !mounted) return;
@@ -644,11 +632,16 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   Future<void> _applyTemplateSettings(TemplateSettingsResult result) async {
     final descriptionChanged = result.description != _template.description;
     final duplexChanged = result.isDuplex != _isDuplex;
-    if (!descriptionChanged && !duplexChanged) return;
+    final previousName = _template.name;
+    final nameChanged = result.name != previousName;
+    if (!descriptionChanged && !duplexChanged && !nameChanged) return;
 
     _pushToUndo();
     setState(() {
-      _template = _template.copyWith(description: result.description);
+      _template = _template.copyWith(
+        name: result.name,
+        description: result.description,
+      );
       _isDuplex = result.isDuplex;
       if (duplexChanged && !_isDuplex) {
         _tabController.index = 0;
@@ -658,6 +651,33 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
     });
     if (duplexChanged) {
       await _documentSettings.setDuplex(result.isDuplex);
+    }
+    if (nameChanged) await _renameTemplate(previousName, result.name);
+  }
+
+  /// Renames the saved template, keeping layout blocks pointed at it.
+  ///
+  /// A template that has never been saved has nothing to rename, so the new
+  /// name is simply carried into the next save.
+  Future<void> _renameTemplate(String previousName, String newName) async {
+    if (!_savedNames.contains(previousName)) return;
+    try {
+      await const TemplatePresetManagementService().renameTemplate(
+        currentName: previousName,
+        newName: newName,
+      );
+      _savedNames = await _templateService.listTemplateNames();
+      if (!mounted) return;
+      setState(() {});
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Renamed to $newName')));
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _template = _template.copyWith(name: previousName));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Rename failed: $error')));
     }
   }
 
@@ -1201,6 +1221,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           merged = merged.copyWith(name: name);
         }
       }
+      // Repair fonts this installation cannot render before storing, so an
+      // imported template never carries an unavailable family.
+      final resolved = await resolveMissingTemplateFonts(context, ref, [
+        merged,
+      ]);
+      if (resolved == null || !mounted) return;
+      merged = resolved.single;
       await _templateService.saveTemplate(merged);
       if (!mounted) return;
       if (o != null) {

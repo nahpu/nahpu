@@ -14,6 +14,8 @@ import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/screens/templates/components/properties/text_format_options.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_fonts.dart';
+import 'package:nahpu/services/providers/fonts.dart';
+import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/screens/templates/components/dialogs/map_encoded_values_dialog.dart';
 import 'package:nahpu/services/types/birds.dart';
@@ -361,8 +363,15 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
     final scheme = Theme.of(context).colorScheme;
     final isPicture = isTemplatePictureTextType(ct.textType);
 
-    final fontKey = normalizeTemplateFontFamily(ct.fontFamily);
-    final fontDropdownIds = List<String>.from(kTemplateFontDropdownKeys);
+    final fontRegistry =
+        ref.watch(fontRegistryProvider).value ?? const FontRegistry();
+    final fontKey = normalizeTemplateFontFamily(
+      ct.fontFamily,
+      registry: fontRegistry,
+    );
+    final fontDropdownIds = templateFontDropdownKeys(fontRegistry);
+    // Keep a font this installation cannot render selectable, so opening a
+    // template does not silently rewrite it.
     if (fontKey.isNotEmpty && !fontDropdownIds.contains(fontKey)) {
       fontDropdownIds.add(fontKey);
     }
@@ -676,7 +685,20 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
                               for (final k in fontDropdownIds)
                                 DropdownMenuItem<String>(
                                   value: k,
-                                  child: Text(templateFontDropdownLabel(k)),
+                                  child: fontRegistry.isAvailable(k)
+                                      ? Text(templateFontDropdownLabel(k))
+                                      : Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_outlined,
+                                              size: 16,
+                                              color: scheme.error,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text('$k (not installed)'),
+                                          ],
+                                        ),
                                 ),
                             ],
                             onChanged: (v) {

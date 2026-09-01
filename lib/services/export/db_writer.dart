@@ -1,10 +1,13 @@
 //! This file contains the services to create and restore full NAHPU backups.
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show QueryRow;
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/db_services.dart';
+import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -81,19 +84,77 @@ bool isAssociatedBackupArchivePath(String relative) {
   if (lower.endsWith('.sqlite3') || lower.endsWith('.db')) return false;
   final segments = lower.split('/');
   return lower.startsWith('appmedia/') ||
-      lower.startsWith('userconfigs/maps/') ||
-      lower.startsWith('userconfigs/fonts/') ||
+      lower.startsWith('userconfigs/') ||
       (segments.length >= 3 &&
           (segments[1] == 'media' || segments[1] == 'associateddata'));
 }
 
+/// The installation-wide directories a full backup copies in their entirety.
+///
+/// These are walked rather than read from the database so that files the
+/// database no longer points at - an unlinked personnel photo, a font or map
+/// dropped in by hand - still survive a restore.
 @visibleForTesting
 List<String> globalBackupDirectoryPaths(String root) {
+  return [p.join(root, userConfigDirName), p.join(root, appMediaDirName)];
+}
+
+/// The per-project directories a full backup copies in their entirety.
+@visibleForTesting
+List<String> projectBackupDirectoryPaths(
+  String root,
+  Iterable<String> projectUuids,
+) {
   return [
-    p.join(root, userConfigDirName, userMapDirName),
-    p.join(root, userConfigDirName, userFontDirName),
-    p.join(root, appMediaDirName, templateMediaDirName),
+    for (final uuid in projectUuids) ...[
+      p.join(root, uuid, mediaDir),
+      p.join(root, uuid, associatedDataDir),
+    ],
   ];
+}
+
+/// Reports whether [target] already holds exactly the bytes in [source].
+///
+/// A restore writes to the archive's own relative paths, so an unchanged file
+/// would be rewritten byte for byte on every run. Comparing first skips that
+/// write without ever renaming a file out of the way.
+@visibleForTesting
+Future<bool> hasIdenticalFileContent(File source, File target) async {
+  if (!await target.exists()) return false;
+  if (await source.length() != await target.length()) return false;
+
+  final sourceChunks = StreamIterator(source.openRead());
+  final targetChunks = StreamIterator(target.openRead());
+  final sourceBuffer = BytesBuilder(copy: false);
+  final targetBuffer = BytesBuilder(copy: false);
+  try {
+    while (true) {
+      // The two streams chunk independently, so the buffers hold whatever has
+      // been read but not yet compared, and only the overlap is checked here.
+      while (sourceBuffer.isEmpty && await sourceChunks.moveNext()) {
+        sourceBuffer.add(sourceChunks.current);
+      }
+      while (targetBuffer.isEmpty && await targetChunks.moveNext()) {
+        targetBuffer.add(targetChunks.current);
+      }
+      if (sourceBuffer.isEmpty || targetBuffer.isEmpty) {
+        return sourceBuffer.isEmpty && targetBuffer.isEmpty;
+      }
+      final sourceBytes = sourceBuffer.takeBytes();
+      final targetBytes = targetBuffer.takeBytes();
+      final shared = sourceBytes.length < targetBytes.length
+          ? sourceBytes.length
+          : targetBytes.length;
+      for (var index = 0; index < shared; index++) {
+        if (sourceBytes[index] != targetBytes[index]) return false;
+      }
+      sourceBuffer.add(Uint8List.sublistView(sourceBytes, shared));
+      targetBuffer.add(Uint8List.sublistView(targetBytes, shared));
+    }
+  } finally {
+    await sourceChunks.cancel();
+    await targetChunks.cancel();
+  }
 }
 
 /// Creates a complete NAHPU backup archive.
@@ -217,16 +278,39 @@ class DbExport extends AppServices {
     return row.read<int>('count');
   }
 
+  /// Gathers every file the backup archive carries alongside the database.
+  ///
+  /// The managed directories are walked first so the archive is a copy of what
+  /// is on disk rather than only what the database points at. The row-driven
+  /// lists are folded in afterwards, keyed by path, to catch legacy records
+  /// pointing outside those directories without staging anything twice.
   Future<List<File>> _collectAssociatedFiles() async {
-    final files = <File>[...await MediaFinder(ref: ref).getAllMedia()];
-    files.addAll(await _collectAssociatedDataFiles());
     final root = await nahpuDocumentDir;
-    for (final directoryPath in globalBackupDirectoryPaths(root.path)) {
-      final directory = Directory(directoryPath);
-      await directory.create(recursive: true);
-      files.addAll(await _collectDirectoryFiles(directory));
+    final projects = await ProjectQuery(dbAccess).getAllProjects();
+    final directoryPaths = [
+      ...globalBackupDirectoryPaths(root.path),
+      ...projectBackupDirectoryPaths(
+        root.path,
+        projects.map((project) => project.uuid),
+      ),
+    ];
+
+    final byPath = <String, File>{};
+    for (final directoryPath in directoryPaths) {
+      for (final file in await _collectDirectoryFiles(
+        Directory(directoryPath),
+      )) {
+        byPath[p.normalize(file.path)] = file;
+      }
     }
-    return files.where((file) => file.existsSync()).toList();
+    final recorded = [
+      ...await MediaFinder(ref: ref).getAllMedia(),
+      ...await _collectAssociatedDataFiles(),
+    ];
+    for (final file in recorded) {
+      byPath.putIfAbsent(p.normalize(file.path), () => file);
+    }
+    return byPath.values.where((file) => file.existsSync()).toList();
   }
 
   Future<List<File>> _collectAssociatedDataFiles() async {
@@ -543,7 +627,12 @@ class DbWriter extends AppServices {
       final target = File(p.join(nahpuDir.path, relative));
       await target.parent.create(recursive: true);
       progress?.setCurrentItem(p.basename(entity.path));
-      await entity.copy(target.path);
+      // The archive path is used verbatim, so a file already sitting there is
+      // overwritten rather than gaining a renamed sibling, and an identical one
+      // is left alone.
+      if (!await hasIdenticalFileContent(entity, target)) {
+        await entity.copy(target.path);
+      }
       progress?.advanceItem();
     }
     return selectedPath;

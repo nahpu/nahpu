@@ -14,11 +14,11 @@ Close each field day with a project export, and keep the full database backup fo
 2. Review the record counts and any warnings about missing media.
 3. Choose ZIP or TAR.GZ to carry media, or turn on `Light export` for a small `JSON.GZ` when the upload must be tiny.
 4. Save it to storage separate from the working device, naming it with the project and date.
-5. Once a week, and always before merging a project, run `Backup database` instead for a copy of the whole installation.
+5. Once a week, and always before merging a project, run `Backup database` instead: it copies the whole installation, so keep it occasional in the field.
 {% /steps %}
 
 {% aside type="tip" %}
-A project export is the better daily habit: it is smaller, faster, and easier on the battery than a database backup, and `Merge project` restores it onto a replacement device if one is lost or broken. Darwin Core bundles and CSV exports cannot be imported back, so they never count as a backup.
+A project export is the better daily habit: it is smaller, faster, and easier on the battery than a database backup, and `Merge project` restores it onto a replacement device if one is lost or broken. A database backup copies whole directories, so it carries every file in NAHPU app data whether or not a project links to it; in the field, run it occasionally, when battery use is not a concern. Darwin Core bundles and CSV exports cannot be imported back, so they never count as a backup.
 {% /aside %}
 
 ## Learn more

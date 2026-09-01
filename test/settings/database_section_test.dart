@@ -42,7 +42,7 @@ void main() {
 
     expect(find.text('Backup database'), findsOneWidget);
     expect(
-      find.text('Full archive with all media (.zip or .tar.gz)'),
+      find.text('Full database backup of all records and settings'),
       findsOneWidget,
     );
   });

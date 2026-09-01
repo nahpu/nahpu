@@ -401,9 +401,19 @@ class _BackupSettingsCard extends StatelessWidget {
           Text('Backup archive', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           const Text(
-            'This creates a full NAHPU database backup, including all projects, '
-            'records, media, and user configs. '
-            'For a project-only backup, use Export project.',
+            'This creates a full NAHPU database backup. For a project-only '
+            'backup, use Export project.',
+          ),
+          const SizedBox(height: NahpuSpacing.md),
+          // A full backup copies whole folders, so the field routine it steers
+          // people away from is running this nightly on a battery.
+          Text(
+            'It copies all projects and every file in NAHPU app data, whether '
+            'or not a project links to it. Run it occasionally in the field, '
+            'when battery use is not a concern.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           SegmentedButton<DbArchiveFormat>(
