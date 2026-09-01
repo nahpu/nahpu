@@ -667,7 +667,7 @@ class BundleTaxonSelectionCard extends StatelessWidget {
                   subtitle: group == 'Mammals'
                       ? const Text('Bats are always included with mammals.')
                       : isRequiredBat
-                      ? const Text('Included with Mammals')
+                      ? const Text('Included with mammals.')
                       : null,
                   onChanged: isRequiredBat
                       ? null

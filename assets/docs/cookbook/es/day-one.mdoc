@@ -37,6 +37,20 @@ Puede agregar cualquier cantidad de coordenadas a un mismo sitio. Al recolectar 
 
 Los vocabularios controlados son listas predefinidas de términos que mantienen la consistencia en la entrada de datos, una práctica común en los sistemas de gestión de datos. Hicimos lo posible por alinear los términos predeterminados de NAHPU con los que usan los programas de gestión de colecciones, como [Arctos](https://arctosdb.org/), sin dejar de permitirle personalizarlos.
 
+En la aplicación aparecen como listas desplegables. Siempre que un campo se apoya en un vocabulario, como tipo de sitio, tipo de hábitat, datum de la coordenada, actividad principal, método de recolecta, rol del personal, estadio de vida, condición del espécimen, tipo y tratamiento de las partes y todos los campos de parásitos, usted elige de una lista en lugar de escribir texto libre. Así, la misma idea se escribe igual en todos los registros.
+
+Las listas son suyas para modificarlas y suyas para compartirlas. Agregue términos, quite los que no vaya a usar, defina un formato de mayúsculas y minúsculas, y ejecute `Export user configs` una vez para que todo el equipo importe los mismos vocabularios. Vea [Configuración](https://nahpu.app/es/usages/settings/).
+
+¿Y si ese intercambio nunca ocurrió? NAHPU igual se las arregla. Cada lista desplegable ofrece además los valores distintos que ya están almacenados en la base de datos, de modo que nada de lo que escribió un colega desaparece de la lista. Para incorporar esos valores a su propia configuración, abra el vocabulario en Settings y elija `Match database`. `Append missing` agrega solo lo que falta en su lista, y `Override all` reemplaza su lista con los valores que los datos realmente contienen. Un conjunto de datos puede reconstruir el vocabulario que lo produjo, que es justamente lo que necesitan los registros reproducibles.
+
+### Compartible por diseño, personalizable por usted
+
+Casi todo en NAHPU está hecho para viajar. Los registros del proyecto, la identidad del proyecto y su UUID, las listas de taxones, el personal, los vocabularios controlados, las preconfiguraciones de exportación, las plantillas de documentos, los diseños de impresión y los campos personalizados pueden exportarse y entregarse a otra persona. Configure NAHPU tal como trabaja su equipo, expórtelo una vez y todos los dispositivos parten de las mismas convenciones. Ese es el argumento de la reproducibilidad en una sola línea: quien recibe sus datos también puede recibir las reglas que los produjeron.
+
+Y la mayor parte está a un solo código QR de distancia. Sin cable, sin cuenta en la nube, sin señal. Levante un dispositivo, apunte el otro y listo, algo que importa cuando la barra de señal más cercana está a dos días de camino. Una identidad de proyecto, un sitio, un evento de recolecta, una coordenada, un taxón o una lista entera de taxones, sus campos personalizados, una preconfiguración de exportación y una plantilla de documento tienen, cada uno, `Show QR` en un dispositivo y `Scan QR` en el otro. Lo más grande, como los proyectos completos, los medios y la base de datos, sigue viajando como archivos, y NAHPU avisa cuando un registro es demasiado grande para un código y ofrece el archivo. Vea [Transferir un proyecto](https://nahpu.app/es/usages/export/project-transfer/).
+
+Hay una cosa que dejamos deliberadamente en casa: cómo se ve la aplicación en su pantalla. Su tema, sea `System`, `Light` o `Dark`, se queda en su dispositivo, igual que su elección de capa base del mapa. Leer una pantalla en una carpa oscura a las dos de la madrugada y leerla en un laboratorio bien iluminado son problemas distintos, y ningún archivo de proyecto debería opinar sobre cuál de los dos le toca. Comparta la ciencia; el estilo es suyo.
+
 ### Identificadores de campo
 
 La práctica de asignar un identificador único a un espécimen en el campo se divide en tres tipos: identificadores de campo personales, institucionales y específicos del proyecto.
@@ -63,11 +77,12 @@ La persona que cataloga el espécimen es el catalogador. Este rol da acceso a lo
 
     Al instalar NAHPU por primera vez, el botón de configuración estará visible
     en la pantalla de inicio. Si no lo ve o necesita configurarlo más tarde,
-    puede acceder a él desde el cajón de menú. El asistente de configuración le
-    guiará para elegir un identificador de campo y todos los campos de
-    vocabulario controlado que se pueden personalizar. También puede importar y
-    exportar esas configuraciones, por lo que la configuración solo debe
-    completarse una vez para todo el equipo.
+    puede acceder a él desde el cajón de menú. El asistente de configuración
+    recorre el formato de catálogo, los identificadores de campo y de tejido,
+    los vocabularios controlados de sitios, eventos de recolecta y especímenes,
+    y si usted recolecta parásitos. También puede importar y exportar esas
+    configuraciones, por lo que la configuración solo debe completarse una vez
+    para todo el equipo.
 
 2. **Crear un proyecto nuevo**
 
@@ -198,11 +213,11 @@ La persona que cataloga el espécimen es el catalogador. Este rol da acceso a lo
 
     Para exportar registros, vaya al menú del panel de control, indicado por el ícono de hamburguesa (tres líneas horizontales) en la esquina superior izquierda. Tiene varias opciones de exportación:
 
-    - Create a report. Genera una lista de especies, archivos multimedia y coordenadas de sitios en un formato delimitado (`.csv` o `.tsv`).
+    - `Export records`. Elija una preconfiguración de exportación tabular y escriba un tipo de registro en `.csv`, `.tsv`, `.xlsx` o `.json`. La preconfiguración define el tipo de registro, los encabezados y el mapeo de campos. Consulte [Exportar registros](https://nahpu.app/es/usages/export/export-records/).
 
-    - Bundle records. Crea un Darwin Core Archive, un Darwin Core Data Package o un NAHPU Data Package completo. Los Data Packages pueden utilizar TAR.GZ o ZIP. Consulte [Bundle records](https://nahpu.app/es/usages/export/export-bundles/).
+    - `Bundle records`. Crea un Darwin Core Archive, un Darwin Core Data Package o un NAHPU Data Package completo. Los Data Packages pueden utilizar TAR.GZ o ZIP. Consulte [Bundle records](https://nahpu.app/es/usages/export/export-bundles/).
 
-    - Export records. Permite elegir qué registros exportar. Esta opción admite formatos delimitados (`.csv` o `.tsv`).
+    - `Export documents`. Genera etiquetas, marbetes y otros documentos imprimibles en PDF a partir de una plantilla de documento y un diseño de impresión. Consulte [Exportar documentos](https://nahpu.app/es/usages/export/export-documents/).
 
     {% aside type="tip" %}
     NAHPU también puede exportar tablas de estadísticas resumidas e imágenes por separado de las exportaciones del proyecto. Esto es útil cuando necesita una tabla resumida o un conjunto de fotografías para un informe de financiamiento o de permiso. Las imágenes pueden exportarse en JPEG, PNG o WebP, con opciones para redimensionarlas y comprimirlas. Consulte [Exportar estadísticas](https://nahpu.app/es/usages/export/export-statistics/) y [Exportar imágenes](https://nahpu.app/es/usages/export/export-images/).

@@ -412,8 +412,8 @@ class _SettingsCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Use this archive to create a project backup, '
-            'transfer, or merge this project data to another device.',
+            'Use this archive as a project backup, or to transfer this '
+            'project to another device and merge it there.',
           ),
           const SizedBox(height: 20),
           if (!lightExport)

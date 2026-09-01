@@ -22,6 +22,7 @@ class ApplicationSettings extends ConsumerWidget {
             isNavigation: true,
             icon: Icons.color_lens_outlined,
             title: 'Theme',
+            label: 'Set light or dark appearance',
             value: themeValue.name.toSentenceCase(),
             onTap: () => Navigator.push(
               context,

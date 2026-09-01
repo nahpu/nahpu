@@ -129,7 +129,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.widgetWithText(OutlinedButton, 'Import settings'),
+      find.widgetWithText(OutlinedButton, 'Import user configs'),
       findsOneWidget,
     );
   });
@@ -143,7 +143,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.widgetWithText(OutlinedButton, 'Export settings'),
+      find.widgetWithText(OutlinedButton, 'Export user configs'),
       findsOneWidget,
     );
   });

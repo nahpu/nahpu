@@ -17,6 +17,8 @@ NAHPU is a Flutter app with Rust via Flutter Rust Bridge. Dart lives in `lib/`: 
 
 Use 2-space Dart formatting; run `dart format lib test integration_test`. Follow `flutter_lints` and `custom_lint`. Name Dart files in `snake_case.dart` and classes/widgets in `PascalCase`.
 
+Always use cross-platform filesystem paths throughout application code, tests, and tooling, including fixtures, mocks, native-library paths, temporary files, and assertions. In Dart/Flutter, import `package:path/path.dart` as `p` and use `p.join`, `p.basename`, `p.dirname`, and `p.extension`. In Rust, use `std::path::Path` and `PathBuf`; use equivalent path APIs in other languages. Never concatenate or split filesystem path separators manually or hard-code `/tmp` or drive-letter paths. Create temporary directories through platform APIs such as `Directory.systemTemp.createTemp`, and clean up test directories in teardown. Code and tests intentionally handling Windows or POSIX path syntax must declare that syntax explicitly, such as with `p.Context(style: ...)`, instead of assuming the host platform.
+
 ## Rust Best Practices
 
 Keep Rust code, comments, and docstrings to 100 characters per line; wrap long signatures cleanly. Follow `rustfmt` and Rust API Guidelines. Prefer `struct` plus `impl` over loose globals. In `impl` blocks, put `pub fn` methods first and private helpers last. Use `?`, pattern matching, references over clones, and no `.unwrap()` unless justified. Use `snake_case` for functions/variables, `PascalCase` for types/traits/enums, and `SCREAMING_SNAKE_CASE` for constants.
@@ -35,14 +37,6 @@ Add focused `*_test.dart` files in `test/`. Prefer service tests for import/expo
 
 Preserve user changes and avoid unrelated refactors. Always write the product name as `NAHPU`. Agents must not create commits, branches, pushes, or pull requests; leave Git under user control. After bridge API edits, regenerate bindings and verify analysis plus `cargo check` and `cargo clippy`. Add assets to `pubspec.yaml` only when needed.
 
-The bundled Cookbook under `assets/docs/cookbook/` is generated from
-`nahpu-docs`, Day One included. Edit the website copy, then run
-`dart run tool/sync_cookbook.dart --docs-root ../nahpu-docs --write`; never
-hand-edit files under `assets/docs/cookbook/`. `assets/docs/info/` is app-only
-and is edited here.
+The bundled Cookbook under `assets/docs/cookbook/` is generated from `nahpu-docs`, Day One included. Edit the website copy, then run `dart run tool/sync_cookbook.dart --docs-root ../nahpu-docs --write`; never hand-edit files under `assets/docs/cookbook/`. `assets/docs/info/` is app-only and is edited here.
 
-Any change to `lib/services/database/tables.drift` must also update the mirrored
-`crates/nahpu_db/schema/tables.drift` in `nahpu_api`. Review every added,
-removed, or renamed table and column in `nahpu_dwc`, update its schema-field
-classifications and tests, and update the Darwin Core audit in the Persistence
-data documentation in the same change.
+Any change to `lib/services/database/tables.drift` must also update the mirrored `crates/nahpu_db/schema/tables.drift` in `nahpu_api`. Review every added, removed, or renamed table and column in `nahpu_dwc`, update its schema-field classifications and tests, and update the Darwin Core audit in the Persistence data documentation in the same change.

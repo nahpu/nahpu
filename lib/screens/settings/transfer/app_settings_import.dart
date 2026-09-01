@@ -273,9 +273,9 @@ class _ImportConfirmation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Selected redb-backed groups will be replaced. Custom fields are '
-          'matched by template ID and safely merged into SQLite. Unselected '
-          'groups remain unchanged.',
+          'The selected groups will be replaced. Custom fields are matched '
+          'by template ID and merged, so existing definitions are kept. '
+          'Unselected groups remain unchanged.',
         ),
         const SizedBox(height: 12),
         for (final section in userConfigSectionOrder)

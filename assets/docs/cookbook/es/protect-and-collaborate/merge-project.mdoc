@@ -15,8 +15,19 @@ Combine registros de otra copia del mismo proyecto mediante la revisión guiada 
 3. Elija un proyecto JSON.GZ, ZIP, TAR.GZ o un NAHPU Data Package compatible.
 4. Revise información del proyecto, personal, taxonomía, sitios, eventos, especímenes y narrativas en el orden presentado.
 5. Para cada conflicto, elija `Keep current`, `Use imported`, `Import as new` o `Skip`.
-6. Revise el resumen final, ejecute la combinación y después verifique recuentos y medios.
+6. Resuelva todas las tarjetas marcadas como `Needs attention` antes de continuar.
+7. Revise el resumen final, ejecute la combinación y después verifique recuentos y medios.
 {% /steps %}
+
+## Cómo se emparejan los registros
+
+Los eventos se emparejan por las partes que NAHPU muestra como el ID del evento: el sitio, la fecha de inicio y el sufijo. El mismo evento de campo sigue emparejándose aunque su hora de inicio se haya registrado de otra manera.
+
+## Identificadores duplicados
+
+Los field ID, project ID, tissue ID y barcode ID acaban en etiquetas físicas y en exportaciones publicadas, así que NAHPU nunca los renumera por usted. Un identificador duplicado, un UUID de espécimen o parásito que ya está en la base de datos, y un ID de sitio o evento que coincide con más de un registro existente se convierten en tarjetas marcadas como `Needs attention`. El asistente no continuará hasta que cada una tenga una acción.
+
+Revise los registros importados, cambie el ID e impórtelos de nuevo, u omita ese registro.
 
 {% aside type="caution" %}
 

@@ -33,10 +33,7 @@ void main() {
     expect(english.categoryPaths, hasLength(4));
     expect(english.orders[path.join('prepare', 'index.md')], 1);
     expect(english.orders[path.join('collect', 'index.md')], 2);
-    expect(
-      english.orders[path.join('protect-and-collaborate', 'index.md')],
-      3,
-    );
+    expect(english.orders[path.join('protect-and-collaborate', 'index.md')], 3);
     expect(english.orders[path.join('export-and-print', 'index.md')], 4);
 
     for (final language in DocsLanguage.values.skip(1)) {
@@ -73,9 +70,9 @@ void main() {
 
       // The app cannot resolve website-relative paths, so `sync_cookbook.dart`
       // rewrites every link on the way in.
-      final links = RegExp(r'\[[^\]]+\]\(([^)]+)\)')
-          .allMatches(document.markdown)
-          .map((match) => match.group(1)!);
+      final links = RegExp(
+        r'\[[^\]]+\]\(([^)]+)\)',
+      ).allMatches(document.markdown).map((match) => match.group(1)!);
       for (final link in links) {
         expect(link, startsWith('https://'), reason: '$path: $link');
       }
@@ -172,10 +169,9 @@ void main() {
           RegExp('```.*?```', dotAll: true),
           '',
         );
-        final links = RegExp(r'\[[^\]]+\]\(([^)]+)\)')
-            .allMatches(prose)
-            .map((match) => match.group(1)!)
-            .toList();
+        final links = RegExp(
+          r'\[[^\]]+\]\(([^)]+)\)',
+        ).allMatches(prose).map((match) => match.group(1)!).toList();
         expect(links, isNotEmpty, reason: file.path);
         for (final link in links) {
           expect(

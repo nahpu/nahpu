@@ -146,7 +146,7 @@ class DatabaseSettingSections extends StatelessWidget {
         CommonSettingTile(
           isNavigation: true,
           icon: Icons.backup_outlined,
-          title: 'Back up database',
+          title: 'Backup database',
           label: 'Full archive with all media (.zip or .tar.gz)',
           onTap: () => Navigator.push(
             context,
@@ -157,7 +157,7 @@ class DatabaseSettingSections extends StatelessWidget {
           isNavigation: true,
           icon: Icons.storage_outlined,
           title: 'Replace database',
-          label: 'Overwrites everything. Back up first.',
+          label: 'Replace current database with another database file',
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const DatabaseSettings()),

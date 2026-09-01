@@ -15,8 +15,19 @@ Combine records from another copy of the same project through guided conflict re
 3. Choose a project JSON.GZ, ZIP, TAR.GZ, or compatible NAHPU Data Package.
 4. Review project information, personnel, taxonomy, sites, events, specimens, and narratives in order.
 5. For each conflict, choose `Keep current`, `Use imported`, `Import as new`, or `Skip`.
-6. Review the final summary, run the merge, and verify counts and media afterward.
+6. Clear every card marked `Needs attention` before continuing.
+7. Review the final summary, run the merge, and verify counts and media afterward.
 {% /steps %}
+
+## How records are matched
+
+Events match on the parts NAHPU shows as the event ID: the site, the start date, and the suffix. The same field event still matches when its start time was recorded differently.
+
+## Duplicate identifiers
+
+Field IDs, project IDs, tissue IDs, and barcode IDs end up on physical labels and in published exports, so NAHPU never renumbers them for you. A duplicate identifier, a specimen or parasite UUID already in the database, and a site or event ID that matches more than one existing record all become cards marked `Needs attention`. The wizard will not continue until each one has an action.
+
+Check the imported records, change the ID and import again, or skip that record.
 
 {% aside type="caution" %}
 

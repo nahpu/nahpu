@@ -64,7 +64,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     if (_isLoading && jobProgress != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Replace Database'),
+          title: const Text('Replace database'),
           automaticallyImplyLeading: false,
         ),
         body: SafeArea(
@@ -96,7 +96,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Replace Database')),
+      appBar: AppBar(title: const Text('Replace database')),
       body: SafeArea(
         child: CommonSettingList(
           sections: [
@@ -374,9 +374,9 @@ class DbFileInputField extends StatelessWidget {
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.lg),
             child: Text(
-              'Replacing overwrites every record and every media file in '
+              'Replacing database overwrites every record and every media file in '
               'NAHPU. Backing up first writes a full archive of your current '
-              'data, including all media, to the backup folder — it can take '
+              'data, including all media, to the backup folder. It can take '
               'several minutes on a large library.',
               textAlign: TextAlign.center,
             ),
@@ -472,7 +472,7 @@ class DbReplaceButtons extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Replace Database'),
+                  title: const Text('Replace database'),
                   content: const DbWarningText(),
                   actions: [
                     PrimaryButton(

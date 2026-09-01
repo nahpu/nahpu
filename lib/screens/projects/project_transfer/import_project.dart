@@ -197,7 +197,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ '
-                'contains records only; ZIP and TAR.GZ include media.',
+                'contains records only. ZIP and TAR.GZ include media.',
               ),
               const SizedBox(height: 20),
               if (_isReading && _readProgress != null)
@@ -334,7 +334,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               border: const OutlineInputBorder(),
               errorText: _destinationNameError,
               helperText: _nameConflict == null
-                  ? 'The archive itself is not changed.'
+                  ? 'Names the new project on this device. The archive is not changed.'
                   : null,
             ),
           ),
@@ -365,8 +365,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           const SizedBox(height: 8),
           Text(
             '${project.name}\n${project.uuid}\n\n'
-            'Matching UUIDs identify the same project. Import is blocked; '
-            'merge this archive into the existing project instead.',
+            'Matching UUIDs identify the same project. Import is blocked. '
+            'Merge this archive into the existing project instead.',
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
@@ -504,11 +504,44 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     );
   }
 
+  /// Conflicts the user still has to look at in [section].
+  ///
+  /// Child conflicts drop out once their parent record is kept or skipped,
+  /// because nothing will be written for them.
+  List<ProjectTransferConflict> _visibleConflicts(
+    ProjectTransferImportPlan plan,
+    ProjectTransferSection section,
+  ) =>
+      plan
+          .conflictsFor(section)
+          .where((conflict) => isConflictActive(conflict, _actions))
+          .toList()
+        // Blocking conflicts hold up the wizard, so they come first.
+        ..sort((a, b) {
+          if (a.requiresChoice == b.requiresChoice) return 0;
+          return a.requiresChoice ? -1 : 1;
+        });
+
+  List<ProjectTransferConflict> _unresolvedIn(
+    ProjectTransferImportPlan plan,
+    ProjectTransferSection section,
+  ) => _visibleConflicts(plan, section)
+      .where(
+        (conflict) => conflict.requiresChoice && _actions[conflict.id] == null,
+      )
+      .toList(growable: false);
+
   Widget _conflictSection(
     ProjectTransferImportPlan plan,
     ProjectTransferSection section,
   ) {
-    final conflicts = plan.conflictsFor(section);
+    final conflicts = _visibleConflicts(plan, section);
+    final bulkTargets = conflicts
+        .where((conflict) => !conflict.requiresChoice)
+        .toList(growable: false);
+    final needsAttention = _unresolvedIn(plan, section).length;
+    final colorScheme = Theme.of(context).colorScheme;
+    final matched = plan.matchedBySection[section] ?? 0;
     final fresh = plan.newBySection[section] ?? 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -519,13 +552,15 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               'Review matches before continuing. “Keep current” maps imported '
               'dependencies to the existing record without replacing it.',
         ),
-        if (conflicts.isNotEmpty) ...[
+        if (bulkTargets.isNotEmpty) ...[
           const SizedBox(height: 12),
           Center(
             child: PopupMenuButton<ProjectTransferConflictAction>(
-              tooltip: 'Apply one choice to all conflicts',
+              // Duplicate identifiers are left out: a blanket choice would
+              // dispose of them without the user reading the warning.
+              tooltip: 'Apply one choice to all matched records',
               onSelected: (action) => setState(() {
-                for (final conflict in conflicts) {
+                for (final conflict in bulkTargets) {
                   if (conflict.allowedActions.contains(action)) {
                     _actions[conflict.id] = action;
                   }
@@ -552,16 +587,23 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _StatusChip(label: 'New', count: fresh, color: Colors.green),
             _StatusChip(
-              label: 'Matched',
-              count: conflicts.length,
-              color: Colors.blue,
+              label: 'New',
+              count: fresh,
+              color: colorScheme.tertiary,
+              onColor: colorScheme.onTertiary,
             ),
             _StatusChip(
-              label: 'Conflict',
-              count: conflicts.length,
-              color: Colors.orange,
+              label: 'Matched',
+              count: matched,
+              color: colorScheme.primary,
+              onColor: colorScheme.onPrimary,
+            ),
+            _StatusChip(
+              label: 'Needs attention',
+              count: needsAttention,
+              color: colorScheme.error,
+              onColor: colorScheme.onError,
             ),
             _StatusChip(
               label: 'Skipped',
@@ -569,7 +611,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 return _actions[conflict.id] ==
                     ProjectTransferConflictAction.skip;
               }).length,
-              color: Colors.grey,
+              color: colorScheme.outline,
+              onColor: colorScheme.surface,
             ),
           ],
         ),
@@ -588,7 +631,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 conflict: conflict,
                 action:
                     _actions[conflict.id] ??
-                    ProjectTransferConflictAction.keepCurrent,
+                    (conflict.requiresChoice
+                        ? null
+                        : ProjectTransferConflictAction.keepCurrent),
                 onChanged: (action) =>
                     setState(() => _actions[conflict.id] = action),
               ),
@@ -598,6 +643,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _review(ProjectTransferImportPlan plan) {
+    final blockedSections = _blockedSections(plan);
     final skipped = _actions.values
         .where((action) => action == ProjectTransferConflictAction.skip)
         .length;
@@ -636,6 +682,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                     : 'Matching project UUID',
               ),
               _ReviewRow(label: 'Conflicts', value: '${plan.conflicts.length}'),
+              _ReviewRow(
+                label: 'Needs attention',
+                value: '${unresolvedConflicts(plan, _actions).length}',
+              ),
               _ReviewRow(label: 'Use imported', value: '$replacements'),
               _ReviewRow(label: 'Skip', value: '$skipped'),
               _ReviewRow(
@@ -649,6 +699,17 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             ],
           ),
         ),
+        if (blockedSections.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _MessageCard(
+            icon: Icons.report_problem_outlined,
+            title: 'Resolve conflicts before merging',
+            message:
+                'Duplicate identifiers still need an action in '
+                '${blockedSections.map((section) => section.label).join(', ')}. '
+                '$duplicateIdentifierAdvice',
+          ),
+        ],
         if (plan.warnings.isNotEmpty) ...[
           const SizedBox(height: 16),
           NahpuPanel(
@@ -708,9 +769,31 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               ),
               _ResultCount(label: 'Updated', value: result.updated),
               _ResultCount(label: 'Skipped', value: result.skipped),
+              if (result.skippedByConflict > 0)
+                _ResultCount(
+                  label: 'Skipped on conflict',
+                  value: result.skippedByConflict,
+                ),
               _ResultCount(label: 'Media copied', value: result.mediaCopied),
             ],
           ),
+          if (result.warnings.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Warnings',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  for (final warning in result.warnings) Text('• $warning'),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -732,8 +815,26 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       return _forceMerge &&
           _forceConfirmationController.text.trim() == plan.activeProjectName;
     }
-    return _plan != null;
+    final plan = _plan;
+    if (plan == null) return false;
+    final section = _sectionByStep[_step];
+    if (section != null && _unresolvedIn(plan, section).isNotEmpty) {
+      return false;
+    }
+    // Sections can gate each other, so the last stop checks all of them.
+    if (_step == _reviewStep &&
+        unresolvedConflicts(plan, _actions).isNotEmpty) {
+      return false;
+    }
+    return true;
   }
+
+  /// Sections still holding an unresolved duplicate identifier.
+  List<ProjectTransferSection> _blockedSections(
+    ProjectTransferImportPlan plan,
+  ) => _sectionByStep.values
+      .where((section) => _unresolvedIn(plan, section).isNotEmpty)
+      .toList(growable: false);
 
   Future<void> _chooseArchive() async {
     final input = await FilePickerServices().selectAnyFile();
@@ -975,12 +1076,17 @@ class _ConflictCard extends StatelessWidget {
   });
 
   final ProjectTransferConflict conflict;
-  final ProjectTransferConflictAction action;
+
+  /// Null while a blocking conflict is still waiting for the user to choose.
+  final ProjectTransferConflictAction? action;
   final ValueChanged<ProjectTransferConflictAction> onChanged;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final needsChoice = conflict.requiresChoice && action == null;
     return NahpuPanel(
+      borderColor: needsChoice ? colorScheme.error : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -992,7 +1098,12 @@ class _ConflictCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              const Chip(label: Text('Conflict')),
+              Chip(
+                label: Text(needsChoice ? 'Needs attention' : 'Conflict'),
+                backgroundColor: needsChoice
+                    ? colorScheme.errorContainer
+                    : null,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -1024,15 +1135,26 @@ class _ConflictCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               conflict.warning!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              // Only a blocking conflict earns the error colour; advisory
+              // notes on ordinary matches would otherwise read as failures.
+              style: TextStyle(
+                color: conflict.requiresChoice
+                    ? colorScheme.error
+                    : colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
           const SizedBox(height: 14),
           DropdownButtonFormField<ProjectTransferConflictAction>(
+            // The form field only reads initialValue once, so bulk actions
+            // need a new field to show up.
+            key: ValueKey('${conflict.id}:$action'),
             initialValue: action,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Conflict action',
-              border: OutlineInputBorder(),
+              hintText: needsChoice ? 'Choose an action' : null,
+              errorText: needsChoice ? 'Choose an action to continue' : null,
+              border: const OutlineInputBorder(),
             ),
             items: conflict.allowedActions
                 .map(
@@ -1156,11 +1278,15 @@ class _StatusChip extends StatelessWidget {
     required this.label,
     required this.count,
     required this.color,
+    required this.onColor,
   });
 
   final String label;
   final int count;
   final Color color;
+
+  /// Contrasting colour for the count drawn on top of [color].
+  final Color onColor;
 
   @override
   Widget build(BuildContext context) {
@@ -1169,7 +1295,9 @@ class _StatusChip extends StatelessWidget {
         backgroundColor: color,
         child: Text(
           '$count',
-          style: const TextStyle(color: Colors.white, fontSize: 12),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: onColor),
         ),
       ),
       label: Text(label),

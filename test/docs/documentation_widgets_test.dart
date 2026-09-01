@@ -195,9 +195,7 @@ void main() {
     expect(find.text('Collection steps.'), findsOneWidget);
   });
 
-  testWidgets('wide Cookbook opens on Day One in a split view', (
-    tester,
-  ) async {
+  testWidgets('wide Cookbook opens on Day One in a split view', (tester) async {
     _setSize(tester, const Size(900, 800));
     await tester.pumpWidget(_testApp(child: const CookbookScreen()));
     await tester.pumpAndSettle();

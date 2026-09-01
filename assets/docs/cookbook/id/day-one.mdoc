@@ -37,6 +37,20 @@ Anda dapat menambahkan koordinat dalam jumlah berapa pun ke satu site. Saat meng
 
 Kosakata terkontrol adalah daftar istilah yang telah ditentukan sebelumnya untuk menjaga konsistensi saat memasukkan data, dan ini merupakan praktik umum dalam sistem manajemen data. Kami berusaha sebaik mungkin menyelaraskan istilah bawaan NAHPU dengan istilah yang dipakai perangkat lunak manajemen koleksi seperti [Arctos](https://arctosdb.org/), sekaligus tetap memberi Anda keleluasaan menyesuaikannya.
 
+Di dalam aplikasi, kosakata ini muncul sebagai menu dropdown. Setiap kali sebuah isian bersandar pada kosakata, seperti tipe site, tipe habitat, datum koordinat, aktivitas utama, metode pengumpulan, peran personel, tahap hidup, kondisi spesimen, tipe dan perlakuan bagian spesimen, serta seluruh isian parasit, Anda memilih dari daftar alih-alih mengetik teks bebas. Dengan begitu, hal yang sama selalu ditulis dengan cara yang sama di setiap catatan.
+
+Daftar itu bebas Anda ubah dan bebas Anda bagikan. Tambahkan istilah, hapus yang tidak akan Anda pakai, atur format huruf, lalu jalankan `Export user configs` sekali saja agar seluruh tim mengimpor kosakata yang sama. Lihat [Pengaturan](https://nahpu.app/id/usages/settings/).
+
+Bagaimana kalau berbagi itu tidak pernah terjadi? NAHPU tetap sanggup. Setiap dropdown juga menawarkan nilai-nilai unik yang sudah tersimpan di basis data, sehingga tidak ada yang diketik rekan Anda hilang dari daftar. Untuk memasukkan nilai-nilai itu ke konfigurasi Anda sendiri, buka kosakata tersebut di Settings lalu pilih `Match database`. `Append missing` hanya menambahkan yang belum ada di daftar Anda, sedangkan `Override all` mengganti daftar Anda dengan nilai yang benar-benar terkandung dalam data. Sebuah kumpulan data dapat membangun ulang kosakata yang menghasilkannya, dan itulah yang dibutuhkan catatan yang reprodusibel.
+
+### Mudah Dibagikan, Bebas Disesuaikan
+
+Hampir semua hal di NAHPU dirancang untuk berpindah tangan. Catatan proyek, identitas proyek beserta UUID-nya, daftar takson, personel, kosakata terkontrol, preset ekspor, templat dokumen, tata letak cetak, dan custom field semuanya dapat diekspor dan diserahkan kepada orang lain. Siapkan NAHPU sesuai cara kerja tim Anda, ekspor sekali, dan setiap perangkat berangkat dari konvensi yang sama. Itulah inti argumen reprodusibilitas dalam satu kalimat: orang yang menerima data Anda juga dapat menerima aturan yang menghasilkannya.
+
+Sebagian besar di antaranya hanya berjarak satu kode QR. Tanpa kabel, tanpa akun cloud, tanpa sinyal. Angkat satu perangkat, arahkan perangkat lain ke layarnya, selesai. Ini penting ketika sinyal terdekat berjarak dua hari perjalanan. Identitas proyek, site, kegiatan pengumpulan, koordinat, satu takson atau seluruh daftar takson, custom field Anda, preset ekspor, dan templat dokumen masing-masing memiliki `Show QR` di satu perangkat dan `Scan QR` di perangkat lain. Hal yang lebih besar, seperti proyek utuh, media, dan basis data, tetap berpindah sebagai berkas, dan NAHPU akan memberi tahu bila sebuah catatan terlalu besar untuk satu kode lalu menawarkan berkas sebagai gantinya. Lihat [Transfer Proyek](https://nahpu.app/id/usages/export/project-transfer/).
+
+Ada satu hal yang sengaja kami tinggalkan di rumah: tampilan aplikasi di layar Anda. Tema Anda, entah `System`, `Light`, atau `Dark`, tetap di perangkat Anda, begitu pula pilihan lapisan peta dasar Anda. Membaca layar di dalam tenda gelap pukul dua dini hari dan membacanya di laboratorium yang terang adalah dua persoalan berbeda, dan tidak ada berkas proyek yang berhak ikut menentukan Anda sedang menghadapi yang mana. Bagikan sainsnya; gayanya biar tetap milik Anda.
+
 ### Pengenal Lapangan
 
 Praktik pemberian pengenal unik kepada spesimen di lapangan terbagi menjadi tiga jenis: ID lapangan personal, institusional, dan khusus proyek.
@@ -63,10 +77,12 @@ Orang yang mengatalogkan spesimen disebut cataloger. Peran ini memberikan akses 
 
     Saat pertama kali memasang NAHPU, tombol penyiapan akan terlihat di layar
     beranda. Jika tombol tersebut tidak terlihat atau Anda ingin menyiapkannya
-    nanti, Anda dapat mengaksesnya melalui menu drawer. Wizard penyiapan akan
-    memandu Anda memilih pengenal lapangan dan semua kolom kosakata terkontrol
-    yang dapat disesuaikan. Anda juga dapat mengimpor dan mengekspor pengaturan
-    tersebut, sehingga penyiapan cukup dilakukan satu kali untuk seluruh tim.
+    nanti, Anda dapat mengaksesnya melalui menu drawer. Wizard penyiapan
+    menuntun Anda melalui format katalog, pengenal lapangan dan jaringan,
+    kosakata terkontrol untuk site, kegiatan pengumpulan, dan spesimen, serta
+    apakah Anda mengumpulkan parasit. Anda juga dapat mengimpor dan mengekspor
+    pengaturan tersebut, sehingga penyiapan cukup dilakukan satu kali untuk
+    seluruh tim.
 
 2. **Membuat proyek baru**
 
@@ -194,11 +210,11 @@ Orang yang mengatalogkan spesimen disebut cataloger. Peran ini memberikan akses 
 
     Untuk mengekspor catatan, buka menu dasbor yang ditandai ikon hamburger (tiga garis horizontal) di sudut kiri atas. Anda memiliki beberapa pilihan ekspor:
 
-    - Create a report. Membuat daftar spesies, media, dan koordinat site dalam format terdelimitasi (`.csv` atau `.tsv`).
+    - `Export records`. Pilih preset ekspor tabular dan tulis satu tipe catatan ke `.csv`, `.tsv`, `.xlsx`, atau `.json`. Preset menentukan tipe catatan, judul kolom, dan pemetaan kolomnya. Lihat [Ekspor Catatan](https://nahpu.app/id/usages/export/export-records/).
 
-    - Bundle records. Membuat Darwin Core Archive, Darwin Core Data Package, atau NAHPU Data Package lengkap. Data Package dapat menggunakan TAR.GZ atau ZIP. Lihat [Bundle records](https://nahpu.app/id/usages/export/export-bundles/).
+    - `Bundle records`. Membuat Darwin Core Archive, Darwin Core Data Package, atau NAHPU Data Package lengkap. Data Package dapat menggunakan TAR.GZ atau ZIP. Lihat [Bundle records](https://nahpu.app/id/usages/export/export-bundles/).
 
-    - Export records. Memilih catatan yang akan diekspor. Pilihan ini mendukung format terdelimitasi (`.csv` atau `.tsv`).
+    - `Export documents`. Menghasilkan label, tag, dan dokumen cetak lain sebagai PDF dari templat dokumen dan tata letak cetak. Lihat [Ekspor Dokumen](https://nahpu.app/id/usages/export/export-documents/).
 
     {% aside type="tip" %}
     NAHPU juga dapat mengekspor tabel statistik ringkas dan gambar secara terpisah dari ekspor proyek. Ini berguna ketika Anda memerlukan tabel ringkasan atau sekumpulan foto untuk laporan hibah atau laporan izin. Gambar dapat diekspor dalam JPEG, PNG, atau WebP, dengan pilihan untuk mengubah ukuran dan mengompresnya. Lihat [Ekspor Statistik](https://nahpu.app/id/usages/export/export-statistics/) dan [Ekspor Gambar](https://nahpu.app/id/usages/export/export-images/).

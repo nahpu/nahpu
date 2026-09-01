@@ -245,10 +245,11 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Create a project once, then share its project-info JSON—or scan '
-            'its QR code on mobile—on every device used for data entry. '
-            'Reusing the same project keeps one UUID across devices, '
-            'supporting reproducible records and reliable data merging.',
+            'Create a project once, then reuse its identity on every device '
+            'used for data entry: export its project-info JSON, or show its '
+            'QR code and scan it on the other device. Reusing the same '
+            'project keeps one UUID across devices, supporting reproducible '
+            'records and reliable data merging.',
           ),
           const SizedBox(height: 12),
           Text(
@@ -321,7 +322,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             children: [
               const Text(
                 'Choose how specimen field IDs are generated. You can change '
-                'this later in Settings › Specimens.',
+                'this later in Settings > Catalogs > Specimens.',
               ),
               const SizedBox(height: 12),
               SegmentedButton<FieldIdMode>(

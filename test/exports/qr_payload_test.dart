@@ -17,7 +17,7 @@ void main() {
     );
 
     expect(
-      find.textContaining('Data is too large for QR code.'),
+      find.textContaining('Data is too large for a QR code.'),
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);

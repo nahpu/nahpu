@@ -40,7 +40,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
     final services = SpecimenSettingServices(ref: ref);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen Settings')),
+      appBar: AppBar(title: const Text('Specimen settings')),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
@@ -78,7 +78,7 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 TissueIDFields(isMobile: isMobile),
                 const SpecimenSexSetting(),
                 const ControlledVocabularySetting(
-                  title: 'Identification Method',
+                  title: 'Identification methods',
                   typePrefKey: idMethodPrefKey,
                   fmtPrefKey: idMethodFmtPrefKey,
                   typeName: 'identification method',
@@ -494,8 +494,8 @@ class _PersonnelFieldIdNote extends StatelessWidget {
             leading: const Icon(Icons.info_outline),
             title: const Text('Personnel field IDs require a cataloger'),
             subtitle: const Text(
-              'Add a personnel with at least one Cataloger role in the project '
-              'and assign a current field number to that role.',
+              'Add a person with the Cataloger role in the project and '
+              'assign a current field number to that role.',
             ),
           ),
         ),
@@ -806,7 +806,7 @@ class TissueNumFieldState extends ConsumerState<TissueNumField> {
         keyboardType: TextInputType.number,
         decoration: const InputDecoration(
           labelText: 'Tissue number',
-          hintText: 'Enter the initial starting number',
+          hintText: 'Enter the next number',
         ),
         textInputAction: TextInputAction.done,
         onChanged: (String? value) async {

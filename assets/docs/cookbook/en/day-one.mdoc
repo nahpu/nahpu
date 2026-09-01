@@ -37,6 +37,20 @@ You can add any number of coordinates to a single site. When collecting with tra
 
 Controlled vocabularies are predefined lists of terms that keep data entry consistent, which is common practice in data management systems. We did our best to align the default terms in NAHPU with terms used by collection management software such as [Arctos](https://arctosdb.org/), while still letting you customize them.
 
+In the app they appear as dropdowns. Wherever a field draws on a vocabulary, such as site type, habitat type, coordinate datum, primary activity, collection method, personnel role, life stage, specimen condition, part type and treatment, and every parasite field, you choose from a list instead of typing free text. The same idea is then spelled the same way in every record.
+
+The lists are yours to change and yours to share. Add terms, remove the ones you will not use, set a case format, then run `Export user configs` once so the whole team imports the same vocabularies. See [Settings](https://nahpu.app/en/usages/settings/).
+
+What if that sharing never happened? NAHPU still copes. Every dropdown also offers the distinct values already stored in the database, so nothing a colleague typed goes missing from the list. To fold those values into your own configuration, open the vocabulary in Settings and choose `Match database`. `Append missing` adds only what your list lacks, and `Override all` replaces your list with the values the data actually contains. A dataset can rebuild the vocabulary that produced it, which is exactly what reproducible records need.
+
+### Shareable by Design, Yours to Customize
+
+Almost everything in NAHPU is built to travel. Project records, the project identity and its UUID, taxon lists, personnel, controlled vocabularies, export presets, document templates, print layouts, and custom fields can all be exported and handed to somebody else. Set NAHPU up the way your team actually works, export it once, and every device starts from the same conventions. That is the reproducibility argument in a single line: whoever receives your data can also receive the rules that produced it.
+
+Most of it is only one QR code away. No cable, no cloud account, no signal. Hold one device up, point the other at it, and you are done, which matters when the nearest bar of reception is a two-day walk away. A project identity, a site, a collecting event, a coordinate, a taxon or a whole taxon list, your custom fields, an export preset, and a document template each have a `Show QR` on one device and a `Scan QR` on the other. Larger things such as full projects, media, and the database still travel as files, and NAHPU tells you when a record is too big for a code and offers the file instead. See [Transfer a Project](https://nahpu.app/en/usages/export/project-transfer/).
+
+One thing we deliberately keep at home is how the app looks on your screen. Your theme, whether `System`, `Light`, or `Dark`, stays on this device, and so does your choice of map base layer. Reading a screen in a dark tent at 2 a.m. and reading one in a bright lab are different problems, and no project file should get a vote on which one you are having. Share the science; keep the mood.
+
 ### Field Identifiers
 
 The practice of assigning a unique identifier to a specimen in the field falls into three types: personal, institutional, and project-specific field IDs.
@@ -63,8 +77,9 @@ A person who catalogs the specimen is a cataloger. This role provides access to 
 
     When you first install NAHPU, the setup button is visible on the home
     screen. If you do not see it or need to set it up later, you can access it
-    through the menu drawer. The setup wizard guides you through choosing a
-    field identifier and all customizable controlled-vocabulary fields. You can
+    through the menu drawer. The setup wizard walks through the catalog format,
+    the field and tissue identifiers, the controlled vocabularies for sites,
+    collecting events, and specimens, and whether you collect parasites. You can
     also import and export those settings, so setup only needs to be completed
     once for your entire team.
 
@@ -194,11 +209,11 @@ A person who catalogs the specimen is a cataloger. This role provides access to 
 
     To export records, go to the dashboard menu, indicated by the hamburger icon (three horizontal lines) in the top-left corner. You have multiple export options:
 
-    - Create a report. Generate a species list, media, and site coordinates in a delimited format (`.csv` or `.tsv`).
+    - `Export records`. Choose a tabular export preset and write one record type to `.csv`, `.tsv`, `.xlsx`, or `.json`. The preset sets the record type, the headers, and the field mapping. See [Export records](https://nahpu.app/en/usages/export/export-records/).
 
-    - Bundle records. Create a Darwin Core Archive, Darwin Core Data Package, or complete NAHPU Data Package. Data Packages can use TAR.GZ or ZIP. See [Bundle records](https://nahpu.app/en/usages/export/export-bundles/).
+    - `Bundle records`. Create a Darwin Core Archive, Darwin Core Data Package, or complete NAHPU Data Package. Data Packages can use TAR.GZ or ZIP. See [Bundle records](https://nahpu.app/en/usages/export/export-bundles/).
 
-    - Export records. Choose which records to export. This option supports delimited formats (`.csv` or `.tsv`).
+    - `Export documents`. Produce labels, tags, and other printable documents as PDF from a document template and a print layout. See [Export documents](https://nahpu.app/en/usages/export/export-documents/).
 
     {% aside type="tip" %}
     NAHPU can also export summary statistic tables and images separately from the project exports. This is useful when you need a summary table or a set of photographs for a grant or permit report. Images can be exported as JPEG, PNG, or WebP, with options to resize and compress them. See [Export Statistics](https://nahpu.app/en/usages/export/export-statistics/) and [Export Images](https://nahpu.app/en/usages/export/export-images/).

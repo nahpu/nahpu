@@ -554,7 +554,7 @@ class _BatchMediaExportSettings extends StatelessWidget {
                   enabled: enabled,
                   decoration: const InputDecoration(
                     labelText: 'Maximum width or height (px)',
-                    helperText: 'Applies to whichever side is longer',
+                    helperText: 'Applies to whichever side is longer.',
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],

@@ -177,7 +177,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
           children: [
             Expanded(child: body),
             ExportActionBar(
-              label: 'Export settings',
+              label: 'Export user configs',
               repeatLabel: 'Export another',
               icon: Icons.file_upload_outlined,
               canExport: _canExport,

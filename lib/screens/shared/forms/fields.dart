@@ -693,6 +693,12 @@ class UserDefinedSettingField extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 16),
+                  Text(
+                    'Use this when records arrive from someone whose '
+                    'controlled vocabularies you do not have.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
                   Text(description),
                 ],
               ),

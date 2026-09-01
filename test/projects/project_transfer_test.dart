@@ -975,11 +975,32 @@ void main() {
         if (extraction.existsSync()) extraction.deleteSync(recursive: true);
       });
 
+      // The UUID belongs to another project, so the user has to pick an
+      // action before the import will run.
+      expect(conflict.requiresChoice, isTrue);
+      final blocked = await tester.runAsync(() async {
+        try {
+          await service.importProject(
+            plan,
+            forceMerge: false,
+            conflictActions: const {},
+            importedProjectFields: const {},
+            extractedDirectory: extraction,
+          );
+          return null;
+        } on FormatException catch (error) {
+          return error;
+        }
+      });
+      expect(blocked, isA<FormatException>());
+
       await tester.runAsync(
         () => service.importProject(
           plan,
           forceMerge: false,
-          conflictActions: const {},
+          conflictActions: {
+            conflict.id: ProjectTransferConflictAction.importAsNew,
+          },
           importedProjectFields: const {},
           extractedDirectory: extraction,
         ),
@@ -995,6 +1016,500 @@ void main() {
       expect(fossil.specimenUuid, imported.uuid);
       expect(fossil.fossilType, 'Trace fossil');
       expect(fossil.specimenDescription, 'Trackway');
+    });
+
+    testWidgets('matches events on site, start date, and suffix', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final siteId = await database
+          .into(database.site)
+          .insert(
+            const SiteCompanion(
+              siteID: Value('Camp A'),
+              projectUuid: Value('project-a'),
+            ),
+          );
+      await database
+          .into(database.collEvent)
+          .insert(
+            CollEventCompanion(
+              projectUuid: const Value('project-a'),
+              siteID: Value(siteId),
+              startDate: const Value('2026-05-01'),
+              startTime: const Value('06:00'),
+              idSuffix: const Value('A'),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'site': [
+              {'id': 1, 'siteID': 'Camp A', 'projectUuid': 'project-a'},
+            ],
+            'collEvent': [
+              {
+                'id': 5,
+                'projectUuid': 'project-a',
+                'siteID': 1,
+                'startDate': '2026-05-01',
+                // A different start time is still the same field event.
+                'startTime': '07:30',
+                'idSuffix': 'A',
+              },
+            ],
+          },
+        ),
+      );
+
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.section == ProjectTransferSection.events,
+      );
+      expect(conflict.label, 'Camp A-2026-05-01-A');
+      expect(conflict.requiresChoice, isFalse);
+      expect(plan.newBySection[ProjectTransferSection.events], 0);
+    });
+
+    testWidgets('blocks an event ID that matches more than one event', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      final siteId = await database
+          .into(database.site)
+          .insert(
+            const SiteCompanion(
+              siteID: Value('Camp A'),
+              projectUuid: Value('project-a'),
+            ),
+          );
+      for (var index = 0; index < 2; index++) {
+        await database
+            .into(database.collEvent)
+            .insert(
+              CollEventCompanion(
+                projectUuid: const Value('project-a'),
+                siteID: Value(siteId),
+                startDate: const Value('2026-05-01'),
+                idSuffix: const Value('A'),
+              ),
+            );
+      }
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'site': [
+              {'id': 1, 'siteID': 'Camp A', 'projectUuid': 'project-a'},
+            ],
+            'collEvent': [
+              {
+                'id': 5,
+                'projectUuid': 'project-a',
+                'siteID': 1,
+                'startDate': '2026-05-01',
+                'idSuffix': 'A',
+              },
+            ],
+          },
+        ),
+      );
+
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.section == ProjectTransferSection.events,
+      );
+      expect(conflict.requiresChoice, isTrue);
+      expect(conflict.allowedActions, [ProjectTransferConflictAction.skip]);
+      expect(conflict.warning, contains('Camp A-2026-05-01-A'));
+      expect(conflict.warning, contains('distinct suffixes'));
+      expect(unresolvedConflicts(plan, const {}), contains(conflict));
+    });
+
+    testWidgets('blocks a duplicate personnel field ID', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.personnel)
+          .insert(
+            const PersonnelCompanion(
+              uuid: Value('person-1'),
+              name: Value('Heru Handika'),
+              initial: Value('HH'),
+            ),
+          );
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+              catalogerID: Value('person-1'),
+              fieldNumber: Value(12),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'personnel': [
+              {'uuid': 'person-1', 'name': 'Heru Handika', 'initial': 'HH'},
+            ],
+            'specimen': [
+              {
+                'uuid': 'imported-specimen',
+                'projectUuid': 'project-a',
+                'catalogerID': 'person-1',
+                'fieldNumber': 12,
+              },
+            ],
+          },
+        ),
+      );
+
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.id.startsWith('specimenFieldId:'),
+      );
+      expect(conflict.label, 'HH12');
+      expect(conflict.requiresChoice, isTrue);
+      expect(conflict.allowedActions, [ProjectTransferConflictAction.skip]);
+      expect(conflict.warning, contains('already in use'));
+      expect(conflict.warning, contains('skip'));
+    });
+
+    testWidgets('blocks a duplicate project field ID', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .update(database.project)
+          .replace(
+            const ProjectCompanion(
+              uuid: Value('project-a'),
+              name: Value('Project A'),
+              catalogNumberPrefix: Value('NAH'),
+              catalogNumberSuffix: Value('-M'),
+            ),
+          );
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+              projectFieldNumber: Value(7),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {
+                'uuid': 'imported-specimen',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 7,
+              },
+            ],
+          },
+        ),
+      );
+
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.id.startsWith('specimenFieldId:'),
+      );
+      expect(conflict.label, 'NAH7-M');
+      expect(conflict.requiresChoice, isTrue);
+    });
+
+    testWidgets('blocks duplicate tissue and barcode IDs', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+            ),
+          );
+      await database
+          .into(database.specimenPart)
+          .insert(
+            const SpecimenPartCompanion(
+              specimenUuid: Value('local-specimen'),
+              tissueID: Value('T100'),
+              barcodeID: Value('B200'),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {'uuid': 'imported-specimen', 'projectUuid': 'project-a'},
+            ],
+            'specimenPart': [
+              {
+                'id': 1,
+                'specimenUuid': 'imported-specimen',
+                'tissueID': 'T100',
+                'barcodeID': 'B200',
+              },
+            ],
+          },
+        ),
+      );
+
+      final tissue = plan.conflicts.singleWhere(
+        (item) => item.id == 'specimenPart.tissueID:1',
+      );
+      final barcode = plan.conflicts.singleWhere(
+        (item) => item.id == 'specimenPart.barcodeID:1',
+      );
+      expect(tissue.label, 'T100');
+      expect(tissue.requiresChoice, isTrue);
+      expect(barcode.label, 'B200');
+      expect(barcode.requiresChoice, isTrue);
+    });
+
+    testWidgets('blocks a field ID repeated inside the archive', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {
+                'uuid': 'imported-one',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 3,
+              },
+              {
+                'uuid': 'imported-two',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 3,
+              },
+            ],
+          },
+        ),
+      );
+
+      // Only the second copy conflicts; the first one claims the ID.
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.id.startsWith('specimenFieldId:'),
+      );
+      expect(conflict.id, 'specimenFieldId:imported-two');
+    });
+
+    testWidgets('does not flag a specimen against its own record', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('shared-specimen'),
+              projectUuid: Value('project-a'),
+              projectFieldNumber: Value(4),
+            ),
+          );
+      await database
+          .into(database.specimenPart)
+          .insert(
+            const SpecimenPartCompanion(
+              specimenUuid: Value('shared-specimen'),
+              tissueID: Value('T1'),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {
+                'uuid': 'shared-specimen',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 4,
+              },
+            ],
+            'specimenPart': [
+              {'id': 1, 'specimenUuid': 'shared-specimen', 'tissueID': 'T1'},
+            ],
+          },
+        ),
+      );
+
+      expect(plan.conflicts.where((item) => item.requiresChoice), isEmpty);
+      expect(plan.conflicts.single.id, 'specimen:shared-specimen');
+    });
+
+    testWidgets('surfaces a parasite UUID collision', (tester) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+            ),
+          );
+      await database
+          .into(database.parasite)
+          .insert(
+            const ParasiteCompanion(
+              specimenUuid: Value('local-specimen'),
+              parasiteUuid: Value('parasite-1'),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {'uuid': 'imported-specimen', 'projectUuid': 'project-a'},
+            ],
+            'parasite': [
+              {
+                'id': 1,
+                'specimenUuid': 'imported-specimen',
+                'parasiteUuid': 'parasite-1',
+                'parasiteID': 'P-1',
+              },
+            ],
+          },
+        ),
+      );
+
+      final conflict = plan.conflicts.singleWhere(
+        (item) => item.id == 'parasiteUuid:1',
+      );
+      expect(conflict.requiresChoice, isTrue);
+      expect(conflict.allowedActions, [
+        ProjectTransferConflictAction.importAsNew,
+        ProjectTransferConflictAction.skip,
+      ]);
+    });
+
+    testWidgets('child conflicts fall away when the specimen is skipped', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+              projectFieldNumber: Value(9),
+            ),
+          );
+      await database
+          .into(database.specimenPart)
+          .insert(
+            const SpecimenPartCompanion(
+              specimenUuid: Value('local-specimen'),
+              tissueID: Value('T9'),
+            ),
+          );
+
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {
+                'uuid': 'imported-specimen',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 9,
+              },
+            ],
+            'specimenPart': [
+              {'id': 1, 'specimenUuid': 'imported-specimen', 'tissueID': 'T9'},
+            ],
+          },
+        ),
+      );
+
+      expect(unresolvedConflicts(plan, const {}), hasLength(2));
+      // Skipping the specimen leaves nothing for the tissue ID to clash with.
+      final resolved = {
+        'specimenFieldId:imported-specimen': ProjectTransferConflictAction.skip,
+      };
+      expect(unresolvedConflicts(plan, resolved), isEmpty);
+    });
+
+    testWidgets('skipping a duplicate field ID leaves the record out', (
+      tester,
+    ) async {
+      await setUpService(tester);
+      addTearDown(database.close);
+      await database
+          .into(database.specimen)
+          .insert(
+            const SpecimenCompanion(
+              uuid: Value('local-specimen'),
+              projectUuid: Value('project-a'),
+              projectFieldNumber: Value(2),
+            ),
+          );
+      final plan = await service.planImport(
+        _payload(
+          records: {
+            'specimen': [
+              {
+                'uuid': 'imported-specimen',
+                'projectUuid': 'project-a',
+                'projectFieldNumber': 2,
+              },
+            ],
+          },
+        ),
+      );
+      final extraction = Directory.systemTemp.createTempSync(
+        'nahpu-transfer-test-',
+      );
+      addTearDown(() {
+        if (extraction.existsSync()) extraction.deleteSync(recursive: true);
+      });
+
+      final blocked = await tester.runAsync(() async {
+        try {
+          await service.importProject(
+            plan,
+            forceMerge: false,
+            conflictActions: const {},
+            importedProjectFields: const {},
+            extractedDirectory: extraction,
+          );
+          return null;
+        } on FormatException catch (error) {
+          return error;
+        }
+      });
+      expect(blocked, isA<FormatException>());
+
+      final result = await tester.runAsync(
+        () => service.importProject(
+          plan,
+          forceMerge: false,
+          conflictActions: const {
+            'specimenFieldId:imported-specimen':
+                ProjectTransferConflictAction.skip,
+          },
+          importedProjectFields: const {},
+          extractedDirectory: extraction,
+        ),
+      );
+
+      expect(result!.skippedByConflict, 1);
+      expect(await database.select(database.specimen).get(), hasLength(1));
     });
 
     testWidgets('blocks UUID mismatch unless force merge is enabled', (
@@ -1179,6 +1694,95 @@ void main() {
     });
   });
 
+  group('conflict resolution rules', () {
+    ProjectTransferConflict conflict(
+      String id, {
+      bool requiresChoice = false,
+      List<String> parents = const [],
+    }) => ProjectTransferConflict(
+      id: id,
+      section: ProjectTransferSection.specimens,
+      label: id,
+      currentSummary: 'current',
+      importedSummary: 'imported',
+      requiresChoice: requiresChoice,
+      parentConflictIds: parents,
+    );
+
+    ProjectTransferImportPlan planWith(
+      List<ProjectTransferConflict> conflicts,
+    ) => ProjectTransferImportPlan(
+      payload: _payload(),
+      mode: ProjectTransferImportMode.merge,
+      destinationProjectUuid: 'project-a',
+      destinationProjectName: 'Project A',
+      conflicts: conflicts,
+      matchedBySection: const {},
+      newBySection: const {},
+      warnings: const [],
+    );
+
+    test('a conflict without parents always applies', () {
+      expect(isConflictActive(conflict('a'), const {}), isTrue);
+    });
+
+    test('a child falls away when its parent is skipped or kept', () {
+      final child = conflict('child', parents: const ['parent']);
+      for (final action in const [
+        ProjectTransferConflictAction.skip,
+        ProjectTransferConflictAction.keepCurrent,
+      ]) {
+        expect(isConflictActive(child, {'parent': action}), isFalse);
+      }
+      for (final action in const [
+        ProjectTransferConflictAction.useImported,
+        ProjectTransferConflictAction.importAsNew,
+      ]) {
+        expect(isConflictActive(child, {'parent': action}), isTrue);
+      }
+    });
+
+    test('any skipped parent takes the child out', () {
+      final child = conflict('child', parents: const ['one', 'two']);
+      expect(
+        isConflictActive(child, const {
+          'one': ProjectTransferConflictAction.importAsNew,
+          'two': ProjectTransferConflictAction.skip,
+        }),
+        isFalse,
+      );
+    });
+
+    test('only blocking conflicts without an action are unresolved', () {
+      final plan = planWith([
+        conflict('plain'),
+        conflict('blocking', requiresChoice: true),
+        conflict('answered', requiresChoice: true),
+      ]);
+
+      expect(
+        unresolvedConflicts(plan, const {
+          'answered': ProjectTransferConflictAction.skip,
+        }).map((item) => item.id),
+        ['blocking'],
+      );
+    });
+
+    test('an inactive blocking conflict does not hold up the import', () {
+      final plan = planWith([
+        conflict('parent', requiresChoice: true),
+        conflict('child', requiresChoice: true, parents: const ['parent']),
+      ]);
+
+      expect(
+        unresolvedConflicts(plan, const {
+          'parent': ProjectTransferConflictAction.skip,
+        }),
+        isEmpty,
+      );
+    });
+  });
+
   testWidgets('project menu distinguishes transfers from record bundles', (
     tester,
   ) async {
@@ -1322,42 +1926,41 @@ void main() {
     expect(find.byKey(const ValueKey('nahpu-wizard-step-rail')), findsNothing);
   });
 
-  testWidgets(
-    'home menu exposes project actions and Cookbook before About',
-    (tester) async {
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(500, 1200);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      addTearDown(tester.view.resetPhysicalSize);
+  testWidgets('home menu exposes project actions and Cookbook before About', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(500, 1200);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
 
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
-      );
-      final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
-      scaffold.openDrawer();
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(drawer: HomeMenuDrawer())),
+    );
+    final scaffold = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffold.openDrawer();
+    await tester.pumpAndSettle();
 
-      expect(find.text('Create project'), findsOneWidget);
-      expect(find.text('Import project'), findsOneWidget);
-      expect(find.text('Cookbook'), findsOneWidget);
-      expect(find.text('How-to recipes'), findsNothing);
-      expect(find.text('Learning resources'), findsNothing);
+    expect(find.text('Create project'), findsOneWidget);
+    expect(find.text('Import project'), findsOneWidget);
+    expect(find.text('Cookbook'), findsOneWidget);
+    expect(find.text('How-to recipes'), findsNothing);
+    expect(find.text('Learning resources'), findsNothing);
 
-      final drawerText = tester
-          .widgetList<Text>(
-            find.descendant(
-              of: find.byType(HomeMenuDrawer),
-              matching: find.byType(Text),
-            ),
-          )
-          .map((text) => text.data)
-          .toList();
-      expect(
-        drawerText.indexOf('Cookbook'),
-        lessThan(drawerText.indexOf('About')),
-      );
-    },
-  );
+    final drawerText = tester
+        .widgetList<Text>(
+          find.descendant(
+            of: find.byType(HomeMenuDrawer),
+            matching: find.byType(Text),
+          ),
+        )
+        .map((text) => text.data)
+        .toList();
+    expect(
+      drawerText.indexOf('Cookbook'),
+      lessThan(drawerText.indexOf('About')),
+    );
+  });
 
   testWidgets('home speed dial exposes project creation and import', (
     tester,

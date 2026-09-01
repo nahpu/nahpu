@@ -40,7 +40,7 @@ void main() {
   testWidgets('offers a backup tile that states the guarantee', (tester) async {
     await pumpSection(tester);
 
-    expect(find.text('Back up database'), findsOneWidget);
+    expect(find.text('Backup database'), findsOneWidget);
     expect(
       find.text('Full archive with all media (.zip or .tar.gz)'),
       findsOneWidget,
@@ -50,7 +50,7 @@ void main() {
   testWidgets('the backup tile opens the backup window', (tester) async {
     await pumpSection(tester);
 
-    await tester.tap(find.text('Back up database'));
+    await tester.tap(find.text('Backup database'));
     // The backup window starts a real summary read, so the route is checked
     // once the transition has run rather than by settling on it.
     await tester.pump();
@@ -65,6 +65,9 @@ void main() {
     await pumpSection(tester);
 
     expect(find.text('Replace database'), findsOneWidget);
-    expect(find.text('Overwrites everything. Back up first.'), findsOneWidget);
+    expect(
+      find.text('Replace current database with another database file'),
+      findsOneWidget,
+    );
   });
 }

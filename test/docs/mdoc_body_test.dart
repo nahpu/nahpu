@@ -80,7 +80,10 @@ Tip body.
       expect(steps.first.markdown, contains('{% aside type="tip" %}'));
 
       final nested = const MdocParser().parse(steps.first.markdown);
-      expect(nested.whereType<MdocAsideBlock>().single.markdown, contains('QR'));
+      expect(
+        nested.whereType<MdocAsideBlock>().single.markdown,
+        contains('QR'),
+      );
     });
 
     test('falls back to Markdown when steps nest another steps block', () {

@@ -431,7 +431,7 @@ class PersonnelInitialField extends ConsumerWidget {
       maxLength: 8,
       decoration: InputDecoration(
         labelText: 'Initials*',
-        hintText: 'e.g., HH or H-H',
+        hintText: 'e.g. HH or H-H',
         errorText: ref
             .watch(personnelFormValidatorProvider)
             .when(

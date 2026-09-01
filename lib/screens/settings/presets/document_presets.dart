@@ -858,7 +858,7 @@ class DocumentPresetListColumn extends StatelessWidget {
                                 if (status.isCompatible)
                                   IconButton(
                                     icon: const Icon(Icons.qr_code),
-                                    tooltip: 'Show QR Code',
+                                    tooltip: 'Show QR',
                                     onPressed: () => _showQRCode(context, name),
                                   ),
                                 IconButton(

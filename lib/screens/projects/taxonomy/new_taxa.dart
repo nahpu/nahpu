@@ -234,7 +234,7 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                   child: CommonNumField(
                     controller: widget.ctr.sortingOrderCtr,
                     labelText: 'Sorting order',
-                    hintText: 'E.g., 1, 2, 3, etc.',
+                    hintText: 'e.g. 1, 2, 3',
                     isLastField: false,
                   ),
                 ),

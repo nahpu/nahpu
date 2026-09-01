@@ -328,19 +328,20 @@ class DwcBundleWriter extends AppServices {
         agents,
       );
       String? catalogNumber;
-      if (specimen.projectFieldNumber != null) {
-        catalogNumber = formatProjectFieldId(
-          project,
-          specimen.projectFieldNumber,
-        );
-      } else if (specimen.fieldNumber != null) {
-        final catalogerData = specimen.catalogerID == null
-            ? null
-            : await PersonnelServices(
+      if (specimen.projectFieldNumber != null || specimen.fieldNumber != null) {
+        final catalogerData =
+            specimen.projectFieldNumber == null && specimen.catalogerID != null
+            ? await PersonnelServices(
                 ref: ref,
-              ).getPersonnelByUuid(specimen.catalogerID!);
-        catalogNumber =
-            '${catalogerData?.initial ?? ''}${specimen.fieldNumber}';
+              ).getPersonnelByUuid(specimen.catalogerID!)
+            : null;
+        catalogNumber = formatSpecimenFieldId(
+          catalogNumberPrefix: project.catalogNumberPrefix,
+          catalogNumberSuffix: project.catalogNumberSuffix,
+          catalogerInitial: catalogerData?.initial,
+          fieldNumber: specimen.fieldNumber,
+          projectFieldNumber: specimen.projectFieldNumber,
+        );
       }
       var eventAgents = event == null
           ? <_ResolvedAgent>[]

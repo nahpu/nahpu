@@ -16,14 +16,27 @@ import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
 
-String formatCollEventId(CollEventData event, SiteRecord? site) {
-  final siteId = site?.siteID ?? '';
-  final startDate = event.startDate ?? '';
-  final suffix = event.idSuffix?.trim().isNotEmpty ?? false
-      ? '-${event.idSuffix}'
+/// Renders the event ID from its parts: site, start date, and optional suffix.
+///
+/// This is the identity users see, so record matching during a project merge
+/// keys on the same three parts.
+String formatCollEventIdParts({
+  String? siteId,
+  String? startDate,
+  String? idSuffix,
+}) {
+  final suffix = idSuffix?.trim().isNotEmpty ?? false
+      ? '-${idSuffix!.trim()}'
       : '';
-  return '$siteId-$startDate$suffix';
+  return '${siteId ?? ''}-${startDate ?? ''}$suffix';
 }
+
+String formatCollEventId(CollEventData event, SiteRecord? site) =>
+    formatCollEventIdParts(
+      siteId: site?.siteID,
+      startDate: event.startDate,
+      idSuffix: event.idSuffix,
+    );
 
 class CollEventServices extends AppServices {
   const CollEventServices({required super.ref});
