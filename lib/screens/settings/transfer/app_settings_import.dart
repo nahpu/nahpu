@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/settings/transfer/user_config_transfer_widgets.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
@@ -234,6 +235,14 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
       );
       _invalidateSettingsProviders();
       if (!mounted) return;
+      // Imported templates can name fonts this installation does not have,
+      // so repair them before the user opens one and finds it unrenderable.
+      if (_selectedSections.contains(
+        rust_config.UserConfigSection.templatePresets,
+      )) {
+        await resolveStoredTemplateFonts(context, ref);
+        if (!mounted) return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selected user configs were imported.')),
       );

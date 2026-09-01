@@ -20,12 +20,21 @@ class TemplateService {
   }
 
   Future<void> saveTemplate(Template template) async {
+    await updateTemplate(template);
+    await const BundledTemplatePresetService().restore(template.name);
+    await DocumentSettingsServices().setCurrentTemplateName(template.name);
+  }
+
+  /// Writes [template] without making it the current template.
+  ///
+  /// Used for edits that repair stored templates in place, such as replacing
+  /// a font this installation cannot render, where changing the user's
+  /// current selection would be a surprise.
+  Future<void> updateTemplate(Template template) async {
     await rust_config.setTemplatePreset(
       name: template.name,
       value: template.toJsonString(),
     );
-    await const BundledTemplatePresetService().restore(template.name);
-    await DocumentSettingsServices().setCurrentTemplateName(template.name);
   }
 
   Future<void> deleteTemplate(String name) async {

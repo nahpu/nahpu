@@ -967,6 +967,12 @@ class _DocumentTypstRenderer {
     return 'rgb("${hexColor.substring(2)}")';
   }
 
+  /// Maps a stored font family onto the name Typst indexes it under.
+  ///
+  /// Bundled families are stored under their internal names, but templates
+  /// saved before that change hold compact keys, so those are still aliased.
+  /// User-installed families are stored under their internal name and pass
+  /// through unchanged.
   String _typstTemplateFont(String fontFamily) {
     final font = fontFamily.trim();
     if (font.isEmpty) return 'Merriweather';

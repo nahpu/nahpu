@@ -47,7 +47,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
             onCreate: _create,
             onScanQr: _scanQr,
             onImport: _importFile,
-            onExport: _export,
+            onExportAll: _export,
           ),
         ],
       ),

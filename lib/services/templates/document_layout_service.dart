@@ -46,6 +46,37 @@ class DocumentLayoutService {
     await rust_config.setDocumentLayout(name: layout.name, layout: layout);
   }
 
+  /// Renames a layout preset, keeping the current selection pointed at it.
+  ///
+  /// redb has no rename primitive, so the layout is written under the new name
+  /// before the old key is removed. Writing first means a failure leaves the
+  /// original intact rather than losing the preset.
+  Future<void> renameLayout(String currentName, String newName) async {
+    final from = currentName.trim();
+    final to = newName.trim();
+    if (to.isEmpty) throw ArgumentError('A preset name cannot be empty');
+    if (from == to) return;
+    final names = await listLayoutNames();
+    if (names.contains(to)) {
+      throw StateError('A preset named "$to" already exists');
+    }
+    final layout = await getLayout(from);
+    if (layout == null) {
+      throw StateError('Preset "$from" no longer exists');
+    }
+
+    await saveLayout(layout.copyWith(name: to));
+    try {
+      await rust_config.deleteDocumentLayout(name: from);
+    } catch (_) {
+      await rust_config.deleteDocumentLayout(name: to);
+      rethrow;
+    }
+    if (await getStoredCurrentLayoutName() == from) {
+      await setCurrentLayoutName(to);
+    }
+  }
+
   Future<void> deleteLayout(String name) async {
     await rust_config.deleteDocumentLayout(name: name);
     final names = await listLayoutNames();

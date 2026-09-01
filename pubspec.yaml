@@ -67,7 +67,6 @@ dependencies:
   mime: ^2.0.0
   flutter_markdown_plus: ^1.0.7
   flex_color_picker: ^3.8.0
-  google_fonts: ^8.1.0
   pdfrx: ^2.4.7
   flutter_map: ^8.3.1
   flutter_map_pmtiles: ^1.0.5
@@ -192,33 +191,33 @@ flutter:
     - family: "NahpuIcons"
       fonts:
         - asset: assets/fonts/nahpu_font.ttf
-    - family: "DejaVuSans"
+    - family: "DejaVu Sans"
       fonts:
         - asset: assets/fonts/DejaVuSans.ttf
         - asset: assets/fonts/DejaVuSans-Bold.ttf
           weight: 700
-    - family: "DejaVuSerif"
+    - family: "DejaVu Serif"
       fonts:
         - asset: assets/fonts/DejaVuSerif.ttf
         - asset: assets/fonts/DejaVuSerif-Bold.ttf
           weight: 700
         - asset: assets/fonts/DejaVuSerif-Italic.ttf
           style: italic
-    - family: "LibertinusSans"
+    - family: "Libertinus Sans"
       fonts:
         - asset: assets/fonts/LibertinusSans-Regular.ttf
         - asset: assets/fonts/LibertinusSans-Italic.ttf
           style: italic
         - asset: assets/fonts/LibertinusSans-Bold.ttf
           weight: 700
-    - family: "LibertinusSerif"
+    - family: "Libertinus Serif"
       fonts:
         - asset: assets/fonts/LibertinusSerif-Regular.ttf
         - asset: assets/fonts/LibertinusSerif-Italic.ttf
           style: italic
         - asset: assets/fonts/LibertinusSerif-Bold.ttf
           weight: 700
-    - family: "PlusJakartaSans"
+    - family: "Plus Jakarta Sans"
       fonts:
         - asset: assets/fonts/PlusJakartaSans-Regular.ttf
         - asset: assets/fonts/PlusJakartaSans-Italic.ttf

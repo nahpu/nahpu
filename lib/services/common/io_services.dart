@@ -16,7 +16,11 @@
 ///     │   ├── personnel/                 # Personnel photos/images
 ///     │   └── template/                  # Shared template media (`templateMediaDirName`)
 ///     ├── UserConfigs/                   # User configuration directory (`userConfigDirName`)
-///     │   └── fonts/                     # Custom user fonts (`userFontDirName`)
+///     │   ├── fonts/                     # Custom user fonts (`userFontDirName`)
+///     │   │   ├── catalog.json           # Installed font families
+///     │   │   └── <font_uuid>/           # One directory per installed family
+///     │   │       ├── font.json          # Family metadata
+///     │   │       └── *.ttf              # Font files for the family
 ///     │   └── maps/                      # Custom user maps (`userMapDirName`)
 ///     └── <project_uuid>/                # Individual project directories
 ///         ├── associatedData/            # Project associated-data files
@@ -407,12 +411,7 @@ class AppServices {
   }
 
   Future<Directory> get userFontDir async {
-    final userConfigDir = await this.userConfigDir;
-    final userFontDir = Directory(
-      path.join(userConfigDir.path, userFontDirName),
-    );
-    await userFontDir.create(recursive: true);
-    return userFontDir;
+    return getUserFontDirectory();
   }
 
   Future<Directory> get userMapDir async {
@@ -422,6 +421,15 @@ class AppServices {
   Future<Directory> get templateMediaDir async {
     return getTemplateMediaDirectory();
   }
+}
+
+Future<Directory> getUserFontDirectory() async {
+  final documentDir = await nahpuDocumentDir;
+  final userFontDir = Directory(
+    path.join(documentDir.path, userConfigDirName, userFontDirName),
+  );
+  await userFontDir.create(recursive: true);
+  return userFontDir;
 }
 
 Future<Directory> getUserMapDirectory() async {

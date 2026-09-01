@@ -34,12 +34,13 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   Timer? _saveTimer;
   _PendingPresetSave? _pendingSave;
   Future<void> _saveChain = Future.value();
-  String? _ownRenameTarget;
   late ExportPresetNotifier _presetNotifier;
   AsyncValue<Map<String, ExportPresetModel>> _presetProviderState =
       const AsyncValue.loading();
   bool _isSaving = false;
   String? _saveError;
+  bool _isRenaming = false;
+  String? _renameError;
 
   @override
   void initState() {
@@ -58,17 +59,17 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   @override
   void didUpdateWidget(covariant ExportPresetEditForm oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.presetName != widget.presetName) {
-      final isOwnRename = _ownRenameTarget == widget.presetName;
-      _ownRenameTarget = null;
-      if (!isOwnRename) {
-        _flushPendingSave();
-        _editSession++;
-      }
-      _nameController.text = widget.presetName;
-      _expectedPersistedNames[_editSession] = widget.presetName;
-      if (!isOwnRename) _preset = widget.initialPreset;
-    }
+    if (oldWidget.presetName == widget.presetName) return;
+    _flushPendingSave();
+    _editSession++;
+    // Only take the incoming name when the user had no unsaved edit against
+    // the preset they were on. Assigning to `text` resets the caret, so doing
+    // it while the user is typing would drop characters and jump the cursor.
+    final hadUnsavedName = _nameController.text.trim() != oldWidget.presetName;
+    if (!hadUnsavedName) _nameController.text = widget.presetName;
+    _expectedPersistedNames[_editSession] = widget.presetName;
+    _preset = widget.initialPreset;
+    _renameError = null;
   }
 
   @override
@@ -168,11 +169,16 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     _schedulePersist();
   }
 
+  /// Queues an auto-save of the preset body.
+  ///
+  /// The target is always the persisted name, never the text field, so a
+  /// settings change made while a new name is half-typed saves under the name
+  /// the preset actually has.
   void _schedulePersist() {
     _saveTimer?.cancel();
     _pendingSave = _PendingPresetSave(
       editSession: _editSession,
-      targetName: _nameController.text.trim(),
+      targetName: widget.presetName,
       preset: _preset,
     );
     _saveTimer = Timer(const Duration(milliseconds: 400), _flushPendingSave);
@@ -185,16 +191,6 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     if (pending == null) return _saveChain;
     _pendingSave = null;
 
-    if (pending.targetName.isEmpty) {
-      if (mounted && updateUi && pending.editSession == _editSession) {
-        setState(() => _saveError = 'Preset name cannot be empty.');
-      }
-      return _saveChain;
-    }
-
-    final sourceName =
-        _expectedPersistedNames[pending.editSession] ?? pending.targetName;
-    _expectedPersistedNames[pending.editSession] = pending.targetName;
     _saveChain = _saveChain.then((_) async {
       final isCurrentSession = pending.editSession == _editSession;
       if (mounted && updateUi && isCurrentSession) {
@@ -204,30 +200,11 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         });
       }
       try {
-        if (pending.targetName == sourceName) {
-          await _presetNotifier.savePreset(pending.targetName, pending.preset);
-        } else {
-          await _presetNotifier.renamePreset(
-            sourceName,
-            pending.targetName,
-            pending.preset,
-          );
-          if (mounted &&
-              updateUi &&
-              isCurrentSession &&
-              widget.presetName == sourceName) {
-            _ownRenameTarget = pending.targetName;
-            widget.onPresetRenamed(sourceName, pending.targetName);
-          }
-        }
+        await _presetNotifier.savePreset(pending.targetName, pending.preset);
         if (mounted && updateUi && isCurrentSession) {
           setState(() => _isSaving = false);
         }
       } on Object catch (error) {
-        if (_expectedPersistedNames[pending.editSession] ==
-            pending.targetName) {
-          _expectedPersistedNames[pending.editSession] = sourceName;
-        }
         if (mounted && updateUi && isCurrentSession) {
           setState(() {
             _isSaving = false;
@@ -239,6 +216,61 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     return _saveChain;
   }
 
+  bool get _isNameDirty => _nameController.text.trim() != widget.presetName;
+
+  bool get _canRename =>
+      _isNameDirty && _nameValidationError == null && !_isRenaming;
+
+  /// Validates the typed name, or null when it can be committed.
+  String? get _nameValidationError {
+    final trimmed = _nameController.text.trim();
+    if (trimmed.isEmpty) return 'Preset name cannot be empty.';
+    final presets = _presetProviderState.asData?.value;
+    if (presets != null &&
+        trimmed != widget.presetName &&
+        presets.containsKey(trimmed)) {
+      return 'A preset named "$trimmed" already exists.';
+    }
+    return null;
+  }
+
+  /// Commits a rename on demand.
+  ///
+  /// Renaming is deliberately separate from the body auto-save: committing on
+  /// every keystroke renamed the preset to each prefix of what the user was
+  /// typing, and the name pushed back down then reset the field mid-word.
+  Future<void> _renamePreset() async {
+    final target = _nameController.text.trim();
+    final error = _nameValidationError;
+    if (error != null) {
+      setState(() => _renameError = error);
+      return;
+    }
+    final sourceName = widget.presetName;
+    if (target == sourceName) return;
+
+    setState(() {
+      _isRenaming = true;
+      _renameError = null;
+    });
+    // Land any queued body edit under the old name first, so the rename
+    // carries the current settings rather than racing them.
+    await _flushPendingSave();
+    try {
+      await _presetNotifier.renamePreset(sourceName, target, _preset);
+      _expectedPersistedNames[_editSession] = target;
+      if (!mounted) return;
+      setState(() => _isRenaming = false);
+      widget.onPresetRenamed(sourceName, target);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isRenaming = false;
+        _renameError = 'Couldn\'t rename: $error';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FormCard(
@@ -248,10 +280,42 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Preset name'),
-              onChanged: (_) => _schedulePersist(),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Preset name',
+                      errorText: _isNameDirty
+                          ? (_renameError ?? _nameValidationError)
+                          : _renameError,
+                      helperText: _isNameDirty && _nameValidationError == null
+                          ? 'Select Rename to save this name'
+                          : null,
+                    ),
+                    onChanged: (_) => setState(() => _renameError = null),
+                    onFieldSubmitted: (_) {
+                      if (_canRename) _renamePreset();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: FilledButton.tonal(
+                    onPressed: _canRename ? _renamePreset : null,
+                    child: _isRenaming
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Rename'),
+                  ),
+                ),
+              ],
             ),
           ),
           _PresetSettingsCard(

@@ -324,9 +324,9 @@ NahpuLocationVerdict classifyLocation(
     );
   }
 
-  // All of `UserConfigs/` is locked by path. Custom fonts have no manifest at
-  // all, and a map layer's directory is populated *before* its catalog entry is
-  // written — so the catalog can never be a delete authority.
+  // All of `UserConfigs/` is locked by path. Both fonts and map layers write
+  // their files *before* the catalog entry that lists them, so neither catalog
+  // can be a delete authority. Fonts are removed from the Fonts manager.
   if (first == userConfigDirName) {
     return const NahpuLocationVerdict(
       NahpuFileLocation.locked,

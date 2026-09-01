@@ -8,6 +8,8 @@ Un preajuste de exportación tabular guarda una definición repetible: el tipo d
 
 Los valores repetidos pueden escribirse en una sola columna con un separador, o repartirse en columnas indexadas como `field_1`, `field_2`. Pruebe un preajuste con registros representativos, incluidos valores faltantes y repetidos, antes de depender de él, y transfiera las configuraciones de usuario cuando quienes colaboran necesiten la misma definición.
 
+Los ajustes se guardan a medida que los cambia, pero el nombre del preajuste no: escriba un nombre nuevo y seleccione `Rename` para confirmarlo. Exporte un solo preajuste desde su fila, o todos desde el menú de opciones; ambos archivos se importan con la misma acción.
+
 ## Contexto de Darwin Core
 
 `Generated header format` elige cómo se nombran los encabezados: `table::fieldName`, `fieldName`, Darwin Core (`dwc:`/`dcterms:`) o el espacio de nombres de NAHPU. Los encabezados de Darwin Core solo se producen para salidas CSV, TSV y Excel, y solo para campos que tienen un equivalente en Darwin Core; un campo sin equivalente conserva su nombre de NAHPU. Los valores repetidos en una exportación de Darwin Core siempre usan el separador recomendado " | ".

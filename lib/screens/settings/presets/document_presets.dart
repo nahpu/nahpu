@@ -28,10 +28,14 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/screens/settings/presets/font_manager.dart';
 import 'package:nahpu/screens/settings/presets/template_preset_manager.dart';
 import 'package:nahpu/services/settings/config_services.dart';
 import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// The three things the Document Presets screen manages.
+enum DocumentPresetView { layouts, templates, fonts }
 
 class DocumentPresetsScreen extends ConsumerStatefulWidget {
   const DocumentPresetsScreen({super.key});
@@ -53,7 +57,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
   List<String> _templateNames = const [];
   String _selectedLayoutName = 'Default';
-  bool _showTemplateManager = false;
+  DocumentPresetView _view = DocumentPresetView.layouts;
 
   // Preview States
   bool _showPreview = false;
@@ -131,12 +135,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       appBar: AppBar(
         title: const Text('Document Presets'),
         actions: [
-          if (!_showTemplateManager)
+          if (_view == DocumentPresetView.layouts)
             PresetAppBarActions(
               onCreate: _addPreset,
               onScanQr: _scanPresetQr,
               onImport: _importPreset,
-              onExport: _exportPresetsToFile,
+              onExportAll: _exportPresetsToFile,
+              onExportSelected: _exportSelectedPreset,
             ),
         ],
       ),
@@ -146,30 +151,35 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: Center(
-                child: SegmentedButton<bool>(
+                child: SegmentedButton<DocumentPresetView>(
                   segments: const [
                     ButtonSegment(
-                      value: true,
+                      value: DocumentPresetView.layouts,
                       icon: Icon(Icons.view_quilt_outlined),
                       label: Text('Print layouts'),
                     ),
                     ButtonSegment(
-                      value: false,
+                      value: DocumentPresetView.templates,
                       icon: Icon(Icons.dashboard_customize_outlined),
                       label: Text('Templates'),
                     ),
+                    ButtonSegment(
+                      value: DocumentPresetView.fonts,
+                      icon: Icon(Icons.text_fields_outlined),
+                      label: Text('Fonts'),
+                    ),
                   ],
-                  selected: {!_showTemplateManager},
+                  selected: {_view},
                   onSelectionChanged: (selection) {
-                    setState(() {
-                      _showTemplateManager = !selection.single;
-                    });
+                    setState(() => _view = selection.single);
                   },
                 ),
               ),
             ),
             Expanded(
-              child: _showTemplateManager
+              child: _view == DocumentPresetView.fonts
+                  ? const FontManager()
+                  : _view == DocumentPresetView.templates
                   ? TemplatePresetManager(
                       onOpenTemplateEditor: _openTemplateEditor,
                       onRestoreBundledTemplates: _restoreBundledTemplates,
@@ -194,6 +204,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                         _tabController.animateTo(1);
                                       },
                                       onDeletePreset: _deletePreset,
+                                      onExportPreset: (name) =>
+                                          _exportLayouts(onlyName: name),
                                       tabController: _tabController,
                                     ),
                                   ),
@@ -248,6 +260,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                                         _openTemplateEditor(),
                                                     onEditTemplate:
                                                         _openTemplateEditor,
+                                                    onRenamePreset:
+                                                        _renamePreset,
                                                   ),
                                                   previewWidget,
                                                 ],
@@ -283,6 +297,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                           _tabController.animateTo(1);
                                         },
                                         onDeletePreset: _deletePreset,
+                                        onExportPreset: (name) =>
+                                            _exportLayouts(onlyName: name),
                                         tabController: _tabController,
                                       ),
                                       DocumentPresetEditColumn(
@@ -295,6 +311,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                         onCreateTemplate: () =>
                                             _openTemplateEditor(),
                                         onEditTemplate: _openTemplateEditor,
+                                        onRenamePreset: _renamePreset,
                                       ),
                                       previewWidget,
                                     ],
@@ -508,6 +525,29 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
+  Future<void> _renamePreset(String currentName, String newName) async {
+    if (currentName == 'Default') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot rename the Default preset')),
+      );
+      return;
+    }
+    try {
+      await _layoutService.renameLayout(currentName, newName);
+      _selectedLayoutName = newName;
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Renamed to $newName')));
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Rename failed: $error')));
+    }
+  }
+
   Future<void> _savePresetAs() async {
     final layout = _layout;
     if (layout == null) return;
@@ -585,9 +625,21 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load(showLoading: false);
   }
 
-  Future<void> _exportPresetsToFile() async {
+  Future<void> _exportPresetsToFile() => _exportLayouts();
+
+  Future<void> _exportSelectedPreset() =>
+      _exportLayouts(onlyName: _selectedLayoutName);
+
+  /// Writes layouts to a JSON file.
+  ///
+  /// One layout and all layouts share the same name-keyed envelope, so either
+  /// file imports through the same path.
+  Future<void> _exportLayouts({String? onlyName}) async {
     try {
-      final layouts = await rust_config.getAllDocumentLayouts();
+      final all = await rust_config.getAllDocumentLayouts();
+      final layouts = onlyName == null
+          ? all
+          : all.where((layout) => layout.name == onlyName).toList();
       if (layouts.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -596,23 +648,25 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         }
         return;
       }
-      final Map<String, dynamic> exportedData = {};
-      for (final l in layouts) {
-        exportedData[l.name] = l.toJson();
-      }
-      final jsonString = jsonEncode(exportedData);
+      final Map<String, dynamic> exportedData = {
+        for (final layout in layouts) layout.name: layout.toJson(),
+      };
       final dir = await FilePickerServices().selectDir();
-      if (dir != null) {
-        final savePath = File(
-          path.join(dir.path, 'nahpu_document_presets.json'),
-        );
-        await savePath.writeAsString(jsonString);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Exported presets to ${savePath.path}')),
-          );
-        }
-      }
+      if (dir == null) return;
+      final fileName = onlyName == null
+          ? 'nahpu_document_presets.json'
+          : 'preset_${_sanitizeFileStem(onlyName)}.json';
+      final savePath = File(path.join(dir.path, fileName));
+      await savePath.writeAsString(jsonEncode(exportedData));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Exported ${layouts.length} preset'
+            '${layouts.length == 1 ? '' : 's'} to ${savePath.path}',
+          ),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -622,6 +676,16 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
   }
 
+  String _sanitizeFileStem(String name) {
+    final safe = name.trim().replaceAll(RegExp(r'[^\w.\-]'), '_');
+    return safe.isEmpty ? 'preset' : safe;
+  }
+
+  /// Imports one layout or a name-keyed map of layouts.
+  ///
+  /// Layouts reference templates by name and carry no font of their own, so
+  /// there is nothing to resolve here — the fonts are resolved when the
+  /// templates themselves are imported.
   Future<void> _importPreset() async {
     final file = await FilePickerServices().selectAnyFile();
     if (file == null) return;
@@ -793,10 +857,12 @@ class DocumentPresetListColumn extends StatelessWidget {
     required this.onPresetSelected,
     required this.onDeletePreset,
     required this.tabController,
+    this.onExportPreset,
   });
 
   final String? selectedPresetName;
   final List<rust_config.DocumentLayoutStatus> statuses;
+  final ValueChanged<String>? onExportPreset;
   final ValueChanged<String> onPresetSelected;
   final ValueChanged<String> onDeletePreset;
   final TabController tabController;
@@ -855,12 +921,21 @@ class DocumentPresetListColumn extends StatelessWidget {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (status.isCompatible)
+                                if (status.isCompatible) ...[
                                   IconButton(
                                     icon: const Icon(Icons.qr_code),
                                     tooltip: 'Show QR',
                                     onPressed: () => _showQRCode(context, name),
                                   ),
+                                  if (onExportPreset != null)
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.file_upload_outlined,
+                                      ),
+                                      tooltip: 'Export this preset',
+                                      onPressed: () => onExportPreset!(name),
+                                    ),
+                                ],
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
                                   tooltip: 'Delete',
@@ -922,6 +997,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
     required this.onSaveSetupAs,
     required this.onCreateTemplate,
     required this.onEditTemplate,
+    required this.onRenamePreset,
   });
 
   final String? selectedPresetName;
@@ -932,6 +1008,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
   final VoidCallback onSaveSetupAs;
   final VoidCallback onCreateTemplate;
   final ValueChanged<String> onEditTemplate;
+  final Future<void> Function(String, String) onRenamePreset;
 
   @override
   Widget build(BuildContext context) {
@@ -987,21 +1064,15 @@ class DocumentPresetEditColumn extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  selectedPresetName!,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onSaveSetupAs,
-                  icon: const Icon(Icons.copy_outlined),
-                  label: const Text('Duplicate'),
-                ),
-              ],
+            child: _PresetNameField(
+              key: ValueKey(selectedPresetName),
+              presetName: selectedPresetName!,
+              takenNames: layoutStatuses
+                  .map((status) => status.name)
+                  .where((name) => name != selectedPresetName)
+                  .toSet(),
+              onRename: onRenamePreset,
+              onDuplicate: onSaveSetupAs,
             ),
           ),
           const Divider(),
@@ -1026,6 +1097,104 @@ class DocumentPresetEditColumn extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Editable name for the selected print layout preset.
+///
+/// The name is committed by the Rename button rather than as the user types,
+/// so a rename never fires against a half-typed name.
+class _PresetNameField extends StatefulWidget {
+  const _PresetNameField({
+    super.key,
+    required this.presetName,
+    required this.takenNames,
+    required this.onRename,
+    required this.onDuplicate,
+  });
+
+  final String presetName;
+  final Set<String> takenNames;
+  final Future<void> Function(String, String) onRename;
+  final VoidCallback onDuplicate;
+
+  @override
+  State<_PresetNameField> createState() => _PresetNameFieldState();
+}
+
+class _PresetNameFieldState extends State<_PresetNameField> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.presetName,
+  );
+  bool _renaming = false;
+
+  @override
+  void didUpdateWidget(covariant _PresetNameField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.presetName != widget.presetName && !_isDirty) {
+      _controller.text = widget.presetName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  bool get _isDirty => _controller.text.trim() != widget.presetName;
+
+  String? get _error {
+    final trimmed = _controller.text.trim();
+    if (trimmed.isEmpty) return 'Name cannot be empty';
+    if (widget.takenNames.contains(trimmed)) {
+      return 'A preset with this name already exists';
+    }
+    return null;
+  }
+
+  Future<void> _rename() async {
+    final target = _controller.text.trim();
+    setState(() => _renaming = true);
+    await widget.onRename(widget.presetName, target);
+    if (mounted) setState(() => _renaming = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final error = _error;
+    final canRename = _isDirty && error == null && !_renaming;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              labelText: 'Preset name',
+              errorText: _isDirty ? error : null,
+              isDense: true,
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) {
+              if (canRename) _rename();
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        FilledButton.tonal(
+          onPressed: canRename ? _rename : null,
+          child: const Text('Rename'),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: widget.onDuplicate,
+          icon: const Icon(Icons.copy_outlined),
+          label: const Text('Duplicate'),
+        ),
+      ],
     );
   }
 }

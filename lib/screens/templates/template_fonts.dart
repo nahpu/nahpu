@@ -1,13 +1,13 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/templates/font_registry.dart';
 
-bool templateCanvasFontUsesGoogle(String fontFamilyRaw) {
-  final f = fontFamilyRaw.trim().toLowerCase();
-  if (f.isEmpty) return false;
-  return !['merriweather', 'serif', 'sans-serif', 'monospace'].contains(f);
-}
-
+/// Builds the canvas text style for a template text element.
+///
+/// Bundled families come from `pubspec.yaml`; user-installed families are
+/// registered at startup with [registerUserFonts], so both resolve through a
+/// plain `fontFamily`. An unavailable family falls back to the platform
+/// default rather than failing to paint.
 TextStyle customTemplateCanvasTextStyle({
   required String fontFamilyRaw,
   required double fontSize,
@@ -20,56 +20,21 @@ TextStyle customTemplateCanvasTextStyle({
     if (underline) TextDecoration.underline,
     if (strikethrough) TextDecoration.lineThrough,
   ];
-  final textDecoration = decorations.isEmpty
-      ? TextDecoration.none
-      : TextDecoration.combine(decorations);
-  final raw = fontFamilyRaw.trim();
-  if (raw.isEmpty) {
-    return TextStyle(
-      fontFamily: 'Merriweather',
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontStyle: fontStyle,
-      decoration: textDecoration,
-    );
-  }
-  try {
-    return GoogleFonts.getFont(
-      raw,
-      textStyle: TextStyle(
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        fontStyle: fontStyle,
-        decoration: textDecoration,
-      ),
-    );
-  } catch (_) {
-    return TextStyle(
-      fontFamily: raw,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontStyle: fontStyle,
-      decoration: textDecoration,
-    );
-  }
+  // Normalize so legacy stored keys such as `DejaVuSans` resolve to the
+  // family name the app actually declares.
+  final raw = normalizeTemplateFontFamily(fontFamilyRaw);
+  return TextStyle(
+    fontFamily: raw.isEmpty ? kFallbackFontFamily : raw,
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    fontStyle: fontStyle,
+    decoration: decorations.isEmpty
+        ? TextDecoration.none
+        : TextDecoration.combine(decorations),
+  );
 }
 
-Future<void> preloadGoogleFontForTemplateCanvas(
-  String fontFamilyRaw,
-  FontWeight weight,
-  FontStyle style,
-) async {
-  if (!templateCanvasFontUsesGoogle(fontFamilyRaw)) return;
-  try {
-    await GoogleFonts.pendingFonts([
-      GoogleFonts.getFont(
-        fontFamilyRaw.trim(),
-        textStyle: TextStyle(fontWeight: weight, fontStyle: style),
-      ),
-    ]);
-  } catch (_) {}
-}
-
+/// Collects every font family referenced by [template]'s text elements.
 Set<String> collectTemplateTextFontKeys(Template? template) {
   final keys = <String>{};
   if (template == null) return keys;
@@ -81,15 +46,10 @@ Set<String> collectTemplateTextFontKeys(Template? template) {
   return keys;
 }
 
-/// Keys shown in the template editor font dropdown (empty = platform default).
-const List<String> kTemplateFontDropdownKeys = [
+/// Keys shown in the template editor font dropdown (empty = default).
+List<String> templateFontDropdownKeys(FontRegistry registry) => [
   '',
-  'Merriweather',
-  'DejaVuSans',
-  'DejaVuSerif',
-  'LibertinusSans',
-  'LibertinusSerif',
-  'PlusJakartaSans',
+  ...registry.availableFamilies,
 ];
 
 String templateFontDropdownLabel(String key) {
@@ -97,15 +57,16 @@ String templateFontDropdownLabel(String key) {
   return key;
 }
 
-/// Maps stored [fontFamily] to a [kTemplateFontDropdownKeys] entry when possible.
-String normalizeTemplateFontFamily(String raw) {
-  final t = raw.trim().replaceAll(' ', '');
-  if (t.isEmpty) return '';
-  for (final k in kTemplateFontDropdownKeys) {
-    if (k.isNotEmpty &&
-        k.replaceAll(' ', '').toLowerCase() == t.toLowerCase()) {
-      return k;
-    }
+/// Maps a stored [raw] family onto an available family when one matches,
+/// ignoring case and spacing so legacy keys such as `DejaVuSans` resolve to
+/// the font's real name.
+String normalizeTemplateFontFamily(String raw, {FontRegistry? registry}) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return '';
+  final compact = trimmed.replaceAll(' ', '').toLowerCase();
+  final families = registry?.availableFamilies ?? kBundledFontFamilies;
+  for (final family in families) {
+    if (family.replaceAll(' ', '').toLowerCase() == compact) return family;
   }
-  return t;
+  return trimmed;
 }

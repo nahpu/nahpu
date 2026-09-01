@@ -8,6 +8,8 @@ Prasetel ekspor tabel menyimpan definisi yang dapat diulang: jenis catatan, kelo
 
 Nilai berulang dapat ditulis dalam satu kolom dengan pemisah, atau disebar menjadi kolom berindeks seperti `field_1`, `field_2`. Uji sebuah prasetel dengan catatan yang representatif, termasuk nilai yang kosong dan berulang, sebelum mengandalkannya, lalu pindahkan konfigurasi pengguna bila kolaborator memerlukan definisi yang sama.
 
+Pengaturan tersimpan otomatis saat Anda mengubahnya, tetapi nama prasetel tidak: ketik nama baru lalu pilih `Rename` untuk menyimpannya. Ekspor satu prasetel dari barisnya, atau semua prasetel dari menu opsi; kedua berkas diimpor dengan tindakan yang sama.
+
 ## Konteks Darwin Core
 
 `Generated header format` menentukan penamaan tajuk: `table::fieldName`, `fieldName`, Darwin Core (`dwc:`/`dcterms:`), atau namespace NAHPU. Tajuk Darwin Core hanya dihasilkan untuk keluaran CSV, TSV, dan Excel, dan hanya untuk kolom yang memiliki padanan Darwin Core; kolom tanpa padanan tetap memakai nama NAHPU. Nilai berulang dalam ekspor Darwin Core selalu memakai pemisah " | " yang direkomendasikan.
