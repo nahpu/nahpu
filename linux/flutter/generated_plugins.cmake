@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
-  flutter_inappwebview_linux
   fvp
   record_linux
   url_launcher_linux
