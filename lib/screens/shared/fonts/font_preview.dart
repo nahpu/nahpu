@@ -18,7 +18,8 @@ const String kFontPreviewSampleC =
     'Feeling creative or inspired? Send the maintainer your thoughts, an '
     'interesting biodiversity fact, a field joke, or a short story worth '
     'reading, or post it at github.com/nahpu/nahpu/issues, and it may show up '
-    'right here. A font choice should not be decided by a quick brown fox.';
+    'right here. A font choice should not be decided by a quick brown fox '
+    'jumping over a lazy dog.';
 
 const List<String> kFontPreviewSamples = [
   kFontPreviewSampleA,
