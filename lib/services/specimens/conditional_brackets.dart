@@ -4,7 +4,17 @@ import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/types/mammals.dart';
 
 /// The comparison used by a conditional bracket rule.
-enum ConditionalComparisonOperator { equals, notEquals, contains }
+///
+/// [isEmpty] and [isNotEmpty] ignore their comparison value and test only
+/// whether the source field holds anything. They are written as `==""` and
+/// `!=""`, so a comparison against the empty string reads the way it looks.
+enum ConditionalComparisonOperator {
+  equals,
+  notEquals,
+  contains,
+  isEmpty,
+  isNotEmpty,
+}
 
 /// How a group of conditional bracket rules is combined.
 enum ConditionalMatchMode { any, all }
@@ -15,7 +25,9 @@ enum ConditionalOutputAction { brackets, replacement }
 /// A single field comparison used to decide whether a value is bracketed.
 ///
 /// Values are compared after trimming but remain case-sensitive. A blank
-/// controlling value never matches, including for [ConditionalComparisonOperator.notEquals].
+/// controlling value never matches, including for
+/// [ConditionalComparisonOperator.notEquals]. The two emptiness operators are
+/// the exception: they exist precisely to test for a blank value.
 class ConditionalBracketCondition {
   const ConditionalBracketCondition({
     required this.sourceField,
@@ -135,10 +147,17 @@ class ConditionalBracketExpression {
         .map((condition) {
           final operator = switch (condition.operator) {
             ConditionalComparisonOperator.equals => '==',
-            ConditionalComparisonOperator.notEquals => '!=',
+            ConditionalComparisonOperator.notEquals ||
+            ConditionalComparisonOperator.isNotEmpty => '!=',
             ConditionalComparisonOperator.contains => '~=',
+            ConditionalComparisonOperator.isEmpty => '==',
           };
-          return '${condition.sourceField}$operator${jsonEncode(condition.comparisonValue)}';
+          final value = switch (condition.operator) {
+            ConditionalComparisonOperator.isEmpty ||
+            ConditionalComparisonOperator.isNotEmpty => '',
+            _ => condition.comparisonValue,
+          };
+          return '${condition.sourceField}$operator${jsonEncode(value)}';
         })
         .join(joiner);
     if (outputAction == ConditionalOutputAction.replacement) {
@@ -162,8 +181,21 @@ bool conditionalBracketConditionsMatch(
   final results = conditions.map((condition) {
     final actual = resolve(condition.sourceField)?.trim();
     final expected = condition.comparisonValue.trim();
-    if (actual == null || actual.isEmpty || expected.isEmpty) return false;
+    final blank = actual == null || actual.isEmpty;
+    // The emptiness operators are the only ones a blank value can satisfy, so
+    // they are answered before the shared blank guard below.
+    switch (condition.operator) {
+      case ConditionalComparisonOperator.isEmpty:
+        return blank;
+      case ConditionalComparisonOperator.isNotEmpty:
+        return !blank;
+      default:
+        break;
+    }
+    if (blank || expected.isEmpty) return false;
     return switch (condition.operator) {
+      ConditionalComparisonOperator.isEmpty ||
+      ConditionalComparisonOperator.isNotEmpty => false,
       ConditionalComparisonOperator.equals => actual == expected,
       ConditionalComparisonOperator.notEquals => actual != expected,
       ConditionalComparisonOperator.contains => _containsComparisonMatches(
@@ -381,11 +413,16 @@ _parseConditionGroup(String input) {
     } on Object {
       return null;
     }
-    if (value.trim().isEmpty) return null;
+    // An empty comparison value is only meaningful as an emptiness test, and
+    // `~=` has no emptiness form, so it stays invalid there.
+    final isEmptinessTest = value.trim().isEmpty;
+    if (isEmptinessTest && operatorText == '~=') return null;
     conditions.add(
       ConditionalBracketCondition(
         sourceField: field,
         operator: switch (operatorText) {
+          '==' when isEmptinessTest => ConditionalComparisonOperator.isEmpty,
+          '!=' when isEmptinessTest => ConditionalComparisonOperator.isNotEmpty,
           '==' => ConditionalComparisonOperator.equals,
           '!=' => ConditionalComparisonOperator.notEquals,
           '~=' => ConditionalComparisonOperator.contains,

@@ -1,5 +1,5 @@
 ---
-title: NAHPU Hari Ke-1
+title: Hari Pertama Menggunakan NAHPU
 sidebar:
     label: NAHPU Hari Ke-1
     order: 2
@@ -13,7 +13,7 @@ NAHPU dioptimalkan untuk layar ponsel dan desktop, serta dirancang untuk mencata
 
 NAHPU mengorganisasi data berdasarkan proyek. Sebuah proyek adalah satu kumpulan data, dan Anda sendiri yang menentukan apa yang dihitung sebagai proyek. Proyek dapat berupa ekspedisi lapangan, kumpulan spesimen yang disiapkan di laboratorium untuk tahun tertentu, atau kegiatan pemantauan jangka panjang. Jika satu ekspedisi mencakup beberapa lokalitas dan setiap lokalitas memiliki kebutuhan pelaporan sendiri, sering kali lebih masuk akal membuat satu proyek untuk setiap lokalitas.
 
-Setiap proyek memiliki pengenal unik (UUID) dan dikelola secara terpisah. Pencarian, ekspor, impor, dan statistik data bekerja pada tingkat proyek. Jika institusi Anda menggunakan nomor akses, Anda dapat menetapkannya pada sebuah proyek atau memakai nomor yang sama di beberapa proyek.
+Setiap proyek memiliki pengenal unik (UUID) dan dikelola secara terpisah. Pencarian, ekspor, impor, dan statistik data bekerja pada tingkat proyek. Jika institusi Anda menggunakan nomor akses, Anda dapat menetapkannya pada sebuah proyek atau memakai nomor yang sama di beberapa proyek, sehingga proyek-proyek itu dapat dikelompokkan menjadi satu kesatuan.
 
 {% aside type="note" %}
 Pembaruan NAHPU mendatang akan menyediakan pencarian, ekspor, dan statistik data secara global di beberapa proyek.
@@ -23,7 +23,7 @@ Pembaruan NAHPU mendatang akan menyediakan pencarian, ekspor, dan statistik data
 
 Jika Anda terbiasa dengan katalog berbasis kertas, ini mungkin konsep baru: anggaplah kegiatan pengumpulan sebagai "sesi" saat spesimen dikumpulkan, yang berbeda dari site tempat kegiatan itu berlangsung.
 
-Site menyimpan informasi yang biasanya tidak berubah dalam waktu singkat, seperti geografi, kondisi habitat, dan koordinat. Kegiatan pengumpulan menyimpan detail yang berubah pada site dan periode tertentu, seperti personel yang terlibat, jumlah perangkap, cuaca, dan data astronomi. Kegiatan ini mencatat upaya pengumpulan dan kondisi lingkungan pada saat itu. Catatan spesimen terhubung ke kegiatan pengumpulan, bukan langsung ke site.
+Site menyimpan informasi yang biasanya tidak berubah dalam waktu singkat (umumnya sampai satu hari), seperti geografi, kondisi habitat, dan koordinat. Kegiatan pengumpulan menyimpan detail yang berubah pada site dan periode tertentu, seperti personel yang memeriksa perangkap, jumlah perangkap, cuaca, dan data astronomi. Kegiatan ini mencatat upaya pengumpulan, orang-orang yang terlibat, dan kondisi lingkungan pada saat itu. Catatan spesimen terhubung ke kegiatan pengumpulan, bukan langsung ke site.
 
 ### Wilayah, Lokalitas, dan Cakupan Site
 
@@ -35,21 +35,13 @@ Anda dapat menambahkan koordinat dalam jumlah berapa pun ke satu site. Saat meng
 
 ### Kosakata Terkontrol
 
-Kosakata terkontrol adalah daftar istilah yang telah ditentukan sebelumnya untuk menjaga konsistensi saat memasukkan data, dan ini merupakan praktik umum dalam sistem manajemen data. Kami berusaha sebaik mungkin menyelaraskan istilah bawaan NAHPU dengan istilah yang dipakai perangkat lunak manajemen koleksi seperti [Arctos](https://arctosdb.org/), sekaligus tetap memberi Anda keleluasaan menyesuaikannya.
+Kosakata terkontrol adalah daftar istilah yang telah ditentukan sebelumnya untuk menjaga konsistensi saat memasukkan data, dan ini merupakan praktik umum dalam sistem manajemen data yang dipakai museum sejarah alam. Kami berusaha sebaik mungkin menyelaraskan istilah bawaan NAHPU dengan istilah yang dipakai perangkat lunak manajemen koleksi seperti [Arctos](https://arctosdb.org/), sekaligus tetap memberi Anda keleluasaan menyesuaikannya.
 
-Di dalam aplikasi, kosakata ini muncul sebagai menu dropdown. Setiap kali sebuah isian bersandar pada kosakata, seperti tipe site, tipe habitat, datum koordinat, aktivitas utama, metode pengumpulan, peran personel, tahap hidup, kondisi spesimen, tipe dan perlakuan bagian spesimen, serta seluruh isian parasit, Anda memilih dari daftar alih-alih mengetik teks bebas. Dengan begitu, hal yang sama selalu ditulis dengan cara yang sama di setiap catatan.
+Di dalam aplikasi, kosakata ini muncul sebagai menu dropdown. Setiap kali sebuah isian bersandar pada kosakata, seperti tipe site, tipe habitat, datum koordinat, aktivitas utama, metode pengumpulan, peran personel, tahap hidup, kondisi spesimen, tipe dan perlakuan bagian spesimen, serta hampir seluruh isian parasit, Anda memilih dari daftar alih-alih mengetik teks bebas. Dengan begitu, istilah yang sama selalu ditulis dengan cara yang sama di setiap catatan.
 
 Daftar itu bebas Anda ubah dan bebas Anda bagikan. Tambahkan istilah, hapus yang tidak akan Anda pakai, atur format huruf, lalu jalankan `Export user configs` sekali saja agar seluruh tim mengimpor kosakata yang sama. Lihat [Pengaturan](https://nahpu.app/id/usages/settings/).
 
-Bagaimana kalau berbagi itu tidak pernah terjadi? NAHPU tetap sanggup. Setiap dropdown juga menawarkan nilai-nilai unik yang sudah tersimpan di basis data, sehingga tidak ada yang diketik rekan Anda hilang dari daftar. Untuk memasukkan nilai-nilai itu ke konfigurasi Anda sendiri, buka kosakata tersebut di Settings lalu pilih `Match database`. `Append missing` hanya menambahkan yang belum ada di daftar Anda, sedangkan `Override all` mengganti daftar Anda dengan nilai yang benar-benar terkandung dalam data. Sebuah kumpulan data dapat membangun ulang kosakata yang menghasilkannya, dan itulah yang dibutuhkan catatan yang reprodusibel.
-
-### Mudah Dibagikan, Bebas Disesuaikan
-
-Hampir semua hal di NAHPU dirancang untuk berpindah tangan. Catatan proyek, identitas proyek beserta UUID-nya, daftar takson, personel, kosakata terkontrol, preset ekspor, templat dokumen, tata letak cetak, dan custom field semuanya dapat diekspor dan diserahkan kepada orang lain. Siapkan NAHPU sesuai cara kerja tim Anda, ekspor sekali, dan setiap perangkat berangkat dari konvensi yang sama. Itulah inti argumen reprodusibilitas dalam satu kalimat: orang yang menerima data Anda juga dapat menerima aturan yang menghasilkannya.
-
-Sebagian besar di antaranya hanya berjarak satu kode QR. Tanpa kabel, tanpa akun cloud, tanpa sinyal. Angkat satu perangkat, arahkan perangkat lain ke layarnya, selesai. Ini penting ketika sinyal terdekat berjarak dua hari perjalanan. Identitas proyek, site, kegiatan pengumpulan, koordinat, satu takson atau seluruh daftar takson, custom field Anda, preset ekspor, dan templat dokumen masing-masing memiliki `Show QR` di satu perangkat dan `Scan QR` di perangkat lain. Hal yang lebih besar, seperti proyek utuh, media, dan basis data, tetap berpindah sebagai berkas, dan NAHPU akan memberi tahu bila sebuah catatan terlalu besar untuk satu kode lalu menawarkan berkas sebagai gantinya. Lihat [Transfer Proyek](https://nahpu.app/id/usages/export/project-transfer/).
-
-Ada satu hal yang sengaja kami tinggalkan di rumah: tampilan aplikasi di layar Anda. Tema Anda, entah `System`, `Light`, atau `Dark`, tetap di perangkat Anda, begitu pula pilihan lapisan peta dasar Anda. Membaca layar di dalam tenda gelap pukul dua dini hari dan membacanya di laboratorium yang terang adalah dua persoalan berbeda, dan tidak ada berkas proyek yang berhak ikut menentukan Anda sedang menghadapi yang mana. Bagikan sainsnya; gayanya biar tetap milik Anda.
+Bagaimana kalau berbagi itu tidak pernah terjadi? NAHPU tetap sanggup. Setiap dropdown juga menawarkan nilai-nilai unik yang sudah tersimpan di basis data, sehingga apa pun yang diketik rekan Anda tidak akan membuat aplikasi gagal. Sebuah kumpulan data dapat membangun ulang kosakata yang menghasilkannya, dan itulah yang dibutuhkan catatan yang reprodusibel.
 
 ### Pengenal Lapangan
 
@@ -57,7 +49,7 @@ Praktik pemberian pengenal unik kepada spesimen di lapangan terbagi menjadi tiga
 
 NAHPU mendukung ID lapangan personal melalui peran `cataloger`. Tambahkan inisial dan nomor lapangan Anda saat ini pada formulir personel, lalu aplikasi membuat ID lapangan unik dengan menggabungkan keduanya. Nomor tersebut bertambah otomatis dan dapat diganti secara manual.
 
-Untuk dua jenis lainnya, NAHPU menggunakan `project ID`. Anda dapat menetapkan awalan, akhiran, dan nomor awal, dengan pilihan penambahan otomatis.
+Untuk dua jenis lainnya, istilah NAHPU untuk hal itu adalah `project ID`. Anda dapat menetapkan awalan, akhiran, dan nomor awal, dengan pilihan penambahan otomatis.
 
 {% aside type="note" %}
 NAHPU dirancang mengikuti prinsip [FAIR](https://www.go-fair.org/fair-principles/). Aplikasi ini secara otomatis menetapkan UUID pada setiap catatan spesimen. Dengan demikian, setiap spesimen selalu memiliki pengenal unik jika terjadi konflik ID lapangan, misalnya ketika dua pengatalog menggunakan inisial dan rentang nomor lapangan yang serupa.
@@ -68,6 +60,19 @@ NAHPU dirancang mengikuti prinsip [FAIR](https://www.go-fair.org/fair-principles
 NAHPU mendefinisikan collector sebagai orang yang mengumpulkan spesimen, tetapi belum tentu mengatalogkannya. Peran ini merupakan kolom khusus dalam formulir spesimen, dan siapa pun dapat ditetapkan ke kolom tersebut, baik memiliki peran perawatan spesimen maupun tidak. Pemandu lapangan yang membawa spesimen kepada Anda, atau orang yang menyumbangkan spesimen yang belum dipreparasi ke koleksi, dapat ditetapkan sebagai collector.
 
 Orang yang mengatalogkan spesimen disebut cataloger. Peran ini memberikan akses ke ID lapangan, dan orang dengan peran ini juga dapat ditetapkan sebagai preparator, collector, atau personel pada kolom lainnya.
+
+
+### Kemudahan Berbagi dan Penyesuaian
+
+Hampir semua hal di NAHPU dirancang untuk dibagikan dan direproduksi. Catatan proyek, identitas proyek beserta UUID-nya, daftar takson, personel, kosakata terkontrol, preset ekspor, templat dokumen, tata letak cetak, dan custom field semuanya dapat diekspor dan diserahkan kepada orang lain. Cukup satu orang menyiapkan NAHPU sesuai cara kerja tim Anda dan mengekspornya sekali, lalu setiap perangkat berangkat dari konvensi yang sama. Di situlah letak kekuatan NAHPU dalam reprodusibilitas.
+
+Sebagian besar di antaranya hanya berjarak satu kode QR. Hal yang lebih besar, seperti proyek utuh, media, dan basis data, dibagikan sebagai berkas, dan NAHPU akan memberi tahu bila sebuah catatan terlalu besar untuk satu kode QR lalu menawarkan berkas sebagai gantinya. Lihat [Transfer Proyek](https://nahpu.app/id/usages/export/project-transfer/).
+
+{% aside type="note" title="Beberapa hal yang perlu diingat" %}
+Kami sengaja membuat pengaturan tema dan pilihan gaya lapisan peta dasar Anda tidak dapat dibagikan. Membaca layar di dalam tenda gelap pukul dua dini hari dan membacanya di laboratorium yang terang adalah dua persoalan berbeda, dan tidak ada berkas proyek yang berhak ikut menentukan Anda sedang menghadapi yang mana.
+
+Gayanya biar tetap milik Anda, sainsnya dibagikan! Itulah semangat NAHPU.
+{% /aside %}
 
 ## Memulai
 

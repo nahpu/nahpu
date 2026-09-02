@@ -1808,13 +1808,16 @@ class _ConditionalBracketTextDialogState
         _conditions.isNotEmpty &&
         _conditions.every(
           (condition) =>
-              condition.valueController.text.trim().isNotEmpty &&
+              (condition.testsEmptiness ||
+                  condition.valueController.text.trim().isNotEmpty) &&
               (_outputType == 'value' ||
                   (condition.fieldController.text.trim().isNotEmpty &&
                       condition.fieldController.text.trim().toLowerCase() !=
                           target.toLowerCase())),
-        ) &&
-        (_outputType == 'brackets' || _replacementController.text.isNotEmpty);
+        );
+    // The replacement text is deliberately not required: an empty replacement
+    // hides the value when the conditions match, which is how a field is
+    // suppressed.
     return AlertDialog(
       title: const Text('Conditional output'),
       content: SizedBox(
@@ -1921,7 +1924,8 @@ class _ConditionalBracketTextDialogState
                   decoration: const InputDecoration(
                     labelText: 'Replacement text',
                     helperText:
-                        'Written when matched; otherwise the original target value is kept.',
+                        'Written when matched; otherwise the original target '
+                        'value is kept. Leave it empty to hide the value.',
                   ),
                 ),
               ],
@@ -2020,9 +2024,14 @@ class _TemplateConditionDraft {
   final TextEditingController valueController;
   ConditionalComparisonOperator operator;
 
+  /// Whether this condition tests only for the presence of a value.
+  bool get testsEmptiness =>
+      operator == ConditionalComparisonOperator.isEmpty ||
+      operator == ConditionalComparisonOperator.isNotEmpty;
+
   bool get isValid =>
       fieldController.text.trim().isNotEmpty &&
-      valueController.text.trim().isNotEmpty;
+      (testsEmptiness || valueController.text.trim().isNotEmpty);
 
   ConditionalBracketCondition toCondition() => ConditionalBracketCondition(
     sourceField: fieldController.text.trim(),
@@ -2105,6 +2114,14 @@ class _TemplateConditionRow extends StatelessWidget {
                     value: ConditionalComparisonOperator.contains,
                     child: Text('Contains'),
                   ),
+                  DropdownMenuItem(
+                    value: ConditionalComparisonOperator.isNotEmpty,
+                    child: Text('Is not empty'),
+                  ),
+                  DropdownMenuItem(
+                    value: ConditionalComparisonOperator.isEmpty,
+                    child: Text('Is empty'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -2115,11 +2132,13 @@ class _TemplateConditionRow extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: TextField(
-                  controller: draft.valueController,
-                  onChanged: (_) => onChanged(),
-                  decoration: const InputDecoration(labelText: 'Value'),
-                ),
+                child: draft.testsEmptiness
+                    ? const SizedBox.shrink()
+                    : TextField(
+                        controller: draft.valueController,
+                        onChanged: (_) => onChanged(),
+                        decoration: const InputDecoration(labelText: 'Value'),
+                      ),
               ),
               IconButton(
                 tooltip: 'Remove condition',

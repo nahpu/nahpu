@@ -253,6 +253,32 @@ void main() {
     );
 
     test(
+      'substituteDocumentPlaceholders maps encoded ID confidence codes',
+      () {
+        final text = 'ID: [specimen::iDConfidence]';
+        for (final entry in {'0': 'Low', '1': 'Medium', '2': 'High'}.entries) {
+          final result = substituteDocumentPlaceholders(
+            text,
+            {'specimen::iDConfidence': entry.key},
+            textType: 'encoded',
+            formatOption: 'enum',
+          );
+          expect(result, 'ID: ${entry.value}');
+        }
+      },
+    );
+
+    test('encoded ID confidence keeps an out-of-range code unchanged', () {
+      final result = substituteDocumentPlaceholders(
+        'ID: [specimen::iDConfidence]',
+        {'specimen::iDConfidence': '7'},
+        textType: 'encoded',
+        formatOption: 'enum',
+      );
+      expect(result, 'ID: 7');
+    });
+
+    test(
       'substituteDocumentPlaceholders maps encoded short keys using enum default',
       () {
         final text = 'Testis: [testisPosition]';

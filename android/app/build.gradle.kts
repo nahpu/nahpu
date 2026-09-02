@@ -48,9 +48,12 @@ android {
         release {
             signingConfig = signingConfigs.findByName("release")
 
-            // Optional optimization:
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // R8 shrinking/obfuscation. Google Play flags builds below its
+            // obfuscation threshold. The Flutter Gradle Plugin supplies the
+            // ProGuard config (proguard-android-optimize.txt, Flutter's own
+            // rules, and app/proguard-rules.pro when present).
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }
