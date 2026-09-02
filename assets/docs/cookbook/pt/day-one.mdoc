@@ -1,5 +1,5 @@
 ---
-title: NAHPU Dia 1
+title: Primeiro Dia Usando o NAHPU
 sidebar:
     label: NAHPU Dia 1
     order: 2
@@ -13,7 +13,7 @@ O NAHPU é otimizado para telas de dispositivos móveis e computadores e foi pro
 
 O NAHPU organiza os dados por projeto. Um projeto é um conjunto de dados, e cabe a você definir o que conta como projeto. Pode ser uma expedição de campo, uma coleção de espécimes preparada em laboratório em determinado ano ou um esforço de monitoramento de longo prazo. Se uma única expedição cobre várias localidades e cada uma tem sua própria exigência de relatório, muitas vezes faz mais sentido criar um projeto por localidade.
 
-Cada projeto tem seu próprio identificador exclusivo (UUID) e é gerenciado de forma independente. A pesquisa, a exportação, a importação e as estatísticas de dados funcionam no nível do projeto. Se sua instituição usa números de tombo, você pode atribuir um a um projeto ou reutilizar o mesmo número em vários projetos.
+Cada projeto tem seu próprio identificador exclusivo (UUID) e é gerenciado de forma independente. A pesquisa, a exportação, a importação e as estatísticas de dados funcionam no nível do projeto. Se sua instituição usa números de tombo, você pode atribuir um a um projeto ou reutilizar o mesmo número em vários projetos, de modo que possam ser agrupados em uma única entidade.
 
 {% aside type="note" %}
 Atualizações futuras do NAHPU oferecerão pesquisa, exportação e estatísticas de dados globais entre vários projetos.
@@ -23,7 +23,7 @@ Atualizações futuras do NAHPU oferecerão pesquisa, exportação e estatístic
 
 Se você vem de um catálogo em papel, este pode ser um conceito novo: pense em um evento de coleta como a "sessão" durante a qual os espécimes foram coletados, separada do local onde isso aconteceu.
 
-Um local guarda as informações que normalmente não mudam em um período curto, como geografia, condições do habitat e coordenadas. Um evento de coleta guarda os detalhes que variam em um local específico durante um período específico, como o pessoal envolvido, o número de armadilhas, o clima e os dados astronômicos. Ele registra o esforço e as condições ambientais daquele momento. Os registros de espécimes são vinculados a um evento de coleta, e não diretamente a um local.
+Um local guarda as informações que normalmente não mudam em um período curto (em geral, até um dia), como geografia, condições do habitat e coordenadas. Um evento de coleta guarda os detalhes que variam em um local específico durante um período específico, como o pessoal envolvido na vistoria das armadilhas, o número de armadilhas, o clima e os dados astronômicos. Ele registra o esforço, as pessoas e as condições ambientais daquele momento. Os registros de espécimes são vinculados a um evento de coleta, e não diretamente a um local.
 
 ### Localização, localidade e escopo dos locais
 
@@ -35,21 +35,13 @@ Você pode adicionar qualquer quantidade de coordenadas a um único local. Ao co
 
 ### Vocabulários controlados
 
-Vocabulários controlados são listas predefinidas de termos que mantêm a entrada de dados consistente, uma prática comum em sistemas de gerenciamento de dados. Fizemos o possível para alinhar os termos padrão do NAHPU aos usados por softwares de gestão de coleções, como o [Arctos](https://arctosdb.org/), sem deixar de permitir que você os personalize.
+Vocabulários controlados são listas predefinidas de termos que mantêm a entrada de dados consistente, uma prática comum em sistemas de gerenciamento de dados usados por museus de história natural. Fizemos o possível para alinhar os termos padrão do NAHPU aos usados por softwares de gestão de coleções, como o [Arctos](https://arctosdb.org/), sem deixar de permitir que você os personalize.
 
-No aplicativo, eles aparecem como listas suspensas. Sempre que um campo se apoia em um vocabulário, como tipo de local, tipo de hábitat, datum da coordenada, atividade principal, método de coleta, papel do pessoal, estágio de vida, condição do espécime, tipo e tratamento das partes e todos os campos de parasitas, você escolhe em uma lista em vez de digitar texto livre. Assim, a mesma ideia é escrita da mesma forma em todos os registros.
+No aplicativo, eles aparecem como listas suspensas. Sempre que um campo se apoia em um vocabulário, como tipo de local, tipo de hábitat, datum da coordenada, atividade principal, método de coleta, papel do pessoal, estágio de vida, condição do espécime, tipo e tratamento das partes e quase todos os campos de parasitas, você escolhe em uma lista em vez de digitar texto livre. Assim, o mesmo termo é escrito da mesma forma em todos os registros.
 
 As listas são suas para alterar e suas para compartilhar. Adicione termos, remova os que não vai usar, defina um formato de maiúsculas e minúsculas e execute `Export user configs` uma vez para que toda a equipe importe os mesmos vocabulários. Veja [Configurações](https://nahpu.app/pt/usages/settings/).
 
-E se esse compartilhamento nunca acontecer? O NAHPU dá conta assim mesmo. Toda lista suspensa também oferece os valores distintos já armazenados no banco de dados, de modo que nada que um colega digitou desaparece da lista. Para incorporar esses valores à sua própria configuração, abra o vocabulário em Settings e escolha `Match database`. `Append missing` acrescenta apenas o que falta na sua lista, e `Override all` substitui a sua lista pelos valores que os dados realmente contêm. Um conjunto de dados consegue reconstruir o vocabulário que o produziu, que é exatamente o que registros reprodutíveis exigem.
-
-### Compartilhável por concepção, personalizável por você
-
-Quase tudo no NAHPU foi feito para viajar. Registros do projeto, a identidade do projeto e seu UUID, listas de táxons, pessoal, vocabulários controlados, predefinições de exportação, modelos de documentos, layouts de impressão e campos personalizados podem ser exportados e entregues a outra pessoa. Configure o NAHPU do jeito que sua equipe realmente trabalha, exporte uma vez e todos os aparelhos partem das mesmas convenções. Esse é o argumento da reprodutibilidade em uma única frase: quem recebe seus dados também pode receber as regras que os produziram.
-
-A maior parte disso está a apenas um QR code de distância. Sem cabo, sem conta na nuvem, sem sinal. Levante um aparelho, aponte o outro para ele e pronto, o que faz diferença quando a barra de sinal mais próxima está a dois dias de caminhada. Uma identidade de projeto, um local, um evento de coleta, uma coordenada, um táxon ou uma lista inteira de táxons, seus campos personalizados, uma predefinição de exportação e um modelo de documento têm, cada um, `Show QR` em um aparelho e `Scan QR` no outro. Coisas maiores, como projetos completos, mídia e o banco de dados, continuam viajando como arquivos, e o NAHPU avisa quando um registro é grande demais para um código e oferece o arquivo. Veja [Transferir um projeto](https://nahpu.app/pt/usages/export/project-transfer/).
-
-Uma coisa nós deliberadamente deixamos em casa: a aparência do aplicativo na sua tela. O seu tema, seja `System`, `Light` ou `Dark`, fica no seu aparelho, assim como a sua escolha de camada base do mapa. Ler uma tela dentro de uma barraca escura às duas da manhã e ler outra em um laboratório claro são problemas diferentes, e nenhum arquivo de projeto deveria opinar sobre qual deles você está enfrentando. Compartilhe a ciência; o estilo fica com você.
+E se esse compartilhamento nunca acontecer? O NAHPU dá conta assim mesmo. Toda lista suspensa também oferece os valores distintos já armazenados no banco de dados, de modo que nada que um colega digitou quebra o aplicativo. Um conjunto de dados consegue reconstruir o vocabulário que o produziu, que é exatamente o que registros reprodutíveis exigem.
 
 ### Identificadores de campo
 
@@ -57,7 +49,7 @@ A prática de atribuir um identificador exclusivo a um espécime no campo se div
 
 O NAHPU oferece suporte a identificadores de campo pessoais por meio do papel `cataloger`. Adicione suas iniciais e o número de campo atual ao formulário de pessoal, e o aplicativo gera um identificador de campo exclusivo combinando os dois. O número é incrementado automaticamente e pode ser substituído manualmente.
 
-Para os outros dois tipos, o NAHPU usa o `project ID`. Você pode definir um prefixo, um sufixo e um número inicial, com opção de incremento automático.
+Para os outros dois tipos, o termo do NAHPU para isso é `project ID`. Você pode definir um prefixo, um sufixo e um número inicial, com opção de incremento automático.
 
 {% aside type="note" %}
 O NAHPU é [FAIR](https://www.go-fair.org/fair-principles/) por concepção. Ele atribui automaticamente um UUID a cada registro de espécime. Isso garante que cada espécime tenha sempre um identificador exclusivo em caso de conflito entre identificadores de campo, como quando dois catalogadores usam as mesmas iniciais e faixas semelhantes de números de campo.
@@ -68,6 +60,19 @@ O NAHPU é [FAIR](https://www.go-fair.org/fair-principles/) por concepção. Ele
 O NAHPU define coletor como quem coleta o espécime, mas não necessariamente o cataloga. Esse é um campo específico no formulário do espécime, e qualquer pessoa pode ser atribuída a ele, tendo ou não um papel de cuidado dos espécimes. Seu guia de campo que trouxe o espécime para você, ou alguém que doou um espécime não preparado para a coleção, pode ser atribuído como coletor.
 
 A pessoa que cataloga o espécime é o catalogador. Esse papel dá acesso aos identificadores de campo, e uma pessoa com esse papel também pode ser atribuída como preparador, coletor ou em qualquer outro campo de pessoal.
+
+
+### Compartilhamento e personalização
+
+Quase tudo no NAHPU foi feito para ser compartilhado e reproduzido. Registros do projeto, a identidade do projeto e seu UUID, listas de táxons, pessoal, vocabulários controlados, predefinições de exportação, modelos de documentos, layouts de impressão e campos personalizados podem ser exportados e entregues a outra pessoa. Basta uma pessoa configurar o NAHPU do jeito que sua equipe trabalha e exportar uma vez para que todos os aparelhos partam das mesmas convenções. É aí que está a força do NAHPU em reprodutibilidade.
+
+A maior parte disso está a apenas um QR code de distância. Coisas maiores, como projetos completos, mídia e o banco de dados, são compartilhadas como arquivos, e o NAHPU avisa quando um registro é grande demais para um QR code e oferece o arquivo em seu lugar. Veja [Transferir um projeto](https://nahpu.app/pt/usages/export/project-transfer/).
+
+{% aside type="note" title="Algumas coisas para ter em mente" %}
+Deliberadamente mantemos as configurações de tema e a sua escolha de estilos de camada base do mapa fora do que é compartilhável. Ler uma tela dentro de uma barraca escura às duas da manhã e ler outra em um laboratório claro são problemas diferentes, e nenhum arquivo de projeto deveria opinar sobre qual deles você está enfrentando.
+
+Guarde o estilo, compartilhe a ciência! Esse é o espírito do NAHPU.
+{% /aside %}
 
 ## Primeiros passos
 

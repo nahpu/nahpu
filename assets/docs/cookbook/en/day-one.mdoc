@@ -1,5 +1,5 @@
 ---
-title: NAHPU Day 1
+title: First Day Using NAHPU
 sidebar:
     label: NAHPU Day 1
     order: 2
@@ -13,7 +13,7 @@ NAHPU is optimized for mobile and desktop screens and is designed to record natu
 
 NAHPU organizes data by project. A project is a dataset, and what counts as a project is up to you. It can be a field expedition, a collection of specimens prepared in a lab for a given year, or a long-term monitoring effort. If a single expedition covers several localities and each locality has its own reporting requirement, it often makes more sense to create one project per locality.
 
-Each project has its own unique identifier (UUID) and is managed independently. Search, export, import, and data statistics all work at the project level. If your institution uses accession numbers, you can assign one to a project or reuse the same accession number across several projects.
+Each project has its own unique identifier (UUID) and is managed independently. Search, export, import, and data statistics all work at the project level. If your institution uses accession numbers, you can assign one to a project or reuse the same accession number across several projects, so they can be grouped into a single entity.
 
 {% aside type="note" %}
 Future NAHPU updates will provide global search, export, and data statistics across multiple projects.
@@ -23,7 +23,7 @@ Future NAHPU updates will provide global search, export, and data statistics acr
 
 If you are coming from a paper-based catalog, this may be a new concept: think of a collecting event as the "session" during which specimens were collected, separate from the site where it happened.
 
-A site holds information that usually does not change over a short period, such as geography, habitat conditions, and coordinates. A collecting event holds the details that vary at a specific site during a specific period, such as the personnel involved, trap counts, weather, and astronomy data. It captures the effort and the environmental conditions at that time. Specimen records link to a collecting event rather than directly to a site.
+A site holds information that usually does not change over a short period (typically up to a day), such as geography, habitat conditions, and coordinates. A collecting event holds the details that vary at a specific site during a specific period, such as the personnel involved checking traps, trap counts, weather, and astronomy data. It captures the effort, the people, and the environmental conditions at that time. Specimen records link to a collecting event rather than directly to a site.
 
 ### Location, Locality, and Site Scopes
 
@@ -35,21 +35,13 @@ You can add any number of coordinates to a single site. When collecting with tra
 
 ### Controlled Vocabularies
 
-Controlled vocabularies are predefined lists of terms that keep data entry consistent, which is common practice in data management systems. We did our best to align the default terms in NAHPU with terms used by collection management software such as [Arctos](https://arctosdb.org/), while still letting you customize them.
+Controlled vocabularies are predefined lists of terms that keep data entry consistent, which is common practice in data management systems used by natural history museums. We did our best to align the default terms in NAHPU with terms used by collection management software such as [Arctos](https://arctosdb.org/), while still letting you customize them.
 
-In the app they appear as dropdowns. Wherever a field draws on a vocabulary, such as site type, habitat type, coordinate datum, primary activity, collection method, personnel role, life stage, specimen condition, part type and treatment, and every parasite field, you choose from a list instead of typing free text. The same idea is then spelled the same way in every record.
+In the app they appear as dropdowns. Wherever a field draws on a vocabulary, such as site type, habitat type, coordinate datum, primary activity, collection method, personnel role, life stage, specimen condition, part type and treatment, and nearly every parasite field, you choose from a list instead of typing free text. The same term is then spelled the same way in every record.
 
 The lists are yours to change and yours to share. Add terms, remove the ones you will not use, set a case format, then run `Export user configs` once so the whole team imports the same vocabularies. See [Settings](https://nahpu.app/en/usages/settings/).
 
-What if that sharing never happened? NAHPU still copes. Every dropdown also offers the distinct values already stored in the database, so nothing a colleague typed goes missing from the list. To fold those values into your own configuration, open the vocabulary in Settings and choose `Match database`. `Append missing` adds only what your list lacks, and `Override all` replaces your list with the values the data actually contains. A dataset can rebuild the vocabulary that produced it, which is exactly what reproducible records need.
-
-### Shareable by Design, Yours to Customize
-
-Almost everything in NAHPU is built to travel. Project records, the project identity and its UUID, taxon lists, personnel, controlled vocabularies, export presets, document templates, print layouts, and custom fields can all be exported and handed to somebody else. Set NAHPU up the way your team actually works, export it once, and every device starts from the same conventions. That is the reproducibility argument in a single line: whoever receives your data can also receive the rules that produced it.
-
-Most of it is only one QR code away. No cable, no cloud account, no signal. Hold one device up, point the other at it, and you are done, which matters when the nearest bar of reception is a two-day walk away. A project identity, a site, a collecting event, a coordinate, a taxon or a whole taxon list, your custom fields, an export preset, and a document template each have a `Show QR` on one device and a `Scan QR` on the other. Larger things such as full projects, media, and the database still travel as files, and NAHPU tells you when a record is too big for a code and offers the file instead. See [Transfer a Project](https://nahpu.app/en/usages/export/project-transfer/).
-
-One thing we deliberately keep at home is how the app looks on your screen. Your theme, whether `System`, `Light`, or `Dark`, stays on this device, and so does your choice of map base layer. Reading a screen in a dark tent at 2 a.m. and reading one in a bright lab are different problems, and no project file should get a vote on which one you are having. Share the science; keep the mood.
+What if that sharing never happened? NAHPU still copes. Every dropdown also offers the distinct values already stored in the database, so nothing a colleague typed will break the app. A dataset can rebuild the vocabulary that produced it, which is exactly what reproducible records need.
 
 ### Field Identifiers
 
@@ -57,7 +49,7 @@ The practice of assigning a unique identifier to a specimen in the field falls i
 
 NAHPU supports personal field IDs through the `cataloger` role. Add your initials and current field number in the personnel form, and the app generates a unique field ID by combining them. The number is auto-incremented and can be overridden manually.
 
-For the other two types, NAHPU uses `project ID`. You can set a prefix, suffix, and starting number, with an auto-increment option.
+For the other two types, NAHPU's term for it is `project ID`. You can set a prefix, suffix, and starting number, with an auto-increment option.
 
 {% aside type="note" %}
 NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design. It automatically assigns a UUID to each specimen record. This guarantees that every specimen always has a unique identifier in case of a field-ID conflict, such as when two catalogers use the same initials and similar ranges of field numbers.
@@ -68,6 +60,19 @@ NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design. It automati
 NAHPU defines a collector as someone who collects a specimen but does not necessarily catalog it. This is a specific field in the specimen form, and anyone can be assigned to it with or without a specimen-care role. Your field guide who brought the specimen to you, or someone who donated an unprepared specimen to the collection, can be assigned as a collector.
 
 A person who catalogs the specimen is a cataloger. This role provides access to field IDs, and a person with this role can also be assigned as a preparator, collector, or any other personnel field.
+
+
+### Shareability and Customization
+
+Almost everything in NAHPU is built to share and reproduce. Project records, the project identity and its UUID, taxon lists, personnel, controlled vocabularies, export presets, document templates, print layouts, and custom fields can all be exported and handed to somebody else. One person set NAHPU up the way your team works, export it once, and every device starts from the same conventions. That is NAHPU strength in reproducibility.
+
+Most of it is only one QR code away. Larger things such as full projects, media, and the database are shareable as files, and NAHPU tells you when a record is too big for a QR code and offers the file instead. See [Transfer a Project](https://nahpu.app/en/usages/export/project-transfer/).
+
+{% aside type="note" title="A couple things to keep in mind" %}
+We deliberately keep the theme settings and your choice of map base layer styles non-shareable. Reading a screen in a dark tent at 2 a.m. and reading one in a bright lab are different problems, and no project file should get a vote on which one you are having.
+
+Keep the mood, share the science! That's the NAHPU spirit.
+{% /aside %}
 
 ## Getting Started
 
