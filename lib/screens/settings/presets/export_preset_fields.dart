@@ -2441,6 +2441,14 @@ class _ConditionRowState extends State<_ConditionRow> {
                 value: ConditionalComparisonOperator.contains,
                 child: Text('Contains'),
               ),
+              DropdownMenuItem(
+                value: ConditionalComparisonOperator.isNotEmpty,
+                child: Text('Is not empty'),
+              ),
+              DropdownMenuItem(
+                value: ConditionalComparisonOperator.isEmpty,
+                child: Text('Is empty'),
+              ),
             ],
             onChanged: (value) {
               if (value != null) {
@@ -2448,16 +2456,21 @@ class _ConditionRowState extends State<_ConditionRow> {
               }
             },
           ),
-          SizedBox(
-            width: 180,
-            child: TextFormField(
-              key: ValueKey('condition-value-${widget.index}'),
-              controller: _valueController,
-              decoration: const InputDecoration(labelText: 'Value'),
-              onChanged: (value) =>
-                  widget.onChanged(condition.copyWith(comparisonValue: value)),
+          // The emptiness operators ignore the comparison value, so the field
+          // is dropped rather than left to collect text that does nothing.
+          if (condition.operator != ConditionalComparisonOperator.isEmpty &&
+              condition.operator != ConditionalComparisonOperator.isNotEmpty)
+            SizedBox(
+              width: 180,
+              child: TextFormField(
+                key: ValueKey('condition-value-${widget.index}'),
+                controller: _valueController,
+                decoration: const InputDecoration(labelText: 'Value'),
+                onChanged: (value) => widget.onChanged(
+                  condition.copyWith(comparisonValue: value),
+                ),
+              ),
             ),
-          ),
           IconButton(
             tooltip: 'Remove condition',
             onPressed: widget.onRemove,

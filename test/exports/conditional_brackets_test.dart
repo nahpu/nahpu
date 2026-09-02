@@ -463,4 +463,106 @@ void main() {
       expect(value, '[123]');
     });
   });
+
+  group('Emptiness conditions', () {
+    const notEmpty =
+        '[[mammalAttribute::testisLength]'
+        '[mammalAttribute::testisPosition!=""]]';
+    const hideWhenEmpty =
+        '[[mammalAttribute::testisLength]'
+        '[mammalAttribute::testisPosition==""]=>""]]';
+
+    test('is-not-empty matches only a recorded value', () {
+      expect(
+        substituteDocumentPlaceholders(notEmpty, const {
+          'mammalAttribute::testisPosition': '0',
+          'mammalAttribute::testisLength': '12',
+        }),
+        '[12]',
+      );
+      expect(
+        substituteDocumentPlaceholders(notEmpty, const {
+          'mammalAttribute::testisPosition': '',
+          'mammalAttribute::testisLength': '12',
+        }),
+        '12',
+      );
+      expect(
+        substituteDocumentPlaceholders(notEmpty, const {
+          'mammalAttribute::testisLength': '12',
+        }),
+        '12',
+      );
+    });
+
+    test('is-empty hides a value that depends on a missing field', () {
+      expect(
+        substituteDocumentPlaceholders(hideWhenEmpty, const {
+          'mammalAttribute::testisPosition': '0',
+          'mammalAttribute::testisLength': '12',
+        }),
+        '12',
+      );
+      expect(
+        substituteDocumentPlaceholders(hideWhenEmpty, const {
+          'mammalAttribute::testisPosition': '',
+          'mammalAttribute::testisLength': '12',
+        }),
+        '',
+      );
+    });
+
+    test('a dependent measurement line collapses entirely', () {
+      const line =
+          '[[mammalAttribute::testisLength]'
+          '[mammalAttribute::testisPosition==""]=>""]]'
+          ' [[mammalAttribute::testisPosition]'
+          '[mammalAttribute::testisPosition!=""]=>"\u00d7"]] '
+          '[[mammalAttribute::testisWidth]'
+          '[mammalAttribute::testisPosition==""]=>""]]';
+      expect(
+        substituteDocumentPlaceholders(line, const {
+          'mammalAttribute::testisPosition': '0',
+          'mammalAttribute::testisLength': '12',
+          'mammalAttribute::testisWidth': '7',
+        }),
+        '12 \u00d7 7',
+      );
+      expect(
+        substituteDocumentPlaceholders(line, const {
+          'mammalAttribute::testisPosition': '',
+          'mammalAttribute::testisLength': '12',
+          'mammalAttribute::testisWidth': '7',
+        }).trim(),
+        '',
+      );
+    });
+
+    test('emptiness operators round-trip through the template syntax', () {
+      const expression = ConditionalBracketExpression(
+        targetField: 'mammalAttribute::testisLength',
+        conditions: [
+          ConditionalBracketCondition(
+            sourceField: 'mammalAttribute::testisPosition',
+            operator: ConditionalComparisonOperator.isNotEmpty,
+            comparisonValue: 'ignored',
+          ),
+        ],
+        matchMode: ConditionalMatchMode.any,
+        start: 0,
+        end: 0,
+      );
+      final syntax = expression.toTemplateSyntax();
+      expect(syntax, notEmpty);
+      final parsed = parseConditionalBracketExpression(syntax, 0);
+      expect(
+        parsed?.conditions.single.operator,
+        ConditionalComparisonOperator.isNotEmpty,
+      );
+    });
+
+    test('contains has no emptiness form', () {
+      expect(parseConditionalBracketExpression('[[a][b~=""]]', 0), isNull);
+    });
+  });
 }

@@ -358,6 +358,10 @@ String? getEncodedDefaultValue(String key, String value) {
 
   if (cleanKey.endsWith('::sex')) {
     return specimens.getSpecimenSexLabel(intVal);
+  } else if (cleanKey.endsWith('::idconfidence')) {
+    if (intVal >= 0 && intVal < specimens.idConfidenceList.length) {
+      return specimens.idConfidenceList[intVal];
+    }
   } else if (cleanKey == 'mammalattribute::age' ||
       cleanKey == 'mammalmeasurement::age') {
     const labels = ['Adult', 'Subadult', 'Juvenile', 'Unknown'];
