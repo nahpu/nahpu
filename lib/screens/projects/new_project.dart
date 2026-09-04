@@ -641,7 +641,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           _ReviewRow(
             label: 'Main taxon',
             value: _taxonConfigured && _catalogFmtDraft != null
-                ? matchCatFmtToTaxonGroup(_catalogFmtDraft!)
+                ? catalogFmtDisplayName(_catalogFmtDraft!)
                 : 'Keep current setting',
           ),
           _ReviewRow(

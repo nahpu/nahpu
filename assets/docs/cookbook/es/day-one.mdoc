@@ -5,7 +5,7 @@ sidebar:
     order: 2
 ---
 
-NAHPU está optimizado para pantallas móviles y de escritorio, y está diseñado para registrar especímenes de historia natural tanto en el laboratorio como en el campo.
+NAHPU simplifica el registro y la gestión de datos biológicos complejos, del entorno que los condiciona y de las personas que los recolectan. Está optimizado para pantallas móviles y de escritorio, y está diseñado para registrar especímenes de historia natural tanto en el laboratorio como en el campo. En otras palabras, NAHPU es más que una versión digital de un catálogo en papel.
 
 ## Conceptos clave
 
@@ -67,6 +67,8 @@ La persona que cataloga el espécimen es el catalogador. Este rol da acceso a lo
 Casi todo en NAHPU está hecho para compartirse y reproducirse. Los registros del proyecto, la identidad del proyecto y su UUID, las listas de taxones, el personal, los vocabularios controlados, las preconfiguraciones de exportación, las plantillas de documentos, los diseños de impresión y los campos personalizados pueden exportarse y entregarse a otra persona. Basta con que una persona configure NAHPU tal como trabaja su equipo y lo exporte una vez para que todos los dispositivos partan de las mismas convenciones. Esa es la fortaleza de NAHPU en reproducibilidad.
 
 La mayor parte está a un solo código QR de distancia. Lo más grande, como los proyectos completos, los medios y la base de datos, se comparte como archivos, y NAHPU avisa cuando un registro es demasiado grande para un código QR y ofrece el archivo en su lugar. Vea [Transferir un proyecto](https://nahpu.app/es/usages/export/project-transfer/).
+
+También puede exportar los datos del proyecto en un formato tabular simple, empaquetarlos en formatos estandarizados y exportar los registros en PDF con su propio diseño de maquetación. Todas las exportaciones y el diseño de la maquetación se hacen dentro de NAHPU, sin ningún programa adicional. Vea [Exportar](https://nahpu.app/es/usages/export/).
 
 {% aside type="note" title="Un par de cosas para tener en cuenta" %}
 Dejamos deliberadamente fuera de lo compartible la configuración del tema y su elección de estilos de capa base del mapa. Leer una pantalla en una carpa oscura a las dos de la madrugada y leerla en un laboratorio bien iluminado son problemas distintos, y ningún archivo de proyecto debería opinar sobre cuál de los dos le toca.
@@ -218,35 +220,46 @@ Dejamos deliberadamente fuera de lo compartible la configuración del tema y su 
 
     Para exportar registros, vaya al menú del panel de control, indicado por el ícono de hamburguesa (tres líneas horizontales) en la esquina superior izquierda. Tiene varias opciones de exportación:
 
-    - `Export records`. Elija una preconfiguración de exportación tabular y escriba un tipo de registro en `.csv`, `.tsv`, `.xlsx` o `.json`. La preconfiguración define el tipo de registro, los encabezados y el mapeo de campos. Consulte [Exportar registros](https://nahpu.app/es/usages/export/export-records/).
+    - `Export records`. Elija una preconfiguración de exportación tabular y escriba un tipo de registro en `.csv`, `.tsv`, `.xlsx` o `.json`. Es altamente personalizable, y puede crear sus propias preconfiguraciones de exportación.
+        La preconfiguración define el tipo de registro, los encabezados y el mapeo de campos. Consulte [Exportar registros](https://nahpu.app/es/usages/export/export-records/).
 
-    - `Bundle records`. Crea un Darwin Core Archive, un Darwin Core Data Package o un NAHPU Data Package completo. Los Data Packages pueden utilizar TAR.GZ o ZIP. Consulte [Bundle records](https://nahpu.app/es/usages/export/export-bundles/).
+    - `Bundle records`. Crea un Darwin Core Archive, un Darwin Core Data Package o un NAHPU Data Package completo. Los Data Packages pueden utilizar TAR.GZ o ZIP.
+        Es útil para compartir datos o análisis en un formato estandarizado.
+        Consulte [Bundle records](https://nahpu.app/es/usages/export/export-bundles/).
 
-    - `Export documents`. Genera etiquetas, marbetes y otros documentos imprimibles en PDF a partir de una plantilla de documento y un diseño de impresión. Consulte [Exportar documentos](https://nahpu.app/es/usages/export/export-documents/).
+    - `Export documents`. Genera etiquetas, marbetes, impresiones de catálogo y otros documentos imprimibles en PDF a partir de una plantilla de documento y un diseño de impresión.
+    Puede diseñar su propia maquetación en un editor [WYSIWYG](https://es.wikipedia.org/wiki/WYSIWYG) incluido en la aplicación. Consulte [Exportar documentos](https://nahpu.app/es/usages/export/export-documents/).
 
     {% aside type="tip" %}
-    NAHPU también puede exportar tablas de estadísticas resumidas e imágenes por separado de las exportaciones del proyecto. Esto es útil cuando necesita una tabla resumida o un conjunto de fotografías para un informe de financiamiento o de permiso. Las imágenes pueden exportarse en JPEG, PNG o WebP, con opciones para redimensionarlas y comprimirlas. Consulte [Exportar estadísticas](https://nahpu.app/es/usages/export/export-statistics/) y [Exportar imágenes](https://nahpu.app/es/usages/export/export-images/).
+    NAHPU también puede exportar tablas de estadísticas resumidas e imágenes por separado de las exportaciones del proyecto. Esto es útil cuando necesita una tabla resumida o un conjunto de fotografías para un informe de financiamiento, un informe de permiso o un manuscrito de expedición de campo. Las imágenes pueden exportarse en JPEG, PNG o WebP, con opciones para redimensionarlas y comprimirlas. Consulte [Exportar estadísticas](https://nahpu.app/es/usages/export/export-statistics/) y [Exportar imágenes](https://nahpu.app/es/usages/export/export-images/).
     {% /aside %}
 
-11. **Respaldar su jornada**
+11. **Respaldar su proyecto**
 
-    Al final de cada día de campo, vaya al menú del panel de control y
+    Como con cualquier dato digital, se recomienda hacer copias de seguridad de
+    forma periódica. NAHPU ofrece dos opciones de respaldo: la exportación del
+    proyecto y la copia de seguridad de la base de datos.
+    Para el trabajo de campo, recomendamos exportar el proyecto al final de cada
+    día de campo. Vaya al menú del panel de control y
     seleccione `Export project`. Elija ZIP o TAR.GZ para que los medios
-    disponibles viajen con los registros, o active `Light export` para un
+    disponibles se empaqueten con los registros, o active `Light export` para un
     `JSON.GZ` pequeño cuando la carga deba caber en una conexión débil.
-    Guárdelo en un lugar distinto del dispositivo de trabajo.
+    Se recomienda mantener una copia de la exportación del proyecto en un lugar
+    distinto del dispositivo de trabajo y compartirla de forma cruzada con los
+    miembros del equipo, para tener redundancia.
 
-    Una vez por semana, y siempre antes de fusionar un proyecto, seleccione
-    `Backup database`. Elija TAR.GZ o ZIP; el archivo comprimido guarda la base
+    De forma alternativa, seleccione
+    `Backup database`. Elija TAR.GZ o ZIP. El archivo comprimido guarda la base
     de datos y todos los archivos de los datos de la aplicación NAHPU, estén o
     no vinculados a un proyecto. En el campo, ejecútela de forma ocasional,
     cuando el consumo de batería no sea una preocupación.
 
-    {% aside type="tip" %}
+    {% aside type="tip" title="Consejos para el trabajo de campo" %}
 
-    Haga de la exportación de proyecto su hábito diario, en lugar de la copia de
+    Haga de la exportación de proyecto su hábito diario en el campo, en lugar de
+    la copia de
     la base de datos. Es más pequeña, más rápida y más liviana para una batería
-    que quizá no pueda recargar en días, y `Merge project` la vuelve a leer en
+    que quizá no pueda recargar en días, y `Import project` la vuelve a leer en
     NAHPU en un dispositivo de reemplazo si uno se pierde o se rompe. La copia de
     la base de datos es la herramienta más pesada: restaura una instalación
     entera, que es lo que necesita cada semana y justo antes de una fusión.

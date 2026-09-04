@@ -5,13 +5,13 @@ sidebar:
     order: 2
 ---
 
-NAHPU is optimized for mobile and desktop screens and is designed to record natural history specimens both in the lab and in the field.
+NAHPU simplifies recording and managing complex biological data, the environment that influences it, and the people who collect it. It is optimized for mobile and desktop screens and is designed to record natural history specimens both in the lab and in the field. In other words, NAHPU is more than a digital version of a paper catalog.
 
 ## Key Concepts
 
 ### Understanding Projects
 
-NAHPU organizes data by project. A project is a dataset, and what counts as a project is up to you. It can be a field expedition, a collection of specimens prepared in a lab for a given year, or a long-term monitoring effort. If a single expedition covers several localities and each locality has its own reporting requirement, it often makes more sense to create one project per locality.
+NAHPU organizes data by project. A project is a dataset, and what you consider as a project is up to you. It can be a field expedition, a collection of specimens prepared in a lab for a given year, or a long-term monitoring effort. If a single expedition covers several localities and each locality has its own reporting requirement, it often makes more sense to create one project per locality.
 
 Each project has its own unique identifier (UUID) and is managed independently. Search, export, import, and data statistics all work at the project level. If your institution uses accession numbers, you can assign one to a project or reuse the same accession number across several projects, so they can be grouped into a single entity.
 
@@ -67,6 +67,8 @@ A person who catalogs the specimen is a cataloger. This role provides access to 
 Almost everything in NAHPU is built to share and reproduce. Project records, the project identity and its UUID, taxon lists, personnel, controlled vocabularies, export presets, document templates, print layouts, and custom fields can all be exported and handed to somebody else. One person set NAHPU up the way your team works, export it once, and every device starts from the same conventions. That is NAHPU strength in reproducibility.
 
 Most of it is only one QR code away. Larger things such as full projects, media, and the database are shareable as files, and NAHPU tells you when a record is too big for a QR code and offers the file instead. See [Transfer a Project](https://nahpu.app/en/usages/export/project-transfer/).
+
+You can also export the project data in a simple tabular format, bundle in standardized formats, and export the records in PDF using your own layout design. All the exports and layout design can be done within NAHPU without any additional software. See [Export](https://nahpu.app/en/usages/export/).
 
 {% aside type="note" title="A couple things to keep in mind" %}
 We deliberately keep the theme settings and your choice of map base layer styles non-shareable. Reading a screen in a dark tent at 2 a.m. and reading one in a bright lab are different problems, and no project file should get a vote on which one you are having.
@@ -214,35 +216,42 @@ Keep the mood, share the science! That's the NAHPU spirit.
 
     To export records, go to the dashboard menu, indicated by the hamburger icon (three horizontal lines) in the top-left corner. You have multiple export options:
 
-    - `Export records`. Choose a tabular export preset and write one record type to `.csv`, `.tsv`, `.xlsx`, or `.json`. The preset sets the record type, the headers, and the field mapping. See [Export records](https://nahpu.app/en/usages/export/export-records/).
+    - `Export records`. Choose a tabular export preset and write one record type to `.csv`, `.tsv`, `.xlsx`, or `.json`. This is highly customizable, and you can create your own export presets.
+        The preset sets the record type, the headers, and the field mapping. See [Export records](https://nahpu.app/en/usages/export/export-records/).
 
-    - `Bundle records`. Create a Darwin Core Archive, Darwin Core Data Package, or complete NAHPU Data Package. Data Packages can use TAR.GZ or ZIP. See [Bundle records](https://nahpu.app/en/usages/export/export-bundles/).
+    - `Bundle records`. Create a Darwin Core Archive, Darwin Core Data Package, or complete NAHPU Data Package. Data Packages can use TAR.GZ or ZIP.
+        This is useful for sharing data or analyses in a standardized format.
+        See [Bundle records](https://nahpu.app/en/usages/export/export-bundles/).
 
-    - `Export documents`. Produce labels, tags, and other printable documents as PDF from a document template and a print layout. See [Export documents](https://nahpu.app/en/usages/export/export-documents/).
+    - `Export documents`. Produce labels, tags, catalog prints, and other printable documents as PDF from a document template and a print layout.
+    You can designed your own layout in a [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG) editor bundled in the app. See [Export documents](https://nahpu.app/en/usages/export/export-documents/).
 
     {% aside type="tip" %}
-    NAHPU can also export summary statistic tables and images separately from the project exports. This is useful when you need a summary table or a set of photographs for a grant or permit report. Images can be exported as JPEG, PNG, or WebP, with options to resize and compress them. See [Export Statistics](https://nahpu.app/en/usages/export/export-statistics/) and [Export Images](https://nahpu.app/en/usages/export/export-images/).
+    NAHPU can also export summary statistic tables and images separately from the project exports. This is useful when you need a summary table or a set of photographs for a grant, permit report, or a field expedition manuscript. Images can be exported as JPEG, PNG, or WebP, with options to resize and compress them. See [Export Statistics](https://nahpu.app/en/usages/export/export-statistics/) and [Export Images](https://nahpu.app/en/usages/export/export-images/).
     {% /aside %}
 
-11. **Back up your day**
+11. **Back up your project**
 
-    At the end of each field day, open the dashboard menu and select
-    `Export project`. Choose ZIP or TAR.GZ so the available media travels with
+    Like any digital data, regular backup is recommended.
+    NAHPU offers two backup options: project export and database backup.
+    For fieldwork, at the end of each field day, we recommend exporting the project.
+    Open the dashboard menu and select
+    `Export project`. Choose ZIP or TAR.GZ so the available media bundled with
     the records, or turn on `Light export` for a small `JSON.GZ` when the upload
-    has to fit a weak connection. Save it somewhere other than the working
-    device.
+    has to fit a weak connection. Having a project export copy somewhere other than the working
+    device and a cross sharing with team members are recommended for redundancy.
 
-    Once a week, and always before you merge a project, select
-    `Backup database` instead. Choose TAR.GZ or ZIP; the archive holds the
+    Alternatively, select
+    `Backup database` instead. Choose TAR.GZ or ZIP. The archive holds the
     database and every file in NAHPU app data, whether or not a project links
     to it. In the field, run it occasionally, when battery use is not a
     concern.
 
-    {% aside type="tip" %}
+    {% aside type="tip" title="Fieldwork tips" %}
 
-    Make the project export your daily habit rather than the database backup. It
+    Make the project export your daily habit in the field rather than the database backup. It
     is smaller, faster, and easier on a battery you may not be able to recharge
-    for days, and `Merge project` reads it back into NAHPU on a replacement
+    for days, and `Import project` reads it back into NAHPU on a replacement
     device if one is lost or broken. The database backup is the heavier tool:
     it restores an entire installation, which is what you want weekly and
     immediately before a merge. See

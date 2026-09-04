@@ -112,6 +112,7 @@ class CommonSettingTile extends StatelessWidget {
     this.value,
     required this.onTap,
     this.trailing,
+    this.titleBadge,
     this.isNavigation = false,
   });
 
@@ -122,6 +123,9 @@ class CommonSettingTile extends StatelessWidget {
   final VoidCallback? onTap;
   final String? value;
   final Widget? trailing;
+
+  /// Optional marker shown next to [title], such as a beta badge.
+  final Widget? titleBadge;
   final bool isNavigation;
 
   @override
@@ -130,12 +134,23 @@ class CommonSettingTile extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: ListTile(
         minVerticalPadding: 0,
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            if (titleBadge != null) ...[
+              const SizedBox(width: NahpuSpacing.md),
+              titleBadge!,
+            ],
+          ],
         ),
         subtitle: label != null
             ? Text(

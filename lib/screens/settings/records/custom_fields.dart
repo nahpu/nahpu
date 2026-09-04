@@ -821,5 +821,5 @@ String _catalogLabel(CustomFieldDefinitionData definition) {
   final catalog = definition.applicableCatalog;
   return catalog == null
       ? 'All catalog formats'
-      : '${matchCatFmtToTaxonGroup(catalog)} only';
+      : '${catalogFmtDisplayName(catalog)} only';
 }

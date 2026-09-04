@@ -40,11 +40,12 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                     title: 'Catalog Format',
                     isDivided: true,
                     children: CatalogFmt.values.map((catalogFmt) {
-                      String catalogFmtStr = matchCatFmtToTaxonGroup(
-                        catalogFmt,
-                      );
+                      String catalogFmtStr = catalogFmtDisplayName(catalogFmt);
                       return CommonSettingTile(
                         title: catalogFmtStr,
+                        titleBadge: isCatalogFmtBeta(catalogFmt)
+                            ? const BetaBadge()
+                            : null,
                         leading: Icon(matchCatFmtToIcon(catalogFmt)),
                         trailing: selectedFmt == catalogFmt
                             ? const Icon(Icons.check)

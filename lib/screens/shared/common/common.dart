@@ -55,6 +55,34 @@ class CommonDivider extends StatelessWidget {
   }
 }
 
+/// Small pill marking a feature that is still in beta.
+class BetaBadge extends StatelessWidget {
+  const BetaBadge({super.key, this.label = 'Beta'});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.sm,
+        vertical: NahpuSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(NahpuRadius.xl),
+        border: Border.all(color: colors.outline, width: NahpuStroke.thin),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
 class CommonLineDivider extends StatelessWidget {
   const CommonLineDivider({super.key});
 
