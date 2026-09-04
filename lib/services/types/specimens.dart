@@ -327,6 +327,12 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
   }
 }
 
+/// Persisted taxon-group value for [catalogFmt].
+///
+/// The result is written to `specimen.taxonGroup` and to the catalog-format
+/// preference, and is matched by the custom-field triggers and the Darwin Core
+/// bundle writer. Use [catalogFmtDisplayName] for anything shown to the user so
+/// that renaming a format never rewrites stored records.
 String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.birds:
@@ -337,6 +343,37 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Herpetofauna';
     case CatalogFmt.arthropods:
       return 'Arthropods';
+  }
+}
+
+/// User-facing name for [catalogFmt].
+///
+/// Deliberately separate from [matchCatFmtToTaxonGroup]: display names can
+/// change with the terminology used in the documentation, while the persisted
+/// value stays stable for existing projects and exports.
+String catalogFmtDisplayName(CatalogFmt catalogFmt) {
+  switch (catalogFmt) {
+    case CatalogFmt.birds:
+      return 'Birds';
+    case CatalogFmt.mammals:
+      return 'Mammals';
+    case CatalogFmt.herpetofauna:
+      return 'Herpetofauna';
+    case CatalogFmt.arthropods:
+      return 'Invertebrates';
+  }
+}
+
+/// Whether [catalogFmt] is still in beta, and should be labelled as such in
+/// the catalog-format pickers.
+bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
+  switch (catalogFmt) {
+    case CatalogFmt.birds:
+    case CatalogFmt.mammals:
+    case CatalogFmt.herpetofauna:
+      return false;
+    case CatalogFmt.arthropods:
+      return true;
   }
 }
 

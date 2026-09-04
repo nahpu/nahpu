@@ -326,7 +326,16 @@ class _CatalogFormatTile extends StatelessWidget {
           matchCatFmtToIcon(catalogFmt, isFilledIcon: selected),
           color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
         ),
-        title: Text(matchCatFmtToTaxonGroup(catalogFmt)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: Text(catalogFmtDisplayName(catalogFmt))),
+            if (isCatalogFmtBeta(catalogFmt)) ...[
+              const SizedBox(width: NahpuSpacing.md),
+              const BetaBadge(),
+            ],
+          ],
+        ),
         textColor: selected ? colors.onPrimaryContainer : null,
         trailing: selected ? const Icon(Icons.check_rounded) : null,
         iconColor: selected ? colors.onPrimaryContainer : null,
@@ -866,7 +875,7 @@ class _FinishStep extends ConsumerWidget {
                 label: 'Catalog format',
                 value: catalogFmt == null
                     ? 'Not set'
-                    : matchCatFmtToTaxonGroup(catalogFmt),
+                    : catalogFmtDisplayName(catalogFmt),
               ),
               _SummaryRow(
                 label: 'Field ID',

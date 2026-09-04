@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
@@ -481,8 +482,19 @@ class TaxonGroupFields extends ConsumerWidget {
                   .map(
                     (format) => DropdownMenuItem(
                       value: format,
-                      child: CommonDropdownText(
-                        text: matchCatFmtToTaxonGroup(format),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: CommonDropdownText(
+                              text: catalogFmtDisplayName(format),
+                            ),
+                          ),
+                          if (isCatalogFmtBeta(format)) ...[
+                            const SizedBox(width: NahpuSpacing.md),
+                            const BetaBadge(),
+                          ],
+                        ],
                       ),
                     ),
                   )

@@ -180,7 +180,7 @@ class CatalogFmtSection extends StatelessWidget {
       icon: Icons.archive_outlined,
       title: 'Format',
       label: 'Set catalog format',
-      value: matchCatFmtToTaxonGroup(selectedFmt),
+      value: catalogFmtDisplayName(selectedFmt),
       onTap: () {
         Navigator.push(
           context,

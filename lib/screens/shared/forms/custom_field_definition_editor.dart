@@ -286,7 +286,7 @@ class _CustomFieldDefinitionEditorState
   }
 
   String _catalogLabel(CatalogFmt catalog) {
-    final label = matchCatFmtToTaxonGroup(catalog);
+    final label = catalogFmtDisplayName(catalog);
     if (catalog == widget.creationContext.catalogFormat) {
       return 'Current catalog only ($label)';
     }

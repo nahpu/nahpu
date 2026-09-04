@@ -79,11 +79,15 @@ const List<String> specimenExportFmtList = [
 
 enum TaxonRecordType { birds, mammals, herps, arthropods }
 
+/// Labels for [TaxonRecordType], in enum order.
+///
+/// Display only: the export dropdown takes its value from the enum at the
+/// matching index, never from the label.
 const List<String> taxonRecordTypeList = [
   'Birds',
   'Mammals',
   'Herpetofauna',
-  'Arthropods',
+  'Invertebrates',
 ];
 
 enum MammalRecordType { excludeBats, onlyBats, allMammals }
