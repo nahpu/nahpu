@@ -35,7 +35,10 @@ String resolveDocumentTemplatePlaceholders({
 ///
 /// Conditional template placeholders use comparisons such as
 /// `[[target][field=="value"]]` and `[[target][field~="value"]]`. They are
-/// evaluated against the same raw values as ordinary placeholders.
+/// evaluated against the same raw values as ordinary placeholders. Conditional
+/// text, `[[if][field!=""]=>"then"|"else"]]`, writes the chosen branch with its
+/// ordinary placeholders substituted. A `#label` marker, as in `[field#label]`,
+/// prints an encoded field's default label.
 String substituteDocumentPlaceholders(
   String input,
   Map<String, String> data, {
@@ -45,11 +48,35 @@ String substituteDocumentPlaceholders(
   String? formatOption,
 }) {
   if (isTemplateBracketSpecimenSexIconText(input)) return input;
+  return _substitutePlaceholders(
+    input,
+    data,
+    evaluateConditionals: true,
+    nullFallbackOption: nullFallbackOption,
+    customNullFallbackText: customNullFallbackText,
+    textType: textType,
+    formatOption: formatOption,
+  );
+}
+
+/// Substitutes the placeholders in [input].
+///
+/// Conditional text branches pass [evaluateConditionals] as `false`, so a
+/// branch substitutes ordinary placeholders only.
+String _substitutePlaceholders(
+  String input,
+  Map<String, String> data, {
+  required bool evaluateConditionals,
+  required String nullFallbackOption,
+  required String customNullFallbackText,
+  required String? textType,
+  required String? formatOption,
+}) {
   final isBlank = data['__blank__'] == 'true';
   final result = StringBuffer();
   var index = 0;
   while (index < input.length) {
-    if (input.startsWith('[[', index)) {
+    if (evaluateConditionals && input.startsWith('[[', index)) {
       final expression = parseConditionalBracketExpression(input, index);
       if (expression != null) {
         result.write(
@@ -103,7 +130,25 @@ String _resolveConditionalExpression(
   required String? formatOption,
   required String original,
 }) {
-  final targetKey = expression.targetField.split('??').first.trim();
+  if (expression.isConditionalText) {
+    final matches = conditionalBracketConditionsMatch(
+      expression.conditions,
+      expression.matchMode,
+      (field) => _lookupDocumentPlaceholderValue(field, data)?.value,
+    );
+    return _substitutePlaceholders(
+      matches ? expression.replacementText : expression.elseText ?? '',
+      data,
+      evaluateConditionals: false,
+      nullFallbackOption: nullFallbackOption,
+      customNullFallbackText: customNullFallbackText,
+      textType: textType,
+      formatOption: formatOption,
+    );
+  }
+  final targetKey = parsePlaceholderKey(
+    expression.targetField.split('??').first,
+  ).key;
   final lookup = _lookupDocumentPlaceholderValue(targetKey, data);
   if (lookup == null || lookup.value.trim().isEmpty) {
     return _resolvePlaceholder(
@@ -135,7 +180,8 @@ String _resolveConditionalExpression(
   if (!matches) return value;
   return switch (expression.outputAction) {
     ConditionalOutputAction.brackets => addConditionalBrackets(value),
-    ConditionalOutputAction.replacement => expression.replacementText,
+    ConditionalOutputAction.replacement ||
+    ConditionalOutputAction.text => expression.replacementText,
   };
 }
 
@@ -151,7 +197,8 @@ String _resolvePlaceholder(
 }) {
   final placeholder = rawPlaceholder.trim();
   final fallbackSplit = placeholder.split('??');
-  final key = fallbackSplit.first.trim();
+  final parsedKey = parsePlaceholderKey(fallbackSplit.first);
+  final key = parsedKey.key;
   final fallback = fallbackSplit.length > 1
       ? fallbackSplit.sublist(1).join('??').trim()
       : _nullFallbackForPlaceholder(
@@ -162,6 +209,9 @@ String _resolvePlaceholder(
   final lookup = _lookupDocumentPlaceholderValue(key, data);
   if (lookup != null) {
     var value = lookup.value;
+    if (parsedKey.decode) {
+      value = getEncodedDefaultValue(lookup.key, value) ?? value;
+    }
     if (textType == 'encoded') {
       value = _mapEncodedValue(lookup.key, value, formatOption);
     }

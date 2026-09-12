@@ -440,17 +440,30 @@ bool isConditionalReplacementExportTextType(String textType) =>
 /// such as `[personnel::initial]-[specimen::fieldNumber]`. Segments exist only
 /// to make that expression editable without requiring users to type brackets.
 class ExportExpressionSegment {
-  const ExportExpressionSegment.field(this.value) : isField = true;
-  const ExportExpressionSegment.text(this.value) : isField = false;
+  const ExportExpressionSegment.field(this.value)
+    : kind = ExportExpressionSegmentKind.field;
+  const ExportExpressionSegment.text(this.value)
+    : kind = ExportExpressionSegmentKind.text;
+
+  /// A complete `[[…]]` conditional expression, kept verbatim.
+  const ExportExpressionSegment.conditional(this.value)
+    : kind = ExportExpressionSegmentKind.conditional;
 
   final String value;
-  final bool isField;
+  final ExportExpressionSegmentKind kind;
+
+  bool get isField => kind == ExportExpressionSegmentKind.field;
+  bool get isConditional => kind == ExportExpressionSegmentKind.conditional;
 }
+
+/// What an [ExportExpressionSegment] holds.
+enum ExportExpressionSegmentKind { field, text, conditional }
 
 /// Splits an export expression into ordered field and literal-text segments.
 ///
 /// An unmatched `[` is treated as literal text so existing advanced
-/// expressions are not discarded by the visual composer.
+/// expressions are not discarded by the visual composer. A valid `[[…]]`
+/// conditional stays one segment so it is never split into broken fields.
 List<ExportExpressionSegment> parseExportExpression(String expression) {
   final segments = <ExportExpressionSegment>[];
   var cursor = 0;
@@ -468,6 +481,16 @@ List<ExportExpressionSegment> parseExportExpression(String expression) {
       segments.add(
         ExportExpressionSegment.text(expression.substring(cursor, start)),
       );
+    }
+    final conditional = parseConditionalBracketExpression(expression, start);
+    if (conditional != null) {
+      segments.add(
+        ExportExpressionSegment.conditional(
+          expression.substring(start, conditional.end),
+        ),
+      );
+      cursor = conditional.end;
+      continue;
     }
     final end = expression.indexOf(']', start + 1);
     if (end == -1) {

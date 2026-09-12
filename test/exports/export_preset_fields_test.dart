@@ -336,7 +336,75 @@ void main() {
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Custom: NAHPU'), findsOneWidget);
+    expect(find.text('Custom: institution'), findsOneWidget);
+  });
+
+  testWidgets('custom fields toggle labels and edit conditional text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const preset = ExportPresetModel(
+      recordType: RecordType.specimenRecord,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [
+        ExportFieldMapping(
+          expression:
+              '[mammalAttribute::testisPosition]'
+              '[[if][mammalAttribute::testisWidth!=""]=>" mm"]]',
+          headerOverride: 'testes',
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const MaterialApp(
+          home: ExportPresetFieldsScreen(preset: preset),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Custom: testes'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Customize'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('If testisWidth is not empty → " mm"'), findsOneWidget);
+    expect(find.byTooltip('Show label'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Show label'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Expression: [mammalAttribute::testisPosition#label]'
+        '[[if][mammalAttribute::testisWidth!=""]=>" mm"]]',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('Edit conditional text'));
+    await tester.pumpAndSettle();
+    final otherwise = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Text otherwise (optional)',
+    );
+    await tester.enterText(otherwise, ' no width');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Expression: [mammalAttribute::testisPosition#label]'
+        '[[if][mammalAttribute::testisWidth!=""]=>" mm"|" no width"]]',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -410,7 +478,7 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Field: [siteAttribute::habitatType]'), findsOneWidget);
+      expect(find.text('Field: habitatType'), findsOneWidget);
     },
   );
 

@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -529,8 +530,7 @@ class PresetColumnChips extends StatelessWidget {
       return '${mapping.nestedNamespace} (${mapping.nestedFields.length} fields)';
     }
     final expr = mapping.expression.trim();
-    final match = RegExp(r'\[([^\]?\s]+)').firstMatch(expr);
-    final key = match?.group(1) ?? expr;
+    final key = firstExpressionFieldKey(expr) ?? expr;
     if (format == ExportHeaderFormat.fieldName) {
       return key.split('::').last;
     }

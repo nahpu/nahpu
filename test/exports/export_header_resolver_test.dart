@@ -11,6 +11,96 @@ void main() {
     mappings: [],
   );
 
+  test('names conditional text and labelled mappings after their fields', () {
+    const preset = ExportPresetModel(
+      recordType: RecordType.specimenRecord,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [],
+    );
+    final resolver = ExportHeaderResolver.forTesting(preset, const {});
+
+    expect(
+      resolver.headerFor(
+        const ExportFieldMapping(
+          expression:
+              '[[if][mammalAttribute::testisWidth!=""]=>'
+              '"[mammalAttribute::testisLength] mm"]]',
+        ),
+      ),
+      'testisLength',
+    );
+    expect(
+      resolver.headerFor(
+        const ExportFieldMapping(
+          expression: '[mammalAttribute::testisPosition#label]',
+        ),
+      ),
+      'testisPosition',
+    );
+    expect(
+      directExportSourceField('[mammalAttribute::testisPosition#label]'),
+      'mammalAttribute::testisPosition',
+    );
+  });
+
+  test('lists mappings under their column names', () {
+    String name(
+      ExportFieldMapping mapping, [
+      ExportHeaderFormat format = ExportHeaderFormat.fieldName,
+    ]) => exportMappingColumnName(
+      mapping,
+      format,
+      customLabel: (key) => key == 'customSpecimen::abc' ? 'Tail notes' : null,
+    );
+
+    expect(
+      name(
+        const ExportFieldMapping(expression: '[siteAttribute::habitatType]'),
+      ),
+      'habitatType',
+    );
+    expect(
+      name(
+        const ExportFieldMapping(expression: '[siteAttribute::habitatType]'),
+        ExportHeaderFormat.tableFieldName,
+      ),
+      'siteAttribute::habitatType',
+    );
+    expect(
+      name(
+        const ExportFieldMapping(
+          expression: '[personnel::initial]-[specimen::fieldNumber]',
+          headerOverride: 'collector number',
+        ),
+      ),
+      'collector number',
+    );
+    expect(
+      name(
+        const ExportFieldMapping(
+          expression: '[[if][specimen::type!=""]=>"[specimen::catalogNum]"]]',
+        ),
+      ),
+      'catalogNum',
+    );
+    expect(name(const ExportFieldMapping(expression: 'NAHPU')), 'NAHPU');
+    expect(
+      name(const ExportFieldMapping(expression: '[customSpecimen::abc]')),
+      'Tail notes',
+    );
+    expect(
+      name(
+        const ExportFieldMapping(
+          expression: '',
+          nestedNamespace: 'coordinate',
+          nestedFields: ['decimalLatitude'],
+        ),
+      ),
+      'coordinate',
+    );
+  });
+
   test('resolves Darwin Core headers and NAHPU namespace fallbacks', () {
     final resolver = ExportHeaderResolver.forTesting(basePreset, {
       'specimen::uuid': 'dwc:occurrenceID',

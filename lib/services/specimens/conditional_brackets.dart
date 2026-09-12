@@ -20,7 +20,17 @@ enum ConditionalComparisonOperator {
 enum ConditionalMatchMode { any, all }
 
 /// The output produced when a conditional template expression matches.
-enum ConditionalOutputAction { brackets, replacement }
+///
+/// [text] belongs to conditional text, `[[if][conditions]=>"then"|"else"]]`,
+/// which has no target field and writes one of its branch texts.
+enum ConditionalOutputAction { brackets, replacement, text }
+
+/// The target-slot keyword that marks conditional text.
+const String kConditionalTextKeyword = 'if';
+
+/// Placeholder marker that prints an encoded field's default label, as in
+/// `[mammalAttribute::testisPosition#label]`.
+const String kPlaceholderLabelMarker = '#label';
 
 /// A single field comparison used to decide whether a value is bracketed.
 ///
@@ -115,6 +125,9 @@ String? _mammalAccuracyFieldForTarget(String? targetField) {
 /// Templates store expressions such as `[[target][field=="value"]]` and
 /// `[[target][field~="value"]]`. The target
 /// is bracketed only when [conditions] match using [matchMode].
+///
+/// Conditional text, `[[if][field!=""]=>"then"|"else"]]`, has no target. It
+/// writes [replacementText] when the conditions match and [elseText] otherwise.
 class ConditionalBracketExpression {
   const ConditionalBracketExpression({
     required this.targetField,
@@ -124,6 +137,7 @@ class ConditionalBracketExpression {
     required this.end,
     this.outputAction = ConditionalOutputAction.brackets,
     this.replacementText = '',
+    this.elseText,
   });
 
   final String targetField;
@@ -131,14 +145,22 @@ class ConditionalBracketExpression {
   final ConditionalMatchMode matchMode;
   final ConditionalOutputAction outputAction;
 
-  /// Literal text emitted by [ConditionalOutputAction.replacement].
+  /// Literal text emitted by [ConditionalOutputAction.replacement], or the text
+  /// conditional text writes when its conditions match.
   final String replacementText;
+
+  /// Text conditional text writes when its conditions do not match; `null`
+  /// writes nothing.
+  final String? elseText;
 
   /// Inclusive start offset in the containing text.
   final int start;
 
   /// Exclusive end offset in the containing text.
   final int end;
+
+  /// Whether this is target-free conditional text rather than a field transform.
+  bool get isConditionalText => outputAction == ConditionalOutputAction.text;
 
   /// Serializes this expression using the canonical inline template syntax.
   String toTemplateSyntax() {
@@ -160,6 +182,12 @@ class ConditionalBracketExpression {
           return '${condition.sourceField}$operator${jsonEncode(value)}';
         })
         .join(joiner);
+    if (outputAction == ConditionalOutputAction.text) {
+      final elseValue = elseText;
+      final elseSyntax = elseValue == null ? '' : '|${jsonEncode(elseValue)}';
+      return '[[$kConditionalTextKeyword][$conditionsText]=>'
+          '${jsonEncode(replacementText)}$elseSyntax]]';
+    }
     if (outputAction == ConditionalOutputAction.replacement) {
       return '[[$targetField][$conditionsText]=>'
           '${jsonEncode(replacementText)}]]';
@@ -234,10 +262,26 @@ String addConditionalBrackets(String value) {
   return '[$value]';
 }
 
+/// Splits a placeholder key from its `#label` marker.
+///
+/// Pass the key without any `??` fallback. `testisPosition#label` returns
+/// `testisPosition` with `decode` set, so the caller prints the stored code's
+/// default label instead of the code.
+({String key, bool decode}) parsePlaceholderKey(String placeholder) {
+  final key = placeholder.trim();
+  if (!key.endsWith(kPlaceholderLabelMarker)) return (key: key, decode: false);
+  return (
+    key: key.substring(0, key.length - kPlaceholderLabelMarker.length).trim(),
+    decode: true,
+  );
+}
+
 /// Parses a conditional expression beginning at [start] in [text].
 ///
 /// Returns `null` for malformed text. The parser is quote-aware so `]` inside
 /// a JSON string comparison value does not terminate the expression.
+/// Conditional text (`[[if]…]]`) must end with `=>` and its text; only it may
+/// add an else text after `|`.
 ConditionalBracketExpression? parseConditionalBracketExpression(
   String text,
   int start,
@@ -275,8 +319,14 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
   if (end < 0 || inString) return null;
 
   final body = text.substring(divider + 2, end - 2);
-  final split = _splitConditionalBody(body);
+  final isConditionalText = target == kConditionalTextKeyword;
+  final split = _splitConditionalBody(body, allowElse: isConditionalText);
   if (split == null) return null;
+  // Conditional text has no value to bracket, so it must name its output.
+  if (isConditionalText &&
+      split.outputAction != ConditionalOutputAction.replacement) {
+    return null;
+  }
   final parsed = _parseConditionGroup(split.conditions);
   if (parsed == null) return null;
   return ConditionalBracketExpression(
@@ -285,8 +335,11 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
     matchMode: parsed.mode,
     start: start,
     end: end,
-    outputAction: split.outputAction,
+    outputAction: isConditionalText
+        ? ConditionalOutputAction.text
+        : split.outputAction,
     replacementText: split.replacementText,
+    elseText: split.elseText,
   );
 }
 
@@ -294,8 +347,9 @@ ConditionalBracketExpression? parseConditionalBracketExpression(
   String conditions,
   ConditionalOutputAction outputAction,
   String replacementText,
+  String? elseText,
 })?
-_splitConditionalBody(String body) {
+_splitConditionalBody(String body, {required bool allowElse}) {
   var inString = false;
   var escaped = false;
   for (var index = 0; index < body.length - 2; index++) {
@@ -315,25 +369,70 @@ _splitConditionalBody(String body) {
       continue;
     }
     if (!body.startsWith(']=>', index)) continue;
-    final conditions = body.substring(0, index);
-    final encodedReplacement = body.substring(index + 3).trim();
-    try {
-      final replacement = jsonDecode(encodedReplacement);
-      if (replacement is! String) return null;
-      return (
-        conditions: conditions,
-        outputAction: ConditionalOutputAction.replacement,
-        replacementText: replacement,
-      );
-    } on Object {
-      return null;
-    }
+    final texts = _parseOutputTexts(body.substring(index + 3));
+    if (texts == null || texts.length > (allowElse ? 2 : 1)) return null;
+    return (
+      conditions: body.substring(0, index),
+      outputAction: ConditionalOutputAction.replacement,
+      replacementText: texts.first,
+      elseText: texts.length > 1 ? texts[1] : null,
+    );
   }
   return (
     conditions: body,
     outputAction: ConditionalOutputAction.brackets,
     replacementText: '',
+    elseText: null,
   );
+}
+
+/// Reads `"text"` or `"text"|"else"` from [input], allowing whitespace around
+/// each part. Returns `null` for anything else.
+List<String>? _parseOutputTexts(String input) {
+  final texts = <String>[];
+  var index = 0;
+  while (true) {
+    index = _skipWhitespace(input, index);
+    if (index >= input.length || input[index] != '"') return null;
+    final end = _jsonStringEnd(input, index);
+    if (end == null) return null;
+    try {
+      final decoded = jsonDecode(input.substring(index, end));
+      if (decoded is! String) return null;
+      texts.add(decoded);
+    } on Object {
+      return null;
+    }
+    index = _skipWhitespace(input, end);
+    if (index == input.length) return texts;
+    if (input[index] != '|') return null;
+    index++;
+  }
+}
+
+/// Returns the exclusive end of the JSON string whose opening quote is at
+/// [start], or `null` when it is not terminated.
+int? _jsonStringEnd(String input, int start) {
+  var escaped = false;
+  for (var index = start + 1; index < input.length; index++) {
+    final char = input[index];
+    if (escaped) {
+      escaped = false;
+    } else if (char == r'\') {
+      escaped = true;
+    } else if (char == '"') {
+      return index + 1;
+    }
+  }
+  return null;
+}
+
+int _skipWhitespace(String input, int index) {
+  var next = index;
+  while (next < input.length && input[next].trim().isEmpty) {
+    next++;
+  }
+  return next;
 }
 
 /// Returns every valid conditional bracket expression embedded in [text].
@@ -357,6 +456,54 @@ List<ConditionalBracketExpression> conditionalBracketExpressionsInText(
     }
   }
   return expressions;
+}
+
+/// Returns the first field key [expression] reads, without modifiers.
+///
+/// A targeted conditional contributes its target. Conditional text contributes
+/// the first placeholder in its branch texts, then its first condition field;
+/// the `if` keyword is never a field. Used to name composite export columns.
+String? firstExpressionFieldKey(String expression) {
+  var index = 0;
+  while (index < expression.length) {
+    final start = expression.indexOf('[', index);
+    if (start < 0) return null;
+    final conditional = parseConditionalBracketExpression(expression, start);
+    if (conditional != null) {
+      final key = _conditionalFieldKey(conditional);
+      if (key != null) return key;
+      index = conditional.end;
+      continue;
+    }
+    final end = expression.indexOf(']', start + 1);
+    if (end < 0) return null;
+    final key = _placeholderFieldKey(expression.substring(start + 1, end));
+    if (key != null) return key;
+    index = start + 1;
+  }
+  return null;
+}
+
+String? _conditionalFieldKey(ConditionalBracketExpression expression) {
+  if (!expression.isConditionalText) {
+    return _placeholderFieldKey(expression.targetField);
+  }
+  final elseText = expression.elseText;
+  for (final text in [expression.replacementText, ?elseText]) {
+    final key = firstExpressionFieldKey(text);
+    if (key != null) return key;
+  }
+  for (final condition in expression.conditions) {
+    final key = _placeholderFieldKey(condition.sourceField);
+    if (key != null) return key;
+  }
+  return null;
+}
+
+String? _placeholderFieldKey(String placeholder) {
+  final key = parsePlaceholderKey(placeholder.split('??').first).key;
+  if (key.isEmpty || key.contains(RegExp(r'[\s\[]'))) return null;
+  return key;
 }
 
 ({List<ConditionalBracketCondition> conditions, ConditionalMatchMode mode})?
@@ -391,21 +538,9 @@ _parseConditionGroup(String input) {
     skipWhitespace();
     if (index >= input.length || input[index] != '"') return null;
     final valueStart = index;
-    index++;
-    var escaped = false;
-    while (index < input.length) {
-      final char = input[index];
-      if (escaped) {
-        escaped = false;
-      } else if (char == r'\') {
-        escaped = true;
-      } else if (char == '"') {
-        index++;
-        break;
-      }
-      index++;
-    }
-    if (index > input.length || input[index - 1] != '"') return null;
+    final valueEnd = _jsonStringEnd(input, valueStart);
+    if (valueEnd == null) return null;
+    index = valueEnd;
     final jsonValue = input.substring(valueStart, index);
     String value;
     try {

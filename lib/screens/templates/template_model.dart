@@ -423,6 +423,11 @@ String? getEncodedDefaultValue(String key, String value) {
   return null;
 }
 
+/// Whether [key] has a default encoded-value mapping.
+///
+/// Every default mapping defines code `0`, so probing it is enough.
+bool isEncodedFieldKey(String key) => getEncodedDefaultValue(key, '0') != null;
+
 String formatSexText(String text, String formatOption) {
   final parts = formatOption.split(':');
   final presentation = parts.isNotEmpty ? parts[0] : 'text';

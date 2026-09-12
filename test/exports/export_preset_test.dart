@@ -7,6 +7,24 @@ import 'package:nahpu/services/types/export.dart';
 
 void main() {
   group('ExportPresetModel', () {
+    test('keeps conditional expressions as single composer segments', () {
+      const expression =
+          '[mammalAttribute::testisPosition#label]'
+          '[[if][mammalAttribute::testisWidth!=""]=>'
+          '" x [mammalAttribute::testisWidth] mm"]]'
+          ' [[sex][sex=="0"]=>"Male"]]';
+      final segments = parseExportExpression(expression);
+
+      expect(segments.map((segment) => segment.kind), [
+        ExportExpressionSegmentKind.field,
+        ExportExpressionSegmentKind.conditional,
+        ExportExpressionSegmentKind.text,
+        ExportExpressionSegmentKind.conditional,
+      ]);
+      expect(segments.first.value, 'mammalAttribute::testisPosition#label');
+      expect(serializeExportExpression(segments), expression);
+    });
+
     test(
       'parses and serializes unlimited custom-field expression segments',
       () {

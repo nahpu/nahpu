@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
+import 'package:nahpu/screens/templates/template_model.dart'
+    show isEncodedFieldKey;
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
@@ -94,6 +96,7 @@ class _ExportPresetFieldsScreenState
                 key: ValueKey('mapping-$index'),
                 mapping: _preset.mappings[index],
                 headerFormat: _preset.headerFormat,
+                customDefinitions: customDefinitions,
                 onRemove: () => _remove(index),
                 onCustomize: () => _customizeMapping(index),
               ),
@@ -1060,31 +1063,39 @@ class _ExportMappingCard extends StatelessWidget {
     super.key,
     required this.mapping,
     required this.headerFormat,
+    required this.customDefinitions,
     required this.onRemove,
     required this.onCustomize,
   });
 
   final ExportFieldMapping mapping;
   final ExportHeaderFormat headerFormat;
+  final List<CustomFieldDefinitionData> customDefinitions;
   final VoidCallback onRemove;
   final VoidCallback onCustomize;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final columnName = exportMappingColumnName(
+      mapping,
+      headerFormat,
+      customLabel: (key) => _customFieldLabel(key, customDefinitions),
+    );
+    final displayName = columnName.isEmpty ? 'Unnamed' : columnName;
 
     final String title;
     final String subtitle;
     final IconData icon;
 
     if (mapping.isNested) {
-      title = 'Nested: ${mapping.nestedNamespace ?? 'Unnamed'}';
+      title = 'Nested: $displayName';
       subtitle =
           '${_nestedModeLabel(mapping.nestedMode)} · '
           '${mapping.nestedFields.join(', ')}';
       icon = Icons.account_tree_outlined;
     } else if (mapping.textType == 'list') {
-      title = 'List: ${mapping.expression}';
+      title = 'List: $displayName';
       subtitle = mapping.listMode == ListExportMode.spreadColumns
           ? 'Indexed columns · ${_indexedStyleLabel(mapping.indexedHeaderStyle)}'
           : headerFormat == ExportHeaderFormat.darwinCore
@@ -1095,8 +1106,8 @@ class _ExportMappingCard extends StatelessWidget {
       icon = Icons.view_column_outlined;
     } else {
       title = isDirectExportSourceExpression(mapping.expression)
-          ? 'Field: ${mapping.expression}'
-          : 'Custom: ${mapping.expression}';
+          ? 'Field: $displayName'
+          : 'Custom: $displayName';
       subtitle =
           'Format: ${_valueFormatLabel(mapping.textType)} · '
           'Options: ${mapping.formatOption}';
@@ -2126,23 +2137,54 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   children: [
-                    Icon(
-                      segment.isField ? Icons.data_object : Icons.text_fields,
-                    ),
+                    Icon(switch (segment.kind) {
+                      ExportExpressionSegmentKind.field => Icons.data_object,
+                      ExportExpressionSegmentKind.text => Icons.text_fields,
+                      ExportExpressionSegmentKind.conditional =>
+                        Icons.alt_route,
+                    }),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: segment.isField
-                          ? Text(segment.value)
-                          : TextFormField(
-                              key: ValueKey('custom-text-$segmentId'),
-                              initialValue: segment.value,
-                              decoration: const InputDecoration(
-                                labelText: 'Text or separator',
-                                isDense: true,
-                              ),
-                              onChanged: (value) => _setText(index, value),
-                            ),
+                      child: switch (segment.kind) {
+                        ExportExpressionSegmentKind.field => Text(
+                          segment.value,
+                        ),
+                        ExportExpressionSegmentKind.conditional => Text(
+                          _conditionalSegmentSummary(segment.value),
+                        ),
+                        ExportExpressionSegmentKind.text => TextFormField(
+                          key: ValueKey('custom-text-$segmentId'),
+                          initialValue: segment.value,
+                          decoration: const InputDecoration(
+                            labelText: 'Text or separator',
+                            isDense: true,
+                          ),
+                          onChanged: (value) => _setText(index, value),
+                        ),
+                      },
                     ),
+                    if (segment.isField &&
+                        isEncodedFieldKey(
+                          parsePlaceholderKey(segment.value).key,
+                        ))
+                      IconButton(
+                        tooltip: 'Show label',
+                        isSelected: parsePlaceholderKey(segment.value).decode,
+                        onPressed: () => _toggleLabel(index),
+                        icon: const Icon(Icons.label_outline),
+                        selectedIcon: const Icon(Icons.label),
+                      ),
+                    if (segment.isConditional &&
+                        (parseConditionalBracketExpression(
+                              segment.value,
+                              0,
+                            )?.isConditionalText ??
+                            false))
+                      IconButton(
+                        tooltip: 'Edit conditional text',
+                        onPressed: () => _editConditionalText(index),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
                     IconButton(
                       tooltip: 'Move segment up',
                       onPressed: index == 0 ? null : () => _move(index, -1),
@@ -2179,6 +2221,11 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
               onPressed: _addText,
               icon: const Icon(Icons.add),
               label: const Text('Add text'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _addConditionalText,
+              icon: const Icon(Icons.add),
+              label: const Text('Add conditional text'),
             ),
           ],
         ),
@@ -2236,6 +2283,208 @@ class _CustomExpressionComposerState extends State<_CustomExpressionComposer> {
     _segments[index] = ExportExpressionSegment.text(value);
     _notify();
   }
+
+  void _toggleLabel(int index) {
+    final parsed = parsePlaceholderKey(_segments[index].value);
+    setState(() {
+      _segments[index] = ExportExpressionSegment.field(
+        parsed.decode ? parsed.key : '${parsed.key}$kPlaceholderLabelMarker',
+      );
+    });
+    _notify();
+  }
+
+  Future<void> _addConditionalText() async {
+    final syntax = await _showConditionalTextDialog();
+    if (syntax == null || !mounted) return;
+    setState(() {
+      _segments.add(ExportExpressionSegment.conditional(syntax));
+      _segmentIds.add(_nextSegmentId++);
+    });
+    _notify();
+  }
+
+  Future<void> _editConditionalText(int index) async {
+    final syntax = await _showConditionalTextDialog(_segments[index].value);
+    if (syntax == null || !mounted) return;
+    setState(() {
+      _segments[index] = ExportExpressionSegment.conditional(syntax);
+    });
+    _notify();
+  }
+
+  Future<String?> _showConditionalTextDialog([String? syntax]) {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => _ConditionalTextSegmentDialog(
+        fieldGroups: widget.fieldGroups,
+        syntax: syntax,
+      ),
+    );
+  }
+}
+
+/// Builds a `[[if][…]=>"…"|"…"]]` segment for a custom field expression.
+class _ConditionalTextSegmentDialog extends StatefulWidget {
+  const _ConditionalTextSegmentDialog({required this.fieldGroups, this.syntax});
+
+  final Map<String, List<String>> fieldGroups;
+
+  /// The segment being edited, or `null` for a new one.
+  final String? syntax;
+
+  @override
+  State<_ConditionalTextSegmentDialog> createState() =>
+      _ConditionalTextSegmentDialogState();
+}
+
+class _ConditionalTextSegmentDialogState
+    extends State<_ConditionalTextSegmentDialog> {
+  late List<ConditionalBracketCondition> _conditions;
+  late ConditionalMatchMode _mode;
+  late final TextEditingController _thenController;
+  late final TextEditingController _elseController;
+
+  @override
+  void initState() {
+    super.initState();
+    final syntax = widget.syntax;
+    final existing = syntax == null
+        ? null
+        : parseConditionalBracketExpression(syntax, 0);
+    _conditions =
+        existing?.conditions ??
+        const [
+          ConditionalBracketCondition(
+            sourceField: '',
+            operator: ConditionalComparisonOperator.equals,
+            comparisonValue: '',
+          ),
+        ];
+    _mode = existing?.matchMode ?? ConditionalMatchMode.any;
+    _thenController = TextEditingController(
+      text: existing?.replacementText ?? '',
+    );
+    _elseController = TextEditingController(text: existing?.elseText ?? '');
+  }
+
+  @override
+  void dispose() {
+    _thenController.dispose();
+    _elseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final valid =
+        _conditions.isNotEmpty &&
+        _conditions.every(
+          (condition) =>
+              condition.sourceField.trim().isNotEmpty &&
+              (condition.operator == ConditionalComparisonOperator.isEmpty ||
+                  condition.operator ==
+                      ConditionalComparisonOperator.isNotEmpty ||
+                  condition.comparisonValue.trim().isNotEmpty),
+        );
+    // The texts are deliberately optional: an empty text writes nothing.
+    return AlertDialog(
+      title: const Text('Conditional text'),
+      content: SizedBox(
+        width: 560,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ConditionalBracketControls(
+                fieldGroups: widget.fieldGroups,
+                targetField: null,
+                compareTargetValue: false,
+                conditions: _conditions,
+                mode: _mode,
+                onChanged: (conditions, mode) => setState(() {
+                  _conditions = conditions;
+                  _mode = mode;
+                }),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _thenController,
+                decoration: const InputDecoration(
+                  labelText: 'Text when matched',
+                  helperText:
+                      'Fields such as [mammalAttribute::testisWidth] are filled in.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _elseController,
+                decoration: const InputDecoration(
+                  labelText: 'Text otherwise (optional)',
+                  helperText: 'Leave it empty to write nothing.',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: valid ? _save : null,
+          child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+
+  void _save() {
+    final elseText = _elseController.text;
+    Navigator.pop(
+      context,
+      ConditionalBracketExpression(
+        targetField: kConditionalTextKeyword,
+        conditions: _conditions,
+        matchMode: _mode,
+        start: 0,
+        end: 0,
+        outputAction: ConditionalOutputAction.text,
+        replacementText: _thenController.text,
+        elseText: elseText.isEmpty ? null : elseText,
+      ).toTemplateSyntax(),
+    );
+  }
+}
+
+/// Describes a conditional segment in words for the custom field composer.
+///
+/// Targeted conditionals, which the composer does not edit, show their syntax.
+String _conditionalSegmentSummary(String syntax) {
+  final expression = parseConditionalBracketExpression(syntax, 0);
+  if (expression == null || !expression.isConditionalText) return syntax;
+  final joiner = expression.matchMode == ConditionalMatchMode.any
+      ? ' or '
+      : ' and ';
+  final conditions = expression.conditions.map(_conditionSummary).join(joiner);
+  final elseText = expression.elseText;
+  final otherwise = elseText == null ? '' : ', otherwise "$elseText"';
+  return 'If $conditions → "${expression.replacementText}"$otherwise';
+}
+
+String _conditionSummary(ConditionalBracketCondition condition) {
+  final field = condition.sourceField.split('::').last;
+  final value = condition.comparisonValue;
+  return switch (condition.operator) {
+    ConditionalComparisonOperator.equals => '$field equals "$value"',
+    ConditionalComparisonOperator.notEquals => '$field does not equal "$value"',
+    ConditionalComparisonOperator.contains => '$field contains "$value"',
+    ConditionalComparisonOperator.isNotEmpty => '$field is not empty',
+    ConditionalComparisonOperator.isEmpty => '$field is empty',
+  };
 }
 
 /// Edits the comparisons that control conditional brackets around a value.

@@ -565,4 +565,186 @@ void main() {
       expect(parseConditionalBracketExpression('[[a][b~=""]]', 0), isNull);
     });
   });
+
+  group('Conditional text', () {
+    const scrotal = {
+      'mammalAttribute::testisPosition': '0',
+      'mammalAttribute::testisLength': '10',
+      'mammalAttribute::testisWidth': '6.5',
+    };
+
+    test('parses and serializes if and if-else text', () {
+      const ifText = '[[if][mammalAttribute::testisWidth!=""]=>" mm"]]';
+      const ifElseText =
+          '[[if][testisPosition=="0"&&testisWidth!=""]=>'
+          '"a \\"quoted\\" | pipe"|"otherwise"]]';
+
+      final ifExpression = parseConditionalBracketExpression(ifText, 0);
+      expect(ifExpression, isNotNull);
+      expect(ifExpression!.isConditionalText, isTrue);
+      expect(ifExpression.replacementText, ' mm');
+      expect(ifExpression.elseText, isNull);
+      expect(ifExpression.toTemplateSyntax(), ifText);
+
+      final ifElse = parseConditionalBracketExpression(ifElseText, 0);
+      expect(ifElse, isNotNull);
+      expect(ifElse!.matchMode, ConditionalMatchMode.all);
+      expect(ifElse.replacementText, 'a "quoted" | pipe');
+      expect(ifElse.elseText, 'otherwise');
+      expect(ifElse.toTemplateSyntax(), ifElseText);
+    });
+
+    test('rejects malformed conditional text', () {
+      for (final text in [
+        '[[if][a!=""]]',
+        '[[if][a!=""]=>"x"|]]',
+        '[[if][a!=""]=>"x""y"]]',
+        '[[if][a!=""]=>"x"|"y"|"z"]]',
+        '[[if][a=="1"&&b=="2"||c=="3"]=>"x"]]',
+        '[[target][a!=""]=>"x"|"y"]]',
+      ]) {
+        expect(
+          parseConditionalBracketExpression(text, 0),
+          isNull,
+          reason: text,
+        );
+      }
+    });
+
+    test('writes the matching text and nothing otherwise', () {
+      const text = 'Width: [testisWidth][[if][testisWidth!=""]=>" mm"]]';
+
+      expect(substituteDocumentPlaceholders(text, scrotal), 'Width: 6.5 mm');
+      expect(
+        substituteDocumentPlaceholders(text, const {
+          'mammalAttribute::testisWidth': '',
+        }),
+        'Width: ',
+      );
+    });
+
+    test('writes the else text when the conditions do not match', () {
+      const text = '[[if][testisPosition=="0"]=>"scrotal"|"not scrotal"]]';
+
+      expect(substituteDocumentPlaceholders(text, scrotal), 'scrotal');
+      expect(
+        substituteDocumentPlaceholders(text, const {
+          'mammalAttribute::testisPosition': '1',
+        }),
+        'not scrotal',
+      );
+    });
+
+    test('substitutes fields, fallbacks, and labels inside a branch', () {
+      const text =
+          '[[if][testisPosition=="0"&&testisLength!=""&&testisWidth!=""]=>'
+          '"[testisPosition#label] [testisLength] x [testisWidth] '
+          '[remark??no remark]"]]';
+
+      expect(
+        substituteDocumentPlaceholders(text, scrotal),
+        'Scrotal 10 x 6.5 no remark',
+      );
+      expect(
+        substituteDocumentPlaceholders(text, {
+          ...scrotal,
+          'mammalAttribute::testisWidth': '',
+        }),
+        '',
+      );
+    });
+
+    test('compares stored codes even when the text type decodes values', () {
+      const text = '[[if][testisPosition=="0"]=>"[testisPosition]"]]';
+
+      expect(
+        substituteDocumentPlaceholders(
+          text,
+          scrotal,
+          textType: 'encoded',
+          formatOption: 'enum',
+        ),
+        'Scrotal',
+      );
+    });
+
+    test('names composite columns after the first real field', () {
+      expect(
+        firstExpressionFieldKey(
+          '[[if][specimen::type!=""]=>"[specimen::catalogNum] mm"]]',
+        ),
+        'specimen::catalogNum',
+      );
+      expect(
+        firstExpressionFieldKey('[[if][specimen::type!=""]=>"TYPE"]]'),
+        'specimen::type',
+      );
+      expect(firstExpressionFieldKey('[[sex][sex=="0"]=>"Male"]]'), 'sex');
+      expect(
+        firstExpressionFieldKey(
+          'Testes: [mammalAttribute::testisPosition#label??N/A]',
+        ),
+        'mammalAttribute::testisPosition',
+      );
+      expect(firstExpressionFieldKey('NAHPU'), isNull);
+    });
+  });
+
+  group('Label marker', () {
+    test('prints encoded field labels in normal text', () {
+      expect(
+        substituteDocumentPlaceholders(
+          '[mammalAttribute::sex#label], [testisPosition#label]',
+          const {
+            'mammalAttribute::sex': '1',
+            'mammalAttribute::testisPosition': '1',
+          },
+        ),
+        'Female, Abdominal',
+      );
+    });
+
+    test('keeps unmapped values and falls back for empty ones', () {
+      const data = {
+        'mammalAttribute::testisPosition': '9',
+        'specimen::fieldNumber': '42',
+        'mammalAttribute::sex': '',
+      };
+
+      expect(
+        substituteDocumentPlaceholders('[testisPosition#label]', data),
+        '9',
+      );
+      expect(substituteDocumentPlaceholders('[fieldNumber#label]', data), '42');
+      expect(substituteDocumentPlaceholders('[sex#label??N/A]', data), 'N/A');
+    });
+
+    test('decodes a targeted conditional target', () {
+      const data = {
+        'mammalAttribute::testisPosition': '0',
+        'mammalAttribute::sex': '0',
+      };
+
+      expect(
+        substituteDocumentPlaceholders(
+          '[[testisPosition#label][sex=="0"]]',
+          data,
+        ),
+        '[Scrotal]',
+      );
+      expect(
+        substituteDocumentPlaceholders(
+          '[[if][testisPosition=="Scrotal"]=>"yes"|"no"]]',
+          data,
+        ),
+        'no',
+      );
+    });
+
+    test('identifies fields with a default encoded mapping', () {
+      expect(isEncodedFieldKey('mammalAttribute::testisPosition'), isTrue);
+      expect(isEncodedFieldKey('mammalAttribute::sex'), isTrue);
+      expect(isEncodedFieldKey('mammalAttribute::testisWidth'), isFalse);
+    });
+  });
 }
