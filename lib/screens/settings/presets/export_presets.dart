@@ -388,7 +388,13 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
                               subtitle: Text(
-                                '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                                [
+                                  if (preset.description.trim().isNotEmpty)
+                                    preset.description.trim(),
+                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                                ].join('\n'),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,

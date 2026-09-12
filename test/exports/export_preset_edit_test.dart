@@ -20,7 +20,9 @@ void main() {
   );
 
   Finder nameField() => find.widgetWithText(TextFormField, 'Preset name');
-  Finder renameButton() => find.widgetWithText(FilledButton, 'Rename');
+  Finder descriptionField() =>
+      find.widgetWithText(TextField, 'Description (optional)');
+  Finder updateButton() => find.widgetWithText(FilledButton, 'Update');
 
   /// Changes the record type, which is one of the auto-saved settings.
   Future<void> changeRecordType(WidgetTester tester, String label) async {
@@ -45,7 +47,7 @@ void main() {
     expect(notifier.savedPresets, isEmpty);
   });
 
-  testWidgets('the Rename button commits the typed name', (tester) async {
+  testWidgets('the Update button commits the typed name', (tester) async {
     final notifier = _FakeExportPresetNotifier({'first': firstPreset});
     final renamed = <(String, String)>[];
 
@@ -61,14 +63,14 @@ void main() {
 
     await tester.enterText(nameField(), '  renamed-first  ');
     await tester.pump();
-    await tester.tap(renameButton());
+    await tester.tap(updateButton());
     await tester.pumpAndSettle();
 
     expect(notifier.renames, [('first', 'renamed-first')]);
     expect(renamed, [('first', 'renamed-first')]);
   });
 
-  testWidgets('Rename is disabled until the name changes and is valid', (
+  testWidgets('Update is disabled until the name changes and is valid', (
     tester,
   ) async {
     final notifier = _FakeExportPresetNotifier({
@@ -81,7 +83,7 @@ void main() {
     );
     await tester.pump();
 
-    FilledButton button() => tester.widget<FilledButton>(renameButton());
+    FilledButton button() => tester.widget<FilledButton>(updateButton());
     expect(button().onPressed, isNull, reason: 'unchanged name');
 
     await tester.enterText(nameField(), '   ');
@@ -100,6 +102,84 @@ void main() {
     await tester.enterText(nameField(), 'third');
     await tester.pump();
     expect(button().onPressed, isNotNull);
+  });
+
+  testWidgets('a description waits for Update and then saves', (tester) async {
+    final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: firstPreset),
+    );
+    await tester.pump();
+
+    await tester.enterText(descriptionField(), '  Sites for the survey  ');
+    await tester.pump(const Duration(seconds: 1));
+    expect(notifier.savedPresets, isEmpty, reason: 'drafts wait for Update');
+
+    await tester.tap(updateButton());
+    await tester.pumpAndSettle();
+
+    expect(notifier.renames, isEmpty);
+    expect(notifier.savedNames, ['first']);
+    expect(notifier.savedPresets.single.description, 'Sites for the survey');
+  });
+
+  testWidgets('Update renames and keeps the new description', (tester) async {
+    final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: firstPreset),
+    );
+    await tester.pump();
+
+    await tester.enterText(nameField(), 'renamed-first');
+    await tester.enterText(descriptionField(), 'Renamed sites');
+    await tester.pump();
+    await tester.tap(updateButton());
+    await tester.pumpAndSettle();
+
+    expect(notifier.renames, [('first', 'renamed-first')]);
+    expect(notifier.renamedPresets.single.description, 'Renamed sites');
+  });
+
+  testWidgets('a description over the limit disables Update', (tester) async {
+    final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: firstPreset),
+    );
+    await tester.pump();
+
+    await tester.enterText(descriptionField(), 'a' * 81);
+    await tester.pump();
+
+    expect(tester.widget<FilledButton>(updateButton()).onPressed, isNull);
+    expect(find.text('Use 80 characters or fewer.'), findsOneWidget);
+  });
+
+  testWidgets('a settings auto-save keeps the committed description', (
+    tester,
+  ) async {
+    const described = ExportPresetModel(
+      recordType: RecordType.site,
+      specimenRecordType: SpecimenRecordType.allTaxa,
+      headerFormat: ExportHeaderFormat.fieldName,
+      mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+      description: 'Saved',
+    );
+    final notifier = _FakeExportPresetNotifier({'first': described});
+
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: described),
+    );
+    await tester.pump();
+
+    await tester.enterText(descriptionField(), 'Draft');
+    await changeRecordType(tester, 'narrative');
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(notifier.savedPresets.single.recordType, RecordType.narrative);
+    expect(notifier.savedPresets.single.description, 'Saved');
   });
 
   testWidgets('a settings change saves under the persisted name while a new '
@@ -295,6 +375,7 @@ class _FakeExportPresetNotifier extends ExportPresetNotifier {
 
   final Map<String, ExportPresetModel> presets;
   final List<(String, String)> renames = [];
+  final List<ExportPresetModel> renamedPresets = [];
   final List<ExportPresetModel> savedPresets = [];
   final List<String> savedNames = [];
 
@@ -314,6 +395,7 @@ class _FakeExportPresetNotifier extends ExportPresetNotifier {
     ExportPresetModel preset,
   ) async {
     renames.add((previousName, nextName));
+    renamedPresets.add(preset);
   }
 
   void beginDelete() => state = const AsyncValue.loading();

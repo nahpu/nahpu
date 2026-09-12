@@ -17,6 +17,21 @@ class DocumentLayoutService {
     return statuses;
   }
 
+  /// Descriptions of the compatible [statuses], keyed by preset name.
+  ///
+  /// Layouts are read one at a time because the bulk read fails as a whole
+  /// when any stored layout is incompatible. Blank descriptions are omitted.
+  Future<Map<String, String>> layoutDescriptions(
+    Iterable<rust_config.DocumentLayoutStatus> statuses,
+  ) async {
+    final descriptions = <String, String>{};
+    for (final status in statuses.where((status) => status.isCompatible)) {
+      final text = (await getLayout(status.name))?.description?.trim() ?? '';
+      if (text.isNotEmpty) descriptions[status.name] = text;
+    }
+    return descriptions;
+  }
+
   Future<String?> getStoredCurrentLayoutName() async {
     final prefs = await _prefs;
     return prefs.getString(_kCurrentDocumentLayoutName) ??
@@ -201,8 +216,10 @@ extension DocumentLayoutPresetExtension on rust_config.DocumentLayoutPreset {
     List<rust_config.DocumentLayoutBlock>? blocks,
     bool? fillPage,
     String? multiBlockMode,
+    String? description,
   }) {
     return rust_config.DocumentLayoutPreset(
+      description: description ?? this.description,
       name: name ?? this.name,
       layoutType: layoutType ?? this.layoutType,
       pageSizeKey: pageSizeKey ?? this.pageSizeKey,
@@ -283,6 +300,7 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
     'blocks': blocks.map((b) => b.toJson()).toList(),
     'fillPage': fillPage,
     'multiBlockMode': multiBlockMode,
+    if (description case final text? when text.isNotEmpty) 'description': text,
   };
 
   static rust_config.DocumentLayoutPreset fromJson(Map<String, dynamic> json) {
@@ -322,6 +340,7 @@ extension DocumentLayoutPresetJson on rust_config.DocumentLayoutPreset {
       multiBlockMode:
           _jsonValue(json, 'multiBlockMode', 'multi_block_mode') as String? ??
           'Continuous',
+      description: json['description'] as String?,
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
+import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
@@ -55,6 +56,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   String? _error;
   rust_config.DocumentLayoutPreset? _layout;
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
+  Map<String, String> _layoutDescriptions = const {};
   List<String> _templateNames = const [];
   String _selectedLayoutName = 'Default';
   DocumentPresetView _view = DocumentPresetView.layouts;
@@ -199,6 +201,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                     child: DocumentPresetListColumn(
                                       selectedPresetName: _selectedLayoutName,
                                       statuses: _layoutStatuses,
+                                      descriptions: _layoutDescriptions,
                                       onPresetSelected: (name) async {
                                         await _selectLayout(name);
                                         _tabController.animateTo(1);
@@ -262,6 +265,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                                         _openTemplateEditor,
                                                     onRenamePreset:
                                                         _renamePreset,
+                                                    onUpdateDescription:
+                                                        _updatePresetDescription,
                                                   ),
                                                   previewWidget,
                                                 ],
@@ -292,6 +297,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                       DocumentPresetListColumn(
                                         selectedPresetName: _selectedLayoutName,
                                         statuses: _layoutStatuses,
+                                        descriptions: _layoutDescriptions,
                                         onPresetSelected: (name) async {
                                           await _selectLayout(name);
                                           _tabController.animateTo(1);
@@ -312,6 +318,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                             _openTemplateEditor(),
                                         onEditTemplate: _openTemplateEditor,
                                         onRenamePreset: _renamePreset,
+                                        onUpdateDescription:
+                                            _updatePresetDescription,
                                       ),
                                       previewWidget,
                                     ],
@@ -406,9 +414,11 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         }
       }
 
+      final descriptions = await _layoutService.layoutDescriptions(statuses);
       if (!mounted) return;
       setState(() {
         _layoutStatuses = statuses;
+        _layoutDescriptions = descriptions;
         _selectedLayoutName = selectedName;
         _layout = layout;
         _templateNames = templates;
@@ -546,6 +556,14 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         context,
       ).showSnackBar(SnackBar(content: Text('Rename failed: $error')));
     }
+  }
+
+  /// Saves [description] on the stored preset named [name].
+  Future<void> _updatePresetDescription(String name, String description) async {
+    final layout = await _layoutService.getLayout(name);
+    if (layout == null) return;
+    await _layoutService.saveLayout(layout.copyWith(description: description));
+    await _load(showLoading: false);
   }
 
   Future<void> _savePresetAs() async {
@@ -857,11 +875,15 @@ class DocumentPresetListColumn extends StatelessWidget {
     required this.onPresetSelected,
     required this.onDeletePreset,
     required this.tabController,
+    this.descriptions = const {},
     this.onExportPreset,
   });
 
   final String? selectedPresetName;
   final List<rust_config.DocumentLayoutStatus> statuses;
+
+  /// Preset descriptions keyed by name; presets without one are absent.
+  final Map<String, String> descriptions;
   final ValueChanged<String>? onExportPreset;
   final ValueChanged<String> onPresetSelected;
   final ValueChanged<String> onDeletePreset;
@@ -918,6 +940,13 @@ class DocumentPresetListColumn extends StatelessWidget {
                                 Flexible(child: Text(name)),
                               ],
                             ),
+                            subtitle: descriptions[name] == null
+                                ? null
+                                : Text(
+                                    descriptions[name]!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -998,6 +1027,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
     required this.onCreateTemplate,
     required this.onEditTemplate,
     required this.onRenamePreset,
+    required this.onUpdateDescription,
   });
 
   final String? selectedPresetName;
@@ -1009,6 +1039,8 @@ class DocumentPresetEditColumn extends StatelessWidget {
   final VoidCallback onCreateTemplate;
   final ValueChanged<String> onEditTemplate;
   final Future<void> Function(String, String) onRenamePreset;
+  final Future<void> Function(String name, String description)
+  onUpdateDescription;
 
   @override
   Widget build(BuildContext context) {
@@ -1071,7 +1103,9 @@ class DocumentPresetEditColumn extends StatelessWidget {
                   .map((status) => status.name)
                   .where((name) => name != selectedPresetName)
                   .toSet(),
+              description: layout!.description ?? '',
               onRename: onRenamePreset,
+              onUpdateDescription: onUpdateDescription,
               onDuplicate: onSaveSetupAs,
             ),
           ),
@@ -1103,20 +1137,25 @@ class DocumentPresetEditColumn extends StatelessWidget {
 
 /// Editable name for the selected print layout preset.
 ///
-/// The name is committed by the Rename button rather than as the user types,
-/// so a rename never fires against a half-typed name.
+/// The name and description are committed by the Update button rather than as
+/// the user types, so a rename never fires against a half-typed name.
 class _PresetNameField extends StatefulWidget {
   const _PresetNameField({
     super.key,
     required this.presetName,
+    required this.description,
     required this.takenNames,
     required this.onRename,
+    required this.onUpdateDescription,
     required this.onDuplicate,
   });
 
   final String presetName;
+  final String description;
   final Set<String> takenNames;
   final Future<void> Function(String, String) onRename;
+  final Future<void> Function(String name, String description)
+  onUpdateDescription;
   final VoidCallback onDuplicate;
 
   @override
@@ -1127,23 +1166,34 @@ class _PresetNameFieldState extends State<_PresetNameField> {
   late final TextEditingController _controller = TextEditingController(
     text: widget.presetName,
   );
-  bool _renaming = false;
+  late final TextEditingController _descriptionController =
+      TextEditingController(text: widget.description);
+  bool _updating = false;
 
   @override
   void didUpdateWidget(covariant _PresetNameField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.presetName != widget.presetName && !_isDirty) {
+    if (oldWidget.presetName != widget.presetName && !_isNameDirty) {
       _controller.text = widget.presetName;
+    }
+    final keptOldDescription =
+        _descriptionController.text.trim() == oldWidget.description.trim();
+    if (oldWidget.description != widget.description && keptOldDescription) {
+      _descriptionController.text = widget.description;
     }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  bool get _isDirty => _controller.text.trim() != widget.presetName;
+  bool get _isNameDirty => _controller.text.trim() != widget.presetName;
+
+  bool get _isDescriptionDirty =>
+      _descriptionController.text.trim() != widget.description.trim();
 
   String? get _error {
     final trimmed = _controller.text.trim();
@@ -1154,45 +1204,71 @@ class _PresetNameFieldState extends State<_PresetNameField> {
     return null;
   }
 
-  Future<void> _rename() async {
+  bool get _canUpdate =>
+      (_isNameDirty || _isDescriptionDirty) &&
+      _error == null &&
+      descriptionLengthError(_descriptionController.text) == null &&
+      !_updating;
+
+  Future<void> _update() async {
+    final name = widget.presetName;
     final target = _controller.text.trim();
-    setState(() => _renaming = true);
-    await widget.onRename(widget.presetName, target);
-    if (mounted) setState(() => _renaming = false);
+    final description = _descriptionController.text.trim();
+    final renames = _isNameDirty;
+    final describes = _isDescriptionDirty;
+    setState(() => _updating = true);
+    // Save the description first, so a renamed copy carries it.
+    if (describes) await widget.onUpdateDescription(name, description);
+    if (renames) await widget.onRename(name, target);
+    if (mounted) setState(() => _updating = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final error = _error;
-    final canRename = _isDirty && error == null && !_renaming;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              labelText: 'Preset name',
-              errorText: _isDirty ? error : null,
-              isDense: true,
-              border: const OutlineInputBorder(),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  labelText: 'Preset name',
+                  errorText: _isNameDirty ? error : null,
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
+                onSubmitted: (_) {
+                  if (_canUpdate) _update();
+                },
+              ),
             ),
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (_) {
-              if (canRename) _rename();
-            },
-          ),
+            const SizedBox(width: 8),
+            FilledButton.tonal(
+              onPressed: _canUpdate ? _update : null,
+              child: const Text('Update'),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: widget.onDuplicate,
+              icon: const Icon(Icons.copy_outlined),
+              label: const Text('Duplicate'),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        FilledButton.tonal(
-          onPressed: canRename ? _rename : null,
-          child: const Text('Rename'),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: widget.onDuplicate,
-          icon: const Icon(Icons.copy_outlined),
-          label: const Text('Duplicate'),
+        const SizedBox(height: 8),
+        DescriptionField(
+          controller: _descriptionController,
+          isDense: true,
+          border: const OutlineInputBorder(),
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) {
+            if (_canUpdate) _update();
+          },
         ),
       ],
     );

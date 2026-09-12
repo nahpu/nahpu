@@ -77,6 +77,40 @@ void main() {
       expect(updatedLayout.blocks.length, 1);
       expect(updatedLayout.blocks.first.templateName, 'TemplateB');
     });
+
+    test('copyWith and JSON keep an optional description', () {
+      final layout = rust_config.DocumentLayoutPreset(
+        name: 'Described',
+        layoutType: 'WholePage',
+        pageSizeKey: 'Letter',
+        pageOrientation: 'portrait',
+        pagePadTopMm: 8.0,
+        pagePadLeftMm: 8.0,
+        pagePadRightMm: 8.0,
+        pagePadBottomMm: 8.0,
+        blocks: const [],
+        fillPage: false,
+        multiBlockMode: 'Continuous',
+        description: 'Skin tags',
+      );
+
+      expect(layout.copyWith(name: 'Renamed').description, 'Skin tags');
+      expect(
+        layout.copyWith(description: 'Skull tags').description,
+        'Skull tags',
+      );
+      expect(
+        DocumentLayoutPresetJson.fromJson(layout.toJson()).description,
+        'Skin tags',
+      );
+
+      final legacy = layout.toJson()..remove('description');
+      expect(DocumentLayoutPresetJson.fromJson(legacy).description, isNull);
+      expect(
+        layout.copyWith(description: '').toJson().containsKey('description'),
+        isFalse,
+      );
+    });
   });
 
   group('DocumentLayoutPreset JSON Serialization', () {

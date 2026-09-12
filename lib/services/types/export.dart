@@ -714,12 +714,16 @@ class ExportFieldMapping {
 }
 
 /// A complete, versioned configuration for one record export.
+/// Maximum length, in characters, of a preset or template description.
+const int kDescriptionMaxLength = 80;
+
 class ExportPresetModel {
   const ExportPresetModel({
     required this.recordType,
     required this.specimenRecordType,
     required this.headerFormat,
     required this.mappings,
+    this.description = '',
     this.schemaVersion = recordExportPresetSchemaVersion,
   });
 
@@ -728,6 +732,9 @@ class ExportPresetModel {
   final SpecimenRecordType specimenRecordType;
   final ExportHeaderFormat headerFormat;
   final List<ExportFieldMapping> mappings;
+
+  /// Optional short note shown in the preset list; blank when never set.
+  final String description;
 
   factory ExportPresetModel.empty() => const ExportPresetModel(
     recordType: RecordType.specimenRecord,
@@ -758,6 +765,7 @@ class ExportPresetModel {
             ),
           )
           .toList(growable: false),
+      description: json['description'] as String? ?? '',
     );
   }
 
@@ -767,6 +775,7 @@ class ExportPresetModel {
     'specimenRecordType': specimenRecordType.name,
     'headerFormat': headerFormat.name,
     'mappings': mappings.map((mapping) => mapping.toJson()).toList(),
+    if (description.isNotEmpty) 'description': description,
   };
 }
 

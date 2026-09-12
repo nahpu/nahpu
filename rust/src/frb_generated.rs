@@ -3306,6 +3306,7 @@ impl SseDecode for crate::api::config::DocumentLayoutPreset {
             <Vec<crate::api::config::DocumentLayoutBlock>>::sse_decode(deserializer);
         let mut var_fillPage = <bool>::sse_decode(deserializer);
         let mut var_multiBlockMode = <String>::sse_decode(deserializer);
+        let mut var_description = <Option<String>>::sse_decode(deserializer);
         return crate::api::config::DocumentLayoutPreset {
             name: var_name,
             layout_type: var_layoutType,
@@ -3320,6 +3321,7 @@ impl SseDecode for crate::api::config::DocumentLayoutPreset {
             blocks: var_blocks,
             fill_page: var_fillPage,
             multi_block_mode: var_multiBlockMode,
+            description: var_description,
         };
     }
 }
@@ -4864,6 +4866,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::config::DocumentLayoutPreset 
             self.blocks.into_into_dart().into_dart(),
             self.fill_page.into_into_dart().into_dart(),
             self.multi_block_mode.into_into_dart().into_dart(),
+            self.description.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -5755,6 +5758,7 @@ impl SseEncode for crate::api::config::DocumentLayoutPreset {
         <Vec<crate::api::config::DocumentLayoutBlock>>::sse_encode(self.blocks, serializer);
         <bool>::sse_encode(self.fill_page, serializer);
         <String>::sse_encode(self.multi_block_mode, serializer);
+        <Option<String>>::sse_encode(self.description, serializer);
     }
 }
 

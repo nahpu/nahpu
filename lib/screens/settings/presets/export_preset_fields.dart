@@ -268,6 +268,7 @@ class _ExportPresetFieldsScreenState
         specimenRecordType: _preset.specimenRecordType,
         headerFormat: _preset.headerFormat,
         mappings: mappings ?? _preset.mappings,
+        description: _preset.description,
       );
     });
     widget.onPresetChanged?.call(_preset);

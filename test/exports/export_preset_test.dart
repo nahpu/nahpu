@@ -7,6 +7,26 @@ import 'package:nahpu/services/types/export.dart';
 
 void main() {
   group('ExportPresetModel', () {
+    test('keeps an optional description in the preset payload', () {
+      const described = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+        description: 'Sites for the county survey',
+      );
+
+      final restored = ExportPresetModel.fromJson(described.toJson());
+      expect(restored.description, 'Sites for the county survey');
+
+      final legacy = described.toJson()..remove('description');
+      expect(ExportPresetModel.fromJson(legacy).description, '');
+      expect(
+        ExportPresetModel.empty().toJson().containsKey('description'),
+        isFalse,
+      );
+    });
+
     test('keeps conditional expressions as single composer segments', () {
       const expression =
           '[mammalAttribute::testisPosition#label]'
