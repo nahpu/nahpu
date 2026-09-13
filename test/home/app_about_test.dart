@@ -68,6 +68,15 @@ void main() {
     expect(find.text('v$kSchemaVersion'), findsOneWidget);
     expect(find.textContaining('App supports'), findsNothing);
     expect(find.byType(TropicalMountainsBackdrop), findsOneWidget);
+    // About is where the skyline is the decoration, so it keeps the teal.
+    expect(
+      tester
+          .widget<TropicalMountainsBackdrop>(
+            find.byType(TropicalMountainsBackdrop),
+          )
+          .tone,
+      TropicalMountainsTone.brand,
+    );
     expect(find.byTooltip('Close'), findsNothing);
     expect(tester.takeException(), isNull);
   });

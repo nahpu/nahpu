@@ -6,11 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/home/components/body.dart';
 import 'package:nahpu/screens/home/components/project_actions.dart';
+import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/styles/themes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _createKey = ValueKey('home-create-project');
@@ -186,7 +188,49 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets('empty home keeps its message clear of the skyline at '
+        '${size.width.toInt()} wide', (tester) async {
+      await pumpHome(tester, size: size);
+
+      expect(find.byType(EmptyHomeBackdrop), findsOneWidget);
+      final backdrop = find.byType(TropicalMountainsBackdrop);
+      expect(backdrop, findsOneWidget);
+      final ridges = tester.widget<TropicalMountainsBackdrop>(backdrop);
+      expect(ridges.tone, TropicalMountainsTone.muted);
+      expect(ridges.fadeTop, isTrue);
+
+      // The message reads on plain ground above the ridges.
+      final ridgesTop = tester.getRect(backdrop).top;
+      expect(
+        tester.getRect(find.text('No projects found.')).bottom,
+        lessThan(ridgesTop),
+      );
+      expect(
+        tester
+            .getRect(find.text('Create or import a project to get started.'))
+            .bottom,
+        lessThan(ridgesTop),
+      );
+
+      // The teal action stays the one saturated colour, and the backdrop
+      // does not take its taps.
+      expect(
+        tester.widget<Material>(find.byKey(_createKey)).color,
+        NahpuTheme.primaryAction,
+      );
+      expect(find.byKey(_createKey).hitTestable(), findsOneWidget);
+      expect(find.byKey(_importKey).hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   }
+
+  testWidgets('home with projects has no skyline backdrop', (tester) async {
+    await pumpHome(tester, size: const Size(400, 800), projects: 2);
+
+    expect(find.byType(EmptyHomeBackdrop), findsNothing);
+    expect(find.byType(TropicalMountainsBackdrop), findsNothing);
+  });
 
   testWidgets('create project is the high-contrast primary action', (
     tester,

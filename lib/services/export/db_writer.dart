@@ -269,6 +269,24 @@ bool isAssociatedBackupArchivePath(String relative) {
           (segments[1] == 'media' || segments[1] == 'associateddata'));
 }
 
+/// Where an archive file is written on restore, relative to the NAHPU folder.
+///
+/// Older backups kept personnel photos in the project media folder, as
+/// `<project>/media/personnel/<file>`. `personnel.photoPath` holds only the
+/// file name, which the app resolves under `appMedia/personnel`, so those
+/// photos are restored there. Every other path is restored where it was.
+@visibleForTesting
+String restoredRelativePath(String archivePath) {
+  final normalized = archivePath.replaceAll('\\', '/');
+  final segments = normalized.split('/');
+  final isLegacyPersonnelPhoto =
+      segments.length >= 4 &&
+      segments[1].toLowerCase() == mediaDir &&
+      segments[2].toLowerCase() == 'personnel';
+  if (!isLegacyPersonnelPhoto) return normalized;
+  return [appMediaDirName, 'personnel', ...segments.sublist(3)].join('/');
+}
+
 /// The installation-wide directories a full backup copies in their entirety.
 ///
 /// These are walked rather than read from the database so that files the
@@ -847,10 +865,16 @@ class DbWriter extends AppServices {
     for (final entity in restorable) {
       cancel?.throwIfCancelled();
       final relative = _relativeArchivePath(entity.path, tempDir.path);
-      final target = File(p.join(nahpuDir.path, relative));
+      // Older backups kept personnel photos where the app no longer looks.
+      final target = File(
+        p.joinAll([
+          nahpuDir.path,
+          ...restoredRelativePath(relative).split('/'),
+        ]),
+      );
       await target.parent.create(recursive: true);
       progress?.setCurrentItem(p.basename(entity.path));
-      // The archive path is used verbatim, so a file already sitting there is
+      // Each file goes to its restored path, so a file already sitting there is
       // overwritten rather than gaining a renamed sibling, and an identical one
       // is left alone.
       if (!await hasIdenticalFileContent(entity, target)) {

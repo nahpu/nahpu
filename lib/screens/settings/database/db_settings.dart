@@ -729,49 +729,31 @@ class DatabaseComparisonPanel extends StatelessWidget {
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
-            _ComparisonRow(
-              label: '',
-              current: 'Current',
-              replacement: hasReplacement ? 'Replacement' : null,
-              change: hasReplacement ? 'Change' : null,
-              isHeader: true,
-            ),
-            const Divider(height: NahpuSpacing.md),
-            _ComparisonRow(
-              label: 'Schema version',
-              current: 'v${current.schemaVersion}',
-              replacement: hasReplacement
-                  ? _versionOf(contents?.schemaVersion)
-                  : null,
-              change: hasReplacement ? '' : null,
-              note: _schemaNote(contents?.schemaVersion),
-              isNoteWarning: (contents?.schemaVersion ?? 0) > kSchemaVersion,
-            ),
-            for (final label in dbSummaryTables.keys)
-              _ComparisonRow.count(
-                label: label,
-                current: current.entries[label] ?? 0,
-                replacement: contents?.entries[label],
-                hasReplacement: hasReplacement,
+            LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                // Columns are as wide as their longest value, so a narrow
+                // screen scrolls sideways instead of breaking a word.
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: _ComparisonTable(
+                    lines: _linesFor(current, contents),
+                    hasReplacement: hasReplacement,
+                  ),
+                ),
               ),
-            _ComparisonRow.count(
-              label: 'Associated files',
-              current: current.entries['Associated files'] ?? 0,
-              replacement: contents?.associatedFiles,
-              hasReplacement: hasReplacement,
             ),
-            const Divider(height: NahpuSpacing.md),
-            _ComparisonRow(
-              label: 'Size',
-              current: formatByteSize(current.totalBytes),
-              replacement: hasReplacement
-                  ? contents == null
-                        ? '—'
-                        : formatByteSize(contents.totalBytes)
-                  : null,
-              change: hasReplacement ? '' : null,
-              isEmphasized: true,
-            ),
+            if (_schemaNote(contents?.schemaVersion) case final note?) ...[
+              const SizedBox(height: NahpuSpacing.sm),
+              Text(
+                note,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: (contents?.schemaVersion ?? 0) > kSchemaVersion
+                      ? colors.error
+                      : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ],
           if (!hasReplacement) ...[
             const SizedBox(height: NahpuSpacing.md),
@@ -797,13 +779,48 @@ class DatabaseComparisonPanel extends StatelessWidget {
     );
   }
 
-  String _versionOf(int? version) => version == null ? '—' : 'v$version';
+  List<_ComparisonLine> _linesFor(
+    DbBackupSummary current,
+    DbContentsSummary? contents,
+  ) {
+    final replacementSchema = contents?.schemaVersion;
+    return [
+      _ComparisonLine(
+        label: 'Schema version',
+        current: 'v${current.schemaVersion}',
+        replacement: replacementSchema == null ? null : 'v$replacementSchema',
+        isReplacementWarning: (replacementSchema ?? 0) > kSchemaVersion,
+      ),
+      for (final label in dbSummaryTables.keys)
+        _ComparisonLine.count(
+          label: label,
+          current: current.entries[label] ?? 0,
+          replacement: contents?.entries[label],
+        ),
+      _ComparisonLine.count(
+        label: 'Associated files',
+        current: current.entries['Associated files'] ?? 0,
+        replacement: contents?.associatedFiles,
+      ),
+      _ComparisonLine(
+        label: 'Size',
+        current: formatByteSize(current.totalBytes),
+        replacement: contents == null
+            ? null
+            : formatByteSize(contents.totalBytes),
+        isEmphasized: true,
+      ),
+    ];
+  }
 
+  /// A sentence under the table rather than a cell note, so it never widens a
+  /// column.
   String? _schemaNote(int? version) {
     if (version == null || version == kSchemaVersion) return null;
     return version < kSchemaVersion
-        ? 'Upgraded to v$kSchemaVersion after restore'
-        : 'Newer than this app';
+        ? 'The replacement schema v$version is upgraded to v$kSchemaVersion '
+              'after restore.'
+        : 'The replacement schema v$version is newer than this app.';
   }
 }
 
@@ -830,127 +847,161 @@ class _ReplacementIssueNotice extends StatelessWidget {
   }
 }
 
-/// One line of the comparison: a label, the current value, and, once a file
-/// is chosen, the replacement value and the difference.
-class _ComparisonRow extends StatelessWidget {
-  const _ComparisonRow({
+/// One line of the comparison, before it is laid out.
+class _ComparisonLine {
+  const _ComparisonLine({
     required this.label,
     required this.current,
     required this.replacement,
-    required this.change,
-    this.note,
-    this.isNoteWarning = false,
+    this.change = '',
     this.isLoss = false,
-    this.isHeader = false,
     this.isEmphasized = false,
+    this.isReplacementWarning = false,
   });
 
-  /// A count row. A missing replacement count shows as a dash.
-  factory _ComparisonRow.count({
+  /// A count line. The change is blank when nothing differs or the replacement
+  /// count is missing.
+  factory _ComparisonLine.count({
     required String label,
     required int current,
     required int? replacement,
-    required bool hasReplacement,
   }) {
-    final difference = replacement == null ? null : replacement - current;
-    return _ComparisonRow(
+    final difference = replacement == null ? 0 : replacement - current;
+    return _ComparisonLine(
       label: label,
       current: '$current',
-      replacement: hasReplacement ? (replacement?.toString() ?? '—') : null,
-      change: !hasReplacement
-          ? null
-          : difference == null || difference == 0
+      replacement: replacement?.toString(),
+      change: difference == 0
           ? ''
           : difference > 0
           ? '+$difference'
           : '$difference',
-      isLoss: (difference ?? 0) < 0,
+      isLoss: difference < 0,
     );
   }
 
   final String label;
   final String current;
 
-  /// Null until a file is chosen, which hides the column.
+  /// Null when the replacement has no value here, which shows as a dash.
   final String? replacement;
-  final String? change;
-  final String? note;
-  final bool isNoteWarning;
+  final String change;
 
   /// Whether the replacement has fewer records than the current database.
   final bool isLoss;
-  final bool isHeader;
   final bool isEmphasized;
+
+  /// Whether the replacement value is a reason the file cannot be restored.
+  final bool isReplacementWarning;
+}
+
+/// The comparison as a table whose columns fit their content.
+///
+/// The label column takes any spare width, so the table fills a wide panel; on
+/// a narrow one the table is wider than the panel and scrolls instead.
+class _ComparisonTable extends StatelessWidget {
+  const _ComparisonTable({required this.lines, required this.hasReplacement});
+
+  final List<_ComparisonLine> lines;
+
+  /// Whether a file is chosen, which adds the replacement and change columns.
+  final bool hasReplacement;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final replacement = this.replacement;
-    final change = this.change;
-    final note = this.note;
-    final valueStyle = isHeader
-        ? theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant)
-        : isEmphasized
-        ? theme.textTheme.titleSmall
-        : theme.textTheme.bodyMedium;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.xs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    final rule = BorderSide(
+      color: colors.outlineVariant,
+      width: NahpuStroke.thin,
+    );
+    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+      color: colors.onSurfaceVariant,
+    );
+    return Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const {0: IntrinsicColumnWidth(flex: 1)},
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      children: [
+        TableRow(
+          decoration: BoxDecoration(border: Border(bottom: rule)),
+          children: [
+            const _ComparisonCell(text: '', isLabel: true),
+            _ComparisonCell(text: 'Current', style: headerStyle),
+            if (hasReplacement) ...[
+              _ComparisonCell(text: 'Replacement', style: headerStyle),
+              _ComparisonCell(text: 'Change', style: headerStyle),
+            ],
+          ],
+        ),
+        for (final line in lines)
+          TableRow(
+            decoration: line.isEmphasized
+                ? BoxDecoration(border: Border(top: rule))
+                : null,
             children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  label,
-                  style: isEmphasized ? theme.textTheme.titleSmall : valueStyle,
-                ),
+              _ComparisonCell(
+                text: line.label,
+                isLabel: true,
+                style: line.isEmphasized
+                    ? theme.textTheme.titleSmall
+                    : theme.textTheme.bodyMedium,
               ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  current,
-                  textAlign: TextAlign.end,
-                  style: valueStyle,
-                ),
+              _ComparisonCell(
+                text: line.current,
+                style: line.isEmphasized
+                    ? theme.textTheme.titleSmall
+                    : theme.textTheme.bodyMedium,
               ),
-              if (replacement != null)
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    replacement,
-                    textAlign: TextAlign.end,
-                    style: valueStyle,
-                  ),
-                ),
-              if (change != null)
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    change,
-                    textAlign: TextAlign.end,
-                    style: isHeader
-                        ? valueStyle
-                        : theme.textTheme.bodySmall?.copyWith(
-                            color: isLoss
+              if (hasReplacement) ...[
+                _ComparisonCell(
+                  text: line.replacement ?? '—',
+                  style:
+                      (line.isEmphasized
+                              ? theme.textTheme.titleSmall
+                              : theme.textTheme.bodyMedium)
+                          ?.copyWith(
+                            color: line.isReplacementWarning
                                 ? colors.error
-                                : colors.onSurfaceVariant,
+                                : null,
                           ),
+                ),
+                _ComparisonCell(
+                  text: line.change,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: line.isLoss ? colors.error : colors.onSurfaceVariant,
                   ),
                 ),
+              ],
             ],
           ),
-          if (note != null)
-            Text(
-              note,
-              textAlign: TextAlign.end,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isNoteWarning ? colors.error : colors.onSurfaceVariant,
-              ),
-            ),
-        ],
+      ],
+    );
+  }
+}
+
+/// A single-line table cell. Values sit at the end of their column, with a
+/// gap before them; the label starts flush with the panel.
+class _ComparisonCell extends StatelessWidget {
+  const _ComparisonCell({required this.text, this.style, this.isLabel = false});
+
+  final String text;
+  final TextStyle? style;
+  final bool isLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: isLabel ? 0 : NahpuSpacing.xl,
+        top: NahpuSpacing.sm,
+        bottom: NahpuSpacing.sm,
+      ),
+      child: Text(
+        text,
+        softWrap: false,
+        textAlign: isLabel ? TextAlign.start : TextAlign.end,
+        style: style,
       ),
     );
   }

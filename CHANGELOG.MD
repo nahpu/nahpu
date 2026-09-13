@@ -13,6 +13,7 @@
   migrated to the new names.
 - Replace database backup management UI with a more concise summary and action list.
 - Improve UI/UX consistencies across the app.
+- Fix missing personnel photos when restoring old database backups.
 
 
 ## v1.0.1 [2026-09-09]

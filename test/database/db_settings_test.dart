@@ -275,9 +275,10 @@ void main() {
 
     Future<void> pumpPanel(
       WidgetTester tester,
-      DbReplacementPreview? replacement,
-    ) async {
-      tester.view.physicalSize = const Size(600, 1400);
+      DbReplacementPreview? replacement, {
+      Size size = const Size(600, 1400),
+    }) async {
+      tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
@@ -307,7 +308,7 @@ void main() {
       expect(find.text('—'), findsOneWidget);
       expect(find.text('v$kSchemaVersion'), findsNWidgets(2));
       expect(find.textContaining('after restore'), findsNothing);
-      expect(find.text('Newer than this app'), findsNothing);
+      expect(find.textContaining('newer than this app'), findsNothing);
     });
 
     testWidgets('an older replacement schema is upgraded after restore', (
@@ -317,7 +318,7 @@ void main() {
 
       expect(find.text('v${kSchemaVersion - 1}'), findsOneWidget);
       expect(
-        find.text('Upgraded to v$kSchemaVersion after restore'),
+        find.textContaining('upgraded to v$kSchemaVersion after restore'),
         findsOneWidget,
       );
     });
@@ -334,7 +335,7 @@ void main() {
       );
 
       expect(find.textContaining('Update NAHPU'), findsOneWidget);
-      expect(find.text('Newer than this app'), findsOneWidget);
+      expect(find.textContaining('newer than this app'), findsOneWidget);
     });
 
     testWidgets('a non-NAHPU file hides its replacement counts', (
@@ -350,7 +351,7 @@ void main() {
 
       expect(find.textContaining('not a NAHPU database'), findsOneWidget);
       expect(find.text('+7'), findsNothing);
-      expect(find.text('Newer than this app'), findsNothing);
+      expect(find.textContaining('newer than this app'), findsNothing);
     });
 
     testWidgets('without a file only the current column shows', (tester) async {
@@ -359,6 +360,39 @@ void main() {
       expect(find.text('Current'), findsOneWidget);
       expect(find.text('Replacement'), findsNothing);
       expect(find.text('Choose a file to compare.'), findsOneWidget);
+    });
+
+    testWidgets('a phone width scrolls sideways instead of breaking words', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        previewWith(schemaVersion: kSchemaVersion - 1),
+        size: const Size(360, 1400),
+      );
+
+      // Every cell stays on one line: a wrapped label or header would be
+      // taller than its single-line neighbour in the same style.
+      expect(
+        tester.getSize(find.text('Collection events')).height,
+        tester.getSize(find.text('Projects')).height,
+      );
+      expect(
+        tester.getSize(find.text('Replacement')).height,
+        tester.getSize(find.text('Current')).height,
+      );
+
+      final sideways = find.byWidgetPredicate(
+        (widget) =>
+            widget is SingleChildScrollView &&
+            widget.scrollDirection == Axis.horizontal,
+      );
+      expect(sideways, findsOneWidget);
+      final scrollable = tester.state<ScrollableState>(
+        find.descendant(of: sideways, matching: find.byType(Scrollable)),
+      );
+      expect(scrollable.position.maxScrollExtent, greaterThan(0));
+      expect(tester.takeException(), isNull);
     });
   });
 }

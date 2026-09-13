@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/common/legal_links.dart';
+import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -36,29 +38,38 @@ class HomeBodyState extends ConsumerState<HomeBody> {
   @override
   Widget build(BuildContext context) {
     final projects = ref.watch(projectListProvider);
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(
-            padding: EdgeInsets.all(
-              constraints.maxWidth < NahpuBreakpoints.compact
-                  ? NahpuSpacing.xl
-                  : NahpuSpacing.xxl,
-            ),
-            child: projects.when(
-              data: (data) => data.isEmpty
-                  ? const ProjectNotFound()
-                  : HomeProjectsLayout(
-                      projectList: data.reversed.toList(),
-                      isWide: constraints.maxWidth >= NahpuBreakpoints.desktop,
-                    ),
-              loading: () => const Center(child: CommonProgressIndicator()),
-              error: (error, stackTrace) =>
-                  Center(child: Text(error.toString())),
-            ),
-          );
-        },
-      ),
+    final isEmpty = projects.asData?.value.isEmpty ?? false;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Outside the padding and safe area, so the skyline runs edge to edge.
+        if (isEmpty) const Positioned.fill(child: EmptyHomeBackdrop()),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Padding(
+                padding: EdgeInsets.all(
+                  constraints.maxWidth < NahpuBreakpoints.compact
+                      ? NahpuSpacing.xl
+                      : NahpuSpacing.xxl,
+                ),
+                child: projects.when(
+                  data: (data) => data.isEmpty
+                      ? const ProjectNotFound()
+                      : HomeProjectsLayout(
+                          projectList: data.reversed.toList(),
+                          isWide:
+                              constraints.maxWidth >= NahpuBreakpoints.desktop,
+                        ),
+                  loading: () => const Center(child: CommonProgressIndicator()),
+                  error: (error, stackTrace) =>
+                      Center(child: Text(error.toString())),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -224,6 +235,44 @@ class ProjectNotFound extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The Tropical Mountains skyline along the bottom of the empty home screen.
+///
+/// Muted, faded, and kept to a band below the message, so the teal Create
+/// action stays the only saturated colour and "No projects found." reads on
+/// plain ground.
+class EmptyHomeBackdrop extends StatelessWidget {
+  const EmptyHomeBackdrop({super.key});
+
+  /// Height over width of the skyline's view box.
+  static const double _skylineAspect = 420 / 1200;
+
+  /// The most of the screen height the skyline may cover.
+  static const double _maxHeightFraction = 0.45;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = math.min(
+          constraints.maxWidth * _skylineAspect,
+          constraints.maxHeight * _maxHeightFraction,
+        );
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: double.infinity,
+            height: height,
+            child: const TropicalMountainsBackdrop(
+              tone: TropicalMountainsTone.muted,
+              fadeTop: true,
+            ),
+          ),
+        );
+      },
     );
   }
 }
