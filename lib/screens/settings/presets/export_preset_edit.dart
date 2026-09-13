@@ -6,6 +6,8 @@ import 'package:nahpu/screens/settings/presets/export_preset_fields.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
+import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -16,11 +18,15 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
     required this.presetName,
     required this.initialPreset,
     required this.onPresetRenamed,
+    required this.onPresetDuplicated,
   });
 
   final String presetName;
   final ExportPresetModel initialPreset;
   final void Function(String, String) onPresetRenamed;
+
+  /// Called with the copy's name and body after Duplicate saves it.
+  final void Function(String name, ExportPresetModel preset) onPresetDuplicated;
 
   @override
   ConsumerState<ExportPresetEditForm> createState() =>
@@ -304,6 +310,38 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     }
   }
 
+  /// Saves a copy of the current preset under a new name and opens it.
+  ///
+  /// Queued settings edits land first, so the copy matches what is on screen.
+  /// Like Update, it copies the committed description, not a draft.
+  Future<void> _duplicatePreset() async {
+    final presets = _presetProviderState.asData?.value ?? const {};
+    if (presets.length >= 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum of 20 presets reached.')),
+      );
+      return;
+    }
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => PresetNameDialog(
+        title: 'Duplicate preset',
+        existingNames: presets.keys,
+        initialValue: '${widget.presetName}_copy',
+      ),
+    );
+    if (name == null || !mounted) return;
+    await _flushPendingSave();
+    try {
+      await _presetNotifier.savePreset(name, _preset);
+      if (!mounted) return;
+      widget.onPresetDuplicated(name, _preset);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _updateError = 'Couldn\'t duplicate: $error');
+    }
+  }
+
   ExportPresetModel _withDescription(
     ExportPresetModel preset,
     String description,
@@ -320,119 +358,87 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     return FormCard(
       title: 'Edit ${widget.presetName}',
       isExpanded: true,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          labelText: 'Preset name',
-                          errorText: _isNameDirty
-                              ? (_updateError ?? _nameValidationError)
-                              : _updateError,
-                          helperText:
-                              (_isNameDirty || _isDescriptionDirty) &&
-                                  _nameValidationError == null
-                              ? 'Select Update to save the name and description'
-                              : null,
-                        ),
-                        onChanged: (_) => setState(() => _updateError = null),
-                        onFieldSubmitted: (_) {
-                          if (_canUpdate) _updatePreset();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: FilledButton.tonal(
-                        onPressed: _canUpdate ? _updatePreset : null,
-                        child: _isUpdating
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Update'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                DescriptionField(
-                  controller: _descriptionController,
-                  onChanged: (_) => setState(() => _updateError = null),
-                  onSubmitted: (_) {
-                    if (_canUpdate) _updatePreset();
-                  },
-                ),
-              ],
+      // Scrolls when the window is too short for the name, description, and
+      // settings, rather than overflowing.
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: PresetIdentityFields(
+                nameController: _nameController,
+                descriptionController: _descriptionController,
+                hasChanges: _isNameDirty || _isDescriptionDirty,
+                canUpdate: _canUpdate,
+                isUpdating: _isUpdating,
+                onUpdate: _updatePreset,
+                onDuplicate: _duplicatePreset,
+                nameErrorText: _isNameDirty
+                    ? (_updateError ?? _nameValidationError)
+                    : _updateError,
+                onNameChanged: (_) => setState(() => _updateError = null),
+                onDescriptionChanged: (_) =>
+                    setState(() => _updateError = null),
+              ),
             ),
-          ),
-          _PresetSettingsCard(
-            preset: _preset,
-            onRecordTypeChanged: (value) => _update(recordType: value),
-            onSpecimenRecordTypeChanged: (value) =>
-                _update(specimenRecordType: value),
-            onHeaderFormatChanged: (value) => _update(headerFormat: value),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    label: 'Edit Fields',
-                    icon: Icons.list_alt_outlined,
-                    onPressed: () async {
-                      final updated = await Navigator.push<ExportPresetModel>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExportPresetFieldsScreen(
-                            preset: _preset,
-                            onPresetChanged: (updated) =>
-                                _update(mappings: updated.mappings),
+            _PresetSettingsCard(
+              preset: _preset,
+              onRecordTypeChanged: (value) => _update(recordType: value),
+              onSpecimenRecordTypeChanged: (value) =>
+                  _update(specimenRecordType: value),
+              onHeaderFormatChanged: (value) => _update(headerFormat: value),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Edit Fields',
+                      icon: Icons.list_alt_outlined,
+                      onPressed: () async {
+                        final updated = await Navigator.push<ExportPresetModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ExportPresetFieldsScreen(
+                              preset: _preset,
+                              onPresetChanged: (updated) =>
+                                  _update(mappings: updated.mappings),
+                            ),
                           ),
-                        ),
-                      );
-                      if (updated != null) _update(mappings: updated.mappings);
-                    },
+                        );
+                        if (updated != null) {
+                          _update(mappings: updated.mappings);
+                        }
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                IconButton.filledTonal(
-                  icon: const Icon(Icons.visibility_outlined),
-                  tooltip: 'Preview Export Table',
-                  onPressed: _showPreview,
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.visibility_outlined),
+                    tooltip: 'Preview Export Table',
+                    onPressed: _showPreview,
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
-                style: TextStyle(
-                  color: _saveError == null
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.error,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
+                  style: TextStyle(
+                    color: _saveError == null
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Theme.of(context).colorScheme.error,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

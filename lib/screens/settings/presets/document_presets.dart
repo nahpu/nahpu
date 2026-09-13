@@ -8,6 +8,8 @@ import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/forms/description_field.dart';
+import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
+import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
@@ -571,8 +573,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (layout == null) return;
 
     final name = await _promptPresetName(
-      title: 'Save document preset',
-      initialValue: _selectedLayoutName,
+      title: 'Duplicate preset',
+      initialValue: '${_selectedLayoutName}_copy',
     );
     if (name == null) return;
 
@@ -858,7 +860,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (!mounted) return null;
     return showDialog<String>(
       context: context,
-      builder: (context) => _DocumentPresetNameDialog(
+      builder: (context) => PresetNameDialog(
         title: title,
         initialValue: initialValue,
         existingNames: existingNames,
@@ -1225,130 +1227,18 @@ class _PresetNameFieldState extends State<_PresetNameField> {
 
   @override
   Widget build(BuildContext context) {
-    final error = _error;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  labelText: 'Preset name',
-                  errorText: _isNameDirty ? error : null,
-                  isDense: true,
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (_) => setState(() {}),
-                onSubmitted: (_) {
-                  if (_canUpdate) _update();
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            FilledButton.tonal(
-              onPressed: _canUpdate ? _update : null,
-              child: const Text('Update'),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: widget.onDuplicate,
-              icon: const Icon(Icons.copy_outlined),
-              label: const Text('Duplicate'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        DescriptionField(
-          controller: _descriptionController,
-          isDense: true,
-          border: const OutlineInputBorder(),
-          onChanged: (_) => setState(() {}),
-          onSubmitted: (_) {
-            if (_canUpdate) _update();
-          },
-        ),
-      ],
+    return PresetIdentityFields(
+      nameController: _controller,
+      descriptionController: _descriptionController,
+      hasChanges: _isNameDirty || _isDescriptionDirty,
+      canUpdate: _canUpdate,
+      isUpdating: _updating,
+      onUpdate: _update,
+      onDuplicate: widget.onDuplicate,
+      nameErrorText: _isNameDirty ? _error : null,
+      onNameChanged: (_) => setState(() {}),
+      onDescriptionChanged: (_) => setState(() {}),
     );
-  }
-}
-
-class _DocumentPresetNameDialog extends StatefulWidget {
-  const _DocumentPresetNameDialog({
-    required this.title,
-    required this.existingNames,
-    this.initialValue,
-  });
-
-  final String title;
-  final String? initialValue;
-  final List<String> existingNames;
-
-  @override
-  State<_DocumentPresetNameDialog> createState() =>
-      _DocumentPresetNameDialogState();
-}
-
-class _DocumentPresetNameDialogState extends State<_DocumentPresetNameDialog> {
-  late final TextEditingController _controller;
-  String? _errorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialValue ?? '');
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        decoration: InputDecoration(
-          labelText: 'Preset name',
-          errorText: _errorText,
-        ),
-        onChanged: _validate,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
-      ],
-    );
-  }
-
-  void _submit() {
-    final name = _controller.text.trim();
-    _validate(name);
-    if (_errorText != null) return;
-    Navigator.pop(context, name);
-  }
-
-  void _validate(String value) {
-    final name = value.trim();
-    String? error;
-    if (name.isEmpty) {
-      error = 'Name cannot be empty';
-    } else if (widget.existingNames.contains(name) &&
-        name != widget.initialValue) {
-      error = 'A preset with this name already exists';
-    }
-    setState(() {
-      _errorText = error;
-    });
   }
 }
 
@@ -1373,6 +1263,13 @@ class _PreviewRecordSelectionScreenState
     extends ConsumerState<PreviewRecordSelectionScreen> {
   List<String> _visibleColumnIds = [];
 
+  /// The selection shown while this route is open.
+  ///
+  /// The route is pushed above the presets screen, so that screen's rebuilds
+  /// never reach it; without a local copy the checkboxes would stay frozen at
+  /// the selection the route opened with.
+  late Set<String> _selectedUuids = Set.of(widget.selectedUuids);
+
   @override
   void initState() {
     super.initState();
@@ -1393,40 +1290,31 @@ class _PreviewRecordSelectionScreenState
         appBar: AppBar(title: const Text('Select specimen parts for preview')),
         body: SafeArea(
           child: SpecimenPartSelectionView(
-            selectedIds: widget.selectedUuids,
-            onSelectionChanged: widget.onSelectionChanged,
+            selectedIds: _selectedUuids,
+            onSelectionChanged: _setSelection,
           ),
         ),
       );
     }
     if (widget.recordType == RecordType.site) {
       return SiteSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     } else if (widget.recordType == RecordType.collEvent) {
       return EventSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     } else if (widget.recordType == RecordType.narrative) {
       return NarrativeSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     }
@@ -1435,13 +1323,23 @@ class _PreviewRecordSelectionScreenState
       appBar: AppBar(title: const Text('Select specimens for preview')),
       body: SafeArea(
         child: SpecimenSelectionView(
-          selectedUuidList: widget.selectedUuids,
+          selectedUuidList: _selectedUuids,
           visibleColumnIds: _visibleColumnIds,
-          onSelectionChanged: widget.onSelectionChanged,
+          onSelectionChanged: _setSelection,
           onColumnsChanged: _pickColumns,
         ),
       ),
     );
+  }
+
+  Set<int> get _selectedIntIds => _selectedUuids
+      .map((e) => int.tryParse(e) ?? 0)
+      .where((e) => e != 0)
+      .toSet();
+
+  void _setSelection(Set<String> selected) {
+    setState(() => _selectedUuids = Set.of(selected));
+    widget.onSelectionChanged(selected);
   }
 
   Future<void> _loadColumns() async {

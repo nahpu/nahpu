@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -19,10 +20,10 @@ void main() {
     mappings: [ExportFieldMapping(expression: '[narrative::narrativeID]')],
   );
 
-  Finder nameField() => find.widgetWithText(TextFormField, 'Preset name');
+  Finder nameField() => find.widgetWithText(TextField, 'Preset name');
   Finder descriptionField() =>
       find.widgetWithText(TextField, 'Description (optional)');
-  Finder updateButton() => find.widgetWithText(FilledButton, 'Update');
+  Finder updateButton() => find.widgetWithText(PrimaryButton, 'Update');
 
   /// Changes the record type, which is one of the auto-saved settings.
   Future<void> changeRecordType(WidgetTester tester, String label) async {
@@ -31,6 +32,29 @@ void main() {
     await tester.tap(find.text(label).last);
     await tester.pumpAndSettle();
   }
+
+  testWidgets(
+    'Duplicate sits above the name and Update below the description',
+    (tester) async {
+      final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+
+      await tester.pumpWidget(
+        _harness(notifier, presetName: 'first', preset: firstPreset),
+      );
+      await tester.pump();
+
+      final duplicateTop = tester.getTopLeft(find.text('Duplicate')).dy;
+      final nameTop = tester.getTopLeft(nameField()).dy;
+      final descriptionTop = tester.getTopLeft(descriptionField()).dy;
+      final descriptionBottom = tester.getBottomLeft(descriptionField()).dy;
+      expect(duplicateTop, lessThan(nameTop));
+      expect(nameTop, lessThan(descriptionTop));
+      expect(
+        tester.getTopLeft(updateButton()).dy,
+        greaterThanOrEqualTo(descriptionBottom),
+      );
+    },
+  );
 
   testWidgets('typing a name does not persist anything', (tester) async {
     final notifier = _FakeExportPresetNotifier({'first': firstPreset});
@@ -83,7 +107,7 @@ void main() {
     );
     await tester.pump();
 
-    FilledButton button() => tester.widget<FilledButton>(updateButton());
+    PrimaryButton button() => tester.widget<PrimaryButton>(updateButton());
     expect(button().onPressed, isNull, reason: 'unchanged name');
 
     await tester.enterText(nameField(), '   ');
@@ -153,8 +177,59 @@ void main() {
     await tester.enterText(descriptionField(), 'a' * 81);
     await tester.pump();
 
-    expect(tester.widget<FilledButton>(updateButton()).onPressed, isNull);
+    expect(tester.widget<PrimaryButton>(updateButton()).onPressed, isNull);
     expect(find.text('Use 80 characters or fewer.'), findsOneWidget);
+  });
+
+  testWidgets('Duplicate saves a copy under a new name', (tester) async {
+    final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+    final duplicated = <String>[];
+
+    await tester.pumpWidget(
+      _harness(
+        notifier,
+        presetName: 'first',
+        preset: firstPreset,
+        onDuplicated: (name, _) => duplicated.add(name),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Duplicate'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextField, 'first_copy'), findsOneWidget);
+
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.renames, isEmpty);
+    expect(notifier.savedNames, ['first_copy']);
+    expect(notifier.savedPresets.single.recordType, RecordType.site);
+    expect(duplicated, ['first_copy']);
+  });
+
+  testWidgets('Duplicate rejects a name already in use', (tester) async {
+    final notifier = _FakeExportPresetNotifier({
+      'first': firstPreset,
+      'second': secondPreset,
+    });
+
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: firstPreset),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Duplicate'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'first_copy'),
+      'second',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('A preset with this name already exists'), findsOneWidget);
+    expect(notifier.savedPresets, isEmpty);
   });
 
   testWidgets('a settings auto-save keeps the committed description', (
@@ -216,7 +291,7 @@ void main() {
     await changeRecordType(tester, 'narrative');
     await tester.pump(const Duration(seconds: 1));
 
-    final controller = tester.widget<TextFormField>(nameField()).controller!;
+    final controller = tester.widget<TextField>(nameField()).controller!;
     expect(controller.text, 'Site');
     expect(controller.selection.baseOffset, 'Site'.length);
   });
@@ -247,6 +322,7 @@ void main() {
                   presetName: selectedName,
                   initialPreset: selectedPreset,
                   onPresetRenamed: _ignoreRename,
+                  onPresetDuplicated: _ignoreDuplicate,
                 ),
               );
             },
@@ -292,6 +368,7 @@ void main() {
                   presetName: selectedName,
                   initialPreset: selectedPreset,
                   onPresetRenamed: _ignoreRename,
+                  onPresetDuplicated: _ignoreDuplicate,
                 ),
               );
             },
@@ -304,10 +381,7 @@ void main() {
     selectPreset('second', secondPreset);
     await tester.pump();
 
-    expect(
-      tester.widget<TextFormField>(nameField()).controller!.text,
-      'second',
-    );
+    expect(tester.widget<TextField>(nameField()).controller!.text, 'second');
   });
 
   testWidgets('provider-driven deletion does not flush a pending edit', (
@@ -330,6 +404,7 @@ void main() {
                         presetName: 'first',
                         initialPreset: firstPreset,
                         onPresetRenamed: _ignoreRename,
+                        onPresetDuplicated: _ignoreDuplicate,
                       )
                     : const SizedBox.shrink(),
               );
@@ -355,6 +430,7 @@ Widget _harness(
   required String presetName,
   required ExportPresetModel preset,
   void Function(String, String)? onRenamed,
+  void Function(String, ExportPresetModel)? onDuplicated,
 }) => ProviderScope(
   overrides: [exportPresetNotifierProvider.overrideWith(() => notifier)],
   child: MaterialApp(
@@ -363,12 +439,15 @@ Widget _harness(
         presetName: presetName,
         initialPreset: preset,
         onPresetRenamed: onRenamed ?? _ignoreRename,
+        onPresetDuplicated: onDuplicated ?? _ignoreDuplicate,
       ),
     ),
   ),
 );
 
 void _ignoreRename(String oldName, String newName) {}
+
+void _ignoreDuplicate(String name, ExportPresetModel preset) {}
 
 class _FakeExportPresetNotifier extends ExportPresetNotifier {
   _FakeExportPresetNotifier(this.presets);
