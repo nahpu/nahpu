@@ -199,6 +199,15 @@ class ProjectNotFound extends StatelessWidget {
               const SizedBox(height: NahpuSpacing.xxl),
               const HomeProjectActions(layout: ProjectActionLayout.centered),
               const SizedBox(height: NahpuSpacing.xxl),
+              Text(
+                'New to NAHPU? Run Setup NAHPU to choose your catalog format, '
+                'identifiers, vocabularies, and export presets.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: NahpuSpacing.md),
               FilledButton.tonalIcon(
                 onPressed: () => Navigator.push(
                   context,

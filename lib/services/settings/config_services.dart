@@ -1,9 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:nahpu/services/templates/document_layout_service.dart';
-import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
-import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -12,12 +8,6 @@ import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 class ConfigDbService {
   static const String nahpuAppDir = 'nahpu';
   static const String configDbName = 'nahpu_configs.db';
-  static const String defaultDocumentPresetsLoadedPrefKey =
-      'defaultDocumentPresetsLoaded';
-
-  static const List<String> _defaultDocumentPresetAssets = [
-    'assets/configs/basic.json',
-  ];
 
   Future<void> initDb() async {
     final dbDir = await getApplicationDocumentsDirectory();
@@ -111,79 +101,5 @@ class ConfigDbService {
     for (final key in allDeprecatedKeys) {
       await prefs.remove(key);
     }
-  }
-
-  Future<void> loadDefaultDocumentPresetsOnce(
-    SharedPreferences prefs, {
-    AssetBundle? bundle,
-  }) async {
-    // Templates and layouts are redb-backed user configs. Always inspect the
-    // bundled presets and insert only names that do not already exist so an
-    // app update can add a new default without overwriting user changes.
-    final assetBundle = bundle ?? rootBundle;
-
-    final existingTemplateNames = (await rust_config.listTemplatePresets())
-        .toSet();
-    final suppressedTemplateNames = await const BundledTemplatePresetService()
-        .getSuppressedNames();
-    final existingLayoutNames =
-        (await const DocumentLayoutService().listLayoutStatuses())
-            .map((status) => status.name)
-            .toSet();
-
-    for (final assetPath in _defaultDocumentPresetAssets) {
-      final raw = await assetBundle.loadString(assetPath);
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map) {
-        throw FormatException(
-          'Default preset must be a JSON object: $assetPath',
-        );
-      }
-      final preset = Map<String, dynamic>.from(decoded);
-
-      final templateEntries =
-          preset['template_presets'] as List? ??
-          preset['templates'] as List? ??
-          const [];
-      for (final entryJson in templateEntries) {
-        final entry = Map<String, dynamic>.from(entryJson as Map);
-        final rawTemplate = entry['value'] ?? entry;
-        final templateJson = rawTemplate is String
-            ? jsonDecode(rawTemplate)
-            : rawTemplate;
-        if (templateJson is! Map) {
-          throw FormatException(
-            'Default template must be a JSON object: $assetPath',
-          );
-        }
-        final template = Template.fromJson(
-          Map<String, dynamic>.from(templateJson),
-        );
-        if (suppressedTemplateNames.contains(template.name)) continue;
-        if (existingTemplateNames.contains(template.name)) continue;
-        await rust_config.setTemplatePreset(
-          name: template.name,
-          value: template.toJsonString(),
-        );
-        existingTemplateNames.add(template.name);
-      }
-
-      final layoutEntries =
-          preset['document_layouts'] as List? ??
-          preset['layouts'] as List? ??
-          const [];
-      for (final layoutJson in layoutEntries) {
-        final layout = DocumentLayoutPresetJson.fromJson(
-          Map<String, dynamic>.from(layoutJson as Map),
-        );
-        if (existingLayoutNames.contains(layout.name)) continue;
-        await rust_config.setDocumentLayout(name: layout.name, layout: layout);
-        existingLayoutNames.add(layout.name);
-      }
-    }
-
-    // Retained solely as legacy app-migration metadata. It is deliberately not
-    // used to skip redb preset discovery on later app versions.
-    await prefs.setBool(defaultDocumentPresetsLoadedPrefKey, true);
   }
 }

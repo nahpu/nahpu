@@ -31,11 +31,13 @@ class TemplatePresetManager extends ConsumerStatefulWidget {
   const TemplatePresetManager({
     super.key,
     required this.onOpenTemplateEditor,
-    required this.onRestoreBundledTemplates,
+    required this.onLoadDefaults,
   });
 
   final Future<void> Function([String? templateName]) onOpenTemplateEditor;
-  final Future<void> Function() onRestoreBundledTemplates;
+
+  /// Adds the bundled generic templates.
+  final Future<void> Function() onLoadDefaults;
 
   @override
   ConsumerState<TemplatePresetManager> createState() =>
@@ -96,13 +98,19 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
               ? const Center(child: CircularProgressIndicator())
               : _error != null
               ? Center(child: Text(_error!))
+              : _summaries.isEmpty
+              ? PresetEmptyState(
+                  message:
+                      'No templates yet. Templates define the content placed '
+                      'in print-layout blocks.',
+                  onLoadDefaults: _loadDefaults,
+                )
               : visible.isEmpty
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.all(24),
                     child: Text(
-                      'No templates found. Templates define the content placed in '
-                      'print-layout blocks.',
+                      'No templates match your search.',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -233,17 +241,15 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
           onScanQr: _scanTemplateQr,
           onImport: _importTemplates,
           onExportAll: _exportAllTemplates,
-        ),
-        IconButton(
-          tooltip: 'Restore bundled templates',
-          icon: const Icon(Icons.restore_outlined),
-          onPressed: () async {
-            await widget.onRestoreBundledTemplates();
-            await _load();
-          },
+          onLoadDefaults: _loadDefaults,
         ),
       ],
     );
+  }
+
+  Future<void> _loadDefaults() async {
+    await widget.onLoadDefaults();
+    await _load();
   }
 
   Future<void> _exportAllTemplates() async {

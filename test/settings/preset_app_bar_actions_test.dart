@@ -110,4 +110,63 @@ void main() {
     expect(find.text('Export this template'), findsOneWidget);
     expect(find.text('Export all templates'), findsOneWidget);
   });
+
+  testWidgets('groups the menu and offers Load defaults when set', (
+    tester,
+  ) async {
+    var loadCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              PresetAppBarActions(
+                onCreate: () {},
+                onScanQr: () {},
+                onImport: () {},
+                onExportAll: () {},
+                onExportSelected: () {},
+                onLoadDefaults: () => loadCount++,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Preset options'));
+    await tester.pumpAndSettle();
+    // Create, import, export, and defaults each form a group.
+    expect(find.byType(PopupMenuDivider), findsNWidgets(3));
+
+    await tester.tap(find.text('Load defaults'));
+    await tester.pumpAndSettle();
+    expect(loadCount, 1);
+  });
+
+  testWidgets('hides Load defaults without a callback', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              PresetAppBarActions(
+                onCreate: () {},
+                onScanQr: () {},
+                onImport: () {},
+                onExportAll: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Preset options'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Load defaults'), findsNothing);
+    expect(find.byType(PopupMenuDivider), findsNWidgets(2));
+  });
 }

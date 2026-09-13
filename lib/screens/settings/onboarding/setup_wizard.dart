@@ -10,6 +10,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
@@ -92,6 +93,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
       _SetupStep.specimens,
       if (catalogFmt != null && supportsParasites(catalogFmt))
         _SetupStep.parasites,
+      _SetupStep.exportPresets,
       _SetupStep.finish,
     ];
   }
@@ -115,6 +117,8 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
           collectsParasites: _collectsParasites,
           onChanged: (value) => setState(() => _collectsParasites = value),
         );
+      case _SetupStep.exportPresets:
+        return const _ExportPresetsStep();
       case _SetupStep.finish:
         return _FinishStep(collectsParasites: _collectsParasites);
     }
@@ -131,6 +135,7 @@ enum _SetupStep {
   events('Events'),
   specimens('Specimens'),
   parasites('Parasites'),
+  exportPresets('Export presets'),
   finish('Finish');
 
   const _SetupStep(this.title);
@@ -176,6 +181,13 @@ class _WelcomeStep extends StatelessWidget {
                 message:
                     'The vocabularies offered for sites, events, and '
                     'specimens. Every one ships with sensible defaults.',
+              ),
+              const _WelcomeItem(
+                icon: Icons.print_outlined,
+                title: 'Export presets',
+                message:
+                    'Ready-made print layouts and tabular presets to start '
+                    'exporting from.',
               ),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
@@ -897,6 +909,7 @@ class _FinishStep extends ConsumerWidget {
                   label: 'Parasites',
                   value: collectsParasites ? 'Collected' : 'Not collected',
                 ),
+              _ExportPresetSummaryRow(catalogFmt: catalogFmt),
             ],
           ),
         ),
@@ -954,6 +967,223 @@ class _FinishStep extends ConsumerWidget {
     ('Treatments', treatmentPrefKey),
     ('Conditions', conditionPrefKey),
   ];
+}
+
+/// Offers the presets NAHPU ships with.
+///
+/// Presets that suit any catalog format are usually added at first launch
+/// already. Presets written for one catalog format are optional and only
+/// offered here, so they start unchecked.
+class _ExportPresetsStep extends ConsumerStatefulWidget {
+  const _ExportPresetsStep();
+
+  @override
+  ConsumerState<_ExportPresetsStep> createState() => _ExportPresetsStepState();
+}
+
+class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
+  /// Checkbox choices keyed by asset path, overriding each preset's default.
+  final Map<String, bool> _choices = {};
+  bool _adding = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final catalogFmt = ref.watch(catalogFmtNotifierProvider).asData?.value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        NahpuPanel(
+          child: const NahpuStepHeading(
+            title: 'Export presets',
+            message:
+                'Presets decide how records leave NAHPU. Print layouts produce '
+                'labels, tags, and field booklets; tabular presets produce '
+                'spreadsheets. Pick the ones to add now. You can edit or delete '
+                'any of them later.',
+          ),
+        ),
+        const SizedBox(height: NahpuSpacing.lg),
+        ref
+            .watch(bundledPresetStatusProvider(catalogFmt))
+            .when(
+              data: (statuses) {
+                // Templates arrive with the layouts that print them.
+                final offered = statuses
+                    .where((s) => s.preset.kind != BundledPresetKind.template)
+                    .toList();
+                final generic = offered
+                    .where((s) => s.preset.isGeneric)
+                    .toList();
+                final specific = offered
+                    .where((s) => !s.preset.isGeneric)
+                    .toList();
+                final selected = [
+                  for (final status in offered)
+                    if (!status.isInstalled && _isChecked(status))
+                      status.preset,
+                ];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (generic.isNotEmpty)
+                      _BundledPresetPanel(
+                        title: 'Defaults',
+                        message:
+                            'Presets that suit any catalog format. Load '
+                            'defaults in Settings adds them too.',
+                        statuses: generic,
+                        isChecked: _isChecked,
+                        onChanged: _setChoice,
+                      ),
+                    if (catalogFmt != null && specific.isNotEmpty) ...[
+                      const SizedBox(height: NahpuSpacing.lg),
+                      _BundledPresetPanel(
+                        title: 'For ${catalogFmtDisplayName(catalogFmt)}',
+                        message:
+                            'Optional presets written for this catalog '
+                            'format. They are only offered here.',
+                        statuses: specific,
+                        isChecked: _isChecked,
+                        onChanged: _setChoice,
+                      ),
+                    ],
+                    const SizedBox(height: NahpuSpacing.lg),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.tonalIcon(
+                        onPressed: selected.isEmpty || _adding
+                            ? null
+                            : () => _add(selected),
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Add selected presets'),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) =>
+                  Text('Unable to load bundled presets: $error'),
+            ),
+        const SizedBox(height: NahpuSpacing.lg),
+        const _SetupNote(
+          'Layouts bring the templates they print with. Presets for a catalog '
+          'format are only offered here; Load defaults in Settings adds the '
+          'presets that suit any format.',
+        ),
+      ],
+    );
+  }
+
+  bool _isChecked(BundledPresetStatus status) {
+    return status.isInstalled ||
+        (_choices[status.preset.assetPath] ?? status.preset.isGeneric);
+  }
+
+  void _setChoice(BundledPreset preset, bool value) {
+    setState(() => _choices[preset.assetPath] = value);
+  }
+
+  Future<void> _add(List<BundledPreset> presets) async {
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _adding = true);
+    try {
+      final result = await ref
+          .read(bundledPresetServiceProvider)
+          .loadSelected(presets);
+      ref.invalidate(bundledPresetStatusProvider);
+      messenger.showSnackBar(SnackBar(content: Text(result.message)));
+    } on Object catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to add presets: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
+}
+
+class _BundledPresetPanel extends StatelessWidget {
+  const _BundledPresetPanel({
+    required this.title,
+    required this.message,
+    required this.statuses,
+    required this.isChecked,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String message;
+  final List<BundledPresetStatus> statuses;
+  final bool Function(BundledPresetStatus status) isChecked;
+  final void Function(BundledPreset preset, bool value) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final groups = [
+      ('Documents', BundledPresetKind.document),
+      ('Tabular records', BundledPresetKind.record),
+    ];
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: textTheme.titleMedium),
+          const SizedBox(height: NahpuSpacing.xs),
+          Text(message, style: textTheme.bodyMedium),
+          for (final (label, kind) in groups)
+            if (statuses.any((status) => status.preset.kind == kind)) ...[
+              const SizedBox(height: NahpuSpacing.lg),
+              Text(label, style: textTheme.titleSmall),
+              for (final status in statuses)
+                if (status.preset.kind == kind)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: isChecked(status),
+                    onChanged: status.isInstalled
+                        ? null
+                        : (value) => onChanged(status.preset, value ?? false),
+                    title: Text(status.preset.name),
+                    subtitle: Text(
+                      status.isInstalled
+                          ? 'Added · ${status.preset.description}'
+                          : status.preset.description,
+                    ),
+                  ),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ExportPresetSummaryRow extends ConsumerWidget {
+  const _ExportPresetSummaryRow({required this.catalogFmt});
+
+  final CatalogFmt? catalogFmt;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statuses = ref
+        .watch(bundledPresetStatusProvider(catalogFmt))
+        .asData
+        ?.value;
+    int installed(BundledPresetKind kind) =>
+        statuses
+            ?.where(
+              (status) => status.isInstalled && status.preset.kind == kind,
+            )
+            .length ??
+        0;
+    return _SummaryRow(
+      label: 'Export presets',
+      value: statuses == null
+          ? '--'
+          : '${installed(BundledPresetKind.document)} document, '
+                '${installed(BundledPresetKind.record)} tabular',
+    );
+  }
 }
 
 class _SummaryRow extends StatelessWidget {

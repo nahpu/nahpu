@@ -33,9 +33,8 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/screens/settings/presets/font_manager.dart';
 import 'package:nahpu/screens/settings/presets/template_preset_manager.dart';
-import 'package:nahpu/services/settings/config_services.dart';
-import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 
 /// The three things the Document Presets screen manages.
 enum DocumentPresetView { layouts, templates, fonts }
@@ -60,7 +59,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
   Map<String, String> _layoutDescriptions = const {};
   List<String> _templateNames = const [];
-  String _selectedLayoutName = 'Default';
+  String? _selectedLayoutName;
   DocumentPresetView _view = DocumentPresetView.layouts;
 
   // Preview States
@@ -145,7 +144,11 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
               onScanQr: _scanPresetQr,
               onImport: _importPreset,
               onExportAll: _exportPresetsToFile,
-              onExportSelected: _exportSelectedPreset,
+              onExportSelected: _selectedLayoutName == null
+                  ? null
+                  : _exportSelectedPreset,
+              onLoadDefaults: () =>
+                  _loadDefaults(const {BundledPresetKind.document}),
             ),
         ],
       ),
@@ -186,7 +189,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                   : _view == DocumentPresetView.templates
                   ? TemplatePresetManager(
                       onOpenTemplateEditor: _openTemplateEditor,
-                      onRestoreBundledTemplates: _restoreBundledTemplates,
+                      onLoadDefaults: () =>
+                          _loadDefaults(const {BundledPresetKind.template}),
                     )
                   : _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -209,6 +213,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                         _tabController.animateTo(1);
                                       },
                                       onDeletePreset: _deletePreset,
+                                      onLoadDefaults: () => _loadDefaults(
+                                        const {BundledPresetKind.document},
+                                      ),
                                       onExportPreset: (name) =>
                                           _exportLayouts(onlyName: name),
                                       tabController: _tabController,
@@ -305,6 +312,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                           _tabController.animateTo(1);
                                         },
                                         onDeletePreset: _deletePreset,
+                                        onLoadDefaults: () => _loadDefaults(
+                                          const {BundledPresetKind.document},
+                                        ),
                                         onExportPreset: (name) =>
                                             _exportLayouts(onlyName: name),
                                         tabController: _tabController,
@@ -351,21 +361,16 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
 
     try {
-      var statuses = await _layoutService.listLayoutStatuses();
-      if (statuses.isEmpty) {
-        final defaultLayout = await _layoutService.getDefaultLayout('Default');
-        await _layoutService.saveLayout(defaultLayout);
-        statuses = await _layoutService.listLayoutStatuses();
-      }
+      final statuses = await _layoutService.listLayoutStatuses();
       final names = statuses.map((status) => status.name).toList();
       final current = await _layoutService.getStoredCurrentLayoutName();
-      final String selectedName = current != null && names.contains(current)
+      final selectedName = current != null && names.contains(current)
           ? current
-          : names.first;
-      final selectedStatus = statuses.firstWhere(
-        (status) => status.name == selectedName,
+          : names.firstOrNull;
+      final isCompatible = statuses.any(
+        (status) => status.name == selectedName && status.isCompatible,
       );
-      final layout = selectedStatus.isCompatible
+      final layout = selectedName != null && isCompatible
           ? await _layoutService.getLayout(selectedName)
           : null;
       final templates = await rust_config.listTemplatePresets();
@@ -509,41 +514,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     final name = await _promptPresetName(title: 'New document preset');
     if (name == null) return;
 
-    final templateName = _templateNames.isNotEmpty
-        ? _templateNames.first
-        : 'Default';
-    final layout = await _layoutService.getDefaultLayout(name);
-    final blocks = layout.blocks.isEmpty
-        ? [
-            rust_config.DocumentLayoutBlock(
-              templateName: templateName,
-              templateCount: 1,
-              rows: 1,
-              cols: 1,
-              templatePadTopMm: 0,
-              templatePadLeftMm: 0,
-              templatePadRightMm: 0,
-              templatePadBottomMm: 0,
-              pageBreakAfter: false,
-              sortField: null,
-              sortDirection: rust_config.DocumentSortDirection.ascending,
-            ),
-          ]
-        : layout.blocks;
-    final nextLayout = layout.copyWith(name: name, blocks: blocks);
-
-    await _layoutService.saveLayout(nextLayout);
+    final layout = await _layoutService.blankLayout(name);
+    await _layoutService.saveLayout(layout);
     await _layoutService.setCurrentLayoutName(name);
     await _load();
   }
 
   Future<void> _renamePreset(String currentName, String newName) async {
-    if (currentName == 'Default') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot rename the Default preset')),
-      );
-      return;
-    }
     try {
       await _layoutService.renameLayout(currentName, newName);
       _selectedLayoutName = newName;
@@ -570,11 +547,12 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
 
   Future<void> _savePresetAs() async {
     final layout = _layout;
-    if (layout == null) return;
+    final selectedName = _selectedLayoutName;
+    if (layout == null || selectedName == null) return;
 
     final name = await _promptPresetName(
       title: 'Duplicate preset',
-      initialValue: '${_selectedLayoutName}_copy',
+      initialValue: '${selectedName}_copy',
     );
     if (name == null) return;
 
@@ -585,13 +563,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   }
 
   Future<void> _deletePreset(String name) async {
-    if (name == 'Default') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot delete Default preset')),
-      );
-      return;
-    }
-
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -615,12 +586,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (ok != true) return;
 
     await _layoutService.deleteLayout(name);
-    final remaining = _layoutStatuses.where((s) => s.name != name).toList();
-    if (remaining.isNotEmpty) {
-      _selectedLayoutName = remaining.first.name;
-    } else {
-      _selectedLayoutName = 'Default';
-    }
     await _load();
   }
 
@@ -638,11 +603,24 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
-  Future<void> _restoreBundledTemplates() async {
-    await const BundledTemplatePresetService().restoreAll();
-    final prefs = await SharedPreferences.getInstance();
-    await ConfigDbService().loadDefaultDocumentPresetsOnce(prefs);
-    await _load(showLoading: false);
+  /// Adds the bundled generic presets of [kinds]. Layouts bring the templates
+  /// they print with.
+  Future<void> _loadDefaults(Set<BundledPresetKind> kinds) async {
+    try {
+      final result = await ref
+          .read(bundledPresetServiceProvider)
+          .loadDefaults(kinds: kinds);
+      await _load(showLoading: false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load default presets: $error')),
+      );
+    }
   }
 
   Future<void> _exportPresetsToFile() => _exportLayouts();
@@ -879,6 +857,7 @@ class DocumentPresetListColumn extends StatelessWidget {
     required this.tabController,
     this.descriptions = const {},
     this.onExportPreset,
+    this.onLoadDefaults,
   });
 
   final String? selectedPresetName;
@@ -891,6 +870,9 @@ class DocumentPresetListColumn extends StatelessWidget {
   final ValueChanged<String> onDeletePreset;
   final TabController tabController;
 
+  /// Adds the bundled default layouts from the empty list.
+  final VoidCallback? onLoadDefaults;
+
   @override
   Widget build(BuildContext context) {
     return FormCard(
@@ -902,9 +884,11 @@ class DocumentPresetListColumn extends StatelessWidget {
         children: [
           Expanded(
             child: statuses.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(child: Text('No presets found.')),
+                ? PresetEmptyState(
+                    message:
+                        'No print layouts yet. Create or import one, or load '
+                        'the default layouts.',
+                    onLoadDefaults: onLoadDefaults,
                   )
                 : ListView.builder(
                     padding: EdgeInsets.zero,

@@ -8,6 +8,8 @@ Document settings separate reusable templates from print layouts. A template def
 
 Create a separate layout for each distinct workflow, and duplicate a known-good preset under a new name before experimenting with it. Preview with representative records, including long text, missing values, and both sides of a duplex template.
 
+`Load defaults` in the options menu, or in an empty list, adds the print layouts and templates bundled with NAHPU that suit any catalog format. It never overwrites a preset with the same name, and any preset can be deleted. Presets written for one catalog format, such as the mammal field booklet, skull tags, and voucher labels, are offered in `Setup NAHPU`.
+
 Templates and their layouts are transferred together through user configurations, so move both when a collaborator needs the same output.
 
 When designing a template, you can use bundled fonts or import your own fonts. Fonts are managed in `Documents` > `Fonts`.

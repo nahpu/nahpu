@@ -44,12 +44,6 @@ class DocumentLayoutService {
         .where((status) => status.isCompatible)
         .map((status) => status.name)
         .toList();
-    if (!names.contains('Default')) {
-      final defaultLayout = await getDefaultLayout('Default');
-      await saveLayout(defaultLayout);
-      names.add('Default');
-      names.sort();
-    }
     return names;
   }
 
@@ -92,20 +86,26 @@ class DocumentLayoutService {
     }
   }
 
+  /// Deletes a layout, moving the current selection off it when needed.
   Future<void> deleteLayout(String name) async {
     await rust_config.deleteDocumentLayout(name: name);
+    if (await getStoredCurrentLayoutName() != name) return;
     final names = await listLayoutNames();
-    final current = await getCurrentLayoutName();
-    if (current == name) {
+    if (names.isNotEmpty) {
       await setCurrentLayoutName(names.first);
+      return;
     }
+    final prefs = await _prefs;
+    await prefs.remove(_kCurrentDocumentLayoutName);
+    await prefs.remove(_legacyCurrentDocumentLayoutName);
   }
 
-  Future<String> getCurrentLayoutName() async {
+  /// The layout exports start from, or null when no layout is saved.
+  Future<String?> getCurrentLayoutName() async {
     final stored = await getStoredCurrentLayoutName();
     final names = await listLayoutNames();
     if (stored != null && names.contains(stored)) return stored;
-    return names.first;
+    return names.firstOrNull;
   }
 
   Future<void> setCurrentLayoutName(String name) async {
@@ -113,21 +113,17 @@ class DocumentLayoutService {
     await prefs.setString(_kCurrentDocumentLayoutName, name);
   }
 
-  Future<rust_config.DocumentLayoutPreset> getCurrentLayout() async {
+  /// The current layout, or null when no compatible layout is saved.
+  Future<rust_config.DocumentLayoutPreset?> getCurrentLayout() async {
     final name = await getCurrentLayoutName();
-    final layout = await getLayout(name);
-    if (layout != null) return layout;
-    return await getDefaultLayout(name);
+    if (name == null) return null;
+    return getLayout(name);
   }
 
-  Future<rust_config.DocumentLayoutPreset> getDefaultLayout([
-    String name = 'Default',
-  ]) async {
+  /// A new portrait Letter layout named [name], holding one block for the
+  /// first saved template when there is one.
+  Future<rust_config.DocumentLayoutPreset> blankLayout(String name) async {
     final templateNames = await rust_config.listTemplatePresets();
-    final templateName = templateNames.isNotEmpty
-        ? templateNames.first
-        : 'Default';
-
     return rust_config.DocumentLayoutPreset(
       name: name,
       layoutType: 'WholePage',
@@ -140,19 +136,20 @@ class DocumentLayoutService {
       pagePadRightMm: 8.0,
       pagePadBottomMm: 8.0,
       blocks: [
-        rust_config.DocumentLayoutBlock(
-          templateName: templateName,
-          templateCount: 1,
-          rows: 1,
-          cols: 1,
-          templatePadTopMm: 1.0,
-          templatePadLeftMm: 1.0,
-          templatePadRightMm: 1.0,
-          templatePadBottomMm: 1.0,
-          pageBreakAfter: false,
-          sortField: null,
-          sortDirection: rust_config.DocumentSortDirection.ascending,
-        ),
+        if (templateNames.isNotEmpty)
+          rust_config.DocumentLayoutBlock(
+            templateName: templateNames.first,
+            templateCount: 1,
+            rows: 1,
+            cols: 1,
+            templatePadTopMm: 1.0,
+            templatePadLeftMm: 1.0,
+            templatePadRightMm: 1.0,
+            templatePadBottomMm: 1.0,
+            pageBreakAfter: false,
+            sortField: null,
+            sortDirection: rust_config.DocumentSortDirection.ascending,
+          ),
       ],
       fillPage: false,
       multiBlockMode: 'Continuous',

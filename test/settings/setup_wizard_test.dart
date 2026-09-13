@@ -9,17 +9,20 @@ import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late Database database;
   late SharedPreferences preferences;
+  late _FakeBundledPresetService presetService;
 
   setUp(() async {
     database = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
     SharedPreferences.setMockInitialValues(const {});
     preferences = await SharedPreferences.getInstance();
+    presetService = _FakeBundledPresetService();
   });
 
   tearDown(() => database.close());
@@ -49,6 +52,7 @@ void main() {
           fieldIdModeNotifierProvider.overrideWith(
             () => _TestFieldIdMode(fieldIdMode),
           ),
+          bundledPresetServiceProvider.overrideWithValue(presetService),
         ],
         child: const MaterialApp(home: SetupWizardScreen()),
       ),
@@ -136,7 +140,7 @@ void main() {
 
   testWidgets('finish offers exporting the setup for the team', (tester) async {
     await pumpWizard(tester);
-    await advance(tester, 7);
+    await advance(tester, 8);
 
     expect(
       find.textContaining('Your team only needs to do this once'),
@@ -237,8 +241,53 @@ void main() {
       'Events',
       'Specimens',
       'Parasites',
+      'Export presets',
       'Finish',
     ]);
+  });
+
+  testWidgets('export presets offer catalog-format presets unchecked', (
+    tester,
+  ) async {
+    await pumpWizard(tester);
+    await advance(tester, 7);
+
+    expect(find.text('For Mammalogy'), findsOneWidget);
+    final tissue = tester.widget<CheckboxListTile>(
+      find.widgetWithText(CheckboxListTile, 'Tissue labels'),
+    );
+    expect(tissue.value, isTrue);
+    expect(tissue.onChanged, equals(null));
+    for (final name in ['Mammal field booklet', 'Non-volant mammals']) {
+      final tile = tester.widget<CheckboxListTile>(
+        find.widgetWithText(CheckboxListTile, name),
+      );
+      expect(tile.value, isFalse, reason: name);
+    }
+
+    await tester.ensureVisible(find.text('Mammal field booklet'));
+    await tester.tap(find.text('Mammal field booklet'));
+    await tester.pumpAndSettle();
+    final add = find.widgetWithText(FilledButton, 'Add selected presets');
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    expect(presetService.loaded.map((preset) => preset.name), [
+      'Mammal field booklet',
+    ]);
+    expect(find.text('Added 1 preset'), findsOneWidget);
+  });
+
+  testWidgets('export presets skip presets for other catalog formats', (
+    tester,
+  ) async {
+    await pumpWizard(tester, catalogFmt: CatalogFmt.invertebrateZoology);
+    await advance(tester, 6);
+
+    expect(find.widgetWithText(CheckboxListTile, 'Tissue labels'), findsOne);
+    expect(find.text('Mammal field booklet'), findsNothing);
+    expect(find.text('For Invertebrate zoology'), findsNothing);
   });
 
   testWidgets('the empty project list offers the wizard', (tester) async {
@@ -260,6 +309,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No projects found.'), findsOneWidget);
+    expect(find.textContaining('New to NAHPU?'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Setup NAHPU'));
     await tester.pumpAndSettle();
 
@@ -311,5 +361,55 @@ class _TestFieldIdMode extends FieldIdModeNotifier {
   Future<void> set(FieldIdMode mode) async {
     _value = mode;
     state = AsyncValue.data(mode);
+  }
+}
+
+class _FakeBundledPresetService extends BundledPresetService {
+  _FakeBundledPresetService();
+
+  static const _tissueLabels = BundledPreset(
+    kind: BundledPresetKind.document,
+    name: 'Tissue labels',
+    description: 'Basic vial labels for tissue collection.',
+    assetPath: 'assets/configs/document-tissue-labels.json',
+  );
+  static const _mammalPresets = [
+    BundledPreset(
+      kind: BundledPresetKind.document,
+      name: 'Mammal field booklet',
+      description: 'A full archival print for all collection records.',
+      assetPath: 'assets/configs/mammalogy/document-mammal-field-booklet.json',
+      catalogFmt: CatalogFmt.mammalogy,
+    ),
+    BundledPreset(
+      kind: BundledPresetKind.record,
+      name: 'Non-volant mammals',
+      description: 'Non-volant mammal specimen parts.',
+      assetPath: 'assets/configs/mammalogy/record-non-volant-mammals.json',
+      catalogFmt: CatalogFmt.mammalogy,
+    ),
+  ];
+
+  final loaded = <BundledPreset>[];
+
+  @override
+  Future<List<BundledPresetStatus>> statuses({CatalogFmt? catalogFmt}) async {
+    return [
+      const BundledPresetStatus(preset: _tissueLabels, isInstalled: true),
+      for (final preset in _mammalPresets)
+        if (preset.catalogFmt == catalogFmt)
+          BundledPresetStatus(
+            preset: preset,
+            isInstalled: loaded.contains(preset),
+          ),
+    ];
+  }
+
+  @override
+  Future<BundledPresetLoadResult> loadSelected(
+    Iterable<BundledPreset> presets,
+  ) async {
+    loaded.addAll(presets);
+    return BundledPresetLoadResult(added: presets.toList(), skippedCount: 0);
   }
 }

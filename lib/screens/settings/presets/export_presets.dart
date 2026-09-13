@@ -6,6 +6,8 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
+import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -247,6 +249,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
             onExportSelected: _selectedPresetName == null
                 ? null
                 : () => _exportPresets(onlyName: _selectedPresetName),
+            onLoadDefaults: _loadDefaults,
           ),
         ],
       ),
@@ -262,6 +265,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       onPresetSelected: _selectPreset,
                       tabController: _tabController,
                       onExportPreset: (name) => _exportPresets(onlyName: name),
+                      onLoadDefaults: _loadDefaults,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -307,6 +311,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                         tabController: _tabController,
                         onExportPreset: (name) =>
                             _exportPresets(onlyName: name),
+                        onLoadDefaults: _loadDefaults,
                       ),
                       PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
@@ -325,6 +330,25 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
             ),
     );
   }
+
+  /// Adds the bundled generic tabular presets.
+  Future<void> _loadDefaults() async {
+    try {
+      final result = await ref
+          .read(bundledPresetServiceProvider)
+          .loadDefaults(kinds: const {BundledPresetKind.record});
+      ref.invalidate(exportPresetNotifierProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load default presets: $error')),
+      );
+    }
+  }
 }
 
 class PresetListColumn extends ConsumerStatefulWidget {
@@ -334,12 +358,16 @@ class PresetListColumn extends ConsumerStatefulWidget {
     required this.onPresetSelected,
     required this.tabController,
     this.onExportPreset,
+    this.onLoadDefaults,
   });
 
   final String? selectedPresetName;
   final void Function(String?, ExportPresetModel?) onPresetSelected;
   final TabController tabController;
   final ValueChanged<String>? onExportPreset;
+
+  /// Adds the bundled default presets from the empty list.
+  final VoidCallback? onLoadDefaults;
 
   @override
   ConsumerState<PresetListColumn> createState() => _PresetListColumnState();
@@ -361,9 +389,20 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                 .when(
                   data: (presets) {
                     if (presets.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(child: Text('No presets found.')),
+                      return PresetEmptyState(
+                        message:
+                            'No tabular presets yet. Create or import one, or '
+                            'add the presets for your catalog format in Setup '
+                            'NAHPU.',
+                        onLoadDefaults: widget.onLoadDefaults,
+                        secondaryLabel: 'Setup NAHPU',
+                        secondaryIcon: Icons.auto_fix_high_outlined,
+                        onSecondary: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (context) => const SetupWizardScreen(),
+                          ),
+                        ),
                       );
                     }
                     return ListView.builder(

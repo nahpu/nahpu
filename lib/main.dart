@@ -8,6 +8,7 @@ import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/settings/config_services.dart';
 import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -20,7 +21,7 @@ void main() async {
   final configService = ConfigDbService();
   await configService.initDb();
   await configService.migrate(prefs);
-  await configService.loadDefaultDocumentPresetsOnce(prefs);
+  await const BundledPresetService().loadOnFirstLaunch(prefs);
   await registerUserFonts();
   pdfrxFlutterInitialize();
   fvp.registerWith(

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
@@ -21,7 +20,6 @@ class TemplateService {
 
   Future<void> saveTemplate(Template template) async {
     await updateTemplate(template);
-    await const BundledTemplatePresetService().restore(template.name);
     await DocumentSettingsServices().setCurrentTemplateName(template.name);
   }
 

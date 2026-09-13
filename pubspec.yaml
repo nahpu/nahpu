@@ -137,6 +137,7 @@ flutter:
     - assets/avatars/
     - assets/icons/
     - assets/configs/
+    - assets/configs/mammalogy/
     - assets/maps/
     - assets/docs/info/en/
     - assets/docs/info/pt/

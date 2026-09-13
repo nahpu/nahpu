@@ -8,6 +8,8 @@ As configurações de documento separam os modelos reutilizáveis dos layouts de
 
 Crie um layout separado para cada fluxo de trabalho distinto e duplique com outro nome uma predefinição que já funciona antes de experimentar com ela. Visualize com registros representativos, incluindo textos longos, valores ausentes e ambos os lados de um modelo em frente e verso.
 
+`Load defaults` no menu de opções, ou em uma lista vazia, adiciona os layouts de impressão e os modelos incluídos no NAHPU que servem para qualquer formato de catálogo. Ele nunca sobrescreve uma predefinição com o mesmo nome, e qualquer predefinição pode ser excluída. As predefinições escritas para um formato de catálogo, como o caderno de campo, as plaquetas de crânio e as etiquetas de espécime de mamíferos, são oferecidas em `Setup NAHPU`.
+
 Os modelos e seus layouts são transferidos juntos por meio das configurações de usuário, então mova os dois quando uma pessoa colaboradora precisar da mesma saída.
 
 Ao desenhar um modelo, você pode usar as fontes incluídas ou importar suas próprias fontes. As fontes são gerenciadas em `Documents` > `Fonts`.
