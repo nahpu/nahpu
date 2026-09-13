@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -55,6 +56,35 @@ void main() {
       );
     },
   );
+
+  testWidgets('the edit title matches the Select Presets title height', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: TitleForm(
+            text: 'Select Presets',
+            infoTopic: InfoTopic.tabularExportPresets,
+          ),
+        ),
+      ),
+    );
+    final selectHeight = tester.getSize(find.byType(TitleForm)).height;
+
+    final notifier = _FakeExportPresetNotifier({'first': firstPreset});
+    await tester.pumpWidget(
+      _harness(notifier, presetName: 'first', preset: firstPreset),
+    );
+    await tester.pump();
+
+    final title = find.byType(TitleForm);
+    expect(
+      find.descendant(of: title, matching: find.byType(InfoButton)),
+      findsNothing,
+    );
+    expect(tester.getSize(title).height, selectHeight);
+  });
 
   testWidgets('typing a name does not persist anything', (tester) async {
     final notifier = _FakeExportPresetNotifier({'first': firstPreset});

@@ -245,10 +245,34 @@ class TitleForm extends StatelessWidget {
                 Flexible(child: title)
               else
                 title,
-              if (infoTopic case final topic?) InfoButton(topic: topic),
+              if (infoTopic case final topic?)
+                InfoButton(topic: topic)
+              else
+                const _InfoButtonSpace(),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// An invisible stand-in the size of [InfoButton], so a title without an info
+/// topic keeps the same height, and a centered title stays centered.
+class _InfoButtonSpace extends StatelessWidget {
+  const _InfoButtonSpace();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Visibility(
+      visible: false,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: IconButton(
+        onPressed: null,
+        padding: EdgeInsets.zero,
+        icon: Icon(Icons.info_outline_rounded, size: 20),
       ),
     );
   }
