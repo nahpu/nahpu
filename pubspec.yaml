@@ -134,6 +134,7 @@ flutter:
   # Do not add assets/web here. They are not used inside the app bundle.
   assets:
     - assets/logo/
+    - assets/illustrations/
     - assets/avatars/
     - assets/icons/
     - assets/configs/

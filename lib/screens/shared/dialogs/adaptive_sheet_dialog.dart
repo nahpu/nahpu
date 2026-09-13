@@ -32,6 +32,9 @@ Future<T?> showAdaptiveSheetDialog<T>({
     context: context,
     barrierDismissible: isDismissible,
     builder: (context) => Dialog(
+      // Keeps full-bleed content, such as a backdrop, inside the rounded
+      // corners.
+      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: maxWidth,

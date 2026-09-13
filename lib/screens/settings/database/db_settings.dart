@@ -7,9 +7,9 @@ import 'package:nahpu/screens/home/home.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
-import 'package:nahpu/screens/shared/file/db_backup_summary_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/services/database/database.dart' show kSchemaVersion;
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -41,7 +41,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   ExportJobProgress? _jobProgress;
   DbBackupSummary? _summary;
   String? _summaryError;
-  bool _isLoadingSummary = false;
+  DbReplacementPreview? _replacementPreview;
 
   @override
   void initState() {
@@ -82,19 +82,21 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
               isBackup: _isBackup,
               summary: _summary,
               summaryError: _summaryError,
+              replacement: _replacementPreview,
               onSelectFile: _selectFile,
               onClearFile: _clearFile,
               onBackupChanged: _setBackup,
-              onReplace: _hasSelected ? _confirmReplace : null,
+              // A file that cannot be restored never gets as far as the
+              // confirmation, so nothing is overwritten for it.
+              onReplace: _hasSelected && _replacementPreview?.issue == null
+                  ? _confirmReplace
+                  : null,
             ),
     );
   }
 
-  /// Reads what the safety backup will copy, the first time it is turned on.
+  /// Reads the current database, which the comparison always shows.
   Future<void> _loadSummary() async {
-    if (_summary != null || _isLoadingSummary) return;
-    _isLoadingSummary = true;
-    _summaryError = null;
     try {
       final summary = await DbExport(ref: ref, filePath: File('')).getSummary();
       if (!mounted) return;
@@ -102,14 +104,11 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _summaryError = error.toString());
-    } finally {
-      _isLoadingSummary = false;
     }
   }
 
   void _setBackup(bool value) {
     setState(() => _isBackup = value);
-    if (value) unawaited(_loadSummary());
   }
 
   Future<void> _selectFile() async {
@@ -129,6 +128,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       _hasSelected = false;
       _isArchived = false;
       _databaseRelativePath = null;
+      _replacementPreview = null;
     });
   }
 
@@ -143,6 +143,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
         final isArchived =
             lowerPath.endsWith('.zip') || lowerPath.endsWith('.tar.gz');
         String? databaseRelativePath;
+        final DbReplacementPreview preview;
         if (isArchived) {
           final inspection = await DbWriter(
             ref: ref,
@@ -165,12 +166,25 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
             );
             if (databaseRelativePath == null) return;
           }
+          preview =
+              inspection.previews[databaseRelativePath] ??
+              const DbReplacementPreview(
+                contents: null,
+                issue: DbReplacementIssue.unreadable,
+              );
+        } else {
+          preview = await DbWriter(
+            ref: ref,
+            filePath: File(dbPath.path),
+          ).inspectDatabaseFile();
         }
+        if (!mounted) return;
         setState(() {
           _dbPath = dbPath;
           _hasSelected = true;
           _isArchived = isArchived;
           _databaseRelativePath = databaseRelativePath;
+          _replacementPreview = preview;
         });
       }
     } finally {
@@ -329,8 +343,8 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   }
 }
 
-/// Laid out like the backup window: options on the left, what the safety
-/// backup copies on the right, and the action pinned below both.
+/// Laid out like the backup window: options on the left, the current database
+/// beside the replacement on the right, and the action pinned below both.
 class _ReplaceDatabaseForm extends StatelessWidget {
   const _ReplaceDatabaseForm({
     required this.dbPath,
@@ -340,6 +354,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
     required this.isBackup,
     required this.summary,
     required this.summaryError,
+    required this.replacement,
     required this.onSelectFile,
     required this.onClearFile,
     required this.onBackupChanged,
@@ -353,11 +368,12 @@ class _ReplaceDatabaseForm extends StatelessWidget {
   final bool isBackup;
   final DbBackupSummary? summary;
   final String? summaryError;
+  final DbReplacementPreview? replacement;
   final VoidCallback onSelectFile;
   final VoidCallback onClearFile;
   final ValueChanged<bool> onBackupChanged;
 
-  /// Null until a database file is selected.
+  /// Null until a restorable file is selected.
   final VoidCallback? onReplace;
 
   @override
@@ -370,6 +386,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
           isArchived: isArchived,
           databaseRelativePath: databaseRelativePath,
           isSelectingFile: isSelectingFile,
+          isBlocked: replacement?.issue != null,
           onSelectFile: onSelectFile,
           onClearFile: onClearFile,
         ),
@@ -377,11 +394,11 @@ class _ReplaceDatabaseForm extends StatelessWidget {
         _SafetyBackupCard(isBackup: isBackup, onChanged: onBackupChanged),
       ],
     );
-    // The same contents list as the backup window, so the user sees how
-    // large the safety backup is before starting.
-    final contents = isBackup
-        ? DbBackupSummaryPanel(summary: summary, error: summaryError)
-        : const _NoBackupNotice();
+    final comparison = DatabaseComparisonPanel(
+      current: summary,
+      currentError: summaryError,
+      replacement: replacement,
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Replace database')),
       body: SafeArea(
@@ -409,7 +426,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
                                 children: [
                                   Expanded(child: options),
                                   const SizedBox(width: NahpuSpacing.xxl),
-                                  Expanded(child: contents),
+                                  Expanded(child: comparison),
                                 ],
                               )
                             : Column(
@@ -417,7 +434,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
                                 children: [
                                   options,
                                   const SizedBox(height: NahpuSpacing.xl),
-                                  contents,
+                                  comparison,
                                 ],
                               ),
                       ),
@@ -427,7 +444,7 @@ class _ReplaceDatabaseForm extends StatelessWidget {
               ),
             ),
             // Pinned below the scroll view, as in the backup window, so the
-            // action stays in reach however long the contents list grows.
+            // action stays in reach however long the comparison grows.
             ExportActionBar(
               label: 'Replace database',
               repeatLabel: 'Replace database',
@@ -454,6 +471,7 @@ class _DatabaseSourceCard extends StatelessWidget {
     required this.isArchived,
     required this.databaseRelativePath,
     required this.isSelectingFile,
+    required this.isBlocked,
     required this.onSelectFile,
     required this.onClearFile,
   });
@@ -462,6 +480,9 @@ class _DatabaseSourceCard extends StatelessWidget {
   final bool isArchived;
   final String? databaseRelativePath;
   final bool isSelectingFile;
+
+  /// Whether the chosen file cannot be restored.
+  final bool isBlocked;
   final VoidCallback onSelectFile;
   final VoidCallback onClearFile;
 
@@ -485,7 +506,11 @@ class _DatabaseSourceCard extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(NahpuRadius.md),
               side: BorderSide(
-                color: hasFile ? colors.primary : colors.outlineVariant,
+                color: !hasFile
+                    ? colors.outlineVariant
+                    : isBlocked
+                    ? colors.error
+                    : colors.primary,
                 width: NahpuStroke.thin,
               ),
             ),
@@ -535,7 +560,9 @@ class _DatabaseSourceCard extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
+                              color: hasFile && isBlocked
+                                  ? colors.error
+                                  : colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -576,6 +603,7 @@ class _DatabaseSourceCard extends StatelessWidget {
 
   String get _detail {
     if (dbPath == null) return 'ZIP, TAR.GZ, or SQLITE3';
+    if (isBlocked) return 'Can’t be restored';
     if (!isArchived) return 'SQLite database';
     final database = databaseRelativePath;
     return database == null
@@ -593,6 +621,7 @@ class _SafetyBackupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,7 +633,7 @@ class _SafetyBackupCard extends StatelessWidget {
             'match the archive are overwritten in place. This cannot be '
             'undone.',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: NahpuSpacing.lg),
@@ -618,43 +647,309 @@ class _SafetyBackupCard extends StatelessWidget {
             value: isBackup,
             onChanged: onChanged,
           ),
+          if (!isBackup) ...[
+            const SizedBox(height: NahpuSpacing.xs),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: NahpuControlSize.iconMedium,
+                  color: colors.error,
+                ),
+                const SizedBox(width: NahpuSpacing.md),
+                Expanded(
+                  child: Text(
+                    'No safety backup. Your current records and media are not '
+                    'saved before they are replaced.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-/// Takes the contents list's place when the safety backup is off, so the risk
-/// is stated where the numbers would have been.
-class _NoBackupNotice extends StatelessWidget {
-  const _NoBackupNotice();
+/// The current database beside the file chosen to replace it.
+///
+/// Read before anything is overwritten, so a wrong, damaged, or newer file is
+/// caught while the current data is still in place.
+class DatabaseComparisonPanel extends StatelessWidget {
+  const DatabaseComparisonPanel({
+    super.key,
+    required this.current,
+    required this.currentError,
+    required this.replacement,
+  });
+
+  /// Null while the current database is still being read.
+  final DbBackupSummary? current;
+  final String? currentError;
+
+  /// Null until a file is chosen.
+  final DbReplacementPreview? replacement;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final current = this.current;
+    final currentError = this.currentError;
+    final replacement = this.replacement;
+    final issue = replacement?.issue;
+    // A file that is not a NAHPU database, or could not be read, has nothing
+    // worth comparing.
+    final contents =
+        issue == DbReplacementIssue.notNahpuDatabase ||
+            issue == DbReplacementIssue.unreadable
+        ? null
+        : replacement?.contents;
+    final hasReplacement = replacement != null;
     return NahpuPanel(
-      borderColor: theme.colorScheme.error,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Current and replacement', style: theme.textTheme.titleMedium),
+          const SizedBox(height: NahpuSpacing.md),
+          if (issue != null) ...[
+            _ReplacementIssueNotice(issue: issue),
+            const SizedBox(height: NahpuSpacing.lg),
+          ],
+          if (currentError != null)
+            ErrorText(error: currentError)
+          else if (current == null)
+            const Padding(
+              padding: EdgeInsets.all(NahpuSpacing.xl),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            _ComparisonRow(
+              label: '',
+              current: 'Current',
+              replacement: hasReplacement ? 'Replacement' : null,
+              change: hasReplacement ? 'Change' : null,
+              isHeader: true,
+            ),
+            const Divider(height: NahpuSpacing.md),
+            _ComparisonRow(
+              label: 'Schema version',
+              current: 'v${current.schemaVersion}',
+              replacement: hasReplacement
+                  ? _versionOf(contents?.schemaVersion)
+                  : null,
+              change: hasReplacement ? '' : null,
+              note: _schemaNote(contents?.schemaVersion),
+              isNoteWarning: (contents?.schemaVersion ?? 0) > kSchemaVersion,
+            ),
+            for (final label in dbSummaryTables.keys)
+              _ComparisonRow.count(
+                label: label,
+                current: current.entries[label] ?? 0,
+                replacement: contents?.entries[label],
+                hasReplacement: hasReplacement,
+              ),
+            _ComparisonRow.count(
+              label: 'Associated files',
+              current: current.entries['Associated files'] ?? 0,
+              replacement: contents?.associatedFiles,
+              hasReplacement: hasReplacement,
+            ),
+            const Divider(height: NahpuSpacing.md),
+            _ComparisonRow(
+              label: 'Size',
+              current: formatByteSize(current.totalBytes),
+              replacement: hasReplacement
+                  ? contents == null
+                        ? '—'
+                        : formatByteSize(contents.totalBytes)
+                  : null,
+              change: hasReplacement ? '' : null,
+              isEmphasized: true,
+            ),
+          ],
+          if (!hasReplacement) ...[
+            const SizedBox(height: NahpuSpacing.md),
+            Text(
+              'Choose a file to compare.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (replacement?.includesSettings ?? false) ...[
+            const SizedBox(height: NahpuSpacing.md),
+            Text(
+              'This archive also includes user configs, which the restore '
+              'imports.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _versionOf(int? version) => version == null ? '—' : 'v$version';
+
+  String? _schemaNote(int? version) {
+    if (version == null || version == kSchemaVersion) return null;
+    return version < kSchemaVersion
+        ? 'Upgraded to v$kSchemaVersion after restore'
+        : 'Newer than this app';
+  }
+}
+
+class _ReplacementIssueNotice extends StatelessWidget {
+  const _ReplacementIssueNotice({required this.issue});
+
+  final DbReplacementIssue issue;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return NahpuPanel(
+      borderColor: colors.error,
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline_rounded, color: colors.error),
+          const SizedBox(width: NahpuSpacing.md),
+          Expanded(child: Text(issue.message)),
+        ],
+      ),
+    );
+  }
+}
+
+/// One line of the comparison: a label, the current value, and, once a file
+/// is chosen, the replacement value and the difference.
+class _ComparisonRow extends StatelessWidget {
+  const _ComparisonRow({
+    required this.label,
+    required this.current,
+    required this.replacement,
+    required this.change,
+    this.note,
+    this.isNoteWarning = false,
+    this.isLoss = false,
+    this.isHeader = false,
+    this.isEmphasized = false,
+  });
+
+  /// A count row. A missing replacement count shows as a dash.
+  factory _ComparisonRow.count({
+    required String label,
+    required int current,
+    required int? replacement,
+    required bool hasReplacement,
+  }) {
+    final difference = replacement == null ? null : replacement - current;
+    return _ComparisonRow(
+      label: label,
+      current: '$current',
+      replacement: hasReplacement ? (replacement?.toString() ?? '—') : null,
+      change: !hasReplacement
+          ? null
+          : difference == null || difference == 0
+          ? ''
+          : difference > 0
+          ? '+$difference'
+          : '$difference',
+      isLoss: (difference ?? 0) < 0,
+    );
+  }
+
+  final String label;
+  final String current;
+
+  /// Null until a file is chosen, which hides the column.
+  final String? replacement;
+  final String? change;
+  final String? note;
+  final bool isNoteWarning;
+
+  /// Whether the replacement has fewer records than the current database.
+  final bool isLoss;
+  final bool isHeader;
+  final bool isEmphasized;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final replacement = this.replacement;
+    final change = this.change;
+    final note = this.note;
+    final valueStyle = isHeader
+        ? theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant)
+        : isEmphasized
+        ? theme.textTheme.titleSmall
+        : theme.textTheme.bodyMedium;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
-              const SizedBox(width: NahpuSpacing.md),
               Expanded(
+                flex: 3,
                 child: Text(
-                  'No safety backup',
-                  style: theme.textTheme.titleMedium,
+                  label,
+                  style: isEmphasized ? theme.textTheme.titleSmall : valueStyle,
                 ),
               ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  current,
+                  textAlign: TextAlign.end,
+                  style: valueStyle,
+                ),
+              ),
+              if (replacement != null)
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    replacement,
+                    textAlign: TextAlign.end,
+                    style: valueStyle,
+                  ),
+                ),
+              if (change != null)
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    change,
+                    textAlign: TextAlign.end,
+                    style: isHeader
+                        ? valueStyle
+                        : theme.textTheme.bodySmall?.copyWith(
+                            color: isLoss
+                                ? colors.error
+                                : colors.onSurfaceVariant,
+                          ),
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: NahpuSpacing.md),
-          const Text(
-            'Your current records and media are not saved before they are '
-            'replaced. Turn on Back up current data first, or save one from '
-            'Backup database.',
-          ),
+          if (note != null)
+            Text(
+              note,
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isNoteWarning ? colors.error : colors.onSurfaceVariant,
+              ),
+            ),
         ],
       ),
     );

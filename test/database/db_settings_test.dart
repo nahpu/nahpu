@@ -93,9 +93,6 @@ void main() {
     expect(find.textContaining('backup of your current data'), findsOneWidget);
   });
 
-  /// The page used to offer both a backup switch and a link to the backup
-  /// window, which write the same archive. It is now laid out like the backup
-  /// window instead.
   group('Replace database page', () {
     const pathProviderChannel = MethodChannel(
       'plugins.flutter.io/path_provider',
@@ -145,8 +142,8 @@ void main() {
           child: const MaterialApp(home: DatabaseSettings()),
         ),
       );
-      // The summary is a real read, so the page is checked without settling
-      // on its progress indicator.
+      // The current database is a real read, so the page is checked without
+      // settling on its progress indicator.
       await tester.pump();
     }
 
@@ -168,46 +165,51 @@ void main() {
       expect(find.byTooltip('Clear file'), findsNothing);
     });
 
-    testWidgets('shows the backup contents only while the toggle is on', (
+    testWidgets('compares with the current database before a file is chosen', (
       tester,
     ) async {
       await pumpPage(tester);
-      expect(find.text('Entire database contents'), findsOneWidget);
-      expect(find.text('No safety backup'), findsNothing);
+
+      expect(find.text('Current and replacement'), findsOneWidget);
+      expect(find.text('Choose a file to compare.'), findsOneWidget);
+    });
+
+    testWidgets('turning off the backup warns beside the toggle', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      expect(find.textContaining('No safety backup'), findsNothing);
 
       await tester.tap(find.text('Back up current data first'));
       await tester.pump();
 
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
-      expect(find.text('Entire database contents'), findsNothing);
-      expect(find.text('No safety backup'), findsOneWidget);
-
-      await tester.tap(find.text('Back up current data first'));
-      await tester.pump();
-
-      expect(find.text('Entire database contents'), findsOneWidget);
+      expect(find.textContaining('No safety backup'), findsOneWidget);
+      expect(find.text('Current and replacement'), findsOneWidget);
     });
 
-    testWidgets('large screens put the backup contents beside the options', (
+    testWidgets('large screens put the comparison beside the options', (
       tester,
     ) async {
       await pumpPage(tester);
 
       final source = tester.getTopLeft(find.text('Replace with'));
-      final contents = tester.getTopLeft(find.text('Entire database contents'));
-      expect(contents.dx, greaterThan(source.dx));
-      expect((contents.dy - source.dy).abs(), lessThan(NahpuSpacing.xl));
+      final comparison = tester.getTopLeft(
+        find.text('Current and replacement'),
+      );
+      expect(comparison.dx, greaterThan(source.dx));
+      expect((comparison.dy - source.dy).abs(), lessThan(NahpuSpacing.xl));
     });
 
-    testWidgets('small screens stack the backup contents below', (
-      tester,
-    ) async {
+    testWidgets('small screens stack the comparison below', (tester) async {
       await pumpPage(tester, size: const Size(420, 2400));
 
       final source = tester.getTopLeft(find.text('Replace with'));
-      final contents = tester.getTopLeft(find.text('Entire database contents'));
-      expect(contents.dy, greaterThan(source.dy));
-      expect((contents.dx - source.dx).abs(), lessThan(1));
+      final comparison = tester.getTopLeft(
+        find.text('Current and replacement'),
+      );
+      expect(comparison.dy, greaterThan(source.dy));
+      expect((comparison.dx - source.dx).abs(), lessThan(1));
     });
 
     testWidgets('the replace button is pinned and waits for a file', (
@@ -226,6 +228,137 @@ void main() {
       );
       expect(button.label, 'Replace database');
       expect(button.onPressed, isNull);
+    });
+  });
+
+  group('DatabaseComparisonPanel', () {
+    const current = DbBackupSummary(
+      entries: {
+        'Projects': 7,
+        'Personnel': 3,
+        'Taxa': 10,
+        'Sites': 4,
+        'Collection events': 6,
+        'Specimens': 5,
+        'Narratives': 2,
+        'Media records': 8,
+        'Associated files': 9,
+      },
+      associatedFileBytes: 1000,
+      databaseBytes: 1000,
+      schemaVersion: kSchemaVersion,
+    );
+
+    DbReplacementPreview previewWith({
+      required int schemaVersion,
+      DbReplacementIssue? issue,
+    }) {
+      return DbReplacementPreview(
+        contents: DbContentsSummary(
+          entries: const {
+            'Projects': 3,
+            'Personnel': 3,
+            'Taxa': 10,
+            'Sites': 4,
+            'Collection events': 6,
+            'Specimens': 12,
+            'Narratives': null,
+            'Media records': 8,
+          },
+          associatedFiles: 9,
+          totalBytes: 500,
+          schemaVersion: schemaVersion,
+        ),
+        issue: issue,
+      );
+    }
+
+    Future<void> pumpPanel(
+      WidgetTester tester,
+      DbReplacementPreview? replacement,
+    ) async {
+      tester.view.physicalSize = const Size(600, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: DatabaseComparisonPanel(
+                current: current,
+                currentError: null,
+                replacement: replacement,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows both columns with the change for each count', (
+      tester,
+    ) async {
+      await pumpPanel(tester, previewWith(schemaVersion: kSchemaVersion));
+
+      expect(find.text('Replacement'), findsOneWidget);
+      expect(find.text('-4'), findsOneWidget);
+      expect(find.text('+7'), findsOneWidget);
+      // Narratives is missing from the replacement.
+      expect(find.text('—'), findsOneWidget);
+      expect(find.text('v$kSchemaVersion'), findsNWidgets(2));
+      expect(find.textContaining('after restore'), findsNothing);
+      expect(find.text('Newer than this app'), findsNothing);
+    });
+
+    testWidgets('an older replacement schema is upgraded after restore', (
+      tester,
+    ) async {
+      await pumpPanel(tester, previewWith(schemaVersion: kSchemaVersion - 1));
+
+      expect(find.text('v${kSchemaVersion - 1}'), findsOneWidget);
+      expect(
+        find.text('Upgraded to v$kSchemaVersion after restore'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a newer replacement schema is blocked with an update hint', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        previewWith(
+          schemaVersion: kSchemaVersion + 1,
+          issue: DbReplacementIssue.newerSchema,
+        ),
+      );
+
+      expect(find.textContaining('Update NAHPU'), findsOneWidget);
+      expect(find.text('Newer than this app'), findsOneWidget);
+    });
+
+    testWidgets('a non-NAHPU file hides its replacement counts', (
+      tester,
+    ) async {
+      await pumpPanel(
+        tester,
+        previewWith(
+          schemaVersion: 0,
+          issue: DbReplacementIssue.notNahpuDatabase,
+        ),
+      );
+
+      expect(find.textContaining('not a NAHPU database'), findsOneWidget);
+      expect(find.text('+7'), findsNothing);
+      expect(find.text('Newer than this app'), findsNothing);
+    });
+
+    testWidgets('without a file only the current column shows', (tester) async {
+      await pumpPanel(tester, null);
+
+      expect(find.text('Current'), findsOneWidget);
+      expect(find.text('Replacement'), findsNothing);
+      expect(find.text('Choose a file to compare.'), findsOneWidget);
     });
   });
 }
