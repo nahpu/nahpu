@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/templates/canvas_viewport_service.dart';
 import 'package:nahpu/screens/templates/template_outline.dart'
     show templateAreaStackDecoration, TemplateOutlineOverlayPainter;
 import 'package:nahpu/screens/templates/template_specimen_sex_icon.dart'
@@ -74,6 +75,7 @@ class TemplateCanvasEditor extends StatefulWidget {
     required this.onRemoveCustomShape,
     required this.onZoomChanged,
     this.fieldDisplayOption = 'short',
+    this.fitRequest = 0,
     this.onDragStateChanged,
   });
 
@@ -92,6 +94,10 @@ class TemplateCanvasEditor extends StatefulWidget {
   final String? selectedElement;
   final GlobalKey templateStackKey;
   final String fieldDisplayOption;
+
+  /// Bumped to fit and recentre the canvas even when nothing else changed,
+  /// such as after the user panned away at 100% zoom.
+  final int fitRequest;
   final ValueChanged<bool>? onDragStateChanged;
 
   final Offset? Function(
@@ -124,6 +130,10 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
       TransformationController();
   double? _gestureStartZoom;
   final Map<String, double> _dynamicTextContentHeightMmById = {};
+
+  /// The layout the viewer was last centred for. The canvas is recentred only
+  /// when this changes, so ordinary panning is left alone.
+  Object? _centeredFor;
 
   @override
   void dispose() {
@@ -173,12 +183,13 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
           0.0,
           double.infinity,
         );
-        final widthScale = templateWidthMm > 0 ? availW / templateWidthMm : 1.0;
-        final heightScale = templateHeightMm > 0
-            ? availH / templateHeightMm
-            : 1.0;
-        final fitScale = math.min(widthScale, heightScale);
-        final baseScale = fitScale.isFinite && fitScale > 0 ? fitScale : 1.0;
+        // 100% zoom fits the whole template inside the workspace, clear of the
+        // side switcher and zoom controls floating along the bottom.
+        final baseScale = TemplateCanvasViewportService.fitScale(
+          viewport: constraints.biggest,
+          templateWidthMm: templateWidthMm,
+          templateHeightMm: templateHeightMm,
+        );
         final scale = baseScale * zoom;
         final canvasW = templateWidthMm * scale;
         final canvasH = templateHeightMm * scale;
@@ -194,6 +205,20 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
         final canvasInsetY = overflowPadding.top;
         final stackW = canvasW + overflowPadding.left + overflowPadding.right;
         final stackH = canvasH + overflowPadding.top + overflowPadding.bottom;
+        _centerCanvas(
+          viewport: constraints.biggest,
+          containerSize: Size(
+            math.max(availW, stackW),
+            math.max(availH, stackH),
+          ),
+          stackSize: Size(stackW, stackH),
+          canvasCenterInStack: Offset(
+            canvasInsetX + canvasW / 2,
+            canvasInsetY + canvasH / 2,
+          ),
+          topPadding: edgePadH,
+          isMirrored: page1 ? mirrorFront : mirrorBack,
+        );
 
         Offset? templatePanToMmDelta(
           Offset globalPosition,
@@ -1117,6 +1142,57 @@ class _TemplateCanvasEditorState extends State<TemplateCanvasEditor> {
         );
       },
     );
+  }
+
+  /// Pans the viewer so the template sits centred in the workspace.
+  ///
+  /// Runs after the frame, and only when the workspace size, template size,
+  /// zoom, mirroring, or [TemplateCanvasEditor.fitRequest] changed, so a user
+  /// who panned the canvas keeps their view while editing.
+  void _centerCanvas({
+    required Size viewport,
+    required Size containerSize,
+    required Size stackSize,
+    required Offset canvasCenterInStack,
+    required double topPadding,
+    required bool isMirrored,
+  }) {
+    if (!viewport.isFinite) return;
+    final layout = (
+      viewport,
+      widget.templateWidthMm,
+      widget.templateHeightMm,
+      widget.zoom,
+      isMirrored,
+      widget.fitRequest,
+    );
+    if (layout == _centeredFor) return;
+    _centeredFor = layout;
+
+    // The stack is centred in its container and turned half a revolution when
+    // mirrored, which moves the canvas centre to the opposite side.
+    final inStack = isMirrored
+        ? Offset(
+            stackSize.width - canvasCenterInStack.dx,
+            stackSize.height - canvasCenterInStack.dy,
+          )
+        : canvasCenterInStack;
+    final canvasCenter = Offset(
+      (containerSize.width - stackSize.width) / 2 + inStack.dx,
+      topPadding + (containerSize.height - stackSize.height) / 2 + inStack.dy,
+    );
+    final translation = TemplateCanvasViewportService.centeringTranslation(
+      viewport: viewport,
+      canvasCenter: canvasCenter,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _transformationController.value = Matrix4.translationValues(
+        translation.dx,
+        translation.dy,
+        0,
+      );
+    });
   }
 
   void _resetViewerScale() {
