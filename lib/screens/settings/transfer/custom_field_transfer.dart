@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -206,33 +206,13 @@ Future<void> showCustomFieldQrDialog({
 }) {
   return showDialog<void>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Custom fields QR code'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QrImageView(
-              data: payload,
-              size: 280,
-              backgroundColor: Colors.white,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Scan this code from another NAHPU device to import '
-              '$definitionCount custom field '
-              '${definitionCount == 1 ? 'definition' : 'definitions'}.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('Close'),
-        ),
-      ],
+    builder: (dialogContext) => QrCodeDialog(
+      title: 'Custom fields QR code',
+      data: payload,
+      description:
+          'Scan this code from another NAHPU device to import '
+          '$definitionCount custom field '
+          '${definitionCount == 1 ? 'definition' : 'definitions'}.',
     ),
   );
 }

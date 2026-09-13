@@ -393,11 +393,14 @@ class _FakeBundledPresetService extends BundledPresetService {
   final loaded = <BundledPreset>[];
 
   @override
-  Future<List<BundledPresetStatus>> statuses({CatalogFmt? catalogFmt}) async {
+  Future<List<BundledPresetStatus>> statuses({
+    CatalogFmt? catalogFmt,
+    bool allFormats = false,
+  }) async {
     return [
       const BundledPresetStatus(preset: _tissueLabels, isInstalled: true),
       for (final preset in _mammalPresets)
-        if (preset.catalogFmt == catalogFmt)
+        if (allFormats || preset.catalogFmt == catalogFmt)
           BundledPresetStatus(
             preset: preset,
             isInstalled: loaded.contains(preset),

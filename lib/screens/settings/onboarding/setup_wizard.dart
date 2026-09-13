@@ -6,6 +6,7 @@ import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/screens/settings/records/specimen_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/forms/bundled_preset_checklist.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
@@ -972,8 +973,8 @@ class _FinishStep extends ConsumerWidget {
 /// Offers the presets NAHPU ships with.
 ///
 /// Presets that suit any catalog format are usually added at first launch
-/// already. Presets written for one catalog format are optional and only
-/// offered here, so they start unchecked.
+/// already. Presets written for one catalog format are optional, so they start
+/// unchecked.
 class _ExportPresetsStep extends ConsumerStatefulWidget {
   const _ExportPresetsStep();
 
@@ -1026,22 +1027,19 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (generic.isNotEmpty)
-                      _BundledPresetPanel(
+                      BundledPresetChecklist(
                         title: 'Defaults',
-                        message:
-                            'Presets that suit any catalog format. Load '
-                            'defaults in Settings adds them too.',
+                        message: 'Presets that suit any catalog format.',
                         statuses: generic,
                         isChecked: _isChecked,
                         onChanged: _setChoice,
                       ),
                     if (catalogFmt != null && specific.isNotEmpty) ...[
                       const SizedBox(height: NahpuSpacing.lg),
-                      _BundledPresetPanel(
+                      BundledPresetChecklist(
                         title: 'For ${catalogFmtDisplayName(catalogFmt)}',
                         message:
-                            'Optional presets written for this catalog '
-                            'format. They are only offered here.',
+                            'Optional presets written for this catalog format.',
                         statuses: specific,
                         isChecked: _isChecked,
                         onChanged: _setChoice,
@@ -1067,9 +1065,8 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
             ),
         const SizedBox(height: NahpuSpacing.lg),
         const _SetupNote(
-          'Layouts bring the templates they print with. Presets for a catalog '
-          'format are only offered here; Load defaults in Settings adds the '
-          'presets that suit any format.',
+          'Layouts bring the templates they print with. You can add more of '
+          'these presets later with Load defaults in Settings.',
         ),
       ],
     );
@@ -1092,6 +1089,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
           .read(bundledPresetServiceProvider)
           .loadSelected(presets);
       ref.invalidate(bundledPresetStatusProvider);
+      ref.invalidate(allBundledPresetStatusProvider);
       messenger.showSnackBar(SnackBar(content: Text(result.message)));
     } on Object catch (error) {
       messenger.showSnackBar(
@@ -1100,61 +1098,6 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
     } finally {
       if (mounted) setState(() => _adding = false);
     }
-  }
-}
-
-class _BundledPresetPanel extends StatelessWidget {
-  const _BundledPresetPanel({
-    required this.title,
-    required this.message,
-    required this.statuses,
-    required this.isChecked,
-    required this.onChanged,
-  });
-
-  final String title;
-  final String message;
-  final List<BundledPresetStatus> statuses;
-  final bool Function(BundledPresetStatus status) isChecked;
-  final void Function(BundledPreset preset, bool value) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final groups = [
-      ('Documents', BundledPresetKind.document),
-      ('Tabular records', BundledPresetKind.record),
-    ];
-    return NahpuPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: textTheme.titleMedium),
-          const SizedBox(height: NahpuSpacing.xs),
-          Text(message, style: textTheme.bodyMedium),
-          for (final (label, kind) in groups)
-            if (statuses.any((status) => status.preset.kind == kind)) ...[
-              const SizedBox(height: NahpuSpacing.lg),
-              Text(label, style: textTheme.titleSmall),
-              for (final status in statuses)
-                if (status.preset.kind == kind)
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: isChecked(status),
-                    onChanged: status.isInstalled
-                        ? null
-                        : (value) => onChanged(status.preset, value ?? false),
-                    title: Text(status.preset.name),
-                    subtitle: Text(
-                      status.isInstalled
-                          ? 'Added · ${status.preset.description}'
-                          : status.preset.description,
-                    ),
-                  ),
-            ],
-        ],
-      ),
-    );
   }
 }
 

@@ -10,9 +10,9 @@ Uma predefinição de exportação tabular salva uma definição repetível: o t
 
 `Add custom field` escreve campos e texto literal, ou apenas texto, em uma coluna, como `[personnel::initial]-[specimen::fieldNumber]` ou um código de instituição constante.
 
-As configurações são salvas conforme você as altera, mas o nome da predefinição não: digite um nome novo e selecione `Rename` para confirmá-lo. Exporte uma única predefinição a partir de sua linha, ou todas pelo menu de opções; qualquer um dos arquivos é importado pela mesma ação.
+As configurações são salvas conforme você as altera, mas o nome da predefinição não: digite um nome novo e selecione `Rename` para confirmá-lo. Exporte uma única predefinição a partir de sua linha, ou todas pelo menu de opções; qualquer um dos arquivos é importado pela mesma ação. Ao exportar, abrem-se as configurações do arquivo, onde você define o nome, escolhe uma pasta e compartilha com `Share` depois da exportação.
 
-`Load defaults` no menu de opções, ou em uma lista vazia, adiciona as predefinições tabulares incluídas no NAHPU que servem para qualquer formato de catálogo, sem sobrescrever uma predefinição com o mesmo nome. As predefinições escritas para um formato de catálogo são oferecidas em `Setup NAHPU`. Qualquer predefinição pode ser excluída.
+`Load defaults` no menu de opções, ou em uma lista vazia, permite escolher quais predefinições tabulares incluídas no NAHPU adicionar. As escritas para um formato de catálogo, como Non-volant mammals, aparecem desmarcadas e também são oferecidas em `Setup NAHPU`. Ele nunca sobrescreve uma predefinição com o mesmo nome, e qualquer predefinição pode ser excluída.
 
 Um cabeçalho Darwin Core não valida, por si só, os dados exportados. Revise o significado dos campos, unidades e valores repetidos. Exportações tabulares são destinadas ao uso posterior, não à restauração de um projeto NAHPU.
 

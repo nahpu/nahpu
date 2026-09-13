@@ -12,16 +12,19 @@ class PresetAppBarActions extends StatelessWidget {
   const PresetAppBarActions({
     super.key,
     required this.onCreate,
-    required this.onScanQr,
     required this.onImport,
     required this.onExportAll,
+    this.onScanQr,
     this.onExportSelected,
     this.onLoadDefaults,
     this.itemName = 'preset',
   });
 
   final VoidCallback onCreate;
-  final VoidCallback onScanQr;
+
+  /// Imports from a QR code. Items that cannot be shown as a QR code leave it
+  /// null, which hides the entry.
+  final VoidCallback? onScanQr;
   final VoidCallback onImport;
   final VoidCallback onExportAll;
 
@@ -58,16 +61,18 @@ class PresetAppBarActions extends StatelessWidget {
       icon: Icons.add_circle_outline_rounded,
       label: 'Create new',
     ),
-    const AdaptiveMenuItem(
-      value: _PresetMenuAction.scanQr,
-      icon: Icons.qr_code_scanner_outlined,
-      label: 'Scan QR',
-      hasDividerBefore: true,
-    ),
-    const AdaptiveMenuItem(
+    if (onScanQr != null)
+      const AdaptiveMenuItem(
+        value: _PresetMenuAction.scanQr,
+        icon: Icons.qr_code_scanner_outlined,
+        label: 'Scan QR',
+        hasDividerBefore: true,
+      ),
+    AdaptiveMenuItem(
       value: _PresetMenuAction.import,
       icon: Icons.file_download_outlined,
       label: 'Import',
+      hasDividerBefore: onScanQr == null,
     ),
     if (onExportSelected != null)
       AdaptiveMenuItem(
@@ -97,7 +102,7 @@ class PresetAppBarActions extends StatelessWidget {
       case _PresetMenuAction.create:
         onCreate();
       case _PresetMenuAction.scanQr:
-        onScanQr();
+        onScanQr?.call();
       case _PresetMenuAction.import:
         onImport();
       case _PresetMenuAction.exportSelected:

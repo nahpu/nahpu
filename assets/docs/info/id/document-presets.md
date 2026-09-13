@@ -8,7 +8,9 @@ Pengaturan dokumen memisahkan templat yang dapat dipakai ulang dari tata letak c
 
 Buat tata letak terpisah untuk setiap alur kerja yang berbeda, dan gandakan prasetel yang sudah terbukti dengan nama baru sebelum bereksperimen dengannya. Pratinjau dengan catatan yang representatif, termasuk teks panjang, nilai yang kosong, dan kedua sisi templat bolak-balik.
 
-`Load defaults` di menu opsi, atau di daftar yang kosong, menambahkan tata letak cetak dan templat bawaan NAHPU yang cocok untuk semua format katalog. Tindakan ini tidak pernah menimpa prasetel bernama sama, dan setiap prasetel dapat dihapus. Prasetel yang ditulis untuk satu format katalog, seperti buku lapangan, tag tengkorak, dan label spesimen mamalia, ditawarkan di `Setup NAHPU`.
+`Load defaults` di menu opsi, atau di daftar yang kosong, memungkinkan Anda memilih tata letak cetak dan templat bawaan NAHPU yang akan ditambahkan. Prasetel yang cocok untuk semua format katalog sudah dicentang; prasetel yang ditulis untuk satu format katalog, seperti buku lapangan, tag tengkorak, dan label spesimen mamalia, belum dicentang dan juga ditawarkan di `Setup NAHPU`. Tindakan ini tidak pernah menimpa prasetel bernama sama, dan setiap prasetel dapat dihapus.
+
+Ekspor membuka pengaturan berkas tempat Anda memberi nama berkas, memilih folder, dan membagikannya dengan `Share` setelah ekspor. Ekspor tata letak menyertakan templat yang dipakai bloknya kecuali Anda mematikan `Include linked templates`, dan mengimpor berkas itu juga menambahkan templatnya.
 
 Templat dan tata letaknya dipindahkan bersama melalui konfigurasi pengguna, jadi pindahkan keduanya bila kolaborator memerlukan keluaran yang sama.
 

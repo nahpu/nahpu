@@ -500,3 +500,10 @@ final bundledPresetStatusProvider = FutureProvider.autoDispose
           .watch(bundledPresetServiceProvider)
           .statuses(catalogFmt: catalogFmt),
     );
+
+/// Every bundled preset, including those for each catalog format.
+final allBundledPresetStatusProvider =
+    FutureProvider.autoDispose<List<BundledPresetStatus>>(
+      (ref) =>
+          ref.watch(bundledPresetServiceProvider).statuses(allFormats: true),
+    );

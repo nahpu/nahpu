@@ -49,7 +49,8 @@ class BundledPreset {
   /// The catalog format the preset is written for, or null when it suits any.
   final CatalogFmt? catalogFmt;
 
-  /// Whether the preset suits every catalog format, so Load defaults adds it.
+  /// Whether the preset suits every catalog format, so first launch adds it
+  /// and Load defaults starts it checked.
   bool get isGeneric => catalogFmt == null;
 }
 
@@ -85,9 +86,10 @@ class BundledPresetLoadResult {
 
 /// Discovers and loads the presets bundled under [configsDir].
 ///
-/// Generic presets sit directly in [configsDir] and are what Load defaults
-/// adds. Presets written for one catalog format sit in a folder named after
-/// that [CatalogFmt] and are only added when chosen in the setup wizard.
+/// Generic presets sit directly in [configsDir] and are added at first launch.
+/// Presets written for one catalog format sit in a folder named after that
+/// [CatalogFmt]; they are never added on their own, and Load defaults and the
+/// setup wizard offer them unchecked.
 ///
 /// Loading never overwrites a saved preset with the same name, so a preset
 /// the user edited or deleted is only ever restored on request.
@@ -128,13 +130,17 @@ class BundledPresetService {
     return [for (final entry in entries) entry.preset];
   }
 
-  /// Generic presets plus those written for [catalogFmt], each marked with
-  /// whether it is already saved.
-  Future<List<BundledPresetStatus>> statuses({CatalogFmt? catalogFmt}) async {
+  /// Generic presets plus those written for [catalogFmt], or for every catalog
+  /// format when [allFormats] is true, each marked with whether it is already
+  /// saved.
+  Future<List<BundledPresetStatus>> statuses({
+    CatalogFmt? catalogFmt,
+    bool allFormats = false,
+  }) async {
     final installed = await _installedNames();
     return [
       for (final preset in await list())
-        if (preset.isGeneric || preset.catalogFmt == catalogFmt)
+        if (allFormats || preset.isGeneric || preset.catalogFmt == catalogFmt)
           BundledPresetStatus(
             preset: preset,
             isInstalled: installed[preset.kind]!.contains(preset.name),

@@ -19,7 +19,7 @@ import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
-import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
@@ -201,23 +201,18 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     await _load();
   }
 
-  /// Adds the bundled generic layouts and the templates they print with.
+  /// Lets the user pick bundled generic layouts; their templates come along.
   Future<void> _loadDefaults() async {
-    try {
-      final result = await ref
-          .read(bundledPresetServiceProvider)
-          .loadDefaults(kinds: const {BundledPresetKind.document});
-      await _load();
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.message)));
-    } on Object catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load default presets: $error')),
-      );
-    }
+    final result = await showLoadDefaultsDialog(
+      context: context,
+      kinds: const {BundledPresetKind.document},
+    );
+    if (result == null) return;
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
   }
 
   /// Closing the result also drops the directory, so one tap lands back on the

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,9 +10,12 @@ import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
 import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:path/path.dart' as path;
+import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
+import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/settings/preset_transfer_service.dart';
 
 // Preview and specimen selection imports
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
@@ -33,7 +35,6 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/screens/settings/presets/font_manager.dart';
 import 'package:nahpu/screens/settings/presets/template_preset_manager.dart';
-import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 
 /// The three things the Document Presets screen manages.
@@ -141,7 +142,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           if (_view == DocumentPresetView.layouts)
             PresetAppBarActions(
               onCreate: _addPreset,
-              onScanQr: _scanPresetQr,
               onImport: _importPreset,
               onExportAll: _exportPresetsToFile,
               onExportSelected: _selectedLayoutName == null
@@ -603,24 +603,16 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
-  /// Adds the bundled generic presets of [kinds]. Layouts bring the templates
-  /// they print with.
+  /// Lets the user pick bundled generic presets of [kinds]. Layouts bring the
+  /// templates they print with.
   Future<void> _loadDefaults(Set<BundledPresetKind> kinds) async {
-    try {
-      final result = await ref
-          .read(bundledPresetServiceProvider)
-          .loadDefaults(kinds: kinds);
-      await _load(showLoading: false);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.message)));
-    } on Object catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load default presets: $error')),
-      );
-    }
+    final result = await showLoadDefaultsDialog(context: context, kinds: kinds);
+    if (result == null) return;
+    await _load(showLoading: false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
   }
 
   Future<void> _exportPresetsToFile() => _exportLayouts();
@@ -628,10 +620,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   Future<void> _exportSelectedPreset() =>
       _exportLayouts(onlyName: _selectedLayoutName);
 
-  /// Writes layouts to a JSON file.
-  ///
-  /// One layout and all layouts share the same name-keyed envelope, so either
-  /// file imports through the same path.
+  /// Opens the export dialog for one layout, or every layout when [onlyName]
+  /// is null. The templates the layouts print with go along unless the user
+  /// turns them off.
   Future<void> _exportLayouts({String? onlyName}) async {
     try {
       final all = await rust_config.getAllDocumentLayouts();
@@ -646,23 +637,32 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         }
         return;
       }
-      final Map<String, dynamic> exportedData = {
-        for (final layout in layouts) layout.name: layout.toJson(),
-      };
-      final dir = await FilePickerServices().selectDir();
-      if (dir == null) return;
-      final fileName = onlyName == null
-          ? 'nahpu_document_presets.json'
-          : 'preset_${_sanitizeFileStem(onlyName)}.json';
-      final savePath = File(path.join(dir.path, fileName));
-      await savePath.writeAsString(jsonEncode(exportedData));
+      final templates = <Template>[];
+      for (final name in PresetTransferService.linkedTemplateNames(layouts)) {
+        final template = await const TemplateService().getTemplate(name);
+        if (template != null) templates.add(template);
+      }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Exported ${layouts.length} preset'
-            '${layouts.length == 1 ? '' : 's'} to ${savePath.path}',
-          ),
+      await showPresetExportDialog(
+        context: context,
+        request: PresetExportRequest(
+          title: 'Export print layouts',
+          summary:
+              onlyName ??
+              '${layouts.length} print layout'
+                  '${layouts.length == 1 ? '' : 's'}',
+          defaultFileStem: onlyName == null
+              ? 'nahpu_document_presets'
+              : PresetTransferService.safeFileStem('preset_$onlyName'),
+          linkedTemplateNames: [
+            for (final template in templates) template.name,
+          ],
+          imageNote: PresetTransferService.imageNote(templates),
+          encode: ({required includeLinkedTemplates}) async =>
+              const PresetTransferService().encodeLayouts(
+                layouts,
+                templates: includeLinkedTemplates ? templates : const [],
+              ),
         ),
       );
     } catch (e) {
@@ -674,155 +674,30 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
   }
 
-  String _sanitizeFileStem(String name) {
-    final safe = name.trim().replaceAll(RegExp(r'[^\w.\-]'), '_');
-    return safe.isEmpty ? 'preset' : safe;
-  }
-
-  /// Imports one layout or a name-keyed map of layouts.
-  ///
-  /// Layouts reference templates by name and carry no font of their own, so
-  /// there is nothing to resolve here — the fonts are resolved when the
-  /// templates themselves are imported.
+  /// Imports a layout file, adding the templates packed with its layouts.
   Future<void> _importPreset() async {
     final file = await FilePickerServices().selectAnyFile();
     if (file == null) return;
-
+    const transfer = PresetTransferService();
     try {
-      final content = await File(file.path).readAsString();
-      final decoded = jsonDecode(content);
-
-      if (decoded is Map<String, dynamic>) {
-        if (decoded.containsKey('name') && decoded.containsKey('layoutType')) {
-          var imported = DocumentLayoutPresetJson.fromJson(decoded);
-          await _saveAndSetCurrentLayout(imported);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Imported layout "${imported.name}"')),
-            );
-          }
-        } else {
-          int importedCount = 0;
-          final existingNames = (await _layoutService.listLayoutStatuses())
-              .map((s) => s.name)
-              .toSet();
-
-          for (final entry in decoded.entries) {
-            final layoutMap = Map<String, dynamic>.from(entry.value as Map);
-            var layout = DocumentLayoutPresetJson.fromJson(layoutMap);
-
-            String finalName = entry.key;
-            int i = 1;
-            while (existingNames.contains(finalName)) {
-              finalName = '${entry.key}_$i';
-              i++;
-            }
-            existingNames.add(finalName);
-            layout = layout.copyWith(name: finalName);
-            await _layoutService.saveLayout(layout);
-            importedCount++;
-          }
-          await _load();
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Imported $importedCount presets')),
-            );
-          }
-        }
-      } else {
-        throw const FormatException('Invalid format');
-      }
+      final bundle = transfer.decodeLayouts(
+        await File(file.path).readAsString(),
+      );
+      if (!mounted) return;
+      final templates = bundle.templates.isEmpty
+          ? const <Template>[]
+          : await resolveMissingTemplateFonts(context, ref, bundle.templates);
+      if (templates == null) return;
+      final result = await transfer.importLayouts(bundle, templates: templates);
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Invalid document layout file: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _saveAndSetCurrentLayout(
-    rust_config.DocumentLayoutPreset imported,
-  ) async {
-    var nextLayout = imported;
-    final names = (await _layoutService.listLayoutStatuses())
-        .map((s) => s.name)
-        .toList();
-    if (names.contains(imported.name)) {
-      final base = imported.name;
-      var i = 2;
-      while (names.contains('$base $i')) {
-        i++;
-      }
-      nextLayout = imported.copyWith(name: '$base $i');
-    }
-    await _layoutService.saveLayout(nextLayout);
-    await _layoutService.setCurrentLayoutName(nextLayout.name);
-    await _load();
-  }
-
-  void _scanPresetQr() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScannerScreen(
-          onDetect: (barcode) {
-            final rawValue = barcode.barcodes.first.rawValue;
-            if (rawValue != null) {
-              _importPresetFromQR(rawValue);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  void _importPresetFromQR(String rawValue) async {
-    try {
-      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
-      if (decoded.containsKey('nahpu_document_preset') &&
-          decoded.containsKey('data')) {
-        String name = decoded['nahpu_document_preset'] as String;
-        final dataJson = Map<String, dynamic>.from(decoded['data'] as Map);
-        var layout = DocumentLayoutPresetJson.fromJson(dataJson);
-
-        if (_layoutStatuses.length >= 20) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Maximum of 20 presets reached. Cannot import.'),
-              ),
-            );
-          }
-          return;
-        }
-
-        String finalName = name;
-        int i = 1;
-        final existingNames = _layoutStatuses.map((s) => s.name).toSet();
-        while (existingNames.contains(finalName)) {
-          finalName = '${name}_$i';
-          i++;
-        }
-        layout = layout.copyWith(name: finalName);
-
-        await _layoutService.saveLayout(layout);
-        await _layoutService.setCurrentLayoutName(finalName);
-        await _load();
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Imported preset "$finalName"')),
-          );
-        }
-      } else {
-        throw const FormatException('Invalid QR code format for preset.');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
         );
       }
     }
@@ -937,11 +812,6 @@ class DocumentPresetListColumn extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (status.isCompatible) ...[
-                                  IconButton(
-                                    icon: const Icon(Icons.qr_code),
-                                    tooltip: 'Show QR',
-                                    onPressed: () => _showQRCode(context, name),
-                                  ),
                                   if (onExportPreset != null)
                                     IconButton(
                                       icon: const Icon(
@@ -966,34 +836,6 @@ class DocumentPresetListColumn extends StatelessWidget {
                       );
                     },
                   ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showQRCode(BuildContext context, String name) async {
-    final layoutService = const DocumentLayoutService();
-    final layout = await layoutService.getLayout(name);
-    if (layout == null) return;
-    final payload = jsonEncode({
-      'nahpu_document_preset': name,
-      'data': layout.toJson(),
-    });
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(name),
-        content: SizedBox(
-          width: 300,
-          height: 300,
-          child: QrImageView(data: payload, backgroundColor: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
           ),
         ],
       ),

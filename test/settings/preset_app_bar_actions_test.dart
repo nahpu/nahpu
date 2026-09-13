@@ -169,4 +169,30 @@ void main() {
     expect(find.text('Load defaults'), findsNothing);
     expect(find.byType(PopupMenuDivider), findsNWidgets(2));
   });
+
+  testWidgets('hides Scan QR for items without a QR code', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(
+            actions: [
+              PresetAppBarActions(
+                onCreate: () {},
+                onImport: () {},
+                onExportAll: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Preset options'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Scan QR'), findsNothing);
+    expect(find.text('Import'), findsOneWidget);
+    // Create, import, and export still form separate groups.
+    expect(find.byType(PopupMenuDivider), findsNWidgets(2));
+  });
 }
