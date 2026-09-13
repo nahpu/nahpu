@@ -16,7 +16,10 @@ import 'package:nahpu/styles/design_tokens.dart';
 
 /// Settings row showing total usage, linking to the explorer.
 class DataUsage extends ConsumerWidget {
-  const DataUsage({super.key});
+  const DataUsage({super.key, required this.onTap, this.isSelected = false});
+
+  final VoidCallback onTap;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,10 +41,8 @@ class DataUsage extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : null,
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const DataUsageSettings()),
-      ),
+      isSelected: isSelected,
+      onTap: onTap,
     );
   }
 }
