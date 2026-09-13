@@ -4,8 +4,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/templates/components/canvas/template_canvas_workspace.dart';
 import 'package:nahpu/screens/templates/components/controls/template_editor_toolbar.dart';
+import 'package:nahpu/screens/templates/components/controls/template_picker_sheet.dart';
 import 'package:nahpu/screens/templates/components/properties/template_element_properties_panel.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class TemplateEditorScaffold extends StatelessWidget {
   const TemplateEditorScaffold({
@@ -52,6 +54,7 @@ class TemplateEditorScaffold extends StatelessWidget {
     required this.onSnapToggled,
     required this.onCanvasMovementLockToggled,
     required this.onSelectPreviewSpecimen,
+    required this.onShowElements,
     required this.onClearSelection,
     required this.onSelectElement,
     required this.onStartInlineEditing,
@@ -129,6 +132,7 @@ class TemplateEditorScaffold extends StatelessWidget {
   final VoidCallback onSnapToggled;
   final VoidCallback onCanvasMovementLockToggled;
   final VoidCallback onSelectPreviewSpecimen;
+  final VoidCallback onShowElements;
   final VoidCallback onClearSelection;
   final ValueChanged<String> onSelectElement;
   final ValueChanged<String> onStartInlineEditing;
@@ -167,7 +171,8 @@ class TemplateEditorScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = Platform.isIOS || Platform.isAndroid;
     final viewPadding = MediaQuery.viewPaddingOf(context);
-    final useBottomProperties = MediaQuery.sizeOf(context).width < 600;
+    final isCompact =
+        MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
     final selected = selectedElement;
 
     final properties = _TemplatePropertiesStrip(
@@ -189,11 +194,15 @@ class TemplateEditorScaffold extends StatelessWidget {
       onPasteElement: onPasteElement,
       canPasteElement: canPasteElement,
       borderPanel: borderPanel,
-      useBottomSheetStyle: useBottomProperties,
+      isCompact: isCompact,
     );
 
     return Scaffold(
       appBar: _TemplateEditorAppBar(
+        isCompact: isCompact,
+        templateName: template.name,
+        savedNames: savedNames,
+        onTemplateSelected: onTemplateSelected,
         canDeleteSavedTemplate: canDeleteSavedTemplate,
         onCreateNewTemplate: onCreateNewTemplate,
         onSaveTemplate: onSaveTemplate,
@@ -241,12 +250,13 @@ class TemplateEditorScaffold extends StatelessWidget {
               onSnapToggled: onSnapToggled,
               onCanvasMovementLockToggled: onCanvasMovementLockToggled,
               onSelectPreviewSpecimen: onSelectPreviewSpecimen,
+              onShowElements: onShowElements,
               onUndo: onUndo,
               onRedo: onRedo,
               canUndo: canUndo,
               canRedo: canRedo,
             ),
-            if (!useBottomProperties) properties,
+            properties,
             Expanded(
               child: TemplateCanvasWorkspace(
                 isDuplex: isDuplex,
@@ -304,10 +314,6 @@ class TemplateEditorScaffold extends StatelessWidget {
           ],
         ),
       ),
-      bottomSheet:
-          useBottomProperties && (selectedElement != null || isBorderPanelOpen)
-          ? properties
-          : null,
     );
   }
 
@@ -330,6 +336,10 @@ class TemplateEditorScaffold extends StatelessWidget {
 class _TemplateEditorAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const _TemplateEditorAppBar({
+    required this.isCompact,
+    required this.templateName,
+    required this.savedNames,
+    required this.onTemplateSelected,
     required this.canDeleteSavedTemplate,
     required this.onCreateNewTemplate,
     required this.onSaveTemplate,
@@ -349,13 +359,25 @@ class _TemplateEditorAppBar extends StatelessWidget
   final VoidCallback onDeleteTemplate;
   final VoidCallback onTemplateSettingsPressed;
 
+  /// Phone width: the title becomes the template picker.
+  final bool isCompact;
+  final String templateName;
+  final List<String> savedNames;
+  final ValueChanged<String> onTemplateSelected;
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text('Template Editor'),
+      title: isCompact
+          ? _TemplateTitlePicker(
+              templateName: templateName,
+              savedNames: savedNames,
+              onTemplateSelected: onTemplateSelected,
+            )
+          : const Text('Template Editor'),
       actions: [
         IconButton(
           onPressed: onCreateNewTemplate,
@@ -435,6 +457,58 @@ class _TemplateEditorAppBar extends StatelessWidget
   }
 }
 
+/// The template picker collapsed into the app bar title on phones. Tapping it
+/// opens a sheet of saved templates.
+class _TemplateTitlePicker extends StatelessWidget {
+  const _TemplateTitlePicker({
+    required this.templateName,
+    required this.savedNames,
+    required this.onTemplateSelected,
+  });
+
+  final String templateName;
+  final List<String> savedNames;
+  final ValueChanged<String> onTemplateSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Choose template',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(NahpuRadius.sm),
+        onTap: () => _choose(context),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  templateName.trim().isEmpty
+                      ? 'Untitled template'
+                      : templateName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(Icons.arrow_drop_down),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _choose(BuildContext context) async {
+    final name = await showTemplatePickerSheet(
+      context: context,
+      savedNames: savedNames,
+      currentName: templateName,
+    );
+    if (name != null && name != templateName) onTemplateSelected(name);
+  }
+}
+
 enum _TemplateEditorAction {
   create,
   save,
@@ -464,7 +538,7 @@ class _TemplatePropertiesStrip extends StatelessWidget {
     required this.onCopyElement,
     required this.onPasteElement,
     required this.canPasteElement,
-    this.useBottomSheetStyle = false,
+    this.isCompact = false,
     this.borderPanel,
   });
 
@@ -487,7 +561,10 @@ class _TemplatePropertiesStrip extends StatelessWidget {
   final ValueChanged<String> onCopyElement;
   final VoidCallback onPasteElement;
   final bool canPasteElement;
-  final bool useBottomSheetStyle;
+
+  /// Phone width: the panel scrolls within a capped height under the toolbar,
+  /// so a tall panel never pushes the canvas off screen.
+  final bool isCompact;
   final Widget? borderPanel;
 
   @override
@@ -526,24 +603,24 @@ class _TemplatePropertiesStrip extends StatelessWidget {
       alignment: Alignment.topCenter,
       clipBehavior: Clip.hardEdge,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
         child: activeChild,
       ),
     );
-    if (!useBottomSheetStyle) return content;
-
-    return Material(
-      elevation: 12,
-      color: Theme.of(context).colorScheme.surfaceContainer,
-      child: SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-          ),
-          child: SingleChildScrollView(child: content),
-        ),
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
       ),
+      child: isCompact
+          ? ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.4,
+              ),
+              child: SingleChildScrollView(child: content),
+            )
+          : content,
     );
   }
 }

@@ -27,7 +27,7 @@ class ImagePropertiesPanel extends StatelessWidget {
       onDismiss: onDismiss,
       child: Padding(
         padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            ? kTemplateToolbarPanelPadding
             : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,

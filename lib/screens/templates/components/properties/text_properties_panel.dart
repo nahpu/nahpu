@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
@@ -61,47 +62,10 @@ class TextPropertiesPanel extends StatelessWidget {
     required Widget child,
     required bool inToolbar,
   }) {
-    final scheme = Theme.of(context).colorScheme;
-
-    final wrappedChild = Row(
-      children: [
-        Expanded(child: child),
-        if (onDismiss != null) ...[
-          SizedBox(
-            height: 32,
-            child: VerticalDivider(
-              width: 2,
-              thickness: 2,
-              color: scheme.outlineVariant,
-            ),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.close, size: 20),
-            tooltip: 'Dismiss toolbar',
-            onPressed: onDismiss,
-          ),
-          const SizedBox(width: 4),
-        ],
-      ],
-    );
-
-    if (inToolbar) {
-      return Material(
-        elevation: 0,
-        color: scheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: wrappedChild,
-      );
-    }
-    return Material(
-      elevation: 2,
-      color: scheme.surfaceContainerHigh,
-      child: SafeArea(top: false, child: wrappedChild),
+    return TemplatePropertyPanelShell(
+      inToolbar: inToolbar,
+      onDismiss: onDismiss,
+      child: child,
     );
   }
 
@@ -163,7 +127,7 @@ class TextPropertiesPanel extends StatelessWidget {
     if (isTemplateBracketSpecimenSexIconText(ct.text)) {
       final content = Padding(
         padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            ? kTemplateToolbarPanelPadding
             : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -654,7 +618,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
 
     return Padding(
       padding: widget.inToolbar
-          ? const EdgeInsets.all(8)
+          ? kTemplateToolbarPanelPadding
           : const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

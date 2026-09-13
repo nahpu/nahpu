@@ -158,22 +158,31 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: Center(
+                // Phones drop the icons and checkmark so each label fits on
+                // one line.
                 child: SegmentedButton<DocumentPresetView>(
-                  segments: const [
+                  showSelectedIcon: isLargeScreen,
+                  segments: [
                     ButtonSegment(
                       value: DocumentPresetView.layouts,
-                      icon: Icon(Icons.view_quilt_outlined),
-                      label: Text('Print layouts'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.view_quilt_outlined)
+                          : null,
+                      label: const Text('Print layouts'),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.templates,
-                      icon: Icon(Icons.dashboard_customize_outlined),
-                      label: Text('Templates'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.dashboard_customize_outlined)
+                          : null,
+                      label: const Text('Templates'),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.fonts,
-                      icon: Icon(Icons.text_fields_outlined),
-                      label: Text('Fonts'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.text_fields_outlined)
+                          : null,
+                      label: const Text('Fonts'),
                     ),
                   ],
                   selected: {_view},

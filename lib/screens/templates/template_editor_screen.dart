@@ -25,6 +25,7 @@ import 'package:nahpu/services/templates/canvas_placement_service.dart';
 import 'package:nahpu/services/templates/editor_history_service.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
+import 'package:nahpu/screens/templates/components/controls/template_elements_sheet.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -188,6 +189,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           () => _canvasMovementLocked = !_canvasMovementLocked,
         ),
         onSelectPreviewSpecimen: _selectSpecimenForPreview,
+        onShowElements: _showElements,
         onClearSelection: _clearSelection,
         onSelectElement: _selectElement,
         onStartInlineEditing: _startInlineEditing,
@@ -722,6 +724,21 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   void _startInlineEditing(String id) {
     _selectElement(id);
     _showTextEditDialog(id);
+  }
+
+  /// Lists the elements on the current side so small ones can be picked
+  /// without tapping them on the canvas.
+  Future<void> _showElements() async {
+    final page1 = _isPage1;
+    final selection = await showTemplateElementsSheet(
+      context: context,
+      page: page1 ? _template.page1 : _template.page2,
+      page1: page1,
+      sideLabel: _isDuplex ? (page1 ? 'Front' : 'Back') : null,
+      selectedElement: _selectedElement,
+    );
+    if (selection == null || !mounted) return;
+    _selectElement(selection);
   }
 
   // --- Custom text helpers ---
