@@ -1,30 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' as db;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/site_services.dart';
 import 'package:nahpu/services/types/fossils.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 
-/// Stratigraphy and geological age of a fossil site.
-///
-/// UI only for now: the fields hold local state and are not yet persisted to
-/// the database.
-class Stratigraphy extends StatefulWidget {
-  const Stratigraphy({super.key});
+/// Loads the stratigraphy recorded for the selected site.
+class Stratigraphy extends ConsumerWidget {
+  const Stratigraphy({super.key, required this.siteId});
+
+  final int siteId;
 
   @override
-  StratigraphyState createState() => StratigraphyState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(fossilSiteProvider(siteId))
+        .when(
+          data: (data) => StratigraphyFields(
+            key: ValueKey(siteId),
+            siteId: siteId,
+            fossilSite: data,
+          ),
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error loading stratigraphy data: $error'),
+        );
+  }
 }
 
-class StratigraphyState extends State<Stratigraphy> {
-  // Local, UI-only state. Not yet persisted to the database.
-  final TextEditingController _formationCtr = TextEditingController();
-  final TextEditingController _stageCtr = TextEditingController();
-  final TextEditingController _biozoneCtr = TextEditingController();
-  final TextEditingController _commentsCtr = TextEditingController();
-  final TextEditingController _referencesCtr = TextEditingController();
+class StratigraphyFields extends ConsumerStatefulWidget {
+  const StratigraphyFields({
+    super.key,
+    required this.siteId,
+    required this.fossilSite,
+  });
+
+  final int siteId;
+  final FossilSiteData? fossilSite;
+
+  @override
+  ConsumerState<StratigraphyFields> createState() => _StratigraphyFieldsState();
+}
+
+class _StratigraphyFieldsState extends ConsumerState<StratigraphyFields> {
+  late final TextEditingController _formationCtr;
+  late final TextEditingController _stageCtr;
+  late final TextEditingController _biozoneCtr;
+  late final TextEditingController _commentsCtr;
+  late final TextEditingController _referencesCtr;
   String? _era;
   String? _period;
   String? _series;
   String? _epoch;
+
+  @override
+  void initState() {
+    super.initState();
+    final data = widget.fossilSite;
+    _formationCtr = TextEditingController(text: data?.formation);
+    _stageCtr = TextEditingController(text: data?.narrowerGeologicStage);
+    _biozoneCtr = TextEditingController(text: data?.biozone);
+    _commentsCtr = TextEditingController(text: data?.stratigraphyRemark);
+    _referencesCtr = TextEditingController(text: data?.stratigraphicSource);
+    _era = stratigraphyValueAt(geologicEraList, data?.geologicEra);
+    _period = stratigraphyValueAt(_periodOptions, data?.geologicPeriod);
+    _series = stratigraphyValueAt(_seriesOptions, data?.geologicSeries);
+    _epoch = stratigraphyValueAt(_epochOptions, data?.geologicEpoch);
+  }
 
   @override
   void dispose() {
@@ -42,6 +87,8 @@ class StratigraphyState extends State<Stratigraphy> {
       children: [
         TextFormField(
           controller: _formationCtr,
+          onChanged: (value) =>
+              _save(FossilSiteCompanion(formation: db.Value(value))),
           decoration: const InputDecoration(
             labelText: 'Formation',
             hintText: 'E.g. "Hell Creek Formation"',
@@ -84,7 +131,16 @@ class StratigraphyState extends State<Stratigraphy> {
           ),
           items: _menuItems(_seriesOptions),
           onChanged: _seriesOptions.isNotEmpty
-              ? (value) => setState(() => _series = value)
+              ? (value) {
+                  setState(() => _series = value);
+                  _save(
+                    FossilSiteCompanion(
+                      geologicSeries: db.Value(
+                        stratigraphyIndexOf(_seriesOptions, value),
+                      ),
+                    ),
+                  );
+                }
               : null,
         ),
         DropdownButtonFormField<String>(
@@ -99,11 +155,23 @@ class StratigraphyState extends State<Stratigraphy> {
           ),
           items: _menuItems(_epochOptions),
           onChanged: _epochOptions.isNotEmpty
-              ? (value) => setState(() => _epoch = value)
+              ? (value) {
+                  setState(() => _epoch = value);
+                  _save(
+                    FossilSiteCompanion(
+                      geologicEpoch: db.Value(
+                        stratigraphyIndexOf(_epochOptions, value),
+                      ),
+                    ),
+                  );
+                }
               : null,
         ),
         TextFormField(
           controller: _stageCtr,
+          onChanged: (value) => _save(
+            FossilSiteCompanion(narrowerGeologicStage: db.Value(value)),
+          ),
           decoration: const InputDecoration(
             labelText: 'Narrower Geologic Stage',
             hintText: 'Local or non-standardized substage',
@@ -111,6 +179,8 @@ class StratigraphyState extends State<Stratigraphy> {
         ),
         TextFormField(
           controller: _biozoneCtr,
+          onChanged: (value) =>
+              _save(FossilSiteCompanion(biozone: db.Value(value))),
           decoration: const InputDecoration(
             labelText: 'Biozone',
             hintText: 'E.g. "Triceratops biozone"',
@@ -119,6 +189,8 @@ class StratigraphyState extends State<Stratigraphy> {
         TextFormField(
           maxLines: 4,
           controller: _commentsCtr,
+          onChanged: (value) =>
+              _save(FossilSiteCompanion(stratigraphyRemark: db.Value(value))),
           decoration: const InputDecoration(
             labelText: 'Comments',
             hintText: 'Notes on the stratigraphy or geological age.',
@@ -127,6 +199,8 @@ class StratigraphyState extends State<Stratigraphy> {
         TextFormField(
           maxLines: 4,
           controller: _referencesCtr,
+          onChanged: (value) =>
+              _save(FossilSiteCompanion(stratigraphicSource: db.Value(value))),
           decoration: const InputDecoration(
             labelText: 'Reference source(s) for stratigraphy',
             hintText: 'Citation(s) or link(s) to relevant paper(s).',
@@ -171,6 +245,14 @@ class StratigraphyState extends State<Stratigraphy> {
       _series = null;
       _epoch = null;
     });
+    _save(
+      FossilSiteCompanion(
+        geologicEra: db.Value(stratigraphyIndexOf(geologicEraList, value)),
+        geologicPeriod: const db.Value(null),
+        geologicSeries: const db.Value(null),
+        geologicEpoch: const db.Value(null),
+      ),
+    );
   }
 
   void _onPeriodChanged(String? value) {
@@ -179,6 +261,17 @@ class StratigraphyState extends State<Stratigraphy> {
       _series = null;
       _epoch = null;
     });
+    _save(
+      FossilSiteCompanion(
+        geologicPeriod: db.Value(stratigraphyIndexOf(_periodOptions, value)),
+        geologicSeries: const db.Value(null),
+        geologicEpoch: const db.Value(null),
+      ),
+    );
+  }
+
+  void _save(FossilSiteCompanion entries) {
+    FossilSiteServices(ref: ref).updateFossilSite(widget.siteId, entries);
   }
 }
 

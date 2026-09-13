@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/sites/components/sedimentology.dart';
@@ -35,11 +34,13 @@ class _SiteAttributesState extends State<SiteAttributes> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Sedimentology', style: Theme.of(context).textTheme.titleMedium),
+          Text('Sedimentology', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
           Sedimentology(id: widget.id),
-          const CommonDivider(),
-          Text('Stratigraphy', style: Theme.of(context).textTheme.titleMedium),
-          const Stratigraphy(),
+          const SizedBox(height: 24),
+          Text('Stratigraphy', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Stratigraphy(siteId: widget.id),
         ],
       ),
     );

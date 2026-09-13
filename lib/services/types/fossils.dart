@@ -90,12 +90,9 @@ const List<String> standardPreservationTypeList = [
 
 // --- Stratigraphy vocabularies ---
 //
-// UI only for now: the stratigraphy form is not yet persisted, so these back
-// the dropdowns but are not read through a database index. Kept here (like the
-// sedimentology lists above) so a future data layer validates against the same
-// vocabulary. Every stratigraphy dropdown also offers "Unknown" and
-// "Not Applicable"; append them with [withStratigraphyFallback] rather than
-// repeating them in each list.
+// Database values store zero-based indices in these lists. Dependent values
+// use the options for their stored parent, including the appended fallbacks.
+// Preserve list order to keep existing records valid.
 
 const List<String> geologicEraList = [
   'Paleozoic',
@@ -115,16 +112,8 @@ const Map<String, List<String>> geologicPeriodsByEra = {
     'Carboniferous',
     'Permian',
   ],
-  'Mesozoic': [
-    'Triassic',
-    'Jurassic',
-    'Cretaceous',
-  ],
-  'Cenozoic': [
-    'Paleogene',
-    'Neogene',
-    'Quaternary',
-  ],
+  'Mesozoic': ['Triassic', 'Jurassic', 'Cretaceous'],
+  'Cenozoic': ['Paleogene', 'Neogene', 'Quaternary'],
 };
 
 /// Geologic series (chronostratigraphic) shown for a selected period.
@@ -163,10 +152,10 @@ const Map<String, List<String>> geologicEpochsByPeriod = {
 /// Appends the shared "Unknown" / "Not Applicable" options to a conditional
 /// stratigraphy list so every dropdown offers them.
 List<String> withStratigraphyFallback(List<String> options) => [
-      ...options,
-      'Unknown',
-      'Not Applicable',
-    ];
+  ...options,
+  'Unknown',
+  'Not Applicable',
+];
 
 const List<String> defaultFossilSiteTypes = [
   'Badlands',
@@ -182,3 +171,15 @@ const List<String> defaultFossilSiteTypes = [
   'Woodland',
   'Other',
 ];
+
+/// Reads a stored vocabulary index, tolerating absent or invalid values.
+String? stratigraphyValueAt(List<String> options, int? index) =>
+    index != null && index >= 0 && index < options.length
+    ? options[index]
+    : null;
+
+/// Converts a selection to its database index within the parent's options.
+int? stratigraphyIndexOf(List<String> options, String? value) {
+  final index = value == null ? -1 : options.indexOf(value);
+  return index < 0 ? null : index;
+}
