@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/home/home.dart';
-import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
-import 'package:nahpu/screens/shared/forms/fields.dart';
+import 'package:nahpu/screens/shared/file/db_backup_summary_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
@@ -39,6 +39,15 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   ExportCancellation? _cancellation;
   StreamSubscription<ExportJobProgress>? _progressSubscription;
   ExportJobProgress? _jobProgress;
+  DbBackupSummary? _summary;
+  String? _summaryError;
+  bool _isLoadingSummary = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadSummary());
+  }
 
   @override
   void dispose() {
@@ -48,6 +57,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
 
   @override
   Widget build(BuildContext context) {
+    final jobProgress = _jobProgress;
     return PopScope(
       // A restore rewrites the database in place; leaving part way through
       // would be worse than waiting, so the user has to decide deliberately.
@@ -55,87 +65,71 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _confirmLeave();
       },
-      child: _buildScaffold(context),
+      child: _isLoading && jobProgress != null
+          ? _RestoreProgressView(
+              progress: jobProgress,
+              isCancelling: _isCancelling,
+              // Cancelling is only offered while the archive is being read.
+              // Once files start landing in place, stopping half way would
+              // leave the app in a state the user cannot reason about.
+              onCancel: _canCancelRestore(jobProgress) ? _requestCancel : null,
+            )
+          : _ReplaceDatabaseForm(
+              dbPath: _dbPath,
+              isArchived: _isArchived,
+              databaseRelativePath: _databaseRelativePath,
+              isSelectingFile: _isSelectingFile,
+              isBackup: _isBackup,
+              summary: _summary,
+              summaryError: _summaryError,
+              onSelectFile: _selectFile,
+              onClearFile: _clearFile,
+              onBackupChanged: _setBackup,
+              onReplace: _hasSelected ? _confirmReplace : null,
+            ),
     );
   }
 
-  Widget _buildScaffold(BuildContext context) {
-    final jobProgress = _jobProgress;
-    if (_isLoading && jobProgress != null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Replace database'),
-          automaticallyImplyLeading: false,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(NahpuSpacing.xl),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: NahpuContentWidth.form,
-                ),
-                child: ExportProgressPanel(
-                  title: 'Restoring database',
-                  progress: jobProgress,
-                  hint:
-                      'Restoring a backup with many photos can take several '
-                      'minutes. Keep NAHPU open until this finishes.',
-                  isCancelling: _isCancelling,
-                  // Cancelling is only offered while the archive is being read.
-                  // Once files start landing in place, stopping half way would
-                  // leave the app in a state the user cannot reason about.
-                  onCancel: _canCancelRestore(jobProgress)
-                      ? _requestCancel
-                      : null,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
+  /// Reads what the safety backup will copy, the first time it is turned on.
+  Future<void> _loadSummary() async {
+    if (_summary != null || _isLoadingSummary) return;
+    _isLoadingSummary = true;
+    _summaryError = null;
+    try {
+      final summary = await DbExport(ref: ref, filePath: File('')).getSummary();
+      if (!mounted) return;
+      setState(() => _summary = summary);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _summaryError = error.toString());
+    } finally {
+      _isLoadingSummary = false;
     }
-    return Scaffold(
-      appBar: AppBar(title: const Text('Replace database')),
-      body: SafeArea(
-        child: CommonSettingList(
-          sections: [
-            DbFileInputField(
-              dbPath: _dbPath,
-              isSelectingFile: _isSelectingFile,
-              onPressed: () async {
-                try {
-                  await _getDbPath();
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to select file!')),
-                    );
-                  }
-                }
-              },
-              onCleared: () {
-                setState(() {
-                  _dbPath = null;
-                  _hasSelected = false;
-                  _isArchived = false;
-                  _databaseRelativePath = null;
-                });
-              },
-              isBackup: _isBackup,
-              onBackupChosen: (bool value) async {
-                _isBackup = value;
+  }
 
-                setState(() {});
-              },
-              hasSelected: _hasSelected,
-              isLoading: _isLoading,
-              onReplaceDb: () => _replaceDb(),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _setBackup(bool value) {
+    setState(() => _isBackup = value);
+    if (value) unawaited(_loadSummary());
+  }
+
+  Future<void> _selectFile() async {
+    try {
+      await _getDbPath();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to select file!')));
+    }
+  }
+
+  void _clearFile() {
+    setState(() {
+      _dbPath = null;
+      _hasSelected = false;
+      _isArchived = false;
+      _databaseRelativePath = null;
+    });
   }
 
   Future<void> _getDbPath() async {
@@ -188,9 +182,35 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     }
   }
 
-  Future<void> _replaceDb() async {
-    Navigator.of(context).pop();
+  Future<void> _confirmReplace() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final colors = Theme.of(context).colorScheme;
+        return AlertDialog(
+          title: const Text('Replace database?'),
+          content: DbWarningText(isBackup: _isBackup),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: colors.error,
+                foregroundColor: colors.onError,
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Replace'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true && mounted) await _replaceDb();
+  }
 
+  Future<void> _replaceDb() async {
     final reporter = ExportProgressReporter(steps: DbWriter.restorePhases);
     final cancellation = ExportCancellation();
     setState(() {
@@ -203,24 +223,19 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       if (mounted) setState(() => _jobProgress = progress);
     });
     try {
-      final backupPath = _isBackup
-          ? await AppServices(ref: ref).backupDir
-          : null;
-
-      await DbWriter(ref: ref, filePath: File(_dbPath!.path)).replace(
-        _isBackup,
-        _isArchived,
-        databaseRelativePath: _databaseRelativePath,
-        progress: reporter,
-        cancel: cancellation,
-      );
+      final backupFile = await DbWriter(ref: ref, filePath: File(_dbPath!.path))
+          .replace(
+            _isBackup,
+            _isArchived,
+            databaseRelativePath: _databaseRelativePath,
+            progress: reporter,
+            cancel: cancellation,
+          );
       if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
-      if (context.mounted) {
-        _navigate(backupPath);
-      }
+      _navigate(backupFile);
     } on ExportCancelledException {
       if (!mounted) return;
       setState(() {
@@ -236,9 +251,7 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
       setState(() {
         _isLoading = false;
       });
-      if (context.mounted) {
-        _showError(e.toString());
-      }
+      _showError(e.toString());
     } finally {
       await _progressSubscription?.cancel();
       _progressSubscription = null;
@@ -296,12 +309,12 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
     if (leave == true && mounted) _requestCancel();
   }
 
-  void _navigate(File? backupPath) {
+  void _navigate(File? backupFile) {
     ref.invalidate(databaseProvider);
     ref.invalidate(projectListProvider);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => DBReplacedPage(dbBackupPath: backupPath),
+        builder: (context) => DBReplacedPage(dbBackupPath: backupFile),
       ),
     );
   }
@@ -316,105 +329,375 @@ class DatabaseSettingsState extends ConsumerState<DatabaseSettings> {
   }
 }
 
-class DbFileInputField extends StatelessWidget {
-  const DbFileInputField({
-    super.key,
+/// Laid out like the backup window: options on the left, what the safety
+/// backup copies on the right, and the action pinned below both.
+class _ReplaceDatabaseForm extends StatelessWidget {
+  const _ReplaceDatabaseForm({
     required this.dbPath,
-    required this.isBackup,
-    required this.onPressed,
-    required this.onCleared,
-    required this.onBackupChosen,
-    required this.hasSelected,
+    required this.isArchived,
+    required this.databaseRelativePath,
     required this.isSelectingFile,
-    required this.isLoading,
-    required this.onReplaceDb,
+    required this.isBackup,
+    required this.summary,
+    required this.summaryError,
+    required this.onSelectFile,
+    required this.onClearFile,
+    required this.onBackupChanged,
+    required this.onReplace,
   });
 
   final XFile? dbPath;
-  final bool isBackup;
-  final VoidCallback onPressed;
-  final VoidCallback onCleared;
-  final void Function(bool) onBackupChosen;
-  final bool hasSelected;
+  final bool isArchived;
+  final String? databaseRelativePath;
   final bool isSelectingFile;
-  final bool isLoading;
-  final VoidCallback onReplaceDb;
+  final bool isBackup;
+  final DbBackupSummary? summary;
+  final String? summaryError;
+  final VoidCallback onSelectFile;
+  final VoidCallback onClearFile;
+  final ValueChanged<bool> onBackupChanged;
+
+  /// Null until a database file is selected.
+  final VoidCallback? onReplace;
 
   @override
   Widget build(BuildContext context) {
-    return CommonSettingSection(
+    final options = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 8),
-        Center(
-          child: SelectFileField(
-            filePath: dbPath,
-            width: 460,
-            onPressed: onPressed,
-            isLoading: isSelectingFile,
-            onCleared: onCleared,
-            supportedFormat: '.sqlite3, NAHPU archive (.zip/.tar.gz)',
-            maxWidth: 460,
-          ),
+        _DatabaseSourceCard(
+          dbPath: dbPath,
+          isArchived: isArchived,
+          databaseRelativePath: databaseRelativePath,
+          isSelectingFile: isSelectingFile,
+          onSelectFile: onSelectFile,
+          onClearFile: onClearFile,
         ),
-        const SizedBox(height: NahpuSpacing.xs),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
-            child: SwitchField(
-              label: 'Back up current data first',
-              value: isBackup,
-              onPressed: onBackupChosen,
-            ),
-          ),
-        ),
-        const SizedBox(height: NahpuSpacing.md),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: NahpuSpacing.lg),
-            child: Text(
-              'Replacing the database replaces every record in NAHPU. Any media '
-              'or config file whose name matches one in the archive is '
-              'overwritten in place and cannot be recovered afterwards. '
-              'Backing up first writes a full archive of your current data, '
-              'including all media, to the backup folder. It can take several '
-              'minutes on a large library.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        const SizedBox(height: NahpuSpacing.md),
-        const _BackupWindowLink(),
         const SizedBox(height: NahpuSpacing.xl),
-        DbReplaceButtons(
-          hasSelected: hasSelected,
-          isRunning: isLoading,
-          onPressed: onReplaceDb,
-        ),
-        const SizedBox(height: 16),
+        _SafetyBackupCard(isBackup: isBackup, onChanged: onBackupChanged),
       ],
+    );
+    // The same contents list as the backup window, so the user sees how
+    // large the safety backup is before starting.
+    final contents = isBackup
+        ? DbBackupSummaryPanel(summary: summary, error: summaryError)
+        : const _NoBackupNotice();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Replace database')),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= NahpuBreakpoints.compact;
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      NahpuSpacing.md,
+                      NahpuSpacing.md,
+                      NahpuSpacing.md,
+                      NahpuSpacing.xl,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: NahpuContentWidth.settings,
+                        ),
+                        child: wide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: options),
+                                  const SizedBox(width: NahpuSpacing.xxl),
+                                  Expanded(child: contents),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  options,
+                                  const SizedBox(height: NahpuSpacing.xl),
+                                  contents,
+                                ],
+                              ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Pinned below the scroll view, as in the backup window, so the
+            // action stays in reach however long the contents list grows.
+            ExportActionBar(
+              label: 'Replace database',
+              repeatLabel: 'Replace database',
+              icon: Icons.restore_outlined,
+              canExport: onReplace != null,
+              isRunning: false,
+              hasOutput: false,
+              onExport: onReplace ?? () {},
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-/// Sends the user to the backup window before they overwrite anything.
+/// Picks the database or backup archive to restore and says what it holds.
 ///
-/// The switch above takes a safety copy, but a user who came here to protect
-/// their data wants the real backup screen, where they choose the destination
-/// and keep the archive.
-class _BackupWindowLink extends StatelessWidget {
-  const _BackupWindowLink();
+/// Styled after the backup window's save location row: a name on the left and
+/// a Browse button on the right, rather than a large drop target.
+class _DatabaseSourceCard extends StatelessWidget {
+  const _DatabaseSourceCard({
+    required this.dbPath,
+    required this.isArchived,
+    required this.databaseRelativePath,
+    required this.isSelectingFile,
+    required this.onSelectFile,
+    required this.onClearFile,
+  });
+
+  final XFile? dbPath;
+  final bool isArchived;
+  final String? databaseRelativePath;
+  final bool isSelectingFile;
+  final VoidCallback onSelectFile;
+  final VoidCallback onClearFile;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: TextButton.icon(
-        icon: const Icon(Icons.backup_outlined),
-        label: const Text('Open the backup window'),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ExportDbForm()),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final file = dbPath;
+    final hasFile = file != null;
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Replace with', style: theme.textTheme.titleLarge),
+          const SizedBox(height: NahpuSpacing.md),
+          const Text('A NAHPU backup archive or a SQLite database file.'),
+          const SizedBox(height: NahpuSpacing.xl),
+          Material(
+            color: colors.surface,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(NahpuRadius.md),
+              side: BorderSide(
+                color: hasFile ? colors.primary : colors.outlineVariant,
+                width: NahpuStroke.thin,
+              ),
+            ),
+            child: InkWell(
+              // The whole row opens the picker until a file is chosen.
+              onTap: hasFile || isSelectingFile ? null : onSelectFile,
+              child: Padding(
+                padding: const EdgeInsets.all(NahpuSpacing.lg),
+                child: Row(
+                  children: [
+                    Container(
+                      width: NahpuControlSize.touchTarget,
+                      height: NahpuControlSize.touchTarget,
+                      decoration: BoxDecoration(
+                        color: hasFile
+                            ? colors.primaryContainer
+                            : colors.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(NahpuRadius.sm),
+                      ),
+                      child: Icon(
+                        !hasFile
+                            ? Icons.upload_file_outlined
+                            : isArchived
+                            ? Icons.folder_zip_outlined
+                            : Icons.storage_outlined,
+                        color: hasFile
+                            ? colors.onPrimaryContainer
+                            : colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: NahpuSpacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hasFile
+                                ? p.basename(file.path)
+                                : 'No file selected',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: NahpuSpacing.xxs),
+                          Text(
+                            _detail,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: NahpuSpacing.md),
+                    if (isSelectingFile)
+                      const SizedBox.square(
+                        dimension: NahpuControlSize.iconMedium,
+                        child: CircularProgressIndicator(),
+                      )
+                    else if (!hasFile)
+                      OutlinedButton.icon(
+                        onPressed: onSelectFile,
+                        icon: const Icon(Icons.folder_open_outlined),
+                        label: const Text('Browse'),
+                      )
+                    else ...[
+                      TextButton(
+                        onPressed: onSelectFile,
+                        child: const Text('Change'),
+                      ),
+                      IconButton(
+                        onPressed: onClearFile,
+                        icon: const Icon(Icons.clear_rounded),
+                        tooltip: 'Clear file',
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _detail {
+    if (dbPath == null) return 'ZIP, TAR.GZ, or SQLITE3';
+    if (!isArchived) return 'SQLite database';
+    final database = databaseRelativePath;
+    return database == null
+        ? 'NAHPU backup archive'
+        : 'NAHPU backup archive · restores $database';
+  }
+}
+
+class _SafetyBackupCard extends StatelessWidget {
+  const _SafetyBackupCard({required this.isBackup, required this.onChanged});
+
+  final bool isBackup;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return NahpuPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Before replacing', style: theme.textTheme.titleLarge),
+          const SizedBox(height: NahpuSpacing.md),
+          Text(
+            'Every record in NAHPU is replaced, and media or config files that '
+            'match the archive are overwritten in place. This cannot be '
+            'undone.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: NahpuSpacing.lg),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Back up current data first'),
+            subtitle: const Text(
+              'Saves a full archive, including media, to the NAHPU backup '
+              'folder',
+            ),
+            value: isBackup,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Takes the contents list's place when the safety backup is off, so the risk
+/// is stated where the numbers would have been.
+class _NoBackupNotice extends StatelessWidget {
+  const _NoBackupNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return NahpuPanel(
+      borderColor: theme.colorScheme.error,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
+              const SizedBox(width: NahpuSpacing.md),
+              Expanded(
+                child: Text(
+                  'No safety backup',
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: NahpuSpacing.md),
+          const Text(
+            'Your current records and media are not saved before they are '
+            'replaced. Turn on Back up current data first, or save one from '
+            'Backup database.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RestoreProgressView extends StatelessWidget {
+  const _RestoreProgressView({
+    required this.progress,
+    required this.isCancelling,
+    required this.onCancel,
+  });
+
+  final ExportJobProgress progress;
+  final bool isCancelling;
+  final VoidCallback? onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Replace database'),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(NahpuSpacing.xl),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: NahpuContentWidth.form,
+              ),
+              child: ExportProgressPanel(
+                title: 'Restoring database',
+                progress: progress,
+                hint:
+                    'Restoring a backup with many photos can take several '
+                    'minutes. Keep NAHPU open until this finishes.',
+                isCancelling: isCancelling,
+                onCancel: onCancel,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -449,66 +732,20 @@ class DatabaseCandidateDialog extends StatelessWidget {
   }
 }
 
-class DbReplaceButtons extends StatelessWidget {
-  const DbReplaceButtons({
-    super.key,
-    required this.hasSelected,
-    required this.isRunning,
-    required this.onPressed,
-  });
-
-  final bool hasSelected;
-  final bool isRunning;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return ProgressButton(
-      label: 'Replace',
-      icon: Icons.refresh,
-      isRunning: isRunning,
-      onPressed: !hasSelected
-          ? null
-          : () async {
-              // Alert users before replacing database
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Replace database'),
-                  content: const DbWarningText(),
-                  actions: [
-                    PrimaryButton(
-                      label: 'Cancel',
-                      icon: Icons.cancel,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                    TextButton(
-                      onPressed: onPressed,
-                      child: Text(
-                        'Replace',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-    );
-  }
-}
-
+/// Confirmation text that only adds what the page does not already say:
+/// whether a safety backup will be taken.
 class DbWarningText extends StatelessWidget {
-  const DbWarningText({super.key});
+  const DbWarningText({super.key, required this.isBackup});
+
+  final bool isBackup;
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'This replaces every record in NAHPU, and overwrites any media or '
-      'config file that matches one in the archive. It cannot be undone '
-      'without a backup. Continue?',
-      textAlign: TextAlign.center,
+    return Text(
+      isBackup
+          ? 'A full backup of your current data is saved first. Continue?'
+          : 'No backup will be made, so your current data cannot be '
+                'recovered. Continue?',
     );
   }
 }
@@ -520,55 +757,59 @@ class DBReplacedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final backupPath = dbBackupPath;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Database Settings'),
+        title: const Text('Replace database'),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FileFormatIcon(path: 'assets/icons/database.svg'),
-              Text(
-                'Success 🎉',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              Text(
-                'Database has been replaced!',
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              dbBackupPath == null
-                  ? const SizedBox.shrink()
-                  : Text(
-                      'Backup file path:',
-                      style: Theme.of(context).textTheme.bodyMedium,
+          child: Padding(
+            padding: const EdgeInsets.all(NahpuSpacing.xl),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const FileFormatIcon(path: 'assets/icons/database.svg'),
+                Text(
+                  'Success 🎉',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                Text(
+                  'Database has been replaced!',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                if (backupPath != null) ...[
+                  const SizedBox(height: NahpuSpacing.md),
+                  Text(
+                    'Backup file path:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: NahpuContentWidth.form,
                     ),
-              dbBackupPath == null
-                  ? const SizedBox.shrink()
-                  : ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: Text(
-                        Platform.isIOS ? _iOSPath : dbBackupPath!.path,
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.center,
-                      ),
+                    child: Text(
+                      Platform.isIOS ? _iOSPath : backupPath.path,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
                     ),
-              const SizedBox(height: 18),
-              PrimaryButton(
-                label: 'Back to Home',
-                icon: Icons.arrow_back,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => Home()),
-                  );
-                },
-              ),
-            ],
+                  ),
+                ],
+                const SizedBox(height: NahpuSpacing.xl),
+                PrimaryButton(
+                  label: 'Back to Home',
+                  icon: Icons.arrow_back,
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

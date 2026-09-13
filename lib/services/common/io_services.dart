@@ -365,16 +365,6 @@ class AppServices {
 
   String get currentProjectUuid => ref.read(projectUuidProvider);
 
-  Future<File> get backupDir async {
-    final documentDir = await nahpuDocumentDir;
-    final backupDir = Directory(path.join(documentDir.path, nahpuBackupDir));
-    await backupDir.create(recursive: true);
-    final backupFile = File(
-      path.join(backupDir.path, 'nahpu_backup$dateTimeStamp.sqlite3'),
-    );
-    return backupFile;
-  }
-
   Future<Directory> get tempDirectory async {
     final Directory tempDir = await getTemporaryDirectory();
     final nahpuTemp = Directory(path.join(tempDir.path, nahpuTempDir));

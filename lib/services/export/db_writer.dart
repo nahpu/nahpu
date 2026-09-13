@@ -506,7 +506,9 @@ class DbWriter extends AppServices {
     }
   }
 
-  Future<void> replace(
+  /// Returns the safety backup written before the replace, or null when
+  /// [backup] is false.
+  Future<File?> replace(
     bool backup,
     bool isArchived, {
     String? databaseRelativePath,
@@ -522,13 +524,14 @@ class DbWriter extends AppServices {
             )
           : filePath.path;
       cancel?.throwIfCancelled();
-      if (backup) {
-        await _backUpBeforeDelete(progress: progress, cancel: cancel);
-      }
+      final backupFile = backup
+          ? await _backUpBeforeDelete(progress: progress, cancel: cancel)
+          : null;
       cancel?.throwIfCancelled();
       progress?.beginPhase(ExportPhase.finalizing);
       await _writeDb(dbImportPath);
       progress?.complete();
+      return backupFile;
     } finally {
       await _deleteTempDir();
     }

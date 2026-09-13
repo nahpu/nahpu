@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/actions/export_progress_panel.dart';
-import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/file/db_backup_summary_panel.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
@@ -150,7 +150,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                     failedStepLabel: _failedStepLabel,
                     onRetry: _writeDb,
                   )
-                : _BackupSummary(summary: _summary, error: _summaryError);
+                : DbBackupSummaryPanel(summary: _summary, error: _summaryError);
             return Column(
               children: [
                 Expanded(
@@ -447,57 +447,6 @@ class _BackupSettingsCard extends StatelessWidget {
             enabled: enabled,
             onChanged: onAppendDateChanged,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BackupSummary extends StatelessWidget {
-  const _BackupSummary({required this.summary, required this.error});
-
-  final DbBackupSummary? summary;
-  final String? error;
-
-  @override
-  Widget build(BuildContext context) {
-    return NahpuPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Entire database contents',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          if (error != null)
-            ErrorText(error: error!)
-          else if (summary == null)
-            const Center(child: CircularProgressIndicator())
-          else ...[
-            for (final entry in summary!.entries.entries)
-              ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(entry.key),
-                trailing: Text('${entry.value}'),
-              ),
-            const CommonDivider(),
-            // Knowing the size before pressing Save is what tells the user
-            // whether this is a ten second job or a ten minute one.
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                'Backup size before compression',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              trailing: Text(
-                formatByteSize(summary!.totalBytes),
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-          ],
         ],
       ),
     );

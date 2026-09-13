@@ -83,12 +83,17 @@ void main() {
     expect(catalogFmtFromStoredName('nonsense'), isNull);
   });
 
-  test('Only invertebrate zoology is marked beta', () {
-    expect(isCatalogFmtBeta(CatalogFmt.invertebrateZoology), isTrue);
-    for (final fmt in CatalogFmt.values.where(
-      (fmt) => fmt != CatalogFmt.invertebrateZoology,
-    )) {
-      expect(isCatalogFmtBeta(fmt), isFalse, reason: '$fmt should not be beta');
+  test('Herpetology and invertebrate zoology are marked beta', () {
+    const betaFormats = {
+      CatalogFmt.herpetology,
+      CatalogFmt.invertebrateZoology,
+    };
+    for (final fmt in CatalogFmt.values) {
+      expect(
+        isCatalogFmtBeta(fmt),
+        betaFormats.contains(fmt),
+        reason: '$fmt beta status',
+      );
     }
   });
 

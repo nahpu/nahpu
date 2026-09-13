@@ -395,8 +395,8 @@ bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
   switch (catalogFmt) {
     case CatalogFmt.ornithology:
     case CatalogFmt.mammalogy:
-    case CatalogFmt.herpetology:
       return false;
+    case CatalogFmt.herpetology:
     case CatalogFmt.invertebrateZoology:
       return true;
   }
