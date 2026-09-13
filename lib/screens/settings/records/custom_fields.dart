@@ -1,41 +1,72 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/transfer/custom_field_transfer.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/forms/custom_field_definition_editor.dart';
-import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/layout/master_detail.dart';
+import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/custom_fields/custom_field_order.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
-import 'package:nahpu/services/types/nahpu_icons.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
+import 'package:nahpu/styles/design_tokens.dart';
 
+/// Custom field definitions managed like presets: pick a location with the
+/// chips, pick a field from its list, and edit it in the form beside the list.
 class CustomFieldsSettings extends ConsumerStatefulWidget {
   const CustomFieldsSettings({
     super.key,
     required this.projectUuid,
     required this.currentCatalog,
+    this.initialPlacement,
   });
 
   final String? projectUuid;
   final CatalogFmt currentCatalog;
+
+  /// The location selected when the screen opens. Defaults to the first
+  /// location that has active fields.
+  final FieldUISection? initialPlacement;
 
   @override
   ConsumerState<CustomFieldsSettings> createState() =>
       _CustomFieldsSettingsState();
 }
 
-class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
+class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController = TabController(
+    length: 2,
+    vsync: this,
+  );
+  late FieldUISection? _placement = widget.initialPlacement;
+  int? _selectedId;
+  bool _isCreating = false;
+
+  /// Bumped to rebuild the form, which restores its saved values.
+  int _formRevision = 0;
   bool _showArchived = false;
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
     final definitions = ref.watch(
       manageableCustomFieldsProvider(widget.projectUuid),
     );
@@ -52,100 +83,186 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
           ),
         ],
       ),
-      body: ScrollableConstrainedLayout(
-        child: Column(
-          children: [
-            Card(
-              child: SwitchListTile(
-                title: const Text('Show archived fields'),
-                value: _showArchived,
-                onChanged: (value) => setState(() => _showArchived = value),
+      body: SafeArea(
+        child: definitions.when(
+          data: (definitions) {
+            final placement = _placement ?? _defaultPlacement(definitions);
+            final inPlacement = [
+              for (final definition in definitions)
+                if (definition.placement == placement) definition,
+            ];
+            final visible = _visibleDefinitions(
+              inPlacement,
+              showArchived: _showArchived,
+            );
+            final selected = inPlacement
+                .where((definition) => definition.id == _selectedId)
+                .firstOrNull;
+            final list = _FieldListColumn(
+              placement: placement,
+              definitions: visible,
+              hasArchived: inPlacement.any((definition) => definition.archived),
+              showArchived: _showArchived,
+              selectedId: selected?.id,
+              onShowArchivedChanged: (value) =>
+                  setState(() => _showArchived = value),
+              onCreate: _create,
+              onSelected: _select,
+              onAction: (definition, action) =>
+                  _handleAction(definitions, visible, definition, action),
+            );
+            final editor = _FieldEditColumn(
+              placement: placement,
+              definition: _isCreating ? null : selected,
+              isCreating: _isCreating,
+              formRevision: _formRevision,
+              creationContext: CustomFieldCreationContext(
+                projectUuid: selected?.projectUuid ?? widget.projectUuid ?? '',
+                catalogFormat: selected != null || placement.isSpecimenRelated
+                    ? widget.currentCatalog
+                    : null,
               ),
+              onSaved: _saved,
+              onCancel: _cancelEdit,
+            );
+            return Column(
+              children: [
+                _LocationChips(
+                  selected: placement,
+                  counts: {
+                    for (final value in FieldUISection.values)
+                      value: definitions
+                          .where(
+                            (definition) =>
+                                definition.placement == value &&
+                                !definition.archived,
+                          )
+                          .length,
+                  },
+                  onSelected: _selectPlacement,
+                ),
+                if (isWide)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        NahpuSpacing.md,
+                        0,
+                        NahpuSpacing.md,
+                        NahpuSpacing.xl,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: list),
+                          const SizedBox(width: NahpuSpacing.lg),
+                          Expanded(child: editor),
+                        ],
+                      ),
+                    ),
+                  )
+                else ...[
+                  TabBar(
+                    controller: _tabController,
+                    tabs: const [
+                      Tab(text: 'Fields'),
+                      Tab(text: 'Edit field'),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [list, editor],
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(NahpuSpacing.xl),
+              child: Text('Unable to load fields: $error'),
             ),
-            definitions.when(
-              data: _definitionGroups,
-              loading: () => const CircularProgressIndicator(),
-              error: (error, _) => Text('Unable to load fields: $error'),
-            ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _definitionGroups(List<CustomFieldDefinitionData> definitions) {
-    final visible = definitions
-        .where((definition) => _showArchived || !definition.archived)
-        .toList(growable: false);
-    if (visible.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
-        child: Text('No custom fields in this context.'),
-      );
-    }
-    return Column(
-      children: [
-        for (final placement in FieldUISection.values)
-          if (visible.any((definition) => definition.placement == placement))
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(_placementIcon(placement)),
-                    title: Text(placement.label),
-                  ),
-                  const Divider(height: 1),
-                  for (final definition in visible.where(
-                    (definition) => definition.placement == placement,
-                  ))
-                    _DefinitionTile(
-                      definition: definition,
-                      onInspect: () => _inspect(definition),
-                      onEdit: () => _edit(definition),
-                      onMove: (offset) =>
-                          _move(definitions, definition, offset),
-                      onArchive: () => _archive(definition),
-                      onDiscardLegacy: () => _discardLegacy(definition),
-                      onDelete: () => _delete(definition),
-                    ),
-                ],
-              ),
-            ),
-      ],
-    );
+  void _selectPlacement(FieldUISection placement) {
+    setState(() {
+      _placement = placement;
+      _selectedId = null;
+      _isCreating = false;
+    });
+    _tabController.animateTo(0);
+  }
+
+  void _select(CustomFieldDefinitionData definition) {
+    setState(() {
+      _selectedId = definition.id;
+      _isCreating = false;
+    });
+    _tabController.animateTo(1);
   }
 
   Future<void> _create() async {
-    final placement = await showDialog<FieldUISection>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: const Text('Create custom field'),
-        children: [
-          for (final value in FieldUISection.values)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(dialogContext, value),
-              child: ListTile(
-                leading: Icon(_placementIcon(value)),
-                title: Text(value.label),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-        ],
-      ),
-    );
-    if (placement == null || !mounted) return;
-    final saved = await showCustomFieldDefinitionEditor(
-      context: context,
-      placement: placement,
-      creationContext: CustomFieldCreationContext(
-        projectUuid: widget.projectUuid ?? '',
-        catalogFormat: placement.isSpecimenRelated
-            ? widget.currentCatalog
-            : null,
-      ),
-    );
-    if (saved != null) _refresh();
+    final placement =
+        _placement ??
+        _defaultPlacement(
+          await ref.read(
+            manageableCustomFieldsProvider(widget.projectUuid).future,
+          ),
+        );
+    if (!mounted) return;
+    setState(() {
+      _placement = placement;
+      _selectedId = null;
+      _isCreating = true;
+      _formRevision++;
+    });
+    _tabController.animateTo(1);
+  }
+
+  void _saved(CustomFieldDefinitionData saved) {
+    setState(() {
+      _placement = saved.placement;
+      _selectedId = saved.id;
+      _isCreating = false;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Saved “${saved.name}”.')));
+  }
+
+  void _cancelEdit() {
+    if (!_isCreating) {
+      setState(() => _formRevision++);
+      return;
+    }
+    setState(() => _isCreating = false);
+    _tabController.animateTo(0);
+  }
+
+  void _handleAction(
+    List<CustomFieldDefinitionData> all,
+    List<CustomFieldDefinitionData> visible,
+    CustomFieldDefinitionData definition,
+    _DefinitionAction action,
+  ) {
+    switch (action) {
+      case _DefinitionAction.up:
+        _move(all, visible, definition, -1);
+      case _DefinitionAction.down:
+        _move(all, visible, definition, 1);
+      case _DefinitionAction.archive:
+        _archive(definition);
+      case _DefinitionAction.discardLegacy:
+        _discardLegacy(definition);
+      case _DefinitionAction.delete:
+        _delete(definition);
+    }
   }
 
   Future<void> _scanQr() async {
@@ -272,28 +389,16 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
         );
     if (!mounted) return;
     if (!canEncodeQrPayload(payload)) {
-      final exportFile = await showDialog<bool>(
+      final exportFile = await showAdaptiveConfirmation(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('QR code is too large'),
-          content: const Text(
+        title: 'QR code is too large',
+        message:
             'The selected custom fields contain too much data for one QR '
             'code. Export them as a file instead.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              icon: const Icon(Icons.file_upload_outlined),
-              label: const Text('Export file'),
-            ),
-          ],
-        ),
+        confirmLabel: 'Export file',
+        confirmIcon: Icons.file_upload_outlined,
       );
-      if (exportFile == true) await _exportFile(definitionIds);
+      if (exportFile) await _exportFile(definitionIds);
       return;
     }
     await showCustomFieldQrDialog(
@@ -303,60 +408,24 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
     );
   }
 
-  Future<void> _inspect(CustomFieldDefinitionData definition) {
-    return showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => _DefinitionDetailsSheet(
-        definition: definition,
-        onEdit: () {
-          Navigator.pop(sheetContext);
-          _edit(definition);
-        },
-      ),
-    );
-  }
-
-  Future<void> _edit(CustomFieldDefinitionData definition) async {
-    final saved = await showCustomFieldDefinitionEditor(
-      context: context,
-      placement: definition.placement,
-      creationContext: CustomFieldCreationContext(
-        projectUuid: definition.projectUuid ?? widget.projectUuid ?? '',
-        catalogFormat: widget.currentCatalog,
-      ),
-      definition: definition,
-    );
-    if (saved != null) _refresh();
-  }
-
   Future<void> _move(
     List<CustomFieldDefinitionData> all,
+    List<CustomFieldDefinitionData> visible,
     CustomFieldDefinitionData definition,
     int offset,
   ) async {
-    final group = all
-        .where(
-          (candidate) =>
-              candidate.uiSection == definition.uiSection &&
-              candidate.scope == definition.scope &&
-              candidate.projectUuid == definition.projectUuid,
-        )
-        .toList();
-    final index = group.indexWhere((item) => item.id == definition.id);
-    final target = index + offset;
-    if (index < 0 || target < 0 || target >= group.length) return;
-    final moved = group.removeAt(index);
-    group.insert(target, moved);
-    await _run(
-      () => ref
-          .read(customFieldServiceProvider)
-          .reorder(group.map((item) => item.id!).toList()),
+    final ids = CustomFieldOrder.movedDefinitionIds(
+      all: all,
+      visible: visible,
+      definition: definition,
+      offset: offset,
     );
+    if (ids == null) return;
+    await _run(() => ref.read(customFieldServiceProvider).reorder(ids));
   }
 
-  Future<void> _archive(CustomFieldDefinitionData definition) {
-    return _run(
+  Future<void> _archive(CustomFieldDefinitionData definition) async {
+    await _run(
       () => ref
           .read(customFieldServiceProvider)
           .setArchived(definition.id!, !definition.archived),
@@ -364,27 +433,16 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
   }
 
   Future<void> _discardLegacy(CustomFieldDefinitionData definition) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAdaptiveConfirmation(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Discard legacy values?'),
-        content: Text(
+      title: 'Discard legacy values?',
+      message:
           'Legacy values for “${definition.name}” cannot be recovered after '
           'they are discarded.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Discard values'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Discard values',
+      isDestructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await _run(
       () => ref
           .read(customFieldServiceProvider)
@@ -393,58 +451,41 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
   }
 
   Future<void> _delete(CustomFieldDefinitionData definition) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAdaptiveConfirmation(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete custom field?'),
-        content: Text(
+      title: 'Delete custom field?',
+      message:
           'Delete “${definition.name}” permanently? This action cannot be '
           'undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmLabel: 'Delete',
+      isDestructive: true,
     );
-    if (confirmed != true) return;
-    await _run(
+    if (!confirmed) return;
+    final deleted = await _run(
       () =>
           ref.read(customFieldServiceProvider).deleteDefinition(definition.id!),
     );
+    if (!deleted || !mounted || _selectedId != definition.id) return;
+    setState(() => _selectedId = null);
+    _tabController.animateTo(0);
   }
 
-  Future<void> _run(Future<Object?> Function() action) async {
+  /// Runs [action] and refreshes the definitions. Returns false and reports
+  /// the error when it fails.
+  Future<bool> _run(Future<Object?> Function() action) async {
     try {
       await action();
       _refresh();
+      return true;
     } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
+      if (mounted) _showError(error.toString());
+      return false;
     }
   }
 
   void _refresh() {
     invalidateCustomFieldDefinitionProviders(ref);
   }
-
-  IconData _placementIcon(FieldUISection placement) => switch (placement) {
-    FieldUISection.siteAttribute => Icons.place_outlined,
-    FieldUISection.environmentalData => Icons.eco_outlined,
-    FieldUISection.specimenAttribute => matchCatFmtToIcon(
-      widget.currentCatalog,
-    ),
-    FieldUISection.specimenPart => NahpuIcons.vialOutlined,
-    FieldUISection.parasite => Icons.bug_report_outlined,
-  };
 
   void _showError(String message) {
     ScaffoldMessenger.of(
@@ -453,251 +494,440 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings> {
   }
 }
 
+/// Radio-button chips that choose which location's fields are listed.
+class _LocationChips extends StatelessWidget {
+  const _LocationChips({
+    required this.selected,
+    required this.counts,
+    required this.onSelected,
+  });
+
+  final FieldUISection selected;
+
+  /// Active fields in each location.
+  final Map<FieldUISection, int> counts;
+  final ValueChanged<FieldUISection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    const padding = EdgeInsets.symmetric(
+      horizontal: NahpuSpacing.lg,
+      vertical: NahpuSpacing.md,
+    );
+    final chips = [
+      for (final placement in FieldUISection.values)
+        _LocationChip(
+          placement: placement,
+          count: counts[placement] ?? 0,
+          isSelected: placement == selected,
+          onSelected: onSelected,
+        ),
+    ];
+    // Wide screens wrap, so every location stays in view.
+    if (MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact) {
+      return Padding(
+        padding: padding,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: NahpuSpacing.md,
+          runSpacing: NahpuSpacing.md,
+          children: chips,
+        ),
+      );
+    }
+    // Phones keep the chips on one scrolling line, leaving room for the list.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: padding,
+      child: Row(spacing: NahpuSpacing.md, children: chips),
+    );
+  }
+}
+
+class _LocationChip extends StatelessWidget {
+  const _LocationChip({
+    required this.placement,
+    required this.count,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  final FieldUISection placement;
+  final int count;
+  final bool isSelected;
+  final ValueChanged<FieldUISection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final foreground = isSelected
+        ? colors.onSecondaryContainer
+        : colors.onSurfaceVariant;
+    return ChoiceChip(
+      selected: isSelected,
+      showCheckmark: false,
+      avatar: Icon(
+        isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        size: NahpuControlSize.iconMedium,
+        color: foreground,
+      ),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: NahpuSpacing.sm,
+        children: [
+          Text(placement.label),
+          if (count > 0)
+            Badge.count(
+              count: count,
+              backgroundColor: isSelected ? colors.secondary : colors.outline,
+              textColor: isSelected ? colors.onSecondary : colors.surface,
+            ),
+        ],
+      ),
+      labelStyle: theme.textTheme.labelLarge?.copyWith(color: foreground),
+      backgroundColor: colors.surfaceContainerHighest,
+      selectedColor: colors.secondaryContainer,
+      side: BorderSide(
+        color: isSelected ? colors.secondary : colors.outlineVariant,
+        width: NahpuStroke.thin,
+      ),
+      onSelected: (_) => onSelected(placement),
+    );
+  }
+}
+
+/// The fields in the selected location, chosen with a radio button like a
+/// preset list.
+class _FieldListColumn extends StatelessWidget {
+  const _FieldListColumn({
+    required this.placement,
+    required this.definitions,
+    required this.hasArchived,
+    required this.showArchived,
+    required this.selectedId,
+    required this.onShowArchivedChanged,
+    required this.onCreate,
+    required this.onSelected,
+    required this.onAction,
+  });
+
+  final FieldUISection placement;
+
+  /// The definitions to list, already filtered to the location.
+  final List<CustomFieldDefinitionData> definitions;
+  final bool hasArchived;
+  final bool showArchived;
+  final int? selectedId;
+  final ValueChanged<bool> onShowArchivedChanged;
+  final VoidCallback onCreate;
+  final ValueChanged<CustomFieldDefinitionData> onSelected;
+  final void Function(
+    CustomFieldDefinitionData definition,
+    _DefinitionAction action,
+  )
+  onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormCard(
+      title: 'Select fields',
+      isWithSidePadding: false,
+      isExpanded: true,
+      child: Column(
+        children: [
+          // Offered only when this location has something archived to show.
+          if (hasArchived)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+              child: SwitchSettings(
+                label: 'Show archived fields',
+                value: showArchived,
+                onChanged: onShowArchivedChanged,
+              ),
+            ),
+          Expanded(
+            child: definitions.isEmpty
+                ? PresetEmptyState(
+                    message: hasArchived
+                        ? 'All custom fields in ${placement.label} are '
+                              'archived.'
+                        : 'No custom fields in ${placement.label} yet.',
+                    secondaryLabel: 'Add custom field',
+                    secondaryIcon: Icons.add_circle_outline_rounded,
+                    onSecondary: onCreate,
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: definitions.length,
+                    itemBuilder: (context, index) {
+                      final definition = definitions[index];
+                      return _DefinitionTile(
+                        key: ValueKey(definition.id),
+                        definition: definition,
+                        isSelected: definition.id == selectedId,
+                        moves: CustomFieldOrder.moves(definitions, definition),
+                        onTap: () => onSelected(definition),
+                        onAction: (action) => onAction(definition, action),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _DefinitionTile extends ConsumerWidget {
   const _DefinitionTile({
+    super.key,
     required this.definition,
-    required this.onInspect,
-    required this.onEdit,
-    required this.onMove,
-    required this.onArchive,
-    required this.onDiscardLegacy,
-    required this.onDelete,
+    required this.isSelected,
+    required this.moves,
+    required this.onTap,
+    required this.onAction,
   });
 
   final CustomFieldDefinitionData definition;
-  final VoidCallback onInspect;
-  final VoidCallback onEdit;
-  final ValueChanged<int> onMove;
-  final VoidCallback onArchive;
-  final VoidCallback onDiscardLegacy;
-  final VoidCallback onDelete;
+  final bool isSelected;
+
+  /// Null when the definition is alone in its group and cannot move.
+  final CustomFieldMoves? moves;
+  final VoidCallback onTap;
+  final ValueChanged<_DefinitionAction> onAction;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
     final usage = ref.watch(customFieldUsageProvider(definition.id!));
     final currentUsage = usage.when(
       data: (value) => value,
       error: (_, _) => null,
       loading: () => null,
     );
-    return ListTile(
-      leading: Icon(
-        definition.archived
-            ? Icons.archive_outlined
-            : Icons.dynamic_form_outlined,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.md,
+        vertical: NahpuSpacing.xs,
       ),
-      title: Text(definition.name),
-      subtitle: Text(
-        '${_fieldTypeLabel(definition.fieldType)} · '
-        '${_scopeLabel(definition.fieldScope)} · '
-        '${_catalogLabel(definition)}'
-        '${definition.archived ? ' · Archived' : ''}',
+      child: Material(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(NahpuRadius.lg),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(
+            isSelected
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+          ),
+          title: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  definition.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (definition.archived) ...[
+                const SizedBox(width: NahpuSpacing.md),
+                const BetaBadge(label: 'Archived'),
+              ],
+            ],
+          ),
+          subtitle: Text(
+            '${_fieldTypeLabel(definition.fieldType)} · '
+            '${_scopeLabel(definition.fieldScope)} · '
+            '${_catalogLabel(definition)}',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: AdaptiveMenuButton<_DefinitionAction>(
+            tooltip: 'Definition actions',
+            itemBuilder: () => _items(currentUsage),
+            onSelected: onAction,
+          ),
+          onTap: onTap,
+        ),
       ),
-      trailing: AdaptiveMenuButton<_DefinitionAction>(
-        tooltip: 'Definition actions',
-        itemBuilder: () => _items(currentUsage),
-        onSelected: _selectAction,
-      ),
-      onTap: onInspect,
     );
   }
 
-  List<AdaptiveMenuItem<_DefinitionAction>> _items(CustomFieldUsage? usage) => [
-    const AdaptiveMenuItem(
-      value: _DefinitionAction.inspect,
-      icon: Icons.visibility_outlined,
-      label: 'View definition',
-    ),
-    const AdaptiveMenuItem(
-      value: _DefinitionAction.edit,
-      icon: Icons.edit_outlined,
-      label: 'Edit',
-    ),
-    const AdaptiveMenuItem(
-      value: _DefinitionAction.up,
-      icon: Icons.arrow_upward,
-      label: 'Move up',
-      hasDividerBefore: true,
-    ),
-    const AdaptiveMenuItem(
-      value: _DefinitionAction.down,
-      icon: Icons.arrow_downward,
-      label: 'Move down',
-    ),
-    AdaptiveMenuItem(
-      value: _DefinitionAction.archive,
-      icon: definition.archived
-          ? Icons.unarchive_outlined
-          : Icons.archive_outlined,
-      label: definition.archived ? 'Restore' : 'Archive',
-      hasDividerBefore: true,
-    ),
-    if (usage?.legacyValueCount case final count? when count > 0)
-      const AdaptiveMenuItem(
-        value: _DefinitionAction.discardLegacy,
-        icon: Icons.delete_sweep_outlined,
-        label: 'Discard legacy values',
+  List<AdaptiveMenuItem<_DefinitionAction>> _items(CustomFieldUsage? usage) {
+    final moves = this.moves;
+    return [
+      if (moves != null) ...[
+        AdaptiveMenuItem(
+          value: _DefinitionAction.up,
+          icon: Icons.arrow_upward,
+          label: 'Move up',
+          enabled: moves.canMoveUp,
+        ),
+        AdaptiveMenuItem(
+          value: _DefinitionAction.down,
+          icon: Icons.arrow_downward,
+          label: 'Move down',
+          enabled: moves.canMoveDown,
+        ),
+      ],
+      AdaptiveMenuItem(
+        value: _DefinitionAction.archive,
+        icon: definition.archived
+            ? Icons.unarchive_outlined
+            : Icons.archive_outlined,
+        label: definition.archived ? 'Restore' : 'Archive',
+        hasDividerBefore: true,
       ),
-    AdaptiveMenuItem(
-      value: _DefinitionAction.delete,
-      icon: Icons.delete_outline,
-      label: usage?.canDelete == true ? 'Delete' : 'Delete (values in use)',
-      enabled: usage?.canDelete ?? false,
-    ),
-  ];
-
-  void _selectAction(_DefinitionAction action) {
-    switch (action) {
-      case _DefinitionAction.inspect:
-        onInspect();
-      case _DefinitionAction.edit:
-        onEdit();
-      case _DefinitionAction.up:
-        onMove(-1);
-      case _DefinitionAction.down:
-        onMove(1);
-      case _DefinitionAction.archive:
-        onArchive();
-      case _DefinitionAction.discardLegacy:
-        onDiscardLegacy();
-      case _DefinitionAction.delete:
-        onDelete();
-    }
+      if (usage?.legacyValueCount case final count? when count > 0)
+        const AdaptiveMenuItem(
+          value: _DefinitionAction.discardLegacy,
+          icon: Icons.delete_sweep_outlined,
+          label: 'Discard legacy values',
+          isDestructive: true,
+        ),
+      AdaptiveMenuItem(
+        value: _DefinitionAction.delete,
+        icon: Icons.delete_outline,
+        label: usage?.canDelete == true ? 'Delete' : 'Delete (values in use)',
+        enabled: usage?.canDelete ?? false,
+        isDestructive: true,
+      ),
+    ];
   }
 }
 
-enum _DefinitionAction {
-  inspect,
-  edit,
-  up,
-  down,
-  archive,
-  discardLegacy,
-  delete,
-}
+enum _DefinitionAction { up, down, archive, discardLegacy, delete }
 
-class _DefinitionDetailsSheet extends ConsumerWidget {
-  const _DefinitionDetailsSheet({
+/// The form for the selected field, or for a new one in the selected
+/// location, with the field's read-only details below it.
+class _FieldEditColumn extends StatelessWidget {
+  const _FieldEditColumn({
+    required this.placement,
     required this.definition,
-    required this.onEdit,
+    required this.isCreating,
+    required this.formRevision,
+    required this.creationContext,
+    required this.onSaved,
+    required this.onCancel,
   });
 
+  final FieldUISection placement;
+  final CustomFieldDefinitionData? definition;
+  final bool isCreating;
+  final int formRevision;
+  final CustomFieldCreationContext creationContext;
+  final ValueChanged<CustomFieldDefinitionData> onSaved;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final definition = this.definition;
+    if (!isCreating && definition == null) {
+      return const FormCard(
+        title: 'Edit field',
+        isExpanded: true,
+        child: EmptyDetailsPrompt(
+          message: 'Select a custom field to edit, or add a new one.',
+        ),
+      );
+    }
+    final formPlacement = definition?.placement ?? placement;
+    return FormCard(
+      title: definition == null
+          ? 'New custom field'
+          : 'Edit ${definition.name}',
+      isExpanded: true,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(NahpuSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Shown in ${formPlacement.label}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: NahpuSpacing.lg),
+            CustomFieldDefinitionForm(
+              key: ValueKey(
+                '${definition?.id ?? 'new-${formPlacement.name}'}'
+                '-$formRevision',
+              ),
+              isInline: true,
+              placement: formPlacement,
+              creationContext: creationContext,
+              definition: definition,
+              onSaved: onSaved,
+              onCancel: onCancel,
+            ),
+            if (definition != null) ...[
+              const SizedBox(height: NahpuSpacing.xxl),
+              _DefinitionDetails(definition: definition),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DefinitionDetails extends ConsumerWidget {
+  const _DefinitionDetails({required this.definition});
+
   final CustomFieldDefinitionData definition;
-  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usage = ref.watch(customFieldUsageProvider(definition.id!));
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          24 + MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+    return NahpuPanel(
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Details', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: NahpuSpacing.xs),
+          _DetailRow(
+            label: 'Status',
+            value: definition.archived ? 'Archived' : 'Active',
+          ),
+          _DetailRow(label: 'Scope', value: _scopeLabel(definition.fieldScope)),
+          usage.when(
+            data: (value) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Text(
-                    definition.name,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
+                _DetailRow(
+                  label: 'Stored values',
+                  value: value.valueCount.toString(),
                 ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  tooltip: 'Close',
+                _DetailRow(
+                  label: 'Legacy values',
+                  value: value.legacyValueCount.toString(),
+                ),
+                _DetailRow(
+                  label: 'Deletion',
+                  value: value.canDelete
+                      ? 'Available'
+                      : 'Unavailable until all stored values are cleared',
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _DetailRow(label: 'Target', value: definition.placement.label),
-            _DetailRow(
-              label: 'Type',
-              value: _fieldTypeLabel(definition.fieldType),
-            ),
-            _DetailRow(
-              label: 'Scope',
-              value: _scopeLabel(definition.fieldScope),
-            ),
-            if (definition.projectUuid != null)
-              _DetailRow(label: 'Project UUID', value: definition.projectUuid!),
-            _DetailRow(
-              label: 'Catalog applicability',
-              value: _catalogLabel(definition),
-            ),
-            _DetailRow(
-              label: 'Status',
-              value: definition.archived ? 'Archived' : 'Active',
-            ),
-            _DetailRow(label: 'Definition UUID', value: definition.uuid),
-            _DetailRow(
-              label: 'Source template UUID',
-              value:
-                  definition.sourceTemplateUuid ??
-                  'Not imported from a template',
-            ),
-            if (definition.fieldType == FieldType.dropdown)
-              _DetailRow(
-                label: 'Dropdown options',
-                value: definition.dropdownOptions
-                    .map(
-                      (option) => option.isArchived
-                          ? '${option.label} (archived)'
-                          : option.label,
-                    )
-                    .join(', '),
-              ),
-            if (definition.dwcMapping case final mapping?) ...[
-              _DetailRow(label: 'Darwin Core target', value: mapping.target),
-              _DetailRow(label: 'Darwin Core field', value: mapping.field),
-              _DetailRow(
-                label: 'Mapping mode',
-                value: mapping.mode == DwcMappingMode.direct
-                    ? 'Direct field'
-                    : 'Repeatable measurement / fact',
-              ),
-              if (mapping.mode == DwcMappingMode.direct)
-                _DetailRow(
-                  label: 'Duplicate values acknowledged',
-                  value: mapping.allowConflict ? 'Yes' : 'No',
-                ),
-            ],
-            usage.when(
-              data: (value) => Column(
-                children: [
-                  _DetailRow(
-                    label: 'Stored values',
-                    value: value.valueCount.toString(),
-                  ),
-                  _DetailRow(
-                    label: 'Legacy values',
-                    value: value.legacyValueCount.toString(),
-                  ),
-                  _DetailRow(
-                    label: 'Deletion',
-                    value: value.canDelete
-                        ? 'Available'
-                        : 'Unavailable until all stored values are cleared',
-                  ),
-                ],
-              ),
-              loading: () => const LinearProgressIndicator(),
-              error: (error, _) => Text('Unable to load usage: $error'),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Edit definition'),
-            ),
-          ],
-        ),
+            loading: () => const LinearProgressIndicator(),
+            error: (error, _) => Text('Unable to load usage: $error'),
+          ),
+          if (definition.projectUuid != null)
+            _DetailRow(label: 'Project UUID', value: definition.projectUuid!),
+          _DetailRow(label: 'Definition UUID', value: definition.uuid),
+          _DetailRow(
+            label: 'Source template UUID',
+            value:
+                definition.sourceTemplateUuid ?? 'Not imported from a template',
+          ),
+        ],
       ),
     );
   }
@@ -712,17 +942,38 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 2),
+          const SizedBox(height: NahpuSpacing.xxs),
           SelectableText(value),
         ],
       ),
     );
   }
+}
+
+/// The first location with active fields, so the screen opens on something.
+FieldUISection _defaultPlacement(List<CustomFieldDefinitionData> definitions) {
+  for (final placement in FieldUISection.values) {
+    if (definitions.any(
+      (definition) => definition.placement == placement && !definition.archived,
+    )) {
+      return placement;
+    }
+  }
+  return definitions.firstOrNull?.placement ?? FieldUISection.values.first;
+}
+
+List<CustomFieldDefinitionData> _visibleDefinitions(
+  List<CustomFieldDefinitionData> definitions, {
+  required bool showArchived,
+}) {
+  return definitions
+      .where((definition) => showArchived || !definition.archived)
+      .toList(growable: false);
 }
 
 String _fieldTypeLabel(FieldType type) => switch (type) {

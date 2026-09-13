@@ -128,6 +128,7 @@ class _CustomFieldFormState extends ConsumerState<CustomFieldForm> {
                 ? null
                 : creationContext.projectUuid,
             currentCatalog: catalog,
+            initialPlacement: widget.owner.placement,
           ),
         ),
       );
@@ -285,6 +286,7 @@ class _CustomFieldDraftFormState extends ConsumerState<CustomFieldDraftForm> {
                 ? null
                 : creationContext.projectUuid,
             currentCatalog: catalog,
+            initialPlacement: widget.placement,
           ),
         ),
       );
@@ -491,12 +493,12 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
         },
       ),
       FieldType.boolean => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(definition.name),
-            const SizedBox(height: 6),
+            const SizedBox(height: NahpuSpacing.sm),
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'unset', label: Text('Unset')),
