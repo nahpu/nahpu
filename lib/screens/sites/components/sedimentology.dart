@@ -11,41 +11,20 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 
 class Sedimentology extends ConsumerWidget {
-  const Sedimentology({
-    super.key,
-    required this.id,
-    required this.useHorizontalLayout,
-    required this.siteFormCtr,
-  });
+  const Sedimentology({super.key, required this.id});
 
   final int id;
-  final bool useHorizontalLayout;
-  final SiteFormCtrModel siteFormCtr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Natural-height card: the site form stacks Sedimentology and Stratigraphy
-    // in one scrolling pane, so the scroll lives there rather than here.
-    return FormCard(
-      title: 'Sedimentology',
-      infoContent: const SedimentologyInfoContent(),
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      child: ref
-          .watch(fossilSiteProvider(id))
-          .when(
-            data: (fossilSite) => _buildContent(
+    return ref
+        .watch(fossilSiteProvider(id))
+        .when(
+          data: (fossilSite) =>
               SedimentologyFields(siteId: id, fossilSite: fossilSite),
-            ),
-            loading: () => const CommonProgressIndicator(),
-            error: (error, _) =>
-                _buildContent(Text('Error loading sedimentology data: $error')),
-          ),
-    );
-  }
-
-  Widget _buildContent(Widget child) {
-    return Padding(padding: const EdgeInsets.all(6), child: child);
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error loading sedimentology data: $error'),
+        );
   }
 }
 

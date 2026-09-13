@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/fossils.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -7,19 +6,9 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 /// Stratigraphy and geological age of a fossil site.
 ///
 /// UI only for now: the fields hold local state and are not yet persisted to
-/// the database. The layout mirrors [Sedimentology] so the two paleontology
-/// sections read as a pair.
+/// the database.
 class Stratigraphy extends StatefulWidget {
-  const Stratigraphy({
-    super.key,
-    required this.id,
-    required this.useHorizontalLayout,
-    required this.siteFormCtr,
-  });
-
-  final int id;
-  final bool useHorizontalLayout;
-  final SiteFormCtrModel siteFormCtr;
+  const Stratigraphy({super.key});
 
   @override
   StratigraphyState createState() => StratigraphyState();
@@ -49,18 +38,6 @@ class StratigraphyState extends State<Stratigraphy> {
 
   @override
   Widget build(BuildContext context) {
-    // Natural-height card: the site form stacks Sedimentology and Stratigraphy
-    // in one scrolling pane, so the scroll lives there rather than here.
-    return FormCard(
-      title: 'Stratigraphy',
-      infoContent: const StratigraphyInfoContent(),
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      child: Padding(padding: const EdgeInsets.all(6), child: _buildFields()),
-    );
-  }
-
-  Widget _buildFields() {
     return Column(
       children: [
         TextFormField(
@@ -179,7 +156,10 @@ class StratigraphyState extends State<Stratigraphy> {
 
   List<DropdownMenuItem<String>> _menuItems(List<String> options) => options
       .map(
-        (e) => DropdownMenuItem(value: e, child: CommonDropdownText(text: e)),
+        (e) => DropdownMenuItem(
+          value: e,
+          child: CommonDropdownText(text: e),
+        ),
       )
       .toList();
 
