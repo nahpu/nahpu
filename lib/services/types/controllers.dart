@@ -1738,20 +1738,27 @@ class EventPersonnelCtrModel {
   EventPersonnelCtrModel({
     required this.id,
     required this.nameIDCtr,
+    required this.nameCtr,
     required this.roleCtr,
   });
 
   int? id;
   String? nameIDCtr;
+  String? nameCtr;
   String? roleCtr;
 
-  factory EventPersonnelCtrModel.empty() =>
-      EventPersonnelCtrModel(id: null, nameIDCtr: null, roleCtr: null);
+  factory EventPersonnelCtrModel.empty() => EventPersonnelCtrModel(
+    id: null,
+    nameIDCtr: null,
+    nameCtr: null,
+    roleCtr: null,
+  );
 
   factory EventPersonnelCtrModel.fromData(CollPersonnelData data) =>
       EventPersonnelCtrModel(
         id: data.id,
         nameIDCtr: data.personnelId,
+        nameCtr: data.name,
         roleCtr: data.role,
       );
 }

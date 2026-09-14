@@ -143,9 +143,6 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
     await CollEventServices(ref: ref).createCollPersonnel(
       CollPersonnelCompanion(eventID: db.Value(widget.eventID)),
     );
-    if (context.mounted) {
-      setState(() {});
-    }
   }
 
   EventPersonnelCtrModel _addPersonnelCtr(CollPersonnelData form) {
@@ -269,20 +266,22 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
                   .watch(projectPersonnelProvider)
                   .when(
                     data: (value) {
-                      final personnel = value
-                          .fold<Map<String, PersonnelData>>(
-                            {},
-                            (map, person) => map..[person.uuid] = person,
-                          )
-                          .values
-                          .toList();
-                      return personnel
+                      final names = <String, String>{
+                        for (final person in value)
+                          person.uuid: person.name ?? '',
+                      };
+                      // Keep a stored person who is no longer in the project
+                      // selectable, or the dropdown has no item for its value.
+                      final currentId = widget.controller.nameIDCtr;
+                      if (currentId != null && !names.containsKey(currentId)) {
+                        names[currentId] =
+                            widget.controller.nameCtr ?? 'Unknown personnel';
+                      }
+                      return names.entries
                           .map(
-                            (person) => DropdownMenuItem(
-                              value: person.uuid,
-                              child: CommonDropdownText(
-                                text: person.name ?? '',
-                              ),
+                            (entry) => DropdownMenuItem(
+                              value: entry.key,
+                              child: CommonDropdownText(text: entry.value),
                             ),
                           )
                           .toList();
