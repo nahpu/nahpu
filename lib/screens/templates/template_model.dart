@@ -148,16 +148,15 @@ String _formatPair(double lat, double lng, String format) {
 
 String formatDateText(String text, String formatOption) {
   final dateRegex = RegExp(r'(\d{4})-(\d{2})-(\d{2})');
-  final match = dateRegex.firstMatch(text);
-  if (match != null) {
-    final year = int.tryParse(match.group(1)!);
-    final month = int.tryParse(match.group(2)!);
-    final day = int.tryParse(match.group(3)!);
-    if (year != null && month != null && day != null) {
-      final dt = DateTime(year, month, day);
-      final formatted = _formatDate(dt, formatOption);
-      return text.replaceFirst(dateRegex, formatted);
-    }
+  if (dateRegex.hasMatch(text)) {
+    // Every date in the line is formatted, not only the first.
+    return text.replaceAllMapped(dateRegex, (match) {
+      final year = int.tryParse(match.group(1)!);
+      final month = int.tryParse(match.group(2)!);
+      final day = int.tryParse(match.group(3)!);
+      if (year == null || month == null || day == null) return match[0]!;
+      return _formatDate(DateTime(year, month, day), formatOption);
+    });
   }
 
   final dt = DateTime.tryParse(text);
@@ -228,16 +227,12 @@ String formatDateTimeText(String text, String formatOption) {
   final dateTimeRegex = RegExp(
     r'(\d{4}-\d{2}-\d{2})(?:[T\s]+)(\d{2}:\d{2}(?::\d{2})?)(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?',
   );
-  final match = dateTimeRegex.firstMatch(text);
-  if (match != null) {
-    final raw = '${match.group(1)}T${match.group(2)}';
-    final dt = DateTime.tryParse(raw);
-    if (dt != null) {
-      return text.replaceFirst(
-        match.group(0)!,
-        _formatDateTime(dt, formatOption),
-      );
-    }
+  if (dateTimeRegex.hasMatch(text)) {
+    // Every date and time in the line is formatted, not only the first.
+    return text.replaceAllMapped(dateTimeRegex, (match) {
+      final dt = DateTime.tryParse('${match.group(1)}T${match.group(2)}');
+      return dt == null ? match[0]! : _formatDateTime(dt, formatOption);
+    });
   }
 
   final dt = DateTime.tryParse(text);
@@ -331,19 +326,17 @@ String _formatDateTime(DateTime dt, String format) {
 
 String formatTimeText(String text, String formatOption) {
   final timeRegex = RegExp(r'\b(\d{1,2}):(\d{2})(?::(\d{2}))?\b');
-  final match = timeRegex.firstMatch(text);
-  if (match != null) {
-    final hour = int.tryParse(match.group(1)!);
-    final minute = int.tryParse(match.group(2)!);
-    final second = int.tryParse(match.group(3) ?? '0') ?? 0;
-    if (hour != null && minute != null) {
-      final now = DateTime.now();
+  if (timeRegex.hasMatch(text)) {
+    final now = DateTime.now();
+    // Every time in the line is formatted, not only the first.
+    return text.replaceAllMapped(timeRegex, (match) {
+      final hour = int.tryParse(match.group(1)!);
+      final minute = int.tryParse(match.group(2)!);
+      final second = int.tryParse(match.group(3) ?? '0') ?? 0;
+      if (hour == null || minute == null) return match[0]!;
       final dt = DateTime(now.year, now.month, now.day, hour, minute, second);
-      return text.replaceFirst(
-        match.group(0)!,
-        _formatDateTime(dt, formatOption),
-      );
-    }
+      return _formatDateTime(dt, formatOption);
+    });
   }
   return formatDateTimeText(text, formatOption);
 }
@@ -422,6 +415,11 @@ String? getEncodedDefaultValue(String key, String value) {
 
   return null;
 }
+
+/// Whether [key] has a default encoded-value mapping.
+///
+/// Every default mapping defines code `0`, so probing it is enough.
+bool isEncodedFieldKey(String key) => getEncodedDefaultValue(key, '0') != null;
 
 String formatSexText(String text, String formatOption) {
   final parts = formatOption.split(':');

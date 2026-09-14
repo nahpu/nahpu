@@ -5,7 +5,7 @@ sidebar:
     order: 2
 ---
 
-This guide introduces NAHPU and gives you a place to practice before using it for collection work. You do not need to be in the field or have a real specimen. Use a clearly named practice project and sample values so the exercise records remain separate from research data.
+This guide introduces NAHPU and provides a place to practice before using it for collection work. You do not need to be in the field or have a real specimen. While NAHPU is optimized to work on any screen, due to its wider screen real estate, practicing on a laptop may be easier than on a phone to familiarize yourself with button positions. Use a clearly named practice project and sample values so the exercise records remain separate from research data.
 
 ## Key concepts
 
@@ -13,7 +13,7 @@ This guide introduces NAHPU and gives you a place to practice before using it fo
 
 A project groups one body of work, such as an expedition, a monitoring program, or specimens prepared in a laboratory. Choose project boundaries to suit how you will manage and report the data. Most day-to-day screens and exports work with the active project.
 
-Personnel and taxon names are stored in the database and can be associated with several projects. Editing a shared person or taxon can therefore affect records outside the project you are viewing. Project membership and the underlying database record are different things.
+Personnel and taxon names are stored in the database and can be associated with several projects. Editing a shared person or taxon can therefore affect records outside the project you are viewing.
 
 ### Sites, collecting events, and specimens
 
@@ -25,27 +25,33 @@ For example, use one site for a trap line and separate events for sampling sessi
 
 The project location describes the broad area of the work. Site geography records the administrative hierarchy and precise locality description. Locality descriptions can be shared between sites. Site IDs identify the individual places used by the project, such as a camp or trap line.
 
-One site can hold several coordinates, such as one per trap. Select the relevant coordinate for a specimen when that detail is known. Coordinate uncertainty describes uncertainty in the position; specimen coordinate extent describes how far the specimen could have been from it.
+One site can hold several coordinates, such as one per trap. Select the relevant coordinate for a specimen when that detail is known. Coordinate uncertainty describes uncertainty in the position. In the specimen form, you will find specimen coordinate extent that describes how far the specimen could have been from the coordinate position.
 
-### Identifiers and time
+### Field Identifiers
 
-A Field ID is the working identifier you put on a specimen label. Personnel Field IDs use a Cataloger’s initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix. Coordinate numbering conventions across devices and check labels; automatic numbering does not replace that coordination.
+A Field ID is the working identifier you put on a specimen label. Personnel Field IDs use a Cataloger’s initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix. Follow the convention of your lab. If you do not have one, personnel Field IDs typically carry less risk of duplicating the same number in parallel work, where each field team prepares and catalogs its own specimens. Project Field IDs are more suitable for assembly-line specimen preparation, where specimen cataloging is done by a single person.
 
-NAHPU also assigns UUIDs to projects and specimen records. These internal identifiers are separate from Field IDs. Sharing project identity preserves the project UUID so devices can recognize the same project; it does not transfer specimen records.
+NAHPU is [FAIR](https://www.go-fair.org/fair-principles/) by design. It also assigns UUIDs to specimen and parasite records (if collected) by default, and optionally to each specimen part. These internal identifiers are separate from Field IDs.
 
-The project time zone describes the local times recorded for the work. It does not change the device clock or convert existing values. Agree on a time convention before entering records on several devices.
+### Time zone
 
-### People and identifications
-
-A collector obtains the specimen; a Cataloger records it; a Preparator prepares it; a Determiner identifies it. One person may perform several of these jobs. Project personnel roles control where someone can be assigned in NAHPU, while event roles describe participation in a particular event.
-
-Choose an identification from the taxon registry. Use a family or genus when species is not yet known, and record identification confidence. To correct one specimen, change its selected taxon. Edit the shared registry entry when the name record itself is wrong.
+The project time zone describes the local times recorded for the work. It does not change the device clock or convert existing values. It serves as a reference for interpreting recorded times.
 
 ### Settings, controlled vocabularies, and custom fields
 
 Controlled vocabularies are the lists used by dropdowns, such as collection methods and preparation types. Consistent terms make records easier to compare. Configure the lists for your workflow and share user configurations when a team needs the same terms.
 
 The active catalog format controls the fields used for new specimens on the device; one project can contain several taxon groups. Custom fields add observations that do not fit a built-in field. Their scope can be one project or the installation, and specimen-related fields can apply to selected catalogs. Some settings affect other projects on the same installation, so review their scope before changing them.
+
+### Personnel roles
+
+There are two categories of roles in NAHPU: specimen care roles and event personnel roles. Specimen care roles control the responsibilities of individuals involved in specimen handling. The role is set from a dropdown menu when you create a person. This role determines the level of access and permissions a person has within the system. A Cataloger records the specimen; a Preparator prepares it; a Determiner identifies it. One person may perform several of these jobs. Cataloger is the highest rank that can be selected for all personnel fields.
+
+Event personnel roles, on the other hand, describe the participation of individuals in a particular event. You can create any roles, such as leader, student helper, local guide, driver, etc., and assign them to a person for a specific event.
+
+### Taxon identification
+
+NAHPU supports species identification through its taxon registry. The standard taxon import defaults to species. However, it supports importing taxon lists at different ranks, such as species, genus, and family, so you can record the identification at the rank you are confident with. You can also record the identification confidence, which describes how certain you are about the identification.
 
 ### Saving, supporting evidence, and sharing
 
@@ -61,11 +67,11 @@ Project identity, project transfer, user configurations, and database backups ca
 
 1. **Open NAHPU and explore setup**
 
-    Open `Setup NAHPU` from the home screen or drawer. Explore the catalog format, identifiers, and vocabulary choices, or import a prepared configuration. Find the dashboard, navigation, and Info buttons. See [Settings](https://nahpu.app/en/usages/settings/).
+    Open `Setup NAHPU` from the home screen or drawer. Explore the catalog format, identifiers, vocabulary, and export preset choices, or import a prepared configuration. Find the dashboard, navigation, and Info buttons. See [Settings](https://nahpu.app/en/usages/settings/).
 
 2. **Create a practice project**
 
-    Name this project `NAHPU Practice` so you can recognize the exercise data. For a new project, select `+` > `New project` > `Create new project`. Enter project information and the project time zone, choose the catalog format and Field ID mode, and complete the review. Personnel IDs require an eligible Cataloger; project IDs use a prefix, catalog number, and suffix. The time zone describes recorded local times and does not convert existing values. For an existing team project, import its identity to share its UUID, or use home-screen `Import project` to receive records and available media. See [Projects](https://nahpu.app/en/usages/projects/).
+    Name this project `NAHPU Practice` so you can recognize the exercise data. For a new project, select `Create project` > `Create new project`. Enter project information and the project time zone, choose the catalog format and Field ID mode, and complete the review. Personnel IDs require an eligible Cataloger; project IDs use a prefix, catalog number, and suffix. The time zone describes recorded local times and does not convert existing values. For an existing team project, import its identity to share its UUID. See [Projects](https://nahpu.app/en/usages/projects/).
 
 3. **Add practice personnel and taxa**
 

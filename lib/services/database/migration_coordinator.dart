@@ -69,7 +69,7 @@ class _Version22Migration {
       await db.customStatement('DROP TRIGGER IF EXISTS $name');
     }
 
-    final attributeCount = await _rowCount('arthropodAttribute');
+    final attributeCount = await _rowCount(await _attributeTable());
     await db._renameTableIfPresent(
       'arthropodAttribute',
       'invertebrateAttribute',
@@ -90,6 +90,20 @@ class _Version22Migration {
     await migrator.create(db.customFieldValueValidateInsert);
     await migrator.create(db.customFieldValueValidateUpdate);
     await _validate(attributeCount);
+  }
+
+  /// Returns the attribute table present before the rename.
+  ///
+  /// Drift does not run `onUpgrade` in a transaction, so an interrupted
+  /// attempt can leave the table renamed while the schema version stays at
+  /// v21. Resolving the name here lets the step resume instead of failing on
+  /// every later launch.
+  Future<String> _attributeTable() async {
+    if (await db._tableExists('arthropodAttribute')) {
+      return 'arthropodAttribute';
+    }
+    await db._requireTable('invertebrateAttribute');
+    return 'invertebrateAttribute';
   }
 
   Future<int> _rowCount(String table) async {

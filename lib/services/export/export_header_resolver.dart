@@ -1,3 +1,4 @@
+import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -24,9 +25,36 @@ bool usesStandardizedExportHeaders(ExportHeaderFormat format) =>
     format == ExportHeaderFormat.nahpuNamespace;
 
 String? directExportSourceField(String expression) {
-  return RegExp(
+  final field = RegExp(
     r'^\s*\[([^\]]+)\]\s*$',
   ).firstMatch(expression)?.group(1)?.trim();
+  if (field == null) return null;
+  // A `#label` marker changes how the value prints, not where it comes from.
+  final fallback = field.indexOf('??');
+  if (fallback < 0) return parsePlaceholderKey(field).key;
+  return '${parsePlaceholderKey(field.substring(0, fallback)).key}'
+      '${field.substring(fallback)}';
+}
+
+/// Returns the column name a mapping is listed under while editing a preset.
+///
+/// A custom header wins. Otherwise a nested mapping uses its namespace, and a
+/// field mapping uses the first field its expression reads, written for
+/// [format]; a text-only expression uses its text. Darwin Core terms resolve
+/// only during export, so that format lists the NAHPU key.
+String exportMappingColumnName(
+  ExportFieldMapping mapping,
+  ExportHeaderFormat format, {
+  String? Function(String key)? customLabel,
+}) {
+  final override = mapping.headerOverride?.trim();
+  if (override != null && override.isNotEmpty) return override;
+  if (mapping.isNested) return mapping.nestedNamespace?.trim() ?? '';
+  final expression = mapping.expression.trim();
+  final key = firstExpressionFieldKey(expression);
+  if (key == null) return expression;
+  if (format != ExportHeaderFormat.fieldName) return key;
+  return customLabel?.call(key) ?? key.split('::').last;
 }
 
 bool mappingRequiresHeaderOverride(
@@ -175,9 +203,7 @@ class ExportHeaderResolver {
 
     final source = directExportSourceField(mapping.expression);
     if (source == null) {
-      final firstSource = RegExp(
-        r'\[([^\]\s]+)\]',
-      ).firstMatch(mapping.expression)?.group(1);
+      final firstSource = firstExpressionFieldKey(mapping.expression);
       if (firstSource != null) return _headerForSource(firstSource);
       return mapping.expression.trim();
     }

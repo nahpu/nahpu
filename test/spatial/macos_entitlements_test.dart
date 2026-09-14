@@ -16,6 +16,10 @@ import 'package:path/path.dart' as p;
 /// -- no crash, no log, no error state. That shipped once already: the key was
 /// in DebugProfile but never added to Release, so the map rendered in
 /// development and vanished in TestFlight. These tests fail instead.
+///
+/// `Info.plist` pairs that entitlement with `NSAllowsLocalNetworking`, which
+/// declares the loopback connection. App Review's automated check rejected a
+/// build that had the server entitlement without the declaration.
 final releaseEntitlementsPath = p.join(
   'macos',
   'Runner',
@@ -26,6 +30,7 @@ final debugProfileEntitlementsPath = p.join(
   'Runner',
   'DebugProfile.entitlements',
 );
+final infoPlistPath = p.join('macos', 'Runner', 'Info.plist');
 
 /// Entitlement -> what in the map path stops working without it.
 const mapEntitlements = <String, String>{
@@ -77,6 +82,31 @@ void main() {
             'network entitlement present only in the first is the exact shape '
             'of a bug that works on the developer machine and is invisible in '
             'TestFlight:\n${onlyInDebug.join('\n')}',
+      );
+    });
+
+    test('Info.plist declares the local networking the map server needs', () {
+      final file = File(infoPlistPath);
+      expect(file.existsSync(), isTrue, reason: '$infoPlistPath is missing');
+
+      final transportSecurity = RegExp(
+        r'<key>NSAppTransportSecurity</key>\s*<dict>(.*?)</dict>',
+        dotAll: true,
+      ).firstMatch(file.readAsStringSync())?.group(1);
+      final allowsLocalNetworking =
+          transportSecurity != null &&
+          RegExp(
+            r'<key>NSAllowsLocalNetworking</key>\s*<true\s*/>',
+          ).hasMatch(transportSecurity);
+
+      expect(
+        allowsLocalNetworking,
+        isTrue,
+        reason:
+            '$infoPlistPath must set NSAppTransportSecurity > '
+            'NSAllowsLocalNetworking to true. It declares the loopback '
+            'WebSocket that com.apple.security.network.server exists for; App '
+            'Review flagged the entitlement as unused without it.',
       );
     });
   });

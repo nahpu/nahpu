@@ -13,10 +13,15 @@ class SpatialStatisticsPanel extends ConsumerStatefulWidget {
     super.key,
     required this.projectUuid,
     required this.projectName,
+    required this.height,
   });
 
   final String projectUuid;
   final String projectName;
+
+  /// Fixed card height, shared with the detailed counts card so switching
+  /// between them keeps the page steady.
+  final double height;
 
   @override
   ConsumerState<SpatialStatisticsPanel> createState() =>
@@ -47,110 +52,105 @@ class _SpatialStatisticsPanelState
     final data = ref.watch(spatialStatisticDataProvider(request));
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Spatial statistics',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 12),
-            _SpatialKindPicker(
-              selected: _selectedKind,
-              onSelected: (kind) => setState(() => _selectedKind = kind),
-            ),
-            if (_selectedKind.needsSpecies) ...[
-              const SizedBox(height: 12),
-              SearchableStatisticFilterPicker(
-                options: ref.watch(
-                  spatialSpeciesFilterOptionsProvider(widget.projectUuid),
-                ),
-                selected: _selectedSpecies,
-                title: 'Select a species',
-                placeholder: 'Select a species',
-                onChanged: (value) {
-                  setState(() => _selectedSpecies = value);
-                },
-                onRetry: () => ref.invalidate(
-                  spatialSpeciesFilterOptionsProvider(widget.projectUuid),
-                ),
+      child: SizedBox(
+        key: const ValueKey('spatial-statistics-content'),
+        height: widget.height,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _SpatialKindPicker(
+                selected: _selectedKind,
+                onSelected: (kind) => setState(() => _selectedKind = kind),
               ),
-            ],
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final title = Text(
-                  _selectedKind.needsSpecies && _selectedSpecies != null
-                      ? '${_selectedSpecies!.label} counts by coordinates'
-                      : _selectedKind.title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                );
-                final selector = SegmentedButton<_SpatialStatisticMode>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(
-                      value: _SpatialStatisticMode.map,
-                      icon: Icon(Icons.map_outlined),
-                      label: Text('Map'),
-                    ),
-                    ButtonSegment(
-                      value: _SpatialStatisticMode.table,
-                      icon: Icon(Icons.table_rows_outlined),
-                      label: Text('Table'),
-                    ),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (selection) {
-                    setState(() => _mode = selection.single);
+              if (_selectedKind.needsSpecies) ...[
+                const SizedBox(height: 12),
+                SearchableStatisticFilterPicker(
+                  options: ref.watch(
+                    spatialSpeciesFilterOptionsProvider(widget.projectUuid),
+                  ),
+                  selected: _selectedSpecies,
+                  title: 'Select a species',
+                  placeholder: 'Select a species',
+                  onChanged: (value) {
+                    setState(() => _selectedSpecies = value);
                   },
-                );
-                if (constraints.maxWidth >= 620) {
-                  return Row(
-                    children: [
-                      Expanded(child: title),
-                      selector,
-                    ],
-                  );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [title, const SizedBox(height: 8), selector],
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            if (!request.isReady)
-              const _SpatialSpeciesPrompt()
-            else
-              data.when(
-                data: (rows) => _buildContent(rows),
-                loading: () => const SizedBox(
-                  height: 320,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, stackTrace) => SizedBox(
-                  height: 320,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Unable to load spatial statistics: $error'),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () => ref.invalidate(
-                            spatialStatisticDataProvider(request),
-                          ),
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Retry'),
-                        ),
-                      ],
-                    ),
+                  onRetry: () => ref.invalidate(
+                    spatialSpeciesFilterOptionsProvider(widget.projectUuid),
                   ),
                 ),
+              ],
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final title = Text(
+                    _selectedKind.needsSpecies && _selectedSpecies != null
+                        ? '${_selectedSpecies!.label} counts by coordinates'
+                        : _selectedKind.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  );
+                  final selector = SegmentedButton<_SpatialStatisticMode>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: _SpatialStatisticMode.map,
+                        icon: Icon(Icons.map_outlined),
+                        label: Text('Map'),
+                      ),
+                      ButtonSegment(
+                        value: _SpatialStatisticMode.table,
+                        icon: Icon(Icons.table_rows_outlined),
+                        label: Text('Table'),
+                      ),
+                    ],
+                    selected: {_mode},
+                    onSelectionChanged: (selection) {
+                      setState(() => _mode = selection.single);
+                    },
+                  );
+                  if (constraints.maxWidth >= 620) {
+                    return Row(
+                      children: [
+                        Expanded(child: title),
+                        selector,
+                      ],
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [title, const SizedBox(height: 8), selector],
+                  );
+                },
               ),
-          ],
+              const SizedBox(height: 12),
+              Expanded(
+                child: !request.isReady
+                    ? const _SpatialSpeciesPrompt()
+                    : data.when(
+                        data: (rows) => _buildContent(rows),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (error, stackTrace) => Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Unable to load spatial statistics: $error'),
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: () => ref.invalidate(
+                                  spatialStatisticDataProvider(request),
+                                ),
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -172,14 +172,11 @@ class _SpatialStatisticsPanelState
         ),
       );
     }
-    return SizedBox(
-      height: 220,
-      child: Center(
-        child: Text(
-          _emptyMessage,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
+    return Center(
+      child: Text(
+        _emptyMessage,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyLarge,
       ),
     );
   }
@@ -220,14 +217,11 @@ class _SpatialSpeciesPrompt extends StatelessWidget {
   const _SpatialSpeciesPrompt();
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 280,
-    child: Center(
-      child: Text(
-        'Select a species to view coordinate abundance.',
-        style: Theme.of(context).textTheme.bodyLarge,
-        textAlign: TextAlign.center,
-      ),
+  Widget build(BuildContext context) => Center(
+    child: Text(
+      'Select a species to view coordinate abundance.',
+      style: Theme.of(context).textTheme.bodyLarge,
+      textAlign: TextAlign.center,
     ),
   );
 }

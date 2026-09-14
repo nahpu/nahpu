@@ -12,11 +12,11 @@ Spesimen yang belum teridentifikasi, atau identifikasi dengan nama spesies yang 
 
 Panel terbuka pada **Top recorded species**, yaitu lima spesies dengan catatan spesimen terbanyak, masing-masing dengan batang yang diskalakan terhadap hitungan tertinggi. Gunakan pengalih di kanan atas untuk berpindah antara bagan itu dan **Record counts**, ringkasan angka yang dijelaskan di atas.
 
-Pilih **Explore more stats** untuk bagan, tabel, penyaring, dan ekspor yang lebih rinci.
+Pilih **Explore more stats** untuk bagan, tabel, penyaring, dan ekspor yang lebih rinci. Layar terbuka pada **Summary**; pindah ke **Detailed** lalu pilih **Counts** atau **Spatial**.
 
 ## Mengekspor statistik
 
-Pilih **Explore more stats**, tentukan measure dan pengelompokan, lalu ubah panel ke **Table**. Tombol `Export table` menulis baris yang sedang tampil ke CSV, TSV, Excel, atau JSON. Panel spasial diekspor dengan cara yang sama, satu baris per koordinat lokasi.
+Pilih **Explore more stats**, lalu **Detailed**. Pada **Counts**, tentukan measure dan pengelompokan, lalu ubah panel ke **Table**. Tombol `Export table` menulis baris yang sedang tampil ke CSV, TSV, Excel, atau JSON. **Spatial** diekspor dengan cara yang sama, satu baris per koordinat lokasi.
 
 Jumlah membantu menemukan perubahan yang tidak terduga, tetapi tidak membuktikan bahwa catatan lengkap atau identifikasinya benar. Periksa catatan sumber sebelum menggunakan ringkasan dalam laporan.
 

@@ -61,6 +61,42 @@ void main() {
     expect(result?.name, 'Field tag');
   });
 
+  testWidgets('a description over 80 characters blocks Apply', (tester) async {
+    await pumpForm(tester);
+    Finder descriptionInput() => find.byType(TextField).at(1);
+    FilledButton apply() =>
+        tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Apply'));
+
+    await tester.enterText(descriptionInput(), 'a' * 81);
+    await tester.pump();
+    expect(find.text('Use 80 characters or fewer.'), findsOneWidget);
+    expect(apply().onPressed, isNull);
+
+    await tester.enterText(descriptionInput(), 'a' * 80);
+    await tester.pump();
+    expect(find.text('Use 80 characters or fewer.'), findsNothing);
+    expect(apply().onPressed, isNotNull);
+  });
+
+  testWidgets('an existing long description loads unchanged', (tester) async {
+    final longDescription = 'b' * 120;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TemplateSettingsForm(
+            template: template.copyWith(description: longDescription),
+            isDuplex: true,
+            onCancel: () {},
+            onApply: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.widgetWithText(TextField, longDescription), findsOneWidget);
+    expect(find.text('Use 80 characters or fewer.'), findsOneWidget);
+  });
+
   testWidgets('the name is editable and returned trimmed', (tester) async {
     TemplateSettingsResult? result;
     await tester.pumpWidget(

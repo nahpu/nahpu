@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/common/legal_links.dart';
+import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
@@ -21,6 +23,7 @@ import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/screens/home/components/project_actions.dart';
 
 enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
@@ -32,40 +35,97 @@ class HomeBody extends ConsumerStatefulWidget {
 }
 
 class HomeBodyState extends ConsumerState<HomeBody> {
-  // Table size
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
-          child: Padding(
-            padding: const EdgeInsets.all(NahpuSpacing.xxl),
-            child: ref
-                .watch(projectListProvider)
-                .when(
-                  data: (data) {
-                    return _buildBody(data.reversed.toList());
-                  },
-                  loading: () {
-                    return const CommonProgressIndicator();
-                  },
-                  error: (error, stackTrace) {
-                    return Text(error.toString());
-                  },
+    final projects = ref.watch(projectListProvider);
+    final isEmpty = projects.asData?.value.isEmpty ?? false;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Outside the padding and safe area, so the skyline runs edge to edge.
+        if (isEmpty) const Positioned.fill(child: EmptyHomeBackdrop()),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Padding(
+                padding: EdgeInsets.all(
+                  constraints.maxWidth < NahpuBreakpoints.compact
+                      ? NahpuSpacing.xl
+                      : NahpuSpacing.xxl,
                 ),
+                child: projects.when(
+                  data: (data) => data.isEmpty
+                      ? const ProjectNotFound()
+                      : HomeProjectsLayout(
+                          projectList: data.reversed.toList(),
+                          isWide:
+                              constraints.maxWidth >= NahpuBreakpoints.desktop,
+                        ),
+                  loading: () => const Center(child: CommonProgressIndicator()),
+                  error: (error, stackTrace) =>
+                      Center(child: Text(error.toString())),
+                ),
+              );
+            },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Existing projects with the create and import actions. Narrow screens pin
+/// the actions above the list; wide screens give the list three quarters of
+/// the width and the actions the remaining quarter.
+class HomeProjectsLayout extends StatelessWidget {
+  const HomeProjectsLayout({
+    super.key,
+    required this.projectList,
+    required this.isWide,
+  });
+
+  final List<ProjectSummary> projectList;
+
+  /// Whether the screen reaches [NahpuBreakpoints.desktop], measured before the
+  /// page padding so the split starts at the same width as other desktop
+  /// layouts.
+  final bool isWide;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isWide) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: NahpuContentWidth.homeSplit,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: ToggleView(projectList: projectList)),
+              const SizedBox(width: NahpuSpacing.xxl),
+              const Expanded(
+                child: SingleChildScrollView(
+                  child: HomeProjectActions(layout: ProjectActionLayout.side),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
+        child: Column(
+          children: [
+            const HomeProjectActions(layout: ProjectActionLayout.compact),
+            const SizedBox(height: NahpuSpacing.lg),
+            Expanded(child: ToggleView(projectList: projectList)),
+          ],
         ),
       ),
     );
-  }
-
-  Widget _buildBody(List<ProjectSummary> projectList) {
-    if (projectList.isEmpty) {
-      return const ProjectNotFound();
-    } else {
-      return ToggleView(projectList: projectList);
-    }
   }
 }
 
@@ -119,43 +179,100 @@ class ProjectNotFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SvgPicture.asset(
-            'assets/icons/box.svg',
-            height: 64,
-            colorFilter: ColorFilter.mode(
-              Theme.of(context).colorScheme.tertiary,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No projects found.',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          Text(
-            'Create or import a project to get started.',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: NahpuSpacing.xxl),
-          const LegalNotice(),
-          const SizedBox(height: NahpuSpacing.xl),
-          FilledButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SetupWizardScreen(),
+    final theme = Theme.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                'assets/icons/box.svg',
+                height: NahpuControlSize.prominent,
+                colorFilter: ColorFilter.mode(
+                  theme.colorScheme.tertiary,
+                  BlendMode.srcIn,
+                ),
               ),
-            ),
-            icon: const Icon(Icons.auto_fix_high_outlined),
-            label: const Text('Setup NAHPU'),
+              const SizedBox(height: NahpuSpacing.xl),
+              Text(
+                'No projects found.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: NahpuSpacing.xs),
+              Text(
+                'Create or import a project to get started.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+              const SizedBox(height: NahpuSpacing.xxl),
+              const HomeProjectActions(layout: ProjectActionLayout.centered),
+              const SizedBox(height: NahpuSpacing.xxl),
+              Text(
+                'New to NAHPU? Run Setup NAHPU to choose your catalog format, '
+                'identifiers, vocabularies, and export presets.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: NahpuSpacing.md),
+              FilledButton.tonalIcon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SetupWizardScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.auto_fix_high_outlined),
+                label: const Text('Setup NAHPU'),
+              ),
+              const SizedBox(height: NahpuSpacing.xl),
+              const LegalNotice(),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+/// The Tropical Mountains skyline along the bottom of the empty home screen.
+///
+/// Muted, faded, and kept to a band below the message, so the teal Create
+/// action stays the only saturated colour and "No projects found." reads on
+/// plain ground.
+class EmptyHomeBackdrop extends StatelessWidget {
+  const EmptyHomeBackdrop({super.key});
+
+  /// Height over width of the skyline's view box.
+  static const double _skylineAspect = 420 / 1200;
+
+  /// The most of the screen height the skyline may cover.
+  static const double _maxHeightFraction = 0.45;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = math.min(
+          constraints.maxWidth * _skylineAspect,
+          constraints.maxHeight * _maxHeightFraction,
+        );
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: double.infinity,
+            height: height,
+            child: const TropicalMountainsBackdrop(
+              tone: TropicalMountainsTone.muted,
+              fadeTop: true,
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -5,7 +5,7 @@ sidebar:
     order: 2
 ---
 
-Este guia apresenta o NAHPU e oferece uma forma de praticar antes de usá-lo no trabalho de coleção. Você não precisa estar em campo nem ter um espécime real. Use um projeto de prática com nome claro e valores de exemplo para manter os exercícios separados dos dados de pesquisa.
+Este guia apresenta o NAHPU e oferece um lugar para praticar antes de usá-lo no trabalho de coleção. Você não precisa estar em campo nem ter um espécime real. Embora o NAHPU seja otimizado para qualquer tela, praticar em um notebook pode ser mais fácil do que no telefone, pela área de tela maior, para você se familiarizar com a posição dos botões. Use um projeto de prática com nome claro e valores de exemplo para manter os exercícios separados dos dados de pesquisa.
 
 ## Conceitos principais
 
@@ -13,7 +13,7 @@ Este guia apresenta o NAHPU e oferece uma forma de praticar antes de usá-lo no 
 
 Um projeto reúne um trabalho, como uma expedição, um programa de monitoramento ou espécimes preparados em laboratório. Defina os limites conforme a gestão e os relatórios necessários. A maioria das telas e exportações cotidianas trabalha com o projeto ativo.
 
-Pessoas e nomes de táxons são armazenados no banco e podem ser associados a vários projetos. Editar uma pessoa ou táxon compartilhado pode afetar registros fora do projeto aberto. A participação no projeto é diferente do registro no banco.
+Pessoas e nomes de táxons são armazenados no banco e podem ser associados a vários projetos. Editar uma pessoa ou táxon compartilhado pode afetar registros fora do projeto aberto.
 
 ### Locais, eventos de coleta e espécimes
 
@@ -25,27 +25,33 @@ Por exemplo, use um local para uma linha de armadilhas e eventos separados para 
 
 A localização do projeto descreve a área geral do trabalho. A geografia do local registra a hierarquia administrativa e a descrição da localidade precisa. Descrições de localidades podem ser compartilhadas entre locais. Site IDs identificam lugares individuais do projeto, como um acampamento ou linha de armadilhas.
 
-Um local pode ter várias coordenadas, por exemplo uma por armadilha. Selecione a coordenada pertinente ao espécime quando conhecida. A incerteza da coordenada descreve a incerteza da posição; a extensão da coordenada do espécime descreve a distância possível entre ele e essa posição.
+Um local pode ter várias coordenadas, por exemplo uma por armadilha. Selecione a coordenada pertinente ao espécime quando conhecida. A incerteza da coordenada descreve a incerteza da posição. No formulário do espécime, você encontrará a extensão da coordenada do espécime, que descreve a que distância ele poderia estar dessa posição.
 
-### Identificadores e horários
+### Identificadores de campo
 
-O Field ID é o identificador de trabalho na etiqueta do espécime. IDs pessoais usam iniciais e número de campo de um Cataloger. IDs de projeto usam prefixo, número de catálogo e sufixo do projeto. Combine a numeração entre dispositivos e confira as etiquetas; a numeração automática não substitui essa coordenação.
+O Field ID é o identificador de trabalho na etiqueta do espécime. IDs pessoais usam iniciais e número de campo de um Cataloger. IDs de projeto usam prefixo, número de catálogo e sufixo do projeto. Siga a convenção do seu laboratório. Se não houver uma, os Field IDs pessoais em geral trazem menos risco de repetir o mesmo número em trabalhos paralelos, quando cada equipe de campo prepara e cataloga os próprios espécimes. Os Field IDs de projeto são mais adequados a uma preparação de espécimes em linha de montagem, em que a catalogação fica a cargo de uma única pessoa.
 
-O NAHPU também atribui UUIDs a projetos e espécimes. Esses identificadores internos são diferentes dos Field IDs. Compartilhar a identidade preserva o UUID para reconhecer o mesmo projeto entre dispositivos; isso não transfere registros de espécimes.
+O NAHPU é [FAIR](https://www.go-fair.org/fair-principles/) por concepção. Ele também atribui UUIDs por padrão aos registros de espécimes e parasitas (quando coletados) e, opcionalmente, a cada parte do espécime. Esses identificadores internos são diferentes dos Field IDs.
 
-O fuso horário do projeto descreve os horários locais registrados. Ele não altera o relógio do dispositivo nem converte valores existentes. Combine uma convenção de horário antes de registrar em vários dispositivos.
+### Fuso horário
 
-### Pessoas e identificações
-
-O coletor obtém o espécime; o Cataloger o cataloga; o Preparator o prepara; o Determiner o identifica. Uma pessoa pode realizar vários desses trabalhos. As funções do pessoal controlam onde cada pessoa pode ser atribuída no NAHPU; as funções do evento descrevem a participação naquele evento.
-
-Escolha a identificação no registro de táxons. Use família ou gênero quando a espécie não for conhecida e registre a confiança na identificação. Para corrigir um espécime, altere o táxon selecionado nele. Edite o registro compartilhado quando o próprio nome estiver errado.
+O fuso horário do projeto descreve os horários locais registrados. Ele não altera o relógio do dispositivo nem converte valores existentes. Serve como referência para interpretar os horários registrados.
 
 ### Configurações, vocabulários e campos personalizados
 
 Vocabulários controlados são listas usadas nas seleções, como métodos de coleta e tipos de preparação. Termos consistentes facilitam comparações. Configure as listas e compartilhe as configurações quando a equipe precisar dos mesmos termos.
 
 O formato de catálogo ativo controla os campos dos novos espécimes no dispositivo; um projeto pode conter vários grupos taxonômicos. Campos personalizados acrescentam observações sem campo integrado adequado. O escopo pode ser um projeto ou a instalação, e campos de espécimes podem se aplicar a catálogos específicos. Algumas configurações afetam outros projetos da instalação; confira o escopo antes de alterá-las.
+
+### Funções do pessoal
+
+Há duas categorias de funções no NAHPU: as de cuidado do espécime e as do pessoal do evento. As funções de cuidado do espécime controlam as responsabilidades de quem manuseia espécimes. A função é definida em um menu suspenso quando você cria uma pessoa. Ela determina o nível de acesso e as permissões dessa pessoa no sistema. O Cataloger registra o espécime; o Preparator o prepara; o Determiner o identifica. Uma pessoa pode realizar vários desses trabalhos. Cataloger é a posição mais alta que pode ser selecionada para todos os campos de pessoal.
+
+As funções do pessoal do evento, por outro lado, descrevem a participação de cada pessoa em um evento específico. Você pode criar quaisquer funções, como responsável, estudante auxiliar, guia local, motorista etc., e atribuí-las a uma pessoa em um evento específico.
+
+### Identificação de táxons
+
+O NAHPU permite a identificação de espécies por meio do seu registro de táxons. A importação padrão de táxons assume espécie como valor predefinido. No entanto, ela permite importar listas de táxons em categorias diferentes, como espécie, gênero e família, para que você registre a identificação na categoria da qual tem certeza. Você também pode registrar a confiança na identificação, que descreve o quanto está seguro dela.
 
 ### Salvamento, evidências e compartilhamento
 
@@ -61,11 +67,11 @@ Identidade, transferência de projeto, configurações e backups do banco contê
 
 1. **Abra o NAHPU e explore a configuração**
 
-    Abra `Setup NAHPU` na tela inicial ou no menu. Explore formato do catálogo, identificadores e vocabulários, ou importe uma configuração preparada. Localize o painel, a navegação e os botões de informação. Consulte [Configurações](https://nahpu.app/pt/usages/settings/).
+    Abra `Setup NAHPU` na tela inicial ou no menu. Explore formato do catálogo, identificadores, vocabulários e predefinições de exportação, ou importe uma configuração preparada. Localize o painel, a navegação e os botões de informação. Consulte [Configurações](https://nahpu.app/pt/usages/settings/).
 
 2. **Crie um projeto de prática**
 
-    Dê o nome `NAHPU Practice` ao projeto para reconhecer os dados do exercício. Para um projeto novo, selecione `+` > `New project` > `Create new project`. Informe os dados e o fuso horário, escolha formato do catálogo e modo de Field ID e conclua a revisão. IDs pessoais exigem um Cataloger habilitado; IDs de projeto usam prefixo, número de catálogo e sufixo. O fuso descreve os horários locais registrados e não converte valores existentes. Para um projeto da equipe, importe a identidade para compartilhar o UUID ou use `Import project` na tela inicial para receber registros e mídia disponível. Consulte [Projetos](https://nahpu.app/pt/usages/projects/).
+    Dê o nome `NAHPU Practice` ao projeto para reconhecer os dados do exercício. Para um projeto novo, selecione `Create project` > `Create new project`. Informe os dados e o fuso horário, escolha formato do catálogo e modo de Field ID e conclua a revisão. IDs pessoais exigem um Cataloger habilitado; IDs de projeto usam prefixo, número de catálogo e sufixo. O fuso descreve os horários locais registrados e não converte valores existentes. Para um projeto da equipe, importe a identidade para compartilhar o UUID. Consulte [Projetos](https://nahpu.app/pt/usages/projects/).
 
 3. **Adicione pessoal e táxons de prática**
 

@@ -84,12 +84,16 @@ void main() {
   });
 
   test('Incomplete catalog formats are marked beta', () {
-    const beta = {CatalogFmt.invertebrateZoology, CatalogFmt.paleontology};
+    const betaFormats = {
+      CatalogFmt.herpetology,
+      CatalogFmt.invertebrateZoology,
+      CatalogFmt.paleontology,
+    };
     for (final fmt in CatalogFmt.values) {
       expect(
         isCatalogFmtBeta(fmt),
-        beta.contains(fmt),
-        reason: '\$fmt beta flag does not match its published status',
+        betaFormats.contains(fmt),
+        reason: '$fmt beta status',
       );
     }
   });

@@ -8,6 +8,7 @@ import 'package:nahpu/screens/templates/components/dialogs/template_image_picker
 import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_name_dialogs.dart';
 import 'package:nahpu/screens/templates/components/dialogs/template_settings_dialog.dart';
+import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/templates/components/layout/template_border_panel.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_loading.dart';
 import 'package:nahpu/screens/templates/template_editor_math.dart';
@@ -24,6 +25,7 @@ import 'package:nahpu/services/templates/canvas_placement_service.dart';
 import 'package:nahpu/services/templates/editor_history_service.dart';
 import 'package:nahpu/services/export/document_writer.dart';
 import 'package:nahpu/screens/templates/components/layout/template_editor_scaffold.dart';
+import 'package:nahpu/screens/templates/components/controls/template_elements_sheet.dart';
 import 'package:nahpu/screens/templates/components/properties/text_element_editor.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -187,6 +189,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           () => _canvasMovementLocked = !_canvasMovementLocked,
         ),
         onSelectPreviewSpecimen: _selectSpecimenForPreview,
+        onShowElements: _showElements,
         onClearSelection: _clearSelection,
         onSelectElement: _selectElement,
         onStartInlineEditing: _startInlineEditing,
@@ -721,6 +724,21 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
   void _startInlineEditing(String id) {
     _selectElement(id);
     _showTextEditDialog(id);
+  }
+
+  /// Lists the elements on the current side so small ones can be picked
+  /// without tapping them on the canvas.
+  Future<void> _showElements() async {
+    final page1 = _isPage1;
+    final selection = await showTemplateElementsSheet(
+      context: context,
+      page: page1 ? _template.page1 : _template.page2,
+      page1: page1,
+      sideLabel: _isDuplex ? (page1 ? 'Front' : 'Back') : null,
+      selectedElement: _selectedElement,
+    );
+    if (selection == null || !mounted) return;
+    _selectElement(selection);
   }
 
   // --- Custom text helpers ---
@@ -1819,6 +1837,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 return null;
               },
               onFieldSubmitted: (_) {
+                if (descriptionLengthError(_descCtrl.text) != null) return;
                 if (_formKey.currentState?.validate() ?? false) {
                   Navigator.pop(
                     context,
@@ -1874,15 +1893,11 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
               onChanged: (value) => setState(() => _isDuplex = value),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            DescriptionField(
               controller: _descCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
+              isDense: true,
+              border: const OutlineInputBorder(),
+              onChanged: (_) => setState(() {}),
             ),
           ],
         ),
@@ -1893,19 +1908,21 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {
-            if (_formKey.currentState?.validate() ?? false) {
-              Navigator.pop(
-                context,
-                _CreateTemplateResult(
-                  name: _ctrl.text.trim(),
-                  recordType: _recordType,
-                  description: _descCtrl.text.trim(),
-                  isDuplex: _isDuplex,
-                ),
-              );
-            }
-          },
+          onPressed: descriptionLengthError(_descCtrl.text) != null
+              ? null
+              : () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    Navigator.pop(
+                      context,
+                      _CreateTemplateResult(
+                        name: _ctrl.text.trim(),
+                        recordType: _recordType,
+                        description: _descCtrl.text.trim(),
+                        isDuplex: _isDuplex,
+                      ),
+                    );
+                  }
+                },
           child: const Text('Create'),
         ),
       ],

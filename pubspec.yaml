@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.1+99
+version: 1.0.1+102
 
 environment:
   sdk: ">=3.12.0 <4.0.0"
@@ -64,7 +64,7 @@ dependencies:
   qr: ^4.0.0
   mime: ^2.0.0
   flutter_markdown_plus: ^1.0.7
-  flex_color_picker: ^3.8.0
+  flex_color_picker: ^4.0.0
   pdfrx: ^2.4.7
   flutter_map: ^8.3.1
   flutter_map_pmtiles: ^1.0.5
@@ -112,7 +112,7 @@ flutter_launcher_icons:
   desaturate_tinted_to_grayscale_ios: true
   image_path_android: "assets/launcher/nahpu-bg.png"
   remove_alpha_ios: true
-  adaptive_icon_background: "#f4f1de"
+  adaptive_icon_background: "#1b9e77"
   adaptive_icon_foreground: "assets/launcher/nahpu-fg.png"
   windows:
     generate: true
@@ -134,9 +134,11 @@ flutter:
   # Do not add assets/web here. They are not used inside the app bundle.
   assets:
     - assets/logo/
+    - assets/illustrations/
     - assets/avatars/
     - assets/icons/
     - assets/configs/
+    - assets/configs/mammalogy/
     - assets/maps/
     - assets/docs/info/en/
     - assets/docs/info/pt/

@@ -120,6 +120,7 @@ class TemplateCanvasWorkspace extends StatefulWidget {
 
 class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
   final FocusNode _focusNode = FocusNode(debugLabel: 'Template canvas');
+  int _fitRequest = 0;
 
   @override
   void dispose() {
@@ -168,6 +169,7 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
                 child: ZoomControls(
                   zoom: widget.zoom,
                   onZoomChanged: widget.onZoomChanged,
+                  onFitToScreen: _fitToScreen,
                 ),
               ),
             ],
@@ -251,7 +253,12 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
     widget.onZoomChanged((widget.zoom - 0.25).clamp(0.5, 4.0).toDouble());
   }
 
-  void _resetZoom() {
+  void _resetZoom() => _fitToScreen();
+
+  /// Returns to 100%, which fits the template, and recentres it even when the
+  /// zoom was already 100% but the view had been panned away.
+  void _fitToScreen() {
+    setState(() => _fitRequest++);
     widget.onZoomChanged(1.0);
   }
 
@@ -262,6 +269,7 @@ class _TemplateCanvasWorkspaceState extends State<TemplateCanvasWorkspace> {
       templateWidthMm: widget.templateWidthMm,
       templateHeightMm: widget.templateHeightMm,
       zoom: widget.zoom,
+      fitRequest: _fitRequest,
       canvasMovementLocked: widget.canvasMovementLocked,
       showGrid: widget.showGrid,
       snapEnabled: widget.snapEnabled,

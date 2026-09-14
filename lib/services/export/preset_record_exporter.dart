@@ -677,11 +677,8 @@ class PresetRecordExporter {
     );
   }
 
-  String? _directSourceField(String expression) {
-    return RegExp(
-      r'^\s*\[([^\]]+)\]\s*$',
-    ).firstMatch(expression)?.group(1)?.trim();
-  }
+  String? _directSourceField(String expression) =>
+      directExportSourceField(expression);
 
   String? _sourceValue(Map<String, String> source, String field) {
     if (source.containsKey(field)) return source[field];

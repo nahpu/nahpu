@@ -18,6 +18,9 @@ import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/screens/shared/actions/preset_actions.dart';
+import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 
 class ExportDocumentsView extends ConsumerStatefulWidget {
   const ExportDocumentsView({super.key});
@@ -41,7 +44,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   rust_config.DocumentLayoutPreset? _layout;
   List<String> _templateNames = const [];
   List<String> _setupNames = const [];
-  String _selectedSetupName = 'Default';
+  String? _selectedSetupName;
   RecordType _recordType = RecordType.specimenRecord;
 
   late TabController _mobileTabController;
@@ -77,7 +80,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
         : DocumentSettingsPane(
             layout: _layout!,
             setupNames: _setupNames,
-            selectedSetupName: _selectedSetupName,
+            selectedSetupName: _selectedSetupName ?? _layout!.name,
             templateNames: _templateNames,
             exportCtr: exportCtr,
             isRunning: _isRunning,
@@ -105,15 +108,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               onOpenFolder: _openFolder,
               onDismiss: _clearDestination,
             ),
-            onManagePresets: () async {
-              await Navigator.push<void>(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (context) => const DocumentPresetsScreen(),
-                ),
-              );
-              await _load();
-            },
+            onManagePresets: _managePresets,
             onEditTemplate: _openTemplateEditor,
             recordType: _recordType,
             showSpecimenSelection: true,
@@ -165,6 +160,18 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(child: Text(_error!))
+          : _layout == null
+          ? SafeArea(
+              child: PresetEmptyState(
+                message:
+                    'No print layouts yet. Load the default layouts, or create '
+                    'one in Document Presets.',
+                onLoadDefaults: _loadDefaults,
+                secondaryLabel: 'Manage presets',
+                secondaryIcon: Icons.tune_outlined,
+                onSecondary: _managePresets,
+              ),
+            )
           : SafeArea(
               child: Column(
                 children: [
@@ -182,6 +189,30 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               ),
             ),
     );
+  }
+
+  Future<void> _managePresets() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => const DocumentPresetsScreen(),
+      ),
+    );
+    await _load();
+  }
+
+  /// Lets the user pick bundled generic layouts; their templates come along.
+  Future<void> _loadDefaults() async {
+    final result = await showLoadDefaultsDialog(
+      context: context,
+      kinds: const {BundledPresetKind.document},
+    );
+    if (result == null) return;
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
   }
 
   /// Closing the result also drops the directory, so one tap lands back on the
@@ -248,7 +279,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
         setState(() {
           _layout = layout;
           _setupNames = setupNames;
-          _selectedSetupName = layout.name;
+          _selectedSetupName = layout?.name;
           _templateNames = templateNames;
           _recordType = recordType;
           _showPreview = false;

@@ -10,6 +10,7 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -188,10 +189,18 @@ void main() {
 
     expect(find.text('Record Statistics'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
+    expect(find.text('Detailed'), findsOneWidget);
     expect(find.text('Top five'), findsNothing);
     expect(
       find.text('Record totals and top five counts by category.'),
-      findsOneWidget,
+      findsNothing,
+      reason: 'the Summary segment already names the view',
+    );
+    expect(find.text('Detailed statistics'), findsNothing);
+    expect(find.text('Spatial statistics'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('statistics-measure-control')),
+      findsNothing,
     );
     expect(find.text('Records'), findsNothing);
     expect(find.text('Sampling'), findsNothing);
@@ -485,6 +494,7 @@ void main() {
       for (var index = 0; index < 4; index++) {
         await tester.pump(const Duration(milliseconds: 500));
       }
+      await _showDetailedStatistics(tester);
 
       final measureControl = find.byKey(
         const ValueKey('statistics-measure-control'),
@@ -565,6 +575,7 @@ void main() {
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
+    await _showDetailedStatistics(tester);
 
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     final rankControl = find.byKey(
@@ -623,6 +634,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     }
 
+    final summaryCard = find.ancestor(
+      of: find.text('Specimens by method'),
+      matching: find.byType(Card),
+    );
+    final summaryPie = tester.widget<PieChart>(
+      find.descendant(of: summaryCard, matching: find.byType(PieChart)),
+    );
+    final summaryRadius =
+        summaryPie.data.centerSpaceRadius +
+        summaryPie.data.sections.first.radius;
+
+    await _showDetailedStatistics(tester);
     final detail = find.byKey(const ValueKey('detailed-statistics-content'));
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     await tester.ensureVisible(groupControl);
@@ -637,19 +660,11 @@ void main() {
       of: detail,
       matching: find.byType(PieChart),
     );
-    final summaryPie = find
-        .byType(PieChart)
-        .evaluate()
-        .map((element) => element.widget as PieChart)
-        .firstWhere((chart) => chart != tester.widget<PieChart>(detailPie));
     final detailChart = tester.widget<PieChart>(detailPie);
     final detailBox = tester.getRect(detailPie);
     final detailRadius =
         detailChart.data.centerSpaceRadius +
         detailChart.data.sections.first.radius;
-    final summaryRadius =
-        summaryPie.data.centerSpaceRadius +
-        summaryPie.data.sections.first.radius;
 
     expect(
       detailRadius * 2,
@@ -671,6 +686,7 @@ void main() {
       for (var index = 0; index < 4; index++) {
         await tester.pump(const Duration(milliseconds: 500));
       }
+      await _showDetailedStatistics(tester);
 
       final detail = find.byKey(const ValueKey('detailed-statistics-content'));
       final groupControl = find.byKey(
@@ -737,6 +753,7 @@ void main() {
         find.byKey(const ValueKey('statistics-summary-chart-toggle-sex')),
         findsNothing,
       );
+      await _showDetailedStatistics(tester);
 
       final detail = find.byKey(const ValueKey('detailed-statistics-content'));
       final groupControl = find.byKey(
@@ -923,6 +940,7 @@ void main() {
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
+    await _showDetailedStatistics(tester);
 
     final detail = find.byKey(const ValueKey('detailed-statistics-content'));
     final measureControl = find.byKey(
@@ -947,6 +965,163 @@ void main() {
     expect(
       tester.getRect(initialChart).height,
       greaterThan(initialChartHeight),
+    );
+  });
+
+  testWidgets('full-screen statistics switches between summary and detailed', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final recordSummary = find.byKey(
+      const ValueKey('full-screen-record-stat-record-summary'),
+    );
+    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final sectionControl = find.byKey(
+      const ValueKey('statistics-detail-section-control'),
+    );
+    expect(recordSummary, findsOneWidget);
+    expect(detail, findsNothing);
+    expect(sectionControl, findsNothing);
+
+    await _showDetailedStatistics(tester);
+    expect(recordSummary, findsNothing);
+    expect(find.text('Specimens by family'), findsNothing);
+    expect(detail, findsOneWidget);
+    expect(_chipSelected(tester, sectionControl, 'Counts'), isTrue);
+    expect(_chipSelected(tester, sectionControl, 'Spatial'), isFalse);
+    expect(
+      _chipIcon(sectionControl, 'Counts', Icons.check),
+      findsOneWidget,
+      reason: 'the selected chip swaps its icon for a check',
+    );
+    expect(
+      _chipIcon(sectionControl, 'Spatial', Icons.public_outlined),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Summary'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(recordSummary, findsOneWidget);
+    expect(detail, findsNothing);
+  });
+
+  testWidgets('detailed statistics switches between counts and spatial', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(599, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await _showDetailedStatistics(tester);
+
+    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final measureControl = find.byKey(
+      const ValueKey('statistics-measure-control'),
+    );
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Part quantity')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(find.text('Part quantity by part type'), findsOneWidget);
+    final detailHeight = tester.getRect(detail).height;
+
+    await _showSpatialStatistics(tester);
+    expect(find.byType(SpatialStatisticsPanel), findsOneWidget);
+    expect(
+      tester
+          .getRect(find.byKey(const ValueKey('spatial-statistics-content')))
+          .height,
+      closeTo(detailHeight, 0.1),
+      reason: 'the spatial card matches the counts card height',
+    );
+    final sectionControl = find.byKey(
+      const ValueKey('statistics-detail-section-control'),
+    );
+    expect(_chipIcon(sectionControl, 'Spatial', Icons.check), findsOneWidget);
+    expect(
+      _chipIcon(sectionControl, 'Counts', Icons.format_list_numbered_rounded),
+      findsOneWidget,
+    );
+    expect(detail, findsNothing);
+    expect(measureControl, findsNothing);
+    expect(
+      find.text('Spatial statistics'),
+      findsNothing,
+      reason: 'the Spatial chip already names the panel',
+    );
+
+    await tester.tap(find.text('Counts'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(find.byType(SpatialStatisticsPanel), findsNothing);
+    expect(detail, findsOneWidget);
+    expect(
+      find.text('Part quantity by part type'),
+      findsOneWidget,
+      reason: 'the chosen measure survives switching to spatial and back',
+    );
+  });
+
+  testWidgets('summary explore opens the detailed counts for that chart', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    final siteCard = find.ancestor(
+      of: find.text('Specimens by site'),
+      matching: find.byType(Card),
+    );
+    final explore = find.descendant(
+      of: siteCard,
+      matching: find.text('Explore'),
+    );
+    await tester.ensureVisible(explore);
+    await tester.pump();
+    await tester.tap(explore);
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(
+      find.byKey(const ValueKey('full-screen-record-stat-record-summary')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('detailed-statistics-content')),
+      findsOneWidget,
+    );
+    expect(find.text('Specimens by site'), findsOneWidget);
+    final sectionControl = find.byKey(
+      const ValueKey('statistics-detail-section-control'),
+    );
+    expect(_chipSelected(tester, sectionControl, 'Counts'), isTrue);
+    expect(
+      _chipSelected(
+        tester,
+        find.byKey(const ValueKey('statistics-group-control')),
+        'Site',
+      ),
+      isTrue,
+    );
+    expect(
+      tester.getRect(sectionControl).top,
+      lessThan(200),
+      reason: 'the detailed view opens scrolled to the top',
     );
   });
 
@@ -1661,6 +1836,41 @@ Future<void> _pumpRecordStatisticsPanel(
 Future<void> _toggleRecordPanelView(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('record-statistics-view-toggle')));
   await tester.pumpAndSettle();
+}
+
+Future<void> _showDetailedStatistics(WidgetTester tester) async {
+  await tester.tap(find.text('Detailed'));
+  for (var index = 0; index < 4; index++) {
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+}
+
+Future<void> _showSpatialStatistics(WidgetTester tester) async {
+  await tester.tap(find.text('Spatial'));
+  for (var index = 0; index < 4; index++) {
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+}
+
+bool _chipSelected(WidgetTester tester, Finder control, String label) {
+  return tester
+      .widget<ChoiceChip>(
+        find.descendant(
+          of: control,
+          matching: find.widgetWithText(ChoiceChip, label),
+        ),
+      )
+      .selected;
+}
+
+Finder _chipIcon(Finder control, String label, IconData icon) {
+  return find.descendant(
+    of: find.descendant(
+      of: control,
+      matching: find.widgetWithText(ChoiceChip, label),
+    ),
+    matching: find.byIcon(icon),
+  );
 }
 
 double _contrastRatio(Color first, Color second) {

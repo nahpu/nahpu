@@ -58,6 +58,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   bool _taxonConfigured = false;
   bool _fieldIdConfigured = false;
   String? _selectedCatalogerUuid;
+  bool _createNewCataloger = false;
   bool _saving = false;
   bool _projectNameValid = false;
   bool _catalogerValidationAttempted = false;
@@ -240,22 +241,13 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
 
   Widget _welcome() {
     return FormSection(
-      title: 'One project, one identity',
+      title: 'Create once for all devices',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Create a project once, then reuse its identity on every device '
-            'used for data entry: export its project-info JSON, or show its '
-            'QR code and scan it on the other device. Reusing the same '
-            'project keeps one UUID across devices, supporting reproducible '
-            'records and reliable data merging.',
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Project-info transfer copies project metadata only. It does not '
-            'include records, personnel, taxa, or device settings.',
-            style: Theme.of(context).textTheme.bodySmall,
+            'Create a new project only for the first device. '
+            'Use QR/Import JSON to transfer project info and its identity.',
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
@@ -433,12 +425,43 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           ),
           data: (personnel) {
             final eligible = personnel.where(_isEligibleCataloger).toList();
-            if (eligible.isNotEmpty) {
+            if (eligible.isEmpty) {
               return FormSection(
-                title: 'Choose a Cataloger',
+                title: 'Create a Cataloger',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Text(
+                      'No registered Cataloger is available. Create one now; '
+                      'the role and personal field-number registration are '
+                      'filled automatically.',
+                    ),
+                    const SizedBox(height: 12),
+                    _newCatalogerFields(),
+                  ],
+                ),
+              );
+            }
+            return FormSection(
+              title: _createNewCataloger
+                  ? 'Create a Cataloger'
+                  : 'Choose a Cataloger',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _CatalogerSourceChoice(
+                    createNew: _createNewCataloger,
+                    onChanged: _setCreateNewCataloger,
+                  ),
+                  const SizedBox(height: 16),
+                  if (_createNewCataloger) ...[
+                    const Text(
+                      'Create another Cataloger. The role and personal '
+                      'field-number registration are filled automatically.',
+                    ),
+                    const SizedBox(height: 12),
+                    _newCatalogerFields(),
+                  ] else ...[
                     const Text(
                       'Choose the Cataloger whose initials and current field '
                       'number will be used for personnel field IDs.',
@@ -467,80 +490,80 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                           setState(() => _selectedCatalogerUuid = value),
                     ),
                   ],
-                ),
-              );
-            }
-            return _newCatalogerForm();
+                ],
+              ),
+            );
           },
         );
   }
 
-  Widget _newCatalogerForm() {
-    return FormSection(
-      title: 'Create a Cataloger',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'No registered Cataloger is available. Create one now; the role '
-            'and personal field-number registration are filled automatically.',
+  Widget _newCatalogerFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextFormField(
+          controller: _catalogerCtr.nameCtr,
+          decoration: InputDecoration(
+            labelText: 'Name*',
+            hintText: 'Enter the Cataloger name',
+            errorText: _catalogerValidationAttempted
+                ? _catalogerNameError
+                : null,
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _catalogerCtr.nameCtr,
-            decoration: InputDecoration(
-              labelText: 'Name*',
-              hintText: 'Enter the Cataloger name',
-              errorText: _catalogerValidationAttempted
-                  ? _catalogerNameError
-                  : null,
-            ),
-            onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() {}),
+        ),
+        TextFormField(
+          controller: _catalogerCtr.initialCtr,
+          maxLength: 5,
+          inputFormatters: [LengthLimitingTextInputFormatter(5)],
+          decoration: InputDecoration(
+            labelText: 'Initials*',
+            hintText: 'e.g. HH or H-H',
+            errorText: _catalogerValidationAttempted
+                ? _catalogerInitialError
+                : null,
           ),
-          TextFormField(
-            controller: _catalogerCtr.initialCtr,
-            maxLength: 5,
-            inputFormatters: [LengthLimitingTextInputFormatter(5)],
-            decoration: InputDecoration(
-              labelText: 'Initials*',
-              hintText: 'e.g. HH or H-H',
-              errorText: _catalogerValidationAttempted
-                  ? _catalogerInitialError
-                  : null,
-            ),
-            onChanged: (value) {
-              final upper = value.toUpperCase();
-              if (upper != value) {
-                _catalogerCtr.initialCtr.value = TextEditingValue(
-                  text: upper,
-                  selection: TextSelection.collapsed(offset: upper.length),
-                );
-              }
-              setState(() {});
-            },
+          onChanged: (value) {
+            final upper = value.toUpperCase();
+            if (upper != value) {
+              _catalogerCtr.initialCtr.value = TextEditingValue(
+                text: upper,
+                selection: TextSelection.collapsed(offset: upper.length),
+              );
+            }
+            setState(() {});
+          },
+        ),
+        TextFormField(
+          controller: _catalogerCtr.collectorNumCtr,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+            labelText: 'Current field number*',
+            hintText: 'Enter the next personal field number',
+            errorText: _catalogerValidationAttempted
+                ? _catalogerNumberError
+                : null,
           ),
-          TextFormField(
-            controller: _catalogerCtr.collectorNumCtr,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              labelText: 'Current field number*',
-              hintText: 'Enter the next personal field number',
-              errorText: _catalogerValidationAttempted
-                  ? _catalogerNumberError
-                  : null,
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.check_circle_outline),
-            title: Text('Specimen care role: Cataloger'),
-            subtitle: Text('Personal field-number registration enabled'),
-          ),
-        ],
-      ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.check_circle_outline),
+          title: Text('Specimen care role: Cataloger'),
+          subtitle: Text('Personal field-number registration enabled'),
+        ),
+      ],
     );
+  }
+
+  void _setCreateNewCataloger(bool createNew) {
+    setState(() {
+      _createNewCataloger = createNew;
+      _selectedCatalogerUuid = null;
+      _catalogerValidationAttempted = false;
+      _error = null;
+    });
   }
 
   Widget _review() {
@@ -806,7 +829,9 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               error: (_, _) => const <PersonnelData>[],
             );
         final eligible = personnel.where(_isEligibleCataloger).toList();
-        if (eligible.isNotEmpty) return _selectedCatalogerUuid != null;
+        if (eligible.isNotEmpty && !_createNewCataloger) {
+          return _selectedCatalogerUuid != null;
+        }
         return _catalogerIsValid;
       case _CreateProjectStep.review:
         return _projectNameValid;
@@ -941,7 +966,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               loading: () => const <PersonnelData>[],
               error: (_, _) => const <PersonnelData>[],
             );
-        if (!personnel.any(_isEligibleCataloger)) {
+        if (_createNewCataloger || !personnel.any(_isEligibleCataloger)) {
           setState(() => _catalogerValidationAttempted = true);
         }
         if (!_canContinue) return;
@@ -1136,6 +1161,36 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _CatalogerSourceChoice extends StatelessWidget {
+  const _CatalogerSourceChoice({
+    required this.createNew,
+    required this.onChanged,
+  });
+
+  final bool createNew;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<bool>(
+      segments: const [
+        ButtonSegment(
+          value: false,
+          label: Text('Choose existing'),
+          icon: Icon(Icons.person_search_outlined),
+        ),
+        ButtonSegment(
+          value: true,
+          label: Text('Create new'),
+          icon: Icon(Icons.person_add_alt_outlined),
+        ),
+      ],
+      selected: {createNew},
+      onSelectionChanged: (selection) => onChanged(selection.first),
+    );
   }
 }
 

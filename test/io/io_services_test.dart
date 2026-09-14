@@ -255,18 +255,6 @@ void main() {
       expect(dir!.path, path.join(tempAppDir.path, 'nahpu'));
     });
 
-    testWidgets('backupDir path is correct', (tester) async {
-      final ref = await _buildRef(tester, db);
-      final file = await tester.runAsync(() => AppServices(ref: ref).backupDir);
-      final backupFile = file!;
-      expect(
-        backupFile.parent.path,
-        path.join(tempAppDir.path, 'nahpu', 'backup'),
-      );
-      expect(path.basename(backupFile.path), startsWith('nahpu_backup'));
-      expect(path.extension(backupFile.path), '.sqlite3');
-    });
-
     testWidgets('tempDirectory path is correct', (tester) async {
       final ref = await _buildRef(tester, db);
       final dir = await tester.runAsync(

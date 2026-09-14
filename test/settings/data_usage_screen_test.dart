@@ -247,9 +247,12 @@ void main() {
         .ancestor(of: fileTree, matching: find.byType(Material))
         .first;
     final surfaceRect = tester.getRect(surface);
+    // The section title sits inside the container, above the tree controls.
+    final titleRect = tester.getRect(find.text('Files').last);
+    expect(surfaceRect.intersect(titleRect), titleRect);
     expect(
-      tester.getBottomLeft(find.text('Files').last).dy,
-      lessThanOrEqualTo(surfaceRect.top),
+      titleRect.bottom,
+      lessThanOrEqualTo(tester.getRect(buttonWithLabel('Select')).top),
     );
     for (final label in ['Expand all', 'Select']) {
       final buttonRect = tester.getRect(buttonWithLabel(label));
@@ -260,9 +263,10 @@ void main() {
       tester.getTopRight(buttonWithLabel('Select')).dx,
       closeTo(surfaceRect.right - NahpuSpacing.md, 0.01),
     );
+    // One under the section title, one under the tree controls.
     expect(
       find.descendant(of: surface, matching: find.byType(Divider)),
-      findsOneWidget,
+      findsNWidgets(2),
     );
 
     final fileSection = find.ancestor(

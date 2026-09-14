@@ -11,21 +11,24 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
-  testWidgets('field ID settings use a project ID toggle', (tester) async {
+  testWidgets('field ID settings use compact mode cards', (tester) async {
     final harness = await _FieldIdSettingsHarness.create();
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: false);
 
     expect(find.byType(SegmentedButton<FieldIdMode>), findsNothing);
-    expect(find.byType(SwitchListTile), findsOneWidget);
-    expect(find.text('Use project ID'), findsOneWidget);
+    expect(find.byType(SwitchListTile), findsNothing);
+    expect(find.byType(Radio<FieldIdMode>), findsNWidgets(2));
+    expect(find.text('Personnel ID'), findsOneWidget);
+    expect(find.text('Project ID'), findsOneWidget);
+    expect(find.textContaining('running number'), findsNothing);
     expect(
       find.text('Personnel field IDs require a cataloger'),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Use project ID'));
+    await tester.tap(find.text('Project ID'));
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(TextField, 'Prefix'), findsOneWidget);
@@ -44,12 +47,31 @@ void main() {
       closeTo(tester.getCenter(find.byType(FieldIDFields)).dx, 0.1),
     );
 
-    await tester.tap(find.text('Use project ID'));
+    await tester.tap(find.text('Personnel ID'));
     await tester.pumpAndSettle();
     expect(
       find.text('Personnel field IDs require a cataloger'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('project ID without an open project shows a note', (
+    tester,
+  ) async {
+    final harness = await _FieldIdSettingsHarness.create(hasProject: false);
+    addTearDown(harness.dispose);
+
+    await harness.pump(tester, isMobile: false);
+    await tester.tap(find.text('Project ID'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Open a project to set project field IDs'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(TextField, 'Prefix'), findsNothing);
+    expect(find.text('Save field ID settings'), findsNothing);
+    expect(find.text('Auto-increment catalog number'), findsOneWidget);
   });
 
   testWidgets('used prefix change warns about exports and labels in a dialog', (
@@ -61,7 +83,7 @@ void main() {
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: false);
-    await tester.tap(find.text('Use project ID'));
+    await tester.tap(find.text('Project ID'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Prefix'), 'P-');
     await tester.tap(find.text('Save field ID settings'));
@@ -86,7 +108,7 @@ void main() {
     addTearDown(harness.dispose);
 
     await harness.pump(tester, isMobile: true);
-    await tester.tap(find.text('Use project ID'));
+    await tester.tap(find.text('Project ID'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Suffix'), '-M');
     await tester.tap(find.text('Save field ID settings'));
@@ -105,6 +127,7 @@ class _FieldIdSettingsHarness {
   final ProviderContainer container;
 
   static Future<_FieldIdSettingsHarness> create({
+    bool hasProject = true,
     bool hasProjectNumber = false,
   }) async {
     final database = Database.forTesting(
@@ -119,6 +142,7 @@ class _FieldIdSettingsHarness {
         ),
       ],
     );
+    if (!hasProject) return _FieldIdSettingsHarness(database, container);
     container.read(projectUuidProvider.notifier).updateProjectUuid('project-a');
     await database
         .into(database.project)

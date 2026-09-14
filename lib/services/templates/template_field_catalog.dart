@@ -47,6 +47,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'personnel',
         'project',
         'collEvent',
+        'collEffort',
         'site',
         'geography',
         'siteAttribute',

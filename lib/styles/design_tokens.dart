@@ -79,9 +79,17 @@ abstract final class NahpuDashboardPanel {
 }
 
 abstract final class NahpuContentWidth {
+  /// Confirmations and other short dialogs.
+  static const double dialog = 480;
   static const double form = 600;
   static const double projectForm = 720;
   static const double projectWizard = 760;
   static const double home = 800;
+
+  /// Home screen when the project list and its actions sit side by side.
+  static const double homeSplit = 1200;
   static const double settings = 1200;
+
+  /// Section list beside the settings page on wide screens.
+  static const double settingsList = 380;
 }

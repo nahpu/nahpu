@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,35 +6,30 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/presets/template_preset_deletion.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
+import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_transfer_service.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:path/path.dart' as path;
+import 'package:nahpu/styles/design_tokens.dart';
 
-/// QR payload key for a single template, matching the layout and tabular
-/// preset keys used by the other transfer screens.
-const String kTemplateQrKey = 'nahpu_template_preset';
-
-/// Largest payload a QR code can carry in practice. A template past this size
-/// has to travel as a file.
-const int _kMaxQrPayloadBytes = 2500;
-
-enum _TemplateTileAction { export, showQr, delete }
+enum _TemplateTileAction { edit, export, delete }
 
 class TemplatePresetManager extends ConsumerStatefulWidget {
   const TemplatePresetManager({
     super.key,
     required this.onOpenTemplateEditor,
-    required this.onRestoreBundledTemplates,
+    required this.onLoadDefaults,
   });
 
   final Future<void> Function([String? templateName]) onOpenTemplateEditor;
-  final Future<void> Function() onRestoreBundledTemplates;
+
+  /// Adds the bundled generic templates.
+  final Future<void> Function() onLoadDefaults;
 
   @override
   ConsumerState<TemplatePresetManager> createState() =>
@@ -70,25 +64,17 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: LayoutBuilder(
-            builder: (context, constraints) => constraints.maxWidth < 600
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _searchField(),
-                      const SizedBox(height: 8),
-                      _actionButtons(),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(child: _searchField()),
-                      const SizedBox(width: 12),
-                      _actionButtons(),
-                    ],
-                  ),
+        _TemplateListHeader(
+          onQueryChanged: (value) => setState(() => _query = value),
+          actions: PresetAppBarActions(
+            itemName: 'template',
+            onCreate: () async {
+              await widget.onOpenTemplateEditor();
+              await _load();
+            },
+            onImport: _importTemplates,
+            onExportAll: _exportAllTemplates,
+            onLoadDefaults: _loadDefaults,
           ),
         ),
         Expanded(
@@ -96,154 +82,52 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
               ? const Center(child: CircularProgressIndicator())
               : _error != null
               ? Center(child: Text(_error!))
+              : _summaries.isEmpty
+              ? PresetEmptyState(
+                  message:
+                      'No templates yet. Templates define the content placed '
+                      'in print-layout blocks.',
+                  onLoadDefaults: _loadDefaults,
+                )
               : visible.isEmpty
               ? const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding: EdgeInsets.all(NahpuSpacing.xxl),
                     child: Text(
-                      'No templates found. Templates define the content placed in '
-                      'print-layout blocks.',
+                      'No templates match your search.',
                       textAlign: TextAlign.center,
                     ),
                   ),
                 )
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+              : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: NahpuSpacing.xl),
                   itemCount: visible.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) =>
-                      _buildTemplateTile(visible[index]),
+                  itemBuilder: (context, index) {
+                    final summary = visible[index];
+                    return _TemplateTile(
+                      key: ValueKey('template-${summary.template.name}'),
+                      summary: summary,
+                      icon: _recordTypeIcon(summary.template.recordType),
+                      isDeleting: _deletingName == summary.template.name,
+                      onOpen: () => _openTemplate(summary.template.name),
+                      onExport: () => _exportTemplate(summary.template),
+                      onDelete: () => _delete(summary),
+                    );
+                  },
                 ),
         ),
       ],
     );
   }
 
-  Widget _buildTemplateTile(TemplatePresetSummary summary) {
-    final template = summary.template;
-    final usageLabel = summary.usages.isEmpty
-        ? 'Unused'
-        : 'Used by ${summary.usages.length} layout${summary.usages.length == 1 ? '' : 's'} '
-              '· ${summary.blockCount} block${summary.blockCount == 1 ? '' : 's'}';
-    final deleting = _deletingName == template.name;
-
-    return Card(
-      child: ListTile(
-        onTap: deleting
-            ? null
-            : () async {
-                await widget.onOpenTemplateEditor(template.name);
-                await _load();
-              },
-        leading: Icon(_recordTypeIcon(template.recordType)),
-        title: Text(template.name),
-        subtitle: Text(
-          [
-            if (template.description.trim().isNotEmpty) template.description,
-            '${recordTypeToString(template.recordType)} · '
-                '${template.widthMm.toStringAsFixed(0)} × '
-                '${template.heightMm.toStringAsFixed(0)} mm',
-            usageLabel,
-          ].join('\n'),
-          maxLines: 4,
-          overflow: TextOverflow.ellipsis,
-        ),
-        isThreeLine: true,
-        trailing: deleting
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    tooltip: 'Edit template',
-                    icon: const Icon(Icons.edit_outlined),
-                    onPressed: () async {
-                      await widget.onOpenTemplateEditor(template.name);
-                      await _load();
-                    },
-                  ),
-                  AdaptiveMenuButton<_TemplateTileAction>(
-                    tooltip: 'Template options',
-                    onSelected: (action) {
-                      switch (action) {
-                        case _TemplateTileAction.export:
-                          _exportTemplate(template);
-                        case _TemplateTileAction.showQr:
-                          _showTemplateQr(template);
-                        case _TemplateTileAction.delete:
-                          _delete(summary);
-                      }
-                    },
-                    itemBuilder: () => const [
-                      AdaptiveMenuItem(
-                        value: _TemplateTileAction.export,
-                        icon: Icons.file_upload_outlined,
-                        label: 'Export',
-                      ),
-                      AdaptiveMenuItem(
-                        value: _TemplateTileAction.showQr,
-                        icon: Icons.qr_code,
-                        label: 'Show QR',
-                      ),
-                      AdaptiveMenuItem(
-                        value: _TemplateTileAction.delete,
-                        icon: Icons.delete_outline,
-                        label: 'Delete',
-                        hasDividerBefore: true,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-      ),
-    );
+  Future<void> _openTemplate(String name) async {
+    await widget.onOpenTemplateEditor(name);
+    await _load();
   }
 
-  Widget _searchField() {
-    return TextField(
-      decoration: const InputDecoration(
-        prefixIcon: Icon(Icons.search),
-        labelText: 'Search templates',
-        border: OutlineInputBorder(),
-      ),
-      onChanged: (value) {
-        setState(() {
-          _query = value;
-        });
-      },
-    );
-  }
-
-  Widget _actionButtons() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        PresetAppBarActions(
-          itemName: 'template',
-          onCreate: () async {
-            await widget.onOpenTemplateEditor();
-            await _load();
-          },
-          onScanQr: _scanTemplateQr,
-          onImport: _importTemplates,
-          onExportAll: _exportAllTemplates,
-        ),
-        IconButton(
-          tooltip: 'Restore bundled templates',
-          icon: const Icon(Icons.restore_outlined),
-          onPressed: () async {
-            await widget.onRestoreBundledTemplates();
-            await _load();
-          },
-        ),
-      ],
-    );
+  Future<void> _loadDefaults() async {
+    await widget.onLoadDefaults();
+    await _load();
   }
 
   Future<void> _exportAllTemplates() async {
@@ -257,7 +141,7 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
     await _exportTemplates([template], _transfer.fileNameFor(template));
   }
 
-  /// Writes [templates] to a file the user picks a directory for.
+  /// Opens the export dialog for [templates], suggesting [fileName].
   ///
   /// One template and all templates use the same envelope, so a file exported
   /// either way imports through [_importTemplates].
@@ -269,55 +153,19 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
       _showMessage('No templates to export');
       return;
     }
-    if (!await _confirmImageWarning(templates)) return;
-    try {
-      final directory = await FilePickerServices().selectDir();
-      if (directory == null) return;
-      final target = File(path.join(directory.path, fileName));
-      await _transfer.writeFile(target, templates);
-      _showMessage(
-        'Exported ${templates.length} template'
-        '${templates.length == 1 ? '' : 's'} to ${target.path}',
-      );
-    } on Object catch (error) {
-      _showMessage('Failed to export templates: $error');
-    }
-  }
-
-  /// Warns that logo images are referenced by path and do not travel with the
-  /// template file.
-  Future<bool> _confirmImageWarning(List<Template> templates) async {
-    final withImages = templates
-        .where(
-          (template) =>
-              template.page1.customImages.isNotEmpty ||
-              template.page2.customImages.isNotEmpty,
-        )
-        .toList();
-    if (withImages.isEmpty) return true;
-    final confirmed = await showDialog<bool>(
+    await showPresetExportDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Images are not included'),
-        content: Text(
-          '${withImages.length} template'
-          '${withImages.length == 1 ? '' : 's'} '
-          'use images, which are referenced by name rather than stored in the '
-          'file. On another installation those images have to be added again.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Export anyway'),
-          ),
-        ],
+      request: PresetExportRequest(
+        title: 'Export templates',
+        summary: templates.length == 1
+            ? templates.single.name
+            : '${templates.length} templates',
+        defaultFileStem: PresetTransferService.safeFileStem(fileName),
+        imageNote: PresetTransferService.imageNote(templates),
+        encode: ({required includeLinkedTemplates}) async =>
+            _transfer.encode(templates),
       ),
     );
-    return confirmed ?? false;
   }
 
   Future<void> _importTemplates() async {
@@ -367,72 +215,6 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
           ? 'Imported $imported template${imported == 1 ? '' : 's'}'
           : 'Imported $imported of $offered templates '
                 '(limit ${TemplateTransferService.importLimit})',
-    );
-  }
-
-  void _scanTemplateQr() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScannerScreen(
-          onDetect: (barcode) {
-            final rawValue = barcode.barcodes.first.rawValue;
-            if (rawValue != null) _importTemplateFromQr(rawValue);
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _importTemplateFromQr(String rawValue) async {
-    try {
-      final decoded = jsonDecode(rawValue);
-      if (decoded is! Map ||
-          !decoded.containsKey(kTemplateQrKey) ||
-          !decoded.containsKey('data')) {
-        throw const FormatException('Invalid QR code format for a template.');
-      }
-      final body = Map<String, dynamic>.from(decoded['data'] as Map);
-      final template = Template.fromJson(body);
-      await _saveImportedTemplates([
-        template.name.trim().isEmpty
-            ? template.copyWith(name: decoded[kTemplateQrKey] as String)
-            : template,
-      ]);
-    } on Object {
-      _showMessage('Invalid or unrecognized QR code.');
-    }
-  }
-
-  Future<void> _showTemplateQr(Template template) async {
-    final payload = jsonEncode({
-      kTemplateQrKey: template.name,
-      'data': template.toJson(),
-    });
-    if (!mounted) return;
-    if (payload.length > _kMaxQrPayloadBytes) {
-      _showMessage(
-        'This template is too large for a QR code. Export it as a file '
-        'instead.',
-      );
-      return;
-    }
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(template.name),
-        content: SizedBox(
-          width: 300,
-          height: 300,
-          child: QrImageView(data: payload, backgroundColor: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -525,4 +307,151 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         return Icons.sell_outlined;
     }
   }
+}
+
+/// Search field with the template actions beside it, on one row at every
+/// width so the list starts at the same place on phones and desktops.
+class _TemplateListHeader extends StatelessWidget {
+  const _TemplateListHeader({
+    required this.onQueryChanged,
+    required this.actions,
+  });
+
+  final ValueChanged<String> onQueryChanged;
+  final Widget actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        NahpuSpacing.md,
+        NahpuSpacing.md,
+        NahpuSpacing.xs,
+        NahpuSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search templates',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(NahpuRadius.xl),
+                ),
+              ),
+              onChanged: onQueryChanged,
+            ),
+          ),
+          const SizedBox(width: NahpuSpacing.xs),
+          actions,
+        ],
+      ),
+    );
+  }
+}
+
+/// One saved template: its record type, size, and how many layouts use it.
+/// Tapping the row opens the editor; everything else is in its menu.
+class _TemplateTile extends StatelessWidget {
+  const _TemplateTile({
+    super.key,
+    required this.summary,
+    required this.icon,
+    required this.isDeleting,
+    required this.onOpen,
+    required this.onExport,
+    required this.onDelete,
+  });
+
+  final TemplatePresetSummary summary;
+  final IconData icon;
+  final bool isDeleting;
+  final VoidCallback onOpen;
+  final VoidCallback onExport;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final template = summary.template;
+    final description = template.description.trim();
+    final layoutCount = summary.usages.length;
+    // The icon shows the record type, so the detail line keeps to size and
+    // usage and stays on one line.
+    final details = [
+      '${template.widthMm.toStringAsFixed(0)}×'
+          '${template.heightMm.toStringAsFixed(0)} mm',
+      layoutCount == 0
+          ? 'Unused'
+          : '$layoutCount layout${layoutCount == 1 ? '' : 's'}',
+    ].join(' · ');
+    return OutlinedListTile(
+      leading: Tooltip(
+        message: _recordTypeLabel(template.recordType),
+        child: Icon(icon),
+      ),
+      title: Text(template.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (description.isNotEmpty)
+            Text(description, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(details, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ],
+      ),
+      trailing: isDeleting
+          ? const SizedBox.square(
+              dimension: NahpuControlSize.icon,
+              child: CircularProgressIndicator(
+                strokeWidth: NahpuStroke.regular,
+              ),
+            )
+          : AdaptiveMenuButton<_TemplateTileAction>(
+              tooltip: 'Template options',
+              onSelected: (action) {
+                switch (action) {
+                  case _TemplateTileAction.edit:
+                    onOpen();
+                  case _TemplateTileAction.export:
+                    onExport();
+                  case _TemplateTileAction.delete:
+                    onDelete();
+                }
+              },
+              itemBuilder: () => const [
+                AdaptiveMenuItem(
+                  value: _TemplateTileAction.edit,
+                  icon: Icons.edit_outlined,
+                  label: 'Edit',
+                ),
+                AdaptiveMenuItem(
+                  value: _TemplateTileAction.export,
+                  icon: Icons.file_upload_outlined,
+                  label: 'Export',
+                ),
+                AdaptiveMenuItem(
+                  value: _TemplateTileAction.delete,
+                  icon: Icons.delete_outline,
+                  label: 'Delete',
+                  isDestructive: true,
+                  hasDividerBefore: true,
+                ),
+              ],
+            ),
+      onTap: isDeleting ? null : onOpen,
+    );
+  }
+}
+
+String _recordTypeLabel(RecordType recordType) {
+  return switch (recordType) {
+    RecordType.specimenRecord => 'Specimen',
+    RecordType.site => 'Site',
+    RecordType.collEvent => 'Collecting event',
+    RecordType.narrative => 'Narrative',
+    RecordType.specimenParts => 'Specimen parts',
+    RecordType.none => 'No records',
+  };
 }

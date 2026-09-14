@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice" fill="none">
+  <!--
+    Tropical Mountains, the codename of NAHPU v1. The skyline traces Mt. Gede in
+    West Java, where NAHPU had its first real field expedition test, as seen from
+    the tea gardens to its west: the broad crater rim with its pale escarpment on
+    the left, the saddle, the straight ridge climbing to the summit, and the long
+    flank running down to the right. Forested ridges stack in front, with valley
+    haze between the layers.
+
+    Ported from the nahpu-docs TropicalMountains component. The website's colour
+    variables are written out as their light-mode values; the app swaps them for
+    theme colours when it draws the backdrop.
+  -->
+  <defs>
+    <linearGradient id="ridge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b765f"/>
+      <stop offset="1" stop-color="#58b192"/>
+    </linearGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff9c1" stop-opacity="0"/>
+      <stop offset="0.45" stop-color="#ffef87"/>
+      <stop offset="1" stop-color="#aee1cc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Morning haze behind the range. -->
+  <rect x="0" y="0" width="1200" height="420" fill="url(#haze)" opacity="0.4"/>
+
+  <!-- The massif: the rim, the saddle, the summit, then the flank. -->
+  <path fill="url(#ridge)" opacity="0.55" d="M-40 420 L-40 178 C 40 170, 118 142, 174 110 C 200 96, 228 98, 252 96 C 264 88, 272 85, 284 85 C 320 82, 356 81, 396 86 C 420 96, 438 118, 456 132 C 468 128, 480 122, 496 112 L 582 58 C 604 53, 634 53, 658 57 C 670 66, 680 80, 690 92 C 706 90, 722 88, 738 88 C 756 89, 764 91, 780 91 C 810 92, 842 94, 870 96 C 900 105, 930 113, 960 124 C 990 136, 1020 149, 1050 162 C 1080 174, 1110 186, 1140 197 C 1172 208, 1208 221, 1240 229 L1240 420 Z"/>
+
+  <!-- The pale escarpment along the crater rim. -->
+  <path fill="#d7f0e5" opacity="0.45" d="M300 91 C 330 84, 362 83, 388 89 C 386 101, 360 107, 330 107 C 314 107, 302 99, 300 91 Z"/>
+
+  <!-- Middle ridge. -->
+  <path fill="url(#ridge)" opacity="0.4" d="M-40 420 L-40 234 C 60 212, 160 178, 240 160 C 300 170, 370 186, 420 198 C 480 210, 540 220, 600 226 C 680 234, 762 242, 840 248 C 900 256, 962 267, 1020 275 C 1090 284, 1160 292, 1240 298 L1240 420 Z"/>
+
+  <!-- Nearest forested ridge. -->
+  <path fill="url(#ridge)" opacity="0.28" d="M-40 420 L-40 308 C 60 298, 140 286, 226 284 C 320 282, 400 298, 486 314 C 580 332, 660 346, 748 356 C 860 368, 980 376, 1090 380 C 1150 382, 1200 382, 1240 382 L1240 420 Z"/>
+
+  <!-- Haze settled in the valleys between the ridges. -->
+  <g stroke="#d7f0e5" stroke-linecap="round">
+    <path d="M40 224 C 200 212, 360 230, 520 218" stroke-width="5" opacity="0.45"/>
+    <path d="M640 258 C 800 248, 960 266, 1120 254" stroke-width="4" opacity="0.35"/>
+    <path d="M160 288 C 360 278, 580 298, 800 286" stroke-width="6" opacity="0.3"/>
+  </g>
+</svg>

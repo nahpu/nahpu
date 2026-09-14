@@ -45,11 +45,13 @@ adding or editing an icon.
 - `fill="currentColor"` is fine where a solid shape is genuinely wanted (see
   `qr-code.svg`), but it will be the same flat color as everything else.
 
-**One asset, four render sizes.** The same file is drawn at:
+**One asset, several render sizes.** The same file is drawn at:
 
 | Size | Widget | Where |
 |---|---|---|
 | 28px | `TileSvgIcon` | specimen part rows, coordinate rows, effort rows |
+| 32–40px | `ProjectActionIcon` | home project actions pinned above the list |
+| 40–48px | `ProjectActionIcon` | home project actions beside the list, empty home |
 | 64px | `CommonEmptyForm` | empty states |
 | 80px | `QrIcon` | QR view |
 | 116px | `FileFormatIcon` | export/bundle format pickers |

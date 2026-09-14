@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -220,14 +221,10 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
           onTap: () => setState(() => _isDuplex = true),
         ),
         const SizedBox(height: 20),
-        TextField(
+        DescriptionField(
           controller: _descriptionController,
-          maxLines: 3,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Description',
-            border: OutlineInputBorder(),
-          ),
+          border: const OutlineInputBorder(),
+          onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 20),
         Row(
@@ -236,7 +233,12 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
             TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
             const SizedBox(width: 8),
             FilledButton(
-              onPressed: _nameError == null ? _apply : null,
+              onPressed:
+                  _nameError == null &&
+                      descriptionLengthError(_descriptionController.text) ==
+                          null
+                  ? _apply
+                  : null,
               child: const Text('Apply'),
             ),
           ],

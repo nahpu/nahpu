@@ -1,9 +1,12 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
+import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
+import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/nahpu_icons.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 enum CustomFieldExportMethod { file, qr }
 
@@ -18,101 +21,11 @@ Future<CustomFieldExportChoice?> showCustomFieldExportSelection({
   required BuildContext context,
   required List<CustomFieldDefinitionData> definitions,
 }) {
-  final selectedIds = definitions.map((definition) => definition.id!).toSet();
-  return showDialog<CustomFieldExportChoice>(
+  return showAdaptiveSheetDialog<CustomFieldExportChoice>(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: const Text('Export custom fields'),
-        content: SizedBox(
-          width: 520,
-          child: definitions.isEmpty
-              ? const Text('No custom fields are available to export.')
-              : SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text('Select reusable definitions'),
-                          ),
-                          TextButton(
-                            onPressed: () => setState(
-                              () => selectedIds
-                                ..clear()
-                                ..addAll(
-                                  definitions.map(
-                                    (definition) => definition.id!,
-                                  ),
-                                ),
-                            ),
-                            child: const Text('Select all'),
-                          ),
-                          TextButton(
-                            onPressed: selectedIds.isEmpty
-                                ? null
-                                : () => setState(selectedIds.clear),
-                            child: const Text('Clear'),
-                          ),
-                        ],
-                      ),
-                      for (final definition in definitions)
-                        CheckboxListTile(
-                          contentPadding: EdgeInsets.zero,
-                          secondary: Icon(_placementIcon(definition.placement)),
-                          title: Text(definition.name),
-                          subtitle: Text(
-                            '${definition.placement.label} · '
-                            '${definition.fieldScope == FieldScope.global ? 'Global' : 'Current project'}'
-                            '${definition.archived ? ' · Archived' : ''}',
-                          ),
-                          value: selectedIds.contains(definition.id),
-                          onChanged: (selected) => setState(() {
-                            if (selected ?? false) {
-                              selectedIds.add(definition.id!);
-                            } else {
-                              selectedIds.remove(definition.id);
-                            }
-                          }),
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          OutlinedButton.icon(
-            onPressed: selectedIds.isEmpty
-                ? null
-                : () => Navigator.pop(
-                    dialogContext,
-                    CustomFieldExportChoice(
-                      ids: Set.of(selectedIds),
-                      method: CustomFieldExportMethod.qr,
-                    ),
-                  ),
-            icon: const Icon(Icons.qr_code_2_outlined),
-            label: const Text('Show QR'),
-          ),
-          FilledButton.icon(
-            onPressed: selectedIds.isEmpty
-                ? null
-                : () => Navigator.pop(
-                    dialogContext,
-                    CustomFieldExportChoice(
-                      ids: Set.of(selectedIds),
-                      method: CustomFieldExportMethod.file,
-                    ),
-                  ),
-            icon: const Icon(Icons.file_upload_outlined),
-            label: const Text('Export file'),
-          ),
-        ],
-      ),
+    builder: (_, isSheet) => _CustomFieldExportSelection(
+      definitions: definitions,
+      showCloseButton: !isSheet,
     ),
   );
 }
@@ -122,79 +35,12 @@ Future<UserConfigImportDestination?> showCustomFieldImportPreview({
   required UserConfigImportSource source,
   required bool projectAvailable,
 }) {
-  var destination = projectAvailable
-      ? UserConfigImportDestination.currentProject
-      : UserConfigImportDestination.global;
-  return showDialog<UserConfigImportDestination>(
+  return showAdaptiveSheetDialog<UserConfigImportDestination>(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: const Text('Import custom fields'),
-        content: SizedBox(
-          width: 520,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  '${source.preview.customFields.length} reusable '
-                  '${source.preview.customFields.length == 1 ? 'definition' : 'definitions'}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
-                for (final template in source.preview.customFields)
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.dynamic_form_outlined),
-                    title: Text(template.label),
-                    subtitle: Text(
-                      '${template.placement} · ${template.fieldType}'
-                      '${template.catalogFormat == null ? '' : ' · ${template.catalogFormat}'}',
-                    ),
-                  ),
-                const Divider(),
-                DropdownButtonFormField<UserConfigImportDestination>(
-                  initialValue: destination,
-                  decoration: const InputDecoration(labelText: 'Destination'),
-                  items: [
-                    const DropdownMenuItem(
-                      value: UserConfigImportDestination.global,
-                      child: Text('Global'),
-                    ),
-                    if (projectAvailable)
-                      const DropdownMenuItem(
-                        value: UserConfigImportDestination.currentProject,
-                        child: Text('Current project'),
-                      ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) setState(() => destination = value);
-                  },
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Definitions are preflighted before import. Matching '
-                  'template IDs are updated safely; unrelated fields remain '
-                  'unchanged.',
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.pop(dialogContext, destination),
-            icon: const Icon(Icons.file_download_outlined),
-            label: const Text('Import'),
-          ),
-        ],
-      ),
+    builder: (_, isSheet) => _CustomFieldImportPreview(
+      source: source,
+      projectAvailable: projectAvailable,
+      showCloseButton: !isSheet,
     ),
   );
 }
@@ -204,37 +50,243 @@ Future<void> showCustomFieldQrDialog({
   required String payload,
   required int definitionCount,
 }) {
+  const title = 'Custom fields QR code';
+  final description =
+      'Scan this code from another NAHPU device to import '
+      '$definitionCount custom field '
+      '${definitionCount == 1 ? 'definition' : 'definitions'}.';
+  if (MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => QrCodeDialog(
+        title: title,
+        data: payload,
+        description: description,
+        showAsSheet: true,
+      ),
+    );
+  }
   return showDialog<void>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Custom fields QR code'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QrImageView(
-              data: payload,
-              size: 280,
-              backgroundColor: Colors.white,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Scan this code from another NAHPU device to import '
-              '$definitionCount custom field '
-              '${definitionCount == 1 ? 'definition' : 'definitions'}.',
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    builder: (_) =>
+        QrCodeDialog(title: title, data: payload, description: description),
+  );
+}
+
+class _CustomFieldExportSelection extends StatefulWidget {
+  const _CustomFieldExportSelection({
+    required this.definitions,
+    required this.showCloseButton,
+  });
+
+  final List<CustomFieldDefinitionData> definitions;
+  final bool showCloseButton;
+
+  @override
+  State<_CustomFieldExportSelection> createState() =>
+      _CustomFieldExportSelectionState();
+}
+
+class _CustomFieldExportSelectionState
+    extends State<_CustomFieldExportSelection> {
+  late final Set<int> _selectedIds = _allIds;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final definitions = widget.definitions;
+    final hasSelection = _selectedIds.isNotEmpty;
+    return AdaptiveSheetDialogBody(
+      title: 'Export custom fields',
+      showCloseButton: widget.showCloseButton,
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('Close'),
+        if (definitions.isNotEmpty) ...[
+          OutlinedButton.icon(
+            onPressed: hasSelection
+                ? () => _choose(CustomFieldExportMethod.qr)
+                : null,
+            icon: const Icon(Icons.qr_code_2_outlined),
+            label: const Text('Show QR'),
+          ),
+          FilledButton.icon(
+            onPressed: hasSelection
+                ? () => _choose(CustomFieldExportMethod.file)
+                : null,
+            icon: const Icon(Icons.file_upload_outlined),
+            label: const Text('Export file'),
+          ),
+        ],
+      ],
+      child: definitions.isEmpty
+          ? const Text('No custom fields are available to export.')
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${_selectedIds.length} of ${definitions.length} '
+                        'selected',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _selectedIds.length == definitions.length
+                          ? null
+                          : () => setState(() => _selectedIds.addAll(_allIds)),
+                      child: const Text('Select all'),
+                    ),
+                    TextButton(
+                      onPressed: hasSelection
+                          ? () => setState(_selectedIds.clear)
+                          : null,
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+                for (final definition in definitions)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Icon(_placementIcon(definition.placement)),
+                    title: Text(
+                      definition.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${definition.placement.label} · '
+                      '${definition.fieldScope == FieldScope.global ? 'Global' : 'Current project'}'
+                      '${definition.archived ? ' · Archived' : ''}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    value: _selectedIds.contains(definition.id),
+                    onChanged: (selected) => setState(() {
+                      if (selected ?? false) {
+                        _selectedIds.add(definition.id!);
+                      } else {
+                        _selectedIds.remove(definition.id);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+    );
+  }
+
+  Set<int> get _allIds => {
+    for (final definition in widget.definitions) definition.id!,
+  };
+
+  void _choose(CustomFieldExportMethod method) {
+    Navigator.pop(
+      context,
+      CustomFieldExportChoice(ids: Set.of(_selectedIds), method: method),
+    );
+  }
+}
+
+class _CustomFieldImportPreview extends StatefulWidget {
+  const _CustomFieldImportPreview({
+    required this.source,
+    required this.projectAvailable,
+    required this.showCloseButton,
+  });
+
+  final UserConfigImportSource source;
+  final bool projectAvailable;
+  final bool showCloseButton;
+
+  @override
+  State<_CustomFieldImportPreview> createState() =>
+      _CustomFieldImportPreviewState();
+}
+
+class _CustomFieldImportPreviewState extends State<_CustomFieldImportPreview> {
+  late UserConfigImportDestination _destination = widget.projectAvailable
+      ? UserConfigImportDestination.currentProject
+      : UserConfigImportDestination.global;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final templates = widget.source.preview.customFields;
+    return AdaptiveSheetDialogBody(
+      title: 'Import custom fields',
+      description:
+          '${templates.length} reusable '
+          '${templates.length == 1 ? 'definition' : 'definitions'}',
+      showCloseButton: widget.showCloseButton,
+      actions: [
+        FilledButton.icon(
+          onPressed: () => Navigator.pop(context, _destination),
+          icon: const Icon(Icons.file_download_outlined),
+          label: const Text('Import'),
         ),
       ],
-    ),
-  );
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final template in templates)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dynamic_form_outlined),
+              title: Text(
+                template.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                '${template.placement} · ${template.fieldType}'
+                '${template.catalogFormat == null ? '' : ' · ${template.catalogFormat}'}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          const Divider(),
+          const SizedBox(height: NahpuSpacing.md),
+          DropdownButtonFormField<UserConfigImportDestination>(
+            isExpanded: true,
+            initialValue: _destination,
+            decoration: const InputDecoration(labelText: 'Destination'),
+            items: [
+              const DropdownMenuItem(
+                value: UserConfigImportDestination.global,
+                child: CommonDropdownText(text: 'Global'),
+              ),
+              if (widget.projectAvailable)
+                const DropdownMenuItem(
+                  value: UserConfigImportDestination.currentProject,
+                  child: CommonDropdownText(text: 'Current project'),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => _destination = value);
+            },
+          ),
+          const SizedBox(height: NahpuSpacing.lg),
+          Text(
+            'Definitions are preflighted before import. Matching template IDs '
+            'are updated safely; unrelated fields remain unchanged.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 IconData _placementIcon(FieldUISection placement) => switch (placement) {

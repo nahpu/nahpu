@@ -164,6 +164,123 @@ void main() {
     expect(updated?.text, '[[sex][sex=="0"]=>"Male"]]');
   });
 
+  testWidgets('template editor reopens and extends conditional text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1400, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const text = CustomTextElement(
+      id: 'conditional-text',
+      text: 'Width: [testisWidth][[if][testisWidth!=""]=>" mm"]]',
+      xMm: 0,
+      yMm: 0,
+    );
+    const template = Template(
+      name: 'Conditional text',
+      page1: TemplatePage(customTexts: [text]),
+      page2: TemplatePage(),
+      widthMm: 50,
+      heightMm: 25,
+      recordType: RecordType.specimenRecord,
+    );
+    CustomTextElement? updated;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: TextPropertiesPanel(
+              selectedElement: 'custom:1:conditional-text',
+              page1: true,
+              template: template,
+              onUpdateCustomText: (_, value) => updated = value,
+              onDeleteCustomText: (_, _) {},
+              actionControls: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Text formatting options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Conditional output'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conditional text'), findsWidgets);
+    expect(find.text('Target field'), findsNothing);
+    final otherwise = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField &&
+          widget.decoration?.labelText == 'Text otherwise (optional)',
+    );
+    await tester.enterText(otherwise, 'n/a');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(
+      updated?.text,
+      'Width: [testisWidth][[if][testisWidth!=""]=>" mm"|"n/a"]]',
+    );
+  });
+
+  testWidgets('template live preview renders conditional text and labels', (
+    tester,
+  ) async {
+    const template = Template(
+      name: 'Conditional text preview',
+      page1: TemplatePage(
+        customTexts: [
+          CustomTextElement(
+            id: 'conditional-text-preview',
+            text:
+                '[mammalAttribute::testisPosition#label]'
+                '[[if][mammalAttribute::testisWidth!=""]=>'
+                '" [mammalAttribute::testisWidth] mm"|" no width"]]',
+            xMm: 0,
+            yMm: 0,
+          ),
+        ],
+      ),
+      page2: TemplatePage(),
+      widthMm: 50,
+      heightMm: 25,
+      recordType: RecordType.specimenRecord,
+    );
+
+    Future<void> pumpWithValues(String position, String width) =>
+        tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: TemplateLivePreview(
+                viewportSize: const Size(500, 300),
+                showHeading: false,
+                template: template,
+                isDuplex: false,
+                mirrorFront: false,
+                mirrorBack: false,
+                templateWidthMm: 50,
+                templateHeightMm: 25,
+                placeholderValues: {
+                  'mammalAttribute::testisPosition': position,
+                  'mammalAttribute::testisWidth': width,
+                },
+              ),
+            ),
+          ),
+        );
+
+    await pumpWithValues('0', '6.5');
+    await tester.pumpAndSettle();
+    expect(find.text('Scrotal 6.5 mm'), findsOneWidget);
+
+    await pumpWithValues('1', '');
+    await tester.pumpAndSettle();
+    expect(find.text('Abdominal no width'), findsOneWidget);
+  });
+
   testWidgets('template live preview renders conditional brackets', (
     tester,
   ) async {

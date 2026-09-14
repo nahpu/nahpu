@@ -4,11 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
+import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 
 void main() {
   testWidgets(
-    'narrow spatial statistics opens the map in a full-screen route',
+    'narrow spatial statistics shows the map inline with a full-screen action',
     (tester) async {
       tester.view.physicalSize = const Size(500, 900);
       tester.view.devicePixelRatio = 1;
@@ -43,18 +44,47 @@ void main() {
 
       expect(
         find.byKey(const ValueKey('spatial-statistics-view-map')),
-        findsOneWidget,
+        findsNothing,
       );
+      expect(find.byTooltip('Map layers'), findsOneWidget);
 
-      await tester.tap(
-        find.byKey(const ValueKey('spatial-statistics-view-map')),
-      );
+      await tester.tap(find.byTooltip('View map full screen'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Spatial statistics map'), findsOneWidget);
     },
   );
+
+  testWidgets('vertical swipes over an inline map scroll the page', (
+    tester,
+  ) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            controller: controller,
+            child: const Column(
+              children: [
+                SizedBox(height: 700, child: MapLibreGestureSurface()),
+                SizedBox(height: 700),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byType(MapLibreGestureSurface),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+
+    expect(controller.offset, greaterThan(0));
+  });
 
   testWidgets('spatial table includes coordinate metrics', (tester) async {
     tester.view.physicalSize = const Size(1600, 1000);

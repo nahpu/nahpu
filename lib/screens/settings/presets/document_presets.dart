@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,10 +6,16 @@ import 'package:nahpu/screens/templates/template_editor_screen.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
+import 'package:nahpu/screens/shared/forms/description_field.dart';
+import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
+import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:path/path.dart' as path;
+import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
+import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
+import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
+import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/settings/preset_transfer_service.dart';
 
 // Preview and specimen selection imports
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
@@ -30,9 +35,7 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/screens/settings/presets/font_manager.dart';
 import 'package:nahpu/screens/settings/presets/template_preset_manager.dart';
-import 'package:nahpu/services/settings/config_services.dart';
-import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 
 /// The three things the Document Presets screen manages.
 enum DocumentPresetView { layouts, templates, fonts }
@@ -55,8 +58,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   String? _error;
   rust_config.DocumentLayoutPreset? _layout;
   List<rust_config.DocumentLayoutStatus> _layoutStatuses = const [];
+  Map<String, String> _layoutDescriptions = const {};
   List<String> _templateNames = const [];
-  String _selectedLayoutName = 'Default';
+  String? _selectedLayoutName;
   DocumentPresetView _view = DocumentPresetView.layouts;
 
   // Preview States
@@ -138,10 +142,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           if (_view == DocumentPresetView.layouts)
             PresetAppBarActions(
               onCreate: _addPreset,
-              onScanQr: _scanPresetQr,
               onImport: _importPreset,
               onExportAll: _exportPresetsToFile,
-              onExportSelected: _exportSelectedPreset,
+              onExportSelected: _selectedLayoutName == null
+                  ? null
+                  : _exportSelectedPreset,
+              onLoadDefaults: () =>
+                  _loadDefaults(const {BundledPresetKind.document}),
             ),
         ],
       ),
@@ -151,22 +158,31 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: Center(
+                // Phones drop the icons and checkmark so each label fits on
+                // one line.
                 child: SegmentedButton<DocumentPresetView>(
-                  segments: const [
+                  showSelectedIcon: isLargeScreen,
+                  segments: [
                     ButtonSegment(
                       value: DocumentPresetView.layouts,
-                      icon: Icon(Icons.view_quilt_outlined),
-                      label: Text('Print layouts'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.view_quilt_outlined)
+                          : null,
+                      label: const Text('Print layouts'),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.templates,
-                      icon: Icon(Icons.dashboard_customize_outlined),
-                      label: Text('Templates'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.dashboard_customize_outlined)
+                          : null,
+                      label: const Text('Templates'),
                     ),
                     ButtonSegment(
                       value: DocumentPresetView.fonts,
-                      icon: Icon(Icons.text_fields_outlined),
-                      label: Text('Fonts'),
+                      icon: isLargeScreen
+                          ? const Icon(Icons.text_fields_outlined)
+                          : null,
+                      label: const Text('Fonts'),
                     ),
                   ],
                   selected: {_view},
@@ -182,7 +198,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                   : _view == DocumentPresetView.templates
                   ? TemplatePresetManager(
                       onOpenTemplateEditor: _openTemplateEditor,
-                      onRestoreBundledTemplates: _restoreBundledTemplates,
+                      onLoadDefaults: () =>
+                          _loadDefaults(const {BundledPresetKind.template}),
                     )
                   : _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -199,11 +216,15 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                     child: DocumentPresetListColumn(
                                       selectedPresetName: _selectedLayoutName,
                                       statuses: _layoutStatuses,
+                                      descriptions: _layoutDescriptions,
                                       onPresetSelected: (name) async {
                                         await _selectLayout(name);
                                         _tabController.animateTo(1);
                                       },
                                       onDeletePreset: _deletePreset,
+                                      onLoadDefaults: () => _loadDefaults(
+                                        const {BundledPresetKind.document},
+                                      ),
                                       onExportPreset: (name) =>
                                           _exportLayouts(onlyName: name),
                                       tabController: _tabController,
@@ -262,6 +283,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                                         _openTemplateEditor,
                                                     onRenamePreset:
                                                         _renamePreset,
+                                                    onUpdateDescription:
+                                                        _updatePresetDescription,
                                                   ),
                                                   previewWidget,
                                                 ],
@@ -292,11 +315,15 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                       DocumentPresetListColumn(
                                         selectedPresetName: _selectedLayoutName,
                                         statuses: _layoutStatuses,
+                                        descriptions: _layoutDescriptions,
                                         onPresetSelected: (name) async {
                                           await _selectLayout(name);
                                           _tabController.animateTo(1);
                                         },
                                         onDeletePreset: _deletePreset,
+                                        onLoadDefaults: () => _loadDefaults(
+                                          const {BundledPresetKind.document},
+                                        ),
                                         onExportPreset: (name) =>
                                             _exportLayouts(onlyName: name),
                                         tabController: _tabController,
@@ -312,6 +339,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                                             _openTemplateEditor(),
                                         onEditTemplate: _openTemplateEditor,
                                         onRenamePreset: _renamePreset,
+                                        onUpdateDescription:
+                                            _updatePresetDescription,
                                       ),
                                       previewWidget,
                                     ],
@@ -341,21 +370,16 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
 
     try {
-      var statuses = await _layoutService.listLayoutStatuses();
-      if (statuses.isEmpty) {
-        final defaultLayout = await _layoutService.getDefaultLayout('Default');
-        await _layoutService.saveLayout(defaultLayout);
-        statuses = await _layoutService.listLayoutStatuses();
-      }
+      final statuses = await _layoutService.listLayoutStatuses();
       final names = statuses.map((status) => status.name).toList();
       final current = await _layoutService.getStoredCurrentLayoutName();
-      final String selectedName = current != null && names.contains(current)
+      final selectedName = current != null && names.contains(current)
           ? current
-          : names.first;
-      final selectedStatus = statuses.firstWhere(
-        (status) => status.name == selectedName,
+          : names.firstOrNull;
+      final isCompatible = statuses.any(
+        (status) => status.name == selectedName && status.isCompatible,
       );
-      final layout = selectedStatus.isCompatible
+      final layout = selectedName != null && isCompatible
           ? await _layoutService.getLayout(selectedName)
           : null;
       final templates = await rust_config.listTemplatePresets();
@@ -406,9 +430,11 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         }
       }
 
+      final descriptions = await _layoutService.layoutDescriptions(statuses);
       if (!mounted) return;
       setState(() {
         _layoutStatuses = statuses;
+        _layoutDescriptions = descriptions;
         _selectedLayoutName = selectedName;
         _layout = layout;
         _templateNames = templates;
@@ -497,41 +523,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     final name = await _promptPresetName(title: 'New document preset');
     if (name == null) return;
 
-    final templateName = _templateNames.isNotEmpty
-        ? _templateNames.first
-        : 'Default';
-    final layout = await _layoutService.getDefaultLayout(name);
-    final blocks = layout.blocks.isEmpty
-        ? [
-            rust_config.DocumentLayoutBlock(
-              templateName: templateName,
-              templateCount: 1,
-              rows: 1,
-              cols: 1,
-              templatePadTopMm: 0,
-              templatePadLeftMm: 0,
-              templatePadRightMm: 0,
-              templatePadBottomMm: 0,
-              pageBreakAfter: false,
-              sortField: null,
-              sortDirection: rust_config.DocumentSortDirection.ascending,
-            ),
-          ]
-        : layout.blocks;
-    final nextLayout = layout.copyWith(name: name, blocks: blocks);
-
-    await _layoutService.saveLayout(nextLayout);
+    final layout = await _layoutService.blankLayout(name);
+    await _layoutService.saveLayout(layout);
     await _layoutService.setCurrentLayoutName(name);
     await _load();
   }
 
   Future<void> _renamePreset(String currentName, String newName) async {
-    if (currentName == 'Default') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot rename the Default preset')),
-      );
-      return;
-    }
     try {
       await _layoutService.renameLayout(currentName, newName);
       _selectedLayoutName = newName;
@@ -548,13 +546,22 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
   }
 
+  /// Saves [description] on the stored preset named [name].
+  Future<void> _updatePresetDescription(String name, String description) async {
+    final layout = await _layoutService.getLayout(name);
+    if (layout == null) return;
+    await _layoutService.saveLayout(layout.copyWith(description: description));
+    await _load(showLoading: false);
+  }
+
   Future<void> _savePresetAs() async {
     final layout = _layout;
-    if (layout == null) return;
+    final selectedName = _selectedLayoutName;
+    if (layout == null || selectedName == null) return;
 
     final name = await _promptPresetName(
-      title: 'Save document preset',
-      initialValue: _selectedLayoutName,
+      title: 'Duplicate preset',
+      initialValue: '${selectedName}_copy',
     );
     if (name == null) return;
 
@@ -565,13 +572,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   }
 
   Future<void> _deletePreset(String name) async {
-    if (name == 'Default') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot delete Default preset')),
-      );
-      return;
-    }
-
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -595,12 +595,6 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (ok != true) return;
 
     await _layoutService.deleteLayout(name);
-    final remaining = _layoutStatuses.where((s) => s.name != name).toList();
-    if (remaining.isNotEmpty) {
-      _selectedLayoutName = remaining.first.name;
-    } else {
-      _selectedLayoutName = 'Default';
-    }
     await _load();
   }
 
@@ -618,11 +612,16 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     await _load();
   }
 
-  Future<void> _restoreBundledTemplates() async {
-    await const BundledTemplatePresetService().restoreAll();
-    final prefs = await SharedPreferences.getInstance();
-    await ConfigDbService().loadDefaultDocumentPresetsOnce(prefs);
+  /// Lets the user pick bundled generic presets of [kinds]. Layouts bring the
+  /// templates they print with.
+  Future<void> _loadDefaults(Set<BundledPresetKind> kinds) async {
+    final result = await showLoadDefaultsDialog(context: context, kinds: kinds);
+    if (result == null) return;
     await _load(showLoading: false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
   }
 
   Future<void> _exportPresetsToFile() => _exportLayouts();
@@ -630,10 +629,9 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
   Future<void> _exportSelectedPreset() =>
       _exportLayouts(onlyName: _selectedLayoutName);
 
-  /// Writes layouts to a JSON file.
-  ///
-  /// One layout and all layouts share the same name-keyed envelope, so either
-  /// file imports through the same path.
+  /// Opens the export dialog for one layout, or every layout when [onlyName]
+  /// is null. The templates the layouts print with go along unless the user
+  /// turns them off.
   Future<void> _exportLayouts({String? onlyName}) async {
     try {
       final all = await rust_config.getAllDocumentLayouts();
@@ -648,23 +646,32 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
         }
         return;
       }
-      final Map<String, dynamic> exportedData = {
-        for (final layout in layouts) layout.name: layout.toJson(),
-      };
-      final dir = await FilePickerServices().selectDir();
-      if (dir == null) return;
-      final fileName = onlyName == null
-          ? 'nahpu_document_presets.json'
-          : 'preset_${_sanitizeFileStem(onlyName)}.json';
-      final savePath = File(path.join(dir.path, fileName));
-      await savePath.writeAsString(jsonEncode(exportedData));
+      final templates = <Template>[];
+      for (final name in PresetTransferService.linkedTemplateNames(layouts)) {
+        final template = await const TemplateService().getTemplate(name);
+        if (template != null) templates.add(template);
+      }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Exported ${layouts.length} preset'
-            '${layouts.length == 1 ? '' : 's'} to ${savePath.path}',
-          ),
+      await showPresetExportDialog(
+        context: context,
+        request: PresetExportRequest(
+          title: 'Export print layouts',
+          summary:
+              onlyName ??
+              '${layouts.length} print layout'
+                  '${layouts.length == 1 ? '' : 's'}',
+          defaultFileStem: onlyName == null
+              ? 'nahpu_document_presets'
+              : PresetTransferService.safeFileStem('preset_$onlyName'),
+          linkedTemplateNames: [
+            for (final template in templates) template.name,
+          ],
+          imageNote: PresetTransferService.imageNote(templates),
+          encode: ({required includeLinkedTemplates}) async =>
+              const PresetTransferService().encodeLayouts(
+                layouts,
+                templates: includeLinkedTemplates ? templates : const [],
+              ),
         ),
       );
     } catch (e) {
@@ -676,155 +683,30 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     }
   }
 
-  String _sanitizeFileStem(String name) {
-    final safe = name.trim().replaceAll(RegExp(r'[^\w.\-]'), '_');
-    return safe.isEmpty ? 'preset' : safe;
-  }
-
-  /// Imports one layout or a name-keyed map of layouts.
-  ///
-  /// Layouts reference templates by name and carry no font of their own, so
-  /// there is nothing to resolve here — the fonts are resolved when the
-  /// templates themselves are imported.
+  /// Imports a layout file, adding the templates packed with its layouts.
   Future<void> _importPreset() async {
     final file = await FilePickerServices().selectAnyFile();
     if (file == null) return;
-
+    const transfer = PresetTransferService();
     try {
-      final content = await File(file.path).readAsString();
-      final decoded = jsonDecode(content);
-
-      if (decoded is Map<String, dynamic>) {
-        if (decoded.containsKey('name') && decoded.containsKey('layoutType')) {
-          var imported = DocumentLayoutPresetJson.fromJson(decoded);
-          await _saveAndSetCurrentLayout(imported);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Imported layout "${imported.name}"')),
-            );
-          }
-        } else {
-          int importedCount = 0;
-          final existingNames = (await _layoutService.listLayoutStatuses())
-              .map((s) => s.name)
-              .toSet();
-
-          for (final entry in decoded.entries) {
-            final layoutMap = Map<String, dynamic>.from(entry.value as Map);
-            var layout = DocumentLayoutPresetJson.fromJson(layoutMap);
-
-            String finalName = entry.key;
-            int i = 1;
-            while (existingNames.contains(finalName)) {
-              finalName = '${entry.key}_$i';
-              i++;
-            }
-            existingNames.add(finalName);
-            layout = layout.copyWith(name: finalName);
-            await _layoutService.saveLayout(layout);
-            importedCount++;
-          }
-          await _load();
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Imported $importedCount presets')),
-            );
-          }
-        }
-      } else {
-        throw const FormatException('Invalid format');
-      }
+      final bundle = transfer.decodeLayouts(
+        await File(file.path).readAsString(),
+      );
+      if (!mounted) return;
+      final templates = bundle.templates.isEmpty
+          ? const <Template>[]
+          : await resolveMissingTemplateFonts(context, ref, bundle.templates);
+      if (templates == null) return;
+      final result = await transfer.importLayouts(bundle, templates: templates);
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.message)));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Invalid document layout file: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _saveAndSetCurrentLayout(
-    rust_config.DocumentLayoutPreset imported,
-  ) async {
-    var nextLayout = imported;
-    final names = (await _layoutService.listLayoutStatuses())
-        .map((s) => s.name)
-        .toList();
-    if (names.contains(imported.name)) {
-      final base = imported.name;
-      var i = 2;
-      while (names.contains('$base $i')) {
-        i++;
-      }
-      nextLayout = imported.copyWith(name: '$base $i');
-    }
-    await _layoutService.saveLayout(nextLayout);
-    await _layoutService.setCurrentLayoutName(nextLayout.name);
-    await _load();
-  }
-
-  void _scanPresetQr() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScannerScreen(
-          onDetect: (barcode) {
-            final rawValue = barcode.barcodes.first.rawValue;
-            if (rawValue != null) {
-              _importPresetFromQR(rawValue);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  void _importPresetFromQR(String rawValue) async {
-    try {
-      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
-      if (decoded.containsKey('nahpu_document_preset') &&
-          decoded.containsKey('data')) {
-        String name = decoded['nahpu_document_preset'] as String;
-        final dataJson = Map<String, dynamic>.from(decoded['data'] as Map);
-        var layout = DocumentLayoutPresetJson.fromJson(dataJson);
-
-        if (_layoutStatuses.length >= 20) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Maximum of 20 presets reached. Cannot import.'),
-              ),
-            );
-          }
-          return;
-        }
-
-        String finalName = name;
-        int i = 1;
-        final existingNames = _layoutStatuses.map((s) => s.name).toSet();
-        while (existingNames.contains(finalName)) {
-          finalName = '${name}_$i';
-          i++;
-        }
-        layout = layout.copyWith(name: finalName);
-
-        await _layoutService.saveLayout(layout);
-        await _layoutService.setCurrentLayoutName(finalName);
-        await _load();
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Imported preset "$finalName"')),
-          );
-        }
-      } else {
-        throw const FormatException('Invalid QR code format for preset.');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
         );
       }
     }
@@ -840,7 +722,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (!mounted) return null;
     return showDialog<String>(
       context: context,
-      builder: (context) => _DocumentPresetNameDialog(
+      builder: (context) => PresetNameDialog(
         title: title,
         initialValue: initialValue,
         existingNames: existingNames,
@@ -857,15 +739,23 @@ class DocumentPresetListColumn extends StatelessWidget {
     required this.onPresetSelected,
     required this.onDeletePreset,
     required this.tabController,
+    this.descriptions = const {},
     this.onExportPreset,
+    this.onLoadDefaults,
   });
 
   final String? selectedPresetName;
   final List<rust_config.DocumentLayoutStatus> statuses;
+
+  /// Preset descriptions keyed by name; presets without one are absent.
+  final Map<String, String> descriptions;
   final ValueChanged<String>? onExportPreset;
   final ValueChanged<String> onPresetSelected;
   final ValueChanged<String> onDeletePreset;
   final TabController tabController;
+
+  /// Adds the bundled default layouts from the empty list.
+  final VoidCallback? onLoadDefaults;
 
   @override
   Widget build(BuildContext context) {
@@ -878,9 +768,11 @@ class DocumentPresetListColumn extends StatelessWidget {
         children: [
           Expanded(
             child: statuses.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(child: Text('No presets found.')),
+                ? PresetEmptyState(
+                    message:
+                        'No print layouts yet. Create or import one, or load '
+                        'the default layouts.',
+                    onLoadDefaults: onLoadDefaults,
                   )
                 : ListView.builder(
                     padding: EdgeInsets.zero,
@@ -918,15 +810,17 @@ class DocumentPresetListColumn extends StatelessWidget {
                                 Flexible(child: Text(name)),
                               ],
                             ),
+                            subtitle: descriptions[name] == null
+                                ? null
+                                : Text(
+                                    descriptions[name]!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (status.isCompatible) ...[
-                                  IconButton(
-                                    icon: const Icon(Icons.qr_code),
-                                    tooltip: 'Show QR',
-                                    onPressed: () => _showQRCode(context, name),
-                                  ),
                                   if (onExportPreset != null)
                                     IconButton(
                                       icon: const Icon(
@@ -956,34 +850,6 @@ class DocumentPresetListColumn extends StatelessWidget {
       ),
     );
   }
-
-  void _showQRCode(BuildContext context, String name) async {
-    final layoutService = const DocumentLayoutService();
-    final layout = await layoutService.getLayout(name);
-    if (layout == null) return;
-    final payload = jsonEncode({
-      'nahpu_document_preset': name,
-      'data': layout.toJson(),
-    });
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(name),
-        content: SizedBox(
-          width: 300,
-          height: 300,
-          child: QrImageView(data: payload, backgroundColor: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class DocumentPresetEditColumn extends StatelessWidget {
@@ -998,6 +864,7 @@ class DocumentPresetEditColumn extends StatelessWidget {
     required this.onCreateTemplate,
     required this.onEditTemplate,
     required this.onRenamePreset,
+    required this.onUpdateDescription,
   });
 
   final String? selectedPresetName;
@@ -1009,6 +876,8 @@ class DocumentPresetEditColumn extends StatelessWidget {
   final VoidCallback onCreateTemplate;
   final ValueChanged<String> onEditTemplate;
   final Future<void> Function(String, String) onRenamePreset;
+  final Future<void> Function(String name, String description)
+  onUpdateDescription;
 
   @override
   Widget build(BuildContext context) {
@@ -1071,7 +940,9 @@ class DocumentPresetEditColumn extends StatelessWidget {
                   .map((status) => status.name)
                   .where((name) => name != selectedPresetName)
                   .toSet(),
+              description: layout!.description ?? '',
               onRename: onRenamePreset,
+              onUpdateDescription: onUpdateDescription,
               onDuplicate: onSaveSetupAs,
             ),
           ),
@@ -1103,20 +974,25 @@ class DocumentPresetEditColumn extends StatelessWidget {
 
 /// Editable name for the selected print layout preset.
 ///
-/// The name is committed by the Rename button rather than as the user types,
-/// so a rename never fires against a half-typed name.
+/// The name and description are committed by the Update button rather than as
+/// the user types, so a rename never fires against a half-typed name.
 class _PresetNameField extends StatefulWidget {
   const _PresetNameField({
     super.key,
     required this.presetName,
+    required this.description,
     required this.takenNames,
     required this.onRename,
+    required this.onUpdateDescription,
     required this.onDuplicate,
   });
 
   final String presetName;
+  final String description;
   final Set<String> takenNames;
   final Future<void> Function(String, String) onRename;
+  final Future<void> Function(String name, String description)
+  onUpdateDescription;
   final VoidCallback onDuplicate;
 
   @override
@@ -1127,23 +1003,34 @@ class _PresetNameFieldState extends State<_PresetNameField> {
   late final TextEditingController _controller = TextEditingController(
     text: widget.presetName,
   );
-  bool _renaming = false;
+  late final TextEditingController _descriptionController =
+      TextEditingController(text: widget.description);
+  bool _updating = false;
 
   @override
   void didUpdateWidget(covariant _PresetNameField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.presetName != widget.presetName && !_isDirty) {
+    if (oldWidget.presetName != widget.presetName && !_isNameDirty) {
       _controller.text = widget.presetName;
+    }
+    final keptOldDescription =
+        _descriptionController.text.trim() == oldWidget.description.trim();
+    if (oldWidget.description != widget.description && keptOldDescription) {
+      _descriptionController.text = widget.description;
     }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  bool get _isDirty => _controller.text.trim() != widget.presetName;
+  bool get _isNameDirty => _controller.text.trim() != widget.presetName;
+
+  bool get _isDescriptionDirty =>
+      _descriptionController.text.trim() != widget.description.trim();
 
   String? get _error {
     final trimmed = _controller.text.trim();
@@ -1154,125 +1041,39 @@ class _PresetNameFieldState extends State<_PresetNameField> {
     return null;
   }
 
-  Future<void> _rename() async {
+  bool get _canUpdate =>
+      (_isNameDirty || _isDescriptionDirty) &&
+      _error == null &&
+      descriptionLengthError(_descriptionController.text) == null &&
+      !_updating;
+
+  Future<void> _update() async {
+    final name = widget.presetName;
     final target = _controller.text.trim();
-    setState(() => _renaming = true);
-    await widget.onRename(widget.presetName, target);
-    if (mounted) setState(() => _renaming = false);
+    final description = _descriptionController.text.trim();
+    final renames = _isNameDirty;
+    final describes = _isDescriptionDirty;
+    setState(() => _updating = true);
+    // Save the description first, so a renamed copy carries it.
+    if (describes) await widget.onUpdateDescription(name, description);
+    if (renames) await widget.onRename(name, target);
+    if (mounted) setState(() => _updating = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final error = _error;
-    final canRename = _isDirty && error == null && !_renaming;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              labelText: 'Preset name',
-              errorText: _isDirty ? error : null,
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (_) => setState(() {}),
-            onSubmitted: (_) {
-              if (canRename) _rename();
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        FilledButton.tonal(
-          onPressed: canRename ? _rename : null,
-          child: const Text('Rename'),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: widget.onDuplicate,
-          icon: const Icon(Icons.copy_outlined),
-          label: const Text('Duplicate'),
-        ),
-      ],
+    return PresetIdentityFields(
+      nameController: _controller,
+      descriptionController: _descriptionController,
+      hasChanges: _isNameDirty || _isDescriptionDirty,
+      canUpdate: _canUpdate,
+      isUpdating: _updating,
+      onUpdate: _update,
+      onDuplicate: widget.onDuplicate,
+      nameErrorText: _isNameDirty ? _error : null,
+      onNameChanged: (_) => setState(() {}),
+      onDescriptionChanged: (_) => setState(() {}),
     );
-  }
-}
-
-class _DocumentPresetNameDialog extends StatefulWidget {
-  const _DocumentPresetNameDialog({
-    required this.title,
-    required this.existingNames,
-    this.initialValue,
-  });
-
-  final String title;
-  final String? initialValue;
-  final List<String> existingNames;
-
-  @override
-  State<_DocumentPresetNameDialog> createState() =>
-      _DocumentPresetNameDialogState();
-}
-
-class _DocumentPresetNameDialogState extends State<_DocumentPresetNameDialog> {
-  late final TextEditingController _controller;
-  String? _errorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialValue ?? '');
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        decoration: InputDecoration(
-          labelText: 'Preset name',
-          errorText: _errorText,
-        ),
-        onChanged: _validate,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
-      ],
-    );
-  }
-
-  void _submit() {
-    final name = _controller.text.trim();
-    _validate(name);
-    if (_errorText != null) return;
-    Navigator.pop(context, name);
-  }
-
-  void _validate(String value) {
-    final name = value.trim();
-    String? error;
-    if (name.isEmpty) {
-      error = 'Name cannot be empty';
-    } else if (widget.existingNames.contains(name) &&
-        name != widget.initialValue) {
-      error = 'A preset with this name already exists';
-    }
-    setState(() {
-      _errorText = error;
-    });
   }
 }
 
@@ -1297,6 +1098,13 @@ class _PreviewRecordSelectionScreenState
     extends ConsumerState<PreviewRecordSelectionScreen> {
   List<String> _visibleColumnIds = [];
 
+  /// The selection shown while this route is open.
+  ///
+  /// The route is pushed above the presets screen, so that screen's rebuilds
+  /// never reach it; without a local copy the checkboxes would stay frozen at
+  /// the selection the route opened with.
+  late Set<String> _selectedUuids = Set.of(widget.selectedUuids);
+
   @override
   void initState() {
     super.initState();
@@ -1317,40 +1125,31 @@ class _PreviewRecordSelectionScreenState
         appBar: AppBar(title: const Text('Select specimen parts for preview')),
         body: SafeArea(
           child: SpecimenPartSelectionView(
-            selectedIds: widget.selectedUuids,
-            onSelectionChanged: widget.onSelectionChanged,
+            selectedIds: _selectedUuids,
+            onSelectionChanged: _setSelection,
           ),
         ),
       );
     }
     if (widget.recordType == RecordType.site) {
       return SiteSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     } else if (widget.recordType == RecordType.collEvent) {
       return EventSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     } else if (widget.recordType == RecordType.narrative) {
       return NarrativeSelectionScreen(
-        selectedIds: widget.selectedUuids
-            .map((e) => int.tryParse(e) ?? 0)
-            .where((e) => e != 0)
-            .toSet(),
+        selectedIds: _selectedIntIds,
         onSelectionChanged: (selected) {
-          widget.onSelectionChanged(selected.map((e) => e.toString()).toSet());
+          _setSelection(selected.map((e) => e.toString()).toSet());
         },
       );
     }
@@ -1359,13 +1158,23 @@ class _PreviewRecordSelectionScreenState
       appBar: AppBar(title: const Text('Select specimens for preview')),
       body: SafeArea(
         child: SpecimenSelectionView(
-          selectedUuidList: widget.selectedUuids,
+          selectedUuidList: _selectedUuids,
           visibleColumnIds: _visibleColumnIds,
-          onSelectionChanged: widget.onSelectionChanged,
+          onSelectionChanged: _setSelection,
           onColumnsChanged: _pickColumns,
         ),
       ),
     );
+  }
+
+  Set<int> get _selectedIntIds => _selectedUuids
+      .map((e) => int.tryParse(e) ?? 0)
+      .where((e) => e != 0)
+      .toSet();
+
+  void _setSelection(Set<String> selected) {
+    setState(() => _selectedUuids = Set.of(selected));
+    widget.onSelectionChanged(selected);
   }
 
   Future<void> _loadColumns() async {

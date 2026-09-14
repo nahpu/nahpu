@@ -1,5 +1,6 @@
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
+import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 class ApplicationSettings extends ConsumerWidget {
-  const ApplicationSettings({super.key});
+  const ApplicationSettings({
+    super.key,
+    required this.selected,
+    required this.onOpen,
+  });
+
+  final SettingsDestination? selected;
+  final ValueChanged<SettingsDestination> onOpen;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,26 +32,24 @@ class ApplicationSettings extends ConsumerWidget {
             title: 'Theme',
             label: 'Set light or dark appearance',
             value: themeValue.name.toSentenceCase(),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ThemeSettings(isSelected: themeValue.name.toSentenceCase()),
-              ),
-            ),
+            isSelected: selected == SettingsDestination.theme,
+            onTap: () => onOpen(SettingsDestination.theme),
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, stackTrace) => const Text('Error'),
         ),
-        const DataUsage(),
+        DataUsage(
+          isSelected: selected == SettingsDestination.dataUsage,
+          onTap: () => onOpen(SettingsDestination.dataUsage),
+        ),
       ],
     );
   }
 }
 
 class ThemeSettings extends ConsumerStatefulWidget {
-  const ThemeSettings({super.key, required this.isSelected});
-  final String isSelected;
+  const ThemeSettings({super.key});
+
   @override
   ThemeSettingState createState() => ThemeSettingState();
 }
@@ -57,6 +63,14 @@ class ThemeSettingState extends ConsumerState<ThemeSettings> {
   ];
   @override
   Widget build(BuildContext context) {
+    // Watched here, not passed in, so the check mark follows the change when
+    // the page stays open beside the settings list.
+    final selectedTheme = ref
+        .watch(themeSettingProvider)
+        .asData
+        ?.value
+        .name
+        .toSentenceCase();
     return Scaffold(
       appBar: AppBar(title: const Text('Theme')),
       body: CommonSettingList(
@@ -69,12 +83,12 @@ class ThemeSettingState extends ConsumerState<ThemeSettings> {
               return CommonSettingTile(
                 title: e,
                 icon: icons[index],
-                trailing: widget.isSelected == e
-                    ? const Icon(Icons.check)
-                    : null,
+                trailing: selectedTheme == e ? const Icon(Icons.check) : null,
                 onTap: () {
                   ref.read(themeSettingProvider.notifier).setTheme(e);
-                  Navigator.pop(context);
+                  // Returns from a pushed page; as the first page in the
+                  // settings pane there is nothing to pop.
+                  Navigator.maybePop(context);
                 },
               );
             }).toList(),

@@ -12,11 +12,11 @@ An unidentified specimen or an identification with an incomplete species name st
 
 The panel opens on **Top recorded species**, the five species with the most specimen records, each with a bar scaled to the highest count. Use the toggle in the upper right to switch between that chart and **Record counts**, the numeric summary described above.
 
-Select **Explore more stats** for detailed charts, tables, filters, and exports.
+Select **Explore more stats** for detailed charts, tables, filters, and exports. The screen opens on **Summary**; switch to **Detailed** and choose **Counts** or **Spatial**.
 
 ## Exporting statistics
 
-Select **Explore more stats**, choose a measure and grouping, then switch the panel to **Table**. The `Export table` button writes the rows currently shown to CSV, TSV, Excel, or JSON. The spatial panel exports the same way, one row per site coordinate.
+Select **Explore more stats**, then **Detailed**. Under **Counts**, choose a measure and grouping, then switch the panel to **Table**. The `Export table` button writes the rows currently shown to CSV, TSV, Excel, or JSON. **Spatial** exports the same way, one row per site coordinate.
 
 Counts help identify unexpected changes but do not establish that records are complete or correctly identified. Check the underlying records before using a summary in a report.
 

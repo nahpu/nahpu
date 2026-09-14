@@ -41,6 +41,7 @@ void main() {
         NahpuContentWidth.projectForm,
         NahpuContentWidth.projectWizard,
         NahpuContentWidth.home,
+        NahpuContentWidth.homeSplit,
         NahpuContentWidth.settings,
       ];
 

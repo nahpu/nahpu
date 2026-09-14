@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_font_size_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_width_field.dart';
 import 'package:nahpu/screens/templates/components/properties/synced_max_height_field.dart';
@@ -61,47 +62,10 @@ class TextPropertiesPanel extends StatelessWidget {
     required Widget child,
     required bool inToolbar,
   }) {
-    final scheme = Theme.of(context).colorScheme;
-
-    final wrappedChild = Row(
-      children: [
-        Expanded(child: child),
-        if (onDismiss != null) ...[
-          SizedBox(
-            height: 32,
-            child: VerticalDivider(
-              width: 2,
-              thickness: 2,
-              color: scheme.outlineVariant,
-            ),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.close, size: 20),
-            tooltip: 'Dismiss toolbar',
-            onPressed: onDismiss,
-          ),
-          const SizedBox(width: 4),
-        ],
-      ],
-    );
-
-    if (inToolbar) {
-      return Material(
-        elevation: 0,
-        color: scheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: wrappedChild,
-      );
-    }
-    return Material(
-      elevation: 2,
-      color: scheme.surfaceContainerHigh,
-      child: SafeArea(top: false, child: wrappedChild),
+    return TemplatePropertyPanelShell(
+      inToolbar: inToolbar,
+      onDismiss: onDismiss,
+      child: child,
     );
   }
 
@@ -163,7 +127,7 @@ class TextPropertiesPanel extends StatelessWidget {
     if (isTemplateBracketSpecimenSexIconText(ct.text)) {
       final content = Padding(
         padding: inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            ? kTemplateToolbarPanelPadding
             : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -654,7 +618,7 @@ class _CustomTextToolbarState extends ConsumerState<_CustomTextToolbar> {
 
     return Padding(
       padding: widget.inToolbar
-          ? const EdgeInsets.all(8)
+          ? kTemplateToolbarPanelPadding
           : const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1744,6 +1708,7 @@ class _ConditionalBracketTextDialogState
     extends State<_ConditionalBracketTextDialog> {
   late final TextEditingController _targetController;
   late final TextEditingController _replacementController;
+  late final TextEditingController _elseController;
   late final List<_TemplateConditionDraft> _conditions;
   ConditionalBracketExpression? _existingExpression;
   ConditionalMatchMode _mode = ConditionalMatchMode.any;
@@ -1758,12 +1723,18 @@ class _ConditionalBracketTextDialogState
     final fallbackTarget = RegExp(
       r'\[([^\[\]]+)\]',
     ).firstMatch(widget.text)?.group(1)?.trim().split('??').first.trim();
+    // Conditional text has no target, so its keyword never seeds the picker.
     _targetController = TextEditingController(
-      text: existing?.targetField ?? fallbackTarget ?? '',
+      text: existing == null
+          ? fallbackTarget ?? ''
+          : existing.isConditionalText
+          ? ''
+          : existing.targetField,
     );
     _replacementController = TextEditingController(
       text: existing?.replacementText ?? '',
     );
+    _elseController = TextEditingController(text: existing?.elseText ?? '');
     _conditions =
         (existing?.conditions ??
                 const [
@@ -1777,7 +1748,9 @@ class _ConditionalBracketTextDialogState
             .toList();
     if (existing != null) {
       _mode = existing.matchMode;
-      if (existing.outputAction == ConditionalOutputAction.replacement) {
+      if (existing.isConditionalText) {
+        _outputType = 'text';
+      } else if (existing.outputAction == ConditionalOutputAction.replacement) {
         final target = existing.targetField.trim().toLowerCase();
         _outputType =
             existing.conditions.every(
@@ -1794,6 +1767,7 @@ class _ConditionalBracketTextDialogState
   void dispose() {
     _targetController.dispose();
     _replacementController.dispose();
+    _elseController.dispose();
     for (final condition in _conditions) {
       condition.dispose();
     }
@@ -1803,8 +1777,9 @@ class _ConditionalBracketTextDialogState
   @override
   Widget build(BuildContext context) {
     final target = _targetController.text.trim();
+    final isText = _outputType == 'text';
     final valid =
-        target.isNotEmpty &&
+        (isText || target.isNotEmpty) &&
         _conditions.isNotEmpty &&
         _conditions.every(
           (condition) =>
@@ -1812,8 +1787,9 @@ class _ConditionalBracketTextDialogState
                   condition.valueController.text.trim().isNotEmpty) &&
               (_outputType == 'value' ||
                   (condition.fieldController.text.trim().isNotEmpty &&
-                      condition.fieldController.text.trim().toLowerCase() !=
-                          target.toLowerCase())),
+                      (isText ||
+                          condition.fieldController.text.trim().toLowerCase() !=
+                              target.toLowerCase()))),
         );
     // The replacement text is deliberately not required: an empty replacement
     // hides the value when the conditions match, which is how a field is
@@ -1844,6 +1820,10 @@ class _ConditionalBracketTextDialogState
                     value: 'value',
                     child: Text('Conditional value'),
                   ),
+                  DropdownMenuItem(
+                    value: 'text',
+                    child: Text('Conditional text'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value == null) return;
@@ -1858,27 +1838,31 @@ class _ConditionalBracketTextDialogState
                 },
               ),
               const SizedBox(height: 12),
-              InlineGroupedFieldPicker(
-                value: target.isEmpty ? null : target,
-                groups: _templateFieldGroupsWithValue(
-                  widget.fieldGroups,
-                  target,
+              if (!isText) ...[
+                InlineGroupedFieldPicker(
+                  value: target.isEmpty ? null : target,
+                  groups: _templateFieldGroupsWithValue(
+                    widget.fieldGroups,
+                    target,
+                  ),
+                  decoration: const InputDecoration(labelText: 'Target field'),
+                  onChanged: (value) {
+                    _targetController.text = value;
+                    _onTargetChanged(value);
+                  },
                 ),
-                decoration: const InputDecoration(labelText: 'Target field'),
-                onChanged: (value) {
-                  _targetController.text = value;
-                  _onTargetChanged(value);
-                },
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
+              ],
               for (var index = 0; index < _conditions.length; index++)
                 _TemplateConditionRow(
                   draft: _conditions[index],
-                  targetField: _targetController.text,
-                  fieldGroups: _templateFieldGroupsWithoutTarget(
-                    widget.fieldGroups,
-                    _targetController.text,
-                  ),
+                  targetField: isText ? '' : _targetController.text,
+                  fieldGroups: isText
+                      ? widget.fieldGroups
+                      : _templateFieldGroupsWithoutTarget(
+                          widget.fieldGroups,
+                          _targetController.text,
+                        ),
                   showSourceField: _outputType != 'value',
                   onChanged: () => setState(() {}),
                   onRemove: _conditions.length == 1
@@ -1921,11 +1905,25 @@ class _ConditionalBracketTextDialogState
                 TextField(
                   controller: _replacementController,
                   onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: isText
+                        ? 'Text when matched'
+                        : 'Replacement text',
+                    helperText: isText
+                        ? 'Fields such as [mammalAttribute::testisWidth] are '
+                              'filled in.'
+                        : 'Written when matched; otherwise the original target '
+                              'value is kept. Leave it empty to hide the value.',
+                  ),
+                ),
+              ],
+              if (isText) ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _elseController,
                   decoration: const InputDecoration(
-                    labelText: 'Replacement text',
-                    helperText:
-                        'Written when matched; otherwise the original target '
-                        'value is kept. Leave it empty to hide the value.',
+                    labelText: 'Text otherwise (optional)',
+                    helperText: 'Leave it empty to write nothing.',
                   ),
                 ),
               ],
@@ -1947,7 +1945,10 @@ class _ConditionalBracketTextDialogState
   }
 
   void _save() {
-    final target = _targetController.text.trim();
+    final isText = _outputType == 'text';
+    final target = isText
+        ? kConditionalTextKeyword
+        : _targetController.text.trim();
     final conditions = _conditions
         .map((condition) {
           final value = condition.toCondition();
@@ -1956,16 +1957,20 @@ class _ConditionalBracketTextDialogState
               : value;
         })
         .toList(growable: false);
+    final elseText = _elseController.text;
     final syntax = ConditionalBracketExpression(
       targetField: target,
       conditions: conditions,
       matchMode: _mode,
       start: 0,
       end: 0,
-      outputAction: _outputType == 'brackets'
-          ? ConditionalOutputAction.brackets
-          : ConditionalOutputAction.replacement,
+      outputAction: switch (_outputType) {
+        'brackets' => ConditionalOutputAction.brackets,
+        'text' => ConditionalOutputAction.text,
+        _ => ConditionalOutputAction.replacement,
+      },
       replacementText: _replacementController.text,
+      elseText: isText && elseText.isNotEmpty ? elseText : null,
     ).toTemplateSyntax();
     final existing = _existingExpression;
     if (existing != null) {
@@ -1973,6 +1978,11 @@ class _ConditionalBracketTextDialogState
         context,
         widget.text.replaceRange(existing.start, existing.end, syntax),
       );
+      return;
+    }
+    // Conditional text has no placeholder to stand in for, so it is appended.
+    if (isText) {
+      Navigator.pop(context, '${widget.text}$syntax');
       return;
     }
     final placeholder = '[$target]';
@@ -2191,13 +2201,7 @@ String _templateFieldTableName(String value) {
   return separator == -1 ? 'Other fields' : value.substring(0, separator);
 }
 
-String? _detectPlaceholderKey(String text) {
-  final match = RegExp(r'\[([^\]]+)\]').firstMatch(text);
-  if (match != null) {
-    return match.group(1)!.trim().split('??').first.trim();
-  }
-  return null;
-}
+String? _detectPlaceholderKey(String text) => firstExpressionFieldKey(text);
 
 Map<String, String> _getDefaultEnumMapForPlaceholder(String key) {
   final cleanKey = key.trim().toLowerCase();

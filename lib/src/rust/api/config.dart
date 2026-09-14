@@ -376,6 +376,9 @@ class DocumentLayoutPreset {
   final bool fillPage;
   final String multiBlockMode;
 
+  /// Optional short description shown in the preset list.
+  final String? description;
+
   const DocumentLayoutPreset({
     required this.name,
     required this.layoutType,
@@ -390,6 +393,7 @@ class DocumentLayoutPreset {
     required this.blocks,
     required this.fillPage,
     required this.multiBlockMode,
+    this.description,
   });
 
   @override
@@ -406,7 +410,8 @@ class DocumentLayoutPreset {
       pagePadBottomMm.hashCode ^
       blocks.hashCode ^
       fillPage.hashCode ^
-      multiBlockMode.hashCode;
+      multiBlockMode.hashCode ^
+      description.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -425,7 +430,8 @@ class DocumentLayoutPreset {
           pagePadBottomMm == other.pagePadBottomMm &&
           blocks == other.blocks &&
           fillPage == other.fillPage &&
-          multiBlockMode == other.multiBlockMode;
+          multiBlockMode == other.multiBlockMode &&
+          description == other.description;
 }
 
 class DocumentLayoutPreview {

@@ -41,48 +41,33 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
     final mappable = mappableSpatialStatistics(widget.rows);
     final omittedCount = widget.rows.length - mappable.length;
     final total = spatialStatisticTotal(widget.rows);
-    return LayoutBuilder(
-      builder: (context, constraints) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (omittedCount > 0) ...[
-            Text(
-              '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
-              'listed in the table but cannot be mapped because latitude or '
-              'longitude is missing or invalid.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 8),
-          ],
-          if (constraints.maxWidth < 600)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              child: FilledButton.icon(
-                key: const ValueKey('spatial-statistics-view-map'),
-                onPressed: () =>
-                    _showFullScreenMap(context, rows: mappable, total: total),
-                icon: const Icon(Icons.map_outlined),
-                label: const Text('View map'),
-              ),
-            )
-          else
-            SizedBox(
-              height: 480,
-              child: _fullScreenMapOpen
-                  ? ColoredBox(color: Theme.of(context).colorScheme.surface)
-                  : _SpatialMapViewport(
-                      kind: widget.kind,
-                      rows: mappable,
-                      total: total,
-                      onViewFullScreen: () => _showFullScreenMap(
-                        context,
-                        rows: mappable,
-                        total: total,
-                      ),
-                    ),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (omittedCount > 0) ...[
+          Text(
+            '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
+            'listed in the table but cannot be mapped because latitude or '
+            'longitude is missing or invalid.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
         ],
-      ),
+        // Every screen size shows the map inline. The map's gesture surface
+        // yields vertical drags to the page, so small screens still scroll past
+        // it; the full-screen action opens the map for closer exploration.
+        Expanded(
+          child: _fullScreenMapOpen
+              ? ColoredBox(color: Theme.of(context).colorScheme.surface)
+              : _SpatialMapViewport(
+                  kind: widget.kind,
+                  rows: mappable,
+                  total: total,
+                  onViewFullScreen: () =>
+                      _showFullScreenMap(context, rows: mappable, total: total),
+                ),
+        ),
+      ],
     );
   }
 

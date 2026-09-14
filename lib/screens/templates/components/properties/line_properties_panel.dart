@@ -41,7 +41,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
       onDismiss: widget.onDismiss,
       child: Padding(
         padding: widget.inToolbar
-            ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+            ? kTemplateToolbarPanelPadding
             : const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

@@ -6,6 +6,41 @@ import 'package:nahpu/services/export/db_writer.dart';
 import 'package:path/path.dart' as path;
 
 void main() {
+  group('restoredRelativePath', () {
+    test('older backups restore personnel photos to the app folder', () {
+      expect(
+        restoredRelativePath('2cb045ff/media/personnel/portrait.jpg'),
+        'appMedia/personnel/portrait.jpg',
+      );
+      expect(
+        restoredRelativePath('p1/media/personnel/sub/a.jpg'),
+        'appMedia/personnel/sub/a.jpg',
+      );
+      expect(
+        restoredRelativePath(r'p1\media\personnel\a.jpg'),
+        'appMedia/personnel/a.jpg',
+      );
+      expect(
+        restoredRelativePath('p1/Media/Personnel/a.jpg'),
+        'appMedia/personnel/a.jpg',
+      );
+      // Still selected for copying, so the photo is not left behind.
+      expect(isAssociatedBackupArchivePath('p1/media/personnel/a.jpg'), isTrue);
+    });
+
+    test('every other path is restored where it was', () {
+      for (final archivePath in [
+        'p1/media/site/a.jpg',
+        'p1/associatedData/sites/a.pdf',
+        'appMedia/personnel/a.jpg',
+        'appMedia/template/a.png',
+        'UserConfigs/maps/w.mbtiles',
+      ]) {
+        expect(restoredRelativePath(archivePath), archivePath);
+      }
+    });
+  });
+
   group('databaseCandidatesFromRelativePaths', () {
     test('returns only root database files', () {
       final candidates = databaseCandidatesFromRelativePaths([

@@ -4,7 +4,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_fields.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
+import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -15,11 +18,15 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
     required this.presetName,
     required this.initialPreset,
     required this.onPresetRenamed,
+    required this.onPresetDuplicated,
   });
 
   final String presetName;
   final ExportPresetModel initialPreset;
   final void Function(String, String) onPresetRenamed;
+
+  /// Called with the copy's name and body after Duplicate saves it.
+  final void Function(String name, ExportPresetModel preset) onPresetDuplicated;
 
   @override
   ConsumerState<ExportPresetEditForm> createState() =>
@@ -28,6 +35,7 @@ class ExportPresetEditForm extends ConsumerStatefulWidget {
 
 class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
   late ExportPresetModel _preset;
   final Map<int, String> _expectedPersistedNames = {};
   int _editSession = 0;
@@ -39,13 +47,16 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       const AsyncValue.loading();
   bool _isSaving = false;
   String? _saveError;
-  bool _isRenaming = false;
-  String? _renameError;
+  bool _isUpdating = false;
+  String? _updateError;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.presetName);
+    _descriptionController = TextEditingController(
+      text: widget.initialPreset.description,
+    );
     _preset = widget.initialPreset;
     _expectedPersistedNames[_editSession] = widget.presetName;
     _presetNotifier = ref.read(exportPresetNotifierProvider.notifier);
@@ -62,14 +73,20 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     if (oldWidget.presetName == widget.presetName) return;
     _flushPendingSave();
     _editSession++;
-    // Only take the incoming name when the user had no unsaved edit against
-    // the preset they were on. Assigning to `text` resets the caret, so doing
-    // it while the user is typing would drop characters and jump the cursor.
+    // Only take the incoming name and description when the user had no
+    // unsaved edit against the preset they were on. Assigning to `text` resets
+    // the caret, so doing it while the user is typing would drop characters and
+    // jump the cursor.
     final hadUnsavedName = _nameController.text.trim() != oldWidget.presetName;
     if (!hadUnsavedName) _nameController.text = widget.presetName;
+    final hadUnsavedDescription =
+        _descriptionController.text.trim() != _preset.description;
+    if (!hadUnsavedDescription) {
+      _descriptionController.text = widget.initialPreset.description;
+    }
     _expectedPersistedNames[_editSession] = widget.presetName;
     _preset = widget.initialPreset;
-    _renameError = null;
+    _updateError = null;
   }
 
   @override
@@ -85,6 +102,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
       _pendingSave = null;
     }
     _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -164,6 +182,8 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
         specimenRecordType: specimenRecordType ?? _preset.specimenRecordType,
         headerFormat: headerFormat ?? _preset.headerFormat,
         mappings: mappings ?? _preset.mappings,
+        // The committed description only; a draft waits for Update.
+        description: _preset.description,
       );
     });
     _schedulePersist();
@@ -218,8 +238,14 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
 
   bool get _isNameDirty => _nameController.text.trim() != widget.presetName;
 
-  bool get _canRename =>
-      _isNameDirty && _nameValidationError == null && !_isRenaming;
+  bool get _isDescriptionDirty =>
+      _descriptionController.text.trim() != _preset.description;
+
+  bool get _canUpdate =>
+      (_isNameDirty || _isDescriptionDirty) &&
+      _nameValidationError == null &&
+      descriptionLengthError(_descriptionController.text) == null &&
+      !_isUpdating;
 
   /// Validates the typed name, or null when it can be committed.
   String? get _nameValidationError {
@@ -234,145 +260,185 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     return null;
   }
 
-  /// Commits a rename on demand.
+  /// Commits the typed name and description on demand.
   ///
-  /// Renaming is deliberately separate from the body auto-save: committing on
-  /// every keystroke renamed the preset to each prefix of what the user was
+  /// Both are deliberately separate from the body auto-save: committing a name
+  /// on every keystroke renamed the preset to each prefix of what the user was
   /// typing, and the name pushed back down then reset the field mid-word.
-  Future<void> _renamePreset() async {
+  Future<void> _updatePreset() async {
     final target = _nameController.text.trim();
-    final error = _nameValidationError;
+    final error =
+        _nameValidationError ??
+        descriptionLengthError(_descriptionController.text);
     if (error != null) {
-      setState(() => _renameError = error);
+      setState(() => _updateError = error);
       return;
     }
+    if (!_isNameDirty && !_isDescriptionDirty) return;
     final sourceName = widget.presetName;
-    if (target == sourceName) return;
+    final description = _descriptionController.text.trim();
 
     setState(() {
-      _isRenaming = true;
-      _renameError = null;
+      _isUpdating = true;
+      _updateError = null;
     });
-    // Land any queued body edit under the old name first, so the rename
+    // Land any queued body edit under the old name first, so the update
     // carries the current settings rather than racing them.
     await _flushPendingSave();
+    final preset = _withDescription(_preset, description);
     try {
-      await _presetNotifier.renamePreset(sourceName, target, _preset);
-      _expectedPersistedNames[_editSession] = target;
+      if (target == sourceName) {
+        await _presetNotifier.savePreset(sourceName, preset);
+      } else {
+        await _presetNotifier.renamePreset(sourceName, target, preset);
+        _expectedPersistedNames[_editSession] = target;
+      }
       if (!mounted) return;
-      setState(() => _isRenaming = false);
-      widget.onPresetRenamed(sourceName, target);
+      setState(() {
+        // Merge rather than replace, so a settings change made while the
+        // update was saving is kept.
+        _preset = _withDescription(_preset, description);
+        _isUpdating = false;
+      });
+      if (target != sourceName) widget.onPresetRenamed(sourceName, target);
     } on Object catch (error) {
       if (!mounted) return;
       setState(() {
-        _isRenaming = false;
-        _renameError = 'Couldn\'t rename: $error';
+        _isUpdating = false;
+        _updateError = 'Couldn\'t update: $error';
       });
     }
   }
+
+  /// Saves a copy of the current preset under a new name and opens it.
+  ///
+  /// Queued settings edits land first, so the copy matches what is on screen.
+  /// Like Update, it copies the committed description, not a draft.
+  Future<void> _duplicatePreset() async {
+    final presets = _presetProviderState.asData?.value ?? const {};
+    if (presets.length >= 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum of 20 presets reached.')),
+      );
+      return;
+    }
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => PresetNameDialog(
+        title: 'Duplicate preset',
+        existingNames: presets.keys,
+        initialValue: '${widget.presetName}_copy',
+      ),
+    );
+    if (name == null || !mounted) return;
+    await _flushPendingSave();
+    try {
+      await _presetNotifier.savePreset(name, _preset);
+      if (!mounted) return;
+      widget.onPresetDuplicated(name, _preset);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() => _updateError = 'Couldn\'t duplicate: $error');
+    }
+  }
+
+  ExportPresetModel _withDescription(
+    ExportPresetModel preset,
+    String description,
+  ) => ExportPresetModel(
+    recordType: preset.recordType,
+    specimenRecordType: preset.specimenRecordType,
+    headerFormat: preset.headerFormat,
+    mappings: preset.mappings,
+    description: description,
+  );
 
   @override
   Widget build(BuildContext context) {
     return FormCard(
       title: 'Edit ${widget.presetName}',
       isExpanded: true,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Preset name',
-                      errorText: _isNameDirty
-                          ? (_renameError ?? _nameValidationError)
-                          : _renameError,
-                      helperText: _isNameDirty && _nameValidationError == null
-                          ? 'Select Rename to save this name'
-                          : null,
-                    ),
-                    onChanged: (_) => setState(() => _renameError = null),
-                    onFieldSubmitted: (_) {
-                      if (_canRename) _renamePreset();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: FilledButton.tonal(
-                    onPressed: _canRename ? _renamePreset : null,
-                    child: _isRenaming
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Rename'),
-                  ),
-                ),
-              ],
+      // Scrolls when the window is too short for the name, description, and
+      // settings, rather than overflowing.
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: PresetIdentityFields(
+                nameController: _nameController,
+                descriptionController: _descriptionController,
+                hasChanges: _isNameDirty || _isDescriptionDirty,
+                canUpdate: _canUpdate,
+                isUpdating: _isUpdating,
+                onUpdate: _updatePreset,
+                onDuplicate: _duplicatePreset,
+                nameErrorText: _isNameDirty
+                    ? (_updateError ?? _nameValidationError)
+                    : _updateError,
+                onNameChanged: (_) => setState(() => _updateError = null),
+                onDescriptionChanged: (_) =>
+                    setState(() => _updateError = null),
+              ),
             ),
-          ),
-          _PresetSettingsCard(
-            preset: _preset,
-            onRecordTypeChanged: (value) => _update(recordType: value),
-            onSpecimenRecordTypeChanged: (value) =>
-                _update(specimenRecordType: value),
-            onHeaderFormatChanged: (value) => _update(headerFormat: value),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    label: 'Edit Fields',
-                    icon: Icons.list_alt_outlined,
-                    onPressed: () async {
-                      final updated = await Navigator.push<ExportPresetModel>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ExportPresetFieldsScreen(
-                            preset: _preset,
-                            onPresetChanged: (updated) =>
-                                _update(mappings: updated.mappings),
+            _PresetSettingsCard(
+              preset: _preset,
+              onRecordTypeChanged: (value) => _update(recordType: value),
+              onSpecimenRecordTypeChanged: (value) =>
+                  _update(specimenRecordType: value),
+              onHeaderFormatChanged: (value) => _update(headerFormat: value),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      label: 'Edit Fields',
+                      icon: Icons.list_alt_outlined,
+                      onPressed: () async {
+                        final updated = await Navigator.push<ExportPresetModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ExportPresetFieldsScreen(
+                              preset: _preset,
+                              onPresetChanged: (updated) =>
+                                  _update(mappings: updated.mappings),
+                            ),
                           ),
-                        ),
-                      );
-                      if (updated != null) _update(mappings: updated.mappings);
-                    },
+                        );
+                        if (updated != null) {
+                          _update(mappings: updated.mappings);
+                        }
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                IconButton.filledTonal(
-                  icon: const Icon(Icons.visibility_outlined),
-                  tooltip: 'Preview Export Table',
-                  onPressed: _showPreview,
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.visibility_outlined),
+                    tooltip: 'Preview Export Table',
+                    onPressed: _showPreview,
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
-                style: TextStyle(
-                  color: _saveError == null
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : Theme.of(context).colorScheme.error,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _saveError ?? (_isSaving ? 'Saving…' : 'Saved automatically'),
+                  style: TextStyle(
+                    color: _saveError == null
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Theme.of(context).colorScheme.error,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

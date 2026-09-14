@@ -6,7 +6,6 @@ import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/home.dart';
@@ -1965,7 +1964,7 @@ void main() {
     );
   });
 
-  testWidgets('home speed dial exposes project creation and import', (
+  testWidgets('home actions expose project creation and import', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
@@ -1984,11 +1983,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(SpeedDial));
+
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.text('Create project'), findsOneWidget);
+    expect(find.text('Import project'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Import project'));
+    await tester.tap(find.text('Import project'));
     await tester.pumpAndSettle();
 
-    expect(find.text('New project'), findsOneWidget);
-    expect(find.text('Import project'), findsOneWidget);
+    expect(find.byType(ImportProjectScreen), findsOneWidget);
   });
 
   testWidgets('new-project import uses the focused conflict wizard', (

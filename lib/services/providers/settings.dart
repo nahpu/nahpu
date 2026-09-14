@@ -11,6 +11,7 @@ import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 // App settings keys (UI/Device states)
@@ -411,7 +412,7 @@ class ExportPresetNotifier
     try {
       await rust_config.setRecordExportPreset(
         name: name,
-        preset: _mapModelToConfig(preset),
+        preset: toConfig(preset),
       );
       final current = state.asData?.value ?? await _fetchSettings();
       state = AsyncValue.data({...current, name: preset});
@@ -451,7 +452,7 @@ class ExportPresetNotifier
     try {
       await rust_config.setRecordExportPreset(
         name: nextName,
-        preset: _mapModelToConfig(preset),
+        preset: toConfig(preset),
       );
       await rust_config.deleteRecordExportPreset(name: previousName);
       state = AsyncValue.data(
@@ -479,10 +480,30 @@ class ExportPresetNotifier
     }
   }
 
-  rust_config.ConfigExportPreset _mapModelToConfig(ExportPresetModel model) {
+  /// The stored form of [model], shared with the bundled preset loader.
+  static rust_config.ConfigExportPreset toConfig(ExportPresetModel model) {
     return rust_config.ConfigExportPreset(
       fields: {_presetPayloadKey: jsonEncode(model.toJson())},
       combinedFields: const [],
     );
   }
 }
+
+final bundledPresetServiceProvider = Provider<BundledPresetService>(
+  (ref) => const BundledPresetService(),
+);
+
+/// Bundled presets for a catalog format, with whether each is already saved.
+final bundledPresetStatusProvider = FutureProvider.autoDispose
+    .family<List<BundledPresetStatus>, CatalogFmt?>(
+      (ref, catalogFmt) => ref
+          .watch(bundledPresetServiceProvider)
+          .statuses(catalogFmt: catalogFmt),
+    );
+
+/// Every bundled preset, including those for each catalog format.
+final allBundledPresetStatusProvider =
+    FutureProvider.autoDispose<List<BundledPresetStatus>>(
+      (ref) =>
+          ref.watch(bundledPresetServiceProvider).statuses(allFormats: true),
+    );

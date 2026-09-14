@@ -147,6 +147,45 @@ void main() {
     await db.close();
   });
 
+  test('v21 to v22 resumes after a partially applied attempt', () async {
+    final schema = await verifier.schemaAt(21);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      'INSERT INTO specimen (uuid, projectUuid, taxonGroup) VALUES '
+      "('inv', 'project', 'Arthropods')",
+    );
+    raw.execute(
+      'INSERT INTO arthropodAttribute (specimenUuid, headWidth, remark) '
+      "VALUES ('inv', 2.25, 'retained')",
+    );
+    // Drift does not run onUpgrade in a transaction, so an interrupted v22
+    // attempt leaves these changes behind while user_version stays at 21.
+    raw.execute('DROP TRIGGER IF EXISTS custom_field_value_validate_insert');
+    raw.execute('DROP TRIGGER IF EXISTS custom_field_value_validate_update');
+    raw.execute(
+      'ALTER TABLE arthropodAttribute RENAME TO invertebrateAttribute',
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 22);
+
+    final attribute = await db.select(db.invertebrateAttribute).getSingle();
+    expect(attribute.headWidth, 2.25);
+    expect(attribute.remark, 'retained');
+    final specimen = await db.select(db.specimen).getSingle();
+    expect(specimen.taxonGroup, 'Invertebrates');
+    final triggers = await db
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'trigger' "
+          "AND name LIKE 'custom_field_value_validate_%'",
+        )
+        .get();
+    expect(triggers, hasLength(2));
+
+    await db.close();
+  });
+
   test('v20 to v21 deduplicates localities into shared geography', () async {
     final schema = await verifier.schemaAt(20);
     final raw = schema.rawDatabase;

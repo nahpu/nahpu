@@ -1,5 +1,18 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
+/// Padding inside a property panel docked under the editor toolbar, kept tight
+/// so the panel costs as little canvas height as possible.
+const EdgeInsets kTemplateToolbarPanelPadding = EdgeInsets.symmetric(
+  horizontal: NahpuSpacing.xs,
+  vertical: NahpuSpacing.xxs,
+);
+
+/// Frame for element and border properties.
+///
+/// Docked under the editor toolbar ([inToolbar]), it sits flat on the same
+/// surface as the toolbar so the two read as one bar. Otherwise it is a raised
+/// sheet.
 class TemplatePropertyPanelShell extends StatelessWidget {
   const TemplatePropertyPanelShell({
     super.key,
@@ -20,39 +33,28 @@ class TemplatePropertyPanelShell extends StatelessWidget {
         Expanded(child: child),
         if (onDismiss != null) ...[
           SizedBox(
-            height: 32,
+            height: NahpuControlSize.iconLarge,
             child: VerticalDivider(
-              width: 2,
-              thickness: 2,
+              width: NahpuSpacing.md,
+              thickness: NahpuStroke.thin,
               color: scheme.outlineVariant,
             ),
           ),
-          const SizedBox(width: 4),
           IconButton(
-            icon: const Icon(Icons.close, size: 20),
+            icon: const Icon(Icons.close, size: NahpuControlSize.iconMedium),
             tooltip: 'Dismiss toolbar',
             onPressed: onDismiss,
           ),
-          const SizedBox(width: 4),
         ],
       ],
     );
 
     if (inToolbar) {
-      return Material(
-        elevation: 0,
-        color: scheme.surfaceContainerHighest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: scheme.outlineVariant),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: wrappedChild,
-      );
+      return Material(color: scheme.surface, child: wrappedChild);
     }
 
     return Material(
-      elevation: 2,
+      elevation: NahpuElevation.low,
       color: scheme.surfaceContainerHigh,
       child: SafeArea(top: false, child: wrappedChild),
     );

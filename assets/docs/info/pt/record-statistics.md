@@ -12,11 +12,11 @@ Um espécime não identificado, ou uma identificação com nome de espécie inco
 
 O painel abre em **Top recorded species**, as cinco espécies com mais registros de espécimes, cada uma com uma barra dimensionada pela maior contagem. Use o botão no canto superior direito para alternar entre esse gráfico e **Record counts**, o resumo numérico descrito acima.
 
-Selecione **Explore more stats** para gráficos, tabelas, filtros e exportações detalhados.
+Selecione **Explore more stats** para gráficos, tabelas, filtros e exportações detalhados. A tela abre em **Summary**; mude para **Detailed** e escolha **Counts** ou **Spatial**.
 
 ## Exportando estatísticas
 
-Selecione **Explore more stats**, escolha uma medida e um agrupamento e mude o painel para **Table**. O botão `Export table` grava as linhas exibidas no momento em CSV, TSV, Excel ou JSON. O painel espacial exporta da mesma forma, uma linha por coordenada de local.
+Selecione **Explore more stats** e depois **Detailed**. Em **Counts**, escolha uma medida e um agrupamento e mude o painel para **Table**. O botão `Export table` grava as linhas exibidas no momento em CSV, TSV, Excel ou JSON. **Spatial** exporta da mesma forma, uma linha por coordenada de local.
 
 As contagens ajudam a identificar mudanças inesperadas, mas não comprovam que os registros estão completos ou corretamente identificados. Confira os registros de origem antes de usar um resumo em um relatório.
 

@@ -5,7 +5,7 @@ sidebar:
     order: 2
 ---
 
-Panduan ini memperkenalkan NAHPU dan membantu Anda berlatih sebelum menggunakannya untuk pekerjaan koleksi. Anda tidak perlu berada di lapangan atau memiliki spesimen nyata. Gunakan proyek latihan dengan nama jelas dan nilai contoh agar catatan latihan terpisah dari data penelitian.
+Panduan ini memperkenalkan NAHPU dan menyediakan tempat berlatih sebelum menggunakannya untuk pekerjaan koleksi. Anda tidak perlu berada di lapangan atau memiliki spesimen nyata. Meskipun NAHPU dioptimalkan untuk semua ukuran layar, berlatih di laptop mungkin lebih mudah daripada di ponsel karena layarnya lebih lapang, sehingga Anda lebih cepat terbiasa dengan posisi tombolnya. Gunakan proyek latihan dengan nama jelas dan nilai contoh agar catatan latihan terpisah dari data penelitian.
 
 ## Konsep utama
 
@@ -13,7 +13,7 @@ Panduan ini memperkenalkan NAHPU dan membantu Anda berlatih sebelum menggunakann
 
 Proyek mengelompokkan satu pekerjaan, seperti ekspedisi, program pemantauan, atau spesimen yang dipreparasi di laboratorium. Tentukan batas proyek sesuai pengelolaan dan pelaporan data. Sebagian besar layar dan ekspor sehari-hari menggunakan proyek aktif.
 
-Personel dan nama takson disimpan dalam basis data dan dapat dikaitkan dengan beberapa proyek. Mengedit personel atau takson bersama dapat memengaruhi catatan di luar proyek yang sedang dibuka. Keanggotaan proyek berbeda dari catatan dasarnya dalam basis data.
+Personel dan nama takson disimpan dalam basis data dan dapat dikaitkan dengan beberapa proyek. Mengedit personel atau takson bersama dapat memengaruhi catatan di luar proyek yang sedang dibuka.
 
 ### Lokasi, kegiatan pengumpulan, dan spesimen
 
@@ -25,27 +25,33 @@ Misalnya, gunakan satu lokasi untuk jalur perangkap dan kegiatan terpisah untuk 
 
 Lokasi proyek menjelaskan wilayah umum pekerjaan. Geografi lokasi mencatat hierarki administratif dan deskripsi lokalitas yang rinci. Deskripsi lokalitas dapat digunakan bersama oleh beberapa lokasi. Site ID mengidentifikasi tempat tertentu dalam proyek, seperti kamp atau jalur perangkap.
 
-Satu lokasi dapat memiliki beberapa koordinat, misalnya satu per perangkap. Pilih koordinat yang relevan untuk spesimen jika diketahui. Ketidakpastian koordinat menjelaskan ketidakpastian posisi; cakupan koordinat spesimen menjelaskan kemungkinan jaraknya dari posisi tersebut.
+Satu lokasi dapat memiliki beberapa koordinat, misalnya satu per perangkap. Pilih koordinat yang relevan untuk spesimen jika diketahui. Ketidakpastian koordinat menjelaskan ketidakpastian posisi. Pada formulir spesimen, Anda akan menemukan cakupan koordinat spesimen yang menjelaskan seberapa jauh spesimen itu mungkin berada dari titik koordinatnya.
 
-### Pengenal dan waktu
+### Pengenal lapangan
 
-Field ID adalah pengenal kerja pada label spesimen. ID personel menggunakan inisial dan nomor lapangan Cataloger. ID proyek menggunakan awalan, nomor katalog, dan akhiran proyek. Koordinasikan penomoran antarperangkat dan periksa label; penomoran otomatis tidak menggantikan koordinasi tersebut.
+Field ID adalah pengenal kerja pada label spesimen. ID personel menggunakan inisial dan nomor lapangan Cataloger. ID proyek menggunakan awalan, nomor katalog, dan akhiran proyek. Ikuti konvensi laboratorium Anda. Jika belum ada, ID lapangan personel umumnya lebih kecil risikonya menghasilkan nomor ganda pada pekerjaan paralel, ketika tiap tim lapangan menyiapkan dan mengatalogkan spesimennya sendiri. ID lapangan proyek lebih sesuai untuk preparasi spesimen bergaya ban berjalan, ketika pengatalogan dikerjakan satu orang.
 
-NAHPU juga menetapkan UUID untuk proyek dan catatan spesimen. Pengenal internal ini berbeda dari Field ID. Berbagi identitas mempertahankan UUID agar perangkat mengenali proyek yang sama; tindakan ini tidak mentransfer catatan spesimen.
+NAHPU bersifat [FAIR](https://www.go-fair.org/fair-principles/) sejak dirancang. NAHPU juga menetapkan UUID secara bawaan untuk catatan spesimen dan parasit (bila dikumpulkan), serta secara opsional untuk tiap bagian spesimen. Pengenal internal ini berbeda dari Field ID.
 
-Zona waktu proyek menjelaskan waktu lokal yang dicatat. Zona waktu tidak mengubah jam perangkat atau mengonversi nilai tersimpan. Sepakati ketentuan waktu sebelum mencatat pada beberapa perangkat.
+### Zona waktu
 
-### Personel dan identifikasi
-
-Pengumpul memperoleh spesimen; Cataloger mengatalogkannya; Preparator melakukan preparasi; Determiner mengidentifikasinya. Satu orang dapat menjalankan beberapa pekerjaan. Peran personel mengatur tempat seseorang dapat ditetapkan dalam NAHPU, sedangkan peran kegiatan menjelaskan partisipasinya dalam kegiatan tersebut.
-
-Pilih identifikasi dari registri takson. Gunakan famili atau genus jika spesies belum diketahui dan catat tingkat keyakinannya. Untuk memperbaiki satu spesimen, ubah takson terpilih pada spesimen tersebut. Edit catatan registri bersama jika catatan namanya yang keliru.
+Zona waktu proyek menjelaskan waktu lokal yang dicatat. Zona waktu tidak mengubah jam perangkat atau mengonversi nilai tersimpan. Zona waktu berfungsi sebagai rujukan untuk menafsirkan waktu yang tercatat.
 
 ### Pengaturan, kosakata, dan bidang khusus
 
 Kosakata terkontrol adalah daftar dalam pilihan, seperti metode pengumpulan dan jenis preparasi. Istilah yang konsisten memudahkan perbandingan catatan. Atur daftar sesuai pekerjaan dan bagikan konfigurasi jika tim memerlukan istilah yang sama.
 
 Format katalog aktif mengatur bidang untuk spesimen baru pada perangkat; satu proyek dapat berisi beberapa kelompok takson. Bidang khusus menambahkan pengamatan yang tidak sesuai dengan bidang bawaan. Cakupannya dapat berupa satu proyek atau instalasi, dan bidang spesimen dapat berlaku untuk katalog tertentu. Beberapa pengaturan memengaruhi proyek lain dalam instalasi; periksa cakupannya sebelum mengubahnya.
+
+### Peran personel
+
+Ada dua kategori peran di NAHPU: peran penanganan spesimen dan peran personel kegiatan. Peran penanganan spesimen mengatur tanggung jawab orang-orang yang menangani spesimen. Peran ini ditetapkan lewat menu dropdown saat Anda membuat personel. Peran ini menentukan tingkat akses dan izin seseorang di dalam sistem. Cataloger mencatat spesimen; Preparator melakukan preparasi; Determiner mengidentifikasinya. Satu orang dapat menjalankan beberapa pekerjaan ini. Cataloger adalah peringkat tertinggi yang dapat dipilih untuk semua bidang personel.
+
+Sebaliknya, peran personel kegiatan menjelaskan keikutsertaan seseorang dalam satu kegiatan tertentu. Anda dapat membuat peran apa pun, seperti ketua, mahasiswa pembantu, pemandu lokal, sopir, dan sebagainya, lalu menetapkannya kepada seseorang untuk kegiatan tertentu.
+
+### Identifikasi takson
+
+NAHPU mendukung identifikasi spesies melalui registri taksonnya. Impor takson standar secara bawaan pada tingkat spesies. Namun, NAHPU mendukung impor daftar takson pada tingkat berbeda, seperti spesies, genus, dan famili, sehingga Anda dapat mencatat identifikasi pada tingkat yang Anda yakini. Anda juga dapat mencatat tingkat keyakinan identifikasi, yang menjelaskan seberapa yakin Anda atas identifikasi tersebut.
 
 ### Penyimpanan, bukti pendukung, dan berbagi
 
@@ -61,11 +67,11 @@ Identitas proyek, transfer proyek, konfigurasi, dan cadangan basis data membawa 
 
 1. **Buka NAHPU dan jelajahi pengaturan**
 
-    Buka `Setup NAHPU` dari layar awal atau menu. Jelajahi format katalog, pengenal, dan kosakata, atau impor konfigurasi yang telah disiapkan. Temukan dasbor, navigasi, dan tombol informasi. Lihat [Pengaturan](https://nahpu.app/id/usages/settings/).
+    Buka `Setup NAHPU` dari layar awal atau menu. Jelajahi format katalog, pengenal, kosakata, dan prasetel ekspor, atau impor konfigurasi yang telah disiapkan. Temukan dasbor, navigasi, dan tombol informasi. Lihat [Pengaturan](https://nahpu.app/id/usages/settings/).
 
 2. **Buat proyek latihan**
 
-    Beri nama proyek `NAHPU Practice` agar data latihan mudah dikenali. Untuk proyek baru, pilih `+` > `New project` > `Create new project`. Masukkan informasi dan zona waktu, pilih format katalog dan mode Field ID, lalu selesaikan peninjauan. ID personel memerlukan Cataloger yang memenuhi syarat; ID proyek menggunakan awalan, nomor katalog, dan akhiran. Zona waktu menjelaskan waktu lokal yang dicatat dan tidak mengonversi nilai tersimpan. Untuk proyek tim, impor identitas agar UUID sama atau gunakan `Import project` di layar awal untuk menerima catatan dan media yang tersedia. Lihat [Proyek](https://nahpu.app/id/usages/projects/).
+    Beri nama proyek `NAHPU Practice` agar data latihan mudah dikenali. Untuk proyek baru, pilih `Create project` > `Create new project`. Masukkan informasi dan zona waktu, pilih format katalog dan mode Field ID, lalu selesaikan peninjauan. ID personel memerlukan Cataloger yang memenuhi syarat; ID proyek menggunakan awalan, nomor katalog, dan akhiran. Zona waktu menjelaskan waktu lokal yang dicatat dan tidak mengonversi nilai tersimpan. Untuk proyek tim, impor identitas agar UUID-nya sama. Lihat [Proyek](https://nahpu.app/id/usages/projects/).
 
 3. **Tambahkan personel dan takson latihan**
 

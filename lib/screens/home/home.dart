@@ -1,11 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/components/body.dart';
-import 'package:nahpu/screens/projects/new_project.dart';
-import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/db_services.dart';
@@ -59,47 +56,6 @@ class HomeState extends ConsumerState<Home> {
             },
             future: _checkNewDbFuture ??= _checkNewDb(),
           ),
-        ),
-        floatingActionButton: SpeedDial(
-          icon: Icons.add_rounded,
-          activeIcon: Icons.close_rounded,
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-          children: [
-            SpeedDialChild(
-              child: Icon(
-                Icons.download_rounded,
-                color: Theme.of(context).colorScheme.onSecondary,
-              ),
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              label: 'Import project',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const ImportProjectScreen.newProject(),
-                  ),
-                );
-              },
-            ),
-            SpeedDialChild(
-              child: Icon(
-                Icons.create_rounded,
-                color: Theme.of(context).colorScheme.onSecondary,
-              ),
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              label: 'New project',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreateProjectForm(),
-                  ),
-                );
-              },
-            ),
-          ],
         ),
       ),
     );

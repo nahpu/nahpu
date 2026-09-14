@@ -431,6 +431,49 @@ void main() {
     expect(find.text('Custom fields'), findsNothing);
   });
 
+  testWidgets('settings saves a new field inline and selects it', (
+    tester,
+  ) async {
+    // Mounted as its own page, the way settings pushes it.
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: const MaterialApp(
+          home: CustomFieldsSettings(
+            projectUuid: 'project-a',
+            currentCatalog: CatalogFmt.mammalogy,
+            initialPlacement: FieldUISection.siteAttribute,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Create new custom field'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Label'),
+      'Canopy cover',
+    );
+    // Let the field scroll its caret into view first, or that scroll would
+    // move Save back out of view after ensureVisible.
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final rows = await database.select(database.customFieldDefinition).get();
+    expect(rows, hasLength(1));
+    final saved = rows.single;
+    expect(find.text('Edit Canopy cover'), findsOneWidget);
+    expect(find.byIcon(Icons.radio_button_checked), findsNWidgets(2));
+    expect(saved.name, 'Canopy cover');
+    expect(saved.placement, FieldUISection.siteAttribute);
+    expect(saved.fieldScope, FieldScope.project);
+    expect(saved.projectUuid, 'project-a');
+  });
+
   testWidgets('deleting a draft definition removes its staged value', (
     tester,
   ) async {

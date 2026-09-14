@@ -426,7 +426,8 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
 class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
   static const _detailedStatisticsCardHeight = 960.0;
 
-  final _detailKey = GlobalKey();
+  _StatisticView _view = _StatisticView.summary;
+  _DetailSection _detailSection = _DetailSection.counts;
   StatisticFilterOption? _siteFilter;
   StatisticFilterOption? _speciesFilter;
   late StatisticMeasure _measure;
@@ -475,287 +476,347 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Record Statistics')),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            NahpuPageMargin.horizontal,
-            NahpuPageMargin.top,
-            NahpuPageMargin.horizontal,
-            NahpuPageMargin.bottom,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CommonPadding(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                NahpuPageMargin.horizontal,
+                NahpuPageMargin.top,
+                NahpuPageMargin.horizontal,
+                0,
+              ),
+              child: Center(
+                child: SegmentedButton<_StatisticView>(
+                  key: const ValueKey('statistics-view-selector'),
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(
+                      value: _StatisticView.summary,
+                      icon: Icon(Icons.dashboard_outlined),
+                      label: Text('Summary'),
+                    ),
+                    ButtonSegment(
+                      value: _StatisticView.detailed,
+                      icon: Icon(Icons.analytics_outlined),
+                      label: Text('Detailed'),
+                    ),
+                  ],
+                  selected: {_view},
+                  onSelectionChanged: (selection) {
+                    setState(() => _view = selection.single);
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                // A fresh key per view opens each view scrolled to the top.
+                key: ValueKey(_view),
+                padding: const EdgeInsets.fromLTRB(
+                  NahpuPageMargin.horizontal,
+                  NahpuPageMargin.top,
+                  NahpuPageMargin.horizontal,
+                  NahpuPageMargin.bottom,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1400),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          'Summary',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Record totals and top five counts by category.',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                        if (_view == _StatisticView.summary) ...[
+                          CommonPadding(
+                            child: _FullScreenRecordStatisticsSummary(
+                              value: totals,
+                              onRetry: () =>
+                                  ref.invalidate(recordStatisticTotalsProvider),
+                            ),
+                          ),
+                          const SizedBox(height: NahpuSpacing.xl),
+                          _StatisticSummary(
+                            projectUuid: projectUuid,
+                            onExplore: _exploreSelection,
+                          ),
+                        ] else ...[
+                          _StatisticControl<_DetailSection>(
+                            key: const ValueKey(
+                              'statistics-detail-section-control',
+                            ),
+                            values: _DetailSection.values,
+                            selected: _detailSection,
+                            valueLabel: (value) => value.label,
+                            valueIcon: (value) => value.icon,
+                            onSelected: (value) {
+                              setState(() => _detailSection = value);
+                            },
+                          ),
+                          const SizedBox(height: NahpuSpacing.xl),
+                          if (_detailSection == _DetailSection.spatial)
+                            SpatialStatisticsPanel(
+                              projectUuid: projectUuid,
+                              projectName: projectName,
+                              height: _detailedStatisticsCardHeight,
+                            )
+                          else
+                            Card(
+                              clipBehavior: Clip.antiAlias,
+                              child: SizedBox(
+                                key: const ValueKey(
+                                  'detailed-statistics-content',
+                                ),
+                                height: _detailedStatisticsCardHeight,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      _StatisticControl<StatisticMeasure>(
+                                        key: const ValueKey(
+                                          'statistics-measure-control',
+                                        ),
+                                        label: 'Measure',
+                                        values: StatisticMeasure.values,
+                                        selected: _measure,
+                                        valueLabel: (value) => value.label,
+                                        onSelected: (value) =>
+                                            _selectMeasure(value, hasLifeStage),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _StatisticControl<StatisticGroup>(
+                                        key: const ValueKey(
+                                          'statistics-group-control',
+                                        ),
+                                        label: 'Group by',
+                                        values: _measure.groups(
+                                          hasLifeStage: hasLifeStage,
+                                        ),
+                                        selected: _group,
+                                        valueLabel: (value) => value.label,
+                                        onSelected: (value) {
+                                          setState(() {
+                                            _group = value;
+                                            _breakdown = null;
+                                          });
+                                        },
+                                      ),
+                                      if (_usesTaxonRank) ...[
+                                        const SizedBox(height: 12),
+                                        _StatisticControl<StatisticTaxonRank>(
+                                          key: const ValueKey(
+                                            'statistics-taxon-rank-control',
+                                          ),
+                                          label: 'Taxon rank',
+                                          values: StatisticTaxonRank.groupable,
+                                          selected: _rank,
+                                          valueLabel: (value) => value.label,
+                                          onSelected: (value) {
+                                            setState(() => _rank = value);
+                                          },
+                                        ),
+                                      ],
+                                      if (_canBreakDown) ...[
+                                        const SizedBox(height: 12),
+                                        _BreakdownControl(
+                                          key: const ValueKey(
+                                            'statistics-breakdown-control',
+                                          ),
+                                          selected: _breakdown,
+                                          hasSex: hasSex,
+                                          hasLifeStage: hasLifeStage,
+                                          onSelected: (value) {
+                                            setState(() => _breakdown = value);
+                                          },
+                                        ),
+                                      ],
+                                      if (_usesSiteFilter) ...[
+                                        const SizedBox(height: 12),
+                                        SearchableStatisticFilterPicker(
+                                          options: ref.watch(
+                                            statisticFilterOptionsProvider(
+                                              StatisticFilterKind.site,
+                                            ),
+                                          ),
+                                          selected: _siteFilter,
+                                          title: 'Select a site',
+                                          placeholder: 'All sites',
+                                          onChanged: (value) {
+                                            setState(() => _siteFilter = value);
+                                          },
+                                          onRetry: () => ref.invalidate(
+                                            statisticFilterOptionsProvider(
+                                              StatisticFilterKind.site,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      if (_usesSpeciesFilter) ...[
+                                        const SizedBox(height: 12),
+                                        SearchableStatisticFilterPicker(
+                                          options: ref.watch(
+                                            statisticFilterOptionsProvider(
+                                              StatisticFilterKind.species,
+                                            ),
+                                          ),
+                                          selected: _speciesFilter,
+                                          title: 'Select a species',
+                                          placeholder: 'All species',
+                                          onChanged: (value) {
+                                            setState(
+                                              () => _speciesFilter = value,
+                                            );
+                                          },
+                                          onRetry: () => ref.invalidate(
+                                            statisticFilterOptionsProvider(
+                                              StatisticFilterKind.species,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              request.title(
+                                                siteLabel: _usesSiteFilter
+                                                    ? _siteFilter?.label
+                                                    : null,
+                                                speciesLabel: _usesSpeciesFilter
+                                                    ? _speciesFilter?.label
+                                                    : null,
+                                              ),
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.titleMedium,
+                                            ),
+                                          ),
+                                          SegmentedButton<_DetailMode>(
+                                            showSelectedIcon: false,
+                                            segments: const [
+                                              ButtonSegment(
+                                                value: _DetailMode.chart,
+                                                icon: Icon(
+                                                  Icons.bar_chart_rounded,
+                                                ),
+                                                label: Text('Chart'),
+                                              ),
+                                              ButtonSegment(
+                                                value: _DetailMode.table,
+                                                icon: Icon(
+                                                  Icons.table_rows_outlined,
+                                                ),
+                                                label: Text('Table'),
+                                              ),
+                                            ],
+                                            selected: {_detailMode},
+                                            onSelectionChanged: (selection) {
+                                              setState(
+                                                () => _detailMode =
+                                                    selection.single,
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Expanded(
+                                        child: LayoutBuilder(
+                                          builder: (context, constraints) {
+                                            return _StatisticAsyncContent(
+                                              value: details,
+                                              onRetry: () => ref.invalidate(
+                                                statisticDataProvider(request),
+                                              ),
+                                              builder: (rows) {
+                                                if (_detailMode ==
+                                                    _DetailMode.chart) {
+                                                  if (_isPieChartGroup(
+                                                        request.group,
+                                                      ) &&
+                                                      request.breakdown ==
+                                                          null) {
+                                                    return StatisticChartSwitcher(
+                                                      data: rows,
+                                                      measure: request.measure,
+                                                      group: request.group,
+                                                      rank: request.rank,
+                                                      usePieByDefault:
+                                                          _shouldUseStandalonePieChart(
+                                                            request,
+                                                            rows,
+                                                          ),
+                                                      height:
+                                                          constraints.maxHeight,
+                                                      fitHeight: true,
+                                                      toggleKey: const ValueKey(
+                                                        'statistics-detail-chart-toggle',
+                                                      ),
+                                                    );
+                                                  }
+                                                  return StatisticBarChart(
+                                                    data: rows,
+                                                    measure: request.measure,
+                                                    group: request.group,
+                                                    rank: request.rank,
+                                                    breakdown:
+                                                        request.breakdown,
+                                                    height:
+                                                        constraints.maxHeight,
+                                                    fitHeight: true,
+                                                  );
+                                                }
+                                                final tableRows =
+                                                    buildStatisticTableRows(
+                                                      rows,
+                                                    );
+                                                return StatisticDataTable(
+                                                  rows: tableRows,
+                                                  categoryLabel:
+                                                      request.categoryLabel,
+                                                  seriesLabel:
+                                                      request.seriesLabel,
+                                                  countLabel: request
+                                                      .measure
+                                                      .countLabel,
+                                                  onExport: tableRows.isEmpty
+                                                      ? null
+                                                      : () => showStatisticExportDialog(
+                                                          context: context,
+                                                          defaultFileName:
+                                                              _defaultFileName(
+                                                                projectName,
+                                                                request,
+                                                              ),
+                                                          rows: tableRows,
+                                                          categoryLabel: request
+                                                              .categoryLabel,
+                                                          seriesLabel: request
+                                                              .seriesLabel,
+                                                          countLabel: request
+                                                              .measure
+                                                              .countLabel,
+                                                        ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  CommonPadding(
-                    child: _FullScreenRecordStatisticsSummary(
-                      value: totals,
-                      onRetry: () =>
-                          ref.invalidate(recordStatisticTotalsProvider),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _StatisticSummary(
-                    projectUuid: projectUuid,
-                    onExplore: _selectAndReveal,
-                  ),
-                  const SizedBox(height: 32),
-                  Card(
-                    key: _detailKey,
-                    clipBehavior: Clip.antiAlias,
-                    child: SizedBox(
-                      key: const ValueKey('detailed-statistics-content'),
-                      height: _detailedStatisticsCardHeight,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Detailed statistics',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 16),
-                            _StatisticControl<StatisticMeasure>(
-                              key: const ValueKey('statistics-measure-control'),
-                              label: 'Measure',
-                              values: StatisticMeasure.values,
-                              selected: _measure,
-                              valueLabel: (value) => value.label,
-                              onSelected: (value) =>
-                                  _selectMeasure(value, hasLifeStage),
-                            ),
-                            const SizedBox(height: 12),
-                            _StatisticControl<StatisticGroup>(
-                              key: const ValueKey('statistics-group-control'),
-                              label: 'Group by',
-                              values: _measure.groups(
-                                hasLifeStage: hasLifeStage,
-                              ),
-                              selected: _group,
-                              valueLabel: (value) => value.label,
-                              onSelected: (value) {
-                                setState(() {
-                                  _group = value;
-                                  _breakdown = null;
-                                });
-                              },
-                            ),
-                            if (_usesTaxonRank) ...[
-                              const SizedBox(height: 12),
-                              _StatisticControl<StatisticTaxonRank>(
-                                key: const ValueKey(
-                                  'statistics-taxon-rank-control',
-                                ),
-                                label: 'Taxon rank',
-                                values: StatisticTaxonRank.groupable,
-                                selected: _rank,
-                                valueLabel: (value) => value.label,
-                                onSelected: (value) {
-                                  setState(() => _rank = value);
-                                },
-                              ),
-                            ],
-                            if (_canBreakDown) ...[
-                              const SizedBox(height: 12),
-                              _BreakdownControl(
-                                key: const ValueKey(
-                                  'statistics-breakdown-control',
-                                ),
-                                selected: _breakdown,
-                                hasSex: hasSex,
-                                hasLifeStage: hasLifeStage,
-                                onSelected: (value) {
-                                  setState(() => _breakdown = value);
-                                },
-                              ),
-                            ],
-                            if (_usesSiteFilter) ...[
-                              const SizedBox(height: 12),
-                              SearchableStatisticFilterPicker(
-                                options: ref.watch(
-                                  statisticFilterOptionsProvider(
-                                    StatisticFilterKind.site,
-                                  ),
-                                ),
-                                selected: _siteFilter,
-                                title: 'Select a site',
-                                placeholder: 'All sites',
-                                onChanged: (value) {
-                                  setState(() => _siteFilter = value);
-                                },
-                                onRetry: () => ref.invalidate(
-                                  statisticFilterOptionsProvider(
-                                    StatisticFilterKind.site,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (_usesSpeciesFilter) ...[
-                              const SizedBox(height: 12),
-                              SearchableStatisticFilterPicker(
-                                options: ref.watch(
-                                  statisticFilterOptionsProvider(
-                                    StatisticFilterKind.species,
-                                  ),
-                                ),
-                                selected: _speciesFilter,
-                                title: 'Select a species',
-                                placeholder: 'All species',
-                                onChanged: (value) {
-                                  setState(() => _speciesFilter = value);
-                                },
-                                onRetry: () => ref.invalidate(
-                                  statisticFilterOptionsProvider(
-                                    StatisticFilterKind.species,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    request.title(
-                                      siteLabel: _usesSiteFilter
-                                          ? _siteFilter?.label
-                                          : null,
-                                      speciesLabel: _usesSpeciesFilter
-                                          ? _speciesFilter?.label
-                                          : null,
-                                    ),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                ),
-                                SegmentedButton<_DetailMode>(
-                                  showSelectedIcon: false,
-                                  segments: const [
-                                    ButtonSegment(
-                                      value: _DetailMode.chart,
-                                      icon: Icon(Icons.bar_chart_rounded),
-                                      label: Text('Chart'),
-                                    ),
-                                    ButtonSegment(
-                                      value: _DetailMode.table,
-                                      icon: Icon(Icons.table_rows_outlined),
-                                      label: Text('Table'),
-                                    ),
-                                  ],
-                                  selected: {_detailMode},
-                                  onSelectionChanged: (selection) {
-                                    setState(
-                                      () => _detailMode = selection.single,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Expanded(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return _StatisticAsyncContent(
-                                    value: details,
-                                    onRetry: () => ref.invalidate(
-                                      statisticDataProvider(request),
-                                    ),
-                                    builder: (rows) {
-                                      if (_detailMode == _DetailMode.chart) {
-                                        if (_isPieChartGroup(request.group) &&
-                                            request.breakdown == null) {
-                                          return StatisticChartSwitcher(
-                                            data: rows,
-                                            measure: request.measure,
-                                            group: request.group,
-                                            rank: request.rank,
-                                            usePieByDefault:
-                                                _shouldUseStandalonePieChart(
-                                                  request,
-                                                  rows,
-                                                ),
-                                            height: constraints.maxHeight,
-                                            fitHeight: true,
-                                            toggleKey: const ValueKey(
-                                              'statistics-detail-chart-toggle',
-                                            ),
-                                          );
-                                        }
-                                        return StatisticBarChart(
-                                          data: rows,
-                                          measure: request.measure,
-                                          group: request.group,
-                                          rank: request.rank,
-                                          breakdown: request.breakdown,
-                                          height: constraints.maxHeight,
-                                          fitHeight: true,
-                                        );
-                                      }
-                                      final tableRows = buildStatisticTableRows(
-                                        rows,
-                                      );
-                                      return StatisticDataTable(
-                                        rows: tableRows,
-                                        categoryLabel: request.categoryLabel,
-                                        seriesLabel: request.seriesLabel,
-                                        countLabel: request.measure.countLabel,
-                                        onExport: tableRows.isEmpty
-                                            ? null
-                                            : () => showStatisticExportDialog(
-                                                context: context,
-                                                defaultFileName:
-                                                    _defaultFileName(
-                                                      projectName,
-                                                      request,
-                                                    ),
-                                                rows: tableRows,
-                                                categoryLabel:
-                                                    request.categoryLabel,
-                                                seriesLabel:
-                                                    request.seriesLabel,
-                                                countLabel:
-                                                    request.measure.countLabel,
-                                              ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SpatialStatisticsPanel(
-                    projectUuid: projectUuid,
-                    projectName: projectName,
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -781,22 +842,15 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     });
   }
 
-  void _selectAndReveal(StatisticSelection selection) {
+  /// Opens the detailed counts on [selection], as picked from a summary card.
+  void _exploreSelection(StatisticSelection selection) {
     setState(() {
       _measure = selection.measure;
       _group = selection.group;
       _rank = selection.rank ?? _rank;
       _breakdown = selection.breakdown;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final detailContext = _detailKey.currentContext;
-      if (detailContext != null) {
-        Scrollable.ensureVisible(
-          detailContext,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
-      }
+      _view = _StatisticView.detailed;
+      _detailSection = _DetailSection.counts;
     });
   }
 
@@ -1306,17 +1360,23 @@ class _StatisticSummaryCard extends ConsumerWidget {
 class _StatisticControl<T> extends StatelessWidget {
   const _StatisticControl({
     super.key,
-    required this.label,
+    this.label,
     required this.values,
     required this.selected,
     required this.valueLabel,
+    this.valueIcon,
     required this.onSelected,
   });
 
-  final String label;
+  /// Heading above the chips, or null when the chips speak for themselves.
+  final String? label;
   final List<T> values;
   final T selected;
   final String Function(T value) valueLabel;
+
+  /// Leading icon for each chip. The selected chip swaps its icon for a check
+  /// instead of drawing the checkmark over it.
+  final IconData Function(T value)? valueIcon;
   final ValueChanged<T> onSelected;
 
   @override
@@ -1324,14 +1384,20 @@ class _StatisticControl<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 6),
+        if (label != null) ...[
+          Text(label!, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 6),
+        ],
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             for (final value in values)
               ChoiceChip(
+                avatar: valueIcon == null
+                    ? null
+                    : Icon(selected == value ? Icons.check : valueIcon!(value)),
+                showCheckmark: valueIcon == null,
                 label: Text(valueLabel(value)),
                 selected: selected == value,
                 onSelected: (_) => onSelected(value),
@@ -1492,6 +1558,20 @@ const _summaryDefinitions = [
     ),
   ),
 ];
+
+/// Top-level view of the full-screen record statistics page.
+enum _StatisticView { summary, detailed }
+
+/// Which detailed statistics the detailed view is showing.
+enum _DetailSection {
+  counts('Counts', Icons.format_list_numbered_rounded),
+  spatial('Spatial', Icons.public_outlined);
+
+  const _DetailSection(this.label, this.icon);
+
+  final String label;
+  final IconData icon;
+}
 
 enum _DetailMode { chart, table }
 

@@ -1,5 +1,4 @@
 import 'package:nahpu/screens/templates/template_model.dart';
-import 'package:nahpu/services/templates/bundled_template_preset_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -24,16 +23,13 @@ class TemplatePresetDeletionResult {
   final int updatedBlockCount;
 }
 
-/// Coordinates template deletion with template-block references and startup
-/// seeding metadata.
+/// Coordinates template deletion with template-block references.
 class TemplatePresetManagementService {
   const TemplatePresetManagementService({
     this.templateService = const TemplateService(),
-    this.bundledTemplateService = const BundledTemplatePresetService(),
   });
 
   final TemplateService templateService;
-  final BundledTemplatePresetService bundledTemplateService;
 
   Future<List<TemplatePresetSummary>> loadSummaries() async {
     final names = await templateService.listTemplateNames();
@@ -89,7 +85,6 @@ class TemplatePresetManagementService {
       name: to,
       value: existing.copyWith(name: to).toJsonString(),
     );
-    final wasSuppressed = await bundledTemplateService.suppress(from);
     try {
       final result = await rust_config.deleteTemplatePresetWithReplacement(
         name: from,
@@ -104,9 +99,6 @@ class TemplatePresetManagementService {
         updatedBlockCount: result.updatedBlockCount,
       );
     } catch (_) {
-      if (wasSuppressed) {
-        await bundledTemplateService.restore(from);
-      }
       await rust_config.deleteTemplatePreset(name: to);
       rethrow;
     }
@@ -116,27 +108,17 @@ class TemplatePresetManagementService {
     required String name,
     String? replacementName,
   }) async {
-    final wasSuppressed = await bundledTemplateService.suppress(name);
-    try {
-      final result = await rust_config.deleteTemplatePresetWithReplacement(
-        name: name,
-        replacementName: replacementName,
-      );
-      final current = await DocumentSettingsServices().getCurrentTemplateName();
-      if (current == name) {
-        await DocumentSettingsServices().setCurrentTemplateName(
-          replacementName,
-        );
-      }
-      return TemplatePresetDeletionResult(
-        updatedLayoutCount: result.updatedLayoutCount,
-        updatedBlockCount: result.updatedBlockCount,
-      );
-    } catch (_) {
-      if (wasSuppressed) {
-        await bundledTemplateService.restore(name);
-      }
-      rethrow;
+    final result = await rust_config.deleteTemplatePresetWithReplacement(
+      name: name,
+      replacementName: replacementName,
+    );
+    final current = await DocumentSettingsServices().getCurrentTemplateName();
+    if (current == name) {
+      await DocumentSettingsServices().setCurrentTemplateName(replacementName);
     }
+    return TemplatePresetDeletionResult(
+      updatedLayoutCount: result.updatedLayoutCount,
+      updatedBlockCount: result.updatedBlockCount,
+    );
   }
 }

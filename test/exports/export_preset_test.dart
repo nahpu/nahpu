@@ -1,13 +1,52 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
+import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
 
 void main() {
   group('ExportPresetModel', () {
+    test('keeps an optional description in the preset payload', () {
+      const described = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [ExportFieldMapping(expression: '[site::siteID]')],
+        description: 'Sites for the county survey',
+      );
+
+      final restored = ExportPresetModel.fromJson(described.toJson());
+      expect(restored.description, 'Sites for the county survey');
+
+      final legacy = described.toJson()..remove('description');
+      expect(ExportPresetModel.fromJson(legacy).description, '');
+      expect(
+        ExportPresetModel.empty().toJson().containsKey('description'),
+        isFalse,
+      );
+    });
+
+    test('keeps conditional expressions as single composer segments', () {
+      const expression =
+          '[mammalAttribute::testisPosition#label]'
+          '[[if][mammalAttribute::testisWidth!=""]=>'
+          '" x [mammalAttribute::testisWidth] mm"]]'
+          ' [[sex][sex=="0"]=>"Male"]]';
+      final segments = parseExportExpression(expression);
+
+      expect(segments.map((segment) => segment.kind), [
+        ExportExpressionSegmentKind.field,
+        ExportExpressionSegmentKind.conditional,
+        ExportExpressionSegmentKind.text,
+        ExportExpressionSegmentKind.conditional,
+      ]);
+      expect(segments.first.value, 'mammalAttribute::testisPosition#label');
+      expect(serializeExportExpression(segments), expression);
+    });
+
     test(
-      'parses and serializes unlimited combined-field expression segments',
+      'parses and serializes unlimited custom-field expression segments',
       () {
         final expression = serializeExportExpression([
           const ExportExpressionSegment.field('personnel::initial'),
@@ -308,6 +347,29 @@ void main() {
       expect(
         validateExportPreset(preset),
         contains('Only one nested mapping can expand export rows.'),
+      );
+    });
+
+    test('accepts text-only custom fields', () {
+      const mapping = ExportFieldMapping(
+        expression: 'NAHPU',
+        headerOverride: 'institution',
+      );
+      const preset = ExportPresetModel(
+        recordType: RecordType.site,
+        specimenRecordType: SpecimenRecordType.allTaxa,
+        headerFormat: ExportHeaderFormat.fieldName,
+        mappings: [mapping],
+      );
+
+      expect(parseExportExpression(mapping.expression).single.isField, isFalse);
+      expect(validateExportPreset(preset), isEmpty);
+      expect(
+        mappingRequiresHeaderOverride(
+          ExportHeaderFormat.darwinCore,
+          const ExportFieldMapping(expression: 'NAHPU'),
+        ),
+        isTrue,
       );
     });
 

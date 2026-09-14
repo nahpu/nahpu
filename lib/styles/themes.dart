@@ -6,6 +6,16 @@ class NahpuTheme {
   static const _mistySage = Color(0xFF4D625B);
   static const _mossShadow = Color(0xFF1E352F);
   static const _canopyMist = Color(0xFF7FD9BE);
+  static const _canopyDeep = Color(0xFF0F7B5C);
+
+  /// Fill for the single most important call to action, such as Create
+  /// project on the home screen. Canopy teal is too light to carry white label
+  /// text, so this deeper canopy shade keeps white text above a 4.5:1 contrast
+  /// ratio in both themes.
+  static const Color primaryAction = _canopyDeep;
+
+  /// Text and icon color on [primaryAction].
+  static const Color onPrimaryAction = Colors.white;
 
   static final _lightColorScheme = ColorScheme.fromSeed(
     seedColor: _canopyTeal,

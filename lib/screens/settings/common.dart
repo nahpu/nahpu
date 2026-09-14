@@ -13,32 +13,38 @@ class CommonSettingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.settings),
-        child: ListView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: NahpuSpacing.xl,
-            vertical: NahpuSpacing.md,
+    // The list fills the page so the gutters scroll too; each section is
+    // capped and centered instead.
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
+      itemCount: sections.length,
+      itemBuilder: (context, index) => Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: NahpuContentWidth.settings,
           ),
-          children: sections,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
+            child: sections[index],
+          ),
         ),
       ),
     );
   }
 }
 
+/// A settings group styled like a NAHPU form card: the title sits centered
+/// inside the container, above a divider.
 class CommonSettingSection extends StatelessWidget {
   const CommonSettingSection({
     super.key,
     this.title,
-    this.titleTrailing,
     required this.children,
     this.isDivided = false,
   });
 
   final String? title;
-  final Widget? titleTrailing;
   final List<Widget> children;
   final bool isDivided;
 
@@ -47,36 +53,13 @@ class CommonSettingSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (title != null)
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withAlpha(180),
-                  ),
-                ),
-              ),
-              if (titleTrailing != null)
-                Flexible(
-                  flex: 4,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: titleTrailing!,
-                  ),
-                ),
-            ],
-          ),
+        // Material, rather than a decorated container, keeps tile ripples
+        // visible and children full width inside the border.
         Material(
-          clipBehavior: Clip.hardEdge,
+          clipBehavior: Clip.antiAlias,
           color: Theme.of(
             context,
-          ).colorScheme.surfaceContainerHighest.withAlpha(120),
+          ).colorScheme.surfaceContainerHighest.withAlpha(80),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NahpuRadius.lg),
             side: BorderSide(
@@ -85,19 +68,59 @@ class CommonSettingSection extends StatelessWidget {
             ),
           ),
           child: Column(
-            children: isDivided
-                // If [isDivided] is true, then add a divider after each child
-                ? [
-                    for (final (index, e) in children.indexed) ...[
-                      e,
-                      if (index != children.length - 1) const SettingDivider(),
-                    ],
-                  ]
-                : children,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (title case final title?) ...[
+                _SettingSectionTitle(text: title),
+                Divider(
+                  height: NahpuStroke.thin,
+                  thickness: NahpuStroke.thin,
+                  color: Theme.of(context).tabBarTheme.dividerColor,
+                ),
+              ],
+              if (isDivided)
+                for (final (index, child) in children.indexed) ...[
+                  child,
+                  if (index != children.length - 1) const SettingDivider(),
+                ]
+              else
+                ...children,
+            ],
           ),
         ),
         const SizedBox(height: NahpuSpacing.xl),
       ],
+    );
+  }
+}
+
+/// Section title centered both ways in the section header.
+class _SettingSectionTitle extends StatelessWidget {
+  const _SettingSectionTitle({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: NahpuControlSize.touchTarget,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: NahpuSpacing.xl,
+          vertical: NahpuSpacing.xs,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            // A step below the app bar and form card titles, which use
+            // titleLarge, so section labels read as subordinate to both.
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -114,6 +137,7 @@ class CommonSettingTile extends StatelessWidget {
     this.trailing,
     this.titleBadge,
     this.isNavigation = false,
+    this.isSelected = false,
   });
 
   final String title;
@@ -128,12 +152,24 @@ class CommonSettingTile extends StatelessWidget {
   final Widget? titleBadge;
   final bool isNavigation;
 
+  /// Highlights the tile whose page is open beside the settings list.
+  final bool isSelected;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
       child: ListTile(
         minVerticalPadding: 0,
+        selected: isSelected,
+        selectedTileColor: Theme.of(
+          context,
+        ).colorScheme.secondaryContainer.withAlpha(110),
+        shape: isSelected
+            ? RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(NahpuRadius.md),
+              )
+            : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

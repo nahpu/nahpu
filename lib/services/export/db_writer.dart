@@ -1,6 +1,7 @@
 //! This file contains the services to create and restore full NAHPU backups.
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show QueryRow;
@@ -31,9 +32,184 @@ class DbArchiveDatabaseCandidate {
 }
 
 class DbArchiveInspection {
-  const DbArchiveInspection({required this.databaseCandidates});
+  const DbArchiveInspection({
+    required this.databaseCandidates,
+    this.previews = const {},
+  });
 
   final List<DbArchiveDatabaseCandidate> databaseCandidates;
+
+  /// What each root database holds, keyed by
+  /// [DbArchiveDatabaseCandidate.archivePath].
+  final Map<String, DbReplacementPreview> previews;
+}
+
+/// The rows a database summary reports, as label to table name.
+///
+/// Shared by the backup window and the replacement preview, so the current
+/// database and a replacement file are always counted the same way. None of
+/// these tables has been renamed by a schema migration.
+const Map<String, String> dbSummaryTables = {
+  'Projects': 'project',
+  'Personnel': 'personnel',
+  'Taxa': 'taxonomy',
+  'Sites': 'site',
+  'Collection events': 'collEvent',
+  'Specimens': 'specimen',
+  'Narratives': 'narrative',
+  'Media records': 'media',
+};
+
+/// What a database file chosen to replace the current one holds.
+class DbContentsSummary {
+  const DbContentsSummary({
+    required this.entries,
+    required this.associatedFiles,
+    required this.totalBytes,
+    required this.schemaVersion,
+  });
+
+  /// Row counts by [dbSummaryTables] label. Null when the table is missing.
+  final Map<String, int?> entries;
+
+  /// Media and associated files the restore copies. Null for a bare database
+  /// file, which carries none.
+  final int? associatedFiles;
+
+  /// Size of the database plus any associated files.
+  final int totalBytes;
+
+  /// SQLite `user_version`, which Drift uses as the schema version.
+  final int schemaVersion;
+
+  DbContentsSummary withAssociatedFiles(int count, int bytes) {
+    return DbContentsSummary(
+      entries: entries,
+      associatedFiles: count,
+      totalBytes: totalBytes + bytes,
+      schemaVersion: schemaVersion,
+    );
+  }
+}
+
+/// Why a replacement file cannot be restored.
+enum DbReplacementIssue {
+  notNahpuDatabase(
+    'This file is not a NAHPU database. Choose a NAHPU backup archive or '
+    'database file.',
+  ),
+  newerSchema(
+    'This database was made by a newer version of NAHPU. Update NAHPU, then '
+    'restore it.',
+  ),
+  unreadable('This database could not be read. The file may be damaged.');
+
+  const DbReplacementIssue(this.message);
+
+  final String message;
+}
+
+/// A replacement file, read before anything is overwritten.
+class DbReplacementPreview {
+  const DbReplacementPreview({
+    required this.contents,
+    required this.issue,
+    this.includesSettings = false,
+  });
+
+  /// Null when the database could not be read.
+  final DbContentsSummary? contents;
+
+  /// Why the file cannot be restored, or null when it can.
+  final DbReplacementIssue? issue;
+
+  /// Whether the restore also imports the archive's user configs.
+  final bool includesSettings;
+
+  /// Reads the database at [databasePath] and decides whether it can replace
+  /// the current one. A file that cannot be read is reported, not thrown.
+  static Future<DbReplacementPreview> read(
+    String databasePath, {
+    int? associatedFiles,
+    int associatedBytes = 0,
+    bool includesSettings = false,
+  }) async {
+    try {
+      var contents = await readDatabaseContents(databasePath);
+      if (associatedFiles != null) {
+        contents = contents.withAssociatedFiles(
+          associatedFiles,
+          associatedBytes,
+        );
+      }
+      return DbReplacementPreview(
+        contents: contents,
+        issue: replacementIssueFor(contents),
+        includesSettings: includesSettings,
+      );
+    } catch (_) {
+      return DbReplacementPreview(
+        contents: null,
+        issue: DbReplacementIssue.unreadable,
+        includesSettings: includesSettings,
+      );
+    }
+  }
+}
+
+/// Counts what the database at [path] holds without changing it.
+///
+/// Runs on a background isolate, so a large file never blocks a frame.
+@visibleForTesting
+Future<DbContentsSummary> readDatabaseContents(String path) async {
+  final bytes = await File(path).length();
+  return Isolate.run(() {
+    final database = sqlite3.sqlite3.open(
+      path,
+      mode: sqlite3.OpenMode.readOnly,
+    );
+    try {
+      final tables = {
+        for (final row in database.select(
+          "SELECT name FROM sqlite_master WHERE type = 'table'",
+        ))
+          row['name'] as String,
+      };
+      return DbContentsSummary(
+        entries: {
+          for (final MapEntry(key: label, value: table)
+              in dbSummaryTables.entries)
+            label: tables.contains(table)
+                ? database
+                          .select('SELECT COUNT(*) AS count FROM "$table"')
+                          .first['count']
+                      as int
+                : null,
+        },
+        associatedFiles: null,
+        totalBytes: bytes,
+        schemaVersion: database.userVersion,
+      );
+    } finally {
+      database.close();
+    }
+  });
+}
+
+/// Whether [contents] can replace the current database.
+///
+/// Older schemas are accepted, because the migrations upgrade them when the
+/// replaced database opens. A newer schema cannot be read by this app version.
+@visibleForTesting
+DbReplacementIssue? replacementIssueFor(DbContentsSummary contents) {
+  if (contents.entries['Projects'] == null ||
+      contents.entries['Specimens'] == null) {
+    return DbReplacementIssue.notNahpuDatabase;
+  }
+  if (contents.schemaVersion > kSchemaVersion) {
+    return DbReplacementIssue.newerSchema;
+  }
+  return null;
 }
 
 class DbBackupSummary {
@@ -41,6 +217,7 @@ class DbBackupSummary {
     required this.entries,
     required this.associatedFileBytes,
     required this.databaseBytes,
+    required this.schemaVersion,
   });
 
   final Map<String, int> entries;
@@ -50,6 +227,9 @@ class DbBackupSummary {
 
   /// Size of the live database, used to estimate the work the backup starts with.
   final int databaseBytes;
+
+  /// The live database's schema version, from SQLite `user_version`.
+  final int schemaVersion;
 
   int get totalBytes => associatedFileBytes + databaseBytes;
 }
@@ -87,6 +267,24 @@ bool isAssociatedBackupArchivePath(String relative) {
       lower.startsWith('userconfigs/') ||
       (segments.length >= 3 &&
           (segments[1] == 'media' || segments[1] == 'associateddata'));
+}
+
+/// Where an archive file is written on restore, relative to the NAHPU folder.
+///
+/// Older backups kept personnel photos in the project media folder, as
+/// `<project>/media/personnel/<file>`. `personnel.photoPath` holds only the
+/// file name, which the app resolves under `appMedia/personnel`, so those
+/// photos are restored there. Every other path is restored where it was.
+@visibleForTesting
+String restoredRelativePath(String archivePath) {
+  final normalized = archivePath.replaceAll('\\', '/');
+  final segments = normalized.split('/');
+  final isLegacyPersonnelPhoto =
+      segments.length >= 4 &&
+      segments[1].toLowerCase() == mediaDir &&
+      segments[2].toLowerCase() == 'personnel';
+  if (!isLegacyPersonnelPhoto) return normalized;
+  return [appMediaDirName, 'personnel', ...segments.sublist(3)].join('/');
 }
 
 /// The installation-wide directories a full backup copies in their entirety.
@@ -192,14 +390,8 @@ class DbExport extends AppServices {
 
   Future<DbBackupSummary> getSummary() async {
     final counts = <String, int>{
-      'Projects': await _countRows('project'),
-      'Personnel': await _countRows('personnel'),
-      'Taxa': await _countRows('taxonomy'),
-      'Sites': await _countRows('site'),
-      'Collection events': await _countRows('collEvent'),
-      'Specimens': await _countRows('specimen'),
-      'Narratives': await _countRows('narrative'),
-      'Media records': await _countRows('media'),
+      for (final MapEntry(key: label, value: table) in dbSummaryTables.entries)
+        label: await _countRows(table),
     };
     final associatedFiles = await _collectAssociatedFiles();
     counts['Associated files'] = associatedFiles.length;
@@ -207,6 +399,7 @@ class DbExport extends AppServices {
       entries: counts,
       associatedFileBytes: await _totalBytes(associatedFiles),
       databaseBytes: await _databaseBytes(),
+      schemaVersion: await _schemaVersion(),
     );
   }
 
@@ -276,6 +469,11 @@ class DbExport extends AppServices {
         .customSelect('SELECT COUNT(*) AS count FROM $tableName')
         .getSingle();
     return row.read<int>('count');
+  }
+
+  Future<int> _schemaVersion() async {
+    final row = await dbAccess.customSelect('PRAGMA user_version').getSingle();
+    return row.read<int>('user_version');
   }
 
   /// Gathers every file the backup archive carries alongside the database.
@@ -496,17 +694,59 @@ class DbWriter extends AppServices {
     ),
   ];
 
+  /// Lists the archive's root databases and reads what each would restore.
+  ///
+  /// This is the extraction the file picker already runs, so reading the
+  /// databases and counting the archive's files here costs no extra pass.
   Future<DbArchiveInspection> inspectArchive() async {
     final tempDir = await _extractArchive();
     try {
       final candidates = _databaseCandidates(tempDir);
-      return DbArchiveInspection(databaseCandidates: candidates);
+      var associatedFiles = 0;
+      var associatedBytes = 0;
+      var includesSettings = false;
+      final files = tempDir
+          .listSync(recursive: true, followLinks: false)
+          .whereType<File>();
+      for (final file in files) {
+        final relative = _relativeArchivePath(file.path, tempDir.path);
+        final name = p.basename(relative).toLowerCase();
+        if (name == 'user_configs.json' || name == 'settings.json') {
+          includesSettings = true;
+        }
+        // The same filter the restore copies with, so the count matches what
+        // lands on disk.
+        if (isAssociatedBackupArchivePath(relative)) {
+          associatedFiles++;
+          associatedBytes += await file.length();
+        }
+      }
+      final previews = <String, DbReplacementPreview>{
+        for (final candidate in candidates)
+          candidate.archivePath: await DbReplacementPreview.read(
+            p.join(tempDir.path, candidate.archivePath),
+            associatedFiles: associatedFiles,
+            associatedBytes: associatedBytes,
+            includesSettings: includesSettings,
+          ),
+      };
+      return DbArchiveInspection(
+        databaseCandidates: candidates,
+        previews: previews,
+      );
     } finally {
       await _deleteTempDir();
     }
   }
 
-  Future<void> replace(
+  /// Reads a bare database file chosen as the replacement.
+  Future<DbReplacementPreview> inspectDatabaseFile() {
+    return DbReplacementPreview.read(filePath.path);
+  }
+
+  /// Returns the safety backup written before the replace, or null when
+  /// [backup] is false.
+  Future<File?> replace(
     bool backup,
     bool isArchived, {
     String? databaseRelativePath,
@@ -522,13 +762,14 @@ class DbWriter extends AppServices {
             )
           : filePath.path;
       cancel?.throwIfCancelled();
-      if (backup) {
-        await _backUpBeforeDelete(progress: progress, cancel: cancel);
-      }
+      final backupFile = backup
+          ? await _backUpBeforeDelete(progress: progress, cancel: cancel)
+          : null;
       cancel?.throwIfCancelled();
       progress?.beginPhase(ExportPhase.finalizing);
       await _writeDb(dbImportPath);
       progress?.complete();
+      return backupFile;
     } finally {
       await _deleteTempDir();
     }
@@ -624,10 +865,16 @@ class DbWriter extends AppServices {
     for (final entity in restorable) {
       cancel?.throwIfCancelled();
       final relative = _relativeArchivePath(entity.path, tempDir.path);
-      final target = File(p.join(nahpuDir.path, relative));
+      // Older backups kept personnel photos where the app no longer looks.
+      final target = File(
+        p.joinAll([
+          nahpuDir.path,
+          ...restoredRelativePath(relative).split('/'),
+        ]),
+      );
       await target.parent.create(recursive: true);
       progress?.setCurrentItem(p.basename(entity.path));
-      // The archive path is used verbatim, so a file already sitting there is
+      // Each file goes to its restored path, so a file already sitting there is
       // overwritten rather than gaining a renamed sibling, and an identical one
       // is left alone.
       if (!await hasIdenticalFileContent(entity, target)) {

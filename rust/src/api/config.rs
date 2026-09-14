@@ -218,6 +218,8 @@ pub struct DocumentLayoutPreset {
     pub blocks: Vec<DocumentLayoutBlock>,
     pub fill_page: bool,
     pub multi_block_mode: String,
+    /// Optional short description shown in the preset list.
+    pub description: Option<String>,
 }
 
 /// Represents whether a stored document layout can be read by the current schema.
@@ -295,6 +297,7 @@ impl From<nahpu_configs::DocumentLayoutPreset> for DocumentLayoutPreset {
             blocks: p.blocks.into_iter().map(Into::into).collect(),
             fill_page: p.fill_page,
             multi_block_mode: p.multi_block_mode,
+            description: p.description,
         }
     }
 }
@@ -315,6 +318,7 @@ impl From<DocumentLayoutPreset> for nahpu_configs::DocumentLayoutPreset {
             blocks: p.blocks.into_iter().map(Into::into).collect(),
             fill_page: p.fill_page,
             multi_block_mode: p.multi_block_mode,
+            description: p.description,
         }
     }
 }

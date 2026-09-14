@@ -6,11 +6,14 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/settings/bundled_preset_service.dart';
+import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/settings/presets/export_preset_edit.dart';
-import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:path/path.dart' as path;
+import 'package:nahpu/screens/shared/dialogs/load_defaults_dialog.dart';
+import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
+import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/types/export.dart';
 
 class ExportPresetsScreen extends ConsumerStatefulWidget {
@@ -67,72 +70,6 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     }
   }
 
-  void _scanPresetQr() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScannerScreen(
-          onDetect: (barcode) {
-            final rawValue = barcode.barcodes.first.rawValue;
-            if (rawValue != null) {
-              _importPresetFromQr(rawValue);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _importPresetFromQr(String rawValue) async {
-    try {
-      final decoded = jsonDecode(rawValue) as Map<String, dynamic>;
-      if (!decoded.containsKey('nahpu_export_preset') ||
-          !decoded.containsKey('data')) {
-        throw const FormatException('Invalid QR code format for preset.');
-      }
-
-      final name = decoded['nahpu_export_preset'] as String;
-      final data = ExportPresetModel.fromJson(
-        Map<String, dynamic>.from(decoded['data'] as Map),
-      );
-      final currentPresets = await ref.read(
-        exportPresetNotifierProvider.future,
-      );
-      if (currentPresets.length >= 20) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Maximum of 20 presets reached. Cannot import.'),
-            ),
-          );
-        }
-        return;
-      }
-
-      var finalName = name;
-      var i = 1;
-      while (currentPresets.containsKey(finalName)) {
-        finalName = '${name}_$i';
-        i++;
-      }
-
-      await ref
-          .read(exportPresetNotifierProvider.notifier)
-          .savePreset(finalName, data);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Imported preset "$finalName"')));
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid or unrecognized QR code.')),
-        );
-      }
-    }
-  }
-
   Future<void> _importPresetsFile() async {
     final file = await FilePickerServices().selectAnyFile();
     if (file == null) return;
@@ -177,10 +114,8 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
 
   Future<void> _exportPresetsFile() => _exportPresets();
 
-  /// Writes presets to a JSON file.
-  ///
-  /// One preset and all presets share the same name-keyed envelope, so either
-  /// file imports through the same path.
+  /// Opens the export dialog for one preset, or every preset when [onlyName]
+  /// is null. Both write the same name-keyed file.
   Future<void> _exportPresets({String? onlyName}) async {
     try {
       final currentPresets = await ref.read(
@@ -200,21 +135,20 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
         }
         return;
       }
-      final dir = await FilePickerServices().selectDir();
-      if (dir == null) return;
-
-      final fileName = onlyName == null
-          ? 'nahpu_export_presets.json'
-          : 'preset_${_sanitizeFileStem(onlyName)}.json';
-      final savePath = File(path.join(dir.path, fileName));
-      await savePath.writeAsString(jsonEncode(selected));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Exported ${selected.length} preset'
-            '${selected.length == 1 ? '' : 's'} to ${savePath.path}',
-          ),
+      await showPresetExportDialog(
+        context: context,
+        request: PresetExportRequest(
+          title: 'Export tabular presets',
+          summary:
+              onlyName ??
+              '${selected.length} tabular preset'
+                  '${selected.length == 1 ? '' : 's'}',
+          defaultFileStem: onlyName == null
+              ? 'nahpu_export_presets'
+              : PresetTransferService.safeFileStem('preset_$onlyName'),
+          encode: ({required includeLinkedTemplates}) async =>
+              const PresetTransferService().encodeRecordPresets(selected),
         ),
       );
     } catch (error) {
@@ -224,11 +158,6 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
         );
       }
     }
-  }
-
-  String _sanitizeFileStem(String name) {
-    final safe = name.trim().replaceAll(RegExp(r'[^\w.\-]'), '_');
-    return safe.isEmpty ? 'preset' : safe;
   }
 
   @override
@@ -241,12 +170,12 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
         actions: [
           PresetAppBarActions(
             onCreate: _addNewPreset,
-            onScanQr: _scanPresetQr,
             onImport: _importPresetsFile,
             onExportAll: _exportPresetsFile,
             onExportSelected: _selectedPresetName == null
                 ? null
                 : () => _exportPresets(onlyName: _selectedPresetName),
+            onLoadDefaults: _loadDefaults,
           ),
         ],
       ),
@@ -262,6 +191,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       onPresetSelected: _selectPreset,
                       tabController: _tabController,
                       onExportPreset: (name) => _exportPresets(onlyName: name),
+                      onLoadDefaults: _loadDefaults,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -276,6 +206,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                       child: PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetDuplicated: _selectPreset,
                         onPresetRenamed: (oldName, newName) {
                           setState(() {
                             _selectedPresetName = newName;
@@ -306,10 +237,12 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                         tabController: _tabController,
                         onExportPreset: (name) =>
                             _exportPresets(onlyName: name),
+                        onLoadDefaults: _loadDefaults,
                       ),
                       PresetEditColumn(
                         selectedPresetName: _selectedPresetName,
                         selectedPresetMap: _selectedPresetMap,
+                        onPresetDuplicated: _selectPreset,
                         onPresetRenamed: (oldName, newName) {
                           setState(() {
                             _selectedPresetName = newName;
@@ -323,6 +256,20 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
             ),
     );
   }
+
+  /// Lets the user pick bundled generic tabular presets to add.
+  Future<void> _loadDefaults() async {
+    final result = await showLoadDefaultsDialog(
+      context: context,
+      kinds: const {BundledPresetKind.record},
+    );
+    if (result == null) return;
+    ref.invalidate(exportPresetNotifierProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
+  }
 }
 
 class PresetListColumn extends ConsumerStatefulWidget {
@@ -332,12 +279,16 @@ class PresetListColumn extends ConsumerStatefulWidget {
     required this.onPresetSelected,
     required this.tabController,
     this.onExportPreset,
+    this.onLoadDefaults,
   });
 
   final String? selectedPresetName;
   final void Function(String?, ExportPresetModel?) onPresetSelected;
   final TabController tabController;
   final ValueChanged<String>? onExportPreset;
+
+  /// Adds the bundled default presets from the empty list.
+  final VoidCallback? onLoadDefaults;
 
   @override
   ConsumerState<PresetListColumn> createState() => _PresetListColumnState();
@@ -359,9 +310,20 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                 .when(
                   data: (presets) {
                     if (presets.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(child: Text('No presets found.')),
+                      return PresetEmptyState(
+                        message:
+                            'No tabular presets yet. Create or import one, or '
+                            'add the presets for your catalog format in Setup '
+                            'NAHPU.',
+                        onLoadDefaults: widget.onLoadDefaults,
+                        secondaryLabel: 'Setup NAHPU',
+                        secondaryIcon: Icons.auto_fix_high_outlined,
+                        onSecondary: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (context) => const SetupWizardScreen(),
+                          ),
+                        ),
                       );
                     }
                     return ListView.builder(
@@ -388,7 +350,13 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                   : const Icon(Icons.radio_button_unchecked),
                               title: Text(name),
                               subtitle: Text(
-                                '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                                [
+                                  if (preset.description.trim().isNotEmpty)
+                                    preset.description.trim(),
+                                  '${preset.mappings.length} mappings · ${recordTypeToString(preset.recordType)}',
+                                ].join('\n'),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -465,11 +433,13 @@ class PresetEditColumn extends ConsumerWidget {
     required this.selectedPresetName,
     required this.selectedPresetMap,
     required this.onPresetRenamed,
+    required this.onPresetDuplicated,
   });
 
   final String? selectedPresetName;
   final ExportPresetModel? selectedPresetMap;
   final void Function(String, String) onPresetRenamed;
+  final void Function(String name, ExportPresetModel preset) onPresetDuplicated;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -487,6 +457,7 @@ class PresetEditColumn extends ConsumerWidget {
               presetName: selectedPresetName!,
               initialPreset: presets[selectedPresetName!]!,
               onPresetRenamed: onPresetRenamed,
+              onPresetDuplicated: onPresetDuplicated,
             );
           },
           loading: () => const CommonProgressIndicator(),
