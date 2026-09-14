@@ -8,7 +8,6 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/site_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/fossils.dart';
 
 final _environmentTypeField = find.byType(
@@ -55,11 +54,7 @@ void main() {
         child: MaterialApp(
           home: Scaffold(
             body: SingleChildScrollView(
-              child: Sedimentology(
-                id: siteId,
-                useHorizontalLayout: false,
-                siteFormCtr: SiteFormCtrModel.empty(),
-              ),
+              child: Sedimentology(id: siteId),
             ),
           ),
         ),

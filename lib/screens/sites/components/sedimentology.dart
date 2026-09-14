@@ -11,46 +11,20 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 
 class Sedimentology extends ConsumerWidget {
-  const Sedimentology({
-    super.key,
-    required this.id,
-    required this.useHorizontalLayout,
-    required this.siteFormCtr,
-  });
+  const Sedimentology({super.key, required this.id});
 
   final int id;
-  final bool useHorizontalLayout;
-  final SiteFormCtrModel siteFormCtr;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return FormCard(
-      title: 'Sedimentology',
-      infoContent: const SedimentologyInfoContent(),
-      mainAxisAlignment: MainAxisAlignment.start,
-      // In the horizontal layout the card is height-capped, so its content
-      // must scroll within an Expanded region. In the vertical layout the
-      // whole form already scrolls, so keep the content unconstrained.
-      isExpanded: useHorizontalLayout,
-      child: ref
-          .watch(fossilSiteProvider(id))
-          .when(
-            data: (fossilSite) => _buildContent(
+    return ref
+        .watch(fossilSiteProvider(id))
+        .when(
+          data: (fossilSite) =>
               SedimentologyFields(siteId: id, fossilSite: fossilSite),
-            ),
-            loading: () => const CommonProgressIndicator(),
-            error: (error, _) =>
-                _buildContent(Text('Error loading sedimentology data: $error')),
-          ),
-    );
-  }
-
-  Widget _buildContent(Widget child) {
-    final content = Padding(padding: const EdgeInsets.all(6), child: child);
-
-    return useHorizontalLayout
-        ? SingleChildScrollView(child: content)
-        : content;
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text('Error loading sedimentology data: $error'),
+        );
   }
 }
 

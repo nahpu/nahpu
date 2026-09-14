@@ -156,10 +156,18 @@ class FossilSiteServices extends AppServices {
   /// Writes [entries] for [siteId], creating the row when the site does not
   /// have fossil data yet.
   Future<void> updateFossilSite(int siteId, FossilSiteCompanion entries) async {
+    final context = ref.context;
     final query = FossilSiteQuery(dbAccess);
-    final updatedRows = await query.updateFossilSiteEntry(siteId, entries);
-    if (updatedRows == 0) {
-      await query.createFossilSite(entries.copyWith(siteID: db.Value(siteId)));
+    await dbAccess.transaction(() async {
+      final updatedRows = await query.updateFossilSiteEntry(siteId, entries);
+      if (updatedRows == 0) {
+        await query.createFossilSite(
+          entries.copyWith(siteID: db.Value(siteId)),
+        );
+      }
+    });
+    if (context.mounted) {
+      invalidateFossilSite(siteId);
     }
   }
 

@@ -88,6 +88,75 @@ const List<String> standardPreservationTypeList = [
   'Not Applicable',
 ];
 
+// --- Stratigraphy vocabularies ---
+//
+// Database values store zero-based indices in these lists. Dependent values
+// use the options for their stored parent, including the appended fallbacks.
+// Preserve list order to keep existing records valid.
+
+const List<String> geologicEraList = [
+  'Paleozoic',
+  'Mesozoic',
+  'Cenozoic',
+  'Unknown',
+  'Not Applicable',
+];
+
+/// Geologic periods shown for a selected [geologicEraList] value.
+const Map<String, List<String>> geologicPeriodsByEra = {
+  'Paleozoic': [
+    'Cambrian',
+    'Ordovician',
+    'Silurian',
+    'Devonian',
+    'Carboniferous',
+    'Permian',
+  ],
+  'Mesozoic': ['Triassic', 'Jurassic', 'Cretaceous'],
+  'Cenozoic': ['Paleogene', 'Neogene', 'Quaternary'],
+};
+
+/// Geologic series (chronostratigraphic) shown for a selected period.
+const Map<String, List<String>> geologicSeriesByPeriod = {
+  'Cambrian': ['Terreneuvian', 'Cambrian Series 2', 'Miaolingian', 'Furongian'],
+  'Ordovician': ['Lower Ordovician', 'Middle Ordovician', 'Upper Ordovician'],
+  'Silurian': ['Llandovery', 'Wenlock', 'Ludlow', 'Pridoli'],
+  'Devonian': ['Lower Devonian', 'Middle Devonian', 'Upper Devonian'],
+  'Carboniferous': ['Mississippian', 'Pennsylvanian'],
+  'Permian': ['Cisuralian', 'Guadalupian', 'Lopingian'],
+  'Triassic': ['Lower Triassic', 'Middle Triassic', 'Upper Triassic'],
+  'Jurassic': ['Lower Jurassic', 'Middle Jurassic', 'Upper Jurassic'],
+  'Cretaceous': ['Lower Cretaceous', 'Upper Cretaceous'],
+  'Paleogene': ['Paleocene', 'Eocene', 'Oligocene'],
+  'Neogene': ['Miocene', 'Pliocene'],
+  'Quaternary': ['Pleistocene', 'Holocene'],
+};
+
+/// Geologic epochs (geochronologic) shown for a selected period. Epoch depends
+/// on the period, not the series.
+const Map<String, List<String>> geologicEpochsByPeriod = {
+  'Cambrian': ['Terreneuvian', 'Cambrian Epoch 2', 'Miaolingian', 'Furongian'],
+  'Ordovician': ['Early Ordovician', 'Middle Ordovician', 'Late Ordovician'],
+  'Silurian': ['Llandovery', 'Wenlock', 'Ludlow', 'Pridoli'],
+  'Devonian': ['Early Devonian', 'Middle Devonian', 'Late Devonian'],
+  'Carboniferous': ['Mississippian', 'Pennsylvanian'],
+  'Permian': ['Cisuralian', 'Guadalupian', 'Lopingian'],
+  'Triassic': ['Early Triassic', 'Middle Triassic', 'Late Triassic'],
+  'Jurassic': ['Early Jurassic', 'Middle Jurassic', 'Late Jurassic'],
+  'Cretaceous': ['Early Cretaceous', 'Late Cretaceous'],
+  'Paleogene': ['Paleocene', 'Eocene', 'Oligocene'],
+  'Neogene': ['Miocene', 'Pliocene'],
+  'Quaternary': ['Pleistocene', 'Holocene'],
+};
+
+/// Appends the shared "Unknown" / "Not Applicable" options to a conditional
+/// stratigraphy list so every dropdown offers them.
+List<String> withStratigraphyFallback(List<String> options) => [
+  ...options,
+  'Unknown',
+  'Not Applicable',
+];
+
 const List<String> defaultFossilSiteTypes = [
   'Badlands',
   'Hot desert flats',
@@ -102,3 +171,15 @@ const List<String> defaultFossilSiteTypes = [
   'Woodland',
   'Other',
 ];
+
+/// Reads a stored vocabulary index, tolerating absent or invalid values.
+String? stratigraphyValueAt(List<String> options, int? index) =>
+    index != null && index >= 0 && index < options.length
+    ? options[index]
+    : null;
+
+/// Converts a selection to its database index within the parent's options.
+int? stratigraphyIndexOf(List<String> options, String? value) {
+  final index = value == null ? -1 : options.indexOf(value);
+  return index < 0 ? null : index;
+}

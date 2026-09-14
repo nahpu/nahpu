@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/sites/components/habitats.dart';
-import 'package:nahpu/screens/sites/components/sedimentology.dart';
+import 'package:nahpu/screens/sites/components/site_attributes.dart';
 import 'package:nahpu/screens/sites/components/geography.dart';
 import 'package:nahpu/screens/sites/components/media.dart';
 import 'package:nahpu/screens/sites/components/site_info.dart';
@@ -56,43 +56,48 @@ class SiteFormState extends ConsumerState<SiteForm> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomSiteHeight,
               children: [
-                _buildSiteContext(useHorizontalLayout),
-                CoordinateFields(
-                  siteId: widget.id,
+                SiteContext(
+                  id: widget.id,
+                  useHorizontalLayout: useHorizontalLayout,
+                  siteFormCtr: widget.siteFormCtr,
                 ),
+                CoordinateFields(siteId: widget.id),
               ],
             ),
             SiteMediaForm(siteId: widget.id),
-            const BottomPadding()
+            const BottomPadding(),
           ],
         );
       },
     );
   }
+}
 
-  /// Paleontology (fossil) projects record stratigraphic and sedimentological
-  /// information instead of the extant habitat of a site.
-  ///
-  /// Detection currently rides on the global catalog-format setting, which is
-  /// written when a project is created. This is a placeholder: it does not yet
-  /// track a project's type when an existing project is reopened, because the
-  /// catalog format is not persisted per project. Once the project's catalog
-  /// format is stored in the database (and restored on open), swap the source
-  /// below for that per-project value so switching projects re-detects.
-  Widget _buildSiteContext(bool useHorizontalLayout) {
+/// Uses the global catalog format until it is persisted per project.
+class SiteContext extends ConsumerWidget {
+  const SiteContext({
+    super.key,
+    required this.id,
+    required this.useHorizontalLayout,
+    required this.siteFormCtr,
+  });
+
+  final int id;
+  final bool useHorizontalLayout;
+  final SiteFormCtrModel siteFormCtr;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final habitat = Habitat(
-      id: widget.id,
+      id: id,
       useHorizontalLayout: useHorizontalLayout,
-      siteFormCtr: widget.siteFormCtr,
+      siteFormCtr: siteFormCtr,
     );
-
-    return ref.watch(catalogFmtNotifierProvider).when(
+    return ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
           data: (catalogFmt) => catalogFmt == CatalogFmt.fossils
-              ? Sedimentology(
-                  id: widget.id,
-                  useHorizontalLayout: useHorizontalLayout,
-                  siteFormCtr: widget.siteFormCtr,
-                )
+              ? SiteAttributes(id: id, useHorizontalLayout: useHorizontalLayout)
               : habitat,
           loading: () => habitat,
           error: (e, s) => habitat,
