@@ -76,7 +76,7 @@
 		</dict>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to use your camera to scan specimen QR codes</string>
+	<string>NAHPU uses your camera to scan specimen QR codes.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>NAHPU uses your location to record site coordinates while you catalog specimens. NAHPU does not track your location in the background.</string>
 	<key>NSLocationUsageDescription</key>
