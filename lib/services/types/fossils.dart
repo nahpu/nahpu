@@ -88,6 +88,75 @@ const List<String> standardPreservationTypeList = [
   'Not Applicable',
 ];
 
+// Database values are zero-based indexes into these lists. Preserve their
+// order so existing records keep the same meaning.
+const List<String> geologicEraList = [
+  'Paleozoic',
+  'Mesozoic',
+  'Cenozoic',
+  'Unknown',
+  'Not Applicable',
+];
+
+const Map<String, List<String>> geologicPeriodsByEra = {
+  'Paleozoic': [
+    'Cambrian',
+    'Ordovician',
+    'Silurian',
+    'Devonian',
+    'Carboniferous',
+    'Permian',
+  ],
+  'Mesozoic': ['Triassic', 'Jurassic', 'Cretaceous'],
+  'Cenozoic': ['Paleogene', 'Neogene', 'Quaternary'],
+};
+
+const Map<String, List<String>> geologicSeriesByPeriod = {
+  'Cambrian': ['Terreneuvian', 'Cambrian Series 2', 'Miaolingian', 'Furongian'],
+  'Ordovician': ['Lower Ordovician', 'Middle Ordovician', 'Upper Ordovician'],
+  'Silurian': ['Llandovery', 'Wenlock', 'Ludlow', 'Pridoli'],
+  'Devonian': ['Lower Devonian', 'Middle Devonian', 'Upper Devonian'],
+  'Carboniferous': ['Mississippian', 'Pennsylvanian'],
+  'Permian': ['Cisuralian', 'Guadalupian', 'Lopingian'],
+  'Triassic': ['Lower Triassic', 'Middle Triassic', 'Upper Triassic'],
+  'Jurassic': ['Lower Jurassic', 'Middle Jurassic', 'Upper Jurassic'],
+  'Cretaceous': ['Lower Cretaceous', 'Upper Cretaceous'],
+  'Paleogene': ['Paleocene', 'Eocene', 'Oligocene'],
+  'Neogene': ['Miocene', 'Pliocene'],
+  'Quaternary': ['Pleistocene', 'Holocene'],
+};
+
+const Map<String, List<String>> geologicEpochsByPeriod = {
+  'Cambrian': ['Terreneuvian', 'Cambrian Epoch 2', 'Miaolingian', 'Furongian'],
+  'Ordovician': ['Early Ordovician', 'Middle Ordovician', 'Late Ordovician'],
+  'Silurian': ['Llandovery', 'Wenlock', 'Ludlow', 'Pridoli'],
+  'Devonian': ['Early Devonian', 'Middle Devonian', 'Late Devonian'],
+  'Carboniferous': ['Mississippian', 'Pennsylvanian'],
+  'Permian': ['Cisuralian', 'Guadalupian', 'Lopingian'],
+  'Triassic': ['Early Triassic', 'Middle Triassic', 'Late Triassic'],
+  'Jurassic': ['Early Jurassic', 'Middle Jurassic', 'Late Jurassic'],
+  'Cretaceous': ['Early Cretaceous', 'Late Cretaceous'],
+  'Paleogene': ['Paleocene', 'Eocene', 'Oligocene'],
+  'Neogene': ['Miocene', 'Pliocene'],
+  'Quaternary': ['Pleistocene', 'Holocene'],
+};
+
+List<String> withStratigraphyFallback(List<String> options) => [
+  ...options,
+  'Unknown',
+  'Not Applicable',
+];
+
+String? stratigraphyValueAt(List<String> options, int? index) =>
+    index != null && index >= 0 && index < options.length
+    ? options[index]
+    : null;
+
+int? stratigraphyIndexOf(List<String> options, String? value) {
+  final index = value == null ? -1 : options.indexOf(value);
+  return index < 0 ? null : index;
+}
+
 const List<String> defaultFossilSiteTypes = [
   'Badlands',
   'Hot desert flats',

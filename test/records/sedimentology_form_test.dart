@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/sites/components/sedimentology.dart';
 import 'package:nahpu/screens/sites/site_form.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -72,10 +73,7 @@ void main() {
         sedimentologyRemark: Value('Oxidized'),
       ),
     );
-    await pumpForm(
-      tester,
-      Sedimentology(id: siteId, useHorizontalLayout: false),
-    );
+    await pumpForm(tester, Sedimentology(id: siteId));
     expect(find.text('Sandstone'), findsOneWidget);
     expect(find.text('Legacy shelf'), findsOneWidget);
     expect(find.text('Legacy preservation'), findsOneWidget);
@@ -85,10 +83,7 @@ void main() {
     await FossilSiteQuery(
       database,
     ).save(other, const FossilSiteCompanion(rockType: Value('Mudstone')));
-    await pumpForm(
-      tester,
-      Sedimentology(id: other, useHorizontalLayout: false),
-    );
+    await pumpForm(tester, Sedimentology(id: other));
     expect(find.text('Sandstone'), findsNothing);
     expect(find.text('Mudstone'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -97,10 +92,7 @@ void main() {
   testWidgets(
     'first edits persist and changing the category clears both subtypes',
     (tester) async {
-      await pumpForm(
-        tester,
-        Sedimentology(id: siteId, useHorizontalLayout: false),
-      );
+      await pumpForm(tester, Sedimentology(id: siteId));
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Rock Type(s)'),
         'Mudstone',
@@ -140,10 +132,7 @@ void main() {
     await database.customStatement(
       "CREATE TRIGGER fail_fossil BEFORE INSERT ON fossilSite BEGIN SELECT RAISE(ABORT, 'test failure'); END",
     );
-    await pumpForm(
-      tester,
-      Sedimentology(id: siteId, useHorizontalLayout: false),
-    );
+    await pumpForm(tester, Sedimentology(id: siteId));
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Rock Type(s)'),
       'Unsaved rock',
@@ -167,24 +156,31 @@ void main() {
 
   for (final horizontal in [false, true]) {
     testWidgets(
-      'sedimentology fits a narrow ${horizontal ? 'horizontal card' : 'vertical form'}',
+      'paleontology site attributes fit the ${horizontal ? 'wide' : 'narrow'} layout',
       (tester) async {
+        final ctr = SiteFormCtrModel.empty();
+        addTearDown(ctr.dispose);
         await pumpForm(
           tester,
           SizedBox(
-            width: 320,
+            width: horizontal ? 900 : 320,
             height: horizontal ? 300 : null,
-            child: Sedimentology(id: siteId, useHorizontalLayout: horizontal),
+            child: SiteContextFields(
+              id: siteId,
+              useHorizontalLayout: horizontal,
+              siteFormCtr: ctr,
+            ),
           ),
         );
         expect(tester.takeException(), isNull);
         await tester.ensureVisible(
           find.widgetWithText(
             TextFormField,
-            'Comments on sedimentology and paleoenvironment',
+            'Reference source(s) for stratigraphy',
           ),
         );
         await tester.pumpAndSettle();
+        expect(find.text('Add custom field'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
@@ -214,13 +210,32 @@ void main() {
         siteFormCtr: ctr,
       ),
     );
+    expect(find.text('Site attributes'), findsOneWidget);
     expect(find.text('Sedimentology'), findsOneWidget);
+    expect(find.text('Stratigraphy'), findsOneWidget);
+    expect(find.text('Add custom field'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is FormCardSectionLabel && widget.text == 'Sedimentology',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is FormCardSectionLabel && widget.text == 'Stratigraphy',
+      ),
+      findsOneWidget,
+    );
     await widgetRef
         .read(catalogFmtNotifierProvider.notifier)
         .set(CatalogFmt.mammalogy);
     await tester.pumpAndSettle();
     expect(find.text('Sedimentology'), findsNothing);
+    expect(find.text('Stratigraphy'), findsNothing);
     expect(find.text('Site Attributes'), findsOneWidget);
+    expect(find.text('Add custom field'), findsOneWidget);
     await widgetRef
         .read(catalogFmtNotifierProvider.notifier)
         .set(CatalogFmt.paleontology);

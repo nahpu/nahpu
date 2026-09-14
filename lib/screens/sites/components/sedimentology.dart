@@ -2,9 +2,6 @@ import 'package:drift/drift.dart' as db;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
-import 'package:nahpu/screens/shared/forms/forms.dart';
-import 'package:nahpu/screens/shared/forms/custom_fields.dart';
-import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
@@ -13,18 +10,13 @@ import 'package:nahpu/services/types/fossils.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class Sedimentology extends ConsumerWidget {
-  const Sedimentology({
-    super.key,
-    required this.id,
-    required this.useHorizontalLayout,
-  });
+  const Sedimentology({super.key, required this.id});
 
   final int id;
-  final bool useHorizontalLayout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final content = ref
+    return ref
         .watch(fossilSiteProvider(id))
         .when(
           data: (data) => SedimentologyFields(
@@ -43,14 +35,6 @@ class Sedimentology extends ConsumerWidget {
             ],
           ),
         );
-    return FormCard(
-      title: 'Sedimentology',
-      mainAxisAlignment: MainAxisAlignment.start,
-      isExpanded: useHorizontalLayout,
-      child: useHorizontalLayout
-          ? SingleChildScrollView(child: content)
-          : content,
-    );
   }
 }
 
@@ -221,7 +205,6 @@ class _SedimentologyFieldsState extends ConsumerState<SedimentologyFields> {
           ),
           TextButton(onPressed: _save, child: const Text('Retry saving')),
         ],
-        CustomFieldForm(owner: CustomFieldOwner.site(widget.siteId)),
       ],
     );
   }

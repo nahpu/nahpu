@@ -7,12 +7,14 @@ import '../test/projects/project_transfer_test.dart' as transfers;
 import '../test/records/fossil_attributes_test.dart' as attributes;
 import '../test/records/fossil_site_test.dart' as sites;
 import '../test/records/sedimentology_form_test.dart' as sedimentology;
+import '../test/records/stratigraphy_form_test.dart' as stratigraphy;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group('Fossil site persistence and exchange', sites.main);
   group('Fossil specimen attributes', attributes.main);
   group('Sedimentology forms', sedimentology.main);
+  group('Stratigraphy forms', stratigraphy.main);
   group('Native fossil exports', exports.main);
   group('Project wizard navigation', wizard.main);
   group('Project transfer IO', transfers.main);

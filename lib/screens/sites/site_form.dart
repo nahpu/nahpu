@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/sites/components/habitats.dart';
-import 'package:nahpu/screens/sites/components/sedimentology.dart';
+import 'package:nahpu/screens/sites/components/site_attributes.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -93,7 +93,7 @@ class SiteContextFields extends ConsumerWidget {
         .watch(catalogFmtNotifierProvider)
         .when(
           data: (format) => format == CatalogFmt.paleontology
-              ? Sedimentology(id: id, useHorizontalLayout: useHorizontalLayout)
+              ? SiteAttributes(id: id, useHorizontalLayout: useHorizontalLayout)
               : Habitat(
                   id: id,
                   useHorizontalLayout: useHorizontalLayout,
