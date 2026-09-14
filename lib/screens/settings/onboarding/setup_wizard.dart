@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
@@ -159,11 +158,9 @@ class _WelcomeStep extends StatelessWidget {
               const NahpuStepHeading(
                 title: 'Set up NAHPU',
                 message:
-                    'NAHPU records specimens using conventions you choose: how '
-                    'catalog numbers are formed, and the controlled '
-                    'vocabularies offered for sites, events, and specimens. '
-                    'This sets them once so the rest of your work stays '
-                    'consistent.',
+                    'NAHPU records specimens using your own conventions. '
+                    'This sets the catalog number format, and the '
+                    'controlled vocabularies for sites, events, and specimens.',
               ),
               const SizedBox(height: NahpuSpacing.xl),
               const _WelcomeItem(
@@ -180,22 +177,20 @@ class _WelcomeStep extends StatelessWidget {
                 icon: Icons.list_alt_rounded,
                 title: 'Controlled vocabularies',
                 message:
-                    'The vocabularies offered for sites, events, and '
-                    'specimens. Every one ships with sensible defaults.',
+                    'The vocabularies for sites, events, and '
+                    'specimens.',
               ),
               const _WelcomeItem(
                 icon: Icons.print_outlined,
                 title: 'Export presets',
                 message:
-                    'Ready-made print layouts and tabular presets to start '
-                    'exporting from.',
+                    'Bundled print layouts and tabular presets for exports.',
               ),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
-                'This takes a few minutes and nothing here is permanent. Skip '
-                'it and NAHPU uses its defaults. Every answer can be changed '
-                'later in Settings, or by running this wizard again from the '
-                'menu.',
+                'This takes a few minutes and nothing here is permanent. '
+                'Every answer can be changed '
+                'later in Settings, or by running this wizard again.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -205,7 +200,7 @@ class _WelcomeStep extends StatelessWidget {
         _SetupActionPanel(
           title: 'Already have settings from your team?',
           message:
-              'A team only needs to set this up once. If a colleague has '
+              'A team only needs to set this up once. If your team has '
               'already configured NAHPU, import their user configs file and '
               'you can skip the rest of this wizard. You can export yours '
               'for everyone else at the end.',
@@ -278,9 +273,8 @@ class _CatalogFormatStep extends ConsumerWidget {
                     const NahpuStepHeading(
                       title: 'Catalog format',
                       message:
-                          'The taxon group you catalog. It decides which '
-                          'measurement fields appear on specimen records and '
-                          'whether parasites are offered.',
+                          'The format decides which '
+                          'measurement fields appear on specimen records.',
                     ),
                     const SizedBox(height: NahpuSpacing.xl),
                     for (final fmt in CatalogFmt.values)
@@ -301,7 +295,7 @@ class _CatalogFormatStep extends ConsumerWidget {
               const _SetupNote(
                 'You can change the catalog format at any time, and a single '
                 'project can hold records in more than one format. Pick the '
-                'one you will use most often.',
+                'format you will use most often.',
               ),
             ],
           ),
@@ -374,13 +368,12 @@ class _IdentifierStep extends ConsumerWidget {
               const NahpuStepHeading(
                 title: 'Specimen field IDs',
                 message:
-                    'Choose where a specimen field number comes from. Both '
-                    'schemes produce a unique ID for every specimen.',
+                    'Choose your field ID strategy. You will complete ID setup '
+                    'when creating a new project.',
               ),
               const SizedBox(height: NahpuSpacing.xl),
-              const _FieldIdModeChoice(),
+              const FieldIdModeChoice(),
               const SizedBox(height: NahpuSpacing.xl),
-              const _CatalogerNote(),
             ],
           ),
         ),
@@ -389,191 +382,9 @@ class _IdentifierStep extends ConsumerWidget {
         const SizedBox(height: NahpuSpacing.lg),
         const _SetupNote(
           'These identifier settings can be changed for a different project. '
-          'The prefix and starting number for a project, and the field number '
-          'held by a cataloger, are set per project under Settings > Catalogs '
-          '> Specimens once the project exists.',
+          'You can set them under Settings > Catalogs ',
         ),
       ],
-    );
-  }
-}
-
-class _FieldIdModeChoice extends ConsumerWidget {
-  const _FieldIdModeChoice();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(fieldIdModeNotifierProvider)
-        .when(
-          data: (mode) => RadioGroup<FieldIdMode>(
-            groupValue: mode,
-            onChanged: (value) {
-              if (value == null) return;
-              ref.read(fieldIdModeNotifierProvider.notifier).set(value);
-            },
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                const personnel = _FieldIdModeCard(
-                  mode: FieldIdMode.personnel,
-                  iconPath: 'assets/icons/personnel_id.svg',
-                  title: 'Personnel ID',
-                  message:
-                      'Each cataloger keeps their own running field number. '
-                      'The ID is their initials plus that number.',
-                );
-                const project = _FieldIdModeCard(
-                  mode: FieldIdMode.project,
-                  iconPath: 'assets/icons/project_id.svg',
-                  title: 'Project ID',
-                  message:
-                      'The project keeps one running number that every '
-                      'cataloger draws from, with a shared prefix and suffix.',
-                );
-                return constraints.maxWidth >= NahpuBreakpoints.compact
-                    // The cards sit in a scroll view, so the row has no height
-                    // to stretch into until the tallest card is measured.
-                    ? const IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(child: personnel),
-                            SizedBox(width: NahpuSpacing.lg),
-                            Expanded(child: project),
-                          ],
-                        ),
-                      )
-                    : const Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          personnel,
-                          SizedBox(height: NahpuSpacing.lg),
-                          project,
-                        ],
-                      );
-              },
-            ),
-          ),
-          loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Unable to load field ID mode: $error'),
-        );
-  }
-}
-
-class _FieldIdModeCard extends ConsumerWidget {
-  const _FieldIdModeCard({
-    required this.mode,
-    required this.iconPath,
-    required this.title,
-    required this.message,
-  });
-
-  final FieldIdMode mode;
-  final String iconPath;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    final selected =
-        RadioGroup.maybeOf<FieldIdMode>(context)?.groupValue == mode;
-    final foreground = selected ? colors.onPrimaryContainer : colors.onSurface;
-    return Material(
-      color: selected ? colors.primaryContainer : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(NahpuRadius.lg),
-        side: BorderSide(
-          color: selected ? colors.primary : colors.outlineVariant,
-          width: selected ? NahpuStroke.regular : NahpuStroke.thin,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => RadioGroup.maybeOf<FieldIdMode>(context)?.onChanged(mode),
-        child: Padding(
-          padding: const EdgeInsets.all(NahpuSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    iconPath,
-                    height: NahpuControlSize.iconLarge,
-                    width: NahpuControlSize.iconLarge,
-                    colorFilter: ColorFilter.mode(
-                      selected ? colors.primary : colors.outline,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  const Spacer(),
-                  Radio<FieldIdMode>(value: mode),
-                ],
-              ),
-              const SizedBox(height: NahpuSpacing.lg),
-              Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: foreground),
-              ),
-              const SizedBox(height: NahpuSpacing.xs),
-              Text(
-                message,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: foreground),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CatalogerNote extends StatelessWidget {
-  const _CatalogerNote();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return NahpuPanel(
-      padding: const EdgeInsets.all(NahpuSpacing.lg),
-      color: colors.secondaryContainer,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                size: NahpuControlSize.iconMedium,
-                color: colors.onSecondaryContainer,
-              ),
-              const SizedBox(width: NahpuSpacing.md),
-              Text(
-                'Cataloger, not collector',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: colors.onSecondaryContainer,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: NahpuSpacing.md),
-          Text(
-            'A cataloger is often called a collector. NAHPU keeps the two '
-            'apart: the collector role is restricted to people who collect '
-            'specimens but are not responsible for entering data. Cataloger is '
-            'the highest-level role in NAHPU, and a cataloger name is what '
-            'appears in any field that asks for a personnel name.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colors.onSecondaryContainer,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -607,9 +418,10 @@ class _TissueIdQuestionState extends ConsumerState<_TissueIdQuestion> {
           const NahpuStepHeading(
             title: 'Tissue IDs',
             message:
-                'Some collections number tissues separately from the specimen, '
-                'so a tissue carries its own prefix and running number. Others '
-                'reuse the specimen field ID.',
+                'Some collections number tissues separately from the specimen. '
+                'Set here if your collection uses it. NAHPU '
+                'automatically uses the specimen field id '
+                'as default if you don\'t set tissue id.',
           ),
           const SizedBox(height: NahpuSpacing.lg),
           SwitchListTile(
@@ -656,9 +468,9 @@ class _SitesStep extends StatelessWidget {
     return const _VocabularyStep(
       title: 'Site vocabularies',
       message:
-          'The controlled vocabularies offered when you record a site. Add '
+          'The controlled vocabularies for site and coordinate forms. Add '
           'your own terms, remove any you will not use, or leave the defaults '
-          'alone.',
+          'alone. You can update these lists later in the Settings > Sites.',
       vocabularies: [
         _Vocabulary(
           title: 'Site types',
@@ -692,8 +504,8 @@ class _EventsStep extends StatelessWidget {
     return const _VocabularyStep(
       title: 'Collecting event vocabularies',
       message:
-          'The controlled vocabularies offered when you record a collecting '
-          'event and the people who took part in it.',
+          'The controlled vocabularies for collecting events. You can update '
+          'these lists later in the Settings > Events.',
       vocabularies: [
         _Vocabulary(
           title: 'Primary activities',
@@ -726,9 +538,8 @@ class _SpecimensStep extends StatelessWidget {
     return const _VocabularyStep(
       title: 'Specimen vocabularies',
       message:
-          'The controlled vocabularies offered on a specimen record. '
-          'Identifier settings were covered earlier and are not repeated '
-          'here.',
+          'The controlled vocabularies for specimen records. You can update '
+          'these lists later in the Settings > Specimens.',
       vocabularies: [
         _Vocabulary(
           title: 'Identification methods',
@@ -786,10 +597,9 @@ class _ParasiteStep extends StatelessWidget {
               const NahpuStepHeading(
                 title: 'Parasites',
                 message:
-                    'NAHPU can record parasites found on or in a specimen. '
-                    'Answer no and this step stays out of your way; the '
-                    'parasite vocabularies are still there in Settings if '
-                    'you need them later.',
+                    'NAHPU features a separate parasite form to associate parasite records '
+                    'with specimens. The toggle below allows you to setup '
+                    'controlled vocabularies for parasite records.',
               ),
               const SizedBox(height: NahpuSpacing.lg),
               SwitchListTile(
@@ -934,8 +744,8 @@ class _FinishStep extends ConsumerWidget {
           title: 'Share this setup with your team',
           message:
               'Your team only needs to do this once. Export these user '
-              'configs and colleagues can import them to work from the same '
-              'controlled vocabularies and identifier scheme.',
+              'configs and share with your team members/collaborators '
+              'to ensure everyone works with the same vocabularies and settings.',
           icon: Icons.ios_share_outlined,
           label: 'Export user configs',
           onPressed: (context) => Navigator.push(
@@ -948,8 +758,7 @@ class _FinishStep extends ConsumerWidget {
         const SizedBox(height: NahpuSpacing.lg),
         const _SetupNote(
           'Nothing here is locked in. Change any individual setting under '
-          'Settings, or run Setup NAHPU again from the menu to walk through '
-          'all of it once more.',
+          'Settings, or run Setup NAHPU again from the menu.',
         ),
       ],
     );
@@ -997,10 +806,10 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
           child: const NahpuStepHeading(
             title: 'Export presets',
             message:
-                'Presets decide how records leave NAHPU. Print layouts produce '
-                'labels, tags, and field booklets; tabular presets produce '
-                'spreadsheets. Pick the ones to add now. You can edit or delete '
-                'any of them later.',
+                'These are default presets for exporting records. Print layouts '
+                'will be used for labels, tags, and field booklets. Tabular '
+                'presets will be used for spreadsheets. You can manage or '
+                'create your own presets in the Settings menu.',
           ),
         ),
         const SizedBox(height: NahpuSpacing.lg),
@@ -1063,11 +872,6 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
               error: (error, _) =>
                   Text('Unable to load bundled presets: $error'),
             ),
-        const SizedBox(height: NahpuSpacing.lg),
-        const _SetupNote(
-          'Layouts bring the templates they print with. You can add more of '
-          'these presets later with Load defaults in Settings.',
-        ),
       ],
     );
   }

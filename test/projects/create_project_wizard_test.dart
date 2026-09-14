@@ -52,9 +52,9 @@ void main() {
   testWidgets('welcome explains shared project identity', (tester) async {
     await pumpWizard(tester);
 
-    expect(find.text('One project, one identity'), findsOneWidget);
+    expect(find.text('Create once for all devices'), findsOneWidget);
     expect(
-      find.textContaining('keeps one UUID across devices'),
+      find.textContaining('transfer project info and its identity'),
       findsOneWidget,
     );
     expect(find.text('Create new project'), findsOneWidget);
@@ -170,6 +170,46 @@ void main() {
       find.widgetWithText(TextFormField, 'Current field number*'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('personnel mode can create a Cataloger when one exists', (
+    tester,
+  ) async {
+    await database
+        .into(database.personnel)
+        .insert(
+          const PersonnelCompanion(
+            uuid: Value('cataloger-a'),
+            name: Value('Existing Cataloger'),
+            initial: Value('EC'),
+            role: Value('Cataloger'),
+            currentFieldNumber: Value(1),
+            isRegisterField: Value(true),
+          ),
+        );
+    await pumpWizard(tester);
+    await goToFieldId(tester);
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose existing'), findsOneWidget);
+    expect(
+      find.widgetWithText(DropdownButtonFormField<String>, 'Cataloger*'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Create new'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create a Cataloger'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Name*'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Initials*'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextFormField, 'Current field number*'),
+      findsOneWidget,
+    );
+    expect(find.text('Specimen care role: Cataloger'), findsOneWidget);
   });
 }
 

@@ -178,8 +178,7 @@ void main() {
 
     expect(find.text('Personnel ID'), findsOneWidget);
     expect(find.text('Project ID'), findsOneWidget);
-    // The cataloger/collector distinction is the point of the step.
-    expect(find.textContaining('often called a collector'), findsOneWidget);
+    expect(find.textContaining('complete ID setup'), findsOneWidget);
     expect(
       find.textContaining('changed for a different project'),
       findsOneWidget,

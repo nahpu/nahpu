@@ -817,6 +817,11 @@ class ProjectFieldIdServices extends AppServices {
     return ProjectQuery(dbAccess).getProjectByUuid(currentProjectUuid);
   }
 
+  /// The open project, or null when Settings is opened without one.
+  Future<ProjectData?> findProject() {
+    return ProjectQuery(dbAccess).findProjectByUuid(currentProjectUuid);
+  }
+
   Future<int?> takeNextNumber() async {
     if (!await isAutoIncrementEnabled()) return null;
     final project = await getProject();

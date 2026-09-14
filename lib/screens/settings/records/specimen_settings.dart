@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/projects/personnel/add_personnel.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -428,8 +429,8 @@ class FieldIDFields extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const UseProjectIdToggle(),
-              const SizedBox(height: 8),
+              const FieldIdModeChoice(showDescriptions: false),
+              const SizedBox(height: NahpuSpacing.lg),
               fieldIdModeNotifier.when(
                 data: (mode) => mode == FieldIdMode.personnel
                     ? const _PersonnelFieldIdNote()
@@ -445,39 +446,149 @@ class FieldIDFields extends ConsumerWidget {
   }
 }
 
-class UseProjectIdToggle extends ConsumerWidget {
-  const UseProjectIdToggle({super.key});
+/// Field ID mode picker shown as two selectable cards.
+///
+/// Shared by the setup wizard and Settings > Catalogs > Specimens. Settings
+/// hides the descriptions to keep the section compact.
+class FieldIdModeChoice extends ConsumerWidget {
+  const FieldIdModeChoice({super.key, this.showDescriptions = true});
+
+  final bool showDescriptions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref
         .watch(fieldIdModeNotifierProvider)
         .when(
-          data: (mode) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: SwitchListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 2,
-              ),
-              title: const Text('Use project ID'),
-              value: mode == FieldIdMode.project,
-              onChanged: (value) {
-                ref
-                    .read(fieldIdModeNotifierProvider.notifier)
-                    .set(value ? FieldIdMode.project : FieldIdMode.personnel);
+          data: (mode) => RadioGroup<FieldIdMode>(
+            groupValue: mode,
+            onChanged: (value) {
+              if (value == null) return;
+              ref.read(fieldIdModeNotifierProvider.notifier).set(value);
+            },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final personnel = _FieldIdModeCard(
+                  mode: FieldIdMode.personnel,
+                  iconPath: 'assets/icons/personnel_id.svg',
+                  title: 'Personnel ID',
+                  message: showDescriptions
+                      ? 'The ID is a person initials and running number. '
+                            'You will set it when creating a personnel '
+                            'with a cataloger role'
+                      : null,
+                );
+                final project = _FieldIdModeCard(
+                  mode: FieldIdMode.project,
+                  iconPath: 'assets/icons/project_id.svg',
+                  title: 'Project ID',
+                  message: showDescriptions
+                      ? 'The project keeps one running number '
+                            'with a shared prefix and suffix.'
+                      : null,
+                );
+                return constraints.maxWidth >= NahpuBreakpoints.compact
+                    // The cards sit in a scroll view, so the row has no height
+                    // to stretch into until the tallest card is measured.
+                    ? IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: personnel),
+                            const SizedBox(width: NahpuSpacing.lg),
+                            Expanded(child: project),
+                          ],
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          personnel,
+                          const SizedBox(height: NahpuSpacing.lg),
+                          project,
+                        ],
+                      );
               },
             ),
           ),
           loading: () => const CommonProgressIndicator(),
-          error: (e, s) => const Text('Error'),
+          error: (error, _) => Text('Unable to load field ID mode: $error'),
         );
+  }
+}
+
+class _FieldIdModeCard extends StatelessWidget {
+  const _FieldIdModeCard({
+    required this.mode,
+    required this.iconPath,
+    required this.title,
+    this.message,
+  });
+
+  final FieldIdMode mode;
+  final String iconPath;
+  final String title;
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final selected =
+        RadioGroup.maybeOf<FieldIdMode>(context)?.groupValue == mode;
+    final foreground = selected ? colors.onPrimaryContainer : colors.onSurface;
+    return Material(
+      color: selected ? colors.primaryContainer : Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
+        side: BorderSide(
+          color: selected ? colors.primary : colors.outlineVariant,
+          width: selected ? NahpuStroke.regular : NahpuStroke.thin,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => RadioGroup.maybeOf<FieldIdMode>(context)?.onChanged(mode),
+        child: Padding(
+          padding: const EdgeInsets.all(NahpuSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  SvgPicture.asset(
+                    iconPath,
+                    height: NahpuControlSize.iconLarge,
+                    width: NahpuControlSize.iconLarge,
+                    colorFilter: ColorFilter.mode(
+                      selected ? colors.primary : colors.outline,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  const Spacer(),
+                  Radio<FieldIdMode>(value: mode),
+                ],
+              ),
+              const SizedBox(height: NahpuSpacing.lg),
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: foreground),
+              ),
+              if (message != null) ...[
+                const SizedBox(height: NahpuSpacing.xs),
+                Text(
+                  message!,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: foreground),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -534,6 +645,7 @@ class _ProjectFieldIdSettingsState
   String _savedPrefix = '';
   String _savedSuffix = '';
   bool _loading = true;
+  bool _hasProject = true;
 
   @override
   void initState() {
@@ -556,45 +668,49 @@ class _ProjectFieldIdSettingsState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AdaptiveLayout(
-          useHorizontalLayout: !widget.isMobile,
-          children: [
-            TextField(
-              controller: _prefixController,
-              decoration: const InputDecoration(
-                labelText: 'Prefix',
-                hintText: 'e.g. NAHPU-',
+        if (!_hasProject)
+          const _NoProjectFieldIdNote()
+        else ...[
+          AdaptiveLayout(
+            useHorizontalLayout: !widget.isMobile,
+            children: [
+              TextField(
+                controller: _prefixController,
+                decoration: const InputDecoration(
+                  labelText: 'Prefix',
+                  hintText: 'e.g. NAHPU-',
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
-            ),
-            TextField(
-              controller: _numberController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Current catalog number',
-                hintText: 'Enter the next number',
+              TextField(
+                controller: _numberController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: 'Current catalog number',
+                  hintText: 'Enter the next number',
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
-            ),
-            TextField(
-              controller: _suffixController,
-              decoration: const InputDecoration(
-                labelText: 'Suffix',
-                hintText: 'e.g. -M',
+              TextField(
+                controller: _suffixController,
+                decoration: const InputDecoration(
+                  labelText: 'Suffix',
+                  hintText: 'e.g. -M',
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              onChanged: (_) => setState(() {}),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        CommonPadding(
-          child: Text(
-            'Preview: ${_prefixController.text}${_numberController.text}'
-            '${_suffixController.text}',
-            style: Theme.of(context).textTheme.bodyMedium,
+            ],
           ),
-        ),
+          const SizedBox(height: 8),
+          CommonPadding(
+            child: Text(
+              'Preview: ${_prefixController.text}${_numberController.text}'
+              '${_suffixController.text}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         autoIncrement.when(
           data: (enabled) => CommonPadding(
@@ -610,20 +726,29 @@ class _ProjectFieldIdSettingsState
           loading: () => const CommonProgressIndicator(),
           error: (error, stack) => Text(error.toString()),
         ),
-        const SizedBox(height: 16),
-        Center(
-          child: FilledButton(
-            onPressed: _save,
-            child: const Text('Save field ID settings'),
+        if (_hasProject) ...[
+          const SizedBox(height: 16),
+          Center(
+            child: FilledButton(
+              onPressed: _save,
+              child: const Text('Save field ID settings'),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
 
   Future<void> _load() async {
-    final project = await ProjectFieldIdServices(ref: ref).getProject();
+    final project = await ProjectFieldIdServices(ref: ref).findProject();
     if (!mounted) return;
+    if (project == null) {
+      setState(() {
+        _hasProject = false;
+        _loading = false;
+      });
+      return;
+    }
     _savedPrefix = project.catalogNumberPrefix ?? '';
     _savedSuffix = project.catalogNumberSuffix ?? '';
     _prefixController.text = _savedPrefix;
@@ -657,6 +782,24 @@ class _ProjectFieldIdSettingsState
         context,
       ).showSnackBar(const SnackBar(content: Text('Field ID settings saved.')));
     }
+  }
+}
+
+class _NoProjectFieldIdNote extends StatelessWidget {
+  const _NoProjectFieldIdNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CommonPadding(
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(Icons.info_outline),
+        title: Text('Open a project to set project field IDs'),
+        subtitle: Text(
+          'The prefix, current number, and suffix are saved per project.',
+        ),
+      ),
+    );
   }
 }
 

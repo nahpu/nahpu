@@ -629,9 +629,9 @@ class _SafetyBackupCard extends StatelessWidget {
           Text('Before replacing', style: theme.textTheme.titleLarge),
           const SizedBox(height: NahpuSpacing.md),
           Text(
-            'Every record in NAHPU is replaced, and media or config files that '
-            'match the archive are overwritten in place. This cannot be '
-            'undone.',
+            'This action will replace every record in NAHPU. Media or config '
+            'files that match the archive will be overwritten. This '
+            'cannot be undone.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: colors.onSurfaceVariant,
             ),
