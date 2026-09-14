@@ -49,11 +49,15 @@ android {
             signingConfig = signingConfigs.findByName("release")
 
             // R8 shrinking/obfuscation. Google Play flags builds below its
-            // obfuscation threshold. The Flutter Gradle Plugin supplies the
-            // ProGuard config (proguard-android-optimize.txt, Flutter's own
-            // rules, and app/proguard-rules.pro when present).
+            // obfuscation threshold. The Flutter Gradle Plugin also adds its own
+            // rules; app/proguard-rules.pro is listed here so NAHPU's keep rules
+            // apply even when that plugin skips its ProGuard wiring.
             isMinifyEnabled = true
             isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

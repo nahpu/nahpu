@@ -36,8 +36,10 @@
 	<string>$(PRODUCT_NAME) would like to use your camera</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like access to document folder to read and write results</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>NAHPU uses your location to record site coordinates while you catalog specimens. NAHPU does not track your location in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to access your location to get site coordinates</string>
+	<string>NAHPU uses your location to record site coordinates while you catalog specimens.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to use your microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>
