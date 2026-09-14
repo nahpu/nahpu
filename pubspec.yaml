@@ -1,5 +1,5 @@
 name: nahpu
-description: Nahpu is a cross-platform cataloging app for natural history specimen collection.
+description: NAHPU is a cross-platform cataloging app for natural history specimen collection.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -236,3 +236,15 @@ flutter:
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+msix_config:
+  display_name: NAHPU
+  publisher_display_name: hhandika
+  identity_name: 41918EvoBio.nahpu
+  publisher: CN=F6E8B1C2-9B5D-4AFB-9418-082991B0E098
+  # msix_version is derived from `version` as major.minor.patch.0, which meets the
+  # Store rule that the last number is zero. Bump the version, not only the build
+  # number, for every Store submission.
+  logo_path: assets/launcher/nahpu-light.png
+  capabilities: internetClient,location,microphone
+  store: true
