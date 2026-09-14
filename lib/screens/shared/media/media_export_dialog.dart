@@ -36,8 +36,15 @@ Future<void> showMediaExportDialog({
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (context) =>
-          MediaExportDialog._bottomSheet(prepare: prepare, onExport: onExport),
+      // useSafeArea skips the bottom inset, so keep Export and Share above the
+      // system navigation bar here.
+      builder: (context) => SafeArea(
+        top: false,
+        child: MediaExportDialog._bottomSheet(
+          prepare: prepare,
+          onExport: onExport,
+        ),
+      ),
     );
     return;
   }

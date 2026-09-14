@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/dialogs/preset_export_dialog.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:path/path.dart' as p;
@@ -39,9 +40,12 @@ void main() {
     WidgetTester tester,
     PresetExportRequest request, {
     Size size = const Size(1000, 900),
+    double bottomInset = 0,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
+    tester.view.padding = FakeViewPadding(bottom: bottomInset);
+    tester.view.viewPadding = FakeViewPadding(bottom: bottomInset);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
@@ -69,6 +73,17 @@ void main() {
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.byType(Dialog), findsNothing);
     expect(find.widgetWithIcon(IconButton, Icons.close), findsNothing);
+  });
+
+  testWidgets('the sheet keeps Export above the system navigation bar', (
+    tester,
+  ) async {
+    await open(tester, request(), size: const Size(500, 900), bottomInset: 48);
+
+    expect(
+      tester.getBottomLeft(find.byType(ExportShareButton)).dy,
+      lessThanOrEqualTo(900 - 48),
+    );
   });
 
   testWidgets('fills in the file name and hides the template switch', (

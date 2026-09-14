@@ -1553,10 +1553,13 @@ class _NullFallbackControls extends StatelessWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => _NullFallbackBottomSheet(
-              text: text,
-              page1: page1,
-              onUpdate: onUpdate,
+            builder: (context) => SafeArea(
+              top: false,
+              child: _NullFallbackBottomSheet(
+                text: text,
+                page1: page1,
+                onUpdate: onUpdate,
+              ),
             ),
           );
         }

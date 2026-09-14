@@ -51,10 +51,15 @@ Future<void> showPresetExportDialog({
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (context) => PresetExportDialog(
-        request: request,
-        service: service,
-        showCloseButton: false,
+      // useSafeArea skips the bottom inset, so keep Export and Share above the
+      // system navigation bar here.
+      builder: (context) => SafeArea(
+        top: false,
+        child: PresetExportDialog(
+          request: request,
+          service: service,
+          showCloseButton: false,
+        ),
       ),
     );
     return;

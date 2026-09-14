@@ -73,6 +73,28 @@ void main() {
     expect(find.widgetWithIcon(IconButton, Icons.close), findsNothing);
   });
 
+  testWidgets('bottom sheet keeps Export above the system navigation bar', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(bottom: 48);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+    addTearDown(tester.view.reset);
+
+    await _pumpLauncher(tester, _audioSource());
+    await tester.tap(find.text('Open export'));
+    await tester.pumpAndSettle();
+
+    final export = find.ancestor(
+      of: find.text('Export'),
+      matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+    );
+    await tester.ensureVisible(export);
+    await tester.pumpAndSettle();
+    expect(tester.getBottomLeft(export).dy, lessThanOrEqualTo(900 - 48));
+  });
+
   testWidgets('non-image media offers Original export only', (tester) async {
     await _pumpDialog(tester, _audioSource());
 

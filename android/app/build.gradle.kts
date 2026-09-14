@@ -71,3 +71,9 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // WindowCompat.enableEdgeToEdge in MainActivity. The Flutter embedding only
+    // brings androidx.core 1.13, which predates it.
+    implementation("androidx.core:core-ktx:1.17.0")
+}

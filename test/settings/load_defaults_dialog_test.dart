@@ -15,9 +15,16 @@ void main() {
     result = null;
   });
 
-  Future<void> open(WidgetTester tester, Set<BundledPresetKind> kinds) async {
-    tester.view.physicalSize = const Size(1000, 900);
+  Future<void> open(
+    WidgetTester tester,
+    Set<BundledPresetKind> kinds, {
+    Size size = const Size(1000, 900),
+    double bottomInset = 0,
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
+    tester.view.padding = FakeViewPadding(bottom: bottomInset);
+    tester.view.viewPadding = FakeViewPadding(bottom: bottomInset);
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
@@ -74,6 +81,26 @@ void main() {
     expect(service.loaded.map((preset) => preset.name), ['Tissue labels']);
     expect(result?.message, 'Added 1 preset');
     expect(find.byType(Dialog), findsNothing);
+  });
+
+  testWidgets('the sheet keeps Load selected above the navigation bar', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      const {BundledPresetKind.document},
+      size: const Size(500, 900),
+      bottomInset: 48,
+    );
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    final load = find.ancestor(
+      of: find.text('Load selected'),
+      matching: find.byWidgetPredicate((widget) => widget is ButtonStyleButton),
+    );
+    await tester.ensureVisible(load);
+    await tester.pumpAndSettle();
+    expect(tester.getBottomLeft(load).dy, lessThanOrEqualTo(900 - 48));
   });
 
   testWidgets('says so when no default of the kind exists', (tester) async {

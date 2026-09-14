@@ -24,10 +24,14 @@ Future<String?> showTemplateElementsSheet({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (context) => TemplateElementsSheet(
-      entries: entries,
-      sideLabel: sideLabel,
-      selectedElement: selectedElement,
+    // useSafeArea only covers the top; keep the list above the navigation bar.
+    builder: (context) => SafeArea(
+      top: false,
+      child: TemplateElementsSheet(
+        entries: entries,
+        sideLabel: sideLabel,
+        selectedElement: selectedElement,
+      ),
     ),
   );
 }
