@@ -59,6 +59,12 @@ coverage/
 # Rust
 /target/
 
+# Snapcraft
+/parts/
+/stage/
+/prime/
+*.snap
+
 *.jks
 
 keys/

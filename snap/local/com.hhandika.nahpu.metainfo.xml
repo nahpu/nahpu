@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2022-2026 NAHPU Team -->
+<component type="desktop-application">
+  <id>com.hhandika.nahpu</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>NAHPU</name>
+  <summary>A digital cataloging app for natural history specimens</summary>
+
+  <description>
+    <p>
+      NAHPU (NAtural History Project Utility), loosely named after the Greater
+      Malay Chevrotain, Tragulus napu, is a field cataloging application for
+      natural history collections.
+    </p>
+    <p>
+      NAHPU records specimens, collecting events, sites, narratives, and media
+      in a single project database. It works fully offline in the field and
+      keeps every project in a self-contained file you own.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Catalog mammal and bird specimens with discipline-specific forms</li>
+      <li>Record collecting events, sites, and coordinates on an offline map</li>
+      <li>Attach photographs, audio recordings, and field narratives</li>
+      <li>Export to Darwin Core and CSV for museum and aggregator ingest</li>
+      <li>Print specimen labels and catalog sheets</li>
+      <li>Share projects across desktop and mobile devices</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">nahpu_nahpu.desktop</launchable>
+
+  <developer id="app.nahpu">
+    <name>NAHPU Team</name>
+  </developer>
+
+  <url type="homepage">https://nahpu.app/</url>
+  <url type="bugtracker">https://github.com/nahpu/nahpu/issues</url>
+
+  <categories>
+    <category>Science</category>
+    <category>Biology</category>
+    <category>Education</category>
+  </categories>
+
+  <keywords>
+    <keyword>specimen</keyword>
+    <keyword>museum</keyword>
+    <keyword>collection</keyword>
+    <keyword>natural history</keyword>
+    <keyword>catalog</keyword>
+    <keyword>biodiversity</keyword>
+    <keyword>taxonomy</keyword>
+    <keyword>field</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.0.1" date="2026-09-13">
+      <description>
+        <p>
+          Renames the arthropod catalog to invertebrates and names catalog
+          formats for their discipline, with automatic migration of existing
+          custom-field definitions. Replaces the database backup management UI
+          with a concise summary and action list, improves documentation and
+          record statistics, and fixes missing personnel photos when restoring
+          old database backups.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-09-02">
+      <description>
+        <p>First stable release.</p>
+      </description>
+    </release>
+  </releases>
+</component>
