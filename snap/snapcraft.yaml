@@ -42,14 +42,6 @@ lint:
         - bin/lib/*.so
         - bin/lib/*.so.*
 
-slots:
-  # The runner uses G_APPLICATION_NON_UNIQUE, so NAHPU never claims this name
-  # today. Declared for future single-instance or D-Bus activation work.
-  dbus-nahpu:
-    interface: dbus
-    bus: session
-    name: com.hhandika.nahpu
-
 apps:
   nahpu:
     command: bin/nahpu
@@ -63,8 +55,6 @@ apps:
       - home
       - network
       - removable-media
-    slots:
-      - dbus-nahpu
 
 parts:
   # --------------------------------------------------------------- Flutter
