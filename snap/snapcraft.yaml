@@ -10,9 +10,9 @@ description: |
 
   NAHPU records specimens, collecting events, sites, narratives, and media in
   a single project database, and exports to Darwin Core, CSV, and printable
-  labels and catalog sheets. It currently supports mammal and bird
-  collections, works fully offline in the field, and keeps every project in a
-  self-contained file you own.
+  labels and catalog sheets. It supports mammalogy, ornithology, herpetology,
+  and invertebrate zoology collections, works fully offline in the field, and
+  keeps every project in a self-contained file you own.
 
 license: MIT
 website: https://nahpu.app/

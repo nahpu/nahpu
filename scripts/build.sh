@@ -5,7 +5,6 @@ PS3='Please select the platform: '
 OPT=("Android" "iOS" "MacOS" "All" "Quit")
 OUTPUT_DIR="../nahpu-releases"
 APK_PATH="$OUTPUT_DIR/nahpu_beta_android.apk"
-DMG_PATH="$OUTPUT_DIR/nahpu_beta_macos.dmg"
 
 create_output_dir() {
     if [ ! -d $OUTPUT_DIR ]; then
@@ -27,25 +26,6 @@ copy_apk() {
     fi
 }
 
-mv_dmg() {
-    create_output_dir
-    # Remove any previous DMG
-    if [ -f $DMG_PATH ]; then
-        echo "Removing previous DMG"
-        rm $DMG_PATH
-    fi
-    # Move DMG to output directory
-    if [ -f "installer/nahpu.dmg" ]; then
-        echo "Moving DMG to $OUTPUT_DIR"
-        mv installer/nahpu.dmg $DMG_PATH
-    fi
-}
-
-copy_and_move_all() {
-    copy_apk
-    mv_dmg
-}
-
 select os in "${OPT[@]}"
 
 do
@@ -64,9 +44,6 @@ do
         "MacOS")
             echo "Building for MacOS..."
             flutter build macos --release
-            echo "Creating DMG installer..."
-            scripts/build_dmg.sh
-            mv_dmg
             break
             ;;
         "All")
@@ -77,9 +54,7 @@ do
             flutter build ios --release
             echo "Building for MacOS..."
             flutter build macos --release
-            echo "Creating DMG installer..."
-            scripts/build_dmg.sh
-            copy_and_move_all
+            copy_apk
             break
             ;;
         "Quit")

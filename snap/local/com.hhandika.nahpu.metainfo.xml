@@ -21,7 +21,10 @@
     </p>
     <p>Features:</p>
     <ul>
-      <li>Catalog mammal and bird specimens with discipline-specific forms</li>
+      <li>
+        Catalog mammalogy, ornithology, herpetology, and invertebrate zoology
+        specimens with discipline-specific forms
+      </li>
       <li>Record collecting events, sites, and coordinates on an offline map</li>
       <li>Attach photographs, audio recordings, and field narratives</li>
       <li>Export to Darwin Core and CSV for museum and aggregator ingest</li>

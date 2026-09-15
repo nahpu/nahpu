@@ -52,10 +52,6 @@ app.*.map.json
 # Coverage
 coverage/
 
-# MacOS DMG Creations
-/installer/*.dmg
-/installer/nahpu.dmg
-
 # Rust
 /target/
 
