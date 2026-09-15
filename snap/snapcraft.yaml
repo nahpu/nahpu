@@ -1,49 +1,250 @@
 name: nahpu
-base: core22 # the base snap is the execution environment for this snap
-version: "1.0.0-rc5" # the version of your application
-summary: A digital cataloging app for natural history specimens # 79 char long summary
+base: core24
+adopt-info: nahpu
+
+summary: A digital cataloging app for natural history specimens
 description: |
-  NAHPU (NAtural History Project Utility), 
-  loosely named after the Greater Malay Chevrotain, Tragulus napu, 
-  is a field cataloging app designed for natural history collections. 
-  The current version is equipped to catalog specimens of mammals and birds.
+  NAHPU (NAtural History Project Utility), loosely named after the Greater
+  Malay Chevrotain, Tragulus napu, is a field cataloging application for
+  natural history collections.
+
+  NAHPU records specimens, collecting events, sites, narratives, and media in
+  a single project database, and exports to Darwin Core, CSV, and printable
+  labels and catalog sheets. It currently supports mammal and bird
+  collections, works fully offline in the field, and keeps every project in a
+  self-contained file you own.
+
+license: MIT
+website: https://nahpu.app/
+contact: hhandika@ufl.edu
+issues: https://github.com/nahpu/nahpu/issues
+source-code: https://github.com/nahpu/nahpu
+
+# snapcraft only auto-detects snap/gui/icon.png or icon.svg, so point at the
+# NAHPU icon explicitly. Without this the snap ships without a store icon.
+icon: snap/gui/nahpu.png
 
 grade: stable
 confinement: strict
-architectures:
-  - build-on: amd64
+
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+
+# The Flutter bundle ships prebuilt third-party libraries (mdk, pdfium,
+# libc++) whose dependencies the library linter cannot resolve, and whose
+# RUNPATHs are already correct ($ORIGIN). Silence the noise rather than
+# rewriting libraries that work as shipped.
+lint:
+  ignore:
+    - library:
+        - bin/lib/*.so
+        - bin/lib/*.so.*
 
 slots:
-  dbus-segui:
+  # The runner uses G_APPLICATION_NON_UNIQUE, so NAHPU never claims this name
+  # today. Declared for future single-instance or D-Bus activation work.
+  dbus-nahpu:
     interface: dbus
     bus: session
     name: com.hhandika.nahpu
 
 apps:
-  segui:
-    command: nahpu
+  nahpu:
+    command: bin/nahpu
+    common-id: com.hhandika.nahpu
+    extensions: [gnome]
+    command-chain:
+      - bin/nahpu-env
     plugs:
-      - network
+      - audio-playback
+      - audio-record
       - home
+      - network
       - removable-media
-      - cifs-mount
     slots:
       - dbus-nahpu
-    extensions: [gnome]
 
 parts:
-  rust-lib:
-    plugin: rust
-    build-packages:
-      - musl-tools
-    source: rust/
-    override-build: |
-      rustup target add x86_64-unknown-linux-musl
-      cargo build --release --target x86_64-unknown-linux-musl
-  segui:
-    source: .
+  # --------------------------------------------------------------- Flutter
+  flutter-sdk:
+    plugin: nil
+    source: https://github.com/flutter/flutter.git
+    source-type: git
+    source-tag: "3.47.4"
+    source-depth: 1
     build-packages:
       - curl
-      - rust-all
-    plugin: flutter
-    flutter-target: lib/main.dart
+      - git
+      - unzip
+      - xz-utils
+      - zip
+    override-build: |
+      set -eux
+      install -d "${CRAFT_PART_INSTALL}/usr/share"
+      cp -a "${CRAFT_PART_SRC}" "${CRAFT_PART_INSTALL}/usr/share/flutter"
+
+      export FLUTTER_ROOT="${CRAFT_PART_INSTALL}/usr/share/flutter"
+      export PATH="${FLUTTER_ROOT}/bin:${PATH}"
+      export FLUTTER_SUPPRESS_ANALYTICS=true
+      git config --global --add safe.directory "${FLUTTER_ROOT}"
+
+      flutter --version
+      flutter config --no-analytics --enable-linux-desktop
+      flutter precache --linux
+    # Build-time only. Use prime filters rather than override-prime, which
+    # silently disables other lifecycle features.
+    prime:
+      - -*
+
+  # ------------------------------------------------------------------ Rust
+  # rust/rust-toolchain.toml pins an exact channel and the Native Assets build
+  # hook shells out to a real rustup. Ubuntu's rust-all ships no rustup at all.
+  rustup:
+    plugin: nil
+    build-packages:
+      - ca-certificates
+      - curl
+    build-environment:
+      - RUSTUP_HOME: ${CRAFT_PART_INSTALL}/usr/share/rust/rustup
+      - CARGO_HOME: ${CRAFT_PART_INSTALL}/usr/share/rust/cargo
+    override-build: |
+      set -eux
+      toolchain="$(sed -n 's/^channel[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' \
+        "${CRAFT_PROJECT_DIR}/rust/rust-toolchain.toml")"
+      test -n "${toolchain}"
+
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+        | sh -s -- -y --no-modify-path --profile minimal --default-toolchain none
+
+      "${CARGO_HOME}/bin/rustup" toolchain install "${toolchain}" --profile minimal
+      "${CARGO_HOME}/bin/rustup" run "${toolchain}" rustc --version
+    prime:
+      - -*
+
+  # --------------------------------------------------------------- The app
+  nahpu:
+    after: [flutter-sdk, rustup]
+    plugin: nil
+    source: .
+    source-type: local
+    # No parse-info here: it would adopt `version` from the metainfo's latest
+    # <release>, which conflicts with the `craftctl set version` below. Every
+    # field parse-info would supply is already set explicitly at the top level,
+    # so the metainfo file is installed purely as AppStream metadata.
+    build-packages:
+      - binutils # provides strip, used on the Rust library below
+      - clang
+      - cmake
+      - curl
+      - git
+      - liblzma-dev
+      - libstdc++-12-dev
+      - ninja-build
+      - pkg-config
+      - unzip
+      - xz-utils
+      - zip
+      # libgtk-3-dev is deliberately absent. The gnome extension puts the
+      # gnome-46-2404 SDK first on PKG_CONFIG_PATH, and that SDK provides the
+      # GTK 3 headers matching the GTK the app links against at runtime. If
+      # cmake cannot find gtk+-3.0, add it back and re-verify that the app
+      # does not end up bound to the base snap's GTK.
+    build-environment:
+      - PATH: "${CRAFT_STAGE}/usr/share/flutter/bin:${CRAFT_STAGE}/usr/share/rust/cargo/bin:${PATH}"
+      - FLUTTER_ROOT: "${CRAFT_STAGE}/usr/share/flutter"
+      - FLUTTER_SUPPRESS_ANALYTICS: "true"
+      - PUB_CACHE: "${CRAFT_PART_BUILD}/.pub-cache"
+      - RUSTUP_HOME: "${CRAFT_STAGE}/usr/share/rust/rustup"
+      - CARGO_HOME: "${CRAFT_STAGE}/usr/share/rust/cargo"
+      # rust-toolchain.toml lists 13 cross targets. Setting RUSTUP_TOOLCHAIN
+      # makes rustup ignore the toolchain file, so the build does not download
+      # hundreds of megabytes of rust-std for targets Linux never links. The
+      # build hook parses the channel out of the TOML itself and invokes
+      # `rustup run <channel> cargo`, so the pinned channel is still honored.
+      # Keep this value in sync with rust/rust-toolchain.toml.
+      - RUSTUP_TOOLCHAIN: "1.93.1"
+      - CARGO_NET_RETRY: "5"
+      # fvp otherwise downloads a SourceForge nightly mdk-sdk at cmake
+      # configure time. Use the GitHub release mirror for repeatable builds.
+      - FVP_DEPS_URL: "https://github.com/wang-bin/mdk-sdk/releases/latest/download"
+    override-pull: |
+      set -eux
+      craftctl default
+      craftctl set version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
+    override-build: |
+      set -eux
+      git config --global --add safe.directory '*'
+
+      flutter --version
+      flutter pub get
+      flutter build linux --release --target lib/main.dart
+
+      # Keep the bundle self-contained under $SNAP/bin so the runner's RUNPATH
+      # ($ORIGIN/lib) and libflutter_linux_gtk.so's RUNPATH ($ORIGIN) resolve
+      # the bundled libraries without ever putting them on a global
+      # LD_LIBRARY_PATH, where they could shadow the platform snap's copies.
+      install -d "${CRAFT_PART_INSTALL}/bin"
+      cp -r build/linux/*/release/bundle/* "${CRAFT_PART_INSTALL}/bin/"
+
+      # cargo's release profile keeps debug info and snapcraft does not strip
+      # on core24, so the Rust library arrives at roughly 45 MB.
+      strip --strip-unneeded "${CRAFT_PART_INSTALL}/bin/lib/librust_lib_nahpu.so"
+
+      install -Dm644 snap/local/com.hhandika.nahpu.metainfo.xml \
+        "${CRAFT_PART_INSTALL}/usr/share/metainfo/com.hhandika.nahpu.metainfo.xml"
+
+      # Fail loudly if the native assets or Flutter assets did not land.
+      test -f "${CRAFT_PART_INSTALL}/bin/lib/librust_lib_nahpu.so"
+      test -f "${CRAFT_PART_INSTALL}/bin/lib/libsqlite3.so"
+      test -f "${CRAFT_PART_INSTALL}/bin/lib/libpdfium.so"
+      test -f "${CRAFT_PART_INSTALL}/bin/data/flutter_assets/AssetManifest.bin"
+
+  # ------------------------------------------------ record_linux helpers
+  # record_linux runs Process.start('parecord', ...) and
+  # Process.start('ffmpeg', ...) with bare names, so both must be on PATH.
+  media-tools:
+    plugin: nil
+    stage-packages:
+      - ffmpeg
+      - pulseaudio-utils
+    prime:
+      - -usr/share/doc
+      - -usr/share/man
+      - -usr/share/lintian
+      - -usr/share/bug
+      - -usr/share/ffmpeg/examples
+
+  # ------------------------------------------- command chain and PATH shims
+  launcher:
+    plugin: nil
+    after: [media-tools]
+    override-build: |
+      set -eux
+      install -d "${CRAFT_PART_INSTALL}/bin"
+      cat > "${CRAFT_PART_INSTALL}/bin/nahpu-env" <<'WRAPPER'
+      #!/bin/bash
+      # Runs after the gnome extension's desktop-launch. Only adjusts PATH so
+      # record_linux finds the staged media helpers, leaving the Flutter
+      # process's own loader environment untouched.
+      export PATH="${SNAP}/usr/local/bin:${PATH}"
+      exec "$@"
+      WRAPPER
+      chmod 0755 "${CRAFT_PART_INSTALL}/bin/nahpu-env"
+
+      # The gnome platform snap's desktop-launch does not add
+      # $SNAP/usr/lib/<triplet> to LD_LIBRARY_PATH, so staged binaries cannot
+      # find their own libraries. Set it per helper process instead of
+      # globally: the platform ships libavcodec/libavformat/libavutil/libsw*
+      # but not libavfilter/libavdevice/libpostproc, and mixing the two sets
+      # inside the Flutter process invites symbol conflicts.
+      install -d "${CRAFT_PART_INSTALL}/usr/local/bin"
+      for tool in ffmpeg ffprobe parecord parec pacat pactl; do
+        cat > "${CRAFT_PART_INSTALL}/usr/local/bin/${tool}" <<SHIM
+      #!/bin/bash
+      export LD_LIBRARY_PATH="\${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/pulseaudio:\${LD_LIBRARY_PATH}"
+      exec "\${SNAP}/usr/bin/${tool}" "\$@"
+      SHIM
+        chmod 0755 "${CRAFT_PART_INSTALL}/usr/local/bin/${tool}"
+      done
