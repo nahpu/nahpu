@@ -34,9 +34,11 @@ class _AttributeFormState extends State<AttributeForm> {
         height: 484,
         child: CommonScrollbar(
           scrollController: _scrollController,
+          // No explicit physics: the bare ScrollPhysics base class builds no
+          // ballistic simulation and applies no boundary conditions, so a flick
+          // stopped dead and the content could be dragged past its bounds.
           child: SingleChildScrollView(
             controller: _scrollController,
-            physics: const ScrollPhysics(),
             child: Column(children: widget.children),
           ),
         ),

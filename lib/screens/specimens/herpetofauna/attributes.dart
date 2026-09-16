@@ -83,15 +83,13 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
               },
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    SpecimenServices(ref: ref).updateHerpAttribute(
-                      widget.specimenUuid,
-                      HerpAttributeCompanion(
-                        weight: db.Value(double.tryParse(value)),
-                        weightUnit: db.Value(ctr.weightUnitCtr),
-                      ),
-                    );
-                  });
+                  SpecimenServices(ref: ref).updateHerpAttribute(
+                    widget.specimenUuid,
+                    HerpAttributeCompanion(
+                      weight: db.Value(double.tryParse(value)),
+                      weightUnit: db.Value(ctr.weightUnitCtr),
+                    ),
+                  );
                 }
               },
             ),
@@ -103,14 +101,12 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
               isLastField: false,
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    SpecimenServices(ref: ref).updateHerpAttribute(
-                      widget.specimenUuid,
-                      HerpAttributeCompanion(
-                        svl: db.Value(double.tryParse(value)),
-                      ),
-                    );
-                  });
+                  SpecimenServices(ref: ref).updateHerpAttribute(
+                    widget.specimenUuid,
+                    HerpAttributeCompanion(
+                      svl: db.Value(double.tryParse(value)),
+                    ),
+                  );
                 }
               },
             ),
@@ -162,10 +158,10 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
     final code = getSpecimenSexCode(newSex);
     setState(() {
       ctr.sexCtr = code;
-      SpecimenServices(ref: ref).updateHerpAttribute(
-        widget.specimenUuid,
-        HerpAttributeCompanion(sex: db.Value(code)),
-      );
     });
+    SpecimenServices(ref: ref).updateHerpAttribute(
+      widget.specimenUuid,
+      HerpAttributeCompanion(sex: db.Value(code)),
+    );
   }
 }

@@ -115,7 +115,8 @@ class SiteServices extends AppServices {
         dbAccess,
       ).createSiteAttribute(entries.copyWith(siteID: db.Value(siteId)));
     }
-    ref.invalidate(siteAttributeProvider(siteId));
+    // No invalidation: the form holds what was just written in its controllers,
+    // and re-reading here rebuilt every open site page on each keystroke.
   }
 
   Future<void> createSiteMediaFromList(

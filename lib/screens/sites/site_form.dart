@@ -5,30 +5,47 @@ import 'package:nahpu/screens/sites/components/habitats.dart';
 import 'package:nahpu/screens/sites/components/geography.dart';
 import 'package:nahpu/screens/sites/components/media.dart';
 import 'package:nahpu/screens/sites/components/site_info.dart';
+import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/sites/components/tab_bar.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
+/// The site record form.
+///
+/// Owns the field controllers for as long as the record is on screen. Rebuilding
+/// them from the record on every provider update would replace them mid-edit and
+/// leak the superseded set.
 class SiteForm extends ConsumerStatefulWidget {
-  const SiteForm({super.key, required this.id, required this.siteFormCtr});
+  const SiteForm({super.key, required this.site, required this.attribute});
 
-  final int id;
-  final SiteFormCtrModel siteFormCtr;
+  final SiteRecord site;
+  final SiteAttributeData? attribute;
 
   @override
   SiteFormState createState() => SiteFormState();
 }
 
 class SiteFormState extends ConsumerState<SiteForm> {
+  late final SiteFormCtrModel _siteFormCtr = SiteFormCtrModel.fromData(
+    widget.site,
+    widget.attribute,
+  );
+
   @override
-  void initState() {
-    super.initState();
+  void didUpdateWidget(covariant SiteForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.site == widget.site &&
+        oldWidget.attribute == widget.attribute) {
+      return;
+    }
+    _siteFormCtr.syncFrom(widget.site, widget.attribute);
   }
 
   @override
   void dispose() {
-    widget.siteFormCtr.dispose();
+    _siteFormCtr.dispose();
     super.dispose();
   }
 
@@ -40,28 +57,28 @@ class SiteFormState extends ConsumerState<SiteForm> {
         return FocusDetectedLayout(
           children: [
             SiteInfo(
-              id: widget.id,
+              id: widget.site.id,
               useHorizontalLayout: useHorizontalLayout,
-              siteFormCtr: widget.siteFormCtr,
+              siteFormCtr: _siteFormCtr,
             ),
             SiteGeography(
-              id: widget.id,
+              id: widget.site.id,
               useHorizontalLayout: useHorizontalLayout,
-              siteFormCtr: widget.siteFormCtr,
+              siteFormCtr: _siteFormCtr,
             ),
             AdaptiveMainLayout(
               useHorizontalLayout: useHorizontalLayout,
               height: bottomSiteHeight,
               children: [
                 Habitat(
-                  id: widget.id,
+                  id: widget.site.id,
                   useHorizontalLayout: useHorizontalLayout,
-                  siteFormCtr: widget.siteFormCtr,
+                  siteFormCtr: _siteFormCtr,
                 ),
-                SiteDataTabBar(siteId: widget.id),
+                SiteDataTabBar(siteId: widget.site.id),
               ],
             ),
-            SiteMediaForm(siteId: widget.id),
+            SiteMediaForm(siteId: widget.site.id),
             const BottomPadding(),
           ],
         );

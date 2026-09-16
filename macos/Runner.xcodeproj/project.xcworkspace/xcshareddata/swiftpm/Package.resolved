@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "maplibre-gl-native-distribution",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/maplibre/maplibre-gl-native-distribution",
-      "state" : {
-        "revision" : "86992aabad3e89ce8818adec2e8b9d03177d69da",
-        "version" : "6.29.0"
-      }
-    },
-    {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections.git",

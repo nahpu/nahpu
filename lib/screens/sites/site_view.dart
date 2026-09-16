@@ -4,7 +4,6 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/record_page_reconciler.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -157,7 +156,7 @@ class SiteViewerState extends ConsumerState<SiteViewer>
   }
 }
 
-class SitePages extends ConsumerWidget {
+class SitePages extends StatelessWidget {
   const SitePages({
     super.key,
     required this.siteEntries,
@@ -172,7 +171,7 @@ class SitePages extends ConsumerWidget {
   final void Function(int) onPageChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return PageView.builder(
       // Keyed by controller identity so openControllerAt's swap takes effect.
       key: ObjectKey(pageNav.pageController),
@@ -180,23 +179,47 @@ class SitePages extends ConsumerWidget {
       itemCount: siteEntries.length,
       itemBuilder: (context, index) {
         final site = siteEntries[index];
-        return ref
-            .watch(siteAttributeProvider(site.id))
-            .when(
-              data: (attribute) {
-                final siteForm = SiteFormCtrModel.fromData(site, attribute);
-                return PageViewer(
-                  pageNav: pageNav,
-                  isNavButtonVisible: isNavButtonVisible,
-                  child: SiteForm(id: site.id, siteFormCtr: siteForm),
-                );
-              },
-              loading: () => const CommonProgressIndicator(),
-              error: (error, _) => Text(error.toString()),
-            );
+        return _SitePage(
+          key: ValueKey(site.id),
+          site: site,
+          pageNav: pageNav,
+          isNavButtonVisible: isNavButtonVisible,
+        );
       },
       onPageChanged: onPageChanged,
     );
+  }
+}
+
+/// One site page.
+///
+/// The attribute watch lives here rather than in the item builder so a change to
+/// one site rebuilds its own page instead of the whole [PageView].
+class _SitePage extends ConsumerWidget {
+  const _SitePage({
+    super.key,
+    required this.site,
+    required this.pageNav,
+    required this.isNavButtonVisible,
+  });
+
+  final SiteRecord site;
+  final PageNavigation pageNav;
+  final bool isNavButtonVisible;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ref
+        .watch(siteAttributeProvider(site.id))
+        .when(
+          data: (attribute) => PageViewer(
+            pageNav: pageNav,
+            isNavButtonVisible: isNavButtonVisible,
+            child: SiteForm(site: site, attribute: attribute),
+          ),
+          loading: () => const CommonProgressIndicator(),
+          error: (error, _) => Text(error.toString()),
+        );
   }
 }
 

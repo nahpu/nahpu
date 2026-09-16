@@ -7,7 +7,6 @@ import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/parasites.dart';
@@ -168,6 +167,17 @@ class PartListState extends ConsumerState<PartList> {
     final specimenPartList = ref.watch(
       partBySpecimenProvider(widget.specimenUuid),
     );
+    // Resolved once for the whole list. Looking each preparator up from the row
+    // fired a personnel query per row on every rebuild, including while
+    // scrolling.
+    final preparatorNames = ref
+        .watch(projectPersonnelProvider)
+        .maybeWhen(
+          data: (personnel) => {
+            for (final person in personnel) person.uuid: person.name ?? '',
+          },
+          orElse: () => const <String, String>{},
+        );
     return specimenPartList.when(
       data: (data) {
         return data.isEmpty
@@ -211,6 +221,7 @@ class PartListState extends ConsumerState<PartList> {
                         itemBuilder: (context, index) {
                           final part = data[index];
                           return ListTile(
+                            key: ValueKey(part.id),
                             leading: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -240,7 +251,9 @@ class PartListState extends ConsumerState<PartList> {
                               partType: part.type,
                               partCount: part.count.toString(),
                               barcodeID: part.barcodeID ?? '',
-                              preparator: part.personnelId,
+                              preparator: part.personnelId == null
+                                  ? null
+                                  : preparatorNames[part.personnelId],
                             ),
                             subtitle: PartSubTitle(part: part),
                             trailing: !_isSelecting
@@ -371,7 +384,7 @@ class PartIcon extends ConsumerWidget {
   }
 }
 
-class PartTitle extends ConsumerWidget {
+class PartTitle extends StatelessWidget {
   const PartTitle({
     super.key,
     required this.partType,
@@ -383,30 +396,21 @@ class PartTitle extends ConsumerWidget {
   final String? partType;
   final String? partCount;
   final String barcodeID;
+
+  /// The preparator's name, already resolved by the list.
   final String? preparator;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final name = preparator;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        preparator != null
-            ? FutureBuilder(
-                future: _getPreparatorName(ref),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return TitlePartText(
-                      text:
-                          '$_partText'
-                          '$listTileSeparator'
-                          '${snapshot.data}',
-                    );
-                  } else {
-                    return TitlePartText(text: _partText);
-                  }
-                },
-              )
-            : TitlePartText(text: _partText),
+        TitlePartText(
+          text: name == null || name.isEmpty
+              ? _partText
+              : '$_partText$listTileSeparator$name',
+        ),
         barcodeID.isNotEmpty
             ? BarcodeText(barcodeID: barcodeID)
             : const SizedBox.shrink(),
@@ -418,13 +422,6 @@ class PartTitle extends ConsumerWidget {
     return '${partType ?? 'Unknown part'}'
         '$listTileSeparator'
         '${partCount ?? 'No count'}';
-  }
-
-  Future<String> _getPreparatorName(WidgetRef ref) async {
-    PersonnelData person = await PersonnelServices(
-      ref: ref,
-    ).getPersonnelByUuid(preparator!);
-    return person.name ?? '';
   }
 }
 

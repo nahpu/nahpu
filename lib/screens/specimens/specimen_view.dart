@@ -5,7 +5,6 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/search.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -217,22 +216,18 @@ class _SpecimenPage extends ConsumerWidget {
         );
 
     CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(currentSpecimen.taxonGroup);
-    final specimenFormCtr = _updateController(currentSpecimen);
 
     return PageViewer(
       pageNav: pageNav,
       isNavButtonVisible: isNavButtonVisible,
       child: SpecimenForm(
-        key: ValueKey('${currentSpecimen.uuid}-${currentSpecimen.speciesID}'),
-        specimenUuid: currentSpecimen.uuid,
-        specimenCtr: specimenFormCtr,
+        // Keyed by the record alone. Keying by the selected taxon as well would
+        // discard the form -- and its scroll position -- on every selection.
+        key: ValueKey(currentSpecimen.uuid),
+        specimen: currentSpecimen,
         catalogFmt: catalogFmt,
       ),
     );
-  }
-
-  SpecimenFormCtrModel _updateController(SpecimenData specimenEntry) {
-    return SpecimenFormCtrModel.fromData(specimenEntry);
   }
 }
 
@@ -274,10 +269,9 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
                   CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(
                     specimen.taxonGroup,
                   );
-                  final specimenFormCtr = _updateController(specimen);
                   return SpecimenForm(
-                    specimenUuid: specimen.uuid,
-                    specimenCtr: specimenFormCtr,
+                    key: ValueKey(specimen.uuid),
+                    specimen: specimen,
                     catalogFmt: catalogFmt,
                   );
                 }
@@ -287,10 +281,6 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
             ),
       ),
     );
-  }
-
-  SpecimenFormCtrModel _updateController(SpecimenData specimenEntry) {
-    return SpecimenFormCtrModel.fromData(specimenEntry);
   }
 }
 

@@ -229,12 +229,10 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
               ),
               items: DropDownMenuItems.booleanDropDownItems(),
               onChanged: (int? newValue) {
-                setState(() {
-                  SpecimenServices(ref: ref).updateBirdAttribute(
-                    widget.specimenUuid,
-                    BirdAttributeCompanion(broodPatch: db.Value(newValue)),
-                  );
-                });
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(broodPatch: db.Value(newValue)),
+                );
               },
             ),
             DropdownButtonFormField<int?>(
@@ -247,11 +245,11 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
               onChanged: (int? newValue) {
                 setState(() {
                   _hasBursa = newValue == 1;
-                  SpecimenServices(ref: ref).updateBirdAttribute(
-                    widget.specimenUuid,
-                    BirdAttributeCompanion(hasBursa: db.Value(newValue)),
-                  );
                 });
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(hasBursa: db.Value(newValue)),
+                );
               },
             ),
           ],
@@ -367,11 +365,11 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
     final code = getSpecimenSexCode(newSex);
     setState(() {
       ctr.sexCtr = code;
-      SpecimenServices(ref: ref).updateBirdAttribute(
-        widget.specimenUuid,
-        BirdAttributeCompanion(sex: db.Value(code)),
-      );
     });
+    SpecimenServices(ref: ref).updateBirdAttribute(
+      widget.specimenUuid,
+      BirdAttributeCompanion(sex: db.Value(code)),
+    );
   }
 }
 
@@ -679,11 +677,11 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
                   widget.ctr.ovaryAppearanceCtr = newValue;
                   if (kDebugMode) print(OvaryAppearance.large.index);
                   _isLargeOvum = (newValue == OvaryAppearance.large.index);
-                  SpecimenServices(ref: ref).updateBirdAttribute(
-                    widget.specimenUuid,
-                    BirdAttributeCompanion(ovaryAppearance: db.Value(newValue)),
-                  );
                 });
+                SpecimenServices(ref: ref).updateBirdAttribute(
+                  widget.specimenUuid,
+                  BirdAttributeCompanion(ovaryAppearance: db.Value(newValue)),
+                );
               },
             ),
           ),
@@ -1030,11 +1028,11 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               setState(() {
                 widget.ctr.wingIsMoltCtr = newValue;
                 _wingMolting = newValue == 1;
-                SpecimenServices(ref: ref).updateBirdAttribute(
-                  widget.specimenUuid,
-                  BirdAttributeCompanion(wingIsMolt: db.Value(newValue)),
-                );
               });
+              SpecimenServices(ref: ref).updateBirdAttribute(
+                widget.specimenUuid,
+                BirdAttributeCompanion(wingIsMolt: db.Value(newValue)),
+              );
             },
           ),
           Visibility(
@@ -1053,11 +1051,11 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
               setState(() {
                 widget.ctr.tailIsMoltCtr = newValue;
                 _tailMolting = newValue == 1;
-                SpecimenServices(ref: ref).updateBirdAttribute(
-                  widget.specimenUuid,
-                  BirdAttributeCompanion(tailIsMolt: db.Value(newValue)),
-                );
               });
+              SpecimenServices(ref: ref).updateBirdAttribute(
+                widget.specimenUuid,
+                BirdAttributeCompanion(tailIsMolt: db.Value(newValue)),
+              );
             },
           ),
           Visibility(

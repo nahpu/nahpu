@@ -49,11 +49,10 @@ class EnvironmentDataView extends ConsumerWidget {
             .watch(environmentDataProvider(eventID))
             .when(
               data: (environmentData) => EnvironmentDataForm(
+                key: ValueKey(eventID),
                 useHorizontalLayout: useHorizontalLayout,
                 eventID: eventID,
-                environmentCtr: CollEnvironmentCtrModel.fromEditableData(
-                  environmentData,
-                ),
+                environmentData: environmentData,
                 visibleFields: ref
                     .watch(
                       userDefinedFieldProvider(environmentalDataFieldsPrefKey),
@@ -79,13 +78,13 @@ class EnvironmentDataForm extends ConsumerStatefulWidget {
     super.key,
     required this.useHorizontalLayout,
     required this.eventID,
-    required this.environmentCtr,
+    required this.environmentData,
     this.visibleFields,
   });
 
   final bool useHorizontalLayout;
   final int eventID;
-  final CollEnvironmentCtrModel environmentCtr;
+  final EditableEnvironmentData environmentData;
   final Set<String>? visibleFields;
 
   @override
@@ -93,6 +92,10 @@ class EnvironmentDataForm extends ConsumerStatefulWidget {
 }
 
 class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
+  /// Owned here rather than rebuilt from the record on every build: replacing
+  /// the controllers mid-edit drops the caret, and the superseded set leaked.
+  late final CollEnvironmentCtrModel _environmentCtr =
+      CollEnvironmentCtrModel.fromEditableData(widget.environmentData);
   late final Map<String, String> _fieldErrors;
   late final Set<String> _temporarilyVisibleFields;
   final Map<String, int> _editVersions = {};
@@ -113,14 +116,20 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
   @override
   void initState() {
     super.initState();
-    _fieldErrors = Map.of(widget.environmentCtr.initialErrors);
-    _temporarilyVisibleFields = widget.environmentCtr.initialErrors.keys
-        .toSet();
+    _fieldErrors = Map.of(_environmentCtr.initialErrors);
+    _temporarilyVisibleFields = _environmentCtr.initialErrors.keys.toSet();
+  }
+
+  @override
+  void didUpdateWidget(covariant EnvironmentDataForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.environmentData == widget.environmentData) return;
+    _environmentCtr.syncFrom(widget.environmentData);
   }
 
   @override
   void dispose() {
-    widget.environmentCtr.dispose();
+    _environmentCtr.dispose();
     super.dispose();
   }
 
@@ -148,7 +157,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('lowestDayTempC'))
                 CommonNumField(
                   key: const ValueKey('environment-lowest-day-temperature'),
-                  controller: widget.environmentCtr.lowestDayTempCtr,
+                  controller: _environmentCtr.lowestDayTempCtr,
                   labelText: 'Day Lowest',
                   hintText: 'Enter lowest temperature',
                   isDouble: true,
@@ -168,7 +177,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('highestDayTempC'))
                 CommonNumField(
                   key: const ValueKey('environment-highest-day-temperature'),
-                  controller: widget.environmentCtr.highestDayTempCtr,
+                  controller: _environmentCtr.highestDayTempCtr,
                   labelText: 'Day Highest',
                   hintText: 'Enter highest temperature',
                   isDouble: true,
@@ -194,7 +203,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('lowestNightTempC'))
                 CommonNumField(
                   key: const ValueKey('environment-lowest-night-temperature'),
-                  controller: widget.environmentCtr.lowestNightTempCtr,
+                  controller: _environmentCtr.lowestNightTempCtr,
                   labelText: 'Night Lowest',
                   hintText: 'Enter lowest temperature',
                   isDouble: true,
@@ -214,7 +223,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('highestNightTempC'))
                 CommonNumField(
                   key: const ValueKey('environment-highest-night-temperature'),
-                  controller: widget.environmentCtr.highestNightTempCtr,
+                  controller: _environmentCtr.highestNightTempCtr,
                   labelText: 'Night Highest',
                   hintText: 'Enter highest temperature',
                   isDouble: true,
@@ -248,7 +257,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
             children: [
               if (_isVisible('averageHumidity'))
                 CommonNumField(
-                  controller: widget.environmentCtr.averageHumidityCtr,
+                  controller: _environmentCtr.averageHumidityCtr,
                   key: const ValueKey('environment-average-humidity'),
                   labelText: 'Average',
                   hintText: 'Enter average humidity',
@@ -270,7 +279,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('dewPointTemp'))
                 CommonNumField(
                   key: const ValueKey('environment-dew-point-temperature'),
-                  controller: widget.environmentCtr.dewPointCtr,
+                  controller: _environmentCtr.dewPointCtr,
                   labelText: 'Dew Point',
                   hintText: 'Enter dew point',
                   isDouble: true,
@@ -295,7 +304,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('cloudCover'))
                 DropdownButtonFormField<String?>(
                   key: const ValueKey('environment-cloud-cover'),
-                  initialValue: widget.environmentCtr.cloudCoverCtr,
+                  initialValue: _environmentCtr.cloudCoverCtr,
                   decoration: InputDecoration(
                     labelText: 'Cloud cover (oktas)',
                     hintText: 'Select cloud cover',
@@ -309,7 +318,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                       value: null,
                       child: CommonDropdownText(text: 'Not recorded'),
                     ),
-                    if (widget.environmentCtr.cloudCoverCtr case final value?
+                    if (_environmentCtr.cloudCoverCtr case final value?
                         when !oktaOptionLabels.containsKey(value))
                       DropdownMenuItem<String?>(
                         value: value,
@@ -325,7 +334,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                   ],
                   onChanged: (value) async {
                     final version = _beginEdit('cloudCover');
-                    setState(() => widget.environmentCtr.cloudCoverCtr = value);
+                    setState(() => _environmentCtr.cloudCoverCtr = value);
                     await _saveField(
                       'cloudCover',
                       EnvironmentCompanion(cloudCover: db.Value(value)),
@@ -336,7 +345,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('rainfallInMm'))
                 CommonNumField(
                   key: const ValueKey('environment-rainfall'),
-                  controller: widget.environmentCtr.rainfallInMmCtr,
+                  controller: _environmentCtr.rainfallInMmCtr,
                   labelText: 'Rainfall (mm)',
                   hintText: 'Enter rainfall',
                   isDouble: true,
@@ -360,7 +369,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('ambientTemperature'))
                 CommonNumField(
                   key: const ValueKey('environment-ambient-temperature'),
-                  controller: widget.environmentCtr.ambientTemperatureCtr,
+                  controller: _environmentCtr.ambientTemperatureCtr,
                   labelText: 'Ambient temperature (°C)',
                   hintText: 'Enter ambient temperature',
                   isDouble: true,
@@ -379,7 +388,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 ),
               if (_isVisible('ambientHumidity'))
                 CommonNumField(
-                  controller: widget.environmentCtr.ambientHumidityCtr,
+                  controller: _environmentCtr.ambientHumidityCtr,
                   key: const ValueKey('environment-ambient-humidity'),
                   labelText: 'Ambient humidity (%)',
                   hintText: 'Enter relative humidity',
@@ -426,7 +435,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('waterTemperature'))
                 CommonNumField(
                   key: const ValueKey('environment-water-temperature'),
-                  controller: widget.environmentCtr.waterTemperatureCtr,
+                  controller: _environmentCtr.waterTemperatureCtr,
                   labelText: 'Water temperature (°C)',
                   hintText: 'Enter water temperature',
                   isDouble: true,
@@ -445,7 +454,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 ),
               if (_isVisible('pH'))
                 CommonNumField(
-                  controller: widget.environmentCtr.pHCtr,
+                  controller: _environmentCtr.pHCtr,
                   key: const ValueKey('environment-ph'),
                   labelText: 'pH',
                   hintText: 'Enter pH',
@@ -471,7 +480,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('dissolvedOxygen'))
                 CommonNumField(
                   key: const ValueKey('environment-dissolved-oxygen'),
-                  controller: widget.environmentCtr.dissolvedOxygenCtr,
+                  controller: _environmentCtr.dissolvedOxygenCtr,
                   labelText: 'Dissolved oxygen (mg/L)',
                   hintText: 'Enter dissolved oxygen',
                   isDouble: true,
@@ -490,7 +499,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('flowVelocity'))
                 CommonNumField(
                   key: const ValueKey('environment-flow-velocity'),
-                  controller: widget.environmentCtr.flowVelocityCtr,
+                  controller: _environmentCtr.flowVelocityCtr,
                   labelText: 'Flow velocity (m/s)',
                   hintText: 'Enter flow velocity',
                   isDouble: true,
@@ -523,7 +532,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('sunriseTime'))
                 TextField(
                   key: const ValueKey('environment-sunrise-time'),
-                  controller: widget.environmentCtr.sunriseTimeCtr,
+                  controller: _environmentCtr.sunriseTimeCtr,
                   decoration: InputDecoration(
                     labelText: 'Sunrise',
                     hintText: 'Enter sunrise time',
@@ -546,7 +555,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                     if (value != null && mounted) {
                       final formattedTime = _formatTimeOfDay(value);
                       final version = _beginEdit('sunriseTime');
-                      widget.environmentCtr.sunriseTimeCtr.text = formattedTime;
+                      _environmentCtr.sunriseTimeCtr.text = formattedTime;
                       await _saveField(
                         'sunriseTime',
                         EnvironmentCompanion(
@@ -560,7 +569,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('sunsetTime'))
                 TextField(
                   key: const ValueKey('environment-sunset-time'),
-                  controller: widget.environmentCtr.sunsetTimeCtr,
+                  controller: _environmentCtr.sunsetTimeCtr,
                   decoration: InputDecoration(
                     labelText: 'Sunset',
                     hintText: 'Enter sunset time',
@@ -583,7 +592,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                     if (value != null && mounted) {
                       final formattedTime = _formatTimeOfDay(value);
                       final version = _beginEdit('sunsetTime');
-                      widget.environmentCtr.sunsetTimeCtr.text = formattedTime;
+                      _environmentCtr.sunsetTimeCtr.text = formattedTime;
                       await _saveField(
                         'sunsetTime',
                         EnvironmentCompanion(
@@ -602,7 +611,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
             children: [
               DropdownButtonFormField<String?>(
                 key: const ValueKey('environment-moon-phase'),
-                initialValue: widget.environmentCtr.moonPhaseCtr,
+                initialValue: _environmentCtr.moonPhaseCtr,
                 decoration: InputDecoration(
                   labelText: 'Moon Phase',
                   hintText: 'Select moon phase',
@@ -614,7 +623,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                     value: null,
                     child: CommonDropdownText(text: 'Not recorded'),
                   ),
-                  if (widget.environmentCtr.moonPhaseCtr case final value?
+                  if (_environmentCtr.moonPhaseCtr case final value?
                       when !environmentMoonPhaseOptions.contains(value))
                     DropdownMenuItem<String?>(
                       value: value,
@@ -630,7 +639,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 ],
                 onChanged: (value) async {
                   final version = _beginEdit('moonPhase');
-                  setState(() => widget.environmentCtr.moonPhaseCtr = value);
+                  setState(() => _environmentCtr.moonPhaseCtr = value);
                   await _saveField(
                     'moonPhase',
                     EnvironmentCompanion(moonPhase: db.Value(value)),
@@ -646,7 +655,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
             children: [
               CommonTextField(
                 key: const ValueKey('environment-notes'),
-                controller: widget.environmentCtr.noteCtr,
+                controller: _environmentCtr.noteCtr,
                 labelText: 'Notes',
                 hintText: 'Enter notes',
                 maxLines: 3,

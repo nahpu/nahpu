@@ -6,7 +6,6 @@ import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/record_page_reconciler.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/screens/events/event_form.dart';
@@ -170,23 +169,16 @@ class CollEventPages extends StatelessWidget {
       controller: pageNav.pageController,
       itemCount: collEventEntries.length,
       itemBuilder: (context, index) {
-        final collEventForm = _updateController(collEventEntries[index]);
-
+        final collEvent = collEventEntries[index];
         return PageViewer(
+          key: ValueKey(collEvent.id),
           pageNav: pageNav,
           isNavButtonVisible: isNavButtonVisible,
-          child: CollEventForm(
-            id: collEventEntries[index].id,
-            collEventCtr: collEventForm,
-          ),
+          child: CollEventForm(collEvent: collEvent),
         );
       },
       onPageChanged: onPageChanged,
     );
-  }
-
-  CollEventFormCtrModel _updateController(CollEventData collEventData) {
-    return CollEventFormCtrModel.fromData(collEventData);
   }
 }
 

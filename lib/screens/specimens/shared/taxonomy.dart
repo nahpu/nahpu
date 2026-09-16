@@ -270,35 +270,3 @@ class DisabledSpeciesField extends StatelessWidget {
     );
   }
 }
-
-class SpeciesField extends StatelessWidget {
-  const SpeciesField({
-    super.key,
-    required this.speciesCtr,
-    required this.focusNode,
-    required this.onFieldSubmitted,
-    required this.enable,
-  });
-
-  final TextEditingController speciesCtr;
-  final FocusNode focusNode;
-  final void Function(String) onFieldSubmitted;
-  final bool enable;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      enabled: enable,
-      controller: speciesCtr,
-      decoration: const InputDecoration(
-        labelText: 'Taxon',
-        hintText: 'Choose a taxon',
-      ),
-      focusNode: focusNode,
-      onFieldSubmitted: onFieldSubmitted,
-      validator: (value) => value!.isEmpty ? 'Please enter a taxon' : null,
-      keyboardType: TextInputType.text,
-      textInputAction: TextInputAction.done,
-    );
-  }
-}

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/database/database.dart' show CollEventData;
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/events/components/activities.dart';
 import 'package:nahpu/screens/events/components/effort.dart';
@@ -10,24 +11,34 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 
+/// The collecting event record form.
+///
+/// Owns the field controllers for as long as the record is on screen. Rebuilding
+/// them from the record on every provider update would replace them mid-edit and
+/// leak the superseded set.
 class CollEventForm extends ConsumerStatefulWidget {
-  const CollEventForm({
-    super.key,
-    required this.id,
-    required this.collEventCtr,
-  });
+  const CollEventForm({super.key, required this.collEvent});
 
-  final int id;
-  final CollEventFormCtrModel collEventCtr;
+  final CollEventData collEvent;
 
   @override
   CollEventFormState createState() => CollEventFormState();
 }
 
 class CollEventFormState extends ConsumerState<CollEventForm> {
+  late final CollEventFormCtrModel _collEventCtr =
+      CollEventFormCtrModel.fromData(widget.collEvent);
+
+  @override
+  void didUpdateWidget(covariant CollEventForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.collEvent == widget.collEvent) return;
+    _collEventCtr.syncFrom(widget.collEvent);
+  }
+
   @override
   void dispose() {
-    widget.collEventCtr.dispose();
+    _collEventCtr.dispose();
     super.dispose();
   }
 
@@ -43,13 +54,13 @@ class CollEventFormState extends ConsumerState<CollEventForm> {
               height: topCollEventHeight,
               children: [
                 EventInfoField(
-                  collEventId: widget.id,
+                  collEventId: widget.collEvent.id,
                   useHorizontalLayout: useHorizontalLayout,
-                  collEventCtr: widget.collEventCtr,
+                  collEventCtr: _collEventCtr,
                 ),
                 CollActivityFields(
-                  collEventId: widget.id,
-                  collEventCtr: widget.collEventCtr,
+                  collEventId: widget.collEvent.id,
+                  collEventCtr: _collEventCtr,
                 ),
               ],
             ),
@@ -57,14 +68,14 @@ class CollEventFormState extends ConsumerState<CollEventForm> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomCollEventHeight,
               children: [
-                CollEffort(collEventId: widget.id),
+                CollEffort(collEventId: widget.collEvent.id),
                 CollEventTabBar(
-                  eventID: widget.id,
+                  eventID: widget.collEvent.id,
                   useHorizontalLayout: useHorizontalLayout,
                 ),
               ],
             ),
-            EventMediaForm(eventId: widget.id),
+            EventMediaForm(eventId: widget.collEvent.id),
             const BottomPadding(),
           ],
         );
