@@ -8,9 +8,10 @@ import 'package:nahpu/services/export/dwc_bundle.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class GenericFileSettingsCard<T> extends StatelessWidget {
-  const GenericFileSettingsCard({
+  GenericFileSettingsCard({
     super.key,
     required this.exportCtr,
     required this.format,
@@ -26,7 +27,8 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
     this.onClearDir,
     this.formatFieldLabel = 'File format',
     this.enabled = true,
-  });
+    ExportDestinationMode? destinationMode,
+  }) : destinationMode = destinationMode ?? platformExportDestination;
 
   final FileOpCtrModel exportCtr;
   final T format;
@@ -46,6 +48,7 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
 
   final String formatFieldLabel;
   final bool enabled;
+  final ExportDestinationMode destinationMode;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +57,7 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 16),
+          const SizedBox(height: NahpuSpacing.xl),
           DropdownButtonFormField<T>(
             key: ValueKey(format),
             initialValue: format,
@@ -73,7 +76,7 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
                   }
                 : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: NahpuSpacing.xl),
           FileNameField(
             controller: exportCtr.fileNameCtr,
             extension: extensionForFormat(format),
@@ -86,12 +89,11 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
             enabled: enabled,
             onChanged: onAppendDateChanged,
           ),
-          if (onSelectDir != null &&
-              onClearDir != null &&
-              systemPlatform == PlatformType.desktop)
+          if (onSelectDir != null && onClearDir != null)
             Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: FileSettingsDirectoryPicker(
+              padding: const EdgeInsets.only(top: NahpuSpacing.xl),
+              child: ExportDestinationField(
+                mode: destinationMode,
                 selectedDir: selectedDir,
                 onSelectDir: enabled ? onSelectDir! : () {},
                 onClearDir: enabled ? onClearDir! : () {},
@@ -115,6 +117,7 @@ class FileSettingsCard extends StatelessWidget {
     this.onSelectDir,
     this.onClearDir,
     this.enabled = true,
+    this.destinationMode,
   });
 
   final FileOpCtrModel exportCtr;
@@ -126,11 +129,13 @@ class FileSettingsCard extends StatelessWidget {
   final VoidCallback? onSelectDir;
   final VoidCallback? onClearDir;
   final bool enabled;
+  final ExportDestinationMode? destinationMode;
 
   @override
   Widget build(BuildContext context) {
     return GenericFileSettingsCard<ExportFmt>(
       exportCtr: exportCtr,
+      destinationMode: destinationMode,
       selectedDir: selectedDir,
       format: exportCtr.exportFmtCtr,
       formats: ExportFmt.values,
@@ -181,7 +186,7 @@ class BundleFileSettingsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 16),
+          const SizedBox(height: NahpuSpacing.xl),
           DropdownButtonFormField<DwcBundleFormat>(
             initialValue: format,
             decoration: const InputDecoration(labelText: 'Bundle format'),
@@ -197,7 +202,7 @@ class BundleFileSettingsCard extends StatelessWidget {
                   }
                 : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: NahpuSpacing.xl),
           DropdownButtonFormField<BundleArchiveFormat>(
             key: ValueKey('${format.name}-${archiveFormat.name}'),
             initialValue: archiveFormat,
@@ -222,7 +227,7 @@ class BundleFileSettingsCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: NahpuSpacing.xl),
           FileNameField(
             controller: exportCtr.fileNameCtr,
             extension: format.outputExtension(archiveFormat),

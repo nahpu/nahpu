@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 class AppendDateSwitch extends StatelessWidget {
   const AppendDateSwitch({
@@ -70,6 +72,81 @@ class FileSettingsDirectoryPicker extends StatelessWidget {
                 tooltip: 'Clear directory',
               ),
       ],
+    );
+  }
+}
+
+/// The "Save to" block of an export surface.
+///
+/// Shows a directory picker where NAHPU can write to a folder the user chose,
+/// and explains where the file goes where it cannot. Both the export screens'
+/// location card and the export dialogs render this, so the destination rule
+/// and its wording live in one place.
+class ExportDestinationField extends StatelessWidget {
+  const ExportDestinationField({
+    super.key,
+    required this.mode,
+    required this.selectedDir,
+    required this.onSelectDir,
+    required this.onClearDir,
+  });
+
+  final ExportDestinationMode mode;
+  final Directory? selectedDir;
+  final VoidCallback onSelectDir;
+  final VoidCallback onClearDir;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: switch (mode) {
+        ExportDestinationMode.chooseDirectory => [
+          FileSettingsDirectoryPicker(
+            selectedDir: selectedDir,
+            onSelectDir: onSelectDir,
+            onClearDir: onClearDir,
+          ),
+          if (selectedDir == null) ...[
+            const SizedBox(height: NahpuSpacing.md),
+            _Caption(
+              'No folder chosen. The export goes to NAHPU app storage — '
+              'browse to a folder to put it somewhere you choose.',
+              theme: theme,
+            ),
+          ],
+        ],
+        ExportDestinationMode.temporary => [
+          Text('Save to', style: theme.textTheme.titleSmall),
+          const SizedBox(height: NahpuSpacing.xs),
+          Text('Share after export', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: NahpuSpacing.md),
+          _Caption(
+            'NAHPU keeps the file only until your next export. Share it to '
+            'save a copy in Files, send it to another app, or put it in a '
+            'cloud folder.',
+            theme: theme,
+          ),
+        ],
+      },
+    );
+  }
+}
+
+class _Caption extends StatelessWidget {
+  const _Caption(this.text, {required this.theme});
+
+  final String text;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/export/statistics_exporter.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
@@ -208,6 +208,7 @@ class _TabularExportDialog extends StatefulWidget {
 
 class _TabularExportDialogState extends State<_TabularExportDialog> {
   late final FileOpCtrModel _exportCtr;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _directory;
   File? _exportedFile;
   bool _isRunning = false;
@@ -257,6 +258,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
       isRunning: _isRunning,
       onExport: _canExport ? _export : null,
       onShare: _share,
+      output: _exportedFile,
+      onRevealFile: _openFolder,
+      onSaveCopy: _saveCopy,
     );
     if (widget.isSheet) {
       return SafeArea(
@@ -304,6 +308,7 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final directory = await FilePickerServices().selectDir();
     if (directory != null && mounted) {
       setState(() {
@@ -322,7 +327,7 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
         _ => format.name,
       };
       final file = await AppIOServices(
-        dir: _directory,
+        dir: await _destination.resolve(_directory),
         fileStem: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text.trim(),
@@ -354,9 +359,9 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          systemPlatform == PlatformType.desktop
-              ? 'Exported to $file'
-              : 'Export complete!',
+          // Only a folder the user chose is worth naming; the fallback is a
+          // path they cannot act on.
+          _directory != null ? 'Exported to $file' : 'Export complete',
         ),
       ),
     );
@@ -374,5 +379,36 @@ class _TabularExportDialogState extends State<_TabularExportDialog> {
         );
       }
     }
+  }
+
+  Future<void> _openFolder() async {
+    final file = _exportedFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(file);
+    } catch (error) {
+      _reportActionFailure('open the folder', error);
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists apps that
+  /// accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final file = _exportedFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(file);
+    } catch (error) {
+      _reportActionFailure('save a copy', error);
+    }
+  }
+
+  void _reportActionFailure(String what, Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unable to $what for statistics: $error')),
+    );
   }
 }

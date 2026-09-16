@@ -20,6 +20,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 const String nahpuBackupDatabaseName = 'nahpu.sqlite3';
+const String _restoreStagingDirName = 'db-restore';
 
 class DbArchiveDatabaseCandidate {
   const DbArchiveDatabaseCandidate({
@@ -779,7 +780,7 @@ class DbWriter extends AppServices {
     ExportProgressReporter? progress,
     ExportCancellation? cancel,
   }) async {
-    final tempDir = await tempDirectory;
+    final tempDir = await _restoreStagingDir();
     if (tempDir.existsSync()) {
       await tempDir.delete(recursive: true);
     }
@@ -964,9 +965,19 @@ class DbWriter extends AppServices {
     return target;
   }
 
+  /// Where an archive is unpacked during a restore.
+  ///
+  /// A subdirectory rather than the `NahpuTemp` root, because siblings there
+  /// belong to other jobs — including the export directory a share sheet may
+  /// still be reading from.
+  Future<Directory> _restoreStagingDir() async {
+    final tempRoot = await tempDirectory;
+    return Directory(p.join(tempRoot.path, _restoreStagingDirName));
+  }
+
   Future<void> _deleteTempDir() async {
     try {
-      final tempDir = await tempDirectory;
+      final tempDir = await _restoreStagingDir();
       if (tempDir.existsSync()) await tempDir.delete(recursive: true);
     } catch (error) {
       if (kDebugMode) print('Error deleting temp dir: $error');

@@ -13,6 +13,7 @@ import 'package:nahpu/services/export/db_writer.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -27,6 +28,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   DbArchiveFormat _format = DbArchiveFormat.tarGzip;
   final _fileNameController = TextEditingController(text: 'backup');
   String _fileStem = 'backup';
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   bool _appendDate = false;
   DbBackupSummary? _summary;
@@ -115,6 +117,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
               onClearDir: _clearDestination,
               onShare: () => _shareFile(context),
               onOpenFolder: _openFolder,
+              onSaveCopy: _saveCopy,
               onDismiss: _clearDestination,
             );
             final settingsPane = _isRunning && jobProgress != null
@@ -242,7 +245,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     });
     try {
       final savePath = await AppIOServices(
-        dir: _selectedDir,
+        dir: await _destination.resolve(_selectedDir),
         fileStem: _appendDate
             ? appendDateToFileStem(_fileStem, DateTime.now())
             : _fileStem.trim(),
@@ -349,6 +352,20 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
     }
   }
 
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists
+  /// apps that accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(savePath);
+    } catch (error) {
+      if (mounted) _showError('Unable to save a copy: $error');
+    }
+  }
+
   /// Closing the result puts the screen back where it was before the backup,
   /// directory included, so one tap lands on the directory input rather than
   /// on a filled-in path that needs clearing too.
@@ -364,6 +381,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   }
 
   Future<void> _getDir() async {
+    if (!_destination.canChooseDirectory) return;
     final selected = await FilePickerServices().selectDir();
     if (selected == null || !mounted) return;
     setState(() {

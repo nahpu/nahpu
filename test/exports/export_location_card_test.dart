@@ -3,21 +3,48 @@ import 'dart:io';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
+import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
+  late Directory root;
+
+  setUp(() => root = Directory.systemTemp.createTempSync('nahpu-location-'));
+  tearDown(() async {
+    if (root.existsSync()) await root.delete(recursive: true);
+  });
+
+  File write(String name) =>
+      File(p.join(root.path, name))..writeAsStringSync('x');
+
+  /// A file past the save-copy limit that costs no disk on a sparse
+  /// filesystem, so the oversize branch can be checked without writing 100 MB.
+  File oversize(String name) {
+    final file = File(p.join(root.path, name));
+    final handle = file.openSync(mode: FileMode.write);
+    handle.setPositionSync(FilePickerServices.maxSaveCopyBytes);
+    handle.writeByteSync(0);
+    handle.closeSync();
+    return file;
+  }
+
   Future<void> pumpCard(
     WidgetTester tester, {
-    required bool isDesktop,
+    required ExportDestinationMode mode,
+    required SavedFileAction action,
     File? output,
     Directory? selectedDir,
     VoidCallback? onDismiss,
+    VoidCallback? onSaveCopy,
   }) {
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
             child: ExportLocationCard(
-              isDesktop: isDesktop,
+              destinationMode: mode,
+              savedFileAction: action,
               selectedDir: selectedDir,
               output: output,
               outputBytes: 1717986918,
@@ -26,6 +53,7 @@ void main() {
               onClearDir: () {},
               onShare: () {},
               onOpenFolder: () {},
+              onSaveCopy: onSaveCopy ?? () {},
               onDismiss: onDismiss ?? () {},
             ),
           ),
@@ -46,13 +74,15 @@ void main() {
                 Expanded(
                   child: SingleChildScrollView(
                     child: ExportLocationCard(
-                      isDesktop: true,
+                      destinationMode: ExportDestinationMode.chooseDirectory,
+                      savedFileAction: SavedFileAction.reveal,
                       selectedDir: null,
                       output: output,
                       onSelectDir: () {},
                       onClearDir: () {},
                       onShare: () {},
                       onOpenFolder: () {},
+                      onSaveCopy: () {},
                       onDismiss: () {},
                     ),
                   ),
@@ -78,7 +108,7 @@ void main() {
     testWidgets('offers Share once, and not beside the repeat action', (
       tester,
     ) async {
-      await pumpScreen(tester, output: File('/tmp/nahpu/project.tar.gz'));
+      await pumpScreen(tester, output: write('project.tar.gz'));
 
       expect(find.text('Share'), findsOneWidget);
       expect(find.text('Export another'), findsOneWidget);
@@ -102,7 +132,11 @@ void main() {
     testWidgets('offers a directory to browse before anything is written', (
       tester,
     ) async {
-      await pumpCard(tester, isDesktop: true);
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.reveal,
+      );
 
       expect(find.text('Save to'), findsOneWidget);
       expect(find.text('Browse'), findsOneWidget);
@@ -112,18 +146,40 @@ void main() {
     testWidgets('states the saved file once, with folder and share actions', (
       tester,
     ) async {
+      final output = write('records-2026-08-22.csv');
       await pumpCard(
         tester,
-        isDesktop: true,
-        output: File('/tmp/nahpu/records-2026-08-22.csv'),
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.reveal,
+        selectedDir: root,
+        output: output,
       );
 
       expect(find.text('Saved'), findsOneWidget);
       expect(find.text('records-2026-08-22.csv'), findsOneWidget);
       expect(find.text('1.6 GB in 3 min 42 s'), findsOneWidget);
-      expect(find.text('/tmp/nahpu/records-2026-08-22.csv'), findsOneWidget);
+      expect(find.text(output.path), findsOneWidget);
       expect(find.text('Share'), findsOneWidget);
       expect(find.text('Open directory'), findsOneWidget);
+      expect(find.text('Save to device'), findsNothing);
+    });
+
+    testWidgets('describes app storage rather than printing its path', (
+      tester,
+    ) async {
+      // Nothing was browsed, so the file sits in an app-private directory
+      // whose path would only mislead. The card says so instead.
+      final output = write('records.csv');
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.reveal,
+        output: output,
+      );
+
+      expect(find.text('Saved'), findsOneWidget);
+      expect(find.textContaining('Saved in NAHPU app storage'), findsOneWidget);
+      expect(find.text(output.path), findsNothing);
     });
 
     testWidgets('closing the result asks the screen to clear the destination', (
@@ -132,13 +188,66 @@ void main() {
       var dismissed = 0;
       await pumpCard(
         tester,
-        isDesktop: true,
-        output: File('/tmp/nahpu/records.csv'),
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.reveal,
+        output: write('records.csv'),
         onDismiss: () => dismissed++,
       );
 
       await tester.tap(find.byTooltip('Hide save location'));
       expect(dismissed, 1);
+    });
+  });
+
+  group('Android', () {
+    testWidgets('browses for a folder but cannot reveal one', (tester) async {
+      // A file:// intent is blocked from API 24 on, so the saved file is
+      // reachable through the system save dialog instead.
+      final output = write('records.csv');
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.saveCopy,
+        selectedDir: root,
+        output: output,
+      );
+
+      expect(find.text('Saved'), findsOneWidget);
+      expect(find.text(output.path), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
+      expect(find.text('Save to device'), findsOneWidget);
+      expect(find.text('Open directory'), findsNothing);
+    });
+
+    testWidgets('Save to device reaches the screen', (tester) async {
+      var saved = 0;
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.saveCopy,
+        output: write('records.csv'),
+        onSaveCopy: () => saved++,
+      );
+
+      await tester.tap(find.text('Save to device'));
+
+      expect(saved, 1);
+    });
+
+    testWidgets('explains itself instead of offering an impossible save', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.chooseDirectory,
+        action: SavedFileAction.saveCopy,
+        output: oversize('media.tar.gz'),
+      );
+
+      expect(find.text('Share'), findsOneWidget);
+      expect(find.text('Save to device'), findsNothing);
+      expect(find.textContaining('Too large to save'), findsOneWidget);
+      expect(find.textContaining('100 MB'), findsOneWidget);
     });
   });
 
@@ -161,13 +270,15 @@ void main() {
                 output = null;
               });
               return ExportLocationCard(
-                isDesktop: true,
+                destinationMode: ExportDestinationMode.chooseDirectory,
+                savedFileAction: SavedFileAction.reveal,
                 selectedDir: selectedDir,
                 output: output,
                 onSelectDir: () {},
                 onClearDir: clearDestination,
                 onShare: () {},
                 onOpenFolder: () {},
+                onSaveCopy: () {},
                 onDismiss: clearDestination,
               );
             },
@@ -186,36 +297,48 @@ void main() {
     expect(find.text('/Users/someone/Downloads'), findsNothing);
   });
 
-  group('mobile', () {
-    testWidgets('names app storage instead of offering a picker', (
+  group('iOS', () {
+    testWidgets('names the temporary destination instead of a picker', (
       tester,
     ) async {
-      await pumpCard(tester, isDesktop: false);
-
-      expect(find.text('NAHPU app storage'), findsOneWidget);
-      expect(find.text('Browse'), findsNothing);
-      expect(find.textContaining('device storage'), findsOneWidget);
-    });
-
-    testWidgets('leads with Share and points at local storage', (tester) async {
       await pumpCard(
         tester,
-        isDesktop: false,
-        output: File('/tmp/nahpu/records.csv'),
+        mode: ExportDestinationMode.temporary,
+        action: SavedFileAction.none,
       );
 
-      // Exactly one Share, on the button, and no desktop-only affordances.
+      expect(find.text('Share after export'), findsOneWidget);
+      expect(find.text('Browse'), findsNothing);
+      expect(
+        find.textContaining('only until your next export'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('leads with Share and warns the file will not last', (
+      tester,
+    ) async {
+      final output = write('records.csv');
+      await pumpCard(
+        tester,
+        mode: ExportDestinationMode.temporary,
+        action: SavedFileAction.none,
+        output: output,
+      );
+
+      // Exactly one Share, on the button, and no second action of any kind.
       expect(find.text('Share'), findsOneWidget);
       expect(find.text('Export complete'), findsOneWidget);
       expect(find.text('Saved'), findsNothing);
       expect(find.text('Open directory'), findsNothing);
+      expect(find.text('Save to device'), findsNothing);
       expect(
-        find.textContaining('save this file to your device storage'),
+        find.textContaining('removes it when you export again'),
         findsOneWidget,
       );
       // The full path means nothing on a phone; the file name does.
       expect(find.text('records.csv'), findsOneWidget);
-      expect(find.text('/tmp/nahpu/records.csv'), findsNothing);
+      expect(find.text(output.path), findsNothing);
     });
   });
 }

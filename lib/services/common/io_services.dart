@@ -36,6 +36,9 @@
 /// Temporary Directory:
 /// <system_temp_dir>/
 /// └── NahpuTemp/                         # Temporary/caching directory (`nahpuTempDir`)
+///     ├── exports/                       # Share-only exports (`nahpuTempExportDirName`),
+///     │                                  # emptied at the start of every export
+///     └── <job>-<timestamp>/             # Per-job staging (backup, bundle, transfer)
 /// ```
 library;
 
@@ -43,6 +46,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mime/mime.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/associated_data.dart';
@@ -65,6 +69,7 @@ const String associatedDataSitesDir = 'sites';
 const String associatedDataEventsDir = 'events';
 const String associatedDataSpecimensDir = 'specimens';
 const String nahpuTempDir = 'NahpuTemp';
+const String nahpuTempExportDirName = 'exports';
 const String userConfigDirName = 'UserConfigs';
 const String userFontDirName = 'fonts';
 const String userMapDirName = 'maps';
@@ -108,16 +113,33 @@ Future<List<XFile>> _defaultOpenFiles({
   );
 }
 
+typedef SelectDirPathCallback = Future<String?> Function();
+
+/// Asks the platform for a folder, and returns its path.
+///
+/// Mobile goes through `file_picker`. Its Android implementation opens the
+/// Storage Access Framework tree picker and resolves the picked tree to a real
+/// filesystem path, covering the Downloads provider and removable volumes that
+/// `file_selector` rejects outright. Desktop stays on `file_selector`, which
+/// already hands back a plain path.
+Future<String?> _defaultSelectDirPath() {
+  return Platform.isIOS || Platform.isAndroid
+      ? FilePicker.getDirectoryPath()
+      : getDirectoryPath();
+}
+
 class FilePickerServices {
   factory FilePickerServices({
     OpenFilesCallback openFiles = _defaultOpenFiles,
+    SelectDirPathCallback selectDirPath = _defaultSelectDirPath,
   }) {
-    return FilePickerServices._(openFiles);
+    return FilePickerServices._(openFiles, selectDirPath);
   }
 
-  FilePickerServices._(this._openFiles);
+  FilePickerServices._(this._openFiles, this._selectDirPath);
 
   final OpenFilesCallback _openFiles;
+  final SelectDirPathCallback _selectDirPath;
 
   Future<void> shareFile(BuildContext context, File file) async {
     final box = context.findRenderObject() as RenderBox?;
@@ -129,6 +151,48 @@ class FilePickerServices {
             : box.localToGlobal(Offset.zero) & box.size,
       ),
     );
+  }
+
+  /// Largest export that can go through the system "Save to..." dialog.
+  ///
+  /// [FilePicker.saveFile] takes the whole file as a `Uint8List` and copies it
+  /// across the method channel, so peak usage is roughly twice the file size.
+  /// Above this the directory picker is the right path: it streams to disk.
+  static const int maxSaveCopyBytes = 100 * 1024 * 1024;
+
+  /// Whether [saveCopyToDevice] can handle [file].
+  bool canSaveCopyOf(File file) {
+    if (!file.existsSync()) return false;
+    return file.lengthSync() <= maxSaveCopyBytes;
+  }
+
+  /// Whether [file] is too big for [saveCopyToDevice], as opposed to simply
+  /// not being there.
+  ///
+  /// The distinction matters to the UI: only a file that exists and is over
+  /// the limit has earned an explanation of why the action is missing.
+  bool exceedsSaveCopyLimit(File file) {
+    if (!file.existsSync()) return false;
+    return file.lengthSync() > maxSaveCopyBytes;
+  }
+
+  /// Opens the system "Save to..." dialog so the user can put a copy of [file]
+  /// wherever they like.
+  ///
+  /// This is how Android reaches the Files app. Its share sheet is
+  /// `ACTION_SEND`, which only lists apps that accept a file, so sharing alone
+  /// leaves an export the user cannot file away; the save dialog is
+  /// `ACTION_CREATE_DOCUMENT`, and writes through the content resolver rather
+  /// than a raw path, so scoped storage never rejects it.
+  ///
+  /// Returns false when the user cancels.
+  Future<bool> saveCopyToDevice(File file) async {
+    final saved = await FilePicker.saveFile(
+      fileName: path.basename(file.path),
+      bytes: await file.readAsBytes(),
+      mimeType: lookupMimeType(file.path) ?? 'application/octet-stream',
+    );
+    return saved != null;
   }
 
   /// Opens the folder a saved file went into, in the system file browser.
@@ -154,17 +218,16 @@ class FilePickerServices {
     );
   }
 
+  /// Lets the user pick a destination folder on every platform.
   Future<Directory?> selectDir() async {
-    final result = Platform.isIOS
-        ? await FilePicker.getDirectoryPath()
-        : await getDirectoryPath();
-    if (result != null) {
-      if (kDebugMode) {
-        print('Selected directory: $result');
-      }
-      return Directory(result);
+    final result = await _selectDirPath();
+    if (result == null) {
+      return null;
     }
-    return null;
+    if (kDebugMode) {
+      print('Selected directory: $result');
+    }
+    return _isOpenablePath(result) ? Directory(result) : null;
   }
 
   Future<XFile?> selectAnyFile() async {
@@ -199,6 +262,13 @@ class FilePickerServices {
   Future<List<XFile>> pickMultiFiles(List<XTypeGroup> allowedExtension) async {
     return await _openFiles(acceptedTypeGroups: allowedExtension);
   }
+
+  /// Whether [candidate] is something `dart:io` can actually open.
+  ///
+  /// Android answers with a Storage Access Framework tree URI when the picked
+  /// folder has no filesystem path. Wrapping one in a [Directory] only defers
+  /// the failure to the first write, so treat it as no selection instead.
+  bool _isOpenablePath(String candidate) => !candidate.startsWith('content://');
 }
 
 class AppIOServices {
@@ -365,12 +435,7 @@ class AppServices {
 
   String get currentProjectUuid => ref.read(projectUuidProvider);
 
-  Future<Directory> get tempDirectory async {
-    final Directory tempDir = await getTemporaryDirectory();
-    final nahpuTemp = Directory(path.join(tempDir.path, nahpuTempDir));
-    await nahpuTemp.create(recursive: true);
-    return nahpuTemp;
-  }
+  Future<Directory> get tempDirectory => nahpuTemporaryDir;
 
   Directory getMediaDir(MediaCategory category) {
     switch (category) {
@@ -438,6 +503,17 @@ Future<Directory> getTemplateMediaDirectory() async {
   );
   await templateMediaDir.create(recursive: true);
   return templateMediaDir;
+}
+
+/// `<system temp>/NahpuTemp/`, created on demand.
+///
+/// Free-standing twin of [AppServices.tempDirectory], for services that have
+/// no [WidgetRef].
+Future<Directory> get nahpuTemporaryDir async {
+  final tempDir = await getTemporaryDirectory();
+  final nahpuTemp = Directory(path.join(tempDir.path, nahpuTempDir));
+  await nahpuTemp.create(recursive: true);
+  return nahpuTemp;
 }
 
 Future<Directory> get nahpuDocumentDir async {

@@ -125,6 +125,34 @@ void main() {
       expect(await TemplateEditorService().copyPickedImageToLogos(), isNull);
     },
   );
+
+  test('directory selection returns the picked folder', () async {
+    final picked = Directory(path.join(appDocumentsDirectory.path, 'exports'))
+      ..createSync();
+    final services = FilePickerServices(selectDirPath: () async => picked.path);
+
+    final selected = await services.selectDir();
+
+    expect(selected?.path, picked.path);
+  });
+
+  test(
+    'directory selection returns null when the picker is canceled',
+    () async {
+      final services = FilePickerServices(selectDirPath: () async => null);
+
+      expect(await services.selectDir(), isNull);
+    },
+  );
+
+  test('directory selection rejects an unresolved Android tree URI', () async {
+    final services = FilePickerServices(
+      selectDirPath: () async =>
+          'content://com.android.externalstorage.documents/tree/primary%3ADownload',
+    );
+
+    expect(await services.selectDir(), isNull);
+  });
 }
 
 final class _FakeFilePickerPlatform extends FilePickerPlatform {

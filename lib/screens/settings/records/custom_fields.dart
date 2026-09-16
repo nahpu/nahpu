@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/common.dart';
@@ -12,7 +14,9 @@ import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/custom_fields/custom_field_order.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -50,6 +54,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
     length: 2,
     vsync: this,
   );
+  final ExportDestinationService _destination = ExportDestinationService();
   late FieldUISection? _placement = widget.initialPlacement;
   int? _selectedId;
   bool _isCreating = false;
@@ -358,11 +363,22 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
     }
   }
 
+  /// Exports the selected definitions, asking for a folder only where one can
+  /// be honoured.
+  ///
+  /// This screen has no result card to hang Share off, so it performs the
+  /// platform's own follow-up action itself: on iOS the file is temporary and
+  /// only reaches the user through Share, and on Android an app-private path
+  /// is not worth printing in a snackbar.
   Future<void> _exportFile(Set<int> definitionIds) async {
-    final directory = await FilePickerServices().selectDir();
-    if (directory == null) return;
+    Directory? picked;
+    if (_destination.canChooseDirectory) {
+      picked = await FilePickerServices().selectDir();
+      // An explicit cancel still means "not now".
+      if (picked == null) return;
+    }
     final output = await AppIOServices(
-      dir: directory,
+      dir: await _destination.resolve(picked),
       fileStem: 'nahpu-custom-fields',
       ext: 'json',
     ).getSavePath();
@@ -375,9 +391,29 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
       selectedDefinitionIds: definitionIds,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Custom fields exported to ${output.path}')),
-    );
+    await _deliverExport(output, picked);
+  }
+
+  Future<void> _deliverExport(File output, Directory? picked) async {
+    switch (_destination.mode) {
+      case ExportDestinationMode.temporary:
+        await FilePickerServices().shareFile(context, output);
+      case ExportDestinationMode.chooseDirectory:
+        if (platformSavedFileAction == SavedFileAction.saveCopy) {
+          await FilePickerServices().saveCopyToDevice(output);
+          return;
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              picked != null
+                  ? 'Custom fields exported to ${output.path}'
+                  : 'Custom fields exported',
+            ),
+          ),
+        );
+    }
   }
 
   Future<void> _showQr(Set<int> definitionIds) async {

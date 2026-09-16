@@ -5,7 +5,7 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -99,6 +99,7 @@ class PresetExportDialog extends StatefulWidget {
 
 class _PresetExportDialogState extends State<PresetExportDialog> {
   late final FileOpCtrModel _exportCtr;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   File? _output;
   bool _appendDate = false;
@@ -214,6 +215,9 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
             isRunning: _isRunning,
             onExport: _exportCtr.isValid ? _export : null,
             onShare: _share,
+            output: _output,
+            onRevealFile: _openFolder,
+            onSaveCopy: _saveCopy,
           ),
         ],
       ),
@@ -225,6 +229,7 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final directory = await FilePickerServices().selectDir();
     if (directory != null && mounted) {
       setState(() {
@@ -246,16 +251,18 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
         fileStem: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text,
-        directory: _selectedDir,
+        directory: await _destination.resolve(_selectedDir),
       );
       if (!mounted) return;
       setState(() => _output = output);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            systemPlatform == PlatformType.desktop
+            // Only a folder the user chose is worth naming; the fallback is a
+            // path they cannot act on.
+            _selectedDir != null
                 ? 'Exported to ${output.path}'
-                : 'Export complete!',
+                : 'Export complete',
           ),
         ),
       );
@@ -272,11 +279,38 @@ class _PresetExportDialogState extends State<PresetExportDialog> {
     try {
       await FilePickerServices().shareFile(context, output);
     } on Object catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
-      }
+      _reportActionFailure(error);
     }
+  }
+
+  Future<void> _openFolder() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(output);
+    } on Object catch (error) {
+      _reportActionFailure(error);
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists apps that
+  /// accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(output);
+    } on Object catch (error) {
+      _reportActionFailure(error);
+    }
+  }
+
+  void _reportActionFailure(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -79,21 +78,6 @@ String fileNameFieldSuffix(
   return extension.isEmpty ? dateSuffix : '$dateSuffix.$extension';
 }
 
-class SaveSecondaryButton extends StatelessWidget {
-  const SaveSecondaryButton({super.key, required this.hasSaved});
-
-  final bool hasSaved;
-  @override
-  Widget build(BuildContext context) {
-    return SecondaryButton(
-      text: hasSaved ? 'Exit' : 'Cancel',
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
-  }
-}
-
 class ErrorText extends StatelessWidget {
   const ErrorText({super.key, required this.error});
 
@@ -102,61 +86,6 @@ class ErrorText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text('Something went wrong: $error');
-  }
-}
-
-class PathNotFoundText extends StatelessWidget {
-  const PathNotFoundText({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text('Select a directory');
-  }
-}
-
-class SelectDirField extends StatelessWidget {
-  const SelectDirField({
-    super.key,
-    required this.dirPath,
-    required this.onPressed,
-    required this.onCanceled,
-  });
-
-  final Directory? dirPath;
-  final VoidCallback onPressed;
-  final VoidCallback onCanceled;
-
-  @override
-  Widget build(BuildContext context) {
-    // return Platform.isIOS || Platform.isAndroid
-    //     ? const SizedBox.shrink()
-    return Row(
-      children: [
-        dirPath != null
-            ? const Icon(Icons.folder_open_outlined)
-            : const SizedBox.shrink(),
-        Expanded(child: Text(_getDirPath(), overflow: TextOverflow.ellipsis)),
-        const SizedBox(width: 8),
-        dirPath == null
-            ? IconButton(
-                icon: const Icon(Icons.folder_outlined),
-                onPressed: onPressed,
-              )
-            : IconButton(
-                onPressed: onCanceled,
-                icon: const Icon(Icons.clear_rounded),
-              ),
-      ],
-    );
-  }
-
-  String _getDirPath() {
-    if (dirPath == null) {
-      return 'Select directory';
-    } else {
-      String lastPath = p.basename(dirPath!.path);
-      return '.../$lastPath';
-    }
   }
 }
 

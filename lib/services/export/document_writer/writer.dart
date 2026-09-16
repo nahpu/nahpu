@@ -15,7 +15,7 @@ class DocumentWriter {
   _DocumentPdfBuilder get _pdfBuilder => _DocumentPdfBuilder(ref: ref, db: _db);
 
   Future<File> _writePdf({
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
     required Future<Uint8List> Function(
@@ -40,7 +40,7 @@ class DocumentWriter {
   /// The generated file name is derived from [fileStem], with collisions handled
   /// by the app IO service.
   Future<File> writeLayout({
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) {
@@ -59,7 +59,7 @@ class DocumentWriter {
   /// before being placed into the configured template blocks.
   Future<File> writeDocuments({
     required List<SpecimenData> picked,
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) {
@@ -82,7 +82,7 @@ class DocumentWriter {
   /// rendering.
   Future<File> writeSites({
     required List<SiteRecord> picked,
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) {
@@ -105,7 +105,7 @@ class DocumentWriter {
   /// personnel values before rendering.
   Future<File> writeEvents({
     required List<CollEventData> picked,
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) {
@@ -128,7 +128,7 @@ class DocumentWriter {
   /// personnel values before rendering.
   Future<File> writeNarratives({
     required List<NarrativeData> picked,
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) {

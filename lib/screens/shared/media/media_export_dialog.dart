@@ -6,7 +6,7 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -90,6 +90,7 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
   final _heightController = TextEditingController();
   MediaExportSource? _source;
   Object? _loadError;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDirectory;
   MediaExportResult? _output;
   MediaExportFormat _format = MediaExportFormat.original;
@@ -210,6 +211,9 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
         isRunning: _isRunning,
         onExport: _canExport ? _export : null,
         onShare: _share,
+        output: _output?.file,
+        onRevealFile: _openFolder,
+        onSaveCopy: _saveCopy,
       ),
     ];
   }
@@ -389,6 +393,7 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final directory = await FilePickerServices().selectDir();
     if (directory != null && mounted) {
       setState(() {
@@ -409,7 +414,7 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
         fileStem: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text,
-        destinationDirectory: _selectedDirectory,
+        destinationDirectory: await _destination.resolve(_selectedDirectory),
         width: _format != MediaExportFormat.original && _resize
             ? int.parse(_widthController.text)
             : null,
@@ -423,9 +428,11 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            systemPlatform == PlatformType.desktop
+            // Only a folder the user chose is worth naming; the fallback is
+            // a path they cannot act on.
+            _selectedDirectory != null
                 ? 'Exported to ${compactMediaExportPath(result.file.path)}'
-                : 'Export complete!',
+                : 'Export complete',
           ),
         ),
       );
@@ -452,6 +459,37 @@ class _MediaExportDialogState extends State<MediaExportDialog> {
         ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
+  }
+
+  Future<void> _openFolder() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(output.file);
+    } catch (error) {
+      _reportActionFailure('open the folder', error);
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists apps that
+  /// accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(output.file);
+    } catch (error) {
+      _reportActionFailure('save a copy', error);
+    }
+  }
+
+  void _reportActionFailure(String what, Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Unable to $what: $error')));
   }
 }
 
