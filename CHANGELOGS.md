@@ -1,5 +1,14 @@
 # Changelog
 
+## Upcoming
+
+- Auto-select coordinates in specimen records when only one coordinate is provided for a site.
+- Fix android export missing on-device directory access in the file picker.
+- Fix junky scrolls when custom field is included.
+- Improve button placements on small screens.
+- Update macOS entitlements.
+- Fix event invalidation in personnel roles.
+
 ## v1.0.1 [2026-09-13]
 
 ### Fixes
