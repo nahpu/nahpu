@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
@@ -460,13 +461,20 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
           END AS label
         FROM taxonomy
         INNER JOIN specimen ON specimen.speciesID = taxonomy.id
-        INNER JOIN coordinate ON coordinate.id = specimen.coordinateID
+        INNER JOIN coordinate
+          ON coordinate.id = $kResolvedSpecimenCoordinateIdSql
         INNER JOIN site ON site.id = coordinate.siteID
         WHERE specimen.projectUuid = ? AND site.projectUuid = ?
         ORDER BY label COLLATE NOCASE ASC
       ''',
       variables: [Variable(projectUuid), Variable(projectUuid)],
-      readsFrom: {db.taxonomy, db.specimen, db.coordinate, db.site},
+      readsFrom: {
+        db.taxonomy,
+        db.specimen,
+        db.collEvent,
+        db.coordinate,
+        db.site,
+      },
     ).watch().map(_mapFilterOptions);
   }
 
@@ -651,7 +659,13 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
     switch (request.kind) {
       case SpatialStatisticKind.specimens:
         sql = _spatialCountSql('COUNT(specimen.uuid)', coordinateColumns);
-        tables = {db.coordinate, db.site, db.geography, db.specimen};
+        tables = {
+          db.coordinate,
+          db.site,
+          db.geography,
+          db.specimen,
+          db.collEvent,
+        };
       case SpatialStatisticKind.species:
         sql = _spatialCountSql(
           'COUNT(DISTINCT $_speciesLabel)',
@@ -663,6 +677,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
           db.site,
           db.geography,
           db.specimen,
+          db.collEvent,
           db.taxonomy,
         };
       case SpatialStatisticKind.family:
@@ -676,6 +691,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
           db.site,
           db.geography,
           db.specimen,
+          db.collEvent,
           db.taxonomy,
         };
       case SpatialStatisticKind.coordinatesBySpecies:
@@ -685,7 +701,13 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
           coordinateColumns,
           specimenCondition: 'AND specimen.speciesID = ?',
         );
-        tables = {db.coordinate, db.site, db.geography, db.specimen};
+        tables = {
+          db.coordinate,
+          db.site,
+          db.geography,
+          db.specimen,
+          db.collEvent,
+        };
     }
 
     variables.add(Variable(request.projectUuid));
@@ -704,7 +726,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         INNER JOIN site ON site.id = coordinate.siteID
         LEFT JOIN geography ON geography.id = site.geographyId
         INNER JOIN specimen
-          ON specimen.coordinateID = coordinate.id
+          ON $kResolvedSpecimenCoordinateIdSql = coordinate.id
           AND specimen.projectUuid = ?
           $specimenCondition
         ${taxonomy ? 'LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID' : ''}

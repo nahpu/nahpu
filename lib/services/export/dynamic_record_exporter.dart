@@ -91,7 +91,7 @@ class DynamicRecordExporter {
     );
     await _getProjectData(data.projectUuid, baseRecord);
     await _getCollEventData(data.collEventID, baseRecord);
-    await _getCoordinateData(data.coordinateID, baseRecord);
+    await _getCoordinateData(data.coordinateID, data.collEventID, baseRecord);
     await _getAttributeData(data.uuid, baseRecord);
 
     final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
@@ -292,15 +292,14 @@ class DynamicRecordExporter {
 
   Future<void> _getCoordinateData(
     int? coordinateID,
+    int? collEventID,
     Map<String, String> record,
   ) async {
-    if (coordinateID != null) {
-      final coord = await CoordinateServices(
-        ref: ref,
-      ).getCoordinateById(coordinateID);
-      if (coord != null) {
-        _addData(record, 'coordinate', coord.toJson());
-      }
+    final coord = await CoordinateServices(
+      ref: ref,
+    ).resolveSpecimenCoordinate(coordinateID, collEventID);
+    if (coord != null) {
+      _addData(record, 'coordinate', coord.toJson());
     }
     final uncertainty = double.tryParse(
       record['coordinate::uncertaintyInMeters'] ?? '',

@@ -308,10 +308,9 @@ class DwcBundleWriter extends AppServices {
       final siteAttribute = site == null
           ? null
           : await SiteServices(ref: ref).getSiteAttribute(site.id);
-      final coordinate = await _coordinateForSpecimen(
-        specimen.coordinateID,
-        event?.siteID,
-      );
+      final coordinate = await CoordinateServices(
+        ref: ref,
+      ).resolveSpecimenCoordinate(specimen.coordinateID, event?.id);
       final taxon = specimen.speciesID == null
           ? null
           : await TaxonomyServices(ref: ref).getTaxonById(specimen.speciesID!);
@@ -684,19 +683,6 @@ class DwcBundleWriter extends AppServices {
       (left, right) => left['package_path']!.compareTo(right['package_path']!),
     );
     return output;
-  }
-
-  Future<CoordinateData?> _coordinateForSpecimen(
-    int? coordinateId,
-    int? siteId,
-  ) async {
-    final coordinates = CoordinateServices(ref: ref);
-    if (coordinateId != null) {
-      return coordinates.getCoordinateById(coordinateId);
-    }
-    if (siteId == null) return null;
-    final siteCoordinates = await coordinates.getCoordinatesBySiteID(siteId);
-    return siteCoordinates.length == 1 ? siteCoordinates.single : null;
   }
 
   Map<String, dynamic> _occurrenceRow({

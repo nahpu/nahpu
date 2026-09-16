@@ -68,6 +68,70 @@ void main() {
     expect(rows.last.count, 1);
   });
 
+  test(
+    'specimens without a coordinate use the single site coordinate',
+    () async {
+      final site = await db
+          .into(db.site)
+          .insert(const SiteCompanion(projectUuid: Value('project-a')));
+      final coordinate = await db
+          .into(db.coordinate)
+          .insert(
+            CoordinateCompanion(
+              decimalLatitude: const Value(7.92),
+              decimalLongitude: const Value(124.84),
+              siteID: Value(site),
+            ),
+          );
+      final event = await db
+          .into(db.collEvent)
+          .insert(
+            CollEventCompanion(
+              projectUuid: const Value('project-a'),
+              siteID: Value(site),
+            ),
+          );
+      final species = await db
+          .into(db.taxonomy)
+          .insert(
+            const TaxonomyCompanion(
+              genus: Value('Apomys'),
+              specificEpithet: Value('insignis'),
+            ),
+          );
+      await db
+          .into(db.specimen)
+          .insert(
+            SpecimenCompanion(
+              uuid: const Value('a-single-site'),
+              projectUuid: const Value('project-a'),
+              speciesID: Value(species),
+              collEventID: Value(event),
+            ),
+          );
+
+      final rows = await query
+          .watchSpatialStatistics(
+            const SpatialStatisticRequest(
+              projectUuid: 'project-a',
+              kind: SpatialStatisticKind.specimens,
+            ),
+          )
+          .first;
+      final options = await query.watchSpatialSpeciesOptions('project-a').first;
+
+      expect(rows, hasLength(3));
+      expect(
+        rows.singleWhere((row) => row.coordinateId == coordinate).count,
+        1,
+      );
+      expect(
+        options.map((option) => option.label),
+        contains('Apomys insignis'),
+      );
+    },
+  );
+
   test('species and family counts are distinct at each coordinate', () async {
     final species = await query
         .watchSpatialStatistics(

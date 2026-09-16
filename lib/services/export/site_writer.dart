@@ -142,12 +142,14 @@ class SiteWriterServices extends AppServices {
     CoordinateData? data = await CoordinateServices(
       ref: ref,
     ).getCoordinateById(coordinateId);
+    return formatCoordinate(data);
+  }
+
+  List<String> formatCoordinate(CoordinateData? data) {
     if (data == null) {
       return [''];
-    } else {
-      List<String> coordinates = _getCoordinateData(data);
-      return coordinates;
     }
+    return _getCoordinateData(data);
   }
 
   List<String> _getCoordinateData(CoordinateData data) {

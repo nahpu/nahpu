@@ -244,6 +244,25 @@ class CoordinateServices extends AppServices {
     return CoordinateQuery(dbAccess).getCoordinateById(coordinateId);
   }
 
+  Future<CoordinateData?> resolveSpecimenCoordinate(
+    int? coordinateId,
+    int? collEventId,
+  ) async {
+    return CoordinateQuery(
+      dbAccess,
+    ).resolveSpecimenCoordinate(coordinateId, collEventId);
+  }
+
+  Future<int?> coordinateIdForEvent(
+    int? collEventId, {
+    int? currentCoordinateId,
+  }) async {
+    return CoordinateQuery(dbAccess).coordinateIdForEvent(
+      collEventId,
+      currentCoordinateId: currentCoordinateId,
+    );
+  }
+
   Future<int> createCoordinate(CoordinateCompanion form) async {
     return await CoordinateQuery(dbAccess).createCoordinate(form);
   }

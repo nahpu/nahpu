@@ -3,6 +3,7 @@ import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 
 class CollectingRecordWriterServices extends AppServices {
   const CollectingRecordWriterServices({required super.ref});
@@ -21,7 +22,10 @@ class CollectingRecordWriterServices extends AppServices {
     String collectionTime = data.collectionTime ?? '';
     String prepDate = data.prepDate ?? '';
     String prepTime = data.prepTime ?? '';
-    String specimenCoordinate = await _getSiteCoordinate(data.coordinateID);
+    String specimenCoordinate = await _getSiteCoordinate(
+      data.coordinateID,
+      data.collEventID,
+    );
     return [
       specimenUuid,
       cataloger.name,
@@ -79,14 +83,13 @@ class CollectingRecordWriterServices extends AppServices {
     }
   }
 
-  Future<String> _getSiteCoordinate(int? coordinateId) async {
-    if (coordinateId == null) {
+  Future<String> _getSiteCoordinate(int? coordinateId, int? collEventId) async {
+    final coordinate = await CoordinateServices(
+      ref: ref,
+    ).resolveSpecimenCoordinate(coordinateId, collEventId);
+    if (coordinate == null) {
       return '';
-    } else {
-      List<String> coordinate = await SiteWriterServices(
-        ref: ref,
-      ).getCoordinateById(coordinateId);
-      return coordinate.join();
     }
+    return SiteWriterServices(ref: ref).formatCoordinate(coordinate).join();
   }
 }

@@ -12,6 +12,8 @@ import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/sites/coordinate_format.dart';
+import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 
 class CaptureRecordFields extends ConsumerStatefulWidget {
@@ -98,6 +100,10 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
                   ),
                 ),
           CoordinateField(
+            key: ValueKey((
+              widget.specimenCtr.collEventIDCtr,
+              widget.specimenCtr.coordinateCtr,
+            )),
             specimenUuid: widget.specimenUuid,
             specimenCtr: widget.specimenCtr,
           ),
@@ -277,7 +283,8 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
                       child: const Text(
                         'Except for capture date and time,'
                         ' all fields in the collecting record section'
-                        ' will be empty again.',
+                        ' will be empty again. The coordinate is kept'
+                        ' when it belongs to the same site.',
                       ),
                     ),
                     actions: [
@@ -336,15 +343,25 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
 
   Future<void> _updateSpecimen(int? newValue) async {
     try {
+      final coordinateId = await CoordinateServices(ref: ref)
+          .coordinateIdForEvent(
+            newValue,
+            currentCoordinateId: widget.specimenCtr.coordinateCtr,
+          );
       await SpecimenServices(ref: ref).updateSpecimen(
         widget.specimenUuid,
         SpecimenCompanion(
           collEventID: db.Value(newValue),
           collMethodID: const db.Value(null),
           collPersonnelID: const db.Value(null),
-          coordinateID: const db.Value(null),
+          coordinateID: db.Value(coordinateId),
         ),
       );
+      widget.specimenCtr.collEventIDCtr = newValue;
+      widget.specimenCtr.coordinateCtr = coordinateId;
+      if (mounted) {
+        widget.onSiteChanged(siteIDctr);
+      }
     } catch (e) {
       if (context.mounted) {
         _showError(e.toString());
@@ -564,10 +581,11 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
   Widget build(BuildContext context) {
     return CommonPadding(
       child: DropdownButtonFormField<int?>(
+        isExpanded: true,
         initialValue: widget.specimenCtr.coordinateCtr,
         decoration: const InputDecoration(
           labelText: 'Coordinate ID',
-          hintText: 'Choose a method type',
+          hintText: 'Choose a coordinate',
         ),
         items: widget.specimenCtr.collEventIDCtr != null
             ? ref
@@ -582,7 +600,7 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
                         return DropdownMenuItem(
                           value: coordinate.id,
                           child: CommonDropdownText(
-                            text: coordinate.nameId ?? '',
+                            text: coordinateLabel(coordinate),
                           ),
                         );
                       }).toList();
