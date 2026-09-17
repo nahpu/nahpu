@@ -1,6 +1,8 @@
 # Changelog
 
-## Upcoming
+## v1.0.2 [2026-09-17]
+
+### Fixes
 
 - Auto-select coordinates in specimen records when only one coordinate is provided for a site.
 - Fix android export missing on-device directory access in the file picker.
