@@ -9,13 +9,17 @@ permissions:
   contents: read
 
 jobs:
+  # Windows is distributed solely through the Microsoft Store and is therefore
+  # not built here.
+  #
+  # Pinned to ubuntu-22.04 rather than ubuntu-latest so every Linux artifact
+  # shares a glibc 2.35 floor. Building on 24.04 would bind the tarball and the
+  # packages to glibc 2.39, which fails at launch on Ubuntu 22.04, Debian 12,
+  # and RHEL 9 with a loader error rather than a dependency error.
   release:
     permissions:
       contents: write
-    strategy:
-      matrix:
-        os: ["windows-latest", "ubuntu-latest"]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6
@@ -37,36 +41,62 @@ jobs:
         run: rustup show active-toolchain
 
       - name: Build Linux
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
           flutter build linux --release
 
-      - name: Build Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          flutter build windows --release
+      # cargo's release profile keeps debug info, so the library arrives at
+      # roughly 45 MB. Strip before it is copied into any artifact.
+      - name: Strip the Rust library
+        run: strip --strip-unneeded build/linux/x64/release/bundle/lib/librust_lib_nahpu.so
 
       - name: Compress Linux
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           echo "Compressing files..."
           mkdir nahpu
-          mv build/linux/x64/release/bundle/* nahpu
+          cp -r build/linux/x64/release/bundle/* nahpu
           tar -czvf nahpu.tar.gz nahpu
 
-      - name: Compress Windows
-        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Resolve package version
         run: |
-          echo "Creating folder..."
-          mkdir nahpu
-          echo "Compressing files..."
-          mv build\windows\x64\runner\Release\* nahpu
-          powershell Compress-Archive -Path nahpu -DestinationPath nahpu.zip
+          echo "NAHPU_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          echo "NAHPU_BUILD_NUMBER=$(awk -F'+' '/^version:/ {print $2; exit}' pubspec.yaml)" >> "$GITHUB_ENV"
 
-      - name: Upload Linux
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: Install nfpm
+        env:
+          NFPM_VERSION: "2.47.0"
+        run: |
+          curl -sSfL -o /tmp/nfpm.deb \
+            "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_amd64.deb"
+          sudo dpkg -i /tmp/nfpm.deb
+
+      # nfpm reads the armored private key directly and does not need gpg, so
+      # the key only has to reach the filesystem. Use an RSA key: nfpm signs
+      # with ed25519 too, but older rpm builds cannot verify EdDSA signatures.
+      - name: Stage the RPM signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          umask 077
+          printf '%s' "$GPG_PRIVATE_KEY" > "${RUNNER_TEMP}/nahpu-signing.asc"
+          echo "NFPM_RPM_SIGNING_KEY=${RUNNER_TEMP}/nahpu-signing.asc" >> "$GITHUB_ENV"
+
+      - name: Build deb and rpm
+        env:
+          NFPM_RPM_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          mkdir -p dist
+          nfpm package -f packaging/nfpm.yaml -p deb \
+            -t "dist/nahpu_${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}_amd64.deb"
+          nfpm package -f packaging/nfpm.yaml -p rpm \
+            -t "dist/nahpu-${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}.x86_64.rpm"
+
+      - name: Remove the RPM signing key
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/nahpu-signing.asc"
+
+      - name: Upload Linux tarball
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -74,13 +104,20 @@ jobs:
           asset_name: nahpu-Linux-x86_64.tar.gz
           tag: ${{ github.ref_name }}
 
-      - name: Upload Windows
-        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Upload deb
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: nahpu.zip
-          asset_name: nahpu-Windows-x86_64.zip
+          file: dist/*.deb
+          file_glob: true
+          tag: ${{ github.ref_name }}
+
+      - name: Upload rpm
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/*.rpm
+          file_glob: true
           tag: ${{ github.ref_name }}
 
   # Snapcraft builds in its own LXD container, which brings its own Flutter

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=NAHPU
+GenericName=Specimen Catalog
+Comment=A digital cataloging app for natural history specimens
+Exec=nahpu
+Icon=com.hhandika.nahpu
+Terminal=false
+StartupNotify=true
+StartupWMClass=com.hhandika.nahpu
+Categories=Science;Biology;
+Keywords=specimen;museum;collection;natural history;catalog;biodiversity;taxonomy;field;

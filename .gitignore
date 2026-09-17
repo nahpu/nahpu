@@ -61,6 +61,11 @@ coverage/
 /prime/
 *.snap
 
+# Linux packages (nfpm output)
+/dist/
+*.deb
+*.rpm
+
 *.jks
 
 keys/
