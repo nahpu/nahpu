@@ -33,6 +33,10 @@
     </ul>
   </description>
 
+  <!-- The deb and rpm install com.hhandika.nahpu.desktop; snapcraft
+       mangles the same entry to nahpu_nahpu.desktop. AppStream allows
+       several launchables, so one metainfo file serves all three. -->
+  <launchable type="desktop-id">com.hhandika.nahpu.desktop</launchable>
   <launchable type="desktop-id">nahpu_nahpu.desktop</launchable>
 
   <developer id="app.nahpu">

@@ -1,0 +1,104 @@
+# nFPM configuration for the NAHPU Linux .deb and .rpm packages.
+# See https://nfpm.goreleaser.com. Build both with packaging/build.sh, or in CI
+# via .github/workflows/release.yml.
+#
+# yaml-language-server: $schema=https://nfpm.goreleaser.com/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+name: nahpu
+arch: amd64
+platform: linux
+
+# NAHPU_VERSION is the release tag without its leading "v" (1.0.1, 1.0.2-rc.1);
+# NAHPU_BUILD_NUMBER is the pubspec build number after the "+" (103). Splitting
+# them this way keeps a pubspec version such as 1.0.1+103 expressible as a plain
+# upstream version plus a package revision in both formats.
+version: ${NAHPU_VERSION}
+release: ${NAHPU_BUILD_NUMBER}
+
+section: science
+priority: optional
+maintainer: "NAHPU Team <hhandika@ufl.edu>"
+vendor: "NAHPU Team"
+homepage: "https://nahpu.app/"
+license: "MIT"
+
+# nFPM defaults to 0o002, which leaves every packaged file and directory
+# group-writable. Package contents should not be.
+umask: 0o022
+description: |
+  A digital cataloging app for natural history specimens.
+  NAHPU (NAtural History Project Utility), loosely named after the Greater
+  Malay Chevrotain, Tragulus napu, is a field cataloging application for
+  natural history collections.
+  .
+  NAHPU records specimens, collecting events, sites, narratives, and media in
+  a single project database, and exports to Darwin Core, CSV, and printable
+  labels and catalog sheets. It supports mammalogy, ornithology, herpetology,
+  and invertebrate zoology collections, works fully offline in the field, and
+  keeps every project in a self-contained file you own.
+
+contents:
+  # The runner is linked with RPATH $ORIGIN/lib and locates data/ through
+  # /proc/self/exe, so the bundle has to be installed as one intact tree and
+  # reached through a symlink. Splitting it across /usr/bin and /usr/lib, or
+  # copying the executable instead of linking it, breaks library resolution.
+  - src: ./build/linux/x64/release/bundle
+    dst: /opt/nahpu
+    type: tree
+  - src: /opt/nahpu/nahpu
+    dst: /usr/bin/nahpu
+    type: symlink
+
+  - src: ./packaging/com.hhandika.nahpu.desktop
+    dst: /usr/share/applications/com.hhandika.nahpu.desktop
+  - src: ./packaging/com.hhandika.nahpu.metainfo.xml
+    dst: /usr/share/metainfo/com.hhandika.nahpu.metainfo.xml
+  # Shared with snapcraft, which points its own `icon:` at the same file.
+  - src: ./snap/gui/nahpu.png
+    dst: /usr/share/icons/hicolor/512x512/apps/com.hhandika.nahpu.png
+  - src: ./LICENSE
+    dst: /usr/share/doc/nahpu/copyright
+
+scripts:
+  postinstall: ./packaging/scripts/postinstall.sh
+  postremove: ./packaging/scripts/postremove.sh
+
+# Everything under /opt/nahpu/lib is private to the bundle and resolved through
+# $ORIGIN, so only the system libraries the runner links directly are declared.
+overrides:
+  deb:
+    depends:
+      # The t64 rename landed in Ubuntu 24.04 and Debian 13; the alternation
+      # keeps one .deb installable across both naming eras.
+      - libgtk-3-0 | libgtk-3-0t64
+      - libglib2.0-0 | libglib2.0-0t64
+      - libstdc++6
+      - zlib1g
+      # record_linux shells out to `parecord` and `ffmpeg` by bare name.
+      - ffmpeg
+      - pulseaudio-utils
+    recommends:
+      # url_launcher_linux and share_plus call xdg-open.
+      - xdg-utils
+  rpm:
+    depends:
+      - gtk3
+      - glib2
+      - libstdc++
+    # ffmpeg proper lives in RPM Fusion rather than Fedora, and the media
+    # package names diverge across Fedora, RHEL, and openSUSE. Declaring these
+    # weakly keeps the .rpm installable everywhere while still pulling them in
+    # wherever dnf or zypper can resolve them.
+    recommends:
+      - ffmpeg-free
+      - pulseaudio-utils
+      - xdg-utils
+
+rpm:
+  group: Applications/Productivity
+  summary: A digital cataloging app for natural history specimens
+  signature:
+    # Unset NFPM_RPM_SIGNING_KEY to build an unsigned .rpm locally. The key's
+    # passphrase is read from $NFPM_RPM_PASSPHRASE.
+    key_file: ${NFPM_RPM_SIGNING_KEY}

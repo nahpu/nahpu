@@ -182,7 +182,7 @@ parts:
       # on core24, so the Rust library arrives at roughly 45 MB.
       strip --strip-unneeded "${CRAFT_PART_INSTALL}/bin/lib/librust_lib_nahpu.so"
 
-      install -Dm644 snap/local/com.hhandika.nahpu.metainfo.xml \
+      install -Dm644 packaging/com.hhandika.nahpu.metainfo.xml \
         "${CRAFT_PART_INSTALL}/usr/share/metainfo/com.hhandika.nahpu.metainfo.xml"
 
       # Fail loudly if the native assets or Flutter assets did not land.
