@@ -87,10 +87,11 @@ jobs:
           NFPM_RPM_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mkdir -p dist
-          nfpm package -f packaging/nfpm.yaml -p deb \
-            -t "dist/nahpu_${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}_amd64.deb"
-          nfpm package -f packaging/nfpm.yaml -p rpm \
-            -t "dist/nahpu-${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}.x86_64.rpm"
+          # Stable filenames so the docs can link through
+          # releases/latest/download/. The version stays in the package
+          # metadata, where dpkg -I and rpm -qip report it.
+          nfpm package -f packaging/nfpm.yaml -p deb -t dist/nahpu-Linux-x86_64.deb
+          nfpm package -f packaging/nfpm.yaml -p rpm -t dist/nahpu-Linux-x86_64.rpm
 
       - name: Remove the RPM signing key
         if: always()
@@ -108,16 +109,16 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*.deb
-          file_glob: true
+          file: dist/nahpu-Linux-x86_64.deb
+          asset_name: nahpu-Linux-x86_64.deb
           tag: ${{ github.ref_name }}
 
       - name: Upload rpm
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*.rpm
-          file_glob: true
+          file: dist/nahpu-Linux-x86_64.rpm
+          asset_name: nahpu-Linux-x86_64.rpm
           tag: ${{ github.ref_name }}
 
   # Snapcraft builds in its own LXD container, which brings its own Flutter

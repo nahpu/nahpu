@@ -31,10 +31,10 @@ export NAHPU_VERSION="${NAHPU_VERSION:-${pubspec_version%%+*}}"
 export NAHPU_BUILD_NUMBER="${NAHPU_BUILD_NUMBER:-${pubspec_version##*+}}"
 export NFPM_RPM_SIGNING_KEY="${NFPM_RPM_SIGNING_KEY:-}"
 
+# Stable filenames, matching the release workflow and the download links on
+# nahpu.app. The version stays in the package metadata.
 mkdir -p dist
-nfpm package -f packaging/nfpm.yaml -p deb \
-    -t "dist/nahpu_${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}_amd64.deb"
-nfpm package -f packaging/nfpm.yaml -p rpm \
-    -t "dist/nahpu-${NAHPU_VERSION}-${NAHPU_BUILD_NUMBER}.x86_64.rpm"
+nfpm package -f packaging/nfpm.yaml -p deb -t dist/nahpu-Linux-x86_64.deb
+nfpm package -f packaging/nfpm.yaml -p rpm -t dist/nahpu-Linux-x86_64.rpm
 
 ls -lh dist

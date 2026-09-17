@@ -23,8 +23,11 @@ flutter build linux --release
 packaging/build.sh
 ```
 
-Packages land in `dist/`. `build.sh` derives the version from `pubspec.yaml`: `1.0.1+103` becomes
-version `1.0.1`, package revision `103`.
+Packages land in `dist/` as `nahpu-Linux-x86_64.deb` and `nahpu-Linux-x86_64.rpm`. The filenames are
+deliberately stable — nahpu.app links to them through `releases/latest/download/`, which cannot
+resolve a versioned name. The version itself lives in the package metadata, where `dpkg -I` and
+`rpm -qip` report it; `build.sh` derives it from `pubspec.yaml`, so `1.0.1+103` becomes version
+`1.0.1`, package revision `103`.
 
 To build a signed `.rpm`, point `NFPM_RPM_SIGNING_KEY` at an ASCII-armored private key and put its
 passphrase in `NFPM_RPM_PASSPHRASE`. With both unset the `.rpm` is simply unsigned.
