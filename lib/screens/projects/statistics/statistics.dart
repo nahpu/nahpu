@@ -424,7 +424,7 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
 }
 
 class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
-  static const _detailedStatisticsCardHeight = 960.0;
+  static const _exploreStatisticsCardHeight = 960.0;
 
   _StatisticView _view = _StatisticView.summary;
   _DetailSection _detailSection = _DetailSection.counts;
@@ -497,9 +497,9 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                       label: Text('Summary'),
                     ),
                     ButtonSegment(
-                      value: _StatisticView.detailed,
+                      value: _StatisticView.explore,
                       icon: Icon(Icons.analytics_outlined),
-                      label: Text('Detailed'),
+                      label: Text('Explore'),
                     ),
                   ],
                   selected: {_view},
@@ -556,16 +556,16 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             SpatialStatisticsPanel(
                               projectUuid: projectUuid,
                               projectName: projectName,
-                              height: _detailedStatisticsCardHeight,
+                              height: _exploreStatisticsCardHeight,
                             )
                           else
                             Card(
                               clipBehavior: Clip.antiAlias,
                               child: SizedBox(
                                 key: const ValueKey(
-                                  'detailed-statistics-content',
+                                  'explore-statistics-content',
                                 ),
-                                height: _detailedStatisticsCardHeight,
+                                height: _exploreStatisticsCardHeight,
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
@@ -842,14 +842,14 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     });
   }
 
-  /// Opens the detailed counts on [selection], as picked from a summary card.
+  /// Opens the Explore counts on [selection], as picked from a summary card.
   void _exploreSelection(StatisticSelection selection) {
     setState(() {
       _measure = selection.measure;
       _group = selection.group;
       _rank = selection.rank ?? _rank;
       _breakdown = selection.breakdown;
-      _view = _StatisticView.detailed;
+      _view = _StatisticView.explore;
       _detailSection = _DetailSection.counts;
     });
   }
@@ -1310,7 +1310,10 @@ class _StatisticSummaryCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                TextButton(onPressed: onExplore, child: const Text('Explore')),
+                TextButton(
+                  onPressed: onExplore,
+                  child: const Text('View details'),
+                ),
               ],
             ),
             SizedBox(
@@ -1560,9 +1563,9 @@ const _summaryDefinitions = [
 ];
 
 /// Top-level view of the full-screen record statistics page.
-enum _StatisticView { summary, detailed }
+enum _StatisticView { summary, explore }
 
-/// Which detailed statistics the detailed view is showing.
+/// Which statistics the Explore view is showing.
 enum _DetailSection {
   counts('Counts', Icons.format_list_numbered_rounded),
   spatial('Spatial', Icons.public_outlined);

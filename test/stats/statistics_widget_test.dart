@@ -189,7 +189,7 @@ void main() {
 
     expect(find.text('Record Statistics'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
-    expect(find.text('Detailed'), findsOneWidget);
+    expect(find.text('Explore'), findsOneWidget);
     expect(find.text('Top five'), findsNothing);
     expect(
       find.text('Record totals and top five counts by category.'),
@@ -486,86 +486,78 @@ void main() {
     },
   );
 
-  testWidgets(
-    'detailed statistics use dependent measures and accurate titles',
-    (tester) async {
-      await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
-      await tester.tap(find.text('Explore more stats'));
-      for (var index = 0; index < 4; index++) {
-        await tester.pump(const Duration(milliseconds: 500));
-      }
-      await _showDetailedStatistics(tester);
+  testWidgets('Explore statistics use dependent measures and accurate titles', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await _showExploreStatistics(tester);
 
-      final measureControl = find.byKey(
-        const ValueKey('statistics-measure-control'),
-      );
-      final groupControl = find.byKey(
-        const ValueKey('statistics-group-control'),
-      );
-      await tester.ensureVisible(measureControl);
-      await tester.tap(
-        find.descendant(of: measureControl, matching: find.text('Species')),
-      );
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('Species by family'), findsOneWidget);
+    final measureControl = find.byKey(
+      const ValueKey('statistics-measure-control'),
+    );
+    final groupControl = find.byKey(const ValueKey('statistics-group-control'));
+    await tester.ensureVisible(measureControl);
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Species')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Species by family'), findsOneWidget);
 
-      await tester.tap(
-        find.descendant(of: groupControl, matching: find.text('Site')),
-      );
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('Species by site'), findsOneWidget);
+    await tester.tap(
+      find.descendant(of: groupControl, matching: find.text('Site')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Species by site'), findsOneWidget);
 
-      await tester.tap(
-        find.descendant(of: measureControl, matching: find.text('Specimens')),
-      );
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(
-        find.byKey(const ValueKey('statistics-breakdown-control')),
-        findsOneWidget,
-      );
-      expect(find.text('All sites'), findsOneWidget);
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Specimens')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      find.byKey(const ValueKey('statistics-breakdown-control')),
+      findsOneWidget,
+    );
+    expect(find.text('All sites'), findsOneWidget);
 
-      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
-      final breakdownControl = find.byKey(
-        const ValueKey('statistics-breakdown-control'),
-      );
-      await tester.tap(
-        find.descendant(of: breakdownControl, matching: find.text('Sex')),
-      );
-      for (var index = 0; index < 4; index++) {
-        await tester.pump(const Duration(milliseconds: 500));
-      }
-      expect(
-        find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(
-          of: detail,
-          matching: find.byKey(
-            const ValueKey('statistics-detail-chart-toggle'),
-          ),
-        ),
-        findsNothing,
-      );
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
+    final breakdownControl = find.byKey(
+      const ValueKey('statistics-breakdown-control'),
+    );
+    await tester.tap(
+      find.descendant(of: breakdownControl, matching: find.text('Sex')),
+    );
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    expect(
+      find.descendant(of: detail, matching: find.byType(StatisticBarChart)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: detail,
+        matching: find.byKey(const ValueKey('statistics-detail-chart-toggle')),
+      ),
+      findsNothing,
+    );
 
-      await tester.tap(
-        find.descendant(
-          of: measureControl,
-          matching: find.text('Part quantity'),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('Part quantity by part type'), findsOneWidget);
-      expect(
-        find.descendant(of: groupControl, matching: find.text('Treatment')),
-        findsOneWidget,
-      );
-      expect(find.text('All species'), findsOneWidget);
-    },
-  );
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Part quantity')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Part quantity by part type'), findsOneWidget);
+    expect(
+      find.descendant(of: groupControl, matching: find.text('Treatment')),
+      findsOneWidget,
+    );
+    expect(find.text('All species'), findsOneWidget);
+  });
 
   testWidgets('taxon rank grouping picks a rank in the third row', (
     tester,
@@ -575,7 +567,7 @@ void main() {
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
-    await _showDetailedStatistics(tester);
+    await _showExploreStatistics(tester);
 
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     final rankControl = find.byKey(
@@ -627,7 +619,7 @@ void main() {
     expect(find.text('Specimens by order'), findsOneWidget);
   });
 
-  testWidgets('detailed pie chart fills its card', (tester) async {
+  testWidgets('Explore pie chart fills its card', (tester) async {
     await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
     await tester.tap(find.text('Explore more stats'));
     for (var index = 0; index < 4; index++) {
@@ -645,8 +637,8 @@ void main() {
         summaryPie.data.centerSpaceRadius +
         summaryPie.data.sections.first.radius;
 
-    await _showDetailedStatistics(tester);
-    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    await _showExploreStatistics(tester);
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
     final groupControl = find.byKey(const ValueKey('statistics-group-control'));
     await tester.ensureVisible(groupControl);
     await tester.tap(
@@ -669,26 +661,26 @@ void main() {
     expect(
       detailRadius * 2,
       closeTo(min(detailBox.width, detailBox.height), 12),
-      reason: 'the detailed pie should span its available box',
+      reason: 'the Explore pie should span its available box',
     );
     expect(
       detailRadius,
       greaterThan(summaryRadius),
-      reason: 'the detailed pie should outgrow the compact summary pie',
+      reason: 'the Explore pie should outgrow the compact summary pie',
     );
   });
 
   testWidgets(
-    'detailed standalone category charts use pies below five categories',
+    'Explore standalone category charts use pies below five categories',
     (tester) async {
       await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
       await tester.tap(find.text('Explore more stats'));
       for (var index = 0; index < 4; index++) {
         await tester.pump(const Duration(milliseconds: 500));
       }
-      await _showDetailedStatistics(tester);
+      await _showExploreStatistics(tester);
 
-      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+      final detail = find.byKey(const ValueKey('explore-statistics-content'));
       final groupControl = find.byKey(
         const ValueKey('statistics-group-control'),
       );
@@ -733,7 +725,7 @@ void main() {
   );
 
   testWidgets(
-    'detailed standalone category charts use bars at five or more categories',
+    'Explore standalone category charts use bars at five or more categories',
     (tester) async {
       await _pumpRecordStatisticsPanel(
         tester,
@@ -753,9 +745,9 @@ void main() {
         find.byKey(const ValueKey('statistics-summary-chart-toggle-sex')),
         findsNothing,
       );
-      await _showDetailedStatistics(tester);
+      await _showExploreStatistics(tester);
 
-      final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+      final detail = find.byKey(const ValueKey('explore-statistics-content'));
       final groupControl = find.byKey(
         const ValueKey('statistics-group-control'),
       );
@@ -932,7 +924,7 @@ void main() {
     expect(cardHeight('Specimens by method'), closeTo(barCardHeight, 0.1));
   });
 
-  testWidgets('detailed statistics keeps a fixed card and expands its chart', (
+  testWidgets('Explore statistics keeps a fixed card and expands its chart', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(1000, 1400));
@@ -940,9 +932,9 @@ void main() {
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
-    await _showDetailedStatistics(tester);
+    await _showExploreStatistics(tester);
 
-    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
     final measureControl = find.byKey(
       const ValueKey('statistics-measure-control'),
     );
@@ -968,7 +960,7 @@ void main() {
     );
   });
 
-  testWidgets('full-screen statistics switches between summary and detailed', (
+  testWidgets('full-screen statistics switches between summary and explore', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
@@ -980,7 +972,7 @@ void main() {
     final recordSummary = find.byKey(
       const ValueKey('full-screen-record-stat-record-summary'),
     );
-    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
     final sectionControl = find.byKey(
       const ValueKey('statistics-detail-section-control'),
     );
@@ -988,7 +980,7 @@ void main() {
     expect(detail, findsNothing);
     expect(sectionControl, findsNothing);
 
-    await _showDetailedStatistics(tester);
+    await _showExploreStatistics(tester);
     expect(recordSummary, findsNothing);
     expect(find.text('Specimens by family'), findsNothing);
     expect(detail, findsOneWidget);
@@ -1012,7 +1004,7 @@ void main() {
     expect(detail, findsNothing);
   });
 
-  testWidgets('detailed statistics switches between counts and spatial', (
+  testWidgets('Explore statistics switches between counts and spatial', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(599, 1200));
@@ -1020,9 +1012,9 @@ void main() {
     for (var index = 0; index < 4; index++) {
       await tester.pump(const Duration(milliseconds: 500));
     }
-    await _showDetailedStatistics(tester);
+    await _showExploreStatistics(tester);
 
-    final detail = find.byKey(const ValueKey('detailed-statistics-content'));
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
     final measureControl = find.byKey(
       const ValueKey('statistics-measure-control'),
     );
@@ -1073,7 +1065,7 @@ void main() {
     );
   });
 
-  testWidgets('summary explore opens the detailed counts for that chart', (
+  testWidgets('summary view details opens the Explore counts for that chart', (
     tester,
   ) async {
     await _pumpRecordStatisticsPanel(tester, const Size(800, 1200));
@@ -1088,7 +1080,7 @@ void main() {
     );
     final explore = find.descendant(
       of: siteCard,
-      matching: find.text('Explore'),
+      matching: find.text('View details'),
     );
     await tester.ensureVisible(explore);
     await tester.pump();
@@ -1102,7 +1094,7 @@ void main() {
       findsNothing,
     );
     expect(
-      find.byKey(const ValueKey('detailed-statistics-content')),
+      find.byKey(const ValueKey('explore-statistics-content')),
       findsOneWidget,
     );
     expect(find.text('Specimens by site'), findsOneWidget);
@@ -1121,7 +1113,7 @@ void main() {
     expect(
       tester.getRect(sectionControl).top,
       lessThan(200),
-      reason: 'the detailed view opens scrolled to the top',
+      reason: 'the Explore view opens scrolled to the top',
     );
   });
 
@@ -1838,8 +1830,8 @@ Future<void> _toggleRecordPanelView(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _showDetailedStatistics(WidgetTester tester) async {
-  await tester.tap(find.text('Detailed'));
+Future<void> _showExploreStatistics(WidgetTester tester) async {
+  await tester.tap(find.text('Explore'));
   for (var index = 0; index < 4; index++) {
     await tester.pump(const Duration(milliseconds: 500));
   }

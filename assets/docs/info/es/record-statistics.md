@@ -12,11 +12,11 @@ Un espécimen sin identificar o una identificación con un nombre de especie inc
 
 El panel se abre en **Top recorded species**, las cinco especies con más registros de especímenes, cada una con una barra escalada al conteo más alto. Use el interruptor de la esquina superior derecha para alternar entre ese gráfico y **Record counts**, el resumen numérico descrito arriba.
 
-Seleccione **Explore more stats** para ver gráficos, tablas, filtros y exportaciones detallados. La pantalla se abre en **Summary**; cambie a **Detailed** y elija **Counts** o **Spatial**.
+Seleccione **Explore more stats** para ver gráficos, tablas, filtros y exportaciones detallados. La pantalla se abre en **Summary**; cambie a la vista **Explore** y elija **Counts** o **Spatial**.
 
 ## Exportar estadísticas
 
-Seleccione **Explore more stats** y luego **Detailed**. En **Counts**, elija una medida y una agrupación, y luego cambie el panel a **Table**. El botón `Export table` escribe las filas que se muestran en ese momento en CSV, TSV, Excel o JSON. **Spatial** se exporta de la misma forma, con una fila por coordenada de sitio.
+Abra **Explore more stats** y luego cambie a la vista **Explore**. En **Counts**, elija una medida y una agrupación, y luego cambie el panel a **Table**. El botón `Export table` escribe las filas que se muestran en ese momento en CSV, TSV, Excel o JSON. **Spatial** se exporta de la misma forma, con una fila por coordenada de sitio.
 
 Los recuentos ayudan a identificar cambios inesperados, pero no demuestran que los registros estén completos o correctamente identificados. Compruebe los registros de origen antes de usar un resumen en un informe.
 

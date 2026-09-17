@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.3 [2026-09-17]
+
+### Fixes
+
+- Fixes stat label names.
+
 ## v1.0.2 [2026-09-17]
 
 ### Fixes
