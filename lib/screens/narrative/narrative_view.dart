@@ -98,15 +98,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer>
               : const SizedBox.shrink(),
           !_isSearching
               ? IconButton(
-                  onPressed: _narrativeId == null
-                      ? null
-                      : () {
-                          setState(() {
-                            _isSearching = true;
-                            narrativeServices.invalidateNarrative();
-                          });
-                          _focus.requestFocus();
-                        },
+                  onPressed: _narrativeId == null ? null : _startSearch,
                   icon: const Icon(Icons.search),
                 )
               : TextButton(
@@ -148,9 +140,24 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer>
       ),
       bottomSheet: Visibility(
         visible: isNavVisible,
-        child: PageNavButton(pageNav: pageNav),
+        child: PageNavButton(
+          pageNav: pageNav,
+          onSearch: _narrativeId == null ? null : _startSearch,
+          bottomPadding: MediaQuery.paddingOf(context).bottom,
+        ),
       ),
     );
+  }
+
+  /// Opens the search bar, or focuses it when it is already open.
+  void _startSearch() {
+    if (!_isSearching) {
+      setState(() {
+        _isSearching = true;
+        NarrativeServices(ref: ref).invalidateNarrative();
+      });
+    }
+    _focus.requestFocus();
   }
 }
 

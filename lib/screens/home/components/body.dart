@@ -18,6 +18,7 @@ import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/services/common/utility_services.dart';
@@ -690,27 +691,16 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     return ProjectServices(ref: ref).getProjectByUuid(projectUuid);
   }
 
-  void _showProjectDialog(db.ProjectData? value) => {
-    showDialog<void>(
+  void _showProjectDialog(db.ProjectData? value) {
+    showAdaptiveSheetDialog<void>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Project information'),
-          content: SingleChildScrollView(
-            child: ProjectInfo(projectData: value, showExport: false),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    ),
-  };
+      builder: (context, isSheet) => AdaptiveSheetDialogBody(
+        title: 'Project information',
+        showCloseButton: !isSheet,
+        child: ProjectInfo(projectData: value, showExport: false),
+      ),
+    );
+  }
 
   void _showProjectQr(db.ProjectData value) {
     showDialog<void>(

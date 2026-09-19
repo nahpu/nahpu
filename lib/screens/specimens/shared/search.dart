@@ -135,7 +135,11 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
         ),
         bottomSheet: Visibility(
           visible: _isVisible,
-          child: PageNavButton(pageNav: _pageNav),
+          child: PageNavButton(
+            pageNav: _pageNav,
+            onSearch: _focus.requestFocus,
+            bottomPadding: MediaQuery.paddingOf(context).bottom,
+          ),
         ),
       ),
     );

@@ -91,15 +91,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
               : const SizedBox.shrink(),
           !_isSearching
               ? IconButton(
-                  onPressed: _collEvenId == null
-                      ? null
-                      : () {
-                          setState(() {
-                            _isSearching = true;
-                            services.invalidateCollEvent();
-                          });
-                          _focus.requestFocus();
-                        },
+                  onPressed: _collEvenId == null ? null : _startSearch,
                   icon: const Icon(Icons.search),
                 )
               : TextButton(
@@ -141,9 +133,24 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
       ),
       bottomSheet: Visibility(
         visible: isNavVisible,
-        child: PageNavButton(pageNav: pageNav),
+        child: PageNavButton(
+          pageNav: pageNav,
+          onSearch: _collEvenId == null ? null : _startSearch,
+          bottomPadding: MediaQuery.paddingOf(context).bottom,
+        ),
       ),
     );
+  }
+
+  /// Opens the search bar, or focuses it when it is already open.
+  void _startSearch() {
+    if (!_isSearching) {
+      setState(() {
+        _isSearching = true;
+        CollEventServices(ref: ref).invalidateCollEvent();
+      });
+    }
+    _focus.requestFocus();
   }
 }
 

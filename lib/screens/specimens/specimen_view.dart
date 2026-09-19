@@ -71,22 +71,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer>
         title: const Text("Specimen Records"),
         actions: [
           IconButton(
-            onPressed: _specimenUuid == null
-                ? null
-                : () async {
-                    final specimenData = await SpecimenServices(
-                      ref: ref,
-                    ).getAllSpecimens();
-                    if (context.mounted) {
-                      // Pushed on top of the shell; Cancel pops back here.
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              SpecimenSearchView(specimenData: specimenData),
-                        ),
-                      );
-                    }
-                  },
+            onPressed: _specimenUuid == null ? null : _openSearch,
             icon: const Icon(Icons.search),
           ),
           const NewSpecimens(),
@@ -116,7 +101,22 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer>
       ),
       bottomSheet: Visibility(
         visible: isNavVisible,
-        child: PageNavButton(pageNav: pageNav),
+        child: PageNavButton(
+          pageNav: pageNav,
+          onSearch: _specimenUuid == null ? null : _openSearch,
+          bottomPadding: MediaQuery.paddingOf(context).bottom,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSearch() async {
+    final specimenData = await SpecimenServices(ref: ref).getAllSpecimens();
+    if (!mounted) return;
+    // Pushed on top of the shell; Cancel pops back here.
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SpecimenSearchView(specimenData: specimenData),
       ),
     );
   }

@@ -5,6 +5,11 @@
 ### Fixes
 
 - Fixes stat label names.
+- Fixes add personnel button stays inactive after required field is filled.
+- Fixes page navigation buttons hidden behind the Android navigation bar on
+  tablets showing the navigation rail.
+- Project information opens as a bottom sheet on small screens.
+- The Go to page sheet now includes a search button that opens the search form.
 
 ## v1.0.2 [2026-09-17]
 
