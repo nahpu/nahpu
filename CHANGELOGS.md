@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.3 [2026-09-17]
+## v1.0.3 [upcoming]
 
 ### Fixes
 
