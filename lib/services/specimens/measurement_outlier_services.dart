@@ -5,15 +5,19 @@ import 'package:nahpu/services/common/io_services.dart';
 
 const int measurementOutlierMinSampleSize = 10;
 
-enum MammalMeasurementOutlierField {
+abstract interface class MeasurementOutlierFieldInfo {
+  String get label;
+  String get unit;
+}
+
+enum MammalMeasurementOutlierField implements MeasurementOutlierFieldInfo {
   totalLength,
   tailLength,
   hindFootLength,
   earLength,
-  weight,
-}
+  weight;
 
-extension MammalMeasurementOutlierFieldInfo on MammalMeasurementOutlierField {
+  @override
   String get label {
     switch (this) {
       case MammalMeasurementOutlierField.totalLength:
@@ -29,6 +33,7 @@ extension MammalMeasurementOutlierFieldInfo on MammalMeasurementOutlierField {
     }
   }
 
+  @override
   String get unit {
     switch (this) {
       case MammalMeasurementOutlierField.weight:
@@ -52,7 +57,75 @@ extension MammalMeasurementOutlierFieldInfo on MammalMeasurementOutlierField {
       case MammalMeasurementOutlierField.earLength:
         return data.earLength;
       case MammalMeasurementOutlierField.weight:
-        return data.weight;
+        return _weightInGrams(data.weight, data.weightUnit);
+    }
+  }
+}
+
+enum AvianMeasurementOutlierField implements MeasurementOutlierFieldInfo {
+  weight,
+  wingspan;
+
+  @override
+  String get label {
+    switch (this) {
+      case AvianMeasurementOutlierField.weight:
+        return 'weight';
+      case AvianMeasurementOutlierField.wingspan:
+        return 'wingspan';
+    }
+  }
+
+  @override
+  String get unit {
+    switch (this) {
+      case AvianMeasurementOutlierField.weight:
+        return 'g';
+      case AvianMeasurementOutlierField.wingspan:
+        return 'mm';
+    }
+  }
+
+  double? readValue(BirdAttributeData data) {
+    switch (this) {
+      case AvianMeasurementOutlierField.weight:
+        return _weightInGrams(data.weight, data.weightUnit);
+      case AvianMeasurementOutlierField.wingspan:
+        return data.wingspan;
+    }
+  }
+}
+
+enum HerpMeasurementOutlierField implements MeasurementOutlierFieldInfo {
+  weight,
+  svl;
+
+  @override
+  String get label {
+    switch (this) {
+      case HerpMeasurementOutlierField.weight:
+        return 'weight';
+      case HerpMeasurementOutlierField.svl:
+        return 'snout-vent length';
+    }
+  }
+
+  @override
+  String get unit {
+    switch (this) {
+      case HerpMeasurementOutlierField.weight:
+        return 'g';
+      case HerpMeasurementOutlierField.svl:
+        return 'cm';
+    }
+  }
+
+  double? readValue(HerpAttributeData data) {
+    switch (this) {
+      case HerpMeasurementOutlierField.weight:
+        return _weightInGrams(data.weight, data.weightUnit);
+      case HerpMeasurementOutlierField.svl:
+        return data.svl;
     }
   }
 }
@@ -65,16 +138,18 @@ class MeasurementOutlierResult {
     required this.value,
     required this.lowerBound,
     required this.upperBound,
+    required this.unit,
     required this.comparisonName,
     required this.comparisonLevel,
     required this.sampleSize,
     required this.inlierCount,
   });
 
-  final MammalMeasurementOutlierField field;
+  final MeasurementOutlierFieldInfo field;
   final double value;
   final double lowerBound;
   final double upperBound;
+  final String unit;
   final String comparisonName;
   final MeasurementComparisonLevel comparisonLevel;
   final int sampleSize;
@@ -89,8 +164,11 @@ class MeasurementOutlierResult {
     }
   }
 
-  String get rangeText =>
-      '${_formatNumber(lowerBound)}-${_formatNumber(upperBound)} ${field.unit}';
+  String get rangeText {
+    final fractionDigits = unit == 'kg' || unit == 'lbs' ? 6 : 2;
+    return '${_formatNumber(lowerBound, fractionDigits: fractionDigits)}-'
+        '${_formatNumber(upperBound, fractionDigits: fractionDigits)} $unit';
+  }
 
   String get message =>
       'This ${field.label} is outside the typical local range for '
@@ -160,15 +238,30 @@ class IqrOutlierRange {
   }
 }
 
-/// Detects unusual numeric mammal measurements from mammal attribute records.
-class MammalMeasurementOutlierServices extends AppServices {
-  const MammalMeasurementOutlierServices({required super.ref});
+abstract class SpecimenMeasurementOutlierServices<
+  TData,
+  TField extends MeasurementOutlierFieldInfo
+>
+    extends AppServices {
+  const SpecimenMeasurementOutlierServices({required super.ref});
+
+  Future<List<TData>> getMeasurements(List<String> specimenUuids);
+
+  String getSpecimenUuid(TData measurement);
+
+  double? readValue(TField field, TData measurement);
 
   Future<MeasurementOutlierResult?> checkValue({
     required String specimenUuid,
-    required MammalMeasurementOutlierField field,
+    required TField field,
     required double value,
+    String weightUnit = 'g',
   }) async {
+    // Compare weights in grams and convert only the displayed range.
+    final unit = field.unit == 'g' ? weightUnit : field.unit;
+    final valueScale = field.unit == 'g' ? _gramsPerUnit(weightUnit) : 1.0;
+    if (valueScale == null) return null;
+
     final specimenData = await SpecimenQuery(
       dbAccess,
     ).getSpecimenByUuid(specimenUuid);
@@ -180,12 +273,10 @@ class MammalMeasurementOutlierServices extends AppServices {
       dbAccess,
     ).getAllSpecimens(currentProjectUuid);
     final specimenUuids = specimens.map((specimen) => specimen.uuid).toList();
-    final measurements = await MammalSpecimenQuery(
-      dbAccess,
-    ).getMammalAttributesBySpecimenUuids(specimenUuids);
+    final measurements = await getMeasurements(specimenUuids);
     final measurementByUuid = {
       for (final measurement in measurements)
-        measurement.specimenUuid: measurement,
+        getSpecimenUuid(measurement): measurement,
     };
     final taxonById = {
       for (final taxon in await TaxonomyQuery(dbAccess).getTaxonList())
@@ -205,6 +296,8 @@ class MammalMeasurementOutlierServices extends AppServices {
       values: speciesValues,
       value: value,
       field: field,
+      unit: unit,
+      valueScale: valueScale,
       comparisonName: _formatTaxonName(currentTaxon),
       comparisonLevel: MeasurementComparisonLevel.species,
     );
@@ -228,6 +321,8 @@ class MammalMeasurementOutlierServices extends AppServices {
       values: genusValues,
       value: value,
       field: field,
+      unit: unit,
+      valueScale: valueScale,
       comparisonName: genus,
       comparisonLevel: MeasurementComparisonLevel.genus,
     );
@@ -235,8 +330,8 @@ class MammalMeasurementOutlierServices extends AppServices {
 
   List<double> _valuesForSpecimens(
     Iterable<SpecimenData> specimens,
-    Map<String, MammalAttributeData> measurementByUuid,
-    MammalMeasurementOutlierField field,
+    Map<String, TData> measurementByUuid,
+    TField field,
   ) {
     final values = <double>[];
 
@@ -244,7 +339,7 @@ class MammalMeasurementOutlierServices extends AppServices {
       final measurement = measurementByUuid[specimen.uuid];
       if (measurement == null) continue;
 
-      final value = field.readValue(measurement);
+      final value = readValue(field, measurement);
       if (value != null && value > 0) {
         values.add(value);
       }
@@ -256,20 +351,23 @@ class MammalMeasurementOutlierServices extends AppServices {
   MeasurementOutlierResult? _buildResult({
     required List<double> values,
     required double value,
-    required MammalMeasurementOutlierField field,
+    required TField field,
+    required String unit,
+    required double valueScale,
     required String comparisonName,
     required MeasurementComparisonLevel comparisonLevel,
   }) {
     if (values.length < measurementOutlierMinSampleSize) return null;
 
     final range = IqrOutlierRange.fromValues(values);
-    if (range == null || range.contains(value)) return null;
+    if (range == null || range.contains(value * valueScale)) return null;
 
     return MeasurementOutlierResult(
       field: field,
       value: value,
-      lowerBound: range.inlierMin,
-      upperBound: range.inlierMax,
+      lowerBound: range.inlierMin / valueScale,
+      upperBound: range.inlierMax / valueScale,
+      unit: unit,
       comparisonName: comparisonName,
       comparisonLevel: comparisonLevel,
       sampleSize: range.sampleSize,
@@ -290,13 +388,98 @@ class MammalMeasurementOutlierServices extends AppServices {
   }
 }
 
-String _formatNumber(double value) {
-  final rounded = (value * 100).round() / 100;
-  if (rounded == rounded.truncateToDouble()) {
-    return rounded.toInt().toString();
-  }
-  return rounded
-      .toStringAsFixed(2)
+class MammalMeasurementOutlierServices
+    extends
+        SpecimenMeasurementOutlierServices<
+          MammalAttributeData,
+          MammalMeasurementOutlierField
+        > {
+  const MammalMeasurementOutlierServices({required super.ref});
+
+  @override
+  Future<List<MammalAttributeData>> getMeasurements(
+    List<String> specimenUuids,
+  ) => MammalSpecimenQuery(
+    dbAccess,
+  ).getMammalAttributesBySpecimenUuids(specimenUuids);
+
+  @override
+  String getSpecimenUuid(MammalAttributeData measurement) =>
+      measurement.specimenUuid;
+
+  @override
+  double? readValue(
+    MammalMeasurementOutlierField field,
+    MammalAttributeData data,
+  ) => field.readValue(data);
+}
+
+class AvianMeasurementOutlierServices
+    extends
+        SpecimenMeasurementOutlierServices<
+          BirdAttributeData,
+          AvianMeasurementOutlierField
+        > {
+  const AvianMeasurementOutlierServices({required super.ref});
+
+  @override
+  Future<List<BirdAttributeData>> getMeasurements(List<String> specimenUuids) =>
+      BirdSpecimenQuery(
+        dbAccess,
+      ).getBirdAttributesBySpecimenUuids(specimenUuids);
+
+  @override
+  String getSpecimenUuid(BirdAttributeData measurement) =>
+      measurement.specimenUuid;
+
+  @override
+  double? readValue(
+    AvianMeasurementOutlierField field,
+    BirdAttributeData data,
+  ) => field.readValue(data);
+}
+
+class HerpMeasurementOutlierServices
+    extends
+        SpecimenMeasurementOutlierServices<
+          HerpAttributeData,
+          HerpMeasurementOutlierField
+        > {
+  const HerpMeasurementOutlierServices({required super.ref});
+
+  @override
+  Future<List<HerpAttributeData>> getMeasurements(List<String> specimenUuids) =>
+      HerpSpecimenQuery(
+        dbAccess,
+      ).getHerpAttributesBySpecimenUuids(specimenUuids);
+
+  @override
+  String getSpecimenUuid(HerpAttributeData measurement) =>
+      measurement.specimenUuid;
+
+  @override
+  double? readValue(
+    HerpMeasurementOutlierField field,
+    HerpAttributeData data,
+  ) => field.readValue(data);
+}
+
+double? _gramsPerUnit(String? unit) => switch (unit?.trim().toLowerCase()) {
+  null || '' || 'g' => 1.0,
+  'kg' => 1000.0,
+  'lbs' => 453.59237,
+  _ => null,
+};
+
+double? _weightInGrams(double? value, String? unit) {
+  final scale = _gramsPerUnit(unit);
+  if (value == null || scale == null) return null;
+  return value * scale;
+}
+
+String _formatNumber(double value, {int fractionDigits = 2}) {
+  return value
+      .toStringAsFixed(fractionDigits)
       .replaceFirst(RegExp(r'0+$'), '')
       .replaceFirst(RegExp(r'\.$'), '');
 }
