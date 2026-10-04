@@ -7,6 +7,10 @@
 // The application's name. By default this is also the title of the Flutter window.
 PRODUCT_NAME = nahpu
 
+// Project team. A gitignored Local.xcconfig can replace this on a developer machine.
+DEVELOPMENT_TEAM = H54K5MD3NJ
+#include? "Local.xcconfig"
+
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.hhandika.nahpu
 

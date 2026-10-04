@@ -55,6 +55,9 @@ coverage/
 # Rust
 /target/
 
+# Local macOS signing team. Do not commit.
+macos/Runner/Configs/Local.xcconfig
+
 # Snapcraft
 /parts/
 /stage/
