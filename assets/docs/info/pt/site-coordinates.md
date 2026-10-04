@@ -1,12 +1,13 @@
 ---
 title: "Coordenadas do local"
+authors: []
 sidebar:
   order: 0
 ---
 
-Um local pode conter várias posições, como armadilhas ao longo de uma linha. Dê um nome útil a cada coordenada e registre fonte, datum, elevação, incerteza e unidade GPS quando conhecidos. A incerteza da coordenada descreve a incerteza da posição; ela é diferente da extensão da coordenada de um espécime.
+Um local pode conter várias posições, como armadilhas individuais ao longo de uma linha. `Add coordinate` permite a entrada manual e importações em lote nos formatos GeoJSON/JSON, KML, Shapefile compactado em ZIP e GPX.
 
-A entrada manual aceita DD, DDM, DMS e UTM WGS84. O NAHPU mantém a entrada não decimal e os valores convertidos em graus decimais. `Select coordinate file` aceita CSV, TSV, Excel, GeoJSON/JSON, KML, Shapefile compactado e GPX. Para planilhas, revise o mapeamento das colunas antes de selecionar os pontos. `Scan QR` lê um código de coordenada do NAHPU. Confira avisos, unidades e posições no mapa antes de adicionar as coordenadas selecionadas.
+Para a entrada manual, adicione um nome conciso (o nome do local é usado por padrão), datum, elevação, incerteza e unidade GPS quando conhecidos. Use a incerteza das coordenadas informada pelo GPS ou estime-a você mesmo. Você também pode usar `Coordinate extent` no formulário de espécimes para estimar com mais detalhe a localização do espécime em relação à coordenada registrada.
 
 ## Saiba mais
 

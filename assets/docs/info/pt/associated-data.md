@@ -1,16 +1,15 @@
 ---
 title: "Dados associados"
+authors: []
 sidebar:
   order: 0
 ---
 
-Os dados associados conectam um registro a links e arquivos não multimídia de apoio, como referências de tombamento, conjuntos de dados, licenças, protocolos, registros de sequências ou documentos.
+Os dados associados conectam um registro a arquivos não multimídia. Você pode usá-los para anexar arquivos como licenças, protocolos, registros de sequências ou documentos.
 
-Escolha `Link` ou `File` em `Data type`, acrescente um nome, uma descrição e uma data, e forneça um URI estável ou um arquivo gerenciado. Use Media para imagens, áudio e vídeo, para que os metadados audiovisuais sejam registrados de forma consistente. Verifique cada link ou arquivo depois de adicioná-lo.
+Escolha `Link` ou `File` em `Data type`. Adicione um nome, uma descrição e uma data, e forneça uma URL estável ou um caminho de arquivo. No desktop, você pode copiar um arquivo anexado para o diretório do NAHPU ou vinculá-lo ao caminho existente no disco.
 
-Um URI aponta para um recurso externo; ele não torna o recurso disponível sem internet. Abra o arquivo gerenciado após a importação e confira-o ao verificar o backup.
-
-No desktop, `Copy to project` armazena uma cópia gerenciada; `Link original` depende de o caminho de origem continuar acessível. Confira a disponibilidade após a transferência.
+Use `Media` para imagens, áudio e vídeo. O formulário de mídia registra metadados audiovisuais e oferece uma galeria para visualizar os registros.
 
 ## Saiba mais
 

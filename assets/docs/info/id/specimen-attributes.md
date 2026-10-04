@@ -1,14 +1,15 @@
 ---
 title: "Atribut spesimen"
+authors: []
 sidebar:
   order: 0
 ---
 
-Atribut memuat pengukuran dan pengamatan biologis yang dilakukan untuk spesimen, termasuk jenis kelamin, tahap hidup, kondisi reproduksi, morfometri, dan kolom khusus kelompok takson.
+Atribut memuat pengukuran dan pengamatan biologis yang dilakukan untuk spesimen, termasuk jenis kelamin, tahap hidup, kondisi reproduksi, morfometri, dan bidang lain yang khusus untuk kelompok takson.
 
-Isi hanya nilai yang teramati atau terdokumentasi, dan pertahankan satuan yang ditampilkan. Gunakan `Unknown` atau kosongkan kolom sesuai protokol proyek alih-alih menebak. Keterangan sebaiknya menjelaskan syarat, kerusakan, ketidakpastian, atau metode yang memengaruhi cara sebuah nilai ditafsirkan.
+Isi hanya nilai yang diamati atau terdokumentasi dan pertahankan satuan yang ditampilkan. Gunakan `Unknown` atau kosongkan bidang sesuai protokol proyek.
 
-Gunakan bidang khusus untuk pengamatan yang tidak sesuai dengan bidang bawaan. Periksa jenis, ketentuan satuan, dan katalog yang berlaku sebelum mengisi; jangan gunakan nol untuk nilai yang tidak diukur.
+Gunakan bidang khusus untuk pengamatan tambahan ketika tidak ada bidang bawaan yang sesuai. Periksa jenis, ketentuan satuan, dan kesesuaian katalog sebelum memasukkan nilai; jangan gunakan nol untuk nilai yang tidak diukur.
 
 ## Pelajari lebih lanjut
 

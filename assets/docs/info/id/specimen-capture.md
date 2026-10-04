@@ -1,16 +1,19 @@
 ---
 title: "Tangkapan spesimen"
+authors: []
 sidebar:
   order: 0
 ---
 
-Informasi tangkapan menghubungkan spesimen dengan kegiatan pengumpulan yang menyediakan lokasi, konteks pengambilan sampel, rentang tanggal, dan tim lapangannya. Catat tanggal, waktu, metode, pengumpul, dan koordinat tangkapan bila hal itu khusus untuk spesimen ini atau memperinci data kegiatan.
+Informasi penangkapan menghubungkan spesimen dengan kegiatan pengumpulan yang menyediakan lokasi, konteks pengambilan sampel, rentang tanggal, dan tim lapangannya.
 
-Mengubah kegiatan pengumpulan mengubah konteks pengambilan sampel catatan ini. NAHPU mengosongkan metode, pengumpul, dan koordinat agar nilai dari kegiatan sebelumnya tidak diam-diam tertinggal; tanggal dan waktu tangkapan tetap dipertahankan. Periksa setiap kolom setelah mengubah kegiatan.
+Catat tanggal, waktu, metode, pengumpul, dan koordinat penangkapan yang khusus untuk spesimen ini.
 
-Rentang koordinat menjelaskan seberapa jauh spesimen mungkin berada dari posisi yang dicatat. Gunakan bila jalur perangkap, transek, atau area pencarian lebih luas daripada koordinatnya sendiri.
+Pilih `Site ID` terlebih dahulu, lalu pilih `Event ID` pengumpulan. Mengubah kegiatan akan mengosongkan metode, pengumpul, dan koordinat pada panel ini agar nilai kegiatan sebelumnya tidak tersimpan tanpa disadari; tanggal dan waktu penangkapan tetap dipertahankan. Selalu tinjau setiap bidang setelah mengubah kegiatan.
 
-Ikuti ketentuan waktu lokal kegiatan untuk waktu penangkapan. Koordinat spesimen harus menunjukkan tempat spesimen diperoleh, bukan sekadar titik pertama pada lokasi.
+`Coordinate extent` menjelaskan seberapa jauh spesimen mungkin berada dari posisi yang dicatat. Gunakan ketika jalur perangkap, transek, atau area pencarian lebih luas daripada koordinat itu sendiri.
+
+Secara bawaan, jika lokasi hanya memiliki satu koordinat, NAHPU memilih koordinat tersebut secara otomatis.
 
 ## Pelajari lebih lanjut
 

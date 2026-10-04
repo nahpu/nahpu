@@ -1,18 +1,15 @@
 ---
 title: "Media"
+authors: []
 sidebar:
   order: 0
 ---
 
-Media menyimpan gambar, audio, dan video yang terkait dengan catatan proyek. Gunakan `Add` untuk mengimpor berkas atau, bila perangkat mendukung, untuk mengambil foto atau video maupun merekam audio.
+`Media` menyimpan gambar, audio, dan video yang terkait dengan suatu catatan. Gunakan `Add` untuk mengimpor berkas atau, jika perangkat mendukungnya, mengambil foto, merekam video, atau merekam audio.
 
-Sunting nama berkas, keterangan gambar, tag, dan fotografernya agar orang lain tahu isi berkas tersebut. Kategori mengikuti tipe berkas, sedangkan tanggal pengambilan, kamera, dan lensa dibaca dari metadata berkas itu sendiri bila ada.
+`Edit` nama berkas, keterangan, tag, dan fotografer. Kategori mengikuti jenis berkas. Tanggal pengambilan serta rincian kamera dan lensa dibaca dari metadata berkas jika tersedia.
 
-## Mengekspor media
-
-Gunakan `Export` pada satu item media untuk menyimpan satu berkas, lengkap dengan pilihan mengonversinya ke JPEG, PNG, atau WebP dan mengubah ukurannya. Untuk menyimpan beberapa berkas sekaligus, buka galeri media, aktifkan seleksi, lalu pilih `Export`. Langkah itu menulis satu arsip TAR.GZ atau ZIP, dengan gambar dikonversi dan diubah ukurannya bersama-sama, sedangkan audio dan video disalin apa adanya.
-
-Simpan berkas asli jika pelestarian penting. Konversi atau perubahan ukuran gambar ekspor menghasilkan salinan untuk dibagikan; periksa hasil dan peringatan berkas yang dilewati sebelum membagikannya.
+Gunakan `Export` pada item media untuk menyimpan satu berkas, dengan pilihan untuk mengonversinya ke JPEG, PNG, atau WebP dan mengubah ukurannya. Untuk menyimpan beberapa berkas sekaligus, buka galeri media, aktifkan pilihan, lalu pilih `Export`.
 
 ## Pelajari lebih lanjut
 
