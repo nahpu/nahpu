@@ -320,6 +320,7 @@ class RecordExchangeCustomFields extends AppServices {
       'invertebrates' ||
       'arthropoda' ||
       'arthropods' => 'invertebrateZoology',
+      'marine invertebrates' => 'marineInvertebrates',
       _ => 'mammalogy',
     };
   }

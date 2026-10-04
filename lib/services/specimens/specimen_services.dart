@@ -109,6 +109,7 @@ class SpecimenServices extends AppServices {
           await _createHerpSpecimen(specimenUuid);
           break;
         case CatalogFmt.invertebrateZoology:
+        case CatalogFmt.marineInvertebrates:
           await _createInvertebrateSpecimen(specimenUuid);
           break;
       }
@@ -584,6 +585,7 @@ class SpecimenServices extends AppServices {
         await deleteHerpAttributes(specimenUuid);
         break;
       case CatalogFmt.invertebrateZoology:
+      case CatalogFmt.marineInvertebrates:
         await deleteInvertebrateAttributes(specimenUuid);
         break;
     }
@@ -615,6 +617,7 @@ class SpecimenServices extends AppServices {
           await deleteHerpAttributes(specimen.uuid);
           break;
         case CatalogFmt.invertebrateZoology:
+        case CatalogFmt.marineInvertebrates:
           await deleteInvertebrateAttributes(specimen.uuid);
           break;
       }

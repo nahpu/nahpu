@@ -4,7 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'nahpu_icons.dart';
 
-enum CatalogFmt { mammalogy, ornithology, herpetology, invertebrateZoology }
+enum CatalogFmt {
+  mammalogy,
+  ornithology,
+  herpetology,
+  invertebrateZoology,
+  marineInvertebrates,
+}
 
 enum SpecimenSex {
   male,
@@ -192,6 +198,7 @@ CatalogFmt? catalogFmtFromStoredName(String? name) => switch (name) {
   'ornithology' || 'birds' => CatalogFmt.ornithology,
   'herpetology' || 'herpetofauna' => CatalogFmt.herpetology,
   'invertebrateZoology' || 'arthropods' => CatalogFmt.invertebrateZoology,
+  'marineInvertebrates' => CatalogFmt.marineInvertebrates,
   _ => null,
 };
 
@@ -298,6 +305,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
     case 'Invertebrates':
     case 'Arthropods':
       return CatalogFmt.invertebrateZoology;
+    case 'Marine invertebrates':
+      return CatalogFmt.marineInvertebrates;
     default:
       return CatalogFmt.mammalogy;
   }
@@ -312,6 +321,7 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
     case CatalogFmt.herpetology:
       return SpecimenRecordType.herpetofauna;
     case CatalogFmt.invertebrateZoology:
+    case CatalogFmt.marineInvertebrates:
       return SpecimenRecordType.invertebrates;
   }
 }
@@ -346,6 +356,7 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.herpetofauna;
     case 'Invertebrates':
     case 'Arthropods':
+    case 'Marine invertebrates':
       return SpecimenRecordType.invertebrates;
     default:
       return SpecimenRecordType.generalMammals;
@@ -368,6 +379,8 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Herpetofauna';
     case CatalogFmt.invertebrateZoology:
       return 'Invertebrates';
+    case CatalogFmt.marineInvertebrates:
+      return 'Marine invertebrates';
   }
 }
 
@@ -386,6 +399,8 @@ String catalogFmtDisplayName(CatalogFmt catalogFmt) {
       return 'Herpetology';
     case CatalogFmt.invertebrateZoology:
       return 'Invertebrate zoology';
+    case CatalogFmt.marineInvertebrates:
+      return 'Marine invertebrates';
   }
 }
 
@@ -398,6 +413,7 @@ bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
       return false;
     case CatalogFmt.herpetology:
     case CatalogFmt.invertebrateZoology:
+    case CatalogFmt.marineInvertebrates:
       return true;
   }
 }
@@ -411,6 +427,7 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
     case CatalogFmt.herpetology:
       return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
     case CatalogFmt.invertebrateZoology:
+    case CatalogFmt.marineInvertebrates:
       return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
   }
 }
@@ -442,6 +459,7 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
     case CatalogFmt.herpetology:
       return 'assets/icons/frog.svg';
     case CatalogFmt.invertebrateZoology:
+    case CatalogFmt.marineInvertebrates:
       return 'assets/icons/beetle.svg';
   }
 }

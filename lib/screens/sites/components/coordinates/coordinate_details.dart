@@ -188,6 +188,17 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
   String _dmsLatitude = 'Loading...';
   String _dmsLongitude = 'Loading...';
 
+  String? get _depthRangeLabel {
+    final minimum = widget.coordinate.minimumDepthInMeters;
+    final maximum = widget.coordinate.maximumDepthInMeters;
+    if (minimum == null && maximum == null) return null;
+    if (minimum != null && maximum != null) {
+      return '${minimum.truncateZero()}–${maximum.truncateZero()} m';
+    }
+    final value = (minimum ?? maximum)!.truncateZero();
+    return minimum != null ? '$value m minimum' : '$value m maximum';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -302,6 +313,15 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
                 ? '${widget.coordinate.elevationInMeter?.truncateZero()} m'
                 : 'N/A',
           ),
+          if (_depthRangeLabel != null) ...[
+            const Divider(height: 16),
+            _buildDetailRow(
+              context,
+              Icons.water_outlined,
+              'Depth',
+              _depthRangeLabel!,
+            ),
+          ],
           const Divider(height: 16),
           _buildDetailRow(
             context,

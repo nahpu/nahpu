@@ -32,6 +32,10 @@ void main() {
       catalogFmtDisplayName(CatalogFmt.invertebrateZoology),
       'Invertebrate zoology',
     );
+    expect(
+      catalogFmtDisplayName(CatalogFmt.marineInvertebrates),
+      'Marine invertebrates',
+    );
   });
 
   test('Taxon groups are stored as their taxon, not the discipline', () {
@@ -43,6 +47,10 @@ void main() {
     expect(
       matchCatFmtToTaxonGroup(CatalogFmt.invertebrateZoology),
       'Invertebrates',
+    );
+    expect(
+      matchCatFmtToTaxonGroup(CatalogFmt.marineInvertebrates),
+      'Marine invertebrates',
     );
     for (final fmt in CatalogFmt.values) {
       expect(
@@ -87,6 +95,7 @@ void main() {
     const betaFormats = {
       CatalogFmt.herpetology,
       CatalogFmt.invertebrateZoology,
+      CatalogFmt.marineInvertebrates,
     };
     for (final fmt in CatalogFmt.values) {
       expect(

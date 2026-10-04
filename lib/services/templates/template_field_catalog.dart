@@ -73,7 +73,8 @@ Map<String, List<String>> availableTemplateFieldGroups(
         // 'Arthropods' is the pre-v22 label, still stored on templates
         // saved before the rename.
       } else if (selectedTaxon == 'Invertebrates' ||
-          selectedTaxon == 'Arthropods') {
+          selectedTaxon == 'Arthropods' ||
+          selectedTaxon == 'Marine invertebrates') {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');

@@ -33,6 +33,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/src/rust/api/gis.dart';
 import 'package:nahpu/styles/design_tokens.dart';

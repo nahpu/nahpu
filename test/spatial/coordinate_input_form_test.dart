@@ -10,12 +10,54 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/src/rust/api/gis.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/rust_library.dart';
 
 void main() {
   setUpAll(initRustLibForTest);
+
+  testWidgets('marine invertebrate projects record a depth range', (
+    tester,
+  ) async {
+    final resources = await _pumpCoordinateForm(
+      tester,
+      catalogFmt: CatalogFmt.marineInvertebrates,
+      withFormKey: true,
+      settle: false,
+    );
+    addTearDown(resources.dispose);
+
+    expect(find.text('Minimum depth (m)'), findsOneWidget);
+    expect(find.text('Maximum depth (m)'), findsOneWidget);
+
+    await tester.enterText(_field('Decimal Latitude'), '18.2');
+    await tester.enterText(_field('Decimal Longitude'), '-64.7');
+    await tester.enterText(_field('Minimum depth (m)'), '12.5');
+    await tester.enterText(_field('Maximum depth (m)'), '40');
+    // The coordinate parser completes through the Rust bridge, which needs the
+    // test binding to keep pumping while the call is in flight.
+    await tester.runAsync(() => resources.formKey!.currentState!.submit());
+    await tester.pump();
+
+    final coordinate = await resources.database
+        .select(resources.database.coordinate)
+        .getSingle();
+    expect(coordinate.minimumDepthInMeters, 12.5);
+    expect(coordinate.maximumDepthInMeters, 40);
+    expect(coordinate.decimalLatitude, 18.2);
+  });
+
+  testWidgets('other catalogs omit the depth range fields', (tester) async {
+    final resources = await _pumpCoordinateForm(tester);
+    addTearDown(resources.dispose);
+
+    expect(find.text('Elevation (m)'), findsOneWidget);
+    expect(find.text('Minimum depth (m)'), findsNothing);
+    expect(find.text('Maximum depth (m)'), findsNothing);
+  });
 
   testWidgets('DDM and DMS use numeric component fields without directions', (
     tester,
@@ -222,6 +264,8 @@ Future<_CoordinateTestResources> _pumpCoordinateForm(
   CoordinateCtrModel? controller,
   bool isEditing = false,
   bool withFormKey = false,
+  CatalogFmt? catalogFmt,
+  bool settle = true,
 }) async {
   tester.view.physicalSize = const Size(500, 1100);
   tester.view.devicePixelRatio = 1;
@@ -233,9 +277,11 @@ Future<_CoordinateTestResources> _pumpCoordinateForm(
   );
   await database.into(database.site).insert(const SiteCompanion());
   final formKey = withFormKey ? GlobalKey<CoordinateFormsState>() : null;
+  final preferences = await _catalogPreferences(catalogFmt);
   await tester.pumpWidget(
     _harness(
       database: database,
+      preferences: preferences,
       child: Scaffold(
         body: CoordinateForms(
           key: formKey,
@@ -249,7 +295,12 @@ Future<_CoordinateTestResources> _pumpCoordinateForm(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+    await tester.pump();
+  }
   return _CoordinateTestResources(
     controller: coordinateController,
     database: database,
@@ -267,9 +318,11 @@ Future<_CoordinateTestResources> _pumpNewCoordinate(WidgetTester tester) async {
     DatabaseConnection(NativeDatabase.memory()),
   );
   await database.into(database.site).insert(const SiteCompanion());
+  final preferences = await _catalogPreferences(null);
   await tester.pumpWidget(
     _harness(
       database: database,
+      preferences: preferences,
       child: NewCoordinate(siteId: 1, coordCtr: controller),
     ),
   );
@@ -281,10 +334,24 @@ Future<_CoordinateTestResources> _pumpNewCoordinate(WidgetTester tester) async {
   );
 }
 
-Widget _harness({required Database database, required Widget child}) {
+Future<SharedPreferences> _catalogPreferences(CatalogFmt? catalogFmt) async {
+  SharedPreferences.setMockInitialValues(
+    catalogFmt == null
+        ? const {}
+        : {catalogFmtPrefKey: matchCatFmtToTaxonGroup(catalogFmt)},
+  );
+  return SharedPreferences.getInstance();
+}
+
+Widget _harness({
+  required Database database,
+  required SharedPreferences preferences,
+  required Widget child,
+}) {
   return ProviderScope(
     overrides: [
       databaseProvider.overrideWithValue(database),
+      settingProvider.overrideWithValue(preferences),
       userDefinedFieldProvider.overrideWith(
         (ref, prefKey) async => const ['WGS84'],
       ),

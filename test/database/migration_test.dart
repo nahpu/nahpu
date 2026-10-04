@@ -875,6 +875,32 @@ void main() {
     await db.close();
   });
 
+  test('v22 to v23 adds coordinate depth without changing existing rows', () async {
+    final schema = await verifier.schemaAt(22);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO site (id, projectUuid, siteID) VALUES (1, 'project', 'STA-1')",
+    );
+    raw.execute(
+      'INSERT INTO coordinate '
+      '(id, nameId, decimalLatitude, decimalLongitude, elevationInMeter, siteID) '
+      "VALUES (1, 'DROP-1', 18.2, -64.7, 0, 1)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 23);
+
+    final coordinate = await db.select(db.coordinate).getSingle();
+    expect(coordinate.nameId, 'DROP-1');
+    expect(coordinate.decimalLatitude, 18.2);
+    expect(coordinate.decimalLongitude, -64.7);
+    expect(coordinate.elevationInMeter, 0);
+    expect(coordinate.minimumDepthInMeters, isNull);
+    expect(coordinate.maximumDepthInMeters, isNull);
+    await db.close();
+  });
+
   test('v14 to v15 adds columns to the empty parasite table', () async {
     final schema = await verifier.schemaAt(14);
     final raw = schema.rawDatabase;

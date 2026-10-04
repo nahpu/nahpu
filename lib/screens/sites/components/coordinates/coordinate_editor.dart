@@ -735,6 +735,13 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     super.dispose();
   }
 
+  bool get _showDepthRange => ref
+      .watch(catalogFmtNotifierProvider)
+      .maybeWhen(
+        data: (catalogFmt) => catalogFmt == CatalogFmt.marineInvertebrates,
+        orElse: () => false,
+      );
+
   @override
   Widget build(BuildContext context) {
     bool useHorizontalLayout = MediaQuery.sizeOf(context).width > 600.0;
@@ -925,6 +932,26 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               isLastField: false,
             ),
           ),
+          if (_showDepthRange) ...[
+            CommonPadding(
+              child: CommonNumField(
+                controller: widget.coordCtr.minimumDepthCtr,
+                labelText: 'Minimum depth (m)',
+                hintText: 'Add a minimum depth',
+                isDouble: true,
+                isLastField: false,
+              ),
+            ),
+            CommonPadding(
+              child: CommonNumField(
+                controller: widget.coordCtr.maximumDepthCtr,
+                labelText: 'Maximum depth (m)',
+                hintText: 'Add a maximum depth',
+                isDouble: true,
+                isLastField: false,
+              ),
+            ),
+          ],
           CommonPadding(
             child: ref
                 .watch(effectiveUserDefinedFieldProvider(datumPrefKey))
@@ -1012,7 +1039,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           title: const Text('Change coordinate format?'),
           content: const Text(
             'Changing the format clears the entered coordinate values. '
-            'Name, elevation, datum, uncertainty, GPS unit, and notes are kept.',
+            'Name, elevation, depth, datum, uncertainty, GPS unit, and notes are kept.',
           ),
           actions: [
             TextButton(
@@ -1314,6 +1341,12 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       verbatimCoordinateSystem: db.Value(parsed.verbatimCoordinateSystem),
       elevationInMeter: db.Value(
         double.tryParse(widget.coordCtr.elevationCtr.text),
+      ),
+      minimumDepthInMeters: db.Value(
+        double.tryParse(widget.coordCtr.minimumDepthCtr.text),
+      ),
+      maximumDepthInMeters: db.Value(
+        double.tryParse(widget.coordCtr.maximumDepthCtr.text),
       ),
       datum: db.Value(widget.coordCtr.datumCtr.text),
       uncertaintyInMeters: db.Value(

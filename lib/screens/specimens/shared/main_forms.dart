@@ -112,6 +112,7 @@ class MainFormsState extends ConsumerState<MainForms> {
           specimenUuid: widget.specimenUuid,
         );
       case CatalogFmt.invertebrateZoology:
+      case CatalogFmt.marineInvertebrates:
         return InvertebrateAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
           specimenUuid: widget.specimenUuid,

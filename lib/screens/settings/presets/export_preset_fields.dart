@@ -701,7 +701,8 @@ bool _matchesSpecimenRecordType(
     SpecimenRecordType.allMammals => catalog == CatalogFmt.mammalogy,
     SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
     SpecimenRecordType.invertebrates =>
-      catalog == CatalogFmt.invertebrateZoology,
+      catalog == CatalogFmt.invertebrateZoology ||
+          catalog == CatalogFmt.marineInvertebrates,
     SpecimenRecordType.allTaxa => true,
   };
 }

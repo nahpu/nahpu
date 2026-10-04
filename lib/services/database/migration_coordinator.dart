@@ -30,6 +30,7 @@ class _MigrationCoordinator {
       19: (m) => _Version20Migration(db).upgrade(m),
       20: (m) => _Version21Migration(db).upgrade(m),
       21: (m) => _Version22Migration(db).upgrade(m),
+      22: (m) => _Version23Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -41,6 +42,72 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version23Migration {
+  const _Version23Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    await _addDepthColumnIfMissing(
+      migrator,
+      'minimumDepthInMeters',
+      db.coordinate.minimumDepthInMeters,
+    );
+    await _addDepthColumnIfMissing(
+      migrator,
+      'maximumDepthInMeters',
+      db.coordinate.maximumDepthInMeters,
+    );
+
+    // The trigger text now maps the marine invertebrate taxon. Recreate it so
+    // upgraded databases match a newly created schema.
+    for (final name in const [
+      'custom_field_value_validate_insert',
+      'custom_field_value_validate_update',
+    ]) {
+      await db.customStatement('DROP TRIGGER IF EXISTS $name');
+    }
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+    await _validate();
+  }
+
+  Future<void> _addDepthColumnIfMissing(
+    Migrator migrator,
+    String name,
+    GeneratedColumn<Object> column,
+  ) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info(coordinate)', readsFrom: const {})
+        .get();
+    final present = columns.any((row) => row.read<String>('name') == name);
+    if (!present) {
+      await migrator.addColumn(db.coordinate, column);
+    }
+  }
+
+  Future<void> _validate() async {
+    final columns = await db
+        .customSelect('PRAGMA table_info(coordinate)', readsFrom: const {})
+        .get();
+    final names = columns.map((row) => row.read<String>('name')).toSet();
+    for (final name in const ['minimumDepthInMeters', 'maximumDepthInMeters']) {
+      if (!names.contains(name)) {
+        throw StateError('Database migration did not add coordinate.$name.');
+      }
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
     }
   }
 }

@@ -5039,6 +5039,28 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _minimumDepthInMetersMeta =
+      const VerificationMeta('minimumDepthInMeters');
+  late final GeneratedColumn<double> minimumDepthInMeters =
+      GeneratedColumn<double>(
+        'minimumDepthInMeters',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _maximumDepthInMetersMeta =
+      const VerificationMeta('maximumDepthInMeters');
+  late final GeneratedColumn<double> maximumDepthInMeters =
+      GeneratedColumn<double>(
+        'maximumDepthInMeters',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   static const VerificationMeta _datumMeta = const VerificationMeta('datum');
   late final GeneratedColumn<String> datum = GeneratedColumn<String>(
     'datum',
@@ -5098,6 +5120,8 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
     verbatimCoordinates,
     verbatimCoordinateSystem,
     elevationInMeter,
+    minimumDepthInMeters,
+    maximumDepthInMeters,
     datum,
     uncertaintyInMeters,
     gpsUnit,
@@ -5188,6 +5212,24 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
         ),
       );
     }
+    if (data.containsKey('minimumDepthInMeters')) {
+      context.handle(
+        _minimumDepthInMetersMeta,
+        minimumDepthInMeters.isAcceptableOrUnknown(
+          data['minimumDepthInMeters']!,
+          _minimumDepthInMetersMeta,
+        ),
+      );
+    }
+    if (data.containsKey('maximumDepthInMeters')) {
+      context.handle(
+        _maximumDepthInMetersMeta,
+        maximumDepthInMeters.isAcceptableOrUnknown(
+          data['maximumDepthInMeters']!,
+          _maximumDepthInMetersMeta,
+        ),
+      );
+    }
     if (data.containsKey('datum')) {
       context.handle(
         _datumMeta,
@@ -5266,6 +5308,14 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
         DriftSqlType.double,
         data['${effectivePrefix}elevationInMeter'],
       ),
+      minimumDepthInMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minimumDepthInMeters'],
+      ),
+      maximumDepthInMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}maximumDepthInMeters'],
+      ),
       datum: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}datum'],
@@ -5316,6 +5366,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
   final String? verbatimCoordinates;
   final String? verbatimCoordinateSystem;
   final double? elevationInMeter;
+  final double? minimumDepthInMeters;
+  final double? maximumDepthInMeters;
   final String? datum;
   final int? uncertaintyInMeters;
   final String? gpsUnit;
@@ -5331,6 +5383,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     this.verbatimCoordinates,
     this.verbatimCoordinateSystem,
     this.elevationInMeter,
+    this.minimumDepthInMeters,
+    this.maximumDepthInMeters,
     this.datum,
     this.uncertaintyInMeters,
     this.gpsUnit,
@@ -5368,6 +5422,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     }
     if (!nullToAbsent || elevationInMeter != null) {
       map['elevationInMeter'] = Variable<double>(elevationInMeter);
+    }
+    if (!nullToAbsent || minimumDepthInMeters != null) {
+      map['minimumDepthInMeters'] = Variable<double>(minimumDepthInMeters);
+    }
+    if (!nullToAbsent || maximumDepthInMeters != null) {
+      map['maximumDepthInMeters'] = Variable<double>(maximumDepthInMeters);
     }
     if (!nullToAbsent || datum != null) {
       map['datum'] = Variable<String>(datum);
@@ -5414,6 +5474,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       elevationInMeter: elevationInMeter == null && nullToAbsent
           ? const Value.absent()
           : Value(elevationInMeter),
+      minimumDepthInMeters: minimumDepthInMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minimumDepthInMeters),
+      maximumDepthInMeters: maximumDepthInMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maximumDepthInMeters),
       datum: datum == null && nullToAbsent
           ? const Value.absent()
           : Value(datum),
@@ -5453,6 +5519,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
         json['verbatimCoordinateSystem'],
       ),
       elevationInMeter: serializer.fromJson<double?>(json['elevationInMeter']),
+      minimumDepthInMeters: serializer.fromJson<double?>(
+        json['minimumDepthInMeters'],
+      ),
+      maximumDepthInMeters: serializer.fromJson<double?>(
+        json['maximumDepthInMeters'],
+      ),
       datum: serializer.fromJson<String?>(json['datum']),
       uncertaintyInMeters: serializer.fromJson<int?>(
         json['uncertaintyInMeters'],
@@ -5477,6 +5549,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
         verbatimCoordinateSystem,
       ),
       'elevationInMeter': serializer.toJson<double?>(elevationInMeter),
+      'minimumDepthInMeters': serializer.toJson<double?>(minimumDepthInMeters),
+      'maximumDepthInMeters': serializer.toJson<double?>(maximumDepthInMeters),
       'datum': serializer.toJson<String?>(datum),
       'uncertaintyInMeters': serializer.toJson<int?>(uncertaintyInMeters),
       'gpsUnit': serializer.toJson<String?>(gpsUnit),
@@ -5495,6 +5569,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     Value<String?> verbatimCoordinates = const Value.absent(),
     Value<String?> verbatimCoordinateSystem = const Value.absent(),
     Value<double?> elevationInMeter = const Value.absent(),
+    Value<double?> minimumDepthInMeters = const Value.absent(),
+    Value<double?> maximumDepthInMeters = const Value.absent(),
     Value<String?> datum = const Value.absent(),
     Value<int?> uncertaintyInMeters = const Value.absent(),
     Value<String?> gpsUnit = const Value.absent(),
@@ -5524,6 +5600,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     elevationInMeter: elevationInMeter.present
         ? elevationInMeter.value
         : this.elevationInMeter,
+    minimumDepthInMeters: minimumDepthInMeters.present
+        ? minimumDepthInMeters.value
+        : this.minimumDepthInMeters,
+    maximumDepthInMeters: maximumDepthInMeters.present
+        ? maximumDepthInMeters.value
+        : this.maximumDepthInMeters,
     datum: datum.present ? datum.value : this.datum,
     uncertaintyInMeters: uncertaintyInMeters.present
         ? uncertaintyInMeters.value
@@ -5557,6 +5639,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       elevationInMeter: data.elevationInMeter.present
           ? data.elevationInMeter.value
           : this.elevationInMeter,
+      minimumDepthInMeters: data.minimumDepthInMeters.present
+          ? data.minimumDepthInMeters.value
+          : this.minimumDepthInMeters,
+      maximumDepthInMeters: data.maximumDepthInMeters.present
+          ? data.maximumDepthInMeters.value
+          : this.maximumDepthInMeters,
       datum: data.datum.present ? data.datum.value : this.datum,
       uncertaintyInMeters: data.uncertaintyInMeters.present
           ? data.uncertaintyInMeters.value
@@ -5579,6 +5667,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
           ..write('verbatimCoordinates: $verbatimCoordinates, ')
           ..write('verbatimCoordinateSystem: $verbatimCoordinateSystem, ')
           ..write('elevationInMeter: $elevationInMeter, ')
+          ..write('minimumDepthInMeters: $minimumDepthInMeters, ')
+          ..write('maximumDepthInMeters: $maximumDepthInMeters, ')
           ..write('datum: $datum, ')
           ..write('uncertaintyInMeters: $uncertaintyInMeters, ')
           ..write('gpsUnit: $gpsUnit, ')
@@ -5599,6 +5689,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     verbatimCoordinates,
     verbatimCoordinateSystem,
     elevationInMeter,
+    minimumDepthInMeters,
+    maximumDepthInMeters,
     datum,
     uncertaintyInMeters,
     gpsUnit,
@@ -5618,6 +5710,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
           other.verbatimCoordinates == this.verbatimCoordinates &&
           other.verbatimCoordinateSystem == this.verbatimCoordinateSystem &&
           other.elevationInMeter == this.elevationInMeter &&
+          other.minimumDepthInMeters == this.minimumDepthInMeters &&
+          other.maximumDepthInMeters == this.maximumDepthInMeters &&
           other.datum == this.datum &&
           other.uncertaintyInMeters == this.uncertaintyInMeters &&
           other.gpsUnit == this.gpsUnit &&
@@ -5635,6 +5729,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
   final Value<String?> verbatimCoordinates;
   final Value<String?> verbatimCoordinateSystem;
   final Value<double?> elevationInMeter;
+  final Value<double?> minimumDepthInMeters;
+  final Value<double?> maximumDepthInMeters;
   final Value<String?> datum;
   final Value<int?> uncertaintyInMeters;
   final Value<String?> gpsUnit;
@@ -5650,6 +5746,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     this.verbatimCoordinates = const Value.absent(),
     this.verbatimCoordinateSystem = const Value.absent(),
     this.elevationInMeter = const Value.absent(),
+    this.minimumDepthInMeters = const Value.absent(),
+    this.maximumDepthInMeters = const Value.absent(),
     this.datum = const Value.absent(),
     this.uncertaintyInMeters = const Value.absent(),
     this.gpsUnit = const Value.absent(),
@@ -5666,6 +5764,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     this.verbatimCoordinates = const Value.absent(),
     this.verbatimCoordinateSystem = const Value.absent(),
     this.elevationInMeter = const Value.absent(),
+    this.minimumDepthInMeters = const Value.absent(),
+    this.maximumDepthInMeters = const Value.absent(),
     this.datum = const Value.absent(),
     this.uncertaintyInMeters = const Value.absent(),
     this.gpsUnit = const Value.absent(),
@@ -5682,6 +5782,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     Expression<String>? verbatimCoordinates,
     Expression<String>? verbatimCoordinateSystem,
     Expression<double>? elevationInMeter,
+    Expression<double>? minimumDepthInMeters,
+    Expression<double>? maximumDepthInMeters,
     Expression<String>? datum,
     Expression<int>? uncertaintyInMeters,
     Expression<String>? gpsUnit,
@@ -5700,6 +5802,10 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
       if (verbatimCoordinateSystem != null)
         'verbatimCoordinateSystem': verbatimCoordinateSystem,
       if (elevationInMeter != null) 'elevationInMeter': elevationInMeter,
+      if (minimumDepthInMeters != null)
+        'minimumDepthInMeters': minimumDepthInMeters,
+      if (maximumDepthInMeters != null)
+        'maximumDepthInMeters': maximumDepthInMeters,
       if (datum != null) 'datum': datum,
       if (uncertaintyInMeters != null)
         'uncertaintyInMeters': uncertaintyInMeters,
@@ -5719,6 +5825,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     Value<String?>? verbatimCoordinates,
     Value<String?>? verbatimCoordinateSystem,
     Value<double?>? elevationInMeter,
+    Value<double?>? minimumDepthInMeters,
+    Value<double?>? maximumDepthInMeters,
     Value<String?>? datum,
     Value<int?>? uncertaintyInMeters,
     Value<String?>? gpsUnit,
@@ -5736,6 +5844,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
       verbatimCoordinateSystem:
           verbatimCoordinateSystem ?? this.verbatimCoordinateSystem,
       elevationInMeter: elevationInMeter ?? this.elevationInMeter,
+      minimumDepthInMeters: minimumDepthInMeters ?? this.minimumDepthInMeters,
+      maximumDepthInMeters: maximumDepthInMeters ?? this.maximumDepthInMeters,
       datum: datum ?? this.datum,
       uncertaintyInMeters: uncertaintyInMeters ?? this.uncertaintyInMeters,
       gpsUnit: gpsUnit ?? this.gpsUnit,
@@ -5776,6 +5886,16 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     if (elevationInMeter.present) {
       map['elevationInMeter'] = Variable<double>(elevationInMeter.value);
     }
+    if (minimumDepthInMeters.present) {
+      map['minimumDepthInMeters'] = Variable<double>(
+        minimumDepthInMeters.value,
+      );
+    }
+    if (maximumDepthInMeters.present) {
+      map['maximumDepthInMeters'] = Variable<double>(
+        maximumDepthInMeters.value,
+      );
+    }
     if (datum.present) {
       map['datum'] = Variable<String>(datum.value);
     }
@@ -5806,6 +5926,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
           ..write('verbatimCoordinates: $verbatimCoordinates, ')
           ..write('verbatimCoordinateSystem: $verbatimCoordinateSystem, ')
           ..write('elevationInMeter: $elevationInMeter, ')
+          ..write('minimumDepthInMeters: $minimumDepthInMeters, ')
+          ..write('maximumDepthInMeters: $maximumDepthInMeters, ')
           ..write('datum: $datum, ')
           ..write('uncertaintyInMeters: $uncertaintyInMeters, ')
           ..write('gpsUnit: $gpsUnit, ')
@@ -24817,11 +24939,11 @@ abstract class _$Database extends GeneratedDatabase {
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
   );
   late final Trigger customFieldValueValidateInsert = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_insert',
   );
   late final Trigger customFieldValueValidateUpdate = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'marine invertebrates\' THEN \'marineInvertebrates\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_update',
   );
   late final Index specimenProjectSpeciesIdx = Index(
@@ -27742,6 +27864,8 @@ typedef $CoordinateCreateCompanionBuilder =
       Value<String?> verbatimCoordinates,
       Value<String?> verbatimCoordinateSystem,
       Value<double?> elevationInMeter,
+      Value<double?> minimumDepthInMeters,
+      Value<double?> maximumDepthInMeters,
       Value<String?> datum,
       Value<int?> uncertaintyInMeters,
       Value<String?> gpsUnit,
@@ -27759,6 +27883,8 @@ typedef $CoordinateUpdateCompanionBuilder =
       Value<String?> verbatimCoordinates,
       Value<String?> verbatimCoordinateSystem,
       Value<double?> elevationInMeter,
+      Value<double?> minimumDepthInMeters,
+      Value<double?> maximumDepthInMeters,
       Value<String?> datum,
       Value<int?> uncertaintyInMeters,
       Value<String?> gpsUnit,
@@ -27816,6 +27942,16 @@ class $CoordinateFilterComposer extends Composer<_$Database, Coordinate> {
 
   ColumnFilters<double> get elevationInMeter => $composableBuilder(
     column: $table.elevationInMeter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minimumDepthInMeters => $composableBuilder(
+    column: $table.minimumDepthInMeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maximumDepthInMeters => $composableBuilder(
+    column: $table.maximumDepthInMeters,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27898,6 +28034,16 @@ class $CoordinateOrderingComposer extends Composer<_$Database, Coordinate> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get minimumDepthInMeters => $composableBuilder(
+    column: $table.minimumDepthInMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maximumDepthInMeters => $composableBuilder(
+    column: $table.maximumDepthInMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get datum => $composableBuilder(
     column: $table.datum,
     builder: (column) => ColumnOrderings(column),
@@ -27973,6 +28119,16 @@ class $CoordinateAnnotationComposer extends Composer<_$Database, Coordinate> {
     builder: (column) => column,
   );
 
+  GeneratedColumn<double> get minimumDepthInMeters => $composableBuilder(
+    column: $table.minimumDepthInMeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maximumDepthInMeters => $composableBuilder(
+    column: $table.maximumDepthInMeters,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get datum =>
       $composableBuilder(column: $table.datum, builder: (column) => column);
 
@@ -28031,6 +28187,8 @@ class $CoordinateTableManager
                 Value<String?> verbatimCoordinates = const Value.absent(),
                 Value<String?> verbatimCoordinateSystem = const Value.absent(),
                 Value<double?> elevationInMeter = const Value.absent(),
+                Value<double?> minimumDepthInMeters = const Value.absent(),
+                Value<double?> maximumDepthInMeters = const Value.absent(),
                 Value<String?> datum = const Value.absent(),
                 Value<int?> uncertaintyInMeters = const Value.absent(),
                 Value<String?> gpsUnit = const Value.absent(),
@@ -28046,6 +28204,8 @@ class $CoordinateTableManager
                 verbatimCoordinates: verbatimCoordinates,
                 verbatimCoordinateSystem: verbatimCoordinateSystem,
                 elevationInMeter: elevationInMeter,
+                minimumDepthInMeters: minimumDepthInMeters,
+                maximumDepthInMeters: maximumDepthInMeters,
                 datum: datum,
                 uncertaintyInMeters: uncertaintyInMeters,
                 gpsUnit: gpsUnit,
@@ -28063,6 +28223,8 @@ class $CoordinateTableManager
                 Value<String?> verbatimCoordinates = const Value.absent(),
                 Value<String?> verbatimCoordinateSystem = const Value.absent(),
                 Value<double?> elevationInMeter = const Value.absent(),
+                Value<double?> minimumDepthInMeters = const Value.absent(),
+                Value<double?> maximumDepthInMeters = const Value.absent(),
                 Value<String?> datum = const Value.absent(),
                 Value<int?> uncertaintyInMeters = const Value.absent(),
                 Value<String?> gpsUnit = const Value.absent(),
@@ -28078,6 +28240,8 @@ class $CoordinateTableManager
                 verbatimCoordinates: verbatimCoordinates,
                 verbatimCoordinateSystem: verbatimCoordinateSystem,
                 elevationInMeter: elevationInMeter,
+                minimumDepthInMeters: minimumDepthInMeters,
+                maximumDepthInMeters: maximumDepthInMeters,
                 datum: datum,
                 uncertaintyInMeters: uncertaintyInMeters,
                 gpsUnit: gpsUnit,

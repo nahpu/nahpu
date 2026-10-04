@@ -1640,6 +1640,8 @@ class CoordinateCtrModel {
     required this.latitudeAngularCtr,
     required this.longitudeAngularCtr,
     required this.elevationCtr,
+    required this.minimumDepthCtr,
+    required this.maximumDepthCtr,
     required this.datumCtr,
     required this.uncertaintyCtr,
     required this.gpsUnitCtr,
@@ -1654,6 +1656,8 @@ class CoordinateCtrModel {
   AngularCoordinateCtrModel latitudeAngularCtr;
   AngularCoordinateCtrModel longitudeAngularCtr;
   TextEditingController elevationCtr;
+  TextEditingController minimumDepthCtr;
+  TextEditingController maximumDepthCtr;
   TextEditingController datumCtr;
   TextEditingController uncertaintyCtr;
   TextEditingController gpsUnitCtr;
@@ -1668,6 +1672,8 @@ class CoordinateCtrModel {
     latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     elevationCtr: TextEditingController(),
+    minimumDepthCtr: TextEditingController(),
+    maximumDepthCtr: TextEditingController(),
     datumCtr: TextEditingController(),
     uncertaintyCtr: TextEditingController(),
     gpsUnitCtr: TextEditingController(),
@@ -1685,6 +1691,12 @@ class CoordinateCtrModel {
       longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
       elevationCtr: TextEditingController(
         text: data.elevationInMeter?.truncateZero(),
+      ),
+      minimumDepthCtr: TextEditingController(
+        text: data.minimumDepthInMeters?.truncateZero(),
+      ),
+      maximumDepthCtr: TextEditingController(
+        text: data.maximumDepthInMeters?.truncateZero(),
       ),
       datumCtr: TextEditingController(text: data.datum ?? ''),
       uncertaintyCtr: TextEditingController(
@@ -1785,6 +1797,8 @@ class CoordinateCtrModel {
     latitudeAngularCtr.dispose();
     longitudeAngularCtr.dispose();
     elevationCtr.dispose();
+    minimumDepthCtr.dispose();
+    maximumDepthCtr.dispose();
     datumCtr.dispose();
     uncertaintyCtr.dispose();
     gpsUnitCtr.dispose();

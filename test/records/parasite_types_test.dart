@@ -31,5 +31,6 @@ void main() {
     expect(supportsParasites(CatalogFmt.ornithology), isTrue);
     expect(supportsParasites(CatalogFmt.herpetology), isTrue);
     expect(supportsParasites(CatalogFmt.invertebrateZoology), isFalse);
+    expect(supportsParasites(CatalogFmt.marineInvertebrates), isFalse);
   });
 }
