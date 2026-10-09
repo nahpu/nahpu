@@ -489,6 +489,16 @@ class BirdSpecimenQuery extends DatabaseAccessor<Database>
     )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
   }
 
+  Future<List<BirdAttributeData>> getBirdAttributesBySpecimenUuids(
+    List<String> specimenUuids,
+  ) {
+    if (specimenUuids.isEmpty) return Future.value([]);
+
+    return (select(
+      birdAttribute,
+    )..where((t) => t.specimenUuid.isIn(specimenUuids))).get();
+  }
+
   Future<void> deleteBirdAttributes(String specimenUuid) {
     return (delete(
       birdAttribute,
@@ -516,6 +526,16 @@ class HerpSpecimenQuery extends DatabaseAccessor<Database>
     return await (select(
       herpAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  }
+
+  Future<List<HerpAttributeData>> getHerpAttributesBySpecimenUuids(
+    List<String> specimenUuids,
+  ) {
+    if (specimenUuids.isEmpty) return Future.value([]);
+
+    return (select(
+      herpAttribute,
+    )..where((t) => t.specimenUuid.isIn(specimenUuids))).get();
   }
 
   Future<void> deleteHerpAttributes(String specimenUuid) {

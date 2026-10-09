@@ -5,9 +5,11 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
+import 'package:nahpu/screens/specimens/shared/measurement_outlier_warnings.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/specimens/measurement_outlier_services.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -26,13 +28,30 @@ class HerpAttributeForms extends ConsumerStatefulWidget {
   HerpAttributeFormsState createState() => HerpAttributeFormsState();
 }
 
-class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
+class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms>
+    with
+        MeasurementOutlierWarnings<
+          HerpAttributeForms,
+          HerpMeasurementOutlierField
+        > {
   HerpAttributeCtrModel ctr = HerpAttributeCtrModel.empty();
+  final FocusNode _weightFocusNode = FocusNode();
+  final FocusNode _svlFocusNode = FocusNode();
   final Key _sexDropdownKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
+    addOutlierListener(
+      _weightFocusNode,
+      HerpMeasurementOutlierField.weight,
+      () => double.tryParse(ctr.weightCtr.text),
+    );
+    addOutlierListener(
+      _svlFocusNode,
+      HerpMeasurementOutlierField.svl,
+      () => double.tryParse(ctr.svlCtr.text),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateCtr(widget.specimenUuid);
     });
@@ -41,13 +60,39 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
   @override
   void dispose() {
     ctr.dispose();
+    _weightFocusNode.dispose();
+    _svlFocusNode.dispose();
     super.dispose();
   }
+
+  @override
+  String get outlierWeightUnit => ctr.weightUnitCtr;
+
+  @override
+  Future<MeasurementOutlierResult?> checkOutlierValue(
+    HerpMeasurementOutlierField field,
+    double value,
+  ) => HerpMeasurementOutlierServices(ref: ref).checkValue(
+    specimenUuid: widget.specimenUuid,
+    field: field,
+    value: value,
+    weightUnit: outlierWeightUnit,
+  );
 
   @override
   Widget build(BuildContext context) {
     return AttributeForm(
       children: [
+        AdaptiveLayout(
+          useHorizontalLayout: widget.useHorizontalLayout,
+          children: [
+            SwitchField(
+              label: 'Show outlier warnings',
+              value: showOutlierWarnings,
+              onPressed: setOutlierWarningsEnabled,
+            ),
+          ],
+        ),
         AdaptiveLayout(
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
@@ -73,12 +118,17 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
           children: [
             WeightField(
               controller: ctr.weightCtr,
+              focusNode: _weightFocusNode,
               unit: ctr.weightUnitCtr,
               onUnitChanged: (unit) {
                 setState(() => ctr.weightUnitCtr = unit);
                 SpecimenServices(ref: ref).updateHerpAttribute(
                   widget.specimenUuid,
                   HerpAttributeCompanion(weightUnit: db.Value(unit)),
+                );
+                scheduleOutlierWarning(
+                  HerpMeasurementOutlierField.weight,
+                  double.tryParse(ctr.weightCtr.text),
                 );
               },
               onChanged: (value) {
@@ -92,11 +142,16 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
                       ),
                     );
                   });
+                  scheduleOutlierWarning(
+                    HerpMeasurementOutlierField.weight,
+                    double.tryParse(value),
+                  );
                 }
               },
             ),
             CommonNumField(
               controller: ctr.svlCtr,
+              focusNode: _svlFocusNode,
               labelText: 'SVL (cm)',
               hintText: 'Enter snout-vent length',
               isDouble: true,
@@ -111,6 +166,10 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
                       ),
                     );
                   });
+                  scheduleOutlierWarning(
+                    HerpMeasurementOutlierField.svl,
+                    double.tryParse(value),
+                  );
                 }
               },
             ),

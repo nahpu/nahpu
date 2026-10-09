@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -9,6 +7,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
+import 'package:nahpu/screens/specimens/shared/measurement_outlier_warnings.dart';
 import 'package:nahpu/screens/specimens/shared/weight_field.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/specimens/measurement_outlier_services.dart';
@@ -32,7 +31,12 @@ class MammalAttributeForms extends ConsumerStatefulWidget {
   MammalAttributeFormsState createState() => MammalAttributeFormsState();
 }
 
-class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
+class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
+    with
+        MeasurementOutlierWarnings<
+          MammalAttributeForms,
+          MammalMeasurementOutlierField
+        > {
   MammalAttributeCtrModel ctr = MammalAttributeCtrModel.empty();
   TextEditingController headBodyLengthCtr = TextEditingController();
   TextEditingController tailHeadBodyPercentCtr = TextEditingController();
@@ -41,11 +45,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   final FocusNode _hindFootFocusNode = FocusNode();
   final FocusNode _earFocusNode = FocusNode();
   final FocusNode _weightFocusNode = FocusNode();
-  final Set<String> _shownOutlierWarnings = {};
-  final Map<MammalMeasurementOutlierField, Timer> _outlierWarningTimers = {};
   // String? _hblErrorText;
-  bool _isShowingOutlierWarning = false;
-  bool _showOutlierWarnings = true;
   bool _showBatFields = false;
   bool _hasStoredBatData = false;
   int _accuracyDropdownVersion = 0;
@@ -56,27 +56,27 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
   @override
   void initState() {
     super.initState();
-    _addOutlierListener(
+    addOutlierListener(
       _totalLengthFocusNode,
       MammalMeasurementOutlierField.totalLength,
       () => double.tryParse(ctr.totalLengthCtr.text),
     );
-    _addOutlierListener(
+    addOutlierListener(
       _tailLengthFocusNode,
       MammalMeasurementOutlierField.tailLength,
       () => double.tryParse(ctr.tailLengthCtr.text),
     );
-    _addOutlierListener(
+    addOutlierListener(
       _hindFootFocusNode,
       MammalMeasurementOutlierField.hindFootLength,
       () => double.tryParse(ctr.hindFootCtr.text),
     );
-    _addOutlierListener(
+    addOutlierListener(
       _earFocusNode,
       MammalMeasurementOutlierField.earLength,
       () => double.tryParse(ctr.earCtr.text),
     );
-    _addOutlierListener(
+    addOutlierListener(
       _weightFocusNode,
       MammalMeasurementOutlierField.weight,
       () => double.tryParse(ctr.weightCtr.text),
@@ -96,11 +96,22 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
     _hindFootFocusNode.dispose();
     _earFocusNode.dispose();
     _weightFocusNode.dispose();
-    for (final timer in _outlierWarningTimers.values) {
-      timer.cancel();
-    }
     super.dispose();
   }
+
+  @override
+  String get outlierWeightUnit => ctr.weightUnitCtr;
+
+  @override
+  Future<MeasurementOutlierResult?> checkOutlierValue(
+    MammalMeasurementOutlierField field,
+    double value,
+  ) => MammalMeasurementOutlierServices(ref: ref).checkValue(
+    specimenUuid: widget.specimenUuid,
+    field: field,
+    value: value,
+    weightUnit: outlierWeightUnit,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -111,18 +122,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           children: [
             SwitchField(
               label: 'Show outlier warnings',
-              value: _showOutlierWarnings,
-              onPressed: (value) {
-                setState(() {
-                  _showOutlierWarnings = value;
-                });
-                if (!value) {
-                  for (final timer in _outlierWarningTimers.values) {
-                    timer.cancel();
-                  }
-                  _outlierWarningTimers.clear();
-                }
-              },
+              value: showOutlierWarnings,
+              onPressed: setOutlierWarningsEnabled,
             ),
           ],
         ),
@@ -151,7 +152,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                     ),
                   );
                 });
-                _scheduleOutlierWarning(
+                scheduleOutlierWarning(
                   MammalMeasurementOutlierField.totalLength,
                   measurement,
                 );
@@ -179,7 +180,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                     ),
                   );
                 });
-                _scheduleOutlierWarning(
+                scheduleOutlierWarning(
                   MammalMeasurementOutlierField.tailLength,
                   measurement,
                 );
@@ -239,7 +240,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                       ),
                     );
                   });
-                  _scheduleOutlierWarning(
+                  scheduleOutlierWarning(
                     MammalMeasurementOutlierField.hindFootLength,
                     double.tryParse(value),
                   );
@@ -266,7 +267,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                       ),
                     );
                   });
-                  _scheduleOutlierWarning(
+                  scheduleOutlierWarning(
                     MammalMeasurementOutlierField.earLength,
                     double.tryParse(value),
                   );
@@ -291,6 +292,10 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                   widget.specimenUuid,
                   MammalAttributeCompanion(weightUnit: db.Value(unit)),
                 );
+                scheduleOutlierWarning(
+                  MammalMeasurementOutlierField.weight,
+                  double.tryParse(ctr.weightCtr.text),
+                );
               },
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
@@ -303,7 +308,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
                       ),
                     );
                   });
-                  _scheduleOutlierWarning(
+                  scheduleOutlierWarning(
                     MammalMeasurementOutlierField.weight,
                     double.tryParse(value),
                   );
@@ -550,66 +555,6 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
     headBodyLengthCtr.text = results?.headAndBodyText ?? '';
     tailHeadBodyPercentCtr.text = results?.percentTailText ?? '';
     // _hblErrorText = results?.errorText ?? '';
-  }
-
-  void _addOutlierListener(
-    FocusNode focusNode,
-    MammalMeasurementOutlierField field,
-    double? Function() getValue,
-  ) {
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-        _showOutlierWarning(field, getValue());
-      }
-    });
-  }
-
-  void _scheduleOutlierWarning(
-    MammalMeasurementOutlierField field,
-    double? value,
-  ) {
-    if (!_showOutlierWarnings) return;
-
-    _outlierWarningTimers[field]?.cancel();
-    _outlierWarningTimers[field] = Timer(
-      const Duration(milliseconds: 800),
-      () => _showOutlierWarning(field, value),
-    );
-  }
-
-  Future<void> _showOutlierWarning(
-    MammalMeasurementOutlierField field,
-    double? value,
-  ) async {
-    if (!_showOutlierWarnings || value == null || _isShowingOutlierWarning) {
-      return;
-    }
-
-    final result = await MammalMeasurementOutlierServices(
-      ref: ref,
-    ).checkValue(specimenUuid: widget.specimenUuid, field: field, value: value);
-
-    if (!mounted || !_showOutlierWarnings || result == null) return;
-
-    final warningKey =
-        '${field.name}:${result.value}:${result.lowerBound}:${result.upperBound}';
-    if (!_shownOutlierWarnings.add(warningKey)) return;
-
-    _isShowingOutlierWarning = true;
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Unusual measurement'),
-        content: Text(result.message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    _isShowingOutlierWarning = false;
   }
 
   Future<void> _handleSexUpdate(SpecimenSex? newSex) async {
