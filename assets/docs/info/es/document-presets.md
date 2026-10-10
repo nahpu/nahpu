@@ -1,22 +1,15 @@
 ---
 title: "Preajustes de documento"
+authors: []
 sidebar:
   order: 0
 ---
 
-La configuración de documentos separa las plantillas reutilizables de los diseños de impresión. Una plantilla define una etiqueta, un marbete, una hoja o un bloque de documento. Un diseño de impresión define el tamaño y la orientación de la página, los márgenes, los bloques de plantilla colocados en la página, las copias, el orden de los registros y la configuración de archivo que se usa al generar el documento.
+Los preajustes de documento constan de plantillas reutilizables y diseños de impresión. Un preajuste define los márgenes de página, la orientación, el relleno y la configuración de los bloques de plantilla. Los bloques organizan las plantillas y definen su orden y disposición en una página. Dentro de cada bloque, se selecciona una plantilla.
 
-Cree un diseño separado para cada flujo de trabajo distinto y duplique con otro nombre un preajuste que ya funciona antes de experimentar con él. Previsualice con registros representativos, incluidos textos largos, valores faltantes y ambas caras de una plantilla a doble faz.
+Una plantilla define un diseño vinculado a campos de datos. Puede crear sus propios diseños para usos como etiquetas de tejido, etiquetas de especímenes o archivos PDF de todos los registros. Abra el editor de plantillas directamente o haga clic en el botón de edición (icono de lápiz).
 
-`Load defaults` en el menú de opciones, o en una lista vacía, permite elegir qué diseños de impresión y plantillas incluidos con NAHPU se añaden. Los que sirven para cualquier formato de catálogo aparecen marcados; los escritos para un formato de catálogo, como el cuaderno de campo, las etiquetas de cráneo y las etiquetas de ejemplar de mamíferos, aparecen sin marcar y también se ofrecen en `Setup NAHPU`. Nunca sobrescribe un preajuste con el mismo nombre, y cualquier preajuste se puede eliminar.
-
-Al exportar se abre la configuración del archivo, donde puede nombrarlo, elegir una carpeta y compartirlo con `Share` después de exportar. Exportar un diseño incluye las plantillas que usan sus bloques, salvo que desactive `Include linked templates`, y al importar ese archivo también se añaden las plantillas.
-
-Las plantillas y sus diseños se transfieren juntos mediante las configuraciones de usuario, así que mueva ambos cuando una persona colaboradora necesite la misma salida.
-
-Al diseñar una plantilla puede usar las fuentes incluidas o importar sus propias fuentes. Las fuentes se gestionan en `Documents` > `Fonts`.
-
-Las definiciones transferidas no incluyen fuentes personalizadas ni imágenes de las plantillas. Instale las fuentes y añada las imágenes en el dispositivo receptor; después compare el PDF generado con el resultado previsto.
+Al diseñar una plantilla, puede usar las fuentes incluidas o importar sus propias fuentes. Las fuentes se gestionan en `Documents` > `Fonts`.
 
 ## Más información
 

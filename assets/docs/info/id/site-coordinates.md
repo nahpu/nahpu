@@ -1,12 +1,13 @@
 ---
 title: "Koordinat lokasi"
+authors: []
 sidebar:
   order: 0
 ---
 
-Satu lokasi dapat memiliki beberapa posisi, misalnya setiap perangkap pada satu jalur. Beri nama yang jelas dan catat sumber, datum, elevasi, ketidakpastian, serta unit GPS jika diketahui. Ketidakpastian koordinat menjelaskan ketidakpastian posisi; nilainya berbeda dari cakupan koordinat spesimen.
+Suatu lokasi dapat memiliki beberapa posisi, seperti perangkap individual di sepanjang jalur. `Add coordinate` mendukung pengisian manual dan impor massal dalam format GeoJSON/JSON, KML, Shapefile terkompresi ZIP, dan GPX.
 
-Entri manual mendukung DD, DDM, DMS, dan UTM WGS84. NAHPU menyimpan masukan non-desimal dan hasil konversi derajat desimal. `Select coordinate file` menerima CSV, TSV, Excel, GeoJSON/JSON, KML, Shapefile terkompresi, dan GPX. Untuk lembar kerja, tinjau pemetaan kolom sebelum memilih titik. `Scan QR` membaca kode koordinat NAHPU. Periksa peringatan, satuan, dan posisi peta sebelum menambahkan koordinat terpilih.
+Untuk pengisian manual, tambahkan nama singkat (nama lokasi digunakan secara bawaan), datum, elevasi, ketidakpastian, dan unit GPS jika diketahui. Gunakan ketidakpastian koordinat yang dilaporkan GPS atau perkirakan sendiri. Anda juga dapat memakai `Coordinate extent` pada formulir spesimen untuk memperkirakan lebih lanjut posisi spesimen relatif terhadap koordinat yang dicatat.
 
 ## Pelajari lebih lanjut
 

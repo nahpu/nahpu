@@ -1,12 +1,13 @@
 ---
 title: "Site coordinates"
+authors: ["Heru Handika"]
 sidebar:
   order: 0
 ---
 
-A site can contain several positions, such as individual traps along a line. Give each coordinate a useful name and record its source, datum, elevation, uncertainty, and GPS unit when known. Coordinate uncertainty describes positional uncertainty; it is separate from a specimen's coordinate extent.
+A site can contain several positions, such as individual traps along a line. `Add coordinate` supports manual entry and bulk imports in GeoJSON/JSON, KML, zipped Shapefile, and GPX formats.
 
-Manual entry supports DD, DDM, DMS, and WGS84 UTM. NAHPU retains non-decimal input and converted decimal-degree values. `Select coordinate file` accepts CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX. For spreadsheets, review column mapping before selecting points. `Scan QR` reads a NAHPU coordinate code. Check warnings, units, and mapped positions before adding the selected coordinates.
+For manual entry, add a concise name (the site name is used by default), datum, elevation, uncertainty, and GPS unit when known. Use the coordinate uncertainty reported by the GPS or estimate it yourself. You can also use `Coordinate extent` in the specimen form to further estimate the specimen’s location relative to the recorded coordinate.
 
 ## Learn more
 

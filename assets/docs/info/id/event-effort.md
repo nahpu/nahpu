@@ -1,14 +1,15 @@
 ---
 title: "Upaya pengambilan sampel"
+authors: []
 sidebar:
   order: 0
 ---
 
-Catatan upaya menjelaskan bagaimana pengambilan sampel dilakukan. Tambahkan setiap metode secara terpisah dan catat jumlah unit, merek dan model peralatan, ukuran atau dimensinya, serta keterangan. Sertakan satuan pada nilai ukuran (misalnya "10cm x 10cm x 10cm").
+Catatan upaya menjelaskan metode, jumlah, dan rincian lain yang relevan. Menggandakan kegiatan akan menyalin catatan upayanya. NAHPU menyediakan pilihan metode bawaan yang terbatas. Untuk menyesuaikan pilihan, buka `Settings` > `Events` > `Collection Methods`.
 
-Gunakan satuan dan nama metode terkontrol yang sama di seluruh proyek agar upaya dapat dibandingkan. Sampaikan konteks yang cukup agar orang lain memahami upaya tersebut tanpa harus menduga rincian yang hilang. Menggandakan kegiatan akan menyalin catatan upayanya juga.
+Tambahkan setiap metode secara terpisah dan catat jumlah unit, merek dan model peralatan, ukuran atau dimensinya, serta keterangan. Sertakan satuan pada nilai ukuran (misalnya, "10 cm × 10 cm × 10 cm").
 
-Tinjau jumlah peralatan dan metode yang disalin untuk setiap kegiatan. Catat nol hanya jika merupakan jumlah yang diamati, dan jelaskan upaya yang tidak lengkap dalam catatan.
+Gunakan satuan dan nama metode terkontrol yang sama di seluruh proyek agar upaya dapat dibandingkan.
 
 ## Pelajari lebih lanjut
 

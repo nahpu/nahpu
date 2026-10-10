@@ -1,14 +1,17 @@
 ---
 title: "Specimen general record"
+authors: ["Heru Handika"]
 sidebar:
   order: 0
 ---
 
-The general record identifies the specimen and the people responsible for cataloging, preparation, and identification. Choose the taxon from the project registry and use `ID Confidence` to record confidence in that identification.
+The general record identifies the specimen and the people responsible for cataloging, preparation, and identification. Choose the taxon from the project registry. The Taxon field is disabled when the taxon registry is empty. In that case, go to `Dashboard` and select `Add Taxon`. Use `ID Confidence` to record confidence in the identification.
 
-Personnel Field IDs use an eligible Cataloger's initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix. Neither is the project UUID. Check the identifier against the physical label before continuing.
+`Personnel` Field IDs use an eligible `Cataloger`'s initials and personal field number. Project Field IDs use the project prefix, catalog number, and suffix.
 
-Assign Cataloger, Preparator, and Determiner according to their actual work. Record observed condition and known collection and preparation dates and times. Fields update as you edit; review the record and any validation errors before leaving it.
+Assign `Cataloger`, `Preparator`, and `Determiner` according to their actual work. By default, NAHPU assigns the cataloger to all three fields. Change these assignments if different people do the work.
+
+You can customize the options for `Condition`, `ID Confidence`, and `Identification Methods` in `Settings` > `Specimens`.
 
 ## Learn more
 

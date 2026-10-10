@@ -1,16 +1,13 @@
 ---
 title: "Geografia do local"
+authors: []
 sidebar:
   order: 0
 ---
 
-A geografia descreve a hierarquia administrativa do local, do país até a localidade precisa, com observações para o contexto que não cabe em um campo nomeado. Quais campos geográficos aparecem é configurável em Settings.
+A geografia descreve a hierarquia administrativa do local, do país até a localidade precisa, com observações para o contexto que não cabe em um campo específico. Configure quais campos geográficos aparecem em `Settings` > `Sites` > `Geography fields`.
 
-`Find existing locality` compara o que você digita com todas as localidades já salvas no projeto. Escolher uma sugestão preenche toda a hierarquia de uma vez, e cada campo também sugere valores já registrados para ele. As localidades são armazenadas uma única vez e compartilhadas entre locais, então reaproveitar uma salva evita criar um registro quase duplicado.
-
-Informe os valores conforme as convenções geográficas da instituição responsável. `Precise Locality` deve descrever o lugar nomeado específico abaixo do nível de município.
-
-Revise todos os níveis preenchidos ao selecionar uma localidade existente. Nomes semelhantes nem sempre identificam o mesmo lugar.
+As localidades são armazenadas uma vez e compartilhadas entre locais de diferentes projetos, portanto reutilizar uma localidade salva evita criar um registro quase duplicado. Use `Find existing locality` para economizar tempo e manter nomes de localidade consistentes.
 
 ## Saiba mais
 

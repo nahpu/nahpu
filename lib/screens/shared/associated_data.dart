@@ -498,10 +498,11 @@ Future<void> showAssociatedDataEditor(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(title),
-      content: SizedBox(
-        width: 560,
-        height: MediaQuery.sizeOf(dialogContext).height * 0.75,
-        child: editor,
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(dialogContext).height * 0.75,
+        ),
+        child: SizedBox(width: 560, child: editor),
       ),
     ),
   );

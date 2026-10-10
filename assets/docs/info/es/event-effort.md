@@ -1,14 +1,15 @@
 ---
 title: "Esfuerzo de muestreo"
+authors: []
 sidebar:
   order: 0
 ---
 
-Los registros de esfuerzo describen cómo se realizó el muestreo. Agregue cada método por separado y registre el número de unidades, la marca y el modelo del equipo, su tamaño o dimensiones y las notas. Incluya las unidades en los valores de tamaño (p. ej. "10cm x 10cm x 10cm").
+Los registros de esfuerzo describen métodos, conteos y otros detalles pertinentes. Duplicar un evento copia sus registros de esfuerzo. NAHPU ofrece un conjunto limitado de métodos predeterminados. Para personalizar las opciones, vaya a `Settings` > `Events` > `Collection Methods`.
 
-Use las mismas unidades y nombres de método controlados en todo el proyecto para poder comparar los esfuerzos. Indique suficiente contexto para que otra persona entienda el esfuerzo sin inferir datos faltantes. Duplicar un evento copia también sus registros de esfuerzo.
+Añada cada método por separado y registre el número de unidades, la marca y el modelo del equipo, su tamaño o dimensiones y las notas. Incluya las unidades en los valores de tamaño (p. ej., "10 cm × 10 cm × 10 cm").
 
-Revise los recuentos de equipos y los métodos copiados en cada evento. Registre cero solo cuando sea un recuento observado y explique el esfuerzo incompleto en las notas.
+Use las mismas unidades y nombres de método controlados en todo el proyecto para poder comparar los esfuerzos.
 
 ## Más información
 
