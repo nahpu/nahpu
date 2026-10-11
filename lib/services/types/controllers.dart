@@ -168,6 +168,7 @@ class SiteFormCtrModel {
     required this.localityCtr,
     required this.remarkCtr,
     required this.habitatTypeCtr,
+    required this.microhabitatCtr,
     required this.habitatDescriptionCtr,
     required this.habitatConditionCtr,
     required this.canopyCoverCtr,
@@ -183,6 +184,7 @@ class SiteFormCtrModel {
   TextEditingController localityCtr;
   TextEditingController remarkCtr;
   TextEditingController habitatTypeCtr;
+  TextEditingController microhabitatCtr;
   TextEditingController habitatDescriptionCtr;
   TextEditingController habitatConditionCtr;
   TextEditingController canopyCoverCtr;
@@ -199,6 +201,7 @@ class SiteFormCtrModel {
     localityCtr: TextEditingController(),
     remarkCtr: TextEditingController(),
     habitatTypeCtr: TextEditingController(),
+    microhabitatCtr: TextEditingController(),
     habitatDescriptionCtr: TextEditingController(),
     habitatConditionCtr: TextEditingController(),
     canopyCoverCtr: TextEditingController(),
@@ -219,6 +222,7 @@ class SiteFormCtrModel {
     localityCtr: TextEditingController(text: site.locality),
     remarkCtr: TextEditingController(text: site.remark),
     habitatTypeCtr: TextEditingController(text: attribute?.habitatType),
+    microhabitatCtr: TextEditingController(text: attribute?.microhabitat),
     habitatDescriptionCtr: TextEditingController(
       text: attribute?.habitatDescription,
     ),
@@ -265,6 +269,7 @@ class SiteFormCtrModel {
     _syncText(localityCtr, site.locality);
     _syncText(remarkCtr, site.remark);
     _syncText(habitatTypeCtr, attribute?.habitatType);
+    _syncText(microhabitatCtr, attribute?.microhabitat);
     _syncText(habitatDescriptionCtr, attribute?.habitatDescription);
     _syncText(habitatConditionCtr, attribute?.habitatCondition);
     _syncText(canopyCoverCtr, attribute?.canopyCover);
@@ -280,6 +285,7 @@ class SiteFormCtrModel {
     localityCtr.dispose();
     remarkCtr.dispose();
     habitatTypeCtr.dispose();
+    microhabitatCtr.dispose();
     habitatDescriptionCtr.dispose();
     habitatConditionCtr.dispose();
     canopyCoverCtr.dispose();

@@ -31,6 +31,7 @@ class _MigrationCoordinator {
       20: (m) => _Version21Migration(db).upgrade(m),
       21: (m) => _Version22Migration(db).upgrade(m),
       22: (m) => _Version23Migration(db).upgrade(m),
+      23: (m) => _Version24Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -42,6 +43,24 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version24Migration {
+  const _Version24Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info(siteAttribute)', readsFrom: const {})
+        .get();
+    final present = columns.any(
+      (row) => row.read<String>('name') == 'microhabitat',
+    );
+    if (!present) {
+      await migrator.addColumn(db.siteAttribute, db.siteAttribute.microhabitat);
     }
   }
 }

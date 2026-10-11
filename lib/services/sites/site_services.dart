@@ -221,6 +221,7 @@ class SiteSearchServices {
           _isMatch(site.locality, query) ||
           _isMatch(site.remark, query) ||
           _isMatch(attribute?.habitatType, query) ||
+          _isMatch(attribute?.microhabitat, query) ||
           _isMatch(attribute?.habitatCondition, query) ||
           _isMatch(attribute?.habitatDescription, query) ||
           _isMatch(attribute?.canopyCover, query);

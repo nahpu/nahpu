@@ -31,7 +31,7 @@ class Habitat extends ConsumerWidget {
       infoTopic: InfoTopic.siteHabitat,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
-        height: 484,
+        height: 540,
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -63,8 +63,8 @@ class Habitat extends ConsumerWidget {
                           isExpanded: true,
                           initialValue: initialValue,
                           decoration: const InputDecoration(
-                            labelText: 'Habitat Type',
-                            hintText: 'Select a habitat type',
+                            labelText: 'Macrohabitat',
+                            hintText: 'Select a broad habitat',
                           ),
                           items: items,
                           onChanged: (String? newValue) {
@@ -83,6 +83,19 @@ class Habitat extends ConsumerWidget {
                       loading: () => const CommonProgressIndicator(),
                       error: (e, _) => Text(e.toString()),
                     ),
+                TextFormField(
+                  controller: siteFormCtr.microhabitatCtr,
+                  decoration: const InputDecoration(
+                    labelText: 'Microhabitat',
+                    hintText: 'E.g. "In sand", "Under rock"',
+                  ),
+                  onChanged: (String? value) {
+                    SiteServices(ref: ref).updateSiteAttribute(
+                      id,
+                      SiteAttributeCompanion(microhabitat: db.Value(value)),
+                    );
+                  },
+                ),
                 TextFormField(
                   controller: siteFormCtr.habitatConditionCtr,
                   decoration: const InputDecoration(

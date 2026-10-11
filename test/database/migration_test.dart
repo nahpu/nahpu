@@ -901,6 +901,33 @@ void main() {
     await db.close();
   });
 
+  test(
+    'v23 to v24 adds microhabitat without changing existing habitat',
+    () async {
+      final schema = await verifier.schemaAt(23);
+      final raw = schema.rawDatabase;
+      raw.execute(
+        "INSERT INTO project (uuid, name) VALUES ('project', 'Test')",
+      );
+      raw.execute(
+        "INSERT INTO site (id, projectUuid, siteID) VALUES (1, 'project', 'STA-1')",
+      );
+      raw.execute(
+        "INSERT INTO siteAttribute (siteID, habitatType, habitatDescription) "
+        "VALUES (1, 'Reef crest', 'Exposed reef')",
+      );
+
+      final db = Database.forMigrationTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 24);
+
+      final attribute = await db.select(db.siteAttribute).getSingle();
+      expect(attribute.habitatType, 'Reef crest');
+      expect(attribute.habitatDescription, 'Exposed reef');
+      expect(attribute.microhabitat, isNull);
+      await db.close();
+    },
+  );
+
   test('v14 to v15 adds columns to the empty parasite table', () async {
     final schema = await verifier.schemaAt(14);
     final raw = schema.rawDatabase;

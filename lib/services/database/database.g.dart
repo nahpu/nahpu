@@ -3439,6 +3439,17 @@ class SiteAttribute extends Table
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _microhabitatMeta = const VerificationMeta(
+    'microhabitat',
+  );
+  late final GeneratedColumn<String> microhabitat = GeneratedColumn<String>(
+    'microhabitat',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
   static const VerificationMeta _habitatConditionMeta = const VerificationMeta(
     'habitatCondition',
   );
@@ -3476,6 +3487,7 @@ class SiteAttribute extends Table
   List<GeneratedColumn> get $columns => [
     siteID,
     habitatType,
+    microhabitat,
     habitatCondition,
     habitatDescription,
     canopyCover,
@@ -3504,6 +3516,15 @@ class SiteAttribute extends Table
         habitatType.isAcceptableOrUnknown(
           data['habitatType']!,
           _habitatTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('microhabitat')) {
+      context.handle(
+        _microhabitatMeta,
+        microhabitat.isAcceptableOrUnknown(
+          data['microhabitat']!,
+          _microhabitatMeta,
         ),
       );
     }
@@ -3551,6 +3572,10 @@ class SiteAttribute extends Table
         DriftSqlType.string,
         data['${effectivePrefix}habitatType'],
       ),
+      microhabitat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}microhabitat'],
+      ),
       habitatCondition: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}habitatCondition'],
@@ -3583,12 +3608,16 @@ class SiteAttributeData extends DataClass
     implements Insertable<SiteAttributeData> {
   final int? siteID;
   final String? habitatType;
+
+  /// macrohabitat
+  final String? microhabitat;
   final String? habitatCondition;
   final String? habitatDescription;
   final String? canopyCover;
   const SiteAttributeData({
     this.siteID,
     this.habitatType,
+    this.microhabitat,
     this.habitatCondition,
     this.habitatDescription,
     this.canopyCover,
@@ -3601,6 +3630,9 @@ class SiteAttributeData extends DataClass
     }
     if (!nullToAbsent || habitatType != null) {
       map['habitatType'] = Variable<String>(habitatType);
+    }
+    if (!nullToAbsent || microhabitat != null) {
+      map['microhabitat'] = Variable<String>(microhabitat);
     }
     if (!nullToAbsent || habitatCondition != null) {
       map['habitatCondition'] = Variable<String>(habitatCondition);
@@ -3622,6 +3654,9 @@ class SiteAttributeData extends DataClass
       habitatType: habitatType == null && nullToAbsent
           ? const Value.absent()
           : Value(habitatType),
+      microhabitat: microhabitat == null && nullToAbsent
+          ? const Value.absent()
+          : Value(microhabitat),
       habitatCondition: habitatCondition == null && nullToAbsent
           ? const Value.absent()
           : Value(habitatCondition),
@@ -3642,6 +3677,7 @@ class SiteAttributeData extends DataClass
     return SiteAttributeData(
       siteID: serializer.fromJson<int?>(json['siteID']),
       habitatType: serializer.fromJson<String?>(json['habitatType']),
+      microhabitat: serializer.fromJson<String?>(json['microhabitat']),
       habitatCondition: serializer.fromJson<String?>(json['habitatCondition']),
       habitatDescription: serializer.fromJson<String?>(
         json['habitatDescription'],
@@ -3655,6 +3691,7 @@ class SiteAttributeData extends DataClass
     return <String, dynamic>{
       'siteID': serializer.toJson<int?>(siteID),
       'habitatType': serializer.toJson<String?>(habitatType),
+      'microhabitat': serializer.toJson<String?>(microhabitat),
       'habitatCondition': serializer.toJson<String?>(habitatCondition),
       'habitatDescription': serializer.toJson<String?>(habitatDescription),
       'canopyCover': serializer.toJson<String?>(canopyCover),
@@ -3664,12 +3701,14 @@ class SiteAttributeData extends DataClass
   SiteAttributeData copyWith({
     Value<int?> siteID = const Value.absent(),
     Value<String?> habitatType = const Value.absent(),
+    Value<String?> microhabitat = const Value.absent(),
     Value<String?> habitatCondition = const Value.absent(),
     Value<String?> habitatDescription = const Value.absent(),
     Value<String?> canopyCover = const Value.absent(),
   }) => SiteAttributeData(
     siteID: siteID.present ? siteID.value : this.siteID,
     habitatType: habitatType.present ? habitatType.value : this.habitatType,
+    microhabitat: microhabitat.present ? microhabitat.value : this.microhabitat,
     habitatCondition: habitatCondition.present
         ? habitatCondition.value
         : this.habitatCondition,
@@ -3684,6 +3723,9 @@ class SiteAttributeData extends DataClass
       habitatType: data.habitatType.present
           ? data.habitatType.value
           : this.habitatType,
+      microhabitat: data.microhabitat.present
+          ? data.microhabitat.value
+          : this.microhabitat,
       habitatCondition: data.habitatCondition.present
           ? data.habitatCondition.value
           : this.habitatCondition,
@@ -3701,6 +3743,7 @@ class SiteAttributeData extends DataClass
     return (StringBuffer('SiteAttributeData(')
           ..write('siteID: $siteID, ')
           ..write('habitatType: $habitatType, ')
+          ..write('microhabitat: $microhabitat, ')
           ..write('habitatCondition: $habitatCondition, ')
           ..write('habitatDescription: $habitatDescription, ')
           ..write('canopyCover: $canopyCover')
@@ -3712,6 +3755,7 @@ class SiteAttributeData extends DataClass
   int get hashCode => Object.hash(
     siteID,
     habitatType,
+    microhabitat,
     habitatCondition,
     habitatDescription,
     canopyCover,
@@ -3722,6 +3766,7 @@ class SiteAttributeData extends DataClass
       (other is SiteAttributeData &&
           other.siteID == this.siteID &&
           other.habitatType == this.habitatType &&
+          other.microhabitat == this.microhabitat &&
           other.habitatCondition == this.habitatCondition &&
           other.habitatDescription == this.habitatDescription &&
           other.canopyCover == this.canopyCover);
@@ -3730,6 +3775,7 @@ class SiteAttributeData extends DataClass
 class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
   final Value<int?> siteID;
   final Value<String?> habitatType;
+  final Value<String?> microhabitat;
   final Value<String?> habitatCondition;
   final Value<String?> habitatDescription;
   final Value<String?> canopyCover;
@@ -3737,6 +3783,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
   const SiteAttributeCompanion({
     this.siteID = const Value.absent(),
     this.habitatType = const Value.absent(),
+    this.microhabitat = const Value.absent(),
     this.habitatCondition = const Value.absent(),
     this.habitatDescription = const Value.absent(),
     this.canopyCover = const Value.absent(),
@@ -3745,6 +3792,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
   SiteAttributeCompanion.insert({
     this.siteID = const Value.absent(),
     this.habitatType = const Value.absent(),
+    this.microhabitat = const Value.absent(),
     this.habitatCondition = const Value.absent(),
     this.habitatDescription = const Value.absent(),
     this.canopyCover = const Value.absent(),
@@ -3753,6 +3801,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
   static Insertable<SiteAttributeData> custom({
     Expression<int>? siteID,
     Expression<String>? habitatType,
+    Expression<String>? microhabitat,
     Expression<String>? habitatCondition,
     Expression<String>? habitatDescription,
     Expression<String>? canopyCover,
@@ -3761,6 +3810,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
     return RawValuesInsertable({
       if (siteID != null) 'siteID': siteID,
       if (habitatType != null) 'habitatType': habitatType,
+      if (microhabitat != null) 'microhabitat': microhabitat,
       if (habitatCondition != null) 'habitatCondition': habitatCondition,
       if (habitatDescription != null) 'habitatDescription': habitatDescription,
       if (canopyCover != null) 'canopyCover': canopyCover,
@@ -3771,6 +3821,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
   SiteAttributeCompanion copyWith({
     Value<int?>? siteID,
     Value<String?>? habitatType,
+    Value<String?>? microhabitat,
     Value<String?>? habitatCondition,
     Value<String?>? habitatDescription,
     Value<String?>? canopyCover,
@@ -3779,6 +3830,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
     return SiteAttributeCompanion(
       siteID: siteID ?? this.siteID,
       habitatType: habitatType ?? this.habitatType,
+      microhabitat: microhabitat ?? this.microhabitat,
       habitatCondition: habitatCondition ?? this.habitatCondition,
       habitatDescription: habitatDescription ?? this.habitatDescription,
       canopyCover: canopyCover ?? this.canopyCover,
@@ -3794,6 +3846,9 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
     }
     if (habitatType.present) {
       map['habitatType'] = Variable<String>(habitatType.value);
+    }
+    if (microhabitat.present) {
+      map['microhabitat'] = Variable<String>(microhabitat.value);
     }
     if (habitatCondition.present) {
       map['habitatCondition'] = Variable<String>(habitatCondition.value);
@@ -3815,6 +3870,7 @@ class SiteAttributeCompanion extends UpdateCompanion<SiteAttributeData> {
     return (StringBuffer('SiteAttributeCompanion(')
           ..write('siteID: $siteID, ')
           ..write('habitatType: $habitatType, ')
+          ..write('microhabitat: $microhabitat, ')
           ..write('habitatCondition: $habitatCondition, ')
           ..write('habitatDescription: $habitatDescription, ')
           ..write('canopyCover: $canopyCover, ')
@@ -27184,6 +27240,7 @@ typedef $SiteAttributeCreateCompanionBuilder =
     SiteAttributeCompanion Function({
       Value<int?> siteID,
       Value<String?> habitatType,
+      Value<String?> microhabitat,
       Value<String?> habitatCondition,
       Value<String?> habitatDescription,
       Value<String?> canopyCover,
@@ -27193,6 +27250,7 @@ typedef $SiteAttributeUpdateCompanionBuilder =
     SiteAttributeCompanion Function({
       Value<int?> siteID,
       Value<String?> habitatType,
+      Value<String?> microhabitat,
       Value<String?> habitatCondition,
       Value<String?> habitatDescription,
       Value<String?> canopyCover,
@@ -27214,6 +27272,11 @@ class $SiteAttributeFilterComposer extends Composer<_$Database, SiteAttribute> {
 
   ColumnFilters<String> get habitatType => $composableBuilder(
     column: $table.habitatType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get microhabitat => $composableBuilder(
+    column: $table.microhabitat,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -27252,6 +27315,11 @@ class $SiteAttributeOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get microhabitat => $composableBuilder(
+    column: $table.microhabitat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get habitatCondition => $composableBuilder(
     column: $table.habitatCondition,
     builder: (column) => ColumnOrderings(column),
@@ -27282,6 +27350,11 @@ class $SiteAttributeAnnotationComposer
 
   GeneratedColumn<String> get habitatType => $composableBuilder(
     column: $table.habitatType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get microhabitat => $composableBuilder(
+    column: $table.microhabitat,
     builder: (column) => column,
   );
 
@@ -27334,6 +27407,7 @@ class $SiteAttributeTableManager
               ({
                 Value<int?> siteID = const Value.absent(),
                 Value<String?> habitatType = const Value.absent(),
+                Value<String?> microhabitat = const Value.absent(),
                 Value<String?> habitatCondition = const Value.absent(),
                 Value<String?> habitatDescription = const Value.absent(),
                 Value<String?> canopyCover = const Value.absent(),
@@ -27341,6 +27415,7 @@ class $SiteAttributeTableManager
               }) => SiteAttributeCompanion(
                 siteID: siteID,
                 habitatType: habitatType,
+                microhabitat: microhabitat,
                 habitatCondition: habitatCondition,
                 habitatDescription: habitatDescription,
                 canopyCover: canopyCover,
@@ -27350,6 +27425,7 @@ class $SiteAttributeTableManager
               ({
                 Value<int?> siteID = const Value.absent(),
                 Value<String?> habitatType = const Value.absent(),
+                Value<String?> microhabitat = const Value.absent(),
                 Value<String?> habitatCondition = const Value.absent(),
                 Value<String?> habitatDescription = const Value.absent(),
                 Value<String?> canopyCover = const Value.absent(),
@@ -27357,6 +27433,7 @@ class $SiteAttributeTableManager
               }) => SiteAttributeCompanion.insert(
                 siteID: siteID,
                 habitatType: habitatType,
+                microhabitat: microhabitat,
                 habitatCondition: habitatCondition,
                 habitatDescription: habitatDescription,
                 canopyCover: canopyCover,

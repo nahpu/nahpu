@@ -280,6 +280,7 @@ class SiteCopyServices extends AppServices {
       site.locality,
       site.remark,
       attribute?.habitatType,
+      attribute?.microhabitat,
       attribute?.habitatCondition,
       attribute?.habitatDescription,
       attribute?.canopyCover,
@@ -378,6 +379,9 @@ class SiteCopyServices extends AppServices {
     return SiteAttributeCompanion(
       habitatType: fields.contains(SiteCopyField.habitatType)
           ? db.Value(source?.habitatType)
+          : const db.Value.absent(),
+      microhabitat: fields.contains(SiteCopyField.microhabitat)
+          ? db.Value(source?.microhabitat)
           : const db.Value.absent(),
       habitatCondition: fields.contains(SiteCopyField.habitatCondition)
           ? db.Value(source?.habitatCondition)
