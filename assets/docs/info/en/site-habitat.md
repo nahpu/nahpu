@@ -4,7 +4,7 @@ sidebar:
   order: 0
 ---
 
-Record the habitat observed at the site. Macrohabitat is the broad habitat, such as mangrove or reef crest. Microhabitat is the specific place the organism was found, such as in sand or under a rock. Use controlled habitat and condition values consistently across the project.
+Record the habitat observed at the site. Use controlled habitat type and condition values consistently across the project. Marine invertebrate projects call the habitat type macrohabitat and also record a microhabitat, the specific place the organism was found.
 
 In the description, note evidence that helps interpret the collecting environment, such as dominant vegetation, substrate, canopy or ground cover, water conditions, disturbance, and land use. Keep methods, sampling equipment, and effort in the collecting event instead.
 

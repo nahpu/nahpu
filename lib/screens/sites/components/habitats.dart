@@ -11,6 +11,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 class Habitat extends ConsumerWidget {
   const Habitat({
@@ -26,12 +27,18 @@ class Habitat extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final showMarineHabitat = ref
+        .watch(catalogFmtNotifierProvider)
+        .maybeWhen(
+          data: (catalogFmt) => catalogFmt == CatalogFmt.marineInvertebrates,
+          orElse: () => false,
+        );
     return FormCard(
       title: 'Site Attributes',
       infoTopic: InfoTopic.siteHabitat,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
-        height: 540,
+        height: 484,
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -62,9 +69,13 @@ class Habitat extends ConsumerWidget {
                         return DropdownButtonFormField<String?>(
                           isExpanded: true,
                           initialValue: initialValue,
-                          decoration: const InputDecoration(
-                            labelText: 'Macrohabitat',
-                            hintText: 'Select a broad habitat',
+                          decoration: InputDecoration(
+                            labelText: showMarineHabitat
+                                ? 'Macrohabitat'
+                                : 'Habitat Type',
+                            hintText: showMarineHabitat
+                                ? 'Select a broad habitat'
+                                : 'Select a habitat type',
                           ),
                           items: items,
                           onChanged: (String? newValue) {
@@ -83,19 +94,20 @@ class Habitat extends ConsumerWidget {
                       loading: () => const CommonProgressIndicator(),
                       error: (e, _) => Text(e.toString()),
                     ),
-                TextFormField(
-                  controller: siteFormCtr.microhabitatCtr,
-                  decoration: const InputDecoration(
-                    labelText: 'Microhabitat',
-                    hintText: 'E.g. "In sand", "Under rock"',
+                if (showMarineHabitat)
+                  TextFormField(
+                    controller: siteFormCtr.microhabitatCtr,
+                    decoration: const InputDecoration(
+                      labelText: 'Microhabitat',
+                      hintText: 'E.g. "In sand", "Under rock"',
+                    ),
+                    onChanged: (String? value) {
+                      SiteServices(ref: ref).updateSiteAttribute(
+                        id,
+                        SiteAttributeCompanion(microhabitat: db.Value(value)),
+                      );
+                    },
                   ),
-                  onChanged: (String? value) {
-                    SiteServices(ref: ref).updateSiteAttribute(
-                      id,
-                      SiteAttributeCompanion(microhabitat: db.Value(value)),
-                    );
-                  },
-                ),
                 TextFormField(
                   controller: siteFormCtr.habitatConditionCtr,
                   decoration: const InputDecoration(

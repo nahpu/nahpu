@@ -3608,8 +3608,6 @@ class SiteAttributeData extends DataClass
     implements Insertable<SiteAttributeData> {
   final int? siteID;
   final String? habitatType;
-
-  /// macrohabitat
   final String? microhabitat;
   final String? habitatCondition;
   final String? habitatDescription;

@@ -2,7 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/sites/site_copy_services.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/geography.dart';
 
 Future<SiteCopyResult?> showCopyFromProjectDialog({
@@ -181,7 +183,7 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
 
   Widget get _fieldContent {
     final source = _source!;
-    final fields = SiteCopyField.values;
+    final fields = _copyFields;
     final availableFields = fields
         .where((field) => _hasSourceValue(field, source))
         .toSet();
@@ -219,7 +221,7 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
                       _CopySelectionTile(
                         key: ValueKey('copy-field-tile-${field.name}'),
                         selected: _selectedFields.contains(field),
-                        title: field.label,
+                        title: _fieldLabel(field),
                         subtitle: _hasSourceValue(field, source)
                             ? _fieldSubtitle(field, source)
                             : 'No data in source',
@@ -298,7 +300,7 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
           siteId: _site!.id,
         );
         if (!mounted) return;
-        final available = SiteCopyField.values
+        final available = _copyFields
             .where((field) => _hasSourceValue(field, source))
             .toSet();
         setState(() {
@@ -346,6 +348,25 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
         _step = 0;
       }
     });
+  }
+
+  bool get _showMarineHabitat => ref
+      .read(catalogFmtNotifierProvider)
+      .maybeWhen(
+        data: (catalogFmt) => catalogFmt == CatalogFmt.marineInvertebrates,
+        orElse: () => false,
+      );
+
+  List<SiteCopyField> get _copyFields => [
+    for (final field in SiteCopyField.values)
+      if (_showMarineHabitat || field != SiteCopyField.microhabitat) field,
+  ];
+
+  String _fieldLabel(SiteCopyField field) {
+    if (_showMarineHabitat && field == SiteCopyField.habitatType) {
+      return 'Macrohabitat';
+    }
+    return field.label;
   }
 
   bool _hasSourceValue(SiteCopyField field, SiteCopySource source) {

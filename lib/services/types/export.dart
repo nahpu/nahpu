@@ -183,7 +183,6 @@ const List<String> parasiteExportList = [
 const siteExportList = [
   'site::site',
   'siteAttribute::habitatType',
-  'siteAttribute::microhabitat',
   'siteAttribute::habitatCondition',
   'siteAttribute::habitatDescription',
   'siteAttribute::canopyCover',

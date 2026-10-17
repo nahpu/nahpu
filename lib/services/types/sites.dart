@@ -31,7 +31,7 @@ extension SiteCopyFieldLabel on SiteCopyField {
     SiteCopyField.municipality => 'Municipality/City/Town',
     SiteCopyField.locality => 'Precise locality',
     SiteCopyField.remark => 'Remarks',
-    SiteCopyField.habitatType => 'Macrohabitat',
+    SiteCopyField.habitatType => 'Habitat type',
     SiteCopyField.microhabitat => 'Microhabitat',
     SiteCopyField.habitatCondition => 'Habitat condition',
     SiteCopyField.habitatDescription => 'Habitat description',
