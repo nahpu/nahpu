@@ -253,7 +253,7 @@ class PartListState extends ConsumerState<PartList> {
                             ),
                             title: PartTitle(
                               partType: part.type,
-                              partCount: part.count.toString(),
+                              partCount: part.count,
                               barcodeID: part.barcodeID ?? '',
                               preparator: part.personnelId == null
                                   ? null
@@ -410,22 +410,24 @@ class PartTitle extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        TitlePartText(
-          text: name == null || name.isEmpty
-              ? _partText
-              : '$_partText$listTileSeparator$name',
+        Flexible(
+          child: TitlePartText(
+            text: name == null || name.isEmpty
+                ? _partText
+                : '$_partText$listTileSeparator$name',
+          ),
         ),
-        barcodeID.isNotEmpty
-            ? BarcodeText(barcodeID: barcodeID)
-            : const SizedBox.shrink(),
+        if (barcodeID.isNotEmpty)
+          Flexible(child: BarcodeText(barcodeID: barcodeID)),
       ],
     );
   }
 
   String get _partText {
+    final count = partCount;
     return '${partType ?? 'Unknown part'}'
         '$listTileSeparator'
-        '${partCount ?? 'No count'}';
+        '${count == null || count.isEmpty ? 'No count' : count}';
   }
 }
 
