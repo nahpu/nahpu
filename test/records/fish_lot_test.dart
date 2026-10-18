@@ -5,6 +5,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
+import 'package:nahpu/services/specimens/numbered_id.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 void main() {
@@ -68,6 +69,23 @@ void main() {
 
       expect(stats.toAutoRange(1).individualCount, const Value(2));
       expect(stats.toAutoRange(25).individualCount, const Value<int>.absent());
+    });
+  });
+
+  group('NumberedIdFormat', () {
+    test('formats the next tag and keeps zero padding', () {
+      const format = NumberedIdFormat(
+        prefix: 'FT-',
+        number: '0009',
+        suffix: '-A',
+      );
+      expect(format.nextTag, 'FT-0009-A');
+      expect(format.incrementedNumber, '0010');
+    });
+
+    test('has no tag without a number', () {
+      expect(const NumberedIdFormat(prefix: 'FT-').nextTag, isNull);
+      expect(const NumberedIdFormat(number: '99').incrementedNumber, '100');
     });
   });
 

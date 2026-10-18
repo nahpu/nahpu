@@ -1,12 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/screens/shared/forms/numbered_id_fields.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/screens/settings/records/specimen_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/bundled_preset_checklist.dart';
-import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -441,9 +441,10 @@ class _TissueIdQuestionState extends ConsumerState<_TissueIdQuestion> {
           ),
           if (_separate) ...[
             const SizedBox(height: NahpuSpacing.lg),
-            AdaptiveLayout(
+            NumberedIdFields(
+              store: TissueIdServices(ref: ref),
               useHorizontalLayout: !isMobile,
-              children: const [TissuePrefixField(), TissueNumField()],
+              previewLabel: 'Next tissue ID',
             ),
           ],
         ],

@@ -430,6 +430,7 @@ class _FishLotFields extends StatelessWidget {
           SpecimenIndividualList(
             specimenUuid: specimenUuid,
             weightUnit: ctr.weightUnitCtr,
+            totalIndividuals: int.tryParse(ctr.individualCountCtr.text.trim()),
           ),
           const SizedBox(height: NahpuSpacing.md),
         ],

@@ -12,6 +12,11 @@
 - Record individuals within a lot, with an individual or tag ID, lengths,
   weight, sex, life stage, and remarks, and link specimen parts and parasites
   to the individuals they came from.
+- Auto-number individual tag IDs with a prefix, a zero-padded number, and a
+  suffix, set in Specimen settings for Ichthyology. A typed tag overrides the
+  number without using it up.
+- Tissue IDs gain a suffix and keep the zero padding of their number, so
+  `M0042-T` is followed by `M0043-T`. Existing tissue counters carry over.
 - Add conductivity (µS/cm) and dissolved oxygen saturation (%) to
   collecting-event environmental data. The environmental-field settings now show
   each field's unit.

@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/forms/numbered_id_fields.dart';
+import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -210,10 +212,14 @@ class SpecimenIndividualList extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.weightUnit,
+    this.totalIndividuals,
   });
 
   final String specimenUuid;
   final String weightUnit;
+
+  /// Individuals recorded for the whole lot, shown in the form header.
+  final int? totalIndividuals;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -252,13 +258,13 @@ class SpecimenIndividualList extends ConsumerWidget {
           Center(
             child: TextButton.icon(
               key: const ValueKey('fish-add-individual'),
-              onPressed: () => showDialog<void>(
+              onPressed: () => showIndividualForm(
                 context: context,
-                builder: (_) => IndividualFormDialog(
-                  specimenUuid: specimenUuid,
-                  weightUnit: weightUnit,
-                  suggestedId: '${(individuals.asData?.value.length ?? 0) + 1}',
-                ),
+                specimenUuid: specimenUuid,
+                weightUnit: weightUnit,
+                enteredCount: individuals.asData?.value.length ?? 0,
+                totalIndividuals: totalIndividuals,
+                suggestedId: '${(individuals.asData?.value.length ?? 0) + 1}',
               ),
               icon: const Icon(Icons.add),
               label: const Text('Add individual'),
@@ -287,13 +293,11 @@ class _IndividualTile extends ConsumerWidget {
       dense: true,
       title: Text(individualLabel(individual)),
       subtitle: Text(_measurements()),
-      onTap: () => showDialog<void>(
+      onTap: () => showIndividualForm(
         context: context,
-        builder: (_) => IndividualFormDialog(
-          specimenUuid: specimenUuid,
-          weightUnit: weightUnit,
-          individual: individual,
-        ),
+        specimenUuid: specimenUuid,
+        weightUnit: weightUnit,
+        individual: individual,
       ),
       trailing: IconButton(
         tooltip: 'Delete individual',
@@ -335,30 +339,76 @@ class _IndividualTile extends ConsumerWidget {
   }
 }
 
+/// Opens the individual form: a wide two-column dialog, or a one-column
+/// bottom sheet on compact screens. Edits [individual], or adds a new one.
+Future<void> showIndividualForm({
+  required BuildContext context,
+  required String specimenUuid,
+  required String weightUnit,
+  SpecimenIndividualData? individual,
+  int enteredCount = 0,
+  int? totalIndividuals,
+  String? suggestedId,
+}) {
+  return showAdaptiveSheetDialog<void>(
+    context: context,
+    isDismissible: false,
+    maxWidth: NahpuContentWidth.projectForm,
+    builder: (context, isSheet) => IndividualForm(
+      specimenUuid: specimenUuid,
+      weightUnit: weightUnit,
+      individual: individual,
+      enteredCount: enteredCount,
+      totalIndividuals: totalIndividuals,
+      suggestedId: suggestedId,
+      isSheet: isSheet,
+    ),
+  );
+}
+
 /// Adds a new individual to a lot or edits [individual].
-class IndividualFormDialog extends ConsumerStatefulWidget {
-  const IndividualFormDialog({
+class IndividualForm extends ConsumerStatefulWidget {
+  const IndividualForm({
     super.key,
     required this.specimenUuid,
     required this.weightUnit,
+    required this.isSheet,
     this.individual,
+    this.enteredCount = 0,
+    this.totalIndividuals,
     this.suggestedId,
   });
 
   final String specimenUuid;
   final String weightUnit;
   final SpecimenIndividualData? individual;
+
+  /// Individuals already entered for the lot, shown in the header.
+  final int enteredCount;
+  final int? totalIndividuals;
+
+  /// Tag ID used when auto-numbering is not set up.
   final String? suggestedId;
 
+  /// One column in a bottom sheet instead of two in a dialog.
+  final bool isSheet;
+
   @override
-  IndividualFormDialogState createState() => IndividualFormDialogState();
+  IndividualFormState createState() => IndividualFormState();
 }
 
-class IndividualFormDialogState extends ConsumerState<IndividualFormDialog> {
-  late final SpecimenIndividualCtrModel ctr = widget.individual == null
-      ? SpecimenIndividualCtrModel.empty(individualId: widget.suggestedId)
-      : SpecimenIndividualCtrModel.fromData(widget.individual!);
+class IndividualFormState extends ConsumerState<IndividualForm> {
+  late SpecimenIndividualCtrModel ctr = _newController();
+
+  /// The auto-numbered tag the form offered, used to tell an override apart.
+  String? _autoTag;
+  int _savedCount = 0;
+
+  /// Bumped to reset the dropdowns after "Save and add another".
+  int _formVersion = 0;
   bool _isSaving = false;
+
+  bool get _isAdding => widget.individual == null;
 
   @override
   void dispose() {
@@ -368,87 +418,149 @@ class IndividualFormDialogState extends ConsumerState<IndividualFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        widget.individual == null ? 'Add individual' : 'Edit individual',
-      ),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: NahpuBreakpoints.compact),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CommonTextField(
-                key: const ValueKey('individual-id'),
-                controller: ctr.individualIdCtr,
-                labelText: 'Individual/Tag ID',
-                hintText: 'Enter individual or tag ID',
-                isLastField: false,
-              ),
-              CommonNumField(
-                key: const ValueKey('individual-standard-length'),
-                controller: ctr.standardLengthCtr,
-                labelText: 'Standard length (mm)',
-                hintText: 'Enter standard length',
-                isDouble: true,
-                isLastField: false,
-              ),
-              CommonNumField(
-                key: const ValueKey('individual-total-length'),
-                controller: ctr.totalLengthCtr,
-                labelText: 'Total length (mm)',
-                hintText: 'Enter total length',
-                isDouble: true,
-                isLastField: false,
-              ),
-              CommonNumField(
-                key: const ValueKey('individual-weight'),
-                controller: ctr.weightCtr,
-                labelText: 'Weight (${widget.weightUnit})',
-                hintText: 'Enter weight',
-                isDouble: true,
-                isLastField: false,
-              ),
-              SpecimenSexDropdown(
-                currentCode: ctr.sexCtr,
-                onChanged: (sex) => setState(
-                  () =>
-                      ctr.sexCtr = sex == null ? null : getSpecimenSexCode(sex),
-                ),
-              ),
-              LifeStageDropdown(
-                currentValue: ctr.lifeStageCtr,
-                onChanged: (value) => setState(() => ctr.lifeStageCtr = value),
-              ),
-              CommonTextField(
-                controller: ctr.remarkCtr,
-                maxLines: 3,
-                labelText: 'Remarks',
-                hintText: 'Add notes about this individual',
-                isLastField: true,
-                keyboardType: TextInputType.multiline,
-              ),
-            ],
-          ),
+    final total = widget.totalIndividuals;
+    final entered = widget.enteredCount + _savedCount;
+    final tagField = _IndividualTagField(
+      controller: ctr.individualIdCtr,
+      isAutoNumbered: _autoTag != null && ctr.individualIdCtr.text == _autoTag,
+      onNewNumber: _applyNextTag,
+      onChanged: () => setState(() {}),
+    );
+    final sexAndLifeStage = _FieldPair(
+      first: SpecimenSexDropdown(
+        currentCode: ctr.sexCtr,
+        onChanged: (sex) => setState(
+          () => ctr.sexCtr = sex == null ? null : getSpecimenSexCode(sex),
         ),
       ),
+      second: LifeStageDropdown(
+        currentValue: ctr.lifeStageCtr,
+        onChanged: (value) => setState(() => ctr.lifeStageCtr = value),
+      ),
+    );
+    final lengths = _FieldPair(
+      first: CommonNumField(
+        key: const ValueKey('individual-standard-length'),
+        controller: ctr.standardLengthCtr,
+        labelText: 'SL (mm)',
+        hintText: 'Standard length',
+        isDouble: true,
+        isLastField: false,
+      ),
+      second: CommonNumField(
+        key: const ValueKey('individual-total-length'),
+        controller: ctr.totalLengthCtr,
+        labelText: 'TL (mm)',
+        hintText: 'Total length',
+        isDouble: true,
+        isLastField: false,
+      ),
+    );
+    final weightField = CommonNumField(
+      key: const ValueKey('individual-weight'),
+      controller: ctr.weightCtr,
+      labelText: 'Weight (${widget.weightUnit})',
+      hintText: 'Enter weight',
+      isDouble: true,
+      isLastField: false,
+    );
+    final remarkField = CommonTextField(
+      controller: ctr.remarkCtr,
+      maxLines: 3,
+      labelText: 'Remarks',
+      hintText: 'Add notes about this individual',
+      isLastField: true,
+      keyboardType: TextInputType.multiline,
+    );
+    return AdaptiveSheetDialogBody(
+      title: _isAdding ? 'Add individual' : 'Edit individual',
+      description: _isAdding
+          ? (total == null ? '$entered entered' : '$entered of $total entered')
+          : null,
+      showCloseButton: !widget.isSheet,
+      isCloseEnabled: !_isSaving,
       actions: [
-        SecondaryButton(
-          text: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
+        TextButton(
+          onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
         ),
+        if (_isAdding)
+          OutlinedButton(
+            key: const ValueKey('individual-save-another'),
+            onPressed: _isSaving ? null : () => _save(addAnother: true),
+            child: const Text('Save and add another'),
+          ),
         PrimaryButton(
           key: const ValueKey('individual-save'),
           label: 'Save',
           icon: Icons.save_alt_outlined,
           isRunning: _isSaving,
-          onPressed: _save,
+          onPressed: () => _save(addAnother: false),
         ),
       ],
+      child: KeyedSubtree(
+        key: ValueKey('individual-form-$_formVersion'),
+        child: widget.isSheet
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  tagField,
+                  sexAndLifeStage,
+                  lengths,
+                  weightField,
+                  remarkField,
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _IndividualFormSection(
+                          title: 'Identity',
+                          children: [tagField, sexAndLifeStage],
+                        ),
+                      ),
+                      const SizedBox(width: NahpuSpacing.xxl),
+                      Expanded(
+                        child: _IndividualFormSection(
+                          title: 'Measurements',
+                          children: [lengths, weightField],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: NahpuSpacing.md),
+                  remarkField,
+                ],
+              ),
+      ),
     );
   }
 
-  Future<void> _save() async {
+  SpecimenIndividualCtrModel _newController() {
+    final individual = widget.individual;
+    if (individual != null) {
+      return SpecimenIndividualCtrModel.fromData(individual);
+    }
+    _autoTag = IndividualTagIdServices(ref: ref).peekNextTag();
+    return SpecimenIndividualCtrModel.empty(
+      individualId: _autoTag ?? widget.suggestedId,
+    );
+  }
+
+  void _applyNextTag() {
+    final next = IndividualTagIdServices(ref: ref).peekNextTag();
+    if (next == null) return;
+    setState(() {
+      _autoTag = next;
+      ctr.individualIdCtr.text = next;
+    });
+  }
+
+  Future<void> _save({required bool addAnother}) async {
     setState(() => _isSaving = true);
     final id = ctr.individualIdCtr.text.trim();
     final remark = ctr.remarkCtr.text.trim();
@@ -466,9 +578,139 @@ class IndividualFormDialogState extends ConsumerState<IndividualFormDialog> {
     final individual = widget.individual;
     if (individual == null) {
       await services.createIndividual(widget.specimenUuid, form);
+      await IndividualTagIdServices(ref: ref).consumeIfMatches(id);
     } else {
       await services.updateIndividual(widget.specimenUuid, individual.id, form);
     }
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    if (!addAnother) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final previous = ctr;
+    setState(() {
+      _savedCount++;
+      _formVersion++;
+      _isSaving = false;
+      ctr = _newController();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => previous.dispose());
+  }
+}
+
+class _FieldPair extends StatelessWidget {
+  const _FieldPair({required this.first, required this.second});
+
+  final Widget first;
+  final Widget second;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: first),
+        const SizedBox(width: NahpuSpacing.lg),
+        Expanded(child: second),
+      ],
+    );
+  }
+}
+
+class _IndividualFormSection extends StatelessWidget {
+  const _IndividualFormSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        ...children,
+      ],
+    );
+  }
+}
+
+enum _TagIdAction { newNumber, settings }
+
+/// Tag ID field prefilled with the next auto-numbered tag. Typing overrides
+/// it; the menu restores the next number or opens the numbering settings.
+class _IndividualTagField extends ConsumerWidget {
+  const _IndividualTagField({
+    required this.controller,
+    required this.isAutoNumbered,
+    required this.onNewNumber,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final bool isAutoNumbered;
+  final VoidCallback onNewNumber;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TextField(
+      key: const ValueKey('individual-id'),
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: 'Tag ID',
+        hintText: 'Enter individual or tag ID',
+        helperText: isAutoNumbered ? 'Auto-numbered. Edit to override.' : null,
+        suffixIcon: AdaptiveMenuButton<_TagIdAction>(
+          tooltip: 'Tag ID options',
+          icon: const Icon(Icons.more_vert),
+          itemBuilder: () => const [
+            AdaptiveMenuItem(
+              value: _TagIdAction.newNumber,
+              label: 'New number',
+              icon: Icons.pin_outlined,
+            ),
+            AdaptiveMenuItem(
+              value: _TagIdAction.settings,
+              label: 'Settings',
+              icon: Icons.settings_outlined,
+            ),
+          ],
+          onSelected: (action) async {
+            switch (action) {
+              case _TagIdAction.newNumber:
+                onNewNumber();
+              case _TagIdAction.settings:
+                await _showSettings(context, ref);
+                onNewNumber();
+            }
+          },
+        ),
+      ),
+      onChanged: (_) => onChanged(),
+    );
+  }
+
+  Future<void> _showSettings(BuildContext context, WidgetRef ref) {
+    return showAdaptiveSheetDialog<void>(
+      context: context,
+      builder: (context, isSheet) => AdaptiveSheetDialogBody(
+        title: 'Tag ID settings',
+        showCloseButton: !isSheet,
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Done'),
+          ),
+        ],
+        child: NumberedIdFields(
+          store: IndividualTagIdServices(ref: ref),
+          useHorizontalLayout: false,
+          previewLabel: 'Next tag',
+          prefixHint: 'FT-',
+          suffixHint: '-A',
+        ),
+      ),
+    );
   }
 }

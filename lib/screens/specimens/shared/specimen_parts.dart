@@ -19,6 +19,8 @@ import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/numbered_id_fields.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
 import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -1424,59 +1426,26 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
     }
   }
 
-  void _showTissueSettings() {
-    TextEditingController prefixCtr = TextEditingController();
-    TextEditingController numberCtr = TextEditingController();
-    showDialog(
+  Future<void> _showTissueSettings() async {
+    await showAdaptiveSheetDialog<void>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Tissue ID settings'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CommonTextField(
-                  controller: prefixCtr,
-                  labelText: 'Prefix',
-                  hintText: 'Enter tissue ID prefix',
-                  isLastField: false,
-                ),
-                CommonNumField(
-                  controller: numberCtr,
-                  labelText: 'Number',
-                  hintText: 'Enter tissue ID number',
-                  isLastField: false,
-                ),
-              ],
-            ),
+      builder: (context, isSheet) => AdaptiveSheetDialogBody(
+        title: 'Tissue ID settings',
+        showCloseButton: !isSheet,
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Done'),
           ),
-          actions: [
-            SecondaryButton(
-              onPressed: () => Navigator.of(context).pop(),
-              text: 'Cancel',
-            ),
-            PrimaryButton(
-              onPressed: () async {
-                String tissueID = await TissueIdServices(
-                  ref: ref,
-                ).setTissueID(prefixCtr.text, numberCtr.text);
-                widget.tissueIDct.text = tissueID;
-                if (mounted) {
-                  _pop();
-                }
-              },
-              label: 'Save',
-              icon: Icons.save_alt_outlined,
-            ),
-          ],
-        );
-      },
+        ],
+        child: NumberedIdFields(
+          store: TissueIdServices(ref: ref),
+          useHorizontalLayout: false,
+          previewLabel: 'Next tissue ID',
+        ),
+      ),
     );
-  }
-
-  void _pop() {
-    Navigator.pop(context);
+    if (mounted && _hasNoId()) _getNewNumber();
   }
 
   void _getNewNumber() {

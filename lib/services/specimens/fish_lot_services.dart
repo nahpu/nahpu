@@ -4,7 +4,10 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/specimens/numbered_id.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const double _gramsPerKilogram = 1000;
 const double _gramsPerPound = 453.59237;
@@ -266,4 +269,51 @@ class FishLotServices extends AppServices {
     ref.invalidate(individualBySpecimenProvider(specimenUuid));
     ref.invalidate(fishAttributeProvider(specimenUuid));
   }
+}
+
+const String individualTagPrefixKey = 'individualTagPrefix';
+const String individualTagNumberKey = 'individualTagNumber';
+const String individualTagSuffixKey = 'individualTagSuffix';
+
+/// Auto-numbers individual tag IDs, the way `TissueIdServices` numbers
+/// tissues, with a prefix, a zero-padded number, and a suffix.
+///
+/// A form shows [peekNextTag] without advancing the counter. The counter
+/// only advances when a saved tag still matches it, so a tag the user types
+/// over does not use up a number.
+class IndividualTagIdServices extends AppServices implements NumberedIdStore {
+  const IndividualTagIdServices({required super.ref});
+
+  SharedPreferences get _prefs => ref.read(settingProvider);
+
+  @override
+  NumberedIdFormat get format => NumberedIdFormat(
+    prefix: _prefs.getString(individualTagPrefixKey) ?? '',
+    number: _prefs.getString(individualTagNumberKey) ?? '',
+    suffix: _prefs.getString(individualTagSuffixKey) ?? '',
+  );
+
+  String? peekNextTag() => format.nextTag;
+
+  /// Advances the counter when [savedTag] used the auto-numbered tag.
+  Future<void> consumeIfMatches(String? savedTag) async {
+    final current = format;
+    final next = current.incrementedNumber;
+    if (savedTag == null || savedTag != current.nextTag || next == null) {
+      return;
+    }
+    await setNumber(next);
+  }
+
+  @override
+  Future<void> setPrefix(String prefix) =>
+      _prefs.setString(individualTagPrefixKey, prefix);
+
+  @override
+  Future<void> setNumber(String number) =>
+      _prefs.setString(individualTagNumberKey, numberedIdDigits(number));
+
+  @override
+  Future<void> setSuffix(String suffix) =>
+      _prefs.setString(individualTagSuffixKey, suffix);
 }

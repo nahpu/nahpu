@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/screens/specimens/fishes/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/screens/specimens/shared/specimen_parts.dart';
@@ -10,6 +11,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -118,6 +120,94 @@ void main() {
     expect(find.text('Not measured'), findsNWidgets(2));
   });
 
+  testWidgets('individual form auto-numbers tags and saves another', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({
+      individualTagPrefixKey: 'FT-',
+      individualTagNumberKey: '0009',
+      individualTagSuffixKey: '-A',
+    });
+    final preferences = await SharedPreferences.getInstance();
+    final database = await _seedFish(specimenType: FishSpecimenType.lot);
+    addTearDown(database.close);
+    await _pump(
+      tester,
+      database,
+      const FishAttributeForms(useHorizontalLayout: true, specimenUuid: 'fish'),
+      preferences: preferences,
+    );
+
+    await tester.ensureVisible(find.text('Add individual'));
+    await tester.tap(find.text('Add individual'));
+    await tester.pumpAndSettle();
+
+    // Wide screens get the two-column dialog.
+    expect(find.text('Identity'), findsOneWidget);
+    expect(find.text('Measurements'), findsOneWidget);
+    expect(find.text('Auto-numbered. Edit to override.'), findsOneWidget);
+    final tag = find.byKey(const ValueKey('individual-id'));
+    expect(tester.widget<TextField>(tag).controller!.text, 'FT-0009-A');
+
+    await tester.enterText(
+      find.byKey(const ValueKey('individual-standard-length')),
+      '42',
+    );
+    await tester.tap(find.byKey(const ValueKey('individual-save-another')));
+    await tester.pumpAndSettle();
+
+    // The auto tag advances, padded, and the form resets for the next one.
+    expect(tester.widget<TextField>(tag).controller!.text, 'FT-0010-A');
+    expect(find.text('1 entered'), findsOneWidget);
+
+    // An override is saved as typed and does not use up a number.
+    await tester.enterText(tag, 'Tag 77');
+    await tester.pump();
+    expect(find.text('Auto-numbered. Edit to override.'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('individual-save')));
+    await tester.pumpAndSettle();
+
+    final tags = (await database.select(database.specimenIndividual).get()).map(
+      (e) => e.individualID,
+    );
+    expect(tags, ['FT-0009-A', 'Tag 77']);
+    expect(preferences.getString(individualTagNumberKey), '0010');
+  });
+
+  testWidgets('individual form is a one-column sheet on phones', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final preferences = await SharedPreferences.getInstance();
+    final database = await _seedFish(specimenType: FishSpecimenType.lot);
+    addTearDown(database.close);
+    await _pump(
+      tester,
+      database,
+      const FishAttributeForms(
+        useHorizontalLayout: false,
+        specimenUuid: 'fish',
+      ),
+      preferences: preferences,
+    );
+
+    await tester.ensureVisible(find.text('Add individual'));
+    await tester.tap(find.text('Add individual'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('Identity'), findsNothing);
+    // Without numbering set up, the tag falls back to the next count.
+    final tag = find.byKey(const ValueKey('individual-id'));
+    expect(tester.widget<TextField>(tag).controller!.text, '1');
+  });
+
   testWidgets('part form hides the individual picker without individuals', (
     tester,
   ) async {
@@ -216,11 +306,17 @@ Future<Database> _seedFish({
   return database;
 }
 
-Future<void> _pump(WidgetTester tester, Database database, Widget child) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Database database,
+  Widget child, {
+  SharedPreferences? preferences,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(database),
+        if (preferences != null) settingProvider.overrideWithValue(preferences),
         specimenSexVocabularyProvider.overrideWith(
           (ref) async => allowedSpecimenSexes,
         ),
