@@ -21,6 +21,7 @@ const parasiteCatalogFormats = {
   CatalogFmt.mammalogy,
   CatalogFmt.ornithology,
   CatalogFmt.herpetology,
+  CatalogFmt.ichthyology,
 };
 
 bool supportsParasites(CatalogFmt catalogFmt) =>

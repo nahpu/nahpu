@@ -6660,6 +6660,28 @@ class Environment extends Table with TableInfo<Environment, EnvironmentData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _conductivityMeta = const VerificationMeta(
+    'conductivity',
+  );
+  late final GeneratedColumn<double> conductivity = GeneratedColumn<double>(
+    'conductivity',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _dissolvedOxygenPercentMeta =
+      const VerificationMeta('dissolvedOxygenPercent');
+  late final GeneratedColumn<double> dissolvedOxygenPercent =
+      GeneratedColumn<double>(
+        'dissolvedOxygenPercent',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   @override
   List<GeneratedColumn> get $columns => [
     eventID,
@@ -6681,6 +6703,8 @@ class Environment extends Table with TableInfo<Environment, EnvironmentData> {
     dissolvedOxygen,
     flowVelocity,
     notes,
+    conductivity,
+    dissolvedOxygenPercent,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6844,6 +6868,24 @@ class Environment extends Table with TableInfo<Environment, EnvironmentData> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('conductivity')) {
+      context.handle(
+        _conductivityMeta,
+        conductivity.isAcceptableOrUnknown(
+          data['conductivity']!,
+          _conductivityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('dissolvedOxygenPercent')) {
+      context.handle(
+        _dissolvedOxygenPercentMeta,
+        dissolvedOxygenPercent.isAcceptableOrUnknown(
+          data['dissolvedOxygenPercent']!,
+          _dissolvedOxygenPercentMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6929,6 +6971,14 @@ class Environment extends Table with TableInfo<Environment, EnvironmentData> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      conductivity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}conductivity'],
+      ),
+      dissolvedOxygenPercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dissolvedOxygenPercent'],
+      ),
     );
   }
 
@@ -6965,6 +7015,10 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
   final double? dissolvedOxygen;
   final double? flowVelocity;
   final String? notes;
+  final double? conductivity;
+
+  /// v23, µS/cm
+  final double? dissolvedOxygenPercent;
   const EnvironmentData({
     this.eventID,
     this.lowestDayTempC,
@@ -6985,6 +7039,8 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
     this.dissolvedOxygen,
     this.flowVelocity,
     this.notes,
+    this.conductivity,
+    this.dissolvedOxygenPercent,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7046,6 +7102,12 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    if (!nullToAbsent || conductivity != null) {
+      map['conductivity'] = Variable<double>(conductivity);
+    }
+    if (!nullToAbsent || dissolvedOxygenPercent != null) {
+      map['dissolvedOxygenPercent'] = Variable<double>(dissolvedOxygenPercent);
+    }
     return map;
   }
 
@@ -7106,6 +7168,12 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      conductivity: conductivity == null && nullToAbsent
+          ? const Value.absent()
+          : Value(conductivity),
+      dissolvedOxygenPercent: dissolvedOxygenPercent == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dissolvedOxygenPercent),
     );
   }
 
@@ -7138,6 +7206,10 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
       dissolvedOxygen: serializer.fromJson<double?>(json['dissolvedOxygen']),
       flowVelocity: serializer.fromJson<double?>(json['flowVelocity']),
       notes: serializer.fromJson<String?>(json['notes']),
+      conductivity: serializer.fromJson<double?>(json['conductivity']),
+      dissolvedOxygenPercent: serializer.fromJson<double?>(
+        json['dissolvedOxygenPercent'],
+      ),
     );
   }
   @override
@@ -7163,6 +7235,10 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
       'dissolvedOxygen': serializer.toJson<double?>(dissolvedOxygen),
       'flowVelocity': serializer.toJson<double?>(flowVelocity),
       'notes': serializer.toJson<String?>(notes),
+      'conductivity': serializer.toJson<double?>(conductivity),
+      'dissolvedOxygenPercent': serializer.toJson<double?>(
+        dissolvedOxygenPercent,
+      ),
     };
   }
 
@@ -7186,6 +7262,8 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
     Value<double?> dissolvedOxygen = const Value.absent(),
     Value<double?> flowVelocity = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<double?> conductivity = const Value.absent(),
+    Value<double?> dissolvedOxygenPercent = const Value.absent(),
   }) => EnvironmentData(
     eventID: eventID.present ? eventID.value : this.eventID,
     lowestDayTempC: lowestDayTempC.present
@@ -7224,6 +7302,10 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
         : this.dissolvedOxygen,
     flowVelocity: flowVelocity.present ? flowVelocity.value : this.flowVelocity,
     notes: notes.present ? notes.value : this.notes,
+    conductivity: conductivity.present ? conductivity.value : this.conductivity,
+    dissolvedOxygenPercent: dissolvedOxygenPercent.present
+        ? dissolvedOxygenPercent.value
+        : this.dissolvedOxygenPercent,
   );
   EnvironmentData copyWithCompanion(EnvironmentCompanion data) {
     return EnvironmentData(
@@ -7276,6 +7358,12 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
           ? data.flowVelocity.value
           : this.flowVelocity,
       notes: data.notes.present ? data.notes.value : this.notes,
+      conductivity: data.conductivity.present
+          ? data.conductivity.value
+          : this.conductivity,
+      dissolvedOxygenPercent: data.dissolvedOxygenPercent.present
+          ? data.dissolvedOxygenPercent.value
+          : this.dissolvedOxygenPercent,
     );
   }
 
@@ -7300,13 +7388,15 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
           ..write('pH: $pH, ')
           ..write('dissolvedOxygen: $dissolvedOxygen, ')
           ..write('flowVelocity: $flowVelocity, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('conductivity: $conductivity, ')
+          ..write('dissolvedOxygenPercent: $dissolvedOxygenPercent')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     eventID,
     lowestDayTempC,
     highestDayTempC,
@@ -7326,7 +7416,9 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
     dissolvedOxygen,
     flowVelocity,
     notes,
-  );
+    conductivity,
+    dissolvedOxygenPercent,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7349,7 +7441,9 @@ class EnvironmentData extends DataClass implements Insertable<EnvironmentData> {
           other.pH == this.pH &&
           other.dissolvedOxygen == this.dissolvedOxygen &&
           other.flowVelocity == this.flowVelocity &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.conductivity == this.conductivity &&
+          other.dissolvedOxygenPercent == this.dissolvedOxygenPercent);
 }
 
 class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
@@ -7372,6 +7466,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
   final Value<double?> dissolvedOxygen;
   final Value<double?> flowVelocity;
   final Value<String?> notes;
+  final Value<double?> conductivity;
+  final Value<double?> dissolvedOxygenPercent;
   final Value<int> rowid;
   const EnvironmentCompanion({
     this.eventID = const Value.absent(),
@@ -7393,6 +7489,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
     this.dissolvedOxygen = const Value.absent(),
     this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
+    this.conductivity = const Value.absent(),
+    this.dissolvedOxygenPercent = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   EnvironmentCompanion.insert({
@@ -7415,6 +7513,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
     this.dissolvedOxygen = const Value.absent(),
     this.flowVelocity = const Value.absent(),
     this.notes = const Value.absent(),
+    this.conductivity = const Value.absent(),
+    this.dissolvedOxygenPercent = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   static Insertable<EnvironmentData> custom({
@@ -7437,6 +7537,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
     Expression<double>? dissolvedOxygen,
     Expression<double>? flowVelocity,
     Expression<String>? notes,
+    Expression<double>? conductivity,
+    Expression<double>? dissolvedOxygenPercent,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7459,6 +7561,9 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
       if (dissolvedOxygen != null) 'dissolvedOxygen': dissolvedOxygen,
       if (flowVelocity != null) 'flowVelocity': flowVelocity,
       if (notes != null) 'notes': notes,
+      if (conductivity != null) 'conductivity': conductivity,
+      if (dissolvedOxygenPercent != null)
+        'dissolvedOxygenPercent': dissolvedOxygenPercent,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7483,6 +7588,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
     Value<double?>? dissolvedOxygen,
     Value<double?>? flowVelocity,
     Value<String?>? notes,
+    Value<double?>? conductivity,
+    Value<double?>? dissolvedOxygenPercent,
     Value<int>? rowid,
   }) {
     return EnvironmentCompanion(
@@ -7505,6 +7612,9 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
       dissolvedOxygen: dissolvedOxygen ?? this.dissolvedOxygen,
       flowVelocity: flowVelocity ?? this.flowVelocity,
       notes: notes ?? this.notes,
+      conductivity: conductivity ?? this.conductivity,
+      dissolvedOxygenPercent:
+          dissolvedOxygenPercent ?? this.dissolvedOxygenPercent,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7569,6 +7679,14 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (conductivity.present) {
+      map['conductivity'] = Variable<double>(conductivity.value);
+    }
+    if (dissolvedOxygenPercent.present) {
+      map['dissolvedOxygenPercent'] = Variable<double>(
+        dissolvedOxygenPercent.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7597,6 +7715,8 @@ class EnvironmentCompanion extends UpdateCompanion<EnvironmentData> {
           ..write('dissolvedOxygen: $dissolvedOxygen, ')
           ..write('flowVelocity: $flowVelocity, ')
           ..write('notes: $notes, ')
+          ..write('conductivity: $conductivity, ')
+          ..write('dissolvedOxygenPercent: $dissolvedOxygenPercent, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -19789,6 +19909,1049 @@ class InvertebrateAttributeCompanion
   }
 }
 
+class FishAttribute extends Table
+    with TableInfo<FishAttribute, FishAttributeData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  FishAttribute(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
+    'specimenUuid',
+  );
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+    'specimenUuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _specimenTypeMeta = const VerificationMeta(
+    'specimenType',
+  );
+  late final GeneratedColumn<int> specimenType = GeneratedColumn<int>(
+    'specimenType',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _standardLengthMeta = const VerificationMeta(
+    'standardLength',
+  );
+  late final GeneratedColumn<double> standardLength = GeneratedColumn<double>(
+    'standardLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _totalLengthMeta = const VerificationMeta(
+    'totalLength',
+  );
+  late final GeneratedColumn<double> totalLength = GeneratedColumn<double>(
+    'totalLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+    'weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightUnitMeta = const VerificationMeta(
+    'weightUnit',
+  );
+  late final GeneratedColumn<String> weightUnit = GeneratedColumn<String>(
+    'weightUnit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+    'sex',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isAutoRangeMeta = const VerificationMeta(
+    'isAutoRange',
+  );
+  late final GeneratedColumn<int> isAutoRange = GeneratedColumn<int>(
+    'isAutoRange',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _individualCountMeta = const VerificationMeta(
+    'individualCount',
+  );
+  late final GeneratedColumn<int> individualCount = GeneratedColumn<int>(
+    'individualCount',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _minStandardLengthMeta = const VerificationMeta(
+    'minStandardLength',
+  );
+  late final GeneratedColumn<double> minStandardLength =
+      GeneratedColumn<double>(
+        'minStandardLength',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _maxStandardLengthMeta = const VerificationMeta(
+    'maxStandardLength',
+  );
+  late final GeneratedColumn<double> maxStandardLength =
+      GeneratedColumn<double>(
+        'maxStandardLength',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _minTotalLengthMeta = const VerificationMeta(
+    'minTotalLength',
+  );
+  late final GeneratedColumn<double> minTotalLength = GeneratedColumn<double>(
+    'minTotalLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _maxTotalLengthMeta = const VerificationMeta(
+    'maxTotalLength',
+  );
+  late final GeneratedColumn<double> maxTotalLength = GeneratedColumn<double>(
+    'maxTotalLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _minWeightMeta = const VerificationMeta(
+    'minWeight',
+  );
+  late final GeneratedColumn<double> minWeight = GeneratedColumn<double>(
+    'minWeight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _maxWeightMeta = const VerificationMeta(
+    'maxWeight',
+  );
+  late final GeneratedColumn<double> maxWeight = GeneratedColumn<double>(
+    'maxWeight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+    'remark',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    specimenUuid,
+    specimenType,
+    standardLength,
+    totalLength,
+    weight,
+    weightUnit,
+    sex,
+    lifeStage,
+    isAutoRange,
+    individualCount,
+    minStandardLength,
+    maxStandardLength,
+    minTotalLength,
+    maxTotalLength,
+    minWeight,
+    maxWeight,
+    remark,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fishAttribute';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FishAttributeData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('specimenUuid')) {
+      context.handle(
+        _specimenUuidMeta,
+        specimenUuid.isAcceptableOrUnknown(
+          data['specimenUuid']!,
+          _specimenUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_specimenUuidMeta);
+    }
+    if (data.containsKey('specimenType')) {
+      context.handle(
+        _specimenTypeMeta,
+        specimenType.isAcceptableOrUnknown(
+          data['specimenType']!,
+          _specimenTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('standardLength')) {
+      context.handle(
+        _standardLengthMeta,
+        standardLength.isAcceptableOrUnknown(
+          data['standardLength']!,
+          _standardLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('totalLength')) {
+      context.handle(
+        _totalLengthMeta,
+        totalLength.isAcceptableOrUnknown(
+          data['totalLength']!,
+          _totalLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight')) {
+      context.handle(
+        _weightMeta,
+        weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
+      );
+    }
+    if (data.containsKey('weightUnit')) {
+      context.handle(
+        _weightUnitMeta,
+        weightUnit.isAcceptableOrUnknown(data['weightUnit']!, _weightUnitMeta),
+      );
+    }
+    if (data.containsKey('sex')) {
+      context.handle(
+        _sexMeta,
+        sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
+      );
+    }
+    if (data.containsKey('isAutoRange')) {
+      context.handle(
+        _isAutoRangeMeta,
+        isAutoRange.isAcceptableOrUnknown(
+          data['isAutoRange']!,
+          _isAutoRangeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('individualCount')) {
+      context.handle(
+        _individualCountMeta,
+        individualCount.isAcceptableOrUnknown(
+          data['individualCount']!,
+          _individualCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('minStandardLength')) {
+      context.handle(
+        _minStandardLengthMeta,
+        minStandardLength.isAcceptableOrUnknown(
+          data['minStandardLength']!,
+          _minStandardLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('maxStandardLength')) {
+      context.handle(
+        _maxStandardLengthMeta,
+        maxStandardLength.isAcceptableOrUnknown(
+          data['maxStandardLength']!,
+          _maxStandardLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('minTotalLength')) {
+      context.handle(
+        _minTotalLengthMeta,
+        minTotalLength.isAcceptableOrUnknown(
+          data['minTotalLength']!,
+          _minTotalLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('maxTotalLength')) {
+      context.handle(
+        _maxTotalLengthMeta,
+        maxTotalLength.isAcceptableOrUnknown(
+          data['maxTotalLength']!,
+          _maxTotalLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('minWeight')) {
+      context.handle(
+        _minWeightMeta,
+        minWeight.isAcceptableOrUnknown(data['minWeight']!, _minWeightMeta),
+      );
+    }
+    if (data.containsKey('maxWeight')) {
+      context.handle(
+        _maxWeightMeta,
+        maxWeight.isAcceptableOrUnknown(data['maxWeight']!, _maxWeightMeta),
+      );
+    }
+    if (data.containsKey('remark')) {
+      context.handle(
+        _remarkMeta,
+        remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  FishAttributeData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FishAttributeData(
+      specimenUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}specimenUuid'],
+      )!,
+      specimenType: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}specimenType'],
+      ),
+      standardLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}standardLength'],
+      ),
+      totalLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}totalLength'],
+      ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight'],
+      ),
+      weightUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weightUnit'],
+      ),
+      sex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sex'],
+      ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
+      isAutoRange: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}isAutoRange'],
+      ),
+      individualCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}individualCount'],
+      ),
+      minStandardLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minStandardLength'],
+      ),
+      maxStandardLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}maxStandardLength'],
+      ),
+      minTotalLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minTotalLength'],
+      ),
+      maxTotalLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}maxTotalLength'],
+      ),
+      minWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minWeight'],
+      ),
+      maxWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}maxWeight'],
+      ),
+      remark: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remark'],
+      ),
+    );
+  }
+
+  @override
+  FishAttribute createAlias(String alias) {
+    return FishAttribute(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class FishAttributeData extends DataClass
+    implements Insertable<FishAttributeData> {
+  final String specimenUuid;
+  final int? specimenType;
+
+  /// encode FishSpecimenType: 0 individual, 1 lot
+  final double? standardLength;
+
+  /// mm
+  final double? totalLength;
+
+  /// mm
+  final double? weight;
+  final String? weightUnit;
+  final int? sex;
+  final String? lifeStage;
+  final int? isAutoRange;
+
+  /// lot ranges follow specimenIndividual measurements
+  final int? individualCount;
+  final double? minStandardLength;
+  final double? maxStandardLength;
+  final double? minTotalLength;
+  final double? maxTotalLength;
+  final double? minWeight;
+  final double? maxWeight;
+  final String? remark;
+  const FishAttributeData({
+    required this.specimenUuid,
+    this.specimenType,
+    this.standardLength,
+    this.totalLength,
+    this.weight,
+    this.weightUnit,
+    this.sex,
+    this.lifeStage,
+    this.isAutoRange,
+    this.individualCount,
+    this.minStandardLength,
+    this.maxStandardLength,
+    this.minTotalLength,
+    this.maxTotalLength,
+    this.minWeight,
+    this.maxWeight,
+    this.remark,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['specimenUuid'] = Variable<String>(specimenUuid);
+    if (!nullToAbsent || specimenType != null) {
+      map['specimenType'] = Variable<int>(specimenType);
+    }
+    if (!nullToAbsent || standardLength != null) {
+      map['standardLength'] = Variable<double>(standardLength);
+    }
+    if (!nullToAbsent || totalLength != null) {
+      map['totalLength'] = Variable<double>(totalLength);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<double>(weight);
+    }
+    if (!nullToAbsent || weightUnit != null) {
+      map['weightUnit'] = Variable<String>(weightUnit);
+    }
+    if (!nullToAbsent || sex != null) {
+      map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
+    }
+    if (!nullToAbsent || isAutoRange != null) {
+      map['isAutoRange'] = Variable<int>(isAutoRange);
+    }
+    if (!nullToAbsent || individualCount != null) {
+      map['individualCount'] = Variable<int>(individualCount);
+    }
+    if (!nullToAbsent || minStandardLength != null) {
+      map['minStandardLength'] = Variable<double>(minStandardLength);
+    }
+    if (!nullToAbsent || maxStandardLength != null) {
+      map['maxStandardLength'] = Variable<double>(maxStandardLength);
+    }
+    if (!nullToAbsent || minTotalLength != null) {
+      map['minTotalLength'] = Variable<double>(minTotalLength);
+    }
+    if (!nullToAbsent || maxTotalLength != null) {
+      map['maxTotalLength'] = Variable<double>(maxTotalLength);
+    }
+    if (!nullToAbsent || minWeight != null) {
+      map['minWeight'] = Variable<double>(minWeight);
+    }
+    if (!nullToAbsent || maxWeight != null) {
+      map['maxWeight'] = Variable<double>(maxWeight);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
+    }
+    return map;
+  }
+
+  FishAttributeCompanion toCompanion(bool nullToAbsent) {
+    return FishAttributeCompanion(
+      specimenUuid: Value(specimenUuid),
+      specimenType: specimenType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specimenType),
+      standardLength: standardLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(standardLength),
+      totalLength: totalLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalLength),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
+      weightUnit: weightUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightUnit),
+      sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
+      isAutoRange: isAutoRange == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isAutoRange),
+      individualCount: individualCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(individualCount),
+      minStandardLength: minStandardLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minStandardLength),
+      maxStandardLength: maxStandardLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxStandardLength),
+      minTotalLength: minTotalLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minTotalLength),
+      maxTotalLength: maxTotalLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxTotalLength),
+      minWeight: minWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minWeight),
+      maxWeight: maxWeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxWeight),
+      remark: remark == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remark),
+    );
+  }
+
+  factory FishAttributeData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FishAttributeData(
+      specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
+      specimenType: serializer.fromJson<int?>(json['specimenType']),
+      standardLength: serializer.fromJson<double?>(json['standardLength']),
+      totalLength: serializer.fromJson<double?>(json['totalLength']),
+      weight: serializer.fromJson<double?>(json['weight']),
+      weightUnit: serializer.fromJson<String?>(json['weightUnit']),
+      sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
+      isAutoRange: serializer.fromJson<int?>(json['isAutoRange']),
+      individualCount: serializer.fromJson<int?>(json['individualCount']),
+      minStandardLength: serializer.fromJson<double?>(
+        json['minStandardLength'],
+      ),
+      maxStandardLength: serializer.fromJson<double?>(
+        json['maxStandardLength'],
+      ),
+      minTotalLength: serializer.fromJson<double?>(json['minTotalLength']),
+      maxTotalLength: serializer.fromJson<double?>(json['maxTotalLength']),
+      minWeight: serializer.fromJson<double?>(json['minWeight']),
+      maxWeight: serializer.fromJson<double?>(json['maxWeight']),
+      remark: serializer.fromJson<String?>(json['remark']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'specimenUuid': serializer.toJson<String>(specimenUuid),
+      'specimenType': serializer.toJson<int?>(specimenType),
+      'standardLength': serializer.toJson<double?>(standardLength),
+      'totalLength': serializer.toJson<double?>(totalLength),
+      'weight': serializer.toJson<double?>(weight),
+      'weightUnit': serializer.toJson<String?>(weightUnit),
+      'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
+      'isAutoRange': serializer.toJson<int?>(isAutoRange),
+      'individualCount': serializer.toJson<int?>(individualCount),
+      'minStandardLength': serializer.toJson<double?>(minStandardLength),
+      'maxStandardLength': serializer.toJson<double?>(maxStandardLength),
+      'minTotalLength': serializer.toJson<double?>(minTotalLength),
+      'maxTotalLength': serializer.toJson<double?>(maxTotalLength),
+      'minWeight': serializer.toJson<double?>(minWeight),
+      'maxWeight': serializer.toJson<double?>(maxWeight),
+      'remark': serializer.toJson<String?>(remark),
+    };
+  }
+
+  FishAttributeData copyWith({
+    String? specimenUuid,
+    Value<int?> specimenType = const Value.absent(),
+    Value<double?> standardLength = const Value.absent(),
+    Value<double?> totalLength = const Value.absent(),
+    Value<double?> weight = const Value.absent(),
+    Value<String?> weightUnit = const Value.absent(),
+    Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
+    Value<int?> isAutoRange = const Value.absent(),
+    Value<int?> individualCount = const Value.absent(),
+    Value<double?> minStandardLength = const Value.absent(),
+    Value<double?> maxStandardLength = const Value.absent(),
+    Value<double?> minTotalLength = const Value.absent(),
+    Value<double?> maxTotalLength = const Value.absent(),
+    Value<double?> minWeight = const Value.absent(),
+    Value<double?> maxWeight = const Value.absent(),
+    Value<String?> remark = const Value.absent(),
+  }) => FishAttributeData(
+    specimenUuid: specimenUuid ?? this.specimenUuid,
+    specimenType: specimenType.present ? specimenType.value : this.specimenType,
+    standardLength: standardLength.present
+        ? standardLength.value
+        : this.standardLength,
+    totalLength: totalLength.present ? totalLength.value : this.totalLength,
+    weight: weight.present ? weight.value : this.weight,
+    weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
+    sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
+    isAutoRange: isAutoRange.present ? isAutoRange.value : this.isAutoRange,
+    individualCount: individualCount.present
+        ? individualCount.value
+        : this.individualCount,
+    minStandardLength: minStandardLength.present
+        ? minStandardLength.value
+        : this.minStandardLength,
+    maxStandardLength: maxStandardLength.present
+        ? maxStandardLength.value
+        : this.maxStandardLength,
+    minTotalLength: minTotalLength.present
+        ? minTotalLength.value
+        : this.minTotalLength,
+    maxTotalLength: maxTotalLength.present
+        ? maxTotalLength.value
+        : this.maxTotalLength,
+    minWeight: minWeight.present ? minWeight.value : this.minWeight,
+    maxWeight: maxWeight.present ? maxWeight.value : this.maxWeight,
+    remark: remark.present ? remark.value : this.remark,
+  );
+  FishAttributeData copyWithCompanion(FishAttributeCompanion data) {
+    return FishAttributeData(
+      specimenUuid: data.specimenUuid.present
+          ? data.specimenUuid.value
+          : this.specimenUuid,
+      specimenType: data.specimenType.present
+          ? data.specimenType.value
+          : this.specimenType,
+      standardLength: data.standardLength.present
+          ? data.standardLength.value
+          : this.standardLength,
+      totalLength: data.totalLength.present
+          ? data.totalLength.value
+          : this.totalLength,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      weightUnit: data.weightUnit.present
+          ? data.weightUnit.value
+          : this.weightUnit,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
+      isAutoRange: data.isAutoRange.present
+          ? data.isAutoRange.value
+          : this.isAutoRange,
+      individualCount: data.individualCount.present
+          ? data.individualCount.value
+          : this.individualCount,
+      minStandardLength: data.minStandardLength.present
+          ? data.minStandardLength.value
+          : this.minStandardLength,
+      maxStandardLength: data.maxStandardLength.present
+          ? data.maxStandardLength.value
+          : this.maxStandardLength,
+      minTotalLength: data.minTotalLength.present
+          ? data.minTotalLength.value
+          : this.minTotalLength,
+      maxTotalLength: data.maxTotalLength.present
+          ? data.maxTotalLength.value
+          : this.maxTotalLength,
+      minWeight: data.minWeight.present ? data.minWeight.value : this.minWeight,
+      maxWeight: data.maxWeight.present ? data.maxWeight.value : this.maxWeight,
+      remark: data.remark.present ? data.remark.value : this.remark,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FishAttributeData(')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenType: $specimenType, ')
+          ..write('standardLength: $standardLength, ')
+          ..write('totalLength: $totalLength, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('isAutoRange: $isAutoRange, ')
+          ..write('individualCount: $individualCount, ')
+          ..write('minStandardLength: $minStandardLength, ')
+          ..write('maxStandardLength: $maxStandardLength, ')
+          ..write('minTotalLength: $minTotalLength, ')
+          ..write('maxTotalLength: $maxTotalLength, ')
+          ..write('minWeight: $minWeight, ')
+          ..write('maxWeight: $maxWeight, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    specimenUuid,
+    specimenType,
+    standardLength,
+    totalLength,
+    weight,
+    weightUnit,
+    sex,
+    lifeStage,
+    isAutoRange,
+    individualCount,
+    minStandardLength,
+    maxStandardLength,
+    minTotalLength,
+    maxTotalLength,
+    minWeight,
+    maxWeight,
+    remark,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FishAttributeData &&
+          other.specimenUuid == this.specimenUuid &&
+          other.specimenType == this.specimenType &&
+          other.standardLength == this.standardLength &&
+          other.totalLength == this.totalLength &&
+          other.weight == this.weight &&
+          other.weightUnit == this.weightUnit &&
+          other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
+          other.isAutoRange == this.isAutoRange &&
+          other.individualCount == this.individualCount &&
+          other.minStandardLength == this.minStandardLength &&
+          other.maxStandardLength == this.maxStandardLength &&
+          other.minTotalLength == this.minTotalLength &&
+          other.maxTotalLength == this.maxTotalLength &&
+          other.minWeight == this.minWeight &&
+          other.maxWeight == this.maxWeight &&
+          other.remark == this.remark);
+}
+
+class FishAttributeCompanion extends UpdateCompanion<FishAttributeData> {
+  final Value<String> specimenUuid;
+  final Value<int?> specimenType;
+  final Value<double?> standardLength;
+  final Value<double?> totalLength;
+  final Value<double?> weight;
+  final Value<String?> weightUnit;
+  final Value<int?> sex;
+  final Value<String?> lifeStage;
+  final Value<int?> isAutoRange;
+  final Value<int?> individualCount;
+  final Value<double?> minStandardLength;
+  final Value<double?> maxStandardLength;
+  final Value<double?> minTotalLength;
+  final Value<double?> maxTotalLength;
+  final Value<double?> minWeight;
+  final Value<double?> maxWeight;
+  final Value<String?> remark;
+  final Value<int> rowid;
+  const FishAttributeCompanion({
+    this.specimenUuid = const Value.absent(),
+    this.specimenType = const Value.absent(),
+    this.standardLength = const Value.absent(),
+    this.totalLength = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.isAutoRange = const Value.absent(),
+    this.individualCount = const Value.absent(),
+    this.minStandardLength = const Value.absent(),
+    this.maxStandardLength = const Value.absent(),
+    this.minTotalLength = const Value.absent(),
+    this.maxTotalLength = const Value.absent(),
+    this.minWeight = const Value.absent(),
+    this.maxWeight = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FishAttributeCompanion.insert({
+    required String specimenUuid,
+    this.specimenType = const Value.absent(),
+    this.standardLength = const Value.absent(),
+    this.totalLength = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.isAutoRange = const Value.absent(),
+    this.individualCount = const Value.absent(),
+    this.minStandardLength = const Value.absent(),
+    this.maxStandardLength = const Value.absent(),
+    this.minTotalLength = const Value.absent(),
+    this.maxTotalLength = const Value.absent(),
+    this.minWeight = const Value.absent(),
+    this.maxWeight = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : specimenUuid = Value(specimenUuid);
+  static Insertable<FishAttributeData> custom({
+    Expression<String>? specimenUuid,
+    Expression<int>? specimenType,
+    Expression<double>? standardLength,
+    Expression<double>? totalLength,
+    Expression<double>? weight,
+    Expression<String>? weightUnit,
+    Expression<int>? sex,
+    Expression<String>? lifeStage,
+    Expression<int>? isAutoRange,
+    Expression<int>? individualCount,
+    Expression<double>? minStandardLength,
+    Expression<double>? maxStandardLength,
+    Expression<double>? minTotalLength,
+    Expression<double>? maxTotalLength,
+    Expression<double>? minWeight,
+    Expression<double>? maxWeight,
+    Expression<String>? remark,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (specimenType != null) 'specimenType': specimenType,
+      if (standardLength != null) 'standardLength': standardLength,
+      if (totalLength != null) 'totalLength': totalLength,
+      if (weight != null) 'weight': weight,
+      if (weightUnit != null) 'weightUnit': weightUnit,
+      if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
+      if (isAutoRange != null) 'isAutoRange': isAutoRange,
+      if (individualCount != null) 'individualCount': individualCount,
+      if (minStandardLength != null) 'minStandardLength': minStandardLength,
+      if (maxStandardLength != null) 'maxStandardLength': maxStandardLength,
+      if (minTotalLength != null) 'minTotalLength': minTotalLength,
+      if (maxTotalLength != null) 'maxTotalLength': maxTotalLength,
+      if (minWeight != null) 'minWeight': minWeight,
+      if (maxWeight != null) 'maxWeight': maxWeight,
+      if (remark != null) 'remark': remark,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FishAttributeCompanion copyWith({
+    Value<String>? specimenUuid,
+    Value<int?>? specimenType,
+    Value<double?>? standardLength,
+    Value<double?>? totalLength,
+    Value<double?>? weight,
+    Value<String?>? weightUnit,
+    Value<int?>? sex,
+    Value<String?>? lifeStage,
+    Value<int?>? isAutoRange,
+    Value<int?>? individualCount,
+    Value<double?>? minStandardLength,
+    Value<double?>? maxStandardLength,
+    Value<double?>? minTotalLength,
+    Value<double?>? maxTotalLength,
+    Value<double?>? minWeight,
+    Value<double?>? maxWeight,
+    Value<String?>? remark,
+    Value<int>? rowid,
+  }) {
+    return FishAttributeCompanion(
+      specimenUuid: specimenUuid ?? this.specimenUuid,
+      specimenType: specimenType ?? this.specimenType,
+      standardLength: standardLength ?? this.standardLength,
+      totalLength: totalLength ?? this.totalLength,
+      weight: weight ?? this.weight,
+      weightUnit: weightUnit ?? this.weightUnit,
+      sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
+      isAutoRange: isAutoRange ?? this.isAutoRange,
+      individualCount: individualCount ?? this.individualCount,
+      minStandardLength: minStandardLength ?? this.minStandardLength,
+      maxStandardLength: maxStandardLength ?? this.maxStandardLength,
+      minTotalLength: minTotalLength ?? this.minTotalLength,
+      maxTotalLength: maxTotalLength ?? this.maxTotalLength,
+      minWeight: minWeight ?? this.minWeight,
+      maxWeight: maxWeight ?? this.maxWeight,
+      remark: remark ?? this.remark,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (specimenUuid.present) {
+      map['specimenUuid'] = Variable<String>(specimenUuid.value);
+    }
+    if (specimenType.present) {
+      map['specimenType'] = Variable<int>(specimenType.value);
+    }
+    if (standardLength.present) {
+      map['standardLength'] = Variable<double>(standardLength.value);
+    }
+    if (totalLength.present) {
+      map['totalLength'] = Variable<double>(totalLength.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (weightUnit.present) {
+      map['weightUnit'] = Variable<String>(weightUnit.value);
+    }
+    if (sex.present) {
+      map['sex'] = Variable<int>(sex.value);
+    }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
+    }
+    if (isAutoRange.present) {
+      map['isAutoRange'] = Variable<int>(isAutoRange.value);
+    }
+    if (individualCount.present) {
+      map['individualCount'] = Variable<int>(individualCount.value);
+    }
+    if (minStandardLength.present) {
+      map['minStandardLength'] = Variable<double>(minStandardLength.value);
+    }
+    if (maxStandardLength.present) {
+      map['maxStandardLength'] = Variable<double>(maxStandardLength.value);
+    }
+    if (minTotalLength.present) {
+      map['minTotalLength'] = Variable<double>(minTotalLength.value);
+    }
+    if (maxTotalLength.present) {
+      map['maxTotalLength'] = Variable<double>(maxTotalLength.value);
+    }
+    if (minWeight.present) {
+      map['minWeight'] = Variable<double>(minWeight.value);
+    }
+    if (maxWeight.present) {
+      map['maxWeight'] = Variable<double>(maxWeight.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FishAttributeCompanion(')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('specimenType: $specimenType, ')
+          ..write('standardLength: $standardLength, ')
+          ..write('totalLength: $totalLength, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('isAutoRange: $isAutoRange, ')
+          ..write('individualCount: $individualCount, ')
+          ..write('minStandardLength: $minStandardLength, ')
+          ..write('maxStandardLength: $maxStandardLength, ')
+          ..write('minTotalLength: $minTotalLength, ')
+          ..write('maxTotalLength: $maxTotalLength, ')
+          ..write('minWeight: $minWeight, ')
+          ..write('maxWeight: $maxWeight, ')
+          ..write('remark: $remark, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class FossilAttribute extends Table
     with TableInfo<FossilAttribute, FossilAttributeData> {
   @override
@@ -23032,6 +24195,1121 @@ class SpecimenPartCompanion extends UpdateCompanion<SpecimenPartData> {
   }
 }
 
+class SpecimenIndividual extends Table
+    with TableInfo<SpecimenIndividual, SpecimenIndividualData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SpecimenIndividual(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _specimenUuidMeta = const VerificationMeta(
+    'specimenUuid',
+  );
+  late final GeneratedColumn<String> specimenUuid = GeneratedColumn<String>(
+    'specimenUuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _individualIDMeta = const VerificationMeta(
+    'individualID',
+  );
+  late final GeneratedColumn<String> individualID = GeneratedColumn<String>(
+    'individualID',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _standardLengthMeta = const VerificationMeta(
+    'standardLength',
+  );
+  late final GeneratedColumn<double> standardLength = GeneratedColumn<double>(
+    'standardLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _totalLengthMeta = const VerificationMeta(
+    'totalLength',
+  );
+  late final GeneratedColumn<double> totalLength = GeneratedColumn<double>(
+    'totalLength',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightMeta = const VerificationMeta('weight');
+  late final GeneratedColumn<double> weight = GeneratedColumn<double>(
+    'weight',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _weightUnitMeta = const VerificationMeta(
+    'weightUnit',
+  );
+  late final GeneratedColumn<String> weightUnit = GeneratedColumn<String>(
+    'weightUnit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  late final GeneratedColumn<int> sex = GeneratedColumn<int>(
+    'sex',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _lifeStageMeta = const VerificationMeta(
+    'lifeStage',
+  );
+  late final GeneratedColumn<String> lifeStage = GeneratedColumn<String>(
+    'lifeStage',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+    'remark',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    specimenUuid,
+    individualID,
+    standardLength,
+    totalLength,
+    weight,
+    weightUnit,
+    sex,
+    lifeStage,
+    remark,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'specimenIndividual';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SpecimenIndividualData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('specimenUuid')) {
+      context.handle(
+        _specimenUuidMeta,
+        specimenUuid.isAcceptableOrUnknown(
+          data['specimenUuid']!,
+          _specimenUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_specimenUuidMeta);
+    }
+    if (data.containsKey('individualID')) {
+      context.handle(
+        _individualIDMeta,
+        individualID.isAcceptableOrUnknown(
+          data['individualID']!,
+          _individualIDMeta,
+        ),
+      );
+    }
+    if (data.containsKey('standardLength')) {
+      context.handle(
+        _standardLengthMeta,
+        standardLength.isAcceptableOrUnknown(
+          data['standardLength']!,
+          _standardLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('totalLength')) {
+      context.handle(
+        _totalLengthMeta,
+        totalLength.isAcceptableOrUnknown(
+          data['totalLength']!,
+          _totalLengthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight')) {
+      context.handle(
+        _weightMeta,
+        weight.isAcceptableOrUnknown(data['weight']!, _weightMeta),
+      );
+    }
+    if (data.containsKey('weightUnit')) {
+      context.handle(
+        _weightUnitMeta,
+        weightUnit.isAcceptableOrUnknown(data['weightUnit']!, _weightUnitMeta),
+      );
+    }
+    if (data.containsKey('sex')) {
+      context.handle(
+        _sexMeta,
+        sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('lifeStage')) {
+      context.handle(
+        _lifeStageMeta,
+        lifeStage.isAcceptableOrUnknown(data['lifeStage']!, _lifeStageMeta),
+      );
+    }
+    if (data.containsKey('remark')) {
+      context.handle(
+        _remarkMeta,
+        remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SpecimenIndividualData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SpecimenIndividualData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      specimenUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}specimenUuid'],
+      )!,
+      individualID: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}individualID'],
+      ),
+      standardLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}standardLength'],
+      ),
+      totalLength: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}totalLength'],
+      ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight'],
+      ),
+      weightUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weightUnit'],
+      ),
+      sex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sex'],
+      ),
+      lifeStage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lifeStage'],
+      ),
+      remark: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remark'],
+      ),
+    );
+  }
+
+  @override
+  SpecimenIndividual createAlias(String alias) {
+    return SpecimenIndividual(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'FOREIGN KEY(specimenUuid)REFERENCES specimen(uuid)ON DELETE CASCADE',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SpecimenIndividualData extends DataClass
+    implements Insertable<SpecimenIndividualData> {
+  final int id;
+
+  /// internal id
+  final String specimenUuid;
+  final String? individualID;
+
+  /// user defined individual or tag ID
+  final double? standardLength;
+
+  /// mm
+  final double? totalLength;
+
+  /// mm
+  final double? weight;
+  final String? weightUnit;
+  final int? sex;
+  final String? lifeStage;
+  final String? remark;
+  const SpecimenIndividualData({
+    required this.id,
+    required this.specimenUuid,
+    this.individualID,
+    this.standardLength,
+    this.totalLength,
+    this.weight,
+    this.weightUnit,
+    this.sex,
+    this.lifeStage,
+    this.remark,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['specimenUuid'] = Variable<String>(specimenUuid);
+    if (!nullToAbsent || individualID != null) {
+      map['individualID'] = Variable<String>(individualID);
+    }
+    if (!nullToAbsent || standardLength != null) {
+      map['standardLength'] = Variable<double>(standardLength);
+    }
+    if (!nullToAbsent || totalLength != null) {
+      map['totalLength'] = Variable<double>(totalLength);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<double>(weight);
+    }
+    if (!nullToAbsent || weightUnit != null) {
+      map['weightUnit'] = Variable<String>(weightUnit);
+    }
+    if (!nullToAbsent || sex != null) {
+      map['sex'] = Variable<int>(sex);
+    }
+    if (!nullToAbsent || lifeStage != null) {
+      map['lifeStage'] = Variable<String>(lifeStage);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
+    }
+    return map;
+  }
+
+  SpecimenIndividualCompanion toCompanion(bool nullToAbsent) {
+    return SpecimenIndividualCompanion(
+      id: Value(id),
+      specimenUuid: Value(specimenUuid),
+      individualID: individualID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(individualID),
+      standardLength: standardLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(standardLength),
+      totalLength: totalLength == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalLength),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
+      weightUnit: weightUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightUnit),
+      sex: sex == null && nullToAbsent ? const Value.absent() : Value(sex),
+      lifeStage: lifeStage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lifeStage),
+      remark: remark == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remark),
+    );
+  }
+
+  factory SpecimenIndividualData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SpecimenIndividualData(
+      id: serializer.fromJson<int>(json['id']),
+      specimenUuid: serializer.fromJson<String>(json['specimenUuid']),
+      individualID: serializer.fromJson<String?>(json['individualID']),
+      standardLength: serializer.fromJson<double?>(json['standardLength']),
+      totalLength: serializer.fromJson<double?>(json['totalLength']),
+      weight: serializer.fromJson<double?>(json['weight']),
+      weightUnit: serializer.fromJson<String?>(json['weightUnit']),
+      sex: serializer.fromJson<int?>(json['sex']),
+      lifeStage: serializer.fromJson<String?>(json['lifeStage']),
+      remark: serializer.fromJson<String?>(json['remark']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'specimenUuid': serializer.toJson<String>(specimenUuid),
+      'individualID': serializer.toJson<String?>(individualID),
+      'standardLength': serializer.toJson<double?>(standardLength),
+      'totalLength': serializer.toJson<double?>(totalLength),
+      'weight': serializer.toJson<double?>(weight),
+      'weightUnit': serializer.toJson<String?>(weightUnit),
+      'sex': serializer.toJson<int?>(sex),
+      'lifeStage': serializer.toJson<String?>(lifeStage),
+      'remark': serializer.toJson<String?>(remark),
+    };
+  }
+
+  SpecimenIndividualData copyWith({
+    int? id,
+    String? specimenUuid,
+    Value<String?> individualID = const Value.absent(),
+    Value<double?> standardLength = const Value.absent(),
+    Value<double?> totalLength = const Value.absent(),
+    Value<double?> weight = const Value.absent(),
+    Value<String?> weightUnit = const Value.absent(),
+    Value<int?> sex = const Value.absent(),
+    Value<String?> lifeStage = const Value.absent(),
+    Value<String?> remark = const Value.absent(),
+  }) => SpecimenIndividualData(
+    id: id ?? this.id,
+    specimenUuid: specimenUuid ?? this.specimenUuid,
+    individualID: individualID.present ? individualID.value : this.individualID,
+    standardLength: standardLength.present
+        ? standardLength.value
+        : this.standardLength,
+    totalLength: totalLength.present ? totalLength.value : this.totalLength,
+    weight: weight.present ? weight.value : this.weight,
+    weightUnit: weightUnit.present ? weightUnit.value : this.weightUnit,
+    sex: sex.present ? sex.value : this.sex,
+    lifeStage: lifeStage.present ? lifeStage.value : this.lifeStage,
+    remark: remark.present ? remark.value : this.remark,
+  );
+  SpecimenIndividualData copyWithCompanion(SpecimenIndividualCompanion data) {
+    return SpecimenIndividualData(
+      id: data.id.present ? data.id.value : this.id,
+      specimenUuid: data.specimenUuid.present
+          ? data.specimenUuid.value
+          : this.specimenUuid,
+      individualID: data.individualID.present
+          ? data.individualID.value
+          : this.individualID,
+      standardLength: data.standardLength.present
+          ? data.standardLength.value
+          : this.standardLength,
+      totalLength: data.totalLength.present
+          ? data.totalLength.value
+          : this.totalLength,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      weightUnit: data.weightUnit.present
+          ? data.weightUnit.value
+          : this.weightUnit,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      lifeStage: data.lifeStage.present ? data.lifeStage.value : this.lifeStage,
+      remark: data.remark.present ? data.remark.value : this.remark,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpecimenIndividualData(')
+          ..write('id: $id, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('individualID: $individualID, ')
+          ..write('standardLength: $standardLength, ')
+          ..write('totalLength: $totalLength, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    specimenUuid,
+    individualID,
+    standardLength,
+    totalLength,
+    weight,
+    weightUnit,
+    sex,
+    lifeStage,
+    remark,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SpecimenIndividualData &&
+          other.id == this.id &&
+          other.specimenUuid == this.specimenUuid &&
+          other.individualID == this.individualID &&
+          other.standardLength == this.standardLength &&
+          other.totalLength == this.totalLength &&
+          other.weight == this.weight &&
+          other.weightUnit == this.weightUnit &&
+          other.sex == this.sex &&
+          other.lifeStage == this.lifeStage &&
+          other.remark == this.remark);
+}
+
+class SpecimenIndividualCompanion
+    extends UpdateCompanion<SpecimenIndividualData> {
+  final Value<int> id;
+  final Value<String> specimenUuid;
+  final Value<String?> individualID;
+  final Value<double?> standardLength;
+  final Value<double?> totalLength;
+  final Value<double?> weight;
+  final Value<String?> weightUnit;
+  final Value<int?> sex;
+  final Value<String?> lifeStage;
+  final Value<String?> remark;
+  const SpecimenIndividualCompanion({
+    this.id = const Value.absent(),
+    this.specimenUuid = const Value.absent(),
+    this.individualID = const Value.absent(),
+    this.standardLength = const Value.absent(),
+    this.totalLength = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.remark = const Value.absent(),
+  });
+  SpecimenIndividualCompanion.insert({
+    this.id = const Value.absent(),
+    required String specimenUuid,
+    this.individualID = const Value.absent(),
+    this.standardLength = const Value.absent(),
+    this.totalLength = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.weightUnit = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.lifeStage = const Value.absent(),
+    this.remark = const Value.absent(),
+  }) : specimenUuid = Value(specimenUuid);
+  static Insertable<SpecimenIndividualData> custom({
+    Expression<int>? id,
+    Expression<String>? specimenUuid,
+    Expression<String>? individualID,
+    Expression<double>? standardLength,
+    Expression<double>? totalLength,
+    Expression<double>? weight,
+    Expression<String>? weightUnit,
+    Expression<int>? sex,
+    Expression<String>? lifeStage,
+    Expression<String>? remark,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (specimenUuid != null) 'specimenUuid': specimenUuid,
+      if (individualID != null) 'individualID': individualID,
+      if (standardLength != null) 'standardLength': standardLength,
+      if (totalLength != null) 'totalLength': totalLength,
+      if (weight != null) 'weight': weight,
+      if (weightUnit != null) 'weightUnit': weightUnit,
+      if (sex != null) 'sex': sex,
+      if (lifeStage != null) 'lifeStage': lifeStage,
+      if (remark != null) 'remark': remark,
+    });
+  }
+
+  SpecimenIndividualCompanion copyWith({
+    Value<int>? id,
+    Value<String>? specimenUuid,
+    Value<String?>? individualID,
+    Value<double?>? standardLength,
+    Value<double?>? totalLength,
+    Value<double?>? weight,
+    Value<String?>? weightUnit,
+    Value<int?>? sex,
+    Value<String?>? lifeStage,
+    Value<String?>? remark,
+  }) {
+    return SpecimenIndividualCompanion(
+      id: id ?? this.id,
+      specimenUuid: specimenUuid ?? this.specimenUuid,
+      individualID: individualID ?? this.individualID,
+      standardLength: standardLength ?? this.standardLength,
+      totalLength: totalLength ?? this.totalLength,
+      weight: weight ?? this.weight,
+      weightUnit: weightUnit ?? this.weightUnit,
+      sex: sex ?? this.sex,
+      lifeStage: lifeStage ?? this.lifeStage,
+      remark: remark ?? this.remark,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (specimenUuid.present) {
+      map['specimenUuid'] = Variable<String>(specimenUuid.value);
+    }
+    if (individualID.present) {
+      map['individualID'] = Variable<String>(individualID.value);
+    }
+    if (standardLength.present) {
+      map['standardLength'] = Variable<double>(standardLength.value);
+    }
+    if (totalLength.present) {
+      map['totalLength'] = Variable<double>(totalLength.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<double>(weight.value);
+    }
+    if (weightUnit.present) {
+      map['weightUnit'] = Variable<String>(weightUnit.value);
+    }
+    if (sex.present) {
+      map['sex'] = Variable<int>(sex.value);
+    }
+    if (lifeStage.present) {
+      map['lifeStage'] = Variable<String>(lifeStage.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpecimenIndividualCompanion(')
+          ..write('id: $id, ')
+          ..write('specimenUuid: $specimenUuid, ')
+          ..write('individualID: $individualID, ')
+          ..write('standardLength: $standardLength, ')
+          ..write('totalLength: $totalLength, ')
+          ..write('weight: $weight, ')
+          ..write('weightUnit: $weightUnit, ')
+          ..write('sex: $sex, ')
+          ..write('lifeStage: $lifeStage, ')
+          ..write('remark: $remark')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SpecimenPartIndividual extends Table
+    with TableInfo<SpecimenPartIndividual, SpecimenPartIndividualData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SpecimenPartIndividual(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _partIDMeta = const VerificationMeta('partID');
+  late final GeneratedColumn<int> partID = GeneratedColumn<int>(
+    'partID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _individualIDMeta = const VerificationMeta(
+    'individualID',
+  );
+  late final GeneratedColumn<int> individualID = GeneratedColumn<int>(
+    'individualID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [partID, individualID];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'specimenPartIndividual';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SpecimenPartIndividualData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('partID')) {
+      context.handle(
+        _partIDMeta,
+        partID.isAcceptableOrUnknown(data['partID']!, _partIDMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIDMeta);
+    }
+    if (data.containsKey('individualID')) {
+      context.handle(
+        _individualIDMeta,
+        individualID.isAcceptableOrUnknown(
+          data['individualID']!,
+          _individualIDMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_individualIDMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {partID, individualID};
+  @override
+  SpecimenPartIndividualData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SpecimenPartIndividualData(
+      partID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}partID'],
+      )!,
+      individualID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}individualID'],
+      )!,
+    );
+  }
+
+  @override
+  SpecimenPartIndividual createAlias(String alias) {
+    return SpecimenPartIndividual(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(partID, individualID)',
+    'FOREIGN KEY(partID)REFERENCES specimenPart(id)ON DELETE CASCADE',
+    'FOREIGN KEY(individualID)REFERENCES specimenIndividual(id)ON DELETE CASCADE',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SpecimenPartIndividualData extends DataClass
+    implements Insertable<SpecimenPartIndividualData> {
+  final int partID;
+  final int individualID;
+  const SpecimenPartIndividualData({
+    required this.partID,
+    required this.individualID,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['partID'] = Variable<int>(partID);
+    map['individualID'] = Variable<int>(individualID);
+    return map;
+  }
+
+  SpecimenPartIndividualCompanion toCompanion(bool nullToAbsent) {
+    return SpecimenPartIndividualCompanion(
+      partID: Value(partID),
+      individualID: Value(individualID),
+    );
+  }
+
+  factory SpecimenPartIndividualData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SpecimenPartIndividualData(
+      partID: serializer.fromJson<int>(json['partID']),
+      individualID: serializer.fromJson<int>(json['individualID']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'partID': serializer.toJson<int>(partID),
+      'individualID': serializer.toJson<int>(individualID),
+    };
+  }
+
+  SpecimenPartIndividualData copyWith({int? partID, int? individualID}) =>
+      SpecimenPartIndividualData(
+        partID: partID ?? this.partID,
+        individualID: individualID ?? this.individualID,
+      );
+  SpecimenPartIndividualData copyWithCompanion(
+    SpecimenPartIndividualCompanion data,
+  ) {
+    return SpecimenPartIndividualData(
+      partID: data.partID.present ? data.partID.value : this.partID,
+      individualID: data.individualID.present
+          ? data.individualID.value
+          : this.individualID,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpecimenPartIndividualData(')
+          ..write('partID: $partID, ')
+          ..write('individualID: $individualID')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(partID, individualID);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SpecimenPartIndividualData &&
+          other.partID == this.partID &&
+          other.individualID == this.individualID);
+}
+
+class SpecimenPartIndividualCompanion
+    extends UpdateCompanion<SpecimenPartIndividualData> {
+  final Value<int> partID;
+  final Value<int> individualID;
+  final Value<int> rowid;
+  const SpecimenPartIndividualCompanion({
+    this.partID = const Value.absent(),
+    this.individualID = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SpecimenPartIndividualCompanion.insert({
+    required int partID,
+    required int individualID,
+    this.rowid = const Value.absent(),
+  }) : partID = Value(partID),
+       individualID = Value(individualID);
+  static Insertable<SpecimenPartIndividualData> custom({
+    Expression<int>? partID,
+    Expression<int>? individualID,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (partID != null) 'partID': partID,
+      if (individualID != null) 'individualID': individualID,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SpecimenPartIndividualCompanion copyWith({
+    Value<int>? partID,
+    Value<int>? individualID,
+    Value<int>? rowid,
+  }) {
+    return SpecimenPartIndividualCompanion(
+      partID: partID ?? this.partID,
+      individualID: individualID ?? this.individualID,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (partID.present) {
+      map['partID'] = Variable<int>(partID.value);
+    }
+    if (individualID.present) {
+      map['individualID'] = Variable<int>(individualID.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpecimenPartIndividualCompanion(')
+          ..write('partID: $partID, ')
+          ..write('individualID: $individualID, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class ParasiteIndividual extends Table
+    with TableInfo<ParasiteIndividual, ParasiteIndividualData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ParasiteIndividual(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _parasiteIDMeta = const VerificationMeta(
+    'parasiteID',
+  );
+  late final GeneratedColumn<int> parasiteID = GeneratedColumn<int>(
+    'parasiteID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _individualIDMeta = const VerificationMeta(
+    'individualID',
+  );
+  late final GeneratedColumn<int> individualID = GeneratedColumn<int>(
+    'individualID',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [parasiteID, individualID];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'parasiteIndividual';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ParasiteIndividualData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('parasiteID')) {
+      context.handle(
+        _parasiteIDMeta,
+        parasiteID.isAcceptableOrUnknown(data['parasiteID']!, _parasiteIDMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_parasiteIDMeta);
+    }
+    if (data.containsKey('individualID')) {
+      context.handle(
+        _individualIDMeta,
+        individualID.isAcceptableOrUnknown(
+          data['individualID']!,
+          _individualIDMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_individualIDMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {parasiteID, individualID};
+  @override
+  ParasiteIndividualData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ParasiteIndividualData(
+      parasiteID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}parasiteID'],
+      )!,
+      individualID: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}individualID'],
+      )!,
+    );
+  }
+
+  @override
+  ParasiteIndividual createAlias(String alias) {
+    return ParasiteIndividual(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(parasiteID, individualID)',
+    'FOREIGN KEY(parasiteID)REFERENCES parasite(id)ON DELETE CASCADE',
+    'FOREIGN KEY(individualID)REFERENCES specimenIndividual(id)ON DELETE CASCADE',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ParasiteIndividualData extends DataClass
+    implements Insertable<ParasiteIndividualData> {
+  final int parasiteID;
+  final int individualID;
+  const ParasiteIndividualData({
+    required this.parasiteID,
+    required this.individualID,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['parasiteID'] = Variable<int>(parasiteID);
+    map['individualID'] = Variable<int>(individualID);
+    return map;
+  }
+
+  ParasiteIndividualCompanion toCompanion(bool nullToAbsent) {
+    return ParasiteIndividualCompanion(
+      parasiteID: Value(parasiteID),
+      individualID: Value(individualID),
+    );
+  }
+
+  factory ParasiteIndividualData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ParasiteIndividualData(
+      parasiteID: serializer.fromJson<int>(json['parasiteID']),
+      individualID: serializer.fromJson<int>(json['individualID']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'parasiteID': serializer.toJson<int>(parasiteID),
+      'individualID': serializer.toJson<int>(individualID),
+    };
+  }
+
+  ParasiteIndividualData copyWith({int? parasiteID, int? individualID}) =>
+      ParasiteIndividualData(
+        parasiteID: parasiteID ?? this.parasiteID,
+        individualID: individualID ?? this.individualID,
+      );
+  ParasiteIndividualData copyWithCompanion(ParasiteIndividualCompanion data) {
+    return ParasiteIndividualData(
+      parasiteID: data.parasiteID.present
+          ? data.parasiteID.value
+          : this.parasiteID,
+      individualID: data.individualID.present
+          ? data.individualID.value
+          : this.individualID,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ParasiteIndividualData(')
+          ..write('parasiteID: $parasiteID, ')
+          ..write('individualID: $individualID')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(parasiteID, individualID);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ParasiteIndividualData &&
+          other.parasiteID == this.parasiteID &&
+          other.individualID == this.individualID);
+}
+
+class ParasiteIndividualCompanion
+    extends UpdateCompanion<ParasiteIndividualData> {
+  final Value<int> parasiteID;
+  final Value<int> individualID;
+  final Value<int> rowid;
+  const ParasiteIndividualCompanion({
+    this.parasiteID = const Value.absent(),
+    this.individualID = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ParasiteIndividualCompanion.insert({
+    required int parasiteID,
+    required int individualID,
+    this.rowid = const Value.absent(),
+  }) : parasiteID = Value(parasiteID),
+       individualID = Value(individualID);
+  static Insertable<ParasiteIndividualData> custom({
+    Expression<int>? parasiteID,
+    Expression<int>? individualID,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (parasiteID != null) 'parasiteID': parasiteID,
+      if (individualID != null) 'individualID': individualID,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ParasiteIndividualCompanion copyWith({
+    Value<int>? parasiteID,
+    Value<int>? individualID,
+    Value<int>? rowid,
+  }) {
+    return ParasiteIndividualCompanion(
+      parasiteID: parasiteID ?? this.parasiteID,
+      individualID: individualID ?? this.individualID,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (parasiteID.present) {
+      map['parasiteID'] = Variable<int>(parasiteID.value);
+    }
+    if (individualID.present) {
+      map['individualID'] = Variable<int>(individualID.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ParasiteIndividualCompanion(')
+          ..write('parasiteID: $parasiteID, ')
+          ..write('individualID: $individualID, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class CustomFieldDefinition extends Table
     with TableInfo<CustomFieldDefinition, CustomFieldDefinitionData> {
   @override
@@ -24785,10 +27063,15 @@ abstract class _$Database extends GeneratedDatabase {
   late final HerpAttribute herpAttribute = HerpAttribute(this);
   late final InvertebrateAttribute invertebrateAttribute =
       InvertebrateAttribute(this);
+  late final FishAttribute fishAttribute = FishAttribute(this);
   late final FossilAttribute fossilAttribute = FossilAttribute(this);
   late final ParasiteDetection parasiteDetection = ParasiteDetection(this);
   late final Parasite parasite = Parasite(this);
   late final SpecimenPart specimenPart = SpecimenPart(this);
+  late final SpecimenIndividual specimenIndividual = SpecimenIndividual(this);
+  late final SpecimenPartIndividual specimenPartIndividual =
+      SpecimenPartIndividual(this);
+  late final ParasiteIndividual parasiteIndividual = ParasiteIndividual(this);
   late final CustomFieldDefinition customFieldDefinition =
       CustomFieldDefinition(this);
   late final CustomFieldValue customFieldValue = CustomFieldValue(this);
@@ -24817,11 +27100,11 @@ abstract class _$Database extends GeneratedDatabase {
     'CREATE UNIQUE INDEX IF NOT EXISTS custom_field_template_target_idx ON customFieldDefinition (sourceTemplateUuid, scope, ifnull(projectUuid, \'\')) WHERE sourceTemplateUuid IS NOT NULL',
   );
   late final Trigger customFieldValueValidateInsert = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_insert BEFORE INSERT ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_insert',
   );
   late final Trigger customFieldValueValidateUpdate = Trigger(
-    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
+    'CREATE TRIGGER custom_field_value_validate_update BEFORE UPDATE ON customFieldValue WHEN NEW.isLegacy = 0 BEGIN SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND d.uiSection = CASE WHEN NEW.eventId IS NOT NULL THEN \'environmentalData\' WHEN NEW.siteId IS NOT NULL THEN \'siteAttribute\' WHEN NEW.specimenUuid IS NOT NULL THEN \'specimenAttribute\' WHEN NEW.specimenPartId IS NOT NULL THEN \'specimenPart\' WHEN NEW.parasiteId IS NOT NULL THEN \'parasite\' END AND(d.scope = \'global\' OR d.projectUuid = NEW.projectUuid)) THEN RAISE (ABORT, \'Custom field definition does not match its value owner\') END;SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM customFieldDefinition AS d WHERE d.id = NEW.fieldDefinitionId AND((NEW.eventId IS NOT NULL AND EXISTS (SELECT 1 FROM collEvent AS e WHERE e.id = NEW.eventId AND e.projectUuid = NEW.projectUuid))OR(NEW.siteId IS NOT NULL AND EXISTS (SELECT 1 FROM site AS s WHERE s.id = NEW.siteId AND s.projectUuid = NEW.projectUuid))OR(NEW.specimenUuid IS NOT NULL AND EXISTS (SELECT 1 FROM specimen AS s WHERE s.uuid = NEW.specimenUuid AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.specimenPartId IS NOT NULL AND EXISTS (SELECT 1 FROM specimenPart AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.specimenPartId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END)))OR(NEW.parasiteId IS NOT NULL AND EXISTS (SELECT 1 FROM parasite AS p JOIN specimen AS s ON s.uuid = p.specimenUuid WHERE p.id = NEW.parasiteId AND s.projectUuid = NEW.projectUuid AND(d.catalogFormat IS NULL OR d.catalogFormat = CASE lower(s.taxonGroup) WHEN \'birds\' THEN \'ornithology\' WHEN \'herpetofauna\' THEN \'herpetology\' WHEN \'invertebrates\' THEN \'invertebrateZoology\' WHEN \'arthropods\' THEN \'invertebrateZoology\' WHEN \'fishes\' THEN \'ichthyology\' ELSE \'mammalogy\' END))))) THEN RAISE (ABORT, \'Custom field value project or catalog does not match its owner\') END;END',
     'custom_field_value_validate_update',
   );
   late final Index specimenProjectSpeciesIdx = Index(
@@ -24855,6 +27138,18 @@ abstract class _$Database extends GeneratedDatabase {
   late final Index specimenPartSpecimenIdx = Index(
     'specimen_part_specimen_idx',
     'CREATE INDEX IF NOT EXISTS specimen_part_specimen_idx ON specimenPart (specimenUuid)',
+  );
+  late final Index specimenIndividualSpecimenIdx = Index(
+    'specimen_individual_specimen_idx',
+    'CREATE INDEX IF NOT EXISTS specimen_individual_specimen_idx ON specimenIndividual (specimenUuid)',
+  );
+  late final Index specimenPartIndividualIndividualIdx = Index(
+    'specimen_part_individual_individual_idx',
+    'CREATE INDEX IF NOT EXISTS specimen_part_individual_individual_idx ON specimenPartIndividual (individualID)',
+  );
+  late final Index parasiteIndividualIndividualIdx = Index(
+    'parasite_individual_individual_idx',
+    'CREATE INDEX IF NOT EXISTS parasite_individual_individual_idx ON parasiteIndividual (individualID)',
   );
   late final Index associatedDataProjectIdx = Index(
     'associated_data_project_idx',
@@ -24920,10 +27215,14 @@ abstract class _$Database extends GeneratedDatabase {
     birdAttribute,
     herpAttribute,
     invertebrateAttribute,
+    fishAttribute,
     fossilAttribute,
     parasiteDetection,
     parasite,
     specimenPart,
+    specimenIndividual,
+    specimenPartIndividual,
+    parasiteIndividual,
     customFieldDefinition,
     customFieldValue,
     customFieldSiteValueIdx,
@@ -24942,6 +27241,9 @@ abstract class _$Database extends GeneratedDatabase {
     specimenProjectCoordinateIdx,
     collEventProjectSiteIdx,
     specimenPartSpecimenIdx,
+    specimenIndividualSpecimenIdx,
+    specimenPartIndividualIndividualIdx,
+    parasiteIndividualIndividualIdx,
     associatedDataProjectIdx,
     specimenAssociatedDataDataIdx,
     siteAssociatedDataDataIdx,
@@ -25021,6 +27323,41 @@ abstract class _$Database extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.insert,
       ),
       result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimen',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('specimenIndividual', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimenPart',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('specimenPartIndividual', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimenIndividual',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('specimenPartIndividual', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'parasite',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('parasiteIndividual', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'specimenIndividual',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('parasiteIndividual', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -28545,6 +30882,8 @@ typedef $EnvironmentCreateCompanionBuilder =
       Value<double?> dissolvedOxygen,
       Value<double?> flowVelocity,
       Value<String?> notes,
+      Value<double?> conductivity,
+      Value<double?> dissolvedOxygenPercent,
       Value<int> rowid,
     });
 typedef $EnvironmentUpdateCompanionBuilder =
@@ -28568,6 +30907,8 @@ typedef $EnvironmentUpdateCompanionBuilder =
       Value<double?> dissolvedOxygen,
       Value<double?> flowVelocity,
       Value<String?> notes,
+      Value<double?> conductivity,
+      Value<double?> dissolvedOxygenPercent,
       Value<int> rowid,
     });
 
@@ -28671,6 +31012,16 @@ class $EnvironmentFilterComposer extends Composer<_$Database, Environment> {
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get conductivity => $composableBuilder(
+    column: $table.conductivity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get dissolvedOxygenPercent => $composableBuilder(
+    column: $table.dissolvedOxygenPercent,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -28777,6 +31128,16 @@ class $EnvironmentOrderingComposer extends Composer<_$Database, Environment> {
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get conductivity => $composableBuilder(
+    column: $table.conductivity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get dissolvedOxygenPercent => $composableBuilder(
+    column: $table.dissolvedOxygenPercent,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $EnvironmentAnnotationComposer extends Composer<_$Database, Environment> {
@@ -28873,6 +31234,16 @@ class $EnvironmentAnnotationComposer extends Composer<_$Database, Environment> {
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<double> get conductivity => $composableBuilder(
+    column: $table.conductivity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get dissolvedOxygenPercent => $composableBuilder(
+    column: $table.dissolvedOxygenPercent,
+    builder: (column) => column,
+  );
 }
 
 class $EnvironmentTableManager
@@ -28925,6 +31296,8 @@ class $EnvironmentTableManager
                 Value<double?> dissolvedOxygen = const Value.absent(),
                 Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<double?> conductivity = const Value.absent(),
+                Value<double?> dissolvedOxygenPercent = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EnvironmentCompanion(
                 eventID: eventID,
@@ -28946,6 +31319,8 @@ class $EnvironmentTableManager
                 dissolvedOxygen: dissolvedOxygen,
                 flowVelocity: flowVelocity,
                 notes: notes,
+                conductivity: conductivity,
+                dissolvedOxygenPercent: dissolvedOxygenPercent,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -28969,6 +31344,8 @@ class $EnvironmentTableManager
                 Value<double?> dissolvedOxygen = const Value.absent(),
                 Value<double?> flowVelocity = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<double?> conductivity = const Value.absent(),
+                Value<double?> dissolvedOxygenPercent = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EnvironmentCompanion.insert(
                 eventID: eventID,
@@ -28990,6 +31367,8 @@ class $EnvironmentTableManager
                 dissolvedOxygen: dissolvedOxygen,
                 flowVelocity: flowVelocity,
                 notes: notes,
+                conductivity: conductivity,
+                dissolvedOxygenPercent: dissolvedOxygenPercent,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -35271,6 +37650,464 @@ typedef $InvertebrateAttributeProcessedTableManager =
       InvertebrateAttributeData,
       PrefetchHooks Function()
     >;
+typedef $FishAttributeCreateCompanionBuilder =
+    FishAttributeCompanion Function({
+      required String specimenUuid,
+      Value<int?> specimenType,
+      Value<double?> standardLength,
+      Value<double?> totalLength,
+      Value<double?> weight,
+      Value<String?> weightUnit,
+      Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> isAutoRange,
+      Value<int?> individualCount,
+      Value<double?> minStandardLength,
+      Value<double?> maxStandardLength,
+      Value<double?> minTotalLength,
+      Value<double?> maxTotalLength,
+      Value<double?> minWeight,
+      Value<double?> maxWeight,
+      Value<String?> remark,
+      Value<int> rowid,
+    });
+typedef $FishAttributeUpdateCompanionBuilder =
+    FishAttributeCompanion Function({
+      Value<String> specimenUuid,
+      Value<int?> specimenType,
+      Value<double?> standardLength,
+      Value<double?> totalLength,
+      Value<double?> weight,
+      Value<String?> weightUnit,
+      Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<int?> isAutoRange,
+      Value<int?> individualCount,
+      Value<double?> minStandardLength,
+      Value<double?> maxStandardLength,
+      Value<double?> minTotalLength,
+      Value<double?> maxTotalLength,
+      Value<double?> minWeight,
+      Value<double?> maxWeight,
+      Value<String?> remark,
+      Value<int> rowid,
+    });
+
+class $FishAttributeFilterComposer extends Composer<_$Database, FishAttribute> {
+  $FishAttributeFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get specimenType => $composableBuilder(
+    column: $table.specimenType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isAutoRange => $composableBuilder(
+    column: $table.isAutoRange,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get individualCount => $composableBuilder(
+    column: $table.individualCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minStandardLength => $composableBuilder(
+    column: $table.minStandardLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxStandardLength => $composableBuilder(
+    column: $table.maxStandardLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minTotalLength => $composableBuilder(
+    column: $table.minTotalLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxTotalLength => $composableBuilder(
+    column: $table.maxTotalLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minWeight => $composableBuilder(
+    column: $table.minWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maxWeight => $composableBuilder(
+    column: $table.maxWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remark => $composableBuilder(
+    column: $table.remark,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $FishAttributeOrderingComposer
+    extends Composer<_$Database, FishAttribute> {
+  $FishAttributeOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get specimenType => $composableBuilder(
+    column: $table.specimenType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isAutoRange => $composableBuilder(
+    column: $table.isAutoRange,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get individualCount => $composableBuilder(
+    column: $table.individualCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minStandardLength => $composableBuilder(
+    column: $table.minStandardLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maxStandardLength => $composableBuilder(
+    column: $table.maxStandardLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minTotalLength => $composableBuilder(
+    column: $table.minTotalLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maxTotalLength => $composableBuilder(
+    column: $table.maxTotalLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minWeight => $composableBuilder(
+    column: $table.minWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maxWeight => $composableBuilder(
+    column: $table.maxWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+    column: $table.remark,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $FishAttributeAnnotationComposer
+    extends Composer<_$Database, FishAttribute> {
+  $FishAttributeAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get specimenType => $composableBuilder(
+    column: $table.specimenType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
+  GeneratedColumn<int> get isAutoRange => $composableBuilder(
+    column: $table.isAutoRange,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get individualCount => $composableBuilder(
+    column: $table.individualCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minStandardLength => $composableBuilder(
+    column: $table.minStandardLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maxStandardLength => $composableBuilder(
+    column: $table.maxStandardLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minTotalLength => $composableBuilder(
+    column: $table.minTotalLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maxTotalLength => $composableBuilder(
+    column: $table.maxTotalLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minWeight =>
+      $composableBuilder(column: $table.minWeight, builder: (column) => column);
+
+  GeneratedColumn<double> get maxWeight =>
+      $composableBuilder(column: $table.maxWeight, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+}
+
+class $FishAttributeTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          FishAttribute,
+          FishAttributeData,
+          $FishAttributeFilterComposer,
+          $FishAttributeOrderingComposer,
+          $FishAttributeAnnotationComposer,
+          $FishAttributeCreateCompanionBuilder,
+          $FishAttributeUpdateCompanionBuilder,
+          (
+            FishAttributeData,
+            BaseReferences<_$Database, FishAttribute, FishAttributeData>,
+          ),
+          FishAttributeData,
+          PrefetchHooks Function()
+        > {
+  $FishAttributeTableManager(_$Database db, FishAttribute table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $FishAttributeFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $FishAttributeOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $FishAttributeAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> specimenUuid = const Value.absent(),
+                Value<int?> specimenType = const Value.absent(),
+                Value<double?> standardLength = const Value.absent(),
+                Value<double?> totalLength = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> isAutoRange = const Value.absent(),
+                Value<int?> individualCount = const Value.absent(),
+                Value<double?> minStandardLength = const Value.absent(),
+                Value<double?> maxStandardLength = const Value.absent(),
+                Value<double?> minTotalLength = const Value.absent(),
+                Value<double?> maxTotalLength = const Value.absent(),
+                Value<double?> minWeight = const Value.absent(),
+                Value<double?> maxWeight = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FishAttributeCompanion(
+                specimenUuid: specimenUuid,
+                specimenType: specimenType,
+                standardLength: standardLength,
+                totalLength: totalLength,
+                weight: weight,
+                weightUnit: weightUnit,
+                sex: sex,
+                lifeStage: lifeStage,
+                isAutoRange: isAutoRange,
+                individualCount: individualCount,
+                minStandardLength: minStandardLength,
+                maxStandardLength: maxStandardLength,
+                minTotalLength: minTotalLength,
+                maxTotalLength: maxTotalLength,
+                minWeight: minWeight,
+                maxWeight: maxWeight,
+                remark: remark,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String specimenUuid,
+                Value<int?> specimenType = const Value.absent(),
+                Value<double?> standardLength = const Value.absent(),
+                Value<double?> totalLength = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<int?> isAutoRange = const Value.absent(),
+                Value<int?> individualCount = const Value.absent(),
+                Value<double?> minStandardLength = const Value.absent(),
+                Value<double?> maxStandardLength = const Value.absent(),
+                Value<double?> minTotalLength = const Value.absent(),
+                Value<double?> maxTotalLength = const Value.absent(),
+                Value<double?> minWeight = const Value.absent(),
+                Value<double?> maxWeight = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FishAttributeCompanion.insert(
+                specimenUuid: specimenUuid,
+                specimenType: specimenType,
+                standardLength: standardLength,
+                totalLength: totalLength,
+                weight: weight,
+                weightUnit: weightUnit,
+                sex: sex,
+                lifeStage: lifeStage,
+                isAutoRange: isAutoRange,
+                individualCount: individualCount,
+                minStandardLength: minStandardLength,
+                maxStandardLength: maxStandardLength,
+                minTotalLength: minTotalLength,
+                maxTotalLength: maxTotalLength,
+                minWeight: minWeight,
+                maxWeight: maxWeight,
+                remark: remark,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<FishAttribute, FishAttributeData>(table),
+                  BaseReferences<_$Database, FishAttribute, FishAttributeData>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $FishAttributeProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      FishAttribute,
+      FishAttributeData,
+      $FishAttributeFilterComposer,
+      $FishAttributeOrderingComposer,
+      $FishAttributeAnnotationComposer,
+      $FishAttributeCreateCompanionBuilder,
+      $FishAttributeUpdateCompanionBuilder,
+      (
+        FishAttributeData,
+        BaseReferences<_$Database, FishAttribute, FishAttributeData>,
+      ),
+      FishAttributeData,
+      PrefetchHooks Function()
+    >;
 typedef $FossilAttributeCreateCompanionBuilder =
     FossilAttributeCompanion Function({
       required String specimenUuid,
@@ -36868,6 +39705,649 @@ typedef $SpecimenPartProcessedTableManager =
       SpecimenPartData,
       PrefetchHooks Function()
     >;
+typedef $SpecimenIndividualCreateCompanionBuilder =
+    SpecimenIndividualCompanion Function({
+      Value<int> id,
+      required String specimenUuid,
+      Value<String?> individualID,
+      Value<double?> standardLength,
+      Value<double?> totalLength,
+      Value<double?> weight,
+      Value<String?> weightUnit,
+      Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<String?> remark,
+    });
+typedef $SpecimenIndividualUpdateCompanionBuilder =
+    SpecimenIndividualCompanion Function({
+      Value<int> id,
+      Value<String> specimenUuid,
+      Value<String?> individualID,
+      Value<double?> standardLength,
+      Value<double?> totalLength,
+      Value<double?> weight,
+      Value<String?> weightUnit,
+      Value<int?> sex,
+      Value<String?> lifeStage,
+      Value<String?> remark,
+    });
+
+class $SpecimenIndividualFilterComposer
+    extends Composer<_$Database, SpecimenIndividual> {
+  $SpecimenIndividualFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remark => $composableBuilder(
+    column: $table.remark,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $SpecimenIndividualOrderingComposer
+    extends Composer<_$Database, SpecimenIndividual> {
+  $SpecimenIndividualOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lifeStage => $composableBuilder(
+    column: $table.lifeStage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+    column: $table.remark,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $SpecimenIndividualAnnotationComposer
+    extends Composer<_$Database, SpecimenIndividual> {
+  $SpecimenIndividualAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get specimenUuid => $composableBuilder(
+    column: $table.specimenUuid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get standardLength => $composableBuilder(
+    column: $table.standardLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalLength => $composableBuilder(
+    column: $table.totalLength,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
+
+  GeneratedColumn<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<String> get lifeStage =>
+      $composableBuilder(column: $table.lifeStage, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+}
+
+class $SpecimenIndividualTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          SpecimenIndividual,
+          SpecimenIndividualData,
+          $SpecimenIndividualFilterComposer,
+          $SpecimenIndividualOrderingComposer,
+          $SpecimenIndividualAnnotationComposer,
+          $SpecimenIndividualCreateCompanionBuilder,
+          $SpecimenIndividualUpdateCompanionBuilder,
+          (
+            SpecimenIndividualData,
+            BaseReferences<
+              _$Database,
+              SpecimenIndividual,
+              SpecimenIndividualData
+            >,
+          ),
+          SpecimenIndividualData,
+          PrefetchHooks Function()
+        > {
+  $SpecimenIndividualTableManager(_$Database db, SpecimenIndividual table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SpecimenIndividualFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SpecimenIndividualOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SpecimenIndividualAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> specimenUuid = const Value.absent(),
+                Value<String?> individualID = const Value.absent(),
+                Value<double?> standardLength = const Value.absent(),
+                Value<double?> totalLength = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
+              }) => SpecimenIndividualCompanion(
+                id: id,
+                specimenUuid: specimenUuid,
+                individualID: individualID,
+                standardLength: standardLength,
+                totalLength: totalLength,
+                weight: weight,
+                weightUnit: weightUnit,
+                sex: sex,
+                lifeStage: lifeStage,
+                remark: remark,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String specimenUuid,
+                Value<String?> individualID = const Value.absent(),
+                Value<double?> standardLength = const Value.absent(),
+                Value<double?> totalLength = const Value.absent(),
+                Value<double?> weight = const Value.absent(),
+                Value<String?> weightUnit = const Value.absent(),
+                Value<int?> sex = const Value.absent(),
+                Value<String?> lifeStage = const Value.absent(),
+                Value<String?> remark = const Value.absent(),
+              }) => SpecimenIndividualCompanion.insert(
+                id: id,
+                specimenUuid: specimenUuid,
+                individualID: individualID,
+                standardLength: standardLength,
+                totalLength: totalLength,
+                weight: weight,
+                weightUnit: weightUnit,
+                sex: sex,
+                lifeStage: lifeStage,
+                remark: remark,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<SpecimenIndividual, SpecimenIndividualData>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$Database,
+                    SpecimenIndividual,
+                    SpecimenIndividualData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $SpecimenIndividualProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      SpecimenIndividual,
+      SpecimenIndividualData,
+      $SpecimenIndividualFilterComposer,
+      $SpecimenIndividualOrderingComposer,
+      $SpecimenIndividualAnnotationComposer,
+      $SpecimenIndividualCreateCompanionBuilder,
+      $SpecimenIndividualUpdateCompanionBuilder,
+      (
+        SpecimenIndividualData,
+        BaseReferences<_$Database, SpecimenIndividual, SpecimenIndividualData>,
+      ),
+      SpecimenIndividualData,
+      PrefetchHooks Function()
+    >;
+typedef $SpecimenPartIndividualCreateCompanionBuilder =
+    SpecimenPartIndividualCompanion Function({
+      required int partID,
+      required int individualID,
+      Value<int> rowid,
+    });
+typedef $SpecimenPartIndividualUpdateCompanionBuilder =
+    SpecimenPartIndividualCompanion Function({
+      Value<int> partID,
+      Value<int> individualID,
+      Value<int> rowid,
+    });
+
+class $SpecimenPartIndividualFilterComposer
+    extends Composer<_$Database, SpecimenPartIndividual> {
+  $SpecimenPartIndividualFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get partID => $composableBuilder(
+    column: $table.partID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $SpecimenPartIndividualOrderingComposer
+    extends Composer<_$Database, SpecimenPartIndividual> {
+  $SpecimenPartIndividualOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get partID => $composableBuilder(
+    column: $table.partID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $SpecimenPartIndividualAnnotationComposer
+    extends Composer<_$Database, SpecimenPartIndividual> {
+  $SpecimenPartIndividualAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get partID =>
+      $composableBuilder(column: $table.partID, builder: (column) => column);
+
+  GeneratedColumn<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => column,
+  );
+}
+
+class $SpecimenPartIndividualTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          SpecimenPartIndividual,
+          SpecimenPartIndividualData,
+          $SpecimenPartIndividualFilterComposer,
+          $SpecimenPartIndividualOrderingComposer,
+          $SpecimenPartIndividualAnnotationComposer,
+          $SpecimenPartIndividualCreateCompanionBuilder,
+          $SpecimenPartIndividualUpdateCompanionBuilder,
+          (
+            SpecimenPartIndividualData,
+            BaseReferences<
+              _$Database,
+              SpecimenPartIndividual,
+              SpecimenPartIndividualData
+            >,
+          ),
+          SpecimenPartIndividualData,
+          PrefetchHooks Function()
+        > {
+  $SpecimenPartIndividualTableManager(
+    _$Database db,
+    SpecimenPartIndividual table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $SpecimenPartIndividualFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $SpecimenPartIndividualOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $SpecimenPartIndividualAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> partID = const Value.absent(),
+                Value<int> individualID = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SpecimenPartIndividualCompanion(
+                partID: partID,
+                individualID: individualID,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int partID,
+                required int individualID,
+                Value<int> rowid = const Value.absent(),
+              }) => SpecimenPartIndividualCompanion.insert(
+                partID: partID,
+                individualID: individualID,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    SpecimenPartIndividual,
+                    SpecimenPartIndividualData
+                  >(table),
+                  BaseReferences<
+                    _$Database,
+                    SpecimenPartIndividual,
+                    SpecimenPartIndividualData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $SpecimenPartIndividualProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      SpecimenPartIndividual,
+      SpecimenPartIndividualData,
+      $SpecimenPartIndividualFilterComposer,
+      $SpecimenPartIndividualOrderingComposer,
+      $SpecimenPartIndividualAnnotationComposer,
+      $SpecimenPartIndividualCreateCompanionBuilder,
+      $SpecimenPartIndividualUpdateCompanionBuilder,
+      (
+        SpecimenPartIndividualData,
+        BaseReferences<
+          _$Database,
+          SpecimenPartIndividual,
+          SpecimenPartIndividualData
+        >,
+      ),
+      SpecimenPartIndividualData,
+      PrefetchHooks Function()
+    >;
+typedef $ParasiteIndividualCreateCompanionBuilder =
+    ParasiteIndividualCompanion Function({
+      required int parasiteID,
+      required int individualID,
+      Value<int> rowid,
+    });
+typedef $ParasiteIndividualUpdateCompanionBuilder =
+    ParasiteIndividualCompanion Function({
+      Value<int> parasiteID,
+      Value<int> individualID,
+      Value<int> rowid,
+    });
+
+class $ParasiteIndividualFilterComposer
+    extends Composer<_$Database, ParasiteIndividual> {
+  $ParasiteIndividualFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $ParasiteIndividualOrderingComposer
+    extends Composer<_$Database, ParasiteIndividual> {
+  $ParasiteIndividualOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $ParasiteIndividualAnnotationComposer
+    extends Composer<_$Database, ParasiteIndividual> {
+  $ParasiteIndividualAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get parasiteID => $composableBuilder(
+    column: $table.parasiteID,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get individualID => $composableBuilder(
+    column: $table.individualID,
+    builder: (column) => column,
+  );
+}
+
+class $ParasiteIndividualTableManager
+    extends
+        RootTableManager<
+          _$Database,
+          ParasiteIndividual,
+          ParasiteIndividualData,
+          $ParasiteIndividualFilterComposer,
+          $ParasiteIndividualOrderingComposer,
+          $ParasiteIndividualAnnotationComposer,
+          $ParasiteIndividualCreateCompanionBuilder,
+          $ParasiteIndividualUpdateCompanionBuilder,
+          (
+            ParasiteIndividualData,
+            BaseReferences<
+              _$Database,
+              ParasiteIndividual,
+              ParasiteIndividualData
+            >,
+          ),
+          ParasiteIndividualData,
+          PrefetchHooks Function()
+        > {
+  $ParasiteIndividualTableManager(_$Database db, ParasiteIndividual table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $ParasiteIndividualFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $ParasiteIndividualOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $ParasiteIndividualAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> parasiteID = const Value.absent(),
+                Value<int> individualID = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ParasiteIndividualCompanion(
+                parasiteID: parasiteID,
+                individualID: individualID,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int parasiteID,
+                required int individualID,
+                Value<int> rowid = const Value.absent(),
+              }) => ParasiteIndividualCompanion.insert(
+                parasiteID: parasiteID,
+                individualID: individualID,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<ParasiteIndividual, ParasiteIndividualData>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$Database,
+                    ParasiteIndividual,
+                    ParasiteIndividualData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $ParasiteIndividualProcessedTableManager =
+    ProcessedTableManager<
+      _$Database,
+      ParasiteIndividual,
+      ParasiteIndividualData,
+      $ParasiteIndividualFilterComposer,
+      $ParasiteIndividualOrderingComposer,
+      $ParasiteIndividualAnnotationComposer,
+      $ParasiteIndividualCreateCompanionBuilder,
+      $ParasiteIndividualUpdateCompanionBuilder,
+      (
+        ParasiteIndividualData,
+        BaseReferences<_$Database, ParasiteIndividual, ParasiteIndividualData>,
+      ),
+      ParasiteIndividualData,
+      PrefetchHooks Function()
+    >;
 typedef $CustomFieldDefinitionCreateCompanionBuilder =
     CustomFieldDefinitionCompanion Function({
       Value<int?> id,
@@ -37722,6 +41202,8 @@ class $DatabaseManager {
       $HerpAttributeTableManager(_db, _db.herpAttribute);
   $InvertebrateAttributeTableManager get invertebrateAttribute =>
       $InvertebrateAttributeTableManager(_db, _db.invertebrateAttribute);
+  $FishAttributeTableManager get fishAttribute =>
+      $FishAttributeTableManager(_db, _db.fishAttribute);
   $FossilAttributeTableManager get fossilAttribute =>
       $FossilAttributeTableManager(_db, _db.fossilAttribute);
   $ParasiteDetectionTableManager get parasiteDetection =>
@@ -37730,6 +41212,12 @@ class $DatabaseManager {
       $ParasiteTableManager(_db, _db.parasite);
   $SpecimenPartTableManager get specimenPart =>
       $SpecimenPartTableManager(_db, _db.specimenPart);
+  $SpecimenIndividualTableManager get specimenIndividual =>
+      $SpecimenIndividualTableManager(_db, _db.specimenIndividual);
+  $SpecimenPartIndividualTableManager get specimenPartIndividual =>
+      $SpecimenPartIndividualTableManager(_db, _db.specimenPartIndividual);
+  $ParasiteIndividualTableManager get parasiteIndividual =>
+      $ParasiteIndividualTableManager(_db, _db.parasiteIndividual);
   $CustomFieldDefinitionTableManager get customFieldDefinition =>
       $CustomFieldDefinitionTableManager(_db, _db.customFieldDefinition);
   $CustomFieldValueTableManager get customFieldValue =>

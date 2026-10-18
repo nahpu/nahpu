@@ -162,6 +162,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
       UNION ALL
       SELECT specimenUuid, sex, lifeStage AS life_stage FROM invertebrateAttribute
       UNION ALL
+      SELECT specimenUuid, sex, lifeStage AS life_stage FROM fishAttribute
+      UNION ALL
       SELECT specimenUuid, sex, NULL AS life_stage FROM fossilAttribute
     ),
     normalized_attributes AS (
@@ -742,6 +744,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
     db.birdAttribute,
     db.herpAttribute,
     db.invertebrateAttribute,
+    db.fishAttribute,
     db.fossilAttribute,
   };
 }

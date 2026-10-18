@@ -211,6 +211,16 @@ class SpecimenQuery extends DatabaseAccessor<Database>
             ..where(invertebrateAttribute.lifeStage.isNotNull()))
           .map((row) => row.read(invertebrateAttribute.lifeStage))
           .get(),
+      (selectOnly(fishAttribute, distinct: true)
+            ..addColumns([fishAttribute.lifeStage])
+            ..where(fishAttribute.lifeStage.isNotNull()))
+          .map((row) => row.read(fishAttribute.lifeStage))
+          .get(),
+      (selectOnly(specimenIndividual, distinct: true)
+            ..addColumns([specimenIndividual.lifeStage])
+            ..where(specimenIndividual.lifeStage.isNotNull()))
+          .map((row) => row.read(specimenIndividual.lifeStage))
+          .get(),
     ]);
     return values
         .expand((entries) => entries)
@@ -234,12 +244,20 @@ class SpecimenQuery extends DatabaseAccessor<Database>
     final invertebrateQuery = selectOnly(invertebrateAttribute, distinct: true)
       ..addColumns([invertebrateAttribute.sex])
       ..where(invertebrateAttribute.sex.isNotNull());
+    final fishQuery = selectOnly(fishAttribute, distinct: true)
+      ..addColumns([fishAttribute.sex])
+      ..where(fishAttribute.sex.isNotNull());
+    final individualQuery = selectOnly(specimenIndividual, distinct: true)
+      ..addColumns([specimenIndividual.sex])
+      ..where(specimenIndividual.sex.isNotNull());
 
     final results = await Future.wait([
       mammalQuery.map((row) => row.read(mammalAttribute.sex)).get(),
       birdQuery.map((row) => row.read(birdAttribute.sex)).get(),
       herpQuery.map((row) => row.read(herpAttribute.sex)).get(),
       invertebrateQuery.map((row) => row.read(invertebrateAttribute.sex)).get(),
+      fishQuery.map((row) => row.read(fishAttribute.sex)).get(),
+      individualQuery.map((row) => row.read(specimenIndividual.sex)).get(),
     ]);
     codes.addAll(results.expand((values) => values).whereType<int>());
     return codes;
@@ -557,6 +575,230 @@ class InvertebrateSpecimenQuery extends DatabaseAccessor<Database>
   }
 }
 
+class FishSpecimenQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  FishSpecimenQuery(super.db);
+
+  Future<int> createFishAttributes(FishAttributeCompanion form) =>
+      into(fishAttribute).insert(form);
+
+  Future<void> updateFishAttributes(
+    String specimenUuid,
+    FishAttributeCompanion entry,
+  ) async {
+    await (update(
+      fishAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).write(entry);
+  }
+
+  Future<FishAttributeData> getFishAttributeByUuid(String specimenUuid) {
+    return (select(
+      fishAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingle();
+  }
+
+  Future<FishAttributeData?> getFishAttributeOrNull(String specimenUuid) {
+    return (select(
+      fishAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+  }
+
+  Future<void> deleteFishAttributes(String specimenUuid) async {
+    await (delete(
+      fishAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
+/// Individuals recorded within a specimen lot.
+class SpecimenIndividualQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  SpecimenIndividualQuery(super.db);
+
+  Future<int> createIndividual(SpecimenIndividualCompanion form) =>
+      into(specimenIndividual).insert(form);
+
+  Future<void> updateIndividual(int id, SpecimenIndividualCompanion entry) {
+    return (update(
+      specimenIndividual,
+    )..where((t) => t.id.equals(id))).write(entry);
+  }
+
+  Future<SpecimenIndividualData> getIndividual(int id) {
+    return (select(
+      specimenIndividual,
+    )..where((t) => t.id.equals(id))).getSingle();
+  }
+
+  Future<List<SpecimenIndividualData>> getIndividuals(String specimenUuid) {
+    return (select(specimenIndividual)
+          ..where((t) => t.specimenUuid.equals(specimenUuid))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
+  }
+
+  Future<void> updateWeightUnit(String specimenUuid, String? weightUnit) {
+    return (update(specimenIndividual)
+          ..where((t) => t.specimenUuid.equals(specimenUuid)))
+        .write(SpecimenIndividualCompanion(weightUnit: Value(weightUnit)));
+  }
+
+  Future<void> deleteIndividual(int id) {
+    return (delete(specimenIndividual)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> deleteIndividuals(String specimenUuid) {
+    return (delete(
+      specimenIndividual,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
+  }
+}
+
+/// Links between specimen parts and the individuals they were taken from.
+class SpecimenPartIndividualQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  SpecimenPartIndividualQuery(super.db);
+
+  /// Replaces every individual linked to [partId] with [individualIds].
+  Future<void> setIndividualsForPart(int partId, Iterable<int> individualIds) {
+    return transaction(() async {
+      await (delete(
+        specimenPartIndividual,
+      )..where((t) => t.partID.equals(partId))).go();
+      await batch((batch) {
+        batch.insertAll(specimenPartIndividual, [
+          for (final id in individualIds.toSet())
+            SpecimenPartIndividualCompanion(
+              partID: Value(partId),
+              individualID: Value(id),
+            ),
+        ]);
+      });
+    });
+  }
+
+  Future<List<int>> getIndividualIdsForPart(int partId) {
+    return (select(specimenPartIndividual)
+          ..where((t) => t.partID.equals(partId)))
+        .map((row) => row.individualID)
+        .get();
+  }
+
+  /// Returns the individuals linked to [partId], in entry order.
+  Future<List<SpecimenIndividualData>> getIndividualsForPart(int partId) {
+    final query =
+        select(specimenIndividual).join([
+            innerJoin(
+              specimenPartIndividual,
+              specimenPartIndividual.individualID.equalsExp(
+                specimenIndividual.id,
+              ),
+            ),
+          ])
+          ..where(specimenPartIndividual.partID.equals(partId))
+          ..orderBy([OrderingTerm.asc(specimenIndividual.id)]);
+    return query.map((row) => row.readTable(specimenIndividual)).get();
+  }
+
+  Future<List<int>> getPartIdsForIndividual(int individualId) {
+    return (select(specimenPartIndividual)
+          ..where((t) => t.individualID.equals(individualId)))
+        .map((row) => row.partID)
+        .get();
+  }
+
+  /// Returns every link for parts belonging to [specimenUuid].
+  Future<List<SpecimenPartIndividualData>> getLinksForSpecimen(
+    String specimenUuid,
+  ) {
+    final query = select(specimenPartIndividual).join([
+      innerJoin(
+        specimenPart,
+        specimenPart.id.equalsExp(specimenPartIndividual.partID),
+      ),
+    ])..where(specimenPart.specimenUuid.equals(specimenUuid));
+    return query.map((row) => row.readTable(specimenPartIndividual)).get();
+  }
+
+  Future<void> deleteLinksForParts(List<int> partIds) {
+    return (delete(
+      specimenPartIndividual,
+    )..where((t) => t.partID.isIn(partIds))).go();
+  }
+
+  Future<void> deleteLinksForIndividual(int individualId) {
+    return (delete(
+      specimenPartIndividual,
+    )..where((t) => t.individualID.equals(individualId))).go();
+  }
+}
+
+/// Links between parasites and the lot individuals they were taken from.
+class ParasiteIndividualQuery extends DatabaseAccessor<Database>
+    with _$SpecimenQueryMixin {
+  ParasiteIndividualQuery(super.db);
+
+  /// Replaces every individual linked to [parasiteId] with [individualIds].
+  Future<void> setIndividualsForParasite(
+    int parasiteId,
+    Iterable<int> individualIds,
+  ) {
+    return transaction(() async {
+      await (delete(
+        parasiteIndividual,
+      )..where((t) => t.parasiteID.equals(parasiteId))).go();
+      await batch((batch) {
+        batch.insertAll(parasiteIndividual, [
+          for (final id in individualIds.toSet())
+            ParasiteIndividualCompanion(
+              parasiteID: Value(parasiteId),
+              individualID: Value(id),
+            ),
+        ]);
+      });
+    });
+  }
+
+  Future<List<int>> getIndividualIdsForParasite(int parasiteId) {
+    return (select(parasiteIndividual)
+          ..where((t) => t.parasiteID.equals(parasiteId)))
+        .map((row) => row.individualID)
+        .get();
+  }
+
+  /// Returns the individuals linked to [parasiteId], in entry order.
+  Future<List<SpecimenIndividualData>> getIndividualsForParasite(
+    int parasiteId,
+  ) {
+    final query =
+        select(specimenIndividual).join([
+            innerJoin(
+              parasiteIndividual,
+              parasiteIndividual.individualID.equalsExp(specimenIndividual.id),
+            ),
+          ])
+          ..where(parasiteIndividual.parasiteID.equals(parasiteId))
+          ..orderBy([OrderingTerm.asc(specimenIndividual.id)]);
+    return query.map((row) => row.readTable(specimenIndividual)).get();
+  }
+
+  /// Returns every link for parasites found on [specimenUuid].
+  Future<List<ParasiteIndividualData>> getLinksForSpecimen(
+    String specimenUuid,
+  ) {
+    final query = select(parasiteIndividual).join([
+      innerJoin(parasite, parasite.id.equalsExp(parasiteIndividual.parasiteID)),
+    ])..where(parasite.specimenUuid.equals(specimenUuid));
+    return query.map((row) => row.readTable(parasiteIndividual)).get();
+  }
+
+  Future<void> deleteLinksForIndividual(int individualId) {
+    return (delete(
+      parasiteIndividual,
+    )..where((t) => t.individualID.equals(individualId))).go();
+  }
+}
+
 class SpecimenPartQuery extends DatabaseAccessor<Database>
     with _$SpecimenQueryMixin {
   SpecimenPartQuery(super.db);
@@ -679,16 +921,28 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
     return (update(specimenPart)..where((t) => t.id.equals(id))).write(entry);
   }
 
-  Future<void> deleteSpecimenPart(int partId) {
-    return (delete(specimenPart)..where((t) => t.id.equals(partId))).go();
+  Future<void> deleteSpecimenPart(int partId) async {
+    await (delete(
+      specimenPartIndividual,
+    )..where((t) => t.partID.equals(partId))).go();
+    await (delete(specimenPart)..where((t) => t.id.equals(partId))).go();
   }
 
-  Future<void> deleteSpecimenPartsFromList(List<int> partIds) {
-    return (delete(specimenPart)..where((t) => t.id.isIn(partIds))).go();
+  Future<void> deleteSpecimenPartsFromList(List<int> partIds) async {
+    await (delete(
+      specimenPartIndividual,
+    )..where((t) => t.partID.isIn(partIds))).go();
+    await (delete(specimenPart)..where((t) => t.id.isIn(partIds))).go();
   }
 
-  Future<void> deleteAllSpecimenParts(String specimenUuid) {
-    return (delete(
+  Future<void> deleteAllSpecimenParts(String specimenUuid) async {
+    final partIds = selectOnly(specimenPart)
+      ..addColumns([specimenPart.id])
+      ..where(specimenPart.specimenUuid.equals(specimenUuid));
+    await (delete(
+      specimenPartIndividual,
+    )..where((t) => t.partID.isInQuery(partIds))).go();
+    await (delete(
       specimenPart,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).go();
   }

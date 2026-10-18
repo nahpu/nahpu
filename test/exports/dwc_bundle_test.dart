@@ -28,6 +28,8 @@ void main() {
     expect(normalizeBundleTaxonGroup('Non-Bat Mammals'), 'Mammals');
     expect(normalizeBundleTaxonGroup('Bats'), 'Bats');
     expect(normalizeBundleTaxonGroup('Herpetofauna'), 'Herpetofauna');
+    expect(normalizeBundleTaxonGroup('Fishes'), 'Fishes');
+    expect(normalizeBundleTaxonGroup('Ichthyology'), 'Fishes');
     expect(normalizeBundleTaxonGroup('Arthropoda'), 'Invertebrates');
     expect(normalizeBundleTaxonGroup('Arthropods'), 'Invertebrates');
     expect(normalizeBundleTaxonGroup('Invertebrates'), 'Invertebrates');
@@ -408,7 +410,7 @@ void main() {
         )
         .toSet();
 
-    expect(mappings, hasLength(76));
+    expect(mappings, hasLength(92));
     expect(keys, hasLength(mappings.length));
     expect(
       buildNahpuSqliteEnumMappings(

@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/collecting_records.dart';
 import 'package:nahpu/services/export/common.dart';
@@ -149,6 +151,17 @@ class SpecimenPartWriterServices extends AppServices {
 
     if (isWithEmpty) {
       return content;
+    }
+
+    if (isWithLabel && data.id != null) {
+      final individuals = await SpecimenPartIndividualQuery(
+        dbAccess,
+      ).getIndividualsForPart(data.id!);
+      if (individuals.isNotEmpty) {
+        content.add(
+          'individuals: ${individuals.map(individualShortId).join(', ')}',
+        );
+      }
     }
 
     return content.where((element) => element.isNotEmpty).toList();

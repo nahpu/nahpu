@@ -20,8 +20,10 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
+import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
@@ -476,14 +478,20 @@ class BarcodeText extends StatelessWidget {
   }
 }
 
-class PartSubTitle extends StatelessWidget {
+class PartSubTitle extends ConsumerWidget {
   const PartSubTitle({super.key, required this.part});
 
   final SpecimenPartData part;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final partId = part.id;
+    final individuals = partId == null
+        ? const <SpecimenIndividualData>[]
+        : ref.watch(individualsByPartProvider(partId)).asData?.value ??
+              const <SpecimenIndividualData>[];
     return Text(
+      '${_individualText(individuals)}'
       '${_getTextFirst(part.tissueID)}'
       '$treatment'
       '${_getText(part.additionalTreatment)}'
@@ -494,6 +502,12 @@ class PartSubTitle extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyMedium,
       overflow: TextOverflow.ellipsis,
     );
+  }
+
+  String _individualText(List<SpecimenIndividualData> individuals) {
+    if (individuals.isEmpty) return '';
+    return 'Ind: ${individuals.map(individualShortId).join(', ')}'
+        '$listTileSeparator';
   }
 
   String _getTextFirst(String? text) {
@@ -625,6 +639,13 @@ class PartFormState extends ConsumerState<PartForm> {
   final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   @override
+  void initState() {
+    super.initState();
+    final partId = widget.specimenPartId;
+    if (widget.isEditing && partId != null) _loadIndividuals(partId);
+  }
+
+  @override
   void dispose() {
     _customFields.dispose();
     widget.partCtr.dispose();
@@ -704,25 +725,39 @@ class PartFormState extends ConsumerState<PartForm> {
       widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
       widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
+  Future<void> _loadIndividuals(int partId) async {
+    final ids = await SpecimenPartServices(
+      ref: ref,
+    ).getIndividualIdsForPart(partId);
+    if (!mounted) return;
+    setState(() => widget.partCtr.individualIds = ids.toSet());
+  }
+
   Future<void> _submit() async {
+    final services = SpecimenPartServices(ref: ref);
+    final individualIds = widget.partCtr.individualIds;
     try {
+      final database = ref.read(databaseProvider);
       if (widget.isEditing) {
-        await SpecimenPartServices(
-          ref: ref,
-        ).updateSpecimenPart(widget.specimenPartId!, _getForm());
-      } else {
-        final database = ref.read(databaseProvider);
+        final partId = widget.specimenPartId!;
         await database.transaction(() async {
-          final id = await SpecimenPartServices(
-            ref: ref,
-          ).createSpecimenPart(_getForm());
+          await services.updateSpecimenPart(partId, _getForm());
+          await services.setPartIndividuals(partId, individualIds);
+        });
+        services.invalidatePartIndividuals(partId);
+      } else {
+        final id = await database.transaction(() async {
+          final id = await services.createSpecimenPart(_getForm());
+          await services.setPartIndividuals(id, individualIds);
           await ref
               .read(customFieldServiceProvider)
               .setValues(
                 CustomFieldOwner.specimenPart(id),
                 _customFields.values,
               );
+          return id;
         });
+        services.invalidatePartIndividuals(id);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
@@ -1133,6 +1168,10 @@ class PartIdForm extends ConsumerWidget {
         child: Column(
           children: [
             Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            SpecimenIndividualSelector(
+              specimenUuid: specimenUuid,
+              selectedIds: partCtr.individualIds,
+            ),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,

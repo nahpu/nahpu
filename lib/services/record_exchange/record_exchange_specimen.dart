@@ -50,6 +50,15 @@ class RecordExchangeSpecimen extends AppServices {
     final parasiteDetection = await (dbAccess.select(
       dbAccess.parasiteDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    final individuals = await SpecimenIndividualQuery(
+      dbAccess,
+    ).getIndividuals(specimenUuid);
+    final partIndividuals = await SpecimenPartIndividualQuery(
+      dbAccess,
+    ).getLinksForSpecimen(specimenUuid);
+    final parasiteIndividuals = await ParasiteIndividualQuery(
+      dbAccess,
+    ).getLinksForSpecimen(specimenUuid);
 
     final data = <String, dynamic>{
       'specimen':
@@ -72,6 +81,33 @@ class RecordExchangeSpecimen extends AppServices {
                 'specimenUuid',
               }),
               'sourcePartId': value.id,
+            },
+          )
+          .toList(growable: false),
+      'individuals': individuals
+          .map(
+            (value) => {
+              ...RecordExchangeDatabase.without(value.toJson(), {
+                'id',
+                'specimenUuid',
+              }),
+              'sourceIndividualId': value.id,
+            },
+          )
+          .toList(growable: false),
+      'partIndividuals': partIndividuals
+          .map(
+            (value) => {
+              'sourcePartId': value.partID,
+              'sourceIndividualId': value.individualID,
+            },
+          )
+          .toList(growable: false),
+      'parasiteIndividuals': parasiteIndividuals
+          .map(
+            (value) => {
+              'sourceParasiteId': value.parasiteID,
+              'sourceIndividualId': value.individualID,
             },
           )
           .toList(growable: false),
@@ -204,6 +240,7 @@ class RecordExchangeSpecimen extends AppServices {
       specimenTaxonomyId: taxonomyId,
       sourceSpecimenTaxonomyId: specimenJson['sourceSpeciesID'] as int?,
     );
+    await _importIndividuals(payload, newUuid, partIds, parasiteIds);
     await _importAssociatedData(payload, newUuid);
     await RecordExchangeCustomFields(ref: ref).import(
       payload.data['customFields'],
@@ -240,11 +277,15 @@ class RecordExchangeSpecimen extends AppServices {
     final fossil = await (dbAccess.select(
       dbAccess.fossilAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
+    final fish = await (dbAccess.select(
+      dbAccess.fishAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).getSingleOrNull();
     return {
       'mammal': mammal?.toJson(),
       'avian': bird?.toJson(),
       'herp': herp?.toJson(),
       'invertebrate': invertebrate?.toJson(),
+      'fish': fish?.toJson(),
       'fossil': fossil?.toJson(),
     };
   }
@@ -489,6 +530,11 @@ class RecordExchangeSpecimen extends AppServices {
     List<AssociatedDataData>? deferredAssociatedDataCleanup,
   }) async {
     await SpecimenPartQuery(dbAccess).deleteAllSpecimenParts(uuid);
+    await dbAccess.customStatement(
+      'DELETE FROM parasiteIndividual WHERE parasiteID IN '
+      '(SELECT id FROM parasite WHERE specimenUuid = ?)',
+      [uuid],
+    );
     await (dbAccess.delete(
       dbAccess.parasite,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
@@ -516,6 +562,10 @@ class RecordExchangeSpecimen extends AppServices {
     await (dbAccess.delete(
       dbAccess.fossilAttribute,
     )..where((row) => row.specimenUuid.equals(uuid))).go();
+    await (dbAccess.delete(
+      dbAccess.fishAttribute,
+    )..where((row) => row.specimenUuid.equals(uuid))).go();
+    await SpecimenIndividualQuery(dbAccess).deleteIndividuals(uuid);
   }
 
   Future<void> _importAttributes(
@@ -598,6 +648,21 @@ class RecordExchangeSpecimen extends AppServices {
             }).toCompanion(true),
           );
     }
+    final fish = attributes['fish'];
+    if (fish is Map) {
+      final fishJson = Map<String, dynamic>.from(fish);
+      if (fishJson['weight'] != null && fishJson['weightUnit'] == null) {
+        fishJson['weightUnit'] = 'g';
+      }
+      await dbAccess
+          .into(dbAccess.fishAttribute)
+          .insert(
+            FishAttributeData.fromJson({
+              ...fishJson,
+              'specimenUuid': uuid,
+            }).toCompanion(true),
+          );
+    }
     final fossil = attributes['fossil'];
     if (fossil is Map) {
       await dbAccess
@@ -641,6 +706,62 @@ class RecordExchangeSpecimen extends AppServices {
       if (sourceId != null) idMap[sourceId] = id;
     }
     return idMap;
+  }
+
+  /// Imports lot individuals and relinks them to the imported parts and
+  /// parasites.
+  Future<void> _importIndividuals(
+    RecordExchangePayload payload,
+    String uuid,
+    Map<int, int> partIds,
+    Map<int, int> parasiteIds,
+  ) async {
+    final individualIds = <int, int>{};
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['individuals'],
+    )) {
+      final id = await dbAccess
+          .into(dbAccess.specimenIndividual)
+          .insert(
+            SpecimenIndividualData.fromJson({
+              ...json,
+              'id': 0,
+              'specimenUuid': uuid,
+            }).toCompanion(true).copyWith(id: const db.Value.absent()),
+          );
+      final sourceId = json['sourceIndividualId'] as int?;
+      if (sourceId != null) individualIds[sourceId] = id;
+    }
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['partIndividuals'],
+    )) {
+      final partId = partIds[json['sourcePartId'] as int?];
+      final individualId = individualIds[json['sourceIndividualId'] as int?];
+      if (partId == null || individualId == null) continue;
+      await dbAccess
+          .into(dbAccess.specimenPartIndividual)
+          .insert(
+            SpecimenPartIndividualCompanion(
+              partID: db.Value(partId),
+              individualID: db.Value(individualId),
+            ),
+          );
+    }
+    for (final json in RecordExchangePayload.mapList(
+      payload.data['parasiteIndividuals'],
+    )) {
+      final parasiteId = parasiteIds[json['sourceParasiteId'] as int?];
+      final individualId = individualIds[json['sourceIndividualId'] as int?];
+      if (parasiteId == null || individualId == null) continue;
+      await dbAccess
+          .into(dbAccess.parasiteIndividual)
+          .insert(
+            ParasiteIndividualCompanion(
+              parasiteID: db.Value(parasiteId),
+              individualID: db.Value(individualId),
+            ),
+          );
+    }
   }
 
   Future<Map<int, int>> _importParasites(

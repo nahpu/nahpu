@@ -111,6 +111,9 @@ class SpecimenServices extends AppServices {
         case CatalogFmt.invertebrateZoology:
           await _createInvertebrateSpecimen(specimenUuid);
           break;
+        case CatalogFmt.ichthyology:
+          await _createFishSpecimen(specimenUuid);
+          break;
       }
       if (supportsParasites(catalogFmt)) {
         await ParasiteQuery(dbAccess).ensureDetection(specimenUuid);
@@ -546,6 +549,34 @@ class SpecimenServices extends AppServices {
     ).updateInvertebrateAttributes(specimenUuid, entries);
   }
 
+  Future<void> _createFishSpecimen(String specimenUuid) async {
+    await FishSpecimenQuery(dbAccess).createFishAttributes(
+      FishAttributeCompanion(
+        specimenUuid: db.Value(specimenUuid),
+        specimenType: db.Value(FishSpecimenType.individual.index),
+        isAutoRange: const db.Value(1),
+        weightUnit: const db.Value('g'),
+      ),
+    );
+  }
+
+  Future<FishAttributeData> getFishAttributeData(String specimenUuid) {
+    return FishSpecimenQuery(dbAccess).getFishAttributeByUuid(specimenUuid);
+  }
+
+  Future<void> updateFishAttribute(
+    String specimenUuid,
+    FishAttributeCompanion entries,
+  ) {
+    return FishSpecimenQuery(
+      dbAccess,
+    ).updateFishAttributes(specimenUuid, entries);
+  }
+
+  Future<void> deleteFishAttributes(String specimenUuid) async {
+    await FishSpecimenQuery(dbAccess).deleteFishAttributes(specimenUuid);
+  }
+
   Future<void> deleteBirdAttributes(String specimenUuid) async {
     await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
@@ -586,7 +617,11 @@ class SpecimenServices extends AppServices {
       case CatalogFmt.invertebrateZoology:
         await deleteInvertebrateAttributes(specimenUuid);
         break;
+      case CatalogFmt.ichthyology:
+        await deleteFishAttributes(specimenUuid);
+        break;
     }
+    await SpecimenIndividualQuery(dbAccess).deleteIndividuals(specimenUuid);
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
     await SpecimenQuery(dbAccess).deleteSpecimen(specimenUuid);
     invalidateSpecimenList();
@@ -617,7 +652,11 @@ class SpecimenServices extends AppServices {
         case CatalogFmt.invertebrateZoology:
           await deleteInvertebrateAttributes(specimen.uuid);
           break;
+        case CatalogFmt.ichthyology:
+          await deleteFishAttributes(specimen.uuid);
+          break;
       }
+      await SpecimenIndividualQuery(dbAccess).deleteIndividuals(specimen.uuid);
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimens(projectUuid);
     invalidateSpecimenList();
@@ -940,6 +979,23 @@ class SpecimenPartServices extends AppServices {
     await SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
+  }
+
+  Future<List<int>> getIndividualIdsForPart(int partId) {
+    return SpecimenPartIndividualQuery(
+      dbAccess,
+    ).getIndividualIdsForPart(partId);
+  }
+
+  /// Replaces the individuals [partId] was taken from.
+  Future<void> setPartIndividuals(int partId, Iterable<int> individualIds) {
+    return SpecimenPartIndividualQuery(
+      dbAccess,
+    ).setIndividualsForPart(partId, individualIds);
+  }
+
+  void invalidatePartIndividuals(int partId) {
+    ref.invalidate(individualsByPartProvider(partId));
   }
 }
 

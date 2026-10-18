@@ -10,6 +10,61 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 void main() {
+  testWidgets('parasite form links the selected lot individuals', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(uuid: Value('project'), name: Value('Test')),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen'),
+            projectUuid: Value('project'),
+            taxonGroup: Value('Fishes'),
+          ),
+        );
+    final individualId = await database
+        .into(database.specimenIndividual)
+        .insert(
+          const SpecimenIndividualCompanion(
+            specimenUuid: Value('specimen'),
+            individualID: Value('A1'),
+          ),
+        );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) async => const [],
+          ),
+        ],
+        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilterChip, 'A1'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Add'));
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final parasite = await database.select(database.parasite).getSingle();
+    final link = await database.select(database.parasiteIndividual).getSingle();
+    expect(link.parasiteID, parasite.id);
+    expect(link.individualID, individualId);
+  });
+
   testWidgets('parasite form saves its displayed UUID with the record', (
     tester,
   ) async {

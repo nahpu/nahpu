@@ -114,10 +114,25 @@ class ProjectTransferService extends AppServices {
       'specimenUuid',
       specimenUuids,
     );
+    records['fishAttribute'] = await _rowsForStrings(
+      'fishAttribute',
+      'specimenUuid',
+      specimenUuids,
+    );
     records['specimenPart'] = await _rowsForStrings(
       'specimenPart',
       'specimenUuid',
       specimenUuids,
+    );
+    records['specimenIndividual'] = await _rowsForStrings(
+      'specimenIndividual',
+      'specimenUuid',
+      specimenUuids,
+    );
+    records['specimenPartIndividual'] = await _rowsForIds(
+      'specimenPartIndividual',
+      'partID',
+      _intIds(records['specimenPart']!, 'id'),
     );
     records['parasiteDetection'] = await _rowsForStrings(
       'parasiteDetection',
@@ -128,6 +143,11 @@ class ProjectTransferService extends AppServices {
       'parasite',
       'specimenUuid',
       specimenUuids,
+    );
+    records['parasiteIndividual'] = await _rowsForIds(
+      'parasiteIndividual',
+      'parasiteID',
+      _intIds(records['parasite']!, 'id'),
     );
     records['customFieldValue'] = await _projectRows('customFieldValue');
     records['customFieldDefinition'] = await _query(
@@ -1559,6 +1579,7 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'invertebrateAttribute',
+      'fishAttribute',
       'fossilAttribute',
     ]) {
       for (final row in payload.rows(table)) {
@@ -1613,6 +1634,29 @@ class ProjectTransferService extends AppServices {
         );
       }
     }
+    final individualMap = <int, int>{};
+    for (final row in payload.rows('specimenIndividual')) {
+      final sourceUuid = row['specimenUuid'] as String?;
+      if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
+      final uuid = specimenMap[sourceUuid];
+      if (uuid != null) {
+        individualMap[row['id'] as int] = await _insert(
+          'specimenIndividual',
+          {...row, 'specimenUuid': uuid},
+          omit: {'id'},
+        );
+      }
+    }
+    for (final row in payload.rows('specimenPartIndividual')) {
+      final partId = specimenPartMap[row['partID'] as int?];
+      final individualId = individualMap[row['individualID'] as int?];
+      if (partId != null && individualId != null) {
+        await _insert('specimenPartIndividual', {
+          'partID': partId,
+          'individualID': individualId,
+        });
+      }
+    }
     for (final row in payload.rows('parasiteDetection')) {
       final sourceUuid = row['specimenUuid'] as String?;
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
@@ -1664,6 +1708,16 @@ class ProjectTransferService extends AppServices {
         },
         omit: {'id'},
       );
+    }
+    for (final row in payload.rows('parasiteIndividual')) {
+      final parasiteId = parasiteMap[row['parasiteID'] as int?];
+      final individualId = individualMap[row['individualID'] as int?];
+      if (parasiteId != null && individualId != null) {
+        await _insert('parasiteIndividual', {
+          'parasiteID': parasiteId,
+          'individualID': individualId,
+        });
+      }
     }
     return skippedByConflict;
   }
@@ -2073,12 +2127,24 @@ class ProjectTransferService extends AppServices {
   }
 
   Future<void> _deleteSpecimenChildren(String uuid) async {
+    await dbAccess.customStatement(
+      'DELETE FROM specimenPartIndividual WHERE partID IN '
+      '(SELECT id FROM specimenPart WHERE specimenUuid = ?)',
+      [uuid],
+    );
+    await dbAccess.customStatement(
+      'DELETE FROM parasiteIndividual WHERE parasiteID IN '
+      '(SELECT id FROM parasite WHERE specimenUuid = ?)',
+      [uuid],
+    );
     for (final table in [
       'mammalAttribute',
       'birdAttribute',
       'herpAttribute',
       'invertebrateAttribute',
+      'fishAttribute',
       'fossilAttribute',
+      'specimenIndividual',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -2144,7 +2210,9 @@ class ProjectTransferService extends AppServices {
       'birdAttribute',
       'herpAttribute',
       'invertebrateAttribute',
+      'fishAttribute',
       'fossilAttribute',
+      'specimenIndividual',
       'specimenPart',
       'parasiteDetection',
       'parasite',
@@ -2154,6 +2222,28 @@ class ProjectTransferService extends AppServices {
         if (!specimenIds.contains(row['specimenUuid'])) {
           throw FormatException('$table has an unresolved specimen.');
         }
+      }
+    }
+    final partIds = _intIds(records['specimenPart'] ?? const [], 'id').toSet();
+    final individualIds = _intIds(
+      records['specimenIndividual'] ?? const [],
+      'id',
+    ).toSet();
+    for (final row in records['specimenPartIndividual'] ?? const []) {
+      if (!partIds.contains(row['partID']) ||
+          !individualIds.contains(row['individualID'])) {
+        throw const FormatException(
+          'A specimen part individual link is unresolved.',
+        );
+      }
+    }
+    final parasiteIds = _intIds(records['parasite'] ?? const [], 'id').toSet();
+    for (final row in records['parasiteIndividual'] ?? const []) {
+      if (!parasiteIds.contains(row['parasiteID']) ||
+          !individualIds.contains(row['individualID'])) {
+        throw const FormatException(
+          'A parasite individual link is unresolved.',
+        );
       }
     }
     for (final row in records['parasite'] ?? const []) {

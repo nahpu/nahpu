@@ -627,6 +627,7 @@ Map<String, List<String>> _availableFieldGroups(
         'birdAttribute',
         'herpAttribute',
         'invertebrateAttribute',
+        'fishAttribute',
         'fossilAttribute',
         'specimenPart',
       };
@@ -636,18 +637,27 @@ Map<String, List<String>> _availableFieldGroups(
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.birds) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('herpAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.invertebrates) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('fishAttribute');
+      } else if (specimenRecordType == SpecimenRecordType.fishes) {
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
+        allowedTables.remove('invertebrateAttribute');
       }
       break;
   }
@@ -702,6 +712,7 @@ bool _matchesSpecimenRecordType(
     SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
     SpecimenRecordType.invertebrates =>
       catalog == CatalogFmt.invertebrateZoology,
+    SpecimenRecordType.fishes => catalog == CatalogFmt.ichthyology,
     SpecimenRecordType.allTaxa => true,
   };
 }

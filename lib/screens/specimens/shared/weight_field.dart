@@ -13,12 +13,18 @@ class WeightField extends StatelessWidget {
     required this.onUnitChanged,
     this.focusNode,
     this.isBracketed = false,
+    this.labelText = 'Weight',
+    this.hintText = 'Enter specimen weight',
+    this.enabled = true,
   });
 
   final TextEditingController controller;
   final FocusNode? focusNode;
   final String unit;
   final bool isBracketed;
+  final String labelText;
+  final String hintText;
+  final bool enabled;
   final ValueChanged<String?> onChanged;
   final ValueChanged<String> onUnitChanged;
 
@@ -27,9 +33,10 @@ class WeightField extends StatelessWidget {
     return TextField(
       controller: controller,
       focusNode: focusNode,
+      enabled: enabled,
       decoration: InputDecoration(
-        labelText: 'Weight ($unit)${isBracketed ? '*' : ''}',
-        hintText: 'Enter specimen weight',
+        labelText: '$labelText ($unit)${isBracketed ? '*' : ''}',
+        hintText: hintText,
         suffixIcon: AdaptiveMenuButton<String>(
           tooltip: 'Change weight unit',
           icon: const Icon(Icons.edit_outlined),

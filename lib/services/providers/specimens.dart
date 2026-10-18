@@ -49,6 +49,34 @@ final partBySpecimenProvider = FutureProvider.family
       ).getSpecimenParts(specimenUuid),
     );
 
+final individualBySpecimenProvider = FutureProvider.family
+    .autoDispose<List<SpecimenIndividualData>, String>(
+      (ref, specimenUuid) => SpecimenIndividualQuery(
+        ref.read(databaseProvider),
+      ).getIndividuals(specimenUuid),
+    );
+
+final individualsByPartProvider = FutureProvider.family
+    .autoDispose<List<SpecimenIndividualData>, int>(
+      (ref, partId) => SpecimenPartIndividualQuery(
+        ref.read(databaseProvider),
+      ).getIndividualsForPart(partId),
+    );
+
+final individualsByParasiteProvider = FutureProvider.family
+    .autoDispose<List<SpecimenIndividualData>, int>(
+      (ref, parasiteId) => ParasiteIndividualQuery(
+        ref.read(databaseProvider),
+      ).getIndividualsForParasite(parasiteId),
+    );
+
+final fishAttributeProvider = FutureProvider.family
+    .autoDispose<FishAttributeData?, String>(
+      (ref, specimenUuid) => FishSpecimenQuery(
+        ref.read(databaseProvider),
+      ).getFishAttributeOrNull(specimenUuid),
+    );
+
 final parasiteDetectionProvider = FutureProvider.family
     .autoDispose<ParasiteDetectionData?, String>(
       (ref, specimenUuid) =>

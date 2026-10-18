@@ -134,6 +134,8 @@ class CollEventRecordWriter extends AppServices {
         _number(data.dissolvedOxygen),
         _number(data.flowVelocity),
         data.notes ?? '',
+        _number(data.conductivity),
+        _number(data.dissolvedOxygenPercent),
       ];
     } catch (_) {
       return List.filled(environmentalDataExportList.length, '');

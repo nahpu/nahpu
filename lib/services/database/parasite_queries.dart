@@ -71,11 +71,20 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     return (update(parasite)..where((row) => row.id.equals(id))).write(form);
   }
 
-  Future<void> deleteParasites(List<int> ids) {
-    return (delete(parasite)..where((row) => row.id.isIn(ids))).go();
+  Future<void> deleteParasites(List<int> ids) async {
+    await (delete(
+      parasiteIndividual,
+    )..where((row) => row.parasiteID.isIn(ids))).go();
+    await (delete(parasite)..where((row) => row.id.isIn(ids))).go();
   }
 
   Future<void> deleteAllForSpecimen(String specimenUuid) async {
+    final parasiteIds = selectOnly(parasite)
+      ..addColumns([parasite.id])
+      ..where(parasite.specimenUuid.equals(specimenUuid));
+    await (delete(
+      parasiteIndividual,
+    )..where((row) => row.parasiteID.isInQuery(parasiteIds))).go();
     await (delete(
       parasite,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).go();
