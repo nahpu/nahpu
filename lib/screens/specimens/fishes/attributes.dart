@@ -12,12 +12,23 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/nahpu_icons.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 const Map<FishSpecimenType, String> fishSpecimenTypeLabels = {
   FishSpecimenType.individual: 'Individual',
   FishSpecimenType.lot: 'Lot',
+};
+
+const Map<FishSpecimenType, String> fishSpecimenTypeDescriptions = {
+  FishSpecimenType.individual: 'One fish with its own measurements',
+  FishSpecimenType.lot: 'Many individuals stored together',
+};
+
+const Map<FishSpecimenType, IconData> fishSpecimenTypeIcons = {
+  FishSpecimenType.individual: NahpuIcons.fishOutlined,
+  FishSpecimenType.lot: Icons.layers_outlined,
 };
 
 class FishAttributeForms extends ConsumerStatefulWidget {
@@ -62,45 +73,28 @@ class FishAttributeFormsState extends ConsumerState<FishAttributeForms> {
       setState(() => ctr.syncLot(data));
     });
     final isLot = ctr.specimenType == FishSpecimenType.lot;
+    final lifeStageField = LifeStageDropdown(
+      currentValue: ctr.lifeStageCtr,
+      onChanged: (value) {
+        setState(() => ctr.lifeStageCtr = value);
+        _update(FishAttributeCompanion(lifeStage: db.Value(value)));
+      },
+    );
     return AttributeForm(
       key: _formKey,
       children: [
-        AdaptiveLayout(
-          useHorizontalLayout: widget.useHorizontalLayout,
-          children: [
-            DropdownButtonFormField<FishSpecimenType>(
-              key: const ValueKey('fish-specimen-type'),
-              initialValue: ctr.specimenType,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Specimen type',
-                hintText: 'Select individual or lot',
-              ),
-              items: [
-                for (final type in FishSpecimenType.values)
-                  DropdownMenuItem(
-                    value: type,
-                    child: CommonDropdownText(
-                      text: fishSpecimenTypeLabels[type]!,
-                    ),
-                  ),
-              ],
-              onChanged: _updateSpecimenType,
-            ),
-            LifeStageDropdown(
-              currentValue: ctr.lifeStageCtr,
-              onChanged: (value) {
-                setState(() => ctr.lifeStageCtr = value);
-                _update(FishAttributeCompanion(lifeStage: db.Value(value)));
-              },
-            ),
-          ],
+        CommonPadding(
+          child: FishSpecimenTypeField(
+            value: ctr.specimenType,
+            onChanged: _updateSpecimenType,
+          ),
         ),
         if (isLot)
           _FishLotFields(
             specimenUuid: widget.specimenUuid,
             ctr: ctr,
             useHorizontalLayout: widget.useHorizontalLayout,
+            lifeStageField: lifeStageField,
             onAutoRangeChanged: _updateAutoRange,
             onWeightUnitChanged: _updateLotWeightUnit,
             onChanged: _update,
@@ -109,6 +103,7 @@ class FishAttributeFormsState extends ConsumerState<FishAttributeForms> {
           _FishIndividualFields(
             ctr: ctr,
             useHorizontalLayout: widget.useHorizontalLayout,
+            lifeStageField: lifeStageField,
             onSexChanged: _updateSex,
             onWeightUnitChanged: (unit) {
               setState(() => ctr.weightUnitCtr = unit);
@@ -190,10 +185,12 @@ class _FishIndividualFields extends StatelessWidget {
     required this.onSexChanged,
     required this.onWeightUnitChanged,
     required this.onChanged,
+    required this.lifeStageField,
   });
 
   final FishAttributeCtrModel ctr;
   final bool useHorizontalLayout;
+  final Widget lifeStageField;
   final ValueChanged<SpecimenSex?> onSexChanged;
   final ValueChanged<String> onWeightUnitChanged;
   final ValueChanged<FishAttributeCompanion> onChanged;
@@ -209,17 +206,7 @@ class _FishIndividualFields extends StatelessWidget {
               currentCode: ctr.sexCtr,
               onChanged: onSexChanged,
             ),
-            WeightField(
-              controller: ctr.weightCtr,
-              unit: ctr.weightUnitCtr,
-              onUnitChanged: onWeightUnitChanged,
-              onChanged: (value) => onChanged(
-                FishAttributeCompanion(
-                  weight: db.Value(parseMeasurement(value)),
-                  weightUnit: db.Value(ctr.weightUnitCtr),
-                ),
-              ),
-            ),
+            lifeStageField,
           ],
         ),
         AdaptiveLayout(
@@ -253,6 +240,22 @@ class _FishIndividualFields extends StatelessWidget {
             ),
           ],
         ),
+        AdaptiveLayout(
+          useHorizontalLayout: useHorizontalLayout,
+          children: [
+            WeightField(
+              controller: ctr.weightCtr,
+              unit: ctr.weightUnitCtr,
+              onUnitChanged: onWeightUnitChanged,
+              onChanged: (value) => onChanged(
+                FishAttributeCompanion(
+                  weight: db.Value(parseMeasurement(value)),
+                  weightUnit: db.Value(ctr.weightUnitCtr),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -266,11 +269,13 @@ class _FishLotFields extends StatelessWidget {
     required this.onAutoRangeChanged,
     required this.onWeightUnitChanged,
     required this.onChanged,
+    required this.lifeStageField,
   });
 
   final String specimenUuid;
   final FishAttributeCtrModel ctr;
   final bool useHorizontalLayout;
+  final Widget lifeStageField;
   final ValueChanged<bool> onAutoRangeChanged;
   final ValueChanged<String> onWeightUnitChanged;
   final ValueChanged<FishAttributeCompanion> onChanged;
@@ -301,10 +306,16 @@ class _FishLotFields extends StatelessWidget {
                   ),
                 ),
               ),
+              lifeStageField,
             ],
           ),
           SwitchListTile(
             key: const ValueKey('fish-auto-range'),
+            // Matches the inset of the surrounding fields, which add
+            // CommonPadding and no horizontal content padding of their own.
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: NahpuSpacing.xs,
+            ),
             title: const Text('Auto-update min and max'),
             subtitle: const Text(
               'Fill the ranges from the individuals measured below',
@@ -414,6 +425,7 @@ class _FishLotFields extends StatelessWidget {
           FishLotSummary(
             specimenUuid: specimenUuid,
             weightUnit: ctr.weightUnitCtr,
+            totalIndividuals: int.tryParse(ctr.individualCountCtr.text.trim()),
           ),
           SpecimenIndividualList(
             specimenUuid: specimenUuid,
@@ -422,6 +434,65 @@ class _FishLotFields extends StatelessWidget {
           const SizedBox(height: NahpuSpacing.md),
         ],
       ),
+    );
+  }
+}
+
+/// Full-width picker for whether a fish record is one individual or a lot.
+///
+/// The leading icon follows the selection so the record type reads at a
+/// glance.
+class FishSpecimenTypeField extends StatelessWidget {
+  const FishSpecimenTypeField({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final FishSpecimenType value;
+  final ValueChanged<FishSpecimenType?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return DropdownButtonFormField<FishSpecimenType>(
+      key: const ValueKey('fish-specimen-type'),
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Specimen type',
+        helperText: fishSpecimenTypeDescriptions[value],
+        prefixIcon: Icon(
+          fishSpecimenTypeIcons[value],
+          color: colorScheme.primary,
+        ),
+      ),
+      selectedItemBuilder: (context) => [
+        for (final type in FishSpecimenType.values)
+          CommonDropdownText(text: fishSpecimenTypeLabels[type]!),
+      ],
+      items: [
+        for (final type in FishSpecimenType.values)
+          DropdownMenuItem(
+            value: type,
+            child: Row(
+              children: [
+                Icon(
+                  fishSpecimenTypeIcons[type],
+                  size: NahpuControlSize.iconMedium,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: NahpuSpacing.md),
+                Expanded(
+                  child: CommonDropdownText(
+                    text: fishSpecimenTypeLabels[type]!,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

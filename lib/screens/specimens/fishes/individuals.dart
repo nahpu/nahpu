@@ -19,10 +19,17 @@ class FishLotSummary extends ConsumerWidget {
     super.key,
     required this.specimenUuid,
     required this.weightUnit,
+    this.totalIndividuals,
   });
 
   final String specimenUuid;
   final String weightUnit;
+
+  /// Individuals recorded for the whole lot, measured or not.
+  final int? totalIndividuals;
+
+  /// Below this width the tiles stack instead of sharing a row.
+  static const double _stackedWidth = 480;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,68 +40,167 @@ class FishLotSummary extends ConsumerWidget {
       individuals,
       weightUnit: weightUnit,
     );
-    final rows = [
-      ('Standard length', 'mm', stats.standardLength),
-      ('Total length', 'mm', stats.totalLength),
-      ('Weight', weightUnit, stats.weight),
-    ];
+    final measured = individuals
+        .where(
+          (e) =>
+              e.standardLength != null ||
+              e.totalLength != null ||
+              e.weight != null,
+        )
+        .length;
+    final total = totalIndividuals;
     final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const FormCardSectionLabel(text: 'Lot summary'),
-        if (rows.every((row) => row.$3 == null))
-          Padding(
-            padding: const EdgeInsets.all(NahpuSpacing.md),
-            child: Text(
-              'Measure individuals to see the mean and standard deviation.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall,
-            ),
-          )
-        else
-          for (final (label, unit, summary) in rows)
-            if (summary != null)
-              _MeasurementSummaryTile(
-                label: label,
-                unit: unit,
-                summary: summary,
+    final tiles = [
+      _MeasurementStatTile(
+        label: 'Standard length',
+        unit: 'mm',
+        summary: stats.standardLength,
+        fractionDigits: 1,
+      ),
+      _MeasurementStatTile(
+        label: 'Total length',
+        unit: 'mm',
+        summary: stats.totalLength,
+        fractionDigits: 1,
+      ),
+      _MeasurementStatTile(
+        label: 'Weight',
+        unit: weightUnit,
+        summary: stats.weight,
+        fractionDigits: 2,
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.xs,
+        vertical: NahpuSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text('Lot summary', style: textTheme.titleMedium),
               ),
-      ],
+              Text(
+                total == null
+                    ? '$measured measured'
+                    : '$measured of $total individuals measured',
+                style: textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: NahpuSpacing.md),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < _stackedWidth) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (index, tile) in tiles.indexed) ...[
+                      if (index > 0) const SizedBox(height: NahpuSpacing.md),
+                      tile,
+                    ],
+                  ],
+                );
+              }
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (index, tile) in tiles.indexed) ...[
+                      if (index > 0) const SizedBox(width: NahpuSpacing.md),
+                      Expanded(child: tile),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _MeasurementSummaryTile extends StatelessWidget {
-  const _MeasurementSummaryTile({
+/// One measurement in the lot summary: the mean with its unit, then the
+/// spread, then the range.
+class _MeasurementStatTile extends StatelessWidget {
+  const _MeasurementStatTile({
     required this.label,
     required this.unit,
     required this.summary,
+    required this.fractionDigits,
   });
 
   final String label;
   final String unit;
-  final MeasurementSummary summary;
+  final MeasurementSummary? summary;
+  final int fractionDigits;
 
   @override
   Widget build(BuildContext context) {
-    final sd = summary.standardDeviation;
-    final mean = _format(summary.mean);
-    return ListTile(
-      dense: true,
-      title: Text('$label ($unit)'),
-      subtitle: Text(
-        'Range ${_format(summary.min)}–${_format(summary.max)} · '
-        'n = ${summary.count}',
+    final theme = Theme.of(context);
+    final muted = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final summary = this.summary;
+    final sd = summary?.standardDeviation;
+    return Container(
+      padding: const EdgeInsets.all(NahpuSpacing.lg),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
       ),
-      trailing: Text(
-        sd == null ? 'Mean $mean' : 'Mean $mean ± ${_format(sd)} SD',
-        style: Theme.of(context).textTheme.bodyMedium,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: muted),
+          const SizedBox(height: NahpuSpacing.xxs),
+          Text.rich(
+            TextSpan(
+              text: summary == null ? '–' : _format(summary.mean),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+              children: [
+                if (summary != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Text(
+            summary == null
+                ? 'Not measured'
+                : [
+                    if (sd != null) '± ${_format(sd)} SD',
+                    'n = ${summary.count}',
+                  ].join(' · '),
+            style: muted,
+          ),
+          if (summary != null) ...[
+            const Divider(height: NahpuSpacing.lg),
+            Text(
+              'Range ${_format(summary.min)}–${_format(summary.max)} $unit',
+              style: muted,
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  String _format(double value) => value.truncateZeroFixed(2);
+  String _format(double value) => value.truncateZeroFixed(fractionDigits);
 }
 
 /// Individuals within a lot, with actions to add, edit, and remove them.
@@ -111,40 +217,54 @@ class SpecimenIndividualList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final individuals = ref.watch(individualBySpecimenProvider(specimenUuid));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const FormCardSectionLabel(text: 'Individuals'),
-        individuals.when(
-          data: (data) => Column(
-            children: [
-              for (final individual in data)
-                _IndividualTile(
-                  specimenUuid: specimenUuid,
-                  individual: individual,
-                  weightUnit: weightUnit,
-                ),
-            ],
-          ),
-          loading: () => const LinearProgressIndicator(),
-          error: (error, _) => Text('Unable to load individuals: $error'),
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: NahpuSpacing.xs,
+        vertical: NahpuSpacing.md,
+      ),
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: NahpuStroke.thin,
         ),
-        Center(
-          child: TextButton.icon(
-            key: const ValueKey('fish-add-individual'),
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (_) => IndividualFormDialog(
-                specimenUuid: specimenUuid,
-                weightUnit: weightUnit,
-                suggestedId: '${(individuals.asData?.value.length ?? 0) + 1}',
-              ),
+        borderRadius: BorderRadius.circular(NahpuRadius.lg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const FormCardSectionLabel(text: 'Individuals'),
+          individuals.when(
+            data: (data) => Column(
+              children: [
+                for (final individual in data)
+                  _IndividualTile(
+                    specimenUuid: specimenUuid,
+                    individual: individual,
+                    weightUnit: weightUnit,
+                  ),
+              ],
             ),
-            icon: const Icon(Icons.add),
-            label: const Text('Add individual'),
+            loading: () => const LinearProgressIndicator(),
+            error: (error, _) => Text('Unable to load individuals: $error'),
           ),
-        ),
-      ],
+          Center(
+            child: TextButton.icon(
+              key: const ValueKey('fish-add-individual'),
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => IndividualFormDialog(
+                  specimenUuid: specimenUuid,
+                  weightUnit: weightUnit,
+                  suggestedId: '${(individuals.asData?.value.length ?? 0) + 1}',
+                ),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Add individual'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

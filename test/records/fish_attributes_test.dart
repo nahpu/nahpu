@@ -12,6 +12,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/styles/design_tokens.dart';
 
 void main() {
   testWidgets('switching a fish record to a lot shows the lot fields', (
@@ -35,6 +36,14 @@ void main() {
 
     expect(find.text('Standard length (mm)'), findsNothing);
     expect(find.text('Total individuals'), findsOneWidget);
+    expect(find.text('Many individuals stored together'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('fish-specimen-type')),
+        matching: find.byIcon(Icons.layers_outlined),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Lot summary'), findsOneWidget);
     expect(find.text('Add individual'), findsOneWidget);
     final stored = await database.select(database.fishAttribute).getSingle();
@@ -78,9 +87,35 @@ void main() {
       ),
     );
     expect(minField.enabled, isFalse);
+    final autoRange = tester.widget<SwitchListTile>(
+      find.byKey(const ValueKey('fish-auto-range')),
+    );
+    expect(
+      autoRange.contentPadding,
+      const EdgeInsets.symmetric(horizontal: NahpuSpacing.xs),
+    );
+    expect(
+      tester.getTopLeft(find.text('Auto-update min and max')).dx,
+      tester.getTopLeft(find.text('Total individuals')).dx,
+    );
+    final individualsBox = tester.widget<Container>(
+      find
+          .ancestor(
+            of: find.text('Individuals'),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    final decoration = individualsBox.decoration! as BoxDecoration;
+    expect(decoration.border, isNotNull);
+    expect(decoration.borderRadius, BorderRadius.circular(NahpuRadius.lg));
     expect(minField.controller!.text, '40');
     expect(find.text('Individual A1'), findsOneWidget);
-    expect(find.text('Mean 45 ± 7.07 SD'), findsOneWidget);
+    expect(find.text('45 mm'), findsOneWidget);
+    expect(find.text('± 7.1 SD · n = 2'), findsOneWidget);
+    expect(find.text('Range 40–50 mm'), findsOneWidget);
+    expect(find.text('2 measured'), findsOneWidget);
+    expect(find.text('Not measured'), findsNWidgets(2));
   });
 
   testWidgets('part form hides the individual picker without individuals', (
