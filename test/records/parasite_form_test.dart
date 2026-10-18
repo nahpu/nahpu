@@ -53,8 +53,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(FilterChip, 'A1'));
-    await tester.pump();
+    await tester.ensureVisible(find.byKey(const ValueKey('individual-add-0')));
+    await tester.tap(find.byKey(const ValueKey('individual-add-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('A1').last);
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Add'));
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();

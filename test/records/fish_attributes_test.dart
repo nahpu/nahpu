@@ -130,7 +130,8 @@ void main() {
     );
 
     expect(find.byType(SpecimenIndividualSelector), findsOneWidget);
-    expect(find.byType(FilterChip), findsNothing);
+    expect(find.byType(InputChip), findsNothing);
+    expect(find.text('Individuals'), findsNothing);
   });
 
   testWidgets('part form links the selected individuals', (tester) async {
@@ -151,10 +152,34 @@ void main() {
       PartIdForm(specimenUuid: 'fish', partCtr: controller),
     );
 
-    expect(find.widgetWithText(FilterChip, 'A1'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilterChip, 'A1'));
+    expect(find.text('None selected'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('individual-add-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('A1').last);
+    await tester.pumpAndSettle();
+    expect(controller.individualIds, {id});
+    expect(find.widgetWithText(InputChip, 'A1'), findsOneWidget);
+    expect(find.text('All individuals added'), findsOneWidget);
+
+    // Tapping the tag itself does not unlink it.
+    await tester.tap(find.widgetWithText(InputChip, 'A1'));
     await tester.pump();
     expect(controller.individualIds, {id});
+
+    // Removing asks first; cancelling keeps the link.
+    await tester.tap(find.byTooltip('Remove A1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove A1?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(controller.individualIds, {id});
+
+    await tester.tap(find.byTooltip('Remove A1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+    await tester.pumpAndSettle();
+    expect(controller.individualIds, isEmpty);
+    expect(find.text('None selected'), findsOneWidget);
   });
 }
 

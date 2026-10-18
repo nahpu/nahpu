@@ -845,11 +845,11 @@ class _ParasiteIds extends StatelessWidget {
             Text('IDs', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             SelectableText('UUID: $parasiteUuid'),
+            _ParasiteIdField(controller: parasiteIdController),
             SpecimenIndividualSelector(
               specimenUuid: specimenUuid,
               selectedIds: individualIds,
             ),
-            _ParasiteIdField(controller: parasiteIdController),
           ],
         ),
       ),

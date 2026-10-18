@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/attributes.dart';
@@ -317,28 +318,17 @@ class _IndividualTile extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAdaptiveConfirmation(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete individual?'),
-        content: Text(
-          'Delete ${individualLabel(individual)} and unlink it from any '
-          'specimen parts.',
-        ),
-        actions: [
-          SecondaryButton(
-            text: 'Cancel',
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-          ),
-          PrimaryButton(
-            label: 'Delete',
-            icon: Icons.delete_outline,
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-          ),
-        ],
-      ),
+      title: 'Delete ${individualLabel(individual)}?',
+      message:
+          'This deletes the individual and unlinks it from any specimen parts '
+          'and parasites.',
+      confirmLabel: 'Delete',
+      confirmIcon: Icons.delete_outline,
+      isDestructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await FishLotServices(
       ref: ref,
     ).deleteIndividual(specimenUuid, individual.id);

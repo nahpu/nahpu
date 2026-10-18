@@ -1168,15 +1168,15 @@ class PartIdForm extends ConsumerWidget {
         child: Column(
           children: [
             Text('IDs', style: Theme.of(context).textTheme.titleLarge),
-            SpecimenIndividualSelector(
-              specimenUuid: specimenUuid,
-              selectedIds: partCtr.individualIds,
-            ),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
             ),
             UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
+            SpecimenIndividualSelector(
+              specimenUuid: specimenUuid,
+              selectedIds: partCtr.individualIds,
+            ),
           ],
         ),
       ),
