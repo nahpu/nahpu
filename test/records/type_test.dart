@@ -83,10 +83,11 @@ void main() {
     expect(catalogFmtFromStoredName('nonsense'), isNull);
   });
 
-  test('Herpetology and invertebrate zoology are marked beta', () {
+  test('Herpetology, invertebrate zoology, and ichthyology are beta', () {
     const betaFormats = {
       CatalogFmt.herpetology,
       CatalogFmt.invertebrateZoology,
+      CatalogFmt.ichthyology,
     };
     for (final fmt in CatalogFmt.values) {
       expect(

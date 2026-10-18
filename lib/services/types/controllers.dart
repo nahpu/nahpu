@@ -5,6 +5,7 @@ import 'package:nahpu/services/types/invertebrates.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/events.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/projects/coordinate_input.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:uuid/uuid.dart';
@@ -1104,6 +1105,164 @@ class HerpAttributeCtrModel {
   }
 }
 
+class FishAttributeCtrModel {
+  FishAttributeCtrModel({
+    required this.specimenType,
+    required this.sexCtr,
+    required this.lifeStageCtr,
+    required this.weightUnitCtr,
+    required this.isAutoRange,
+    required this.standardLengthCtr,
+    required this.totalLengthCtr,
+    required this.weightCtr,
+    required this.individualCountCtr,
+    required this.minStandardLengthCtr,
+    required this.maxStandardLengthCtr,
+    required this.minTotalLengthCtr,
+    required this.maxTotalLengthCtr,
+    required this.minWeightCtr,
+    required this.maxWeightCtr,
+    required this.remarkCtr,
+  });
+
+  FishSpecimenType specimenType;
+  int? sexCtr;
+  String? lifeStageCtr;
+  String weightUnitCtr;
+  bool isAutoRange;
+  TextEditingController standardLengthCtr;
+  TextEditingController totalLengthCtr;
+  TextEditingController weightCtr;
+  TextEditingController individualCountCtr;
+  TextEditingController minStandardLengthCtr;
+  TextEditingController maxStandardLengthCtr;
+  TextEditingController minTotalLengthCtr;
+  TextEditingController maxTotalLengthCtr;
+  TextEditingController minWeightCtr;
+  TextEditingController maxWeightCtr;
+  TextEditingController remarkCtr;
+
+  factory FishAttributeCtrModel.empty() => FishAttributeCtrModel(
+    specimenType: FishSpecimenType.individual,
+    sexCtr: null,
+    lifeStageCtr: null,
+    weightUnitCtr: 'g',
+    isAutoRange: true,
+    standardLengthCtr: TextEditingController(),
+    totalLengthCtr: TextEditingController(),
+    weightCtr: TextEditingController(),
+    individualCountCtr: TextEditingController(),
+    minStandardLengthCtr: TextEditingController(),
+    maxStandardLengthCtr: TextEditingController(),
+    minTotalLengthCtr: TextEditingController(),
+    maxTotalLengthCtr: TextEditingController(),
+    minWeightCtr: TextEditingController(),
+    maxWeightCtr: TextEditingController(),
+    remarkCtr: TextEditingController(),
+  );
+
+  factory FishAttributeCtrModel.fromData(FishAttributeData data) {
+    final model = FishAttributeCtrModel.empty();
+    model.specimenType = fishSpecimenTypeFromCode(data.specimenType);
+    model.sexCtr = data.sex;
+    model.lifeStageCtr = data.lifeStage;
+    model.weightUnitCtr = data.weightUnit ?? 'g';
+    model.standardLengthCtr.text = data.standardLength?.truncateZero() ?? '';
+    model.totalLengthCtr.text = data.totalLength?.truncateZero() ?? '';
+    model.weightCtr.text = data.weight?.truncateZero() ?? '';
+    model.remarkCtr.text = data.remark ?? '';
+    model.syncLot(data);
+    return model;
+  }
+
+  /// Follows the lot columns in [data], which change when automatic ranges
+  /// are recomputed from the individuals.
+  void syncLot(FishAttributeData data) {
+    isAutoRange = data.isAutoRange == 1;
+    _syncText(individualCountCtr, data.individualCount?.toString() ?? '');
+    _syncText(
+      minStandardLengthCtr,
+      data.minStandardLength?.truncateZero() ?? '',
+    );
+    _syncText(
+      maxStandardLengthCtr,
+      data.maxStandardLength?.truncateZero() ?? '',
+    );
+    _syncText(minTotalLengthCtr, data.minTotalLength?.truncateZero() ?? '');
+    _syncText(maxTotalLengthCtr, data.maxTotalLength?.truncateZero() ?? '');
+    _syncText(minWeightCtr, data.minWeight?.truncateZero() ?? '');
+    _syncText(maxWeightCtr, data.maxWeight?.truncateZero() ?? '');
+  }
+
+  void dispose() {
+    standardLengthCtr.dispose();
+    totalLengthCtr.dispose();
+    weightCtr.dispose();
+    individualCountCtr.dispose();
+    minStandardLengthCtr.dispose();
+    maxStandardLengthCtr.dispose();
+    minTotalLengthCtr.dispose();
+    maxTotalLengthCtr.dispose();
+    minWeightCtr.dispose();
+    maxWeightCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
+class SpecimenIndividualCtrModel {
+  SpecimenIndividualCtrModel({
+    required this.individualIdCtr,
+    required this.standardLengthCtr,
+    required this.totalLengthCtr,
+    required this.weightCtr,
+    required this.remarkCtr,
+    this.sexCtr,
+    this.lifeStageCtr,
+  });
+
+  TextEditingController individualIdCtr;
+  TextEditingController standardLengthCtr;
+  TextEditingController totalLengthCtr;
+  TextEditingController weightCtr;
+  TextEditingController remarkCtr;
+  int? sexCtr;
+  String? lifeStageCtr;
+
+  factory SpecimenIndividualCtrModel.empty({String? individualId}) =>
+      SpecimenIndividualCtrModel(
+        individualIdCtr: TextEditingController(text: individualId ?? ''),
+        standardLengthCtr: TextEditingController(),
+        totalLengthCtr: TextEditingController(),
+        weightCtr: TextEditingController(),
+        remarkCtr: TextEditingController(),
+      );
+
+  factory SpecimenIndividualCtrModel.fromData(SpecimenIndividualData data) =>
+      SpecimenIndividualCtrModel(
+        individualIdCtr: TextEditingController(text: data.individualID ?? ''),
+        standardLengthCtr: TextEditingController(
+          text: data.standardLength?.truncateZero() ?? '',
+        ),
+        totalLengthCtr: TextEditingController(
+          text: data.totalLength?.truncateZero() ?? '',
+        ),
+        weightCtr: TextEditingController(
+          text: data.weight?.truncateZero() ?? '',
+        ),
+        remarkCtr: TextEditingController(text: data.remark ?? ''),
+        sexCtr: data.sex,
+        lifeStageCtr: data.lifeStage,
+      );
+
+  void dispose() {
+    individualIdCtr.dispose();
+    standardLengthCtr.dispose();
+    totalLengthCtr.dispose();
+    weightCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
 class InvertebrateAttributeCtrModel {
   InvertebrateAttributeCtrModel({
     required this.headWidthCtr,
@@ -1222,6 +1381,9 @@ class PartFormCtrModel {
   TextEditingController museumPermanentCtr;
   TextEditingController museumLoanCtr;
   TextEditingController remarkCtr = TextEditingController();
+
+  /// Individuals within the specimen lot that this part was taken from.
+  Set<int> individualIds = {};
 
   factory PartFormCtrModel.empty() => PartFormCtrModel(
     tissueIdCtr: TextEditingController(),
@@ -1477,6 +1639,9 @@ class ParasiteFormCtrModel {
 
   final String parasiteUuid;
   TextEditingController parasiteIdCtr;
+
+  /// Individuals within the specimen lot that this parasite was found on.
+  Set<int> individualIds = {};
   int? speciesId;
   String? identifierId;
   TextEditingController countCtr;
@@ -1879,6 +2044,8 @@ class CollEnvironmentCtrModel {
     required this.waterTemperatureCtr,
     required this.pHCtr,
     required this.dissolvedOxygenCtr,
+    required this.dissolvedOxygenPercentCtr,
+    required this.conductivityCtr,
     required this.flowVelocityCtr,
     required this.noteCtr,
     required this.initialErrors,
@@ -1901,6 +2068,8 @@ class CollEnvironmentCtrModel {
   TextEditingController waterTemperatureCtr;
   TextEditingController pHCtr;
   TextEditingController dissolvedOxygenCtr;
+  TextEditingController dissolvedOxygenPercentCtr;
+  TextEditingController conductivityCtr;
   TextEditingController flowVelocityCtr;
   final Map<String, String> initialErrors;
 
@@ -1949,6 +2118,12 @@ class CollEnvironmentCtrModel {
     dissolvedOxygenCtr: TextEditingController(
       text: data.displayValue('dissolvedOxygen'),
     ),
+    dissolvedOxygenPercentCtr: TextEditingController(
+      text: data.displayValue('dissolvedOxygenPercent'),
+    ),
+    conductivityCtr: TextEditingController(
+      text: data.displayValue('conductivity'),
+    ),
     flowVelocityCtr: TextEditingController(
       text: data.displayValue('flowVelocity'),
     ),
@@ -1983,6 +2158,11 @@ class CollEnvironmentCtrModel {
     _syncText(waterTemperatureCtr, data.displayValue('waterTemperature'));
     _syncText(pHCtr, data.displayValue('pH'));
     _syncText(dissolvedOxygenCtr, data.displayValue('dissolvedOxygen'));
+    _syncText(
+      dissolvedOxygenPercentCtr,
+      data.displayValue('dissolvedOxygenPercent'),
+    );
+    _syncText(conductivityCtr, data.displayValue('conductivity'));
     _syncText(flowVelocityCtr, data.displayValue('flowVelocity'));
     _syncText(noteCtr, data.displayValue('notes'));
   }
@@ -2002,6 +2182,8 @@ class CollEnvironmentCtrModel {
     waterTemperatureCtr.dispose();
     pHCtr.dispose();
     dissolvedOxygenCtr.dispose();
+    dissolvedOxygenPercentCtr.dispose();
+    conductivityCtr.dispose();
     flowVelocityCtr.dispose();
     noteCtr.dispose();
   }

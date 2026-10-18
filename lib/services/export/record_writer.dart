@@ -14,6 +14,7 @@ import 'package:nahpu/services/export/invertebrate_attributes.dart';
 import 'package:nahpu/services/export/mammal_attributes.dart';
 import 'package:nahpu/services/export/herp_attributes.dart';
 import 'package:nahpu/services/export/fossil_attributes.dart';
+import 'package:nahpu/services/export/fish_attributes.dart';
 import 'package:nahpu/services/export/dynamic_record_exporter.dart';
 import 'package:nahpu/src/rust/api/export.dart';
 
@@ -44,6 +45,7 @@ class SpecimenRecordWriter {
       ..._getAttributeHeader(),
       if (_includeParasites) ...parasiteDetectionExportList,
       if (_includeParasites) ...parasiteExportList,
+      if (_includeIndividuals) individualExportSimple,
       partExportSimple,
       'media::media',
     ];
@@ -91,6 +93,12 @@ class SpecimenRecordWriter {
     );
     List<String> attributes = await _getAttributes(data);
     String media = await _getSpecimenMedia(data.uuid);
+    final individuals = _includeIndividuals
+        ? await FishAttributes(
+            ref: ref,
+            specimenUuid: data.uuid,
+          ).getIndividuals()
+        : '';
     final dynamicRecords = await DynamicRecordExporter(
       ref: ref,
       expansion: concatenateMultiEntry
@@ -114,6 +122,7 @@ class SpecimenRecordWriter {
               ),
             if (_includeParasites)
               ...parasiteExportList.map((field) => record[field] ?? ''),
+            if (_includeIndividuals) individuals,
             partValue,
             media,
           ],
@@ -140,6 +149,8 @@ class SpecimenRecordWriter {
         return herpAttributeExportList;
       case SpecimenRecordType.invertebrates:
         return invertebrateAttributeExportList;
+      case SpecimenRecordType.fishes:
+        return fishAttributeExportList;
       case SpecimenRecordType.allTaxa:
         return <String>{
           ...mammalAttributeExportList,
@@ -147,6 +158,7 @@ class SpecimenRecordWriter {
           ...batAttributeExportList,
           ...herpAttributeExportList,
           ...invertebrateAttributeExportList,
+          ...fishAttributeExportList,
           ...fossilAttributeExportList,
         }.toList();
     }
@@ -224,6 +236,13 @@ class SpecimenRecordWriter {
         keys = invertebrateAttributeExportList;
         values = await _getInvertebrateAttributes(data.uuid);
         break;
+      case SpecimenRecordType.fishes:
+        keys = fishAttributeExportList;
+        values = await FishAttributes(
+          ref: ref,
+          specimenUuid: data.uuid,
+        ).getAttributes();
+        break;
       case SpecimenRecordType.allTaxa:
         keys = [];
         values = [];
@@ -283,6 +302,10 @@ class SpecimenRecordWriter {
   }
 
   bool get _includeParasites => recordType != SpecimenRecordType.invertebrates;
+
+  bool get _includeIndividuals =>
+      recordType == SpecimenRecordType.fishes ||
+      recordType == SpecimenRecordType.allTaxa;
 
   Future<String> _getSpecimenMedia(String specimenUuid) async {
     String specimenMedia = await MediaWriterServices(

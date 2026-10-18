@@ -30,6 +30,7 @@ class _MigrationCoordinator {
       19: (m) => _Version20Migration(db).upgrade(m),
       20: (m) => _Version21Migration(db).upgrade(m),
       21: (m) => _Version22Migration(db).upgrade(m),
+      22: (m) => _Version23Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -41,6 +42,96 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version23Migration {
+  const _Version23Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    // Drift does not run `onUpgrade` in a transaction, so each step checks for
+    // work an interrupted attempt already finished.
+    final environmentColumns = await _columnNames('environment');
+    if (!environmentColumns.contains('conductivity')) {
+      await migrator.addColumn(db.environment, db.environment.conductivity);
+    }
+    if (!environmentColumns.contains('dissolvedOxygenPercent')) {
+      await migrator.addColumn(
+        db.environment,
+        db.environment.dissolvedOxygenPercent,
+      );
+    }
+
+    for (final table in <TableInfo<Table, Object?>>[
+      db.fishAttribute,
+      db.specimenIndividual,
+      db.specimenPartIndividual,
+      db.parasiteIndividual,
+    ]) {
+      if (!await db._tableExists(table.actualTableName)) {
+        await migrator.createTable(table);
+      }
+    }
+    for (final name in const [
+      'specimen_individual_specimen_idx',
+      'specimen_part_individual_individual_idx',
+      'parasite_individual_individual_idx',
+    ]) {
+      await db.customStatement('DROP INDEX IF EXISTS $name');
+    }
+    await migrator.create(db.specimenIndividualSpecimenIdx);
+    await migrator.create(db.specimenPartIndividualIndividualIdx);
+    await migrator.create(db.parasiteIndividualIndividualIdx);
+
+    // Recreated so custom fields scoped to `ichthyology` match `Fishes`
+    // specimens.
+    for (final name in const [
+      'custom_field_value_validate_insert',
+      'custom_field_value_validate_update',
+    ]) {
+      await db.customStatement('DROP TRIGGER IF EXISTS $name');
+    }
+    await migrator.create(db.customFieldValueValidateInsert);
+    await migrator.create(db.customFieldValueValidateUpdate);
+    await _validate();
+  }
+
+  Future<Set<String>> _columnNames(String table) async {
+    final columns = await db
+        .customSelect('PRAGMA table_info($table)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
+  }
+
+  Future<void> _validate() async {
+    final environmentColumns = await _columnNames('environment');
+    if (!environmentColumns.containsAll({
+      'conductivity',
+      'dissolvedOxygenPercent',
+    })) {
+      throw StateError(
+        'Database migration is missing environmental data columns.',
+      );
+    }
+    for (final name in const [
+      'fishAttribute',
+      'specimenIndividual',
+      'specimenPartIndividual',
+      'parasiteIndividual',
+    ]) {
+      await db._requireTable(name);
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
     }
   }
 }

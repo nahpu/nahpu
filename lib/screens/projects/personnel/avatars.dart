@@ -158,7 +158,10 @@ class DefaultAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      foregroundImage: AssetImage(filePath),
+      foregroundImage: AssetImage(resolveAvatarAsset(filePath)),
+      // A missing asset falls back to the plain circle instead of throwing.
+      onForegroundImageError: (_, _) {},
+      child: const Icon(Icons.person_outline),
     );
   }
 }

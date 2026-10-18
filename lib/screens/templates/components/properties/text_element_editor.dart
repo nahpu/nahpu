@@ -196,6 +196,13 @@ class _AvailableFieldsSectionState
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
+                            DropdownMenuItem(
+                              value: 'Fishes',
+                              child: Text(
+                                'Fishes',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ),
                           ],
                           onChanged: (v) {
                             if (v != null) {

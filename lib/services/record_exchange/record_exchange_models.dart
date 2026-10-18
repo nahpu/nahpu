@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-const int recordExchangeVersion = 6;
-const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6};
+const int recordExchangeVersion = 7;
+const Set<int> supportedRecordExchangeVersions = {1, 2, 3, 4, 5, 6, 7};
 
 enum RecordExchangeType { site, event, specimen }
 

@@ -206,7 +206,7 @@ void main() {
     expect(group?.groupValue, FieldIdMode.project);
   });
 
-  testWidgets('the tissue question reveals the prefix and number fields', (
+  testWidgets('the tissue question reveals the numbering fields', (
     tester,
   ) async {
     await pumpWizard(tester);
@@ -218,7 +218,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.widgetWithText(TextField, 'Prefix'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'Tissue number'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Next number'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Suffix'), findsOneWidget);
     expect(preferences.getBool('usesSeparateTissueId'), isTrue);
   });
 

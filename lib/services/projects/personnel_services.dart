@@ -170,8 +170,17 @@ const List<String> availableMammalAvatar = [
   'handika_dasypus.png',
   'handika_haeromys.png',
   'handika_rhinolophus.png',
-  'hnadika_rousettus.png',
+  'handika_rousettus.png',
 ];
+
+/// Bundled avatar paths saved under a misspelled file name, keyed to the
+/// asset that exists. Personnel records keep the path they were saved with.
+const Map<String, String> _legacyAvatarAssets = {
+  '${avatarPath}hnadika_rousettus.png': '${avatarPath}handika_rousettus.png',
+};
+
+/// The bundled asset for a saved default avatar [path].
+String resolveAvatarAsset(String path) => _legacyAvatarAssets[path] ?? path;
 
 class PersonnelImageService {
   PersonnelImageService();
@@ -186,6 +195,7 @@ class PersonnelImageService {
         return _getMammalAvatar();
       case CatalogFmt.herpetology:
       case CatalogFmt.invertebrateZoology:
+      case CatalogFmt.ichthyology:
         return _getMammalAvatar();
     }
   }

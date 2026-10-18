@@ -17,7 +17,7 @@ class _EnvironmentalDataFieldCategory {
 
 const _environmentalDataFieldCategories = [
   _EnvironmentalDataFieldCategory(
-    title: 'Temperature (°C)',
+    title: 'Temperature',
     fields: [
       'lowestDayTempC',
       'highestDayTempC',
@@ -26,7 +26,7 @@ const _environmentalDataFieldCategories = [
     ],
   ),
   _EnvironmentalDataFieldCategory(
-    title: 'Humidity (%)',
+    title: 'Humidity',
     fields: ['averageHumidity', 'dewPointTemp'],
   ),
   _EnvironmentalDataFieldCategory(
@@ -40,7 +40,14 @@ const _environmentalDataFieldCategories = [
   ),
   _EnvironmentalDataFieldCategory(
     title: 'Aquatic Data',
-    fields: ['waterTemperature', 'pH', 'dissolvedOxygen', 'flowVelocity'],
+    fields: [
+      'waterTemperature',
+      'pH',
+      'dissolvedOxygen',
+      'dissolvedOxygenPercent',
+      'conductivity',
+      'flowVelocity',
+    ],
   ),
   _EnvironmentalDataFieldCategory(
     title: 'Astronomy',
@@ -181,7 +188,7 @@ class _EnvironmentalDataFieldTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CheckboxListTile(
       value: selected,
-      title: Text(environmentalDataFieldLabels[field]!),
+      title: Text(environmentalDataFieldLabelWithUnit(field)),
       controlAffinity: ListTileControlAffinity.leading,
       onChanged: onChanged,
     );
