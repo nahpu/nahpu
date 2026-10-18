@@ -89,6 +89,8 @@ class FishAttributeFormsState extends ConsumerState<FishAttributeForms> {
             onChanged: _updateSpecimenType,
           ),
         ),
+        // Separates the type's helper text from the fields that follow.
+        const SizedBox(height: NahpuSpacing.lg),
         if (isLot)
           _FishLotFields(
             specimenUuid: widget.specimenUuid,
