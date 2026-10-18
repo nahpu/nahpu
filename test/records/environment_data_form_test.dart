@@ -436,6 +436,53 @@ void main() {
     );
     expect(find.text('Error'), findsNothing);
   });
+
+  testWidgets('Cloud cover fits a narrow two-column layout', (tester) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final eventId = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion());
+    await database
+        .into(database.environment)
+        .insert(
+          EnvironmentCompanion(
+            eventID: Value(eventId),
+            cloudCover: const Value('7'),
+          ),
+        );
+    final data = await EnvironmentDataQuery(
+      database,
+    ).getEditableEnvironmentDataByEventId(eventId);
+
+    // The Environmental Data panel is about this wide beside Effort on a landscape tablet.
+    tester.view.physicalSize = const Size(500, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EnvironmentDataForm(
+                useHorizontalLayout: true,
+                eventID: eventId,
+                environmentData: data,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(oktaOptionLabels['7']!), findsOneWidget);
+  });
 }
 
 Widget _environmentViewHarness({

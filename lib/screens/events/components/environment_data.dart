@@ -304,6 +304,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
               if (_isVisible('cloudCover'))
                 DropdownButtonFormField<String?>(
                   key: const ValueKey('environment-cloud-cover'),
+                  isExpanded: true,
                   initialValue: _environmentCtr.cloudCoverCtr,
                   decoration: InputDecoration(
                     labelText: 'Cloud cover (oktas)',
@@ -611,6 +612,7 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
             children: [
               DropdownButtonFormField<String?>(
                 key: const ValueKey('environment-moon-phase'),
+                isExpanded: true,
                 initialValue: _environmentCtr.moonPhaseCtr,
                 decoration: InputDecoration(
                   labelText: 'Moon Phase',
