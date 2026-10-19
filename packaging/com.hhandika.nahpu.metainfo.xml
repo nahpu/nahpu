@@ -22,8 +22,8 @@
     <p>Features:</p>
     <ul>
       <li>
-        Catalog mammalogy, ornithology, herpetology, and invertebrate zoology
-        specimens with discipline-specific forms
+        Catalog mammalogy, ornithology, herpetology, ichthyology (beta), and
+        invertebrate zoology specimens with discipline-specific forms
       </li>
       <li>Record collecting events, sites, and coordinates on an offline map</li>
       <li>Attach photographs, audio recordings, and field narratives</li>
@@ -66,6 +66,40 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="1.1.0" date="2026-10-18">
+      <description>
+        <p>
+          Adds the Ichthyology catalog format (beta) for single fish and lots,
+          with lot ranges that can follow the measured individuals, individuals
+          recorded within a lot, and specimen parts and parasites linked to the
+          individuals they came from. Adds auto-numbered tag IDs, tissue ID
+          suffixes that keep the zero padding of their number, and
+          conductivity and dissolved oxygen fields for collecting events.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.3" date="2026-10-04">
+      <description>
+        <p>
+          Fixes stat label names, the add personnel button staying inactive
+          after required fields are filled, and page navigation buttons hidden
+          behind the Android navigation bar on tablets. Project information
+          opens as a bottom sheet on small screens, and the Go to page sheet
+          gains a search button.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.2" date="2026-09-17">
+      <description>
+        <p>
+          Auto-selects the coordinate in specimen records when a site has only
+          one, fixes on-device directory access when exporting on Android,
+          fixes jerky scrolling with custom fields, improves button placement
+          on small screens, updates macOS entitlements, and fixes event
+          invalidation in personnel roles.
+        </p>
+      </description>
+    </release>
     <release version="1.0.1" date="2026-09-13">
       <description>
         <p>

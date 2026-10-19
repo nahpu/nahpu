@@ -35,8 +35,9 @@ description: |
   NAHPU records specimens, collecting events, sites, narratives, and media in
   a single project database, and exports to Darwin Core, CSV, and printable
   labels and catalog sheets. It supports mammalogy, ornithology, herpetology,
-  and invertebrate zoology collections, works fully offline in the field, and
-  keeps every project in a self-contained file you own.
+  ichthyology (beta), and invertebrate zoology collections, works fully
+  offline in the field, and keeps every project in a self-contained file you
+  own.
 
 contents:
   # The runner is linked with RPATH $ORIGIN/lib and locates data/ through
