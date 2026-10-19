@@ -71,3 +71,4 @@ coverage/
 keys/
 
 rust_builder/
+.kotlin/
