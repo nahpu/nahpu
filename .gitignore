@@ -72,3 +72,5 @@ keys/
 
 rust_builder/
 .kotlin/
+# Local build output for manual uploads
+/tmp/

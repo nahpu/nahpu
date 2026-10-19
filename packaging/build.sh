@@ -13,7 +13,16 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
 
-bundle="build/linux/x64/release/bundle"
+case "$(uname -m)" in
+    x86_64 | amd64) arch="x86_64" flutter_arch="x64" nfpm_arch="amd64" ;;
+    aarch64 | arm64) arch="arm64" flutter_arch="arm64" nfpm_arch="arm64" ;;
+    *)
+        echo "error: unsupported architecture $(uname -m)." >&2
+        exit 1
+        ;;
+esac
+
+bundle="build/linux/${flutter_arch}/release/bundle"
 if [[ ! -x "${bundle}/nahpu" ]]; then
     echo "error: ${bundle}/nahpu not found. Run 'flutter build linux --release' first." >&2
     exit 1
@@ -30,11 +39,18 @@ pubspec_version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
 export NAHPU_VERSION="${NAHPU_VERSION:-${pubspec_version%%+*}}"
 export NAHPU_BUILD_NUMBER="${NAHPU_BUILD_NUMBER:-${pubspec_version##*+}}"
 export NFPM_RPM_SIGNING_KEY="${NFPM_RPM_SIGNING_KEY:-}"
+export NFPM_ARCH="${nfpm_arch}"
+
+# nfpm.yaml reads the bundle from a fixed path, since nFPM cannot expand
+# variables in `src`.
+rm -rf build/linux/package
+mkdir -p build/linux/package
+cp -a "${bundle}" build/linux/package/bundle
 
 # Stable filenames, matching the release workflow and the download links on
 # nahpu.app. The version stays in the package metadata.
 mkdir -p dist
-nfpm package -f packaging/nfpm.yaml -p deb -t dist/nahpu-Linux-x86_64.deb
-nfpm package -f packaging/nfpm.yaml -p rpm -t dist/nahpu-Linux-x86_64.rpm
+nfpm package -f packaging/nfpm.yaml -p deb -t "dist/nahpu-Linux-${arch}.deb"
+nfpm package -f packaging/nfpm.yaml -p rpm -t "dist/nahpu-Linux-${arch}.rpm"
 
 ls -lh dist

@@ -1,7 +1,7 @@
 # Linux packaging
 
-NAHPU ships three Linux artifacts on every `v*` tag: a `.tar.gz`, a `.deb`, and a signed `.rpm`,
-plus a snap from a separate job. The `.deb` and `.rpm` are both produced by
+NAHPU ships three Linux artifacts for each of x86_64 and arm64 on every `v*` tag: a `.tar.gz`, a
+`.deb`, and a signed `.rpm`, plus a snap from a separate job. The `.deb` and `.rpm` are both produced by
 [nFPM](https://nfpm.goreleaser.com) from the single `nfpm.yaml` in this directory.
 
 ## Layout
@@ -23,7 +23,10 @@ flutter build linux --release
 packaging/build.sh
 ```
 
-Packages land in `dist/` as `nahpu-Linux-x86_64.deb` and `nahpu-Linux-x86_64.rpm`. The filenames are
+`build.sh` packages the bundle for the host's architecture. Packages land in `dist/` as
+`nahpu-Linux-<arch>.deb` and `nahpu-Linux-<arch>.rpm`, where `<arch>` is `x86_64` or `arm64`. The
+script copies the Flutter bundle to `build/linux/package/bundle` first, because `nfpm.yaml` reads
+it from that fixed path (nFPM does not expand variables in `src`). The filenames are
 deliberately stable — nahpu.app links to them through `releases/latest/download/`, which cannot
 resolve a versioned name. The version itself lives in the package metadata, where `dpkg -I` and
 `rpm -qip` report it; `build.sh` derives it from `pubspec.yaml`, so `1.0.1+103` becomes version
@@ -66,6 +69,6 @@ across both the pre- and post-`t64` naming eras.
 
 ## glibc floor
 
-CI builds on `ubuntu-22.04`, which sets a glibc 2.35 floor: Ubuntu 22.04+, Debian 12+, Fedora 36+,
+CI builds on `ubuntu-22.04` and `ubuntu-22.04-arm`, which set a glibc 2.35 floor: Ubuntu 22.04+, Debian 12+, Fedora 36+,
 and RHEL/Rocky 9+. Building on a newer runner would bind the packages to a newer glibc and fail at
 launch on those distributions with a loader error rather than a dependency error.

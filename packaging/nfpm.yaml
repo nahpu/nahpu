@@ -6,7 +6,8 @@
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
 
 name: nahpu
-arch: amd64
+# amd64 or arm64. nFPM maps arm64 to aarch64 and amd64 to x86_64 for the .rpm.
+arch: ${NFPM_ARCH}
 platform: linux
 
 # NAHPU_VERSION is the release tag without its leading "v" (1.0.1, 1.0.2-rc.1);
@@ -44,7 +45,11 @@ contents:
   # /proc/self/exe, so the bundle has to be installed as one intact tree and
   # reached through a symlink. Splitting it across /usr/bin and /usr/lib, or
   # copying the executable instead of linking it, breaks library resolution.
-  - src: ./build/linux/x64/release/bundle
+  #
+  # nFPM does not expand environment variables in `src`, so build.sh and the
+  # release workflow copy the arch-specific Flutter bundle (build/linux/x64 or
+  # build/linux/arm64) to this fixed staging path first.
+  - src: ./build/linux/package/bundle
     dst: /opt/nahpu
     type: tree
   - src: /opt/nahpu/nahpu
