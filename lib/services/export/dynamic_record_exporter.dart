@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
@@ -43,6 +45,7 @@ class DynamicRecordExporter {
       'museumPermanent',
       'museumLoan',
       'remark',
+      'individuals',
     ];
     for (var col in partColumns) {
       baseRecord['specimenPart::$col'] = '';
@@ -79,6 +82,7 @@ class DynamicRecordExporter {
       'museumLoan',
       'remark',
       'scientificName',
+      'individuals',
     ]) {
       baseRecord['parasite::$col'] = '';
     }
@@ -91,7 +95,7 @@ class DynamicRecordExporter {
     );
     await _getProjectData(data.projectUuid, baseRecord);
     await _getCollEventData(data.collEventID, baseRecord);
-    await _getCoordinateData(data.coordinateID, baseRecord);
+    await _getCoordinateData(data.coordinateID, data.collEventID, baseRecord);
     await _getAttributeData(data.uuid, baseRecord);
 
     final List<Map<String, dynamic>> parts = await _getPartData(data.uuid);
@@ -298,15 +302,14 @@ class DynamicRecordExporter {
 
   Future<void> _getCoordinateData(
     int? coordinateID,
+    int? collEventID,
     Map<String, String> record,
   ) async {
-    if (coordinateID != null) {
-      final coord = await CoordinateServices(
-        ref: ref,
-      ).getCoordinateById(coordinateID);
-      if (coord != null) {
-        _addData(record, 'coordinate', coord.toJson());
-      }
+    final coord = await CoordinateServices(
+      ref: ref,
+    ).resolveSpecimenCoordinate(coordinateID, collEventID);
+    if (coord != null) {
+      _addData(record, 'coordinate', coord.toJson());
     }
     final uncertainty = double.tryParse(
       record['coordinate::uncertaintyInMeters'] ?? '',
@@ -349,6 +352,12 @@ class DynamicRecordExporter {
     if (invertebrate != null) {
       _addData(record, 'invertebrateAttribute', invertebrate.toJson());
     }
+    final fish = await (db.select(
+      db.fishAttribute,
+    )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
+    if (fish != null) {
+      _addData(record, 'fishAttribute', fish.toJson());
+    }
     final fossil = await (db.select(
       db.fossilAttribute,
     )..where((t) => t.specimenUuid.equals(specimenUuid))).getSingleOrNull();
@@ -380,6 +389,11 @@ class DynamicRecordExporter {
       parts.map((part) async {
         final json = part.toJson();
         if (part.id != null) {
+          json['individuals'] = _individualIds(
+            await SpecimenPartIndividualQuery(
+              db,
+            ).getIndividualsForPart(part.id!),
+          );
           json.addAll(
             await _customFieldData(
               CustomFieldOwner.specimenPart(part.id!),
@@ -403,6 +417,11 @@ class DynamicRecordExporter {
       records.map((record) async {
         final json = record.toJson()..remove('id');
         if (record.id != null) {
+          json['individuals'] = _individualIds(
+            await ParasiteIndividualQuery(
+              db,
+            ).getIndividualsForParasite(record.id!),
+          );
           json.addAll(
             await _customFieldData(
               CustomFieldOwner.parasite(record.id!),
@@ -428,6 +447,9 @@ class DynamicRecordExporter {
       }),
     );
   }
+
+  String _individualIds(List<SpecimenIndividualData> individuals) =>
+      individuals.map(individualShortId).join(', ');
 
   void _addCombinedData(
     Map<String, String> record,

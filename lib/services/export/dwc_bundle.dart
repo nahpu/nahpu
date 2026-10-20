@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/collevent_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/custom_fields/custom_field_service.dart';
 import 'package:nahpu/services/export/export_progress.dart';
@@ -24,6 +25,7 @@ import 'package:nahpu/services/types/mammals.dart' as mammals;
 import 'package:nahpu/services/types/invertebrates.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/projects/orcid.dart';
@@ -308,10 +310,9 @@ class DwcBundleWriter extends AppServices {
       final siteAttribute = site == null
           ? null
           : await SiteServices(ref: ref).getSiteAttribute(site.id);
-      final coordinate = await _coordinateForSpecimen(
-        specimen.coordinateID,
-        event?.siteID,
-      );
+      final coordinate = await CoordinateServices(
+        ref: ref,
+      ).resolveSpecimenCoordinate(specimen.coordinateID, event?.id);
       final taxon = specimen.speciesID == null
           ? null
           : await TaxonomyServices(ref: ref).getTaxonById(specimen.speciesID!);
@@ -686,19 +687,6 @@ class DwcBundleWriter extends AppServices {
     return output;
   }
 
-  Future<CoordinateData?> _coordinateForSpecimen(
-    int? coordinateId,
-    int? siteId,
-  ) async {
-    final coordinates = CoordinateServices(ref: ref);
-    if (coordinateId != null) {
-      return coordinates.getCoordinateById(coordinateId);
-    }
-    if (siteId == null) return null;
-    final siteCoordinates = await coordinates.getCoordinatesBySiteID(siteId);
-    return siteCoordinates.length == 1 ? siteCoordinates.single : null;
-  }
-
   Map<String, dynamic> _occurrenceRow({
     required SpecimenData specimen,
     required TaxonomyData? taxon,
@@ -784,6 +772,7 @@ class DwcBundleWriter extends AppServices {
         mammals.reproductiveStageList,
       ),
       'caste': _casteLabel(specimenAttributes['caste']),
+      'individualCount': _fishIndividualCount(specimenAttributes),
       'associatedTaxa': _hostAssociation(specimenAttributes['hostOrganism']),
       'occurrenceRemarks':
           specimenAttributes['specimenRemark'] ?? specimenAttributes['remark'],
@@ -792,6 +781,16 @@ class DwcBundleWriter extends AppServices {
         specimenAttributes['habitatRemark'],
       ]),
     };
+  }
+
+  /// Individuals represented by a fish record: the lot count, or one for a
+  /// single fish. Null for other catalog formats.
+  int? _fishIndividualCount(Map<String, dynamic> attributes) {
+    if (!attributes.containsKey('specimenType')) return null;
+    final type = fishSpecimenTypeFromCode(attributes['specimenType'] as int?);
+    return type == FishSpecimenType.lot
+        ? attributes['individualCount'] as int?
+        : 1;
   }
 
   String? _indexedLabel(dynamic index, List<String> labels) {
@@ -867,24 +866,57 @@ class DwcBundleWriter extends AppServices {
     List<Map<String, dynamic>> output,
   ) {
     if (environment == null && siteAttribute?.canopyCover == null) return;
+    String? unit(String field) => environmentalDataFieldUnits[field];
     final values = <String, (Object?, String?)>{
-      'lowest day temperature': (environment?.lowestDayTempC, '°C'),
-      'highest day temperature': (environment?.highestDayTempC, '°C'),
-      'lowest night temperature': (environment?.lowestNightTempC, '°C'),
-      'highest night temperature': (environment?.highestNightTempC, '°C'),
-      'average humidity': (environment?.averageHumidity, '%'),
-      'dew point': (environment?.dewPointTemp, '°C'),
+      'lowest day temperature': (
+        environment?.lowestDayTempC,
+        unit('lowestDayTempC'),
+      ),
+      'highest day temperature': (
+        environment?.highestDayTempC,
+        unit('highestDayTempC'),
+      ),
+      'lowest night temperature': (
+        environment?.lowestNightTempC,
+        unit('lowestNightTempC'),
+      ),
+      'highest night temperature': (
+        environment?.highestNightTempC,
+        unit('highestNightTempC'),
+      ),
+      'average humidity': (
+        environment?.averageHumidity,
+        unit('averageHumidity'),
+      ),
+      'dew point': (environment?.dewPointTemp, unit('dewPointTemp')),
       'sunrise': (environment?.sunriseTime, 'hh:mm:ss'),
       'sunset': (environment?.sunsetTime, 'hh:mm:ss'),
       'moon phase': (environment?.moonPhase, null),
-      'cloud cover': (environment?.cloudCover, 'okta'),
-      'rainfall': (environment?.rainfallInMm, 'mm'),
-      'ambient temperature': (environment?.ambientTemperature, '°C'),
-      'ambient humidity': (environment?.ambientHumidity, '%'),
-      'water temperature': (environment?.waterTemperature, '°C'),
+      'cloud cover': (environment?.cloudCover, unit('cloudCover')),
+      'rainfall': (environment?.rainfallInMm, unit('rainfallInMm')),
+      'ambient temperature': (
+        environment?.ambientTemperature,
+        unit('ambientTemperature'),
+      ),
+      'ambient humidity': (
+        environment?.ambientHumidity,
+        unit('ambientHumidity'),
+      ),
+      'water temperature': (
+        environment?.waterTemperature,
+        unit('waterTemperature'),
+      ),
       'pH': (environment?.pH, null),
-      'dissolved oxygen': (environment?.dissolvedOxygen, 'mg/L'),
-      'flow velocity': (environment?.flowVelocity, 'm/s'),
+      'dissolved oxygen': (
+        environment?.dissolvedOxygen,
+        unit('dissolvedOxygen'),
+      ),
+      'dissolved oxygen saturation': (
+        environment?.dissolvedOxygenPercent,
+        unit('dissolvedOxygenPercent'),
+      ),
+      'conductivity': (environment?.conductivity, unit('conductivity')),
+      'flow velocity': (environment?.flowVelocity, unit('flowVelocity')),
       'canopy cover': (siteAttribute?.canopyCover, null),
     };
     for (final entry in values.entries) {
@@ -923,8 +955,43 @@ class DwcBundleWriter extends AppServices {
       ref: ref,
     ).getSpecimenParts(specimenUuid);
     final rows = <Map<String, dynamic>>[];
+    final individuals = await SpecimenIndividualQuery(
+      dbAccess,
+    ).getIndividuals(specimenUuid);
+    for (final individual in individuals) {
+      final materialEntityId = _individualMaterialId(
+        specimenUuid,
+        individual.id,
+      );
+      rows.add({
+        'occurrenceID': specimenUuid,
+        'eventID': eventId,
+        'materialEntityID': materialEntityId,
+        'materialEntityType': 'whole organism',
+        'objectQuantity': 1,
+        'objectQuantityType': 'individual',
+        'otherCatalogNumbers': individual.individualID,
+        'materialEntityRemarks': individual.remark,
+      });
+      _addIndividualAssertions(individual, materialEntityId, assertionRows);
+    }
+    final partLinks = await SpecimenPartIndividualQuery(
+      dbAccess,
+    ).getLinksForSpecimen(specimenUuid);
     for (final part in parts) {
       final materialEntityId = '$specimenUuid:part:${part.id}';
+      final sourceIndividuals = partLinks
+          .where((link) => link.partID == part.id)
+          .map((link) => _individualMaterialId(specimenUuid, link.individualID))
+          .toList(growable: false);
+      if (sourceIndividuals.isNotEmpty) {
+        assertionRows.add({
+          'materialEntityID': materialEntityId,
+          'assertionID': '$materialEntityId:derived-from-individual',
+          'assertionType': 'derived from individual',
+          'assertionValue': sourceIndividuals.join(' | '),
+        });
+      }
       final preparations = [part.treatment, part.additionalTreatment]
           .whereType<String>()
           .where((value) => value.trim().isNotEmpty)
@@ -974,6 +1041,35 @@ class DwcBundleWriter extends AppServices {
     return rows;
   }
 
+  String _individualMaterialId(String specimenUuid, int individualId) =>
+      '$specimenUuid:individual:$individualId';
+
+  /// Measurements of a lot individual, kept on its material row.
+  void _addIndividualAssertions(
+    SpecimenIndividualData individual,
+    String materialEntityId,
+    List<Map<String, dynamic>> output,
+  ) {
+    final values = <String, (Object?, String?)>{
+      'standard length': (individual.standardLength, 'mm'),
+      'total length': (individual.totalLength, 'mm'),
+      'weight': (individual.weight, individual.weightUnit ?? 'g'),
+      'sex': (getSpecimenSexLabel(individual.sex), null),
+      'life stage': (individual.lifeStage, null),
+    };
+    for (final entry in values.entries) {
+      final value = entry.value.$1;
+      if (value == null || value.toString().trim().isEmpty) continue;
+      output.add({
+        'materialEntityID': materialEntityId,
+        'assertionID': '$materialEntityId:${entry.key.replaceAll(' ', '-')}',
+        'assertionType': entry.key,
+        'assertionValue': value,
+        'assertionUnit': entry.value.$2,
+      });
+    }
+  }
+
   Future<
     ({
       List<Map<String, dynamic>> occurrences,
@@ -995,8 +1091,23 @@ class DwcBundleWriter extends AppServices {
     )..where((row) => row.specimenUuid.equals(host.uuid))).get();
     final occurrences = <Map<String, dynamic>>[];
     final interactions = <Map<String, dynamic>>[];
+    final individualLinks = await ParasiteIndividualQuery(
+      dbAccess,
+    ).getLinksForSpecimen(host.uuid);
     for (final parasite in parasites) {
       final occurrenceId = parasite.parasiteUuid;
+      final hostIndividuals = individualLinks
+          .where((link) => link.parasiteID == parasite.id)
+          .map((link) => _individualMaterialId(host.uuid, link.individualID))
+          .toList(growable: false);
+      if (hostIndividuals.isNotEmpty) {
+        occurrenceAssertions.add({
+          'occurrenceID': occurrenceId,
+          'assertionID': '$occurrenceId:host-individual',
+          'assertionType': 'host individual',
+          'assertionValue': hostIndividuals.join(' | '),
+        });
+      }
       final taxon = parasite.speciesID == null
           ? null
           : await TaxonomyServices(ref: ref).getTaxonById(parasite.speciesID!);
@@ -1144,7 +1255,8 @@ class DwcBundleWriter extends AppServices {
   Future<List<Map<String, dynamic>>> _measurementRows(
     SpecimenData specimen,
   ) async {
-    final raw = await _measurementValues(specimen);
+    final raw = Map<String, dynamic>.of(await _measurementValues(specimen));
+    _dropInactiveFishMeasurements(raw);
     final rows = <Map<String, dynamic>>[];
     for (final entry in _measurementDefinitions.entries) {
       final value = raw[entry.key];
@@ -1154,12 +1266,34 @@ class DwcBundleWriter extends AppServices {
         'measurementID': '${specimen.uuid}:${entry.key}',
         'measurementType': entry.value.type,
         'measurementValue': value,
-        'measurementUnit': entry.key == 'weight'
+        'measurementUnit': _weightMeasurementKeys.contains(entry.key)
             ? raw['weightUnit'] ?? entry.value.unit
             : entry.value.unit,
       });
     }
     return rows;
+  }
+
+  /// A fish record keeps both single and lot columns; only the active set
+  /// describes the specimen.
+  void _dropInactiveFishMeasurements(Map<String, dynamic> raw) {
+    if (!raw.containsKey('specimenType')) return;
+    final isLot =
+        fishSpecimenTypeFromCode(raw['specimenType'] as int?) ==
+        FishSpecimenType.lot;
+    final inactive = isLot
+        ? const ['standardLength', 'totalLength', 'weight']
+        : const [
+            'minStandardLength',
+            'maxStandardLength',
+            'minTotalLength',
+            'maxTotalLength',
+            'minWeight',
+            'maxWeight',
+          ];
+    for (final key in inactive) {
+      raw.remove(key);
+    }
   }
 
   Future<Map<String, dynamic>> _measurementValues(SpecimenData specimen) async {
@@ -1177,6 +1311,10 @@ class DwcBundleWriter extends AppServices {
           return (await SpecimenServices(
             ref: ref,
           ).getInvertebrateAttributeData(specimen.uuid)).toJson();
+        case 'Fishes':
+          return (await SpecimenServices(
+            ref: ref,
+          ).getFishAttributeData(specimen.uuid)).toJson();
         case 'Fossils':
           return (await (dbAccess.select(dbAccess.fossilAttribute)
                     ..where((row) => row.specimenUuid.equals(specimen.uuid)))
@@ -1414,6 +1552,15 @@ List<Map<String, dynamic>> buildNahpuSqliteEnumMappings({Set<String>? tables}) {
     ..._specimenSexMappingRows(table: 'birdAttribute', column: 'sex'),
     ..._specimenSexMappingRows(table: 'herpAttribute', column: 'sex'),
     ..._specimenSexMappingRows(table: 'invertebrateAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'fishAttribute', column: 'sex'),
+    ..._specimenSexMappingRows(table: 'specimenIndividual', column: 'sex'),
+    ..._indexedMappingRows(
+      table: 'fishAttribute',
+      column: 'specimenType',
+      enumType: 'FishSpecimenType',
+      enumNames: [for (final type in FishSpecimenType.values) type.name],
+      displayNames: const ['Individual', 'Lot'],
+    ),
     ..._indexedMappingRows(
       table: 'invertebrateAttribute',
       column: 'caste',
@@ -1708,7 +1855,17 @@ const _measurementDefinitions = <String, _MeasurementDefinition>{
   'wingspanUpper': _MeasurementDefinition('upper wingspan', 'mm'),
   'wingspanLower': _MeasurementDefinition('lower wingspan', 'mm'),
   'hostPart': _MeasurementDefinition('host part'),
+  'standardLength': _MeasurementDefinition('standard length', 'mm'),
+  'minStandardLength': _MeasurementDefinition('minimum standard length', 'mm'),
+  'maxStandardLength': _MeasurementDefinition('maximum standard length', 'mm'),
+  'minTotalLength': _MeasurementDefinition('minimum total length', 'mm'),
+  'maxTotalLength': _MeasurementDefinition('maximum total length', 'mm'),
+  'minWeight': _MeasurementDefinition('minimum weight', 'g'),
+  'maxWeight': _MeasurementDefinition('maximum weight', 'g'),
 };
+
+/// Measurements whose unit follows the record's `weightUnit`.
+const _weightMeasurementKeys = {'weight', 'minWeight', 'maxWeight'};
 
 /// Normalizes both current and legacy database labels to package choices.
 String normalizeBundleTaxonGroup(String? value) {
@@ -1736,6 +1893,9 @@ String normalizeBundleTaxonGroup(String? value) {
   }
   if (normalized.contains('fossil') || normalized.contains('paleo')) {
     return 'Fossils';
+  }
+  if (normalized.contains('fish') || normalized.contains('ichthy')) {
+    return 'Fishes';
   }
   return value?.trim().isNotEmpty == true ? value!.trim() : 'Other';
 }

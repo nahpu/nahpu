@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/home/components/body.dart';
+import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/dialogs/project_exchange_dialogs.dart';
 import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
@@ -468,6 +469,19 @@ void main() {
               expect(find.byType(ProjectExportDialog), findsOneWidget);
             case 'Details':
               expect(find.text('Project information'), findsOneWidget);
+              expect(find.byType(ProjectInfo), findsOneWidget);
+              // Compact screens show the details as a bottom sheet
+              // dismissed by its drag handle, wider ones as a dialog.
+              final isSheet = width < 600;
+              final details = find.ancestor(
+                of: find.byType(ProjectInfo),
+                matching: find.byType(isSheet ? BottomSheet : Dialog),
+              );
+              expect(details, findsOneWidget);
+              expect(
+                find.byTooltip('Close'),
+                isSheet ? findsNothing : findsOneWidget,
+              );
           }
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());

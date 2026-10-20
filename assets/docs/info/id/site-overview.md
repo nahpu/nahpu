@@ -1,14 +1,17 @@
 ---
 title: "Identitas lokasi"
+authors: []
 sidebar:
   order: 0
 ---
 
-Lokasi adalah catatan tempat NAHPU yang dapat dipakai ulang. Kegiatan pengumpulan mengambil informasi tempatnya dari lokasi, jadi berikan setiap lokasi Site ID yang stabil dan unik dalam proyek, serta gunakan satu konvensi penamaan di seluruh perangkat yang berkolaborasi.
+Lokasi adalah catatan tempat NAHPU yang dapat digunakan ulang.
 
-Catat orang yang bertanggung jawab dan tipe lokasi bila berguna. Gunakan `Duplicate site` untuk menyalin informasi deskriptif dengan Site ID dan koordinat baru dibiarkan kosong. Gunakan `Copy from project ...` hanya bila lokasi di proyek lain menggambarkan tempat yang memang perlu dipakai ulang. Periksa setiap nilai yang disalin sebelum pengumpulan dimulai.
+Catat `Site Leader` dan jenis lokasi jika diperlukan. `Site Leader` menunjukkan siapa yang mencatat data dan bertanggung jawab atas lokasi.
 
-Lokasi menjelaskan tempat, sedangkan kegiatan menjelaskan pekerjaan di tempat tersebut. Gunakan kembali lokasi untuk kunjungan berulang dan buat kegiatan sesuai setiap periode pengambilan sampel.
+Gunakan `Duplicate site` untuk menyalin informasi deskriptif sambil membiarkan `Site ID` dan koordinat baru kosong. Gunakan `Copy from project ...` hanya jika lokasi dalam proyek lain menjelaskan tempat yang perlu digunakan ulang. Periksa setiap nilai yang disalin sebelum pengumpulan dimulai.
+
+Lokasi ditautkan ke spesimen melalui kegiatan pengumpulan. Buat kegiatan sebelum menautkan lokasi ke spesimen.
 
 ## Pelajari lebih lanjut
 

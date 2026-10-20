@@ -1,14 +1,17 @@
 ---
 title: "Catatan umum spesimen"
+authors: []
 sidebar:
   order: 0
 ---
 
-Catatan umum mengidentifikasi spesimen dan orang yang bertanggung jawab atas katalogisasi, preparasi, dan identifikasi. Pilih takson dari registri proyek dan gunakan `ID Confidence` untuk mencatat tingkat keyakinan identifikasi.
+Catatan umum mengidentifikasi spesimen dan orang yang bertanggung jawab atas pengatalogan, preparasi, dan identifikasi. Pilih takson dari registri proyek. Bidang Taxon dinonaktifkan ketika registri takson kosong. Dalam hal ini, buka `Dashboard` dan pilih `Add Taxon`. Gunakan `ID Confidence` untuk mencatat tingkat keyakinan terhadap identifikasi.
 
-Field ID personel menggunakan inisial dan nomor lapangan Cataloger yang memenuhi syarat. Field ID proyek menggunakan awalan, nomor katalog, dan akhiran proyek. Keduanya bukan UUID proyek. Cocokkan pengenal dengan label fisik sebelum melanjutkan.
+`Field ID` personel menggunakan inisial dan nomor lapangan pribadi `Cataloger` yang memenuhi syarat. `Field ID` proyek menggunakan awalan proyek, nomor katalog, dan akhiran.
 
-Tetapkan Cataloger, Preparator, dan Determiner sesuai pekerjaan sebenarnya. Catat kondisi yang diamati serta tanggal dan waktu pengumpulan dan preparasi yang diketahui. Bidang diperbarui saat diedit; tinjau catatan dan kesalahan validasi sebelum meninggalkannya.
+Tetapkan `Cataloger`, `Preparator`, dan `Determiner` sesuai pekerjaan yang mereka lakukan. Secara bawaan, NAHPU menetapkan pengatalog pada ketiga bidang tersebut. Ubah penugasan ini jika pekerjaan dilakukan oleh orang yang berbeda.
+
+Anda dapat menyesuaikan pilihan untuk `Condition`, `ID Confidence`, dan `Identification Methods` di `Settings` > `Specimens`.
 
 ## Pelajari lebih lanjut
 

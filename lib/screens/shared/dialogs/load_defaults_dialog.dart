@@ -23,8 +23,10 @@ Future<BundledPresetLoadResult?> showLoadDefaultsDialog({
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (context) =>
-          LoadDefaultsDialog(kinds: kinds, showCloseButton: false),
+      builder: (context) => SafeArea(
+        top: false,
+        child: LoadDefaultsDialog(kinds: kinds, showCloseButton: false),
+      ),
     );
   }
   return showDialog<BundledPresetLoadResult>(

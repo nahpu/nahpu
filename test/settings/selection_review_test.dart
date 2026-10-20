@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nahpu/services/common/platform_services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/application/selection_review.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
@@ -104,7 +105,7 @@ void main() {
       WidgetTester tester,
       String buttonText, {
       Directory? initialDirectory,
-      bool? isDesktop,
+      ExportDestinationMode? destinationMode,
     }) async {
       SelectionReviewResult? result;
       await tester.pumpWidget(
@@ -126,7 +127,7 @@ void main() {
                     fileCount: 2,
                     sizeBytes: 2048,
                     initialDirectory: initialDirectory,
-                    isDesktop: isDesktop,
+                    destinationMode: destinationMode,
                   );
                 },
                 child: const Text('open'),
@@ -196,6 +197,50 @@ void main() {
           SelectionAction.delete,
         ),
       );
+    });
+
+    testWidgets('offers delete but not export without a writable folder', (
+      tester,
+    ) async {
+      // Export here is followed by an offer to delete the originals, so it
+      // must never write somewhere the next export clears.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SelectionReviewDialog(
+            groups: const [
+              SelectionGroup(
+                label: 'backup',
+                detail: '2 other',
+                fileCount: 2,
+                sizeBytes: 2048,
+              ),
+            ],
+            fileCount: 2,
+            sizeBytes: 2048,
+            destinationMode: ExportDestinationMode.temporary,
+          ),
+        ),
+      );
+
+      expect(find.text('File Settings'), findsNothing);
+      expect(find.text('Browse'), findsNothing);
+      expect(find.textContaining('needs a folder to write to'), findsOneWidget);
+
+      final exportButton = tester.widget<FilledButton>(
+        find.ancestor(
+          of: find.text('Export'),
+          matching: find.byType(FilledButton),
+        ),
+      );
+      expect(exportButton.onPressed, isNull);
+
+      final deleteButton = tester.widget<TextButton>(
+        find.ancestor(
+          of: find.text('Delete permanently'),
+          matching: find.byType(TextButton),
+        ),
+      );
+      expect(deleteButton.onPressed, isNotNull);
     });
 
     testWidgets('cancel returns nothing', (tester) async {

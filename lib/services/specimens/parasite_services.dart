@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -53,6 +54,26 @@ class ParasiteServices extends AppServices {
     await ParasiteQuery(dbAccess).deleteAllForSpecimen(specimenUuid);
     _invalidate(specimenUuid);
     ref.invalidate(parasiteDetectionProvider(specimenUuid));
+  }
+
+  Future<List<int>> getIndividualIdsForParasite(int parasiteId) {
+    return ParasiteIndividualQuery(
+      dbAccess,
+    ).getIndividualIdsForParasite(parasiteId);
+  }
+
+  /// Replaces the lot individuals [parasiteId] was found on.
+  Future<void> setParasiteIndividuals(
+    int parasiteId,
+    Iterable<int> individualIds,
+  ) {
+    return ParasiteIndividualQuery(
+      dbAccess,
+    ).setIndividualsForParasite(parasiteId, individualIds);
+  }
+
+  void invalidateParasiteIndividuals(int parasiteId) {
+    ref.invalidate(individualsByParasiteProvider(parasiteId));
   }
 
   void _invalidate(String specimenUuid) {

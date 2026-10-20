@@ -4,7 +4,7 @@ project(nahpu LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "nahpu")
+set(BINARY_NAME "NAHPU")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -32,6 +32,12 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# MSVC 14.5x (Visual Studio 2026) turns the deprecated <experimental/coroutine>
+# header into a hard error (STL1011). flutter_inappwebview_windows still pulls it
+# in through WIL. Remove once a plugin release includes the upstream fix
+# (pichillilorenzo/flutter_inappwebview#2869).
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
@@ -51,6 +57,11 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
+
+# flutter_inappwebview_windows passes DEPENDS to add_custom_command(TARGET), which
+# CMake >= 3.31 flags under CMP0175. Keep the legacy behavior (the keyword is
+# ignored) for plugin subdirectories to silence the dev warning.
+set(CMAKE_POLICY_DEFAULT_CMP0175 OLD)
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.

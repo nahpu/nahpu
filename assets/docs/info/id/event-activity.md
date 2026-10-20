@@ -1,14 +1,11 @@
 ---
 title: "Aktivitas kegiatan"
+authors: []
 sidebar:
   order: 0
 ---
 
-Pilih aktivitas utama yang paling menggambarkan kegiatan pengumpulan. Gunakan catatan untuk aktivitas sekunder, keadaan yang tidak biasa, atau rincian lain.
-
-Aktivitas adalah pengelompokan pada tingkat proyek yang menjaga penyaringan dan pelaporan tetap konsisten, dan nilai yang tersedia dapat diatur di Settings. Peralatan, jumlah, ukuran, dan rincian pengambilan sampel lain adalah bagian dari catatan upaya, bukan label aktivitas.
-
-Periksa aktivitas terpilih setelah menduplikasi kegiatan; label salinan mungkin tidak menjelaskan sesi pengambilan sampel yang baru.
+Pilih aktivitas utama yang paling menggambarkan kegiatan pengumpulan. Secara bawaan, NAHPU menyediakan tiga aktivitas: Collecting, Recording, dan Observing. Anda dapat menyesuaikan pilihan di `Settings` > `Events` > `Primary Activities`.
 
 ## Pelajari lebih lanjut
 

@@ -36,6 +36,8 @@ const List<String> environmentalDataFields = [
   'waterTemperature',
   'pH',
   'dissolvedOxygen',
+  'dissolvedOxygenPercent',
+  'conductivity',
   'flowVelocity',
   'sunriseTime',
   'sunsetTime',
@@ -65,12 +67,45 @@ const Map<String, String> environmentalDataFieldLabels = {
   'waterTemperature': 'Water temperature',
   'pH': 'pH',
   'dissolvedOxygen': 'Dissolved oxygen',
+  'dissolvedOxygenPercent': 'Dissolved oxygen saturation',
+  'conductivity': 'Conductivity',
   'flowVelocity': 'Flow velocity',
   'sunriseTime': 'Sunrise',
   'sunsetTime': 'Sunset',
   'moonPhase': 'Moon phase',
   'notes': 'Notes',
 };
+
+/// Units for environmental measurement fields. Fields without a measurement
+/// unit, such as pH, sunrise, moon phase, and notes, are absent.
+///
+/// The single source for the units shown in settings, on the event form, and
+/// in Darwin Core event assertions.
+const Map<String, String> environmentalDataFieldUnits = {
+  'lowestDayTempC': '°C',
+  'highestDayTempC': '°C',
+  'lowestNightTempC': '°C',
+  'highestNightTempC': '°C',
+  'averageHumidity': '%',
+  'dewPointTemp': '°C',
+  'cloudCover': 'okta',
+  'rainfallInMm': 'mm',
+  'ambientTemperature': '°C',
+  'ambientHumidity': '%',
+  'waterTemperature': '°C',
+  'dissolvedOxygen': 'mg/L',
+  'dissolvedOxygenPercent': '%',
+  'conductivity': 'µS/cm',
+  'flowVelocity': 'm/s',
+};
+
+/// Returns the field label followed by its unit, such as
+/// `Conductivity (µS/cm)`, or the plain label when the field has no unit.
+String environmentalDataFieldLabelWithUnit(String field) {
+  final label = environmentalDataFieldLabels[field] ?? field;
+  final unit = environmentalDataFieldUnits[field];
+  return unit == null ? label : '$label ($unit)';
+}
 
 const List<String> environmentMoonPhaseOptions = [
   'New Moon',
@@ -83,7 +118,8 @@ const List<String> environmentMoonPhaseOptions = [
   'Waning Crescent',
 ];
 
-const Set<String> _environmentNumericFields = {
+/// Environmental fields stored as numbers.
+const Set<String> environmentalNumericFields = {
   'lowestDayTempC',
   'highestDayTempC',
   'lowestNightTempC',
@@ -96,6 +132,8 @@ const Set<String> _environmentNumericFields = {
   'waterTemperature',
   'pH',
   'dissolvedOxygen',
+  'dissolvedOxygenPercent',
+  'conductivity',
   'flowVelocity',
 };
 
@@ -138,7 +176,7 @@ class EditableEnvironmentData {
     };
     final errors = <String, String>{};
 
-    for (final field in _environmentNumericFields) {
+    for (final field in environmentalNumericFields) {
       final value = values[field];
       if (value == null) continue;
       if (value is! num || !value.toDouble().isFinite) {
@@ -156,6 +194,8 @@ class EditableEnvironmentData {
     _validateRange(values, errors, 'averageHumidity', 0, 100);
     _validateRange(values, errors, 'ambientHumidity', 0, 100);
     _validateRange(values, errors, 'pH', 0, 14);
+    _validateRange(values, errors, 'dissolvedOxygenPercent', 0, 500);
+    _validateRange(values, errors, 'conductivity', 0, double.maxFinite);
 
     final cloudCover = values['cloudCover'];
     if (cloudCover is String && !_cloudCoverOptions.contains(cloudCover)) {
@@ -188,7 +228,9 @@ class EditableEnvironmentData {
     if (value is num &&
         value.toDouble().isFinite &&
         (value < minimum || value > maximum)) {
-      errors[field] = 'Enter a value from $minimum to $maximum';
+      errors[field] = maximum == double.maxFinite
+          ? 'Enter a value of $minimum or more'
+          : 'Enter a value from $minimum to $maximum';
     }
   }
 }

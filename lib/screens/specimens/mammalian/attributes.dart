@@ -145,13 +145,13 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
                 final measurement = double.tryParse(value ?? '');
                 setState(() {
                   _getHBTailPercent();
-                  SpecimenServices(ref: ref).updateMammalAttribute(
-                    widget.specimenUuid,
-                    MammalAttributeCompanion(
-                      totalLength: db.Value(measurement ?? 0),
-                    ),
-                  );
                 });
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(
+                    totalLength: db.Value(measurement ?? 0),
+                  ),
+                );
                 scheduleOutlierWarning(
                   MammalMeasurementOutlierField.totalLength,
                   measurement,
@@ -173,13 +173,13 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
                 final measurement = double.tryParse(value ?? '');
                 setState(() {
                   _getHBTailPercent();
-                  SpecimenServices(ref: ref).updateMammalAttribute(
-                    widget.specimenUuid,
-                    MammalAttributeCompanion(
-                      tailLength: db.Value(measurement ?? 0),
-                    ),
-                  );
                 });
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(
+                    tailLength: db.Value(measurement ?? 0),
+                  ),
+                );
                 scheduleOutlierWarning(
                   MammalMeasurementOutlierField.tailLength,
                   measurement,
@@ -232,14 +232,12 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
               isLastField: false,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(
-                        hindFootLength: db.Value(double.tryParse(value)),
-                      ),
-                    );
-                  });
+                  SpecimenServices(ref: ref).updateMammalAttribute(
+                    widget.specimenUuid,
+                    MammalAttributeCompanion(
+                      hindFootLength: db.Value(double.tryParse(value)),
+                    ),
+                  );
                   scheduleOutlierWarning(
                     MammalMeasurementOutlierField.hindFootLength,
                     double.tryParse(value),
@@ -259,14 +257,12 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
               isDouble: true,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(
-                        earLength: db.Value(double.tryParse(value)),
-                      ),
-                    );
-                  });
+                  SpecimenServices(ref: ref).updateMammalAttribute(
+                    widget.specimenUuid,
+                    MammalAttributeCompanion(
+                      earLength: db.Value(double.tryParse(value)),
+                    ),
+                  );
                   scheduleOutlierWarning(
                     MammalMeasurementOutlierField.earLength,
                     double.tryParse(value),
@@ -299,15 +295,13 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
               },
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
-                  setState(() {
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(
-                        weight: db.Value(double.tryParse(value)),
-                        weightUnit: db.Value(ctr.weightUnitCtr),
-                      ),
-                    );
-                  });
+                  SpecimenServices(ref: ref).updateMammalAttribute(
+                    widget.specimenUuid,
+                    MammalAttributeCompanion(
+                      weight: db.Value(double.tryParse(value)),
+                      weightUnit: db.Value(ctr.weightUnitCtr),
+                    ),
+                  );
                   scheduleOutlierWarning(
                     MammalMeasurementOutlierField.weight,
                     double.tryParse(value),
@@ -332,13 +326,13 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
                     accuracySpecify: _storedAccuracySpecify,
                     includeBatFields: value,
                   );
-                  SpecimenServices(ref: ref).updateMammalAttribute(
-                    widget.specimenUuid,
-                    MammalAttributeCompanion(
-                      showBatFields: db.Value(value ? 1 : 0),
-                    ),
-                  );
                 });
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(
+                    showBatFields: db.Value(value ? 1 : 0),
+                  ),
+                );
               },
             ),
           ],
@@ -604,11 +598,11 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms>
     final code = getSpecimenSexCode(newSex);
     setState(() {
       ctr.sexCtr = code;
-      SpecimenServices(ref: ref).updateMammalAttribute(
-        widget.specimenUuid,
-        MammalAttributeCompanion(sex: db.Value(code)),
-      );
     });
+    SpecimenServices(ref: ref).updateMammalAttribute(
+      widget.specimenUuid,
+      MammalAttributeCompanion(sex: db.Value(code)),
+    );
   }
 }
 
@@ -840,13 +834,13 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
                 if (newValue != null) {
                   setState(() {
                     widget.ctr.testisPosCtr = newValue.index;
-                    SpecimenServices(ref: ref).updateMammalAttribute(
-                      widget.specimenUuid,
-                      MammalAttributeCompanion(
-                        testisPosition: db.Value(newValue.index),
-                      ),
-                    );
                   });
+                  SpecimenServices(ref: ref).updateMammalAttribute(
+                    widget.specimenUuid,
+                    MammalAttributeCompanion(
+                      testisPosition: db.Value(newValue.index),
+                    ),
+                  );
                 }
               },
             ),
@@ -1481,13 +1475,13 @@ class BatFormState extends ConsumerState<BatForm> {
               onPressed: (value) {
                 setState(() {
                   _echolocate = value;
-                  SpecimenServices(ref: ref).updateMammalAttribute(
-                    widget.specimenUuid,
-                    MammalAttributeCompanion(
-                      showEchoFields: db.Value(value ? 1 : 0),
-                    ),
-                  );
                 });
+                SpecimenServices(ref: ref).updateMammalAttribute(
+                  widget.specimenUuid,
+                  MammalAttributeCompanion(
+                    showEchoFields: db.Value(value ? 1 : 0),
+                  ),
+                );
                 if (value) widget.onBatDataEntered();
               },
             ),

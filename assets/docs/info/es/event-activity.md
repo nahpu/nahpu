@@ -1,14 +1,11 @@
 ---
 title: "Actividad del evento"
+authors: []
 sidebar:
   order: 0
 ---
 
-Elija la actividad principal que mejor describa el evento de recolecta. Use las notas para actividades secundarias, circunstancias inusuales u otros detalles.
-
-La actividad es una categorización a nivel de proyecto que mantiene consistentes el filtrado y los informes, y sus valores disponibles se configuran en Settings. El equipo, los conteos, las dimensiones y otros detalles de muestreo pertenecen a los registros de esfuerzo, no a la etiqueta de actividad.
-
-Compruebe la actividad seleccionada después de duplicar un evento; la etiqueta copiada puede no describir la nueva sesión de muestreo.
+Elija la actividad principal que mejor describa el evento de recolecta. De forma predeterminada, NAHPU ofrece tres actividades: Collecting, Recording y Observing. Puede personalizar las opciones en `Settings` > `Events` > `Primary Activities`.
 
 ## Más información
 

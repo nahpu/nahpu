@@ -8,6 +8,8 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/screens/shared/forms/numbered_id_fields.dart';
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -77,6 +79,8 @@ class SpecimenSelectionState extends ConsumerState<SpecimenSelection> {
                 ),
                 FieldIDFields(isMobile: isMobile),
                 TissueIDFields(isMobile: isMobile),
+                if (catalogFmt.asData?.value == CatalogFmt.ichthyology)
+                  IndividualTagIdSetting(isMobile: isMobile),
                 const SpecimenSexSetting(),
                 const ControlledVocabularySetting(
                   title: 'Identification methods',
@@ -873,10 +877,16 @@ class TissueIDFields extends ConsumerWidget {
       title: 'Tissue ID',
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-          child: AdaptiveLayout(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.md,
+            NahpuSpacing.xs,
+            NahpuSpacing.md,
+            NahpuSpacing.xl,
+          ),
+          child: NumberedIdFields(
+            store: TissueIdServices(ref: ref),
             useHorizontalLayout: !isMobile,
-            children: const [TissuePrefixField(), TissueNumField()],
+            previewLabel: 'Next tissue ID',
           ),
         ),
       ],
@@ -884,84 +894,34 @@ class TissueIDFields extends ConsumerWidget {
   }
 }
 
-class TissuePrefixField extends ConsumerStatefulWidget {
-  const TissuePrefixField({super.key});
+/// Auto-numbering for lot individual tags. Shown only for catalog formats
+/// that record lot individuals.
+class IndividualTagIdSetting extends ConsumerWidget {
+  const IndividualTagIdSetting({super.key, required this.isMobile});
+
+  final bool isMobile;
 
   @override
-  TissuePrefixFieldState createState() => TissuePrefixFieldState();
-}
-
-class TissuePrefixFieldState extends ConsumerState<TissuePrefixField> {
-  late TextEditingController prefixCtr;
-
-  @override
-  void initState() {
-    prefixCtr = TextEditingController(text: _getPrefix());
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: TextField(
-        controller: prefixCtr,
-        decoration: const InputDecoration(
-          labelText: 'Prefix',
-          hintText: 'Enter tissue ID prefix, e.g. M',
+  Widget build(BuildContext context, WidgetRef ref) {
+    return CommonSettingSection(
+      title: 'Individual tag ID',
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            NahpuSpacing.md,
+            NahpuSpacing.xs,
+            NahpuSpacing.md,
+            NahpuSpacing.xl,
+          ),
+          child: NumberedIdFields(
+            store: IndividualTagIdServices(ref: ref),
+            useHorizontalLayout: !isMobile,
+            previewLabel: 'Next tag',
+            prefixHint: 'FT-',
+            suffixHint: '-A',
+          ),
         ),
-        onChanged: (String? value) async {
-          if (value != null && value.trim().isNotEmpty) {
-            await TissueIdServices(ref: ref).setPrefix(value.trim());
-          }
-        },
-      ),
+      ],
     );
-  }
-
-  String _getPrefix() {
-    return TissueIdServices(ref: ref).getPrefix();
-  }
-}
-
-class TissueNumField extends ConsumerStatefulWidget {
-  const TissueNumField({super.key});
-
-  @override
-  TissueNumFieldState createState() => TissueNumFieldState();
-}
-
-class TissueNumFieldState extends ConsumerState<TissueNumField> {
-  late TextEditingController tissueNumCtr;
-
-  @override
-  void initState() {
-    tissueNumCtr = TextEditingController(text: _getNumber());
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: TextField(
-        controller: tissueNumCtr,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: 'Tissue number',
-          hintText: 'Enter the next number',
-        ),
-        textInputAction: TextInputAction.done,
-        onChanged: (String? value) async {
-          if (value != null && value.trim().isNotEmpty) {
-            await TissueIdServices(ref: ref).setNumber(value);
-          }
-        },
-      ),
-    );
-  }
-
-  String _getNumber() {
-    return TissueIdServices(ref: ref).getNumberString();
   }
 }

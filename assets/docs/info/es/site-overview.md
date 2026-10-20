@@ -1,14 +1,17 @@
 ---
 title: "Identidad del sitio"
+authors: []
 sidebar:
   order: 0
 ---
 
-Un sitio es el registro de lugar reutilizable de NAHPU. Los eventos de recolecta toman su ubicación de un sitio, así que dé a cada sitio un Site ID estable y único en el proyecto, y use una sola convención de nombres entre los dispositivos que colaboran.
+Un sitio es el registro de lugar reutilizable de NAHPU.
 
-Registre a la persona responsable y el tipo de sitio cuando sea útil. Use `Duplicate site` para copiar la información descriptiva dejando vacíos el nuevo Site ID y las coordenadas. Use `Copy from project ...` solo cuando un sitio de otro proyecto describa un lugar que deba reutilizarse. Verifique cada valor copiado antes de comenzar la recolecta.
+Registre el `Site Leader` y el tipo de sitio cuando sea útil. `Site Leader` identifica a la persona que registra los datos y está a cargo del sitio.
 
-Un sitio describe un lugar; un evento describe el trabajo en ese lugar. Reutilice el sitio en visitas posteriores y cree eventos adecuados a cada período de muestreo.
+Use `Duplicate site` para copiar la información descriptiva y dejar vacíos el nuevo `Site ID` y las coordenadas. Use `Copy from project ...` solo cuando un sitio de otro proyecto describa un lugar que deba reutilizarse. Verifique cada valor copiado antes de comenzar la recolecta.
+
+Un sitio se vincula a un espécimen mediante un evento de recolecta. Cree un evento antes de vincular un sitio a un espécimen.
 
 ## Más información
 

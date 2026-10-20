@@ -5,7 +5,7 @@ import 'package:nahpu/screens/exports/components/file_settings.dart';
 import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
-import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/geography.dart';
@@ -317,6 +317,7 @@ class RecordExportDialog extends StatefulWidget {
 class _RecordExportDialogState extends State<RecordExportDialog> {
   late final FileOpCtrModel _exportCtr;
   late _RecordExportFormat _format;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
@@ -390,6 +391,9 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
             isRunning: _isRunning,
             onExport: _exportCtr.isValid ? _export : null,
             onShare: _share,
+            output: _outputFile,
+            onRevealFile: _openFolder,
+            onSaveCopy: _saveCopy,
           ),
         ],
       ),
@@ -417,6 +421,7 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final directory = await FilePickerServices().selectDir();
     if (directory != null && mounted) {
       setState(() {
@@ -433,7 +438,7 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
         fileStem: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text.trim(),
-        destinationDirectory: _selectedDir,
+        destinationDirectory: await _destination.resolve(_selectedDir),
         archiveFormat: switch (_format) {
           _RecordExportFormat.json => null,
           _RecordExportFormat.zip => RecordArchiveFormat.zip,
@@ -445,9 +450,11 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            systemPlatform == PlatformType.desktop
+            // Only a folder the user chose is worth naming; the fallback is
+            // a path they cannot act on.
+            _selectedDir != null
                 ? 'Exported to ${file.path}'
-                : 'Export complete!',
+                : 'Export complete',
           ),
         ),
       );
@@ -468,12 +475,39 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
     try {
       await FilePickerServices().shareFile(context, file);
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
-      }
+      _reportActionFailure(error);
     }
+  }
+
+  Future<void> _openFolder() async {
+    final file = _outputFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(file);
+    } catch (error) {
+      _reportActionFailure(error);
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists apps that
+  /// accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final file = _outputFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(file);
+    } catch (error) {
+      _reportActionFailure(error);
+    }
+  }
+
+  void _reportActionFailure(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
 }
 

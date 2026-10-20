@@ -1,12 +1,15 @@
 ---
 title: "Visão geral do evento de coleta"
+authors: []
 sidebar:
   order: 0
 ---
 
-Um evento de coleta descreve a amostragem em um local durante um período definido. Os espécimes vinculados compartilham o local e o contexto da amostragem. Informe datas e horários que representem o esforço real, inclusive quando ele atravessa a meia-noite.
+Um evento de coleta descreve a amostragem em um local durante um período definido. Os espécimes vinculados compartilham o local e o contexto da amostragem. Escolha datas e horários de início e fim que descrevam o esforço real, incluindo o trabalho que atravessa a meia-noite.
 
-O NAHPU forma o Event ID com o Site ID e a data inicial. Adicione um sufixo para distinguir eventos no mesmo local e dia. Crie outro evento quando o período, protocolo, esforço ou equipe mudar. `Duplicate` reutiliza a configuração, incluindo os registros de esforço, mas deixa os dados ambientais vazios. Revise os dados copiados e registre as novas condições.
+O NAHPU forma o `Event ID` a partir do `Site ID` e da data inicial. Adicione um sufixo para distinguir eventos no mesmo local e na mesma data.
+
+Crie um evento separado quando o período, o protocolo, o esforço ou a equipe mudar. Para manter a consistência, uma pessoa deve criar o evento e compartilhá-lo com os outros dispositivos usados para catalogar espécimes desse evento. Use o código QR do evento para compartilhá-lo e adicioná-lo em outros dispositivos.
 
 ## Saiba mais
 

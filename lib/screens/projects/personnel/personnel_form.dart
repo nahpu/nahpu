@@ -57,12 +57,14 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final form = ref.watch(personnelFormValidatorProvider).value;
+    final canSubmit = _orcidError == null && _isFormValid(form);
     return Form(
       key: _formKey,
       child: ScrollableConstrainedLayout(
         footer: FormButton(
           isEditing: widget.isEditing,
-          onSubmitted: _validateForm()
+          onSubmitted: canSubmit
               ? () async {
                   if (widget.isEditing) {
                     await _updatePersonnel();
@@ -92,7 +94,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                         _validateEditing();
                       } else {
                         ref
-                            .watch(personnelFormValidatorProvider.notifier)
+                            .read(personnelFormValidatorProvider.notifier)
                             .validateName(value);
                       }
                     },
@@ -180,7 +182,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                             _validateEditing();
                           } else {
                             ref
-                                .watch(personnelFormValidatorProvider.notifier)
+                                .read(personnelFormValidatorProvider.notifier)
                                 .validateInitial(
                                   widget.ctr.initialCtr.text,
                                   widget.ctr.isRegisterField,
@@ -195,7 +197,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                             _validateEditing();
                           } else {
                             ref
-                                .watch(personnelFormValidatorProvider.notifier)
+                                .read(personnelFormValidatorProvider.notifier)
                                 .validateCollNum(
                                   value,
                                   widget.ctr.isRegisterField,
@@ -297,26 +299,14 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
   }
 
   void _validateEditing() {
-    ref.watch(personnelFormValidatorProvider.notifier).validateAll(widget.ctr);
+    ref.read(personnelFormValidatorProvider.notifier).validateAll(widget.ctr);
   }
 
-  bool _validateForm() {
-    if (_orcidError != null) return false;
+  bool _isFormValid(PersonnelForm? form) {
+    if (form == null) return false;
     return widget.ctr.roleCtr == 'Cataloger'
-        ? ref
-              .read(personnelFormValidatorProvider)
-              .when(
-                data: (data) => data.isValidCataloger,
-                loading: () => false,
-                error: (error, stackTrace) => false,
-              )
-        : ref
-              .read(personnelFormValidatorProvider)
-              .when(
-                data: (data) => data.isValidOther,
-                loading: () => false,
-                error: (error, stackTrace) => false,
-              );
+        ? form.isValidCataloger
+        : form.isValidOther;
   }
 
   String? get _orcidError {

@@ -1,14 +1,11 @@
 ---
 title: "Event activity"
+authors: ["Heru Handika"]
 sidebar:
   order: 0
 ---
 
-Choose the primary activity that best describes the collecting event. Use the notes for secondary activities, unusual circumstances, or other details.
-
-Activity is a project-level categorization that keeps filtering and reporting consistent, and the available values are configurable in Settings. Equipment, counts, dimensions, and other sampling details belong in effort records rather than in the activity label.
-
-Check the selected activity after duplicating an event; a copied label may not describe the new sampling session.
+Choose the primary activity that best describes the collecting event. By default, NAHPU provides three activities: Collecting, Recording, and Observing. You can customize the options in `Settings` > `Events` > `Primary Activities`.
 
 ## Learn more
 

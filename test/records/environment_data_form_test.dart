@@ -9,7 +9,6 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/events.dart';
 
 void main() {
@@ -39,7 +38,9 @@ void main() {
             waterTemperature: const Value(22),
           ),
         );
-    final data = await database.select(database.environment).getSingle();
+    final data = await EnvironmentDataQuery(
+      database,
+    ).getEditableEnvironmentDataByEventId(eventId);
 
     tester.view.physicalSize = const Size(1000, 1600);
     tester.view.devicePixelRatio = 1;
@@ -54,7 +55,7 @@ void main() {
               child: EnvironmentDataForm(
                 useHorizontalLayout: false,
                 eventID: eventId,
-                environmentCtr: CollEnvironmentCtrModel.fromData(data),
+                environmentData: data,
               ),
             ),
           ),
@@ -114,7 +115,9 @@ void main() {
     await database
         .into(database.environment)
         .insert(EnvironmentCompanion(eventID: Value(eventId)));
-    final data = await database.select(database.environment).getSingle();
+    final data = await EnvironmentDataQuery(
+      database,
+    ).getEditableEnvironmentDataByEventId(eventId);
 
     tester.view.physicalSize = const Size(1000, 2400);
     tester.view.devicePixelRatio = 1;
@@ -129,7 +132,7 @@ void main() {
               child: EnvironmentDataForm(
                 useHorizontalLayout: false,
                 eventID: eventId,
-                environmentCtr: CollEnvironmentCtrModel.fromData(data),
+                environmentData: data,
                 visibleFields: environmentalDataFields.toSet(),
               ),
             ),
@@ -432,6 +435,53 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Error'), findsNothing);
+  });
+
+  testWidgets('Cloud cover fits a narrow two-column layout', (tester) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    final eventId = await database
+        .into(database.collEvent)
+        .insert(const CollEventCompanion());
+    await database
+        .into(database.environment)
+        .insert(
+          EnvironmentCompanion(
+            eventID: Value(eventId),
+            cloudCover: const Value('7'),
+          ),
+        );
+    final data = await EnvironmentDataQuery(
+      database,
+    ).getEditableEnvironmentDataByEventId(eventId);
+
+    // The Environmental Data panel is about this wide beside Effort on a landscape tablet.
+    tester.view.physicalSize = const Size(500, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EnvironmentDataForm(
+                useHorizontalLayout: true,
+                eventID: eventId,
+                environmentData: data,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(oktaOptionLabels['7']!), findsOneWidget);
   });
 }
 

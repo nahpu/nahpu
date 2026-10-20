@@ -179,59 +179,15 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
           ),
         ],
       ),
-      body: isLargeScreen
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: PresetListColumn(
-                      selectedPresetName: _selectedPresetName,
-                      onPresetSelected: _selectPreset,
-                      tabController: _tabController,
-                      onExportPreset: (name) => _exportPresets(onlyName: name),
-                      onLoadDefaults: _loadDefaults,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Material(
-                      clipBehavior: Clip.hardEdge,
-                      borderRadius: BorderRadius.circular(16.0),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest
-                          .withValues(alpha: 0.4),
-                      child: PresetEditColumn(
-                        selectedPresetName: _selectedPresetName,
-                        selectedPresetMap: _selectedPresetMap,
-                        onPresetDuplicated: _selectPreset,
-                        onPresetRenamed: (oldName, newName) {
-                          setState(() {
-                            _selectedPresetName = newName;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                TabBar(
-                  controller: _tabController,
-                  tabs: const [
-                    Tab(text: 'Presets'),
-                    Tab(text: 'Edit Preset'),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      PresetListColumn(
+      body: SafeArea(
+        child: isLargeScreen
+            ? Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: PresetListColumn(
                         selectedPresetName: _selectedPresetName,
                         onPresetSelected: _selectPreset,
                         tabController: _tabController,
@@ -239,21 +195,68 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
                             _exportPresets(onlyName: name),
                         onLoadDefaults: _loadDefaults,
                       ),
-                      PresetEditColumn(
-                        selectedPresetName: _selectedPresetName,
-                        selectedPresetMap: _selectedPresetMap,
-                        onPresetDuplicated: _selectPreset,
-                        onPresetRenamed: (oldName, newName) {
-                          setState(() {
-                            _selectedPresetName = newName;
-                          });
-                        },
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Material(
+                        clipBehavior: Clip.hardEdge,
+                        borderRadius: BorderRadius.circular(16.0),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.4),
+                        child: PresetEditColumn(
+                          selectedPresetName: _selectedPresetName,
+                          selectedPresetMap: _selectedPresetMap,
+                          onPresetDuplicated: _selectPreset,
+                          onPresetRenamed: (oldName, newName) {
+                            setState(() {
+                              _selectedPresetName = newName;
+                            });
+                          },
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+                children: [
+                  TabBar(
+                    controller: _tabController,
+                    tabs: const [
+                      Tab(text: 'Presets'),
+                      Tab(text: 'Edit Preset'),
                     ],
                   ),
-                ),
-              ],
-            ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        PresetListColumn(
+                          selectedPresetName: _selectedPresetName,
+                          onPresetSelected: _selectPreset,
+                          tabController: _tabController,
+                          onExportPreset: (name) =>
+                              _exportPresets(onlyName: name),
+                          onLoadDefaults: _loadDefaults,
+                        ),
+                        PresetEditColumn(
+                          selectedPresetName: _selectedPresetName,
+                          selectedPresetMap: _selectedPresetMap,
+                          onPresetDuplicated: _selectPreset,
+                          onPresetRenamed: (oldName, newName) {
+                            setState(() {
+                              _selectedPresetName = newName;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 

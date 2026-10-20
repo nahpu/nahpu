@@ -1,21 +1,20 @@
 ---
 title: "Personel proyek"
+authors: []
 sidebar:
   order: 0
 ---
 
-Catatan personel mewakili orang-orang yang terlibat dalam proyek. Seseorang disimpan satu kali di basis data dan dapat ditugaskan ke beberapa proyek. Mengeluarkan seseorang dari panel ini hanya menghapus penugasannya pada proyek; penghapusan permanen dikelola di Settings.
+Catatan personel mewakili orang yang berpartisipasi dalam proyek. Setiap orang disimpan sekali dalam basis data dan dapat ditetapkan ke beberapa proyek. Menghapus seseorang dari panel ini menghapus penugasannya pada proyek; penghapusan permanen dikelola di `Settings` > `Personnel`.
 
-## Peran di NAHPU
+Peran NAHPU:
 
-- **Cataloger:** mencatat data spesimen dan dapat memberikan inisial serta nomor lapangan pribadi untuk Field ID.
-- **Determiner only:** mengidentifikasi spesimen, tetapi tidak mengatalog atau mempreparasinya.
-- **Preparator only:** mempreparasi spesimen, tetapi tidak mengatalognya.
-- **None:** ikut dalam kerja lapangan tanpa peran perawatan spesimen.
+- **Cataloger:** mencatat data spesimen dan dapat menyediakan inisial serta nomor lapangan pribadi untuk `Field ID`.
+- **Determiner only:** mengidentifikasi spesimen, tetapi tidak mengatalogkan atau mempreparasinya.
+- **Preparator only:** mempreparasi spesimen, tetapi tidak mengatalogkannya.
+- **None:** berpartisipasi dalam kerja lapangan tanpa peran perawatan spesimen.
 
-Ini adalah peran alur kerja NAHPU yang menentukan pada apa seseorang dapat ditugaskan di dalam aplikasi. Peran ini berbeda dari peran yang dilaporkan dalam hasil ekspor, yang mengikuti hubungan sebenarnya pada setiap catatan.
-
-Pilih mode Field ID secara terpisah dari peran personel. Penomoran proyek tidak menggunakan nomor lapangan pribadi Cataloger.
+Untuk memberikan pengenal pada spesimen, NAHPU mendukung inisial + nomor berurutan, atau awalan yang ditetapkan proyek + nomor berurutan + akhiran opsional. NAHPU menyebut yang pertama `Field ID` dan yang kedua `Project ID`. Atur pilihan ini di `Settings` > `Specimens` > `Field ID`.
 
 ## Pelajari lebih lanjut
 

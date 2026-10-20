@@ -14,9 +14,6 @@ RUST_FRB_WEB = "rust/src/frb_generated.web.rs"
 
 FRB_FILES = [DART_FRB, DART_FRB_IO, DART_FRB_WEB, RUST_FRB_IO, RUST_FRB, RUST_FRB_WEB]
 
-DMG_CONFIG = "packages/config.json"
-OUTPUT_DMG = "packages/mdd.dmg"
-
 FRB_INSTALL_NAME = "flutter_rust_bridge_codegen@^2.13.0"
 
 # iOS and macOS use Swift Package Manager. The Rust library is bundled by the
@@ -88,9 +85,6 @@ class Build:
         try:
             subprocess.run(["flutter", "build", "macos", "--release"])
             print("Project built successfully\n")
-            self._remove_dmg()
-            self._create_dmg()
-            self._open_dmg()
         except Exception as e:
             print("Error building project for macos:", str(e))
 
@@ -111,31 +105,6 @@ class Build:
         except Exception as e:
             print("Error building project for windows:", str(e))
             return
-
-    def _create_dmg(self) -> None:
-        print("Creating dmg...")
-        try:
-            subprocess.run(["appdmg", DMG_CONFIG, OUTPUT_DMG])
-            print("Dmg created successfully\n")
-        except Exception as e:
-            print("Error creating dmg:", str(e))
-
-    def _remove_dmg(self) -> None:
-        print("Removing dmg...")
-        try:
-            if os.path.exists(OUTPUT_DMG):
-                os.remove(OUTPUT_DMG)
-                print("Dmg removed successfully\n")
-        except OSError as e:
-            print("Error removing dmg:", str(e))
-
-    def _open_dmg(self) -> None:
-        print("Opening dmg...")
-        try:
-            subprocess.run(["open", OUTPUT_DMG])
-            print("Dmg opened successfully\n")
-        except Exception as e:
-            print("Error opening dmg:", str(e))
 
 
 class BuildRust:

@@ -318,9 +318,24 @@ void _invalidateProjectDestination(WidgetRef ref, int index) {
 }
 
 class PageNavButton extends ConsumerStatefulWidget {
-  const PageNavButton({super.key, required this.pageNav});
+  const PageNavButton({
+    super.key,
+    required this.pageNav,
+    this.onSearch,
+    this.bottomPadding = 0,
+  });
 
   final PageNavigation pageNav;
+
+  /// Space kept below the buttons for the system navigation bar. A
+  /// [Scaffold.bottomSheet] never sees that inset itself, so read it with
+  /// `MediaQuery.paddingOf` from a context above the page's [Scaffold]. It is
+  /// zero on compact screens, where the project navigation bar absorbs it.
+  final double bottomPadding;
+
+  /// Opens the screen's search form. The go-to-page sheet shows a search
+  /// button beside the page field when this is set.
+  final VoidCallback? onSearch;
 
   @override
   PageNavButtonState createState() => PageNavButtonState();
@@ -331,10 +346,8 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.1,
-      ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: widget.bottomPadding),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -358,15 +371,25 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
                   },
             child: const Icon(Icons.navigate_before),
           ),
-          TextButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => NavSheet(pageNav: widget.pageNav),
-                isScrollControlled: true,
-              );
-            },
-            child: const Icon(Icons.circle_outlined),
+          Tooltip(
+            message: widget.onSearch == null
+                ? 'Go to page'
+                : 'Go to page or search',
+            child: TextButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => NavSheet(
+                    pageNav: widget.pageNav,
+                    onSearch: widget.onSearch,
+                  ),
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  showDragHandle: true,
+                );
+              },
+              child: const Icon(Icons.circle_outlined),
+            ),
           ),
           TextButton(
             onPressed: widget.pageNav.isLastPage
@@ -503,9 +526,13 @@ class PageInfo extends StatelessWidget {
 }
 
 class NavSheet extends ConsumerStatefulWidget {
-  const NavSheet({super.key, required this.pageNav});
+  const NavSheet({super.key, required this.pageNav, this.onSearch});
 
   final PageNavigation pageNav;
+
+  /// Closes the sheet and opens the screen's search form. The search button
+  /// is hidden when this is null.
+  final VoidCallback? onSearch;
 
   @override
   NavSheetState createState() => NavSheetState();
@@ -514,39 +541,64 @@ class NavSheet extends ConsumerStatefulWidget {
 class NavSheetState extends ConsumerState<NavSheet> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).viewInsets.bottom == 0
-          ? MediaQuery.of(context).size.height * 0.2
-          : MediaQuery.of(context).viewInsets.bottom + 120,
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 80, maxWidth: 160),
-                child: GoToPageField(
-                  onSubmitted: (String value) {
-                    final pageNumber = int.tryParse(value);
-                    if (pageNumber == null ||
-                        !widget.pageNav.pageController.hasClients) {
-                      return;
-                    }
-                    widget.pageNav.jumpToPage(pageNumber - 1);
-                    Navigator.pop(context);
-                  },
+    final onSearch = widget.onSearch;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          NahpuSpacing.xl,
+          0,
+          NahpuSpacing.xl,
+          MediaQuery.viewInsetsOf(context).bottom + NahpuSpacing.xxl,
+        ),
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: NahpuContentWidth.dialog,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: PageInfo(pageNav: widget.pageNav),
                 ),
-              ),
-              const SizedBox(height: NahpuSpacing.md),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: PageInfo(pageNav: widget.pageNav),
-              ),
-            ],
+                const SizedBox(height: NahpuSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GoToPageField(
+                        onSubmitted: (String value) {
+                          final pageNumber = int.tryParse(value);
+                          if (pageNumber == null ||
+                              !widget.pageNav.pageController.hasClients) {
+                            return;
+                          }
+                          widget.pageNav.jumpToPage(pageNumber - 1);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    if (onSearch != null) ...[
+                      const SizedBox(width: NahpuSpacing.md),
+                      IconButton.filledTonal(
+                        tooltip: 'Search',
+                        constraints: const BoxConstraints.tightFor(
+                          width: NahpuControlSize.touchTarget,
+                          height: NahpuControlSize.touchTarget,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onSearch();
+                        },
+                        icon: const Icon(Icons.search_rounded),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -565,7 +617,7 @@ class GoToPageField extends StatelessWidget {
       textAlign: TextAlign.center,
       decoration: const InputDecoration(
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.lg)),
         ),
         label: Center(child: Text('Go to page', textAlign: TextAlign.center)),
         hintText: 'Page number',
@@ -573,6 +625,7 @@ class GoToPageField extends StatelessWidget {
         floatingLabelAlignment: FloatingLabelAlignment.center,
       ),
       keyboardType: const TextInputType.numberWithOptions(signed: true),
+      textInputAction: TextInputAction.go,
       onSubmitted: onSubmitted,
     );
   }

@@ -1,12 +1,13 @@
 ---
 title: "Specimen attributes"
+authors: ["Heru Handika"]
 sidebar:
   order: 0
 ---
 
-Attributes hold the measurements and biological observations made for the specimen, including sex, life stage, reproductive condition, morphometrics, and fields specific to the taxon group.
+Attributes hold the measurements and biological observations made for the specimen, including sex, life stage, reproductive condition, morphometrics, and other fields specific to the taxon group.
 
-Enter only observed or documented values and keep the displayed unit. Use `Unknown` or leave a field empty according to the project protocol rather than guessing. Notes should explain qualifiers, damage, uncertainty, or a method that affects how a value is interpreted.
+Enter only observed or documented values and keep the displayed unit. Use `Unknown` or leave a field empty according to the project protocol.
 
 Use custom fields for additional observations when no built-in field fits. Check their type, unit convention, and catalog applicability before entering values; do not use zero for an unmeasured value.
 

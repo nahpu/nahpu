@@ -145,16 +145,16 @@ Future<SelectionReviewResult?> showSelectionReview({
   required int fileCount,
   required int sizeBytes,
   Directory? initialDirectory,
-  bool? isDesktop,
+  ExportDestinationMode? destinationMode,
 }) {
-  final desktop = isDesktop ?? systemPlatform == PlatformType.desktop;
+  final mode = destinationMode ?? platformExportDestination;
   final compact = MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact;
   final dialog = SelectionReviewDialog(
     groups: groups,
     fileCount: fileCount,
     sizeBytes: sizeBytes,
     initialDirectory: initialDirectory,
-    isDesktop: desktop,
+    destinationMode: mode,
     isBottomSheet: compact,
   );
   if (compact) {
@@ -178,7 +178,7 @@ class SelectionReviewDialog extends StatefulWidget {
     required this.fileCount,
     required this.sizeBytes,
     this.initialDirectory,
-    this.isDesktop,
+    this.destinationMode,
     this.isBottomSheet = false,
   });
 
@@ -186,7 +186,7 @@ class SelectionReviewDialog extends StatefulWidget {
   final int fileCount;
   final int sizeBytes;
   final Directory? initialDirectory;
-  final bool? isDesktop;
+  final ExportDestinationMode? destinationMode;
   final bool isBottomSheet;
 
   @override
@@ -195,7 +195,7 @@ class SelectionReviewDialog extends StatefulWidget {
 
 class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
   late final FileOpCtrModel _exportController;
-  late final bool _isDesktop;
+  late final ExportDestinationMode _mode;
   DbArchiveFormat _format = DbArchiveFormat.tarGzip;
   Directory? _selectedDirectory;
   bool _appendDate = true;
@@ -203,7 +203,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
   @override
   void initState() {
     super.initState();
-    _isDesktop = widget.isDesktop ?? systemPlatform == PlatformType.desktop;
+    _mode = widget.destinationMode ?? platformExportDestination;
     _selectedDirectory = widget.initialDirectory;
     _exportController = FileOpCtrModel.empty();
     _exportController.fileNameCtr.text = selectionExportStem;
@@ -215,8 +215,11 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
     super.dispose();
   }
 
+  /// Export needs a folder NAHPU can write to, and this screen offers to
+  /// delete the originals straight afterwards — so it never routes to the
+  /// temporary directory, whose contents the next export clears.
   bool get _canExport =>
-      _isDesktop &&
+      _mode == ExportDestinationMode.chooseDirectory &&
       _selectedDirectory != null &&
       _exportController.isValid &&
       _exportController.fileNameCtr.text.trim().isNotEmpty;
@@ -301,7 +304,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
           const SizedBox(height: NahpuSpacing.lg),
           for (final group in widget.groups) _GroupRow(group: group),
           const SizedBox(height: NahpuSpacing.lg),
-          if (_isDesktop)
+          if (_mode == ExportDestinationMode.chooseDirectory)
             GenericFileSettingsCard<DbArchiveFormat>(
               exportCtr: _exportController,
               selectedDir: _selectedDirectory,
@@ -320,16 +323,16 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
             )
           else
             Text(
-              'Selected-file export is available on desktop. On this device, '
-              'you can delete the selected files permanently after reviewing '
-              'them.',
+              'Exporting a selection needs a folder to write to, which this '
+              'device cannot offer. You can still delete the selected files '
+              'after reviewing them.',
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
             ),
           const SizedBox(height: NahpuSpacing.lg),
           Text(
-            _isDesktop
+            _mode == ExportDestinationMode.chooseDirectory
                 ? 'Exporting writes these files to one compressed archive, then '
                       'offers to remove the originals. Deleting removes them '
                       'straight away and cannot be undone.'

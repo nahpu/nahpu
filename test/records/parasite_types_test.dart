@@ -26,10 +26,12 @@ void main() {
       CatalogFmt.mammalogy,
       CatalogFmt.ornithology,
       CatalogFmt.herpetology,
+      CatalogFmt.ichthyology,
     });
     expect(supportsParasites(CatalogFmt.mammalogy), isTrue);
     expect(supportsParasites(CatalogFmt.ornithology), isTrue);
     expect(supportsParasites(CatalogFmt.herpetology), isTrue);
+    expect(supportsParasites(CatalogFmt.ichthyology), isTrue);
     expect(supportsParasites(CatalogFmt.invertebrateZoology), isFalse);
   });
 }

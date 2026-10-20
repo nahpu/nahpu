@@ -1,12 +1,15 @@
 ---
 title: "Resumen del evento de recolecta"
+authors: []
 sidebar:
   order: 0
 ---
 
-Un evento de recolección describe el muestreo en un sitio durante un período definido. Los especímenes vinculados comparten el sitio y el contexto del muestreo. Indique fechas y horas que representen el esfuerzo real, incluso cuando atraviese la medianoche.
+Un evento de recolecta describe el muestreo en un sitio durante un período definido. Los especímenes vinculados comparten el sitio y el contexto del muestreo. Elija fechas y horas de inicio y fin que describan el esfuerzo real, incluido el trabajo que atraviesa la medianoche.
 
-NAHPU forma el Event ID con el Site ID y la fecha inicial. Añada un sufijo para distinguir eventos en el mismo sitio y día. Cree otro evento cuando cambien el período, protocolo, esfuerzo o equipo. `Duplicate` reutiliza la configuración, incluidos los registros de esfuerzo, pero deja vacíos los datos ambientales. Revise los datos copiados y registre las nuevas condiciones.
+NAHPU forma el `Event ID` a partir del `Site ID` y la fecha de inicio. Añada un sufijo para distinguir eventos en el mismo sitio y la misma fecha.
+
+Cree un evento separado cuando cambien el período, el protocolo, el esfuerzo o el equipo. Para mantener la consistencia, una persona debe crear el evento y compartirlo con los demás dispositivos usados para catalogar especímenes de ese evento. Use el código QR del evento para compartirlo y añadirlo en otros dispositivos.
 
 ## Más información
 

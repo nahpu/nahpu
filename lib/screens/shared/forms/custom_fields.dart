@@ -436,8 +436,24 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
     ..addListener(_handleFocusChange);
   late String _boolean = widget.entry.value ?? 'unset';
 
+  /// Decoded once per definition.
+  ///
+  /// [CustomFieldDefinitionX.dropdownOptions] parses JSON on every read, and
+  /// these sections rebuild with the form around them.
+  late List<CustomFieldOption> _dropdownOptions =
+      widget.entry.definition.dropdownOptions;
+
   void _handleFocusChange() {
     if (!_focusNode.hasFocus) widget.onFocusLost?.call();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CustomFieldInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.definition.options == widget.entry.definition.options) {
+      return;
+    }
+    _dropdownOptions = widget.entry.definition.dropdownOptions;
   }
 
   @override
@@ -477,7 +493,7 @@ class _CustomFieldInputState extends State<_CustomFieldInput> {
             value: null,
             child: CommonDropdownText(text: 'Unset'),
           ),
-          for (final option in definition.dropdownOptions)
+          for (final option in _dropdownOptions)
             if (!option.isArchived || option.uuid == widget.entry.value)
               DropdownMenuItem<String?>(
                 value: option.uuid,

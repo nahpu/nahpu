@@ -1,5 +1,5 @@
 name: nahpu
-description: Nahpu is a cross-platform cataloging app for natural history specimen collection.
+description: NAHPU is a cross-platform cataloging app for natural history specimen collection.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.1+102
+version: 1.1.0+107
 
 environment:
   sdk: ">=3.12.0 <4.0.0"
@@ -54,7 +54,7 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_svg: ^2.0.7
   file_selector: ^1.0.0
-  file_picker: ^12.0.0
+  file_picker: ^13.0.0
   geolocator: ^14.0.0
   flutter_rust_bridge: 2.13.0
   mobile_scanner: ^7.0.0
@@ -110,10 +110,13 @@ flutter_launcher_icons:
   image_path_ios_dark_transparent: "assets/launcher/ios/iosNahpuIcon-iOS-Dark-1024x1024@1x.png"
   image_path_ios_tinted_grayscale: "assets/launcher/ios/iosNahpuIcon-iOS-TintedLight-1024x1024@1x.png"
   desaturate_tinted_to_grayscale_ios: true
-  image_path_android: "assets/launcher/nahpu-bg.png"
+  image_path_android: "assets/launcher/nahpu-plated.png"
   remove_alpha_ios: true
   adaptive_icon_background: "#1b9e77"
   adaptive_icon_foreground: "assets/launcher/nahpu-fg.png"
+  # Keeps the leaves well inside Android's 66dp adaptive-icon safe zone.
+  adaptive_icon_foreground_inset: 25
+  adaptive_icon_monochrome: "assets/launcher/nahpu-monochrome.png"
   windows:
     generate: true
     image_path: "assets/launcher/nahpu-no-bg.png"
@@ -236,3 +239,17 @@ flutter:
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+msix_config:
+  display_name: NAHPU
+  publisher_display_name: hhandika
+  identity_name: 41918EvoBio.nahpu
+  publisher: CN=F6E8B1C2-9B5D-4AFB-9418-082991B0E098
+  # msix_version is derived from `version` as major.minor.patch.0, which meets the
+  # Store rule that the last number is zero. Bump the version, not only the build
+  # number, for every Store submission.
+  logo_path: assets/launcher/windows/nahpu-app-unplated.png
+  # Keep the logo's built-in padding; msix trims borders by default.
+  trim_logo: false
+  capabilities: internetClient,location,microphone
+  store: true

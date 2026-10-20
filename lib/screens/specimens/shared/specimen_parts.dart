@@ -7,7 +7,6 @@ import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
-import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/parasites.dart';
@@ -20,9 +19,13 @@ import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
+import 'package:nahpu/screens/shared/forms/numbered_id_fields.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/specimens/shared/associated_data.dart';
+import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
@@ -168,6 +171,17 @@ class PartListState extends ConsumerState<PartList> {
     final specimenPartList = ref.watch(
       partBySpecimenProvider(widget.specimenUuid),
     );
+    // Resolved once for the whole list. Looking each preparator up from the row
+    // fired a personnel query per row on every rebuild, including while
+    // scrolling.
+    final preparatorNames = ref
+        .watch(projectPersonnelProvider)
+        .maybeWhen(
+          data: (personnel) => {
+            for (final person in personnel) person.uuid: person.name ?? '',
+          },
+          orElse: () => const <String, String>{},
+        );
     return specimenPartList.when(
       data: (data) {
         return data.isEmpty
@@ -211,6 +225,7 @@ class PartListState extends ConsumerState<PartList> {
                         itemBuilder: (context, index) {
                           final part = data[index];
                           return ListTile(
+                            key: ValueKey(part.id),
                             leading: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -238,9 +253,11 @@ class PartListState extends ConsumerState<PartList> {
                             ),
                             title: PartTitle(
                               partType: part.type,
-                              partCount: part.count.toString(),
+                              partCount: part.count,
                               barcodeID: part.barcodeID ?? '',
-                              preparator: part.personnelId,
+                              preparator: part.personnelId == null
+                                  ? null
+                                  : preparatorNames[part.personnelId],
                             ),
                             subtitle: PartSubTitle(part: part),
                             trailing: !_isSelecting
@@ -371,7 +388,7 @@ class PartIcon extends ConsumerWidget {
   }
 }
 
-class PartTitle extends ConsumerWidget {
+class PartTitle extends StatelessWidget {
   const PartTitle({
     super.key,
     required this.partType,
@@ -383,48 +400,34 @@ class PartTitle extends ConsumerWidget {
   final String? partType;
   final String? partCount;
   final String barcodeID;
+
+  /// The preparator's name, already resolved by the list.
   final String? preparator;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final name = preparator;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        preparator != null
-            ? FutureBuilder(
-                future: _getPreparatorName(ref),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return TitlePartText(
-                      text:
-                          '$_partText'
-                          '$listTileSeparator'
-                          '${snapshot.data}',
-                    );
-                  } else {
-                    return TitlePartText(text: _partText);
-                  }
-                },
-              )
-            : TitlePartText(text: _partText),
-        barcodeID.isNotEmpty
-            ? BarcodeText(barcodeID: barcodeID)
-            : const SizedBox.shrink(),
+        Flexible(
+          child: TitlePartText(
+            text: name == null || name.isEmpty
+                ? _partText
+                : '$_partText$listTileSeparator$name',
+          ),
+        ),
+        if (barcodeID.isNotEmpty)
+          Flexible(child: BarcodeText(barcodeID: barcodeID)),
       ],
     );
   }
 
   String get _partText {
+    final count = partCount;
     return '${partType ?? 'Unknown part'}'
         '$listTileSeparator'
-        '${partCount ?? 'No count'}';
-  }
-
-  Future<String> _getPreparatorName(WidgetRef ref) async {
-    PersonnelData person = await PersonnelServices(
-      ref: ref,
-    ).getPersonnelByUuid(preparator!);
-    return person.name ?? '';
+        '${count == null || count.isEmpty ? 'No count' : count}';
   }
 }
 
@@ -479,14 +482,20 @@ class BarcodeText extends StatelessWidget {
   }
 }
 
-class PartSubTitle extends StatelessWidget {
+class PartSubTitle extends ConsumerWidget {
   const PartSubTitle({super.key, required this.part});
 
   final SpecimenPartData part;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final partId = part.id;
+    final individuals = partId == null
+        ? const <SpecimenIndividualData>[]
+        : ref.watch(individualsByPartProvider(partId)).asData?.value ??
+              const <SpecimenIndividualData>[];
     return Text(
+      '${_individualText(individuals)}'
       '${_getTextFirst(part.tissueID)}'
       '$treatment'
       '${_getText(part.additionalTreatment)}'
@@ -497,6 +506,12 @@ class PartSubTitle extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyMedium,
       overflow: TextOverflow.ellipsis,
     );
+  }
+
+  String _individualText(List<SpecimenIndividualData> individuals) {
+    if (individuals.isEmpty) return '';
+    return 'Ind: ${individuals.map(individualShortId).join(', ')}'
+        '$listTileSeparator';
   }
 
   String _getTextFirst(String? text) {
@@ -628,6 +643,13 @@ class PartFormState extends ConsumerState<PartForm> {
   final CustomFieldDraftController _customFields = CustomFieldDraftController();
 
   @override
+  void initState() {
+    super.initState();
+    final partId = widget.specimenPartId;
+    if (widget.isEditing && partId != null) _loadIndividuals(partId);
+  }
+
+  @override
   void dispose() {
     _customFields.dispose();
     widget.partCtr.dispose();
@@ -707,25 +729,39 @@ class PartFormState extends ConsumerState<PartForm> {
       widget.partCtr.museumLoanCtr.text.trim().isNotEmpty ||
       widget.partCtr.remarkCtr.text.trim().isNotEmpty;
 
+  Future<void> _loadIndividuals(int partId) async {
+    final ids = await SpecimenPartServices(
+      ref: ref,
+    ).getIndividualIdsForPart(partId);
+    if (!mounted) return;
+    setState(() => widget.partCtr.individualIds = ids.toSet());
+  }
+
   Future<void> _submit() async {
+    final services = SpecimenPartServices(ref: ref);
+    final individualIds = widget.partCtr.individualIds;
     try {
+      final database = ref.read(databaseProvider);
       if (widget.isEditing) {
-        await SpecimenPartServices(
-          ref: ref,
-        ).updateSpecimenPart(widget.specimenPartId!, _getForm());
-      } else {
-        final database = ref.read(databaseProvider);
+        final partId = widget.specimenPartId!;
         await database.transaction(() async {
-          final id = await SpecimenPartServices(
-            ref: ref,
-          ).createSpecimenPart(_getForm());
+          await services.updateSpecimenPart(partId, _getForm());
+          await services.setPartIndividuals(partId, individualIds);
+        });
+        services.invalidatePartIndividuals(partId);
+      } else {
+        final id = await database.transaction(() async {
+          final id = await services.createSpecimenPart(_getForm());
+          await services.setPartIndividuals(id, individualIds);
           await ref
               .read(customFieldServiceProvider)
               .setValues(
                 CustomFieldOwner.specimenPart(id),
                 _customFields.values,
               );
+          return id;
         });
+        services.invalidatePartIndividuals(id);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
@@ -1141,6 +1177,10 @@ class PartIdForm extends ConsumerWidget {
               tissueIdCtr: partCtr.tissueIdCtr,
             ),
             UniqueIDField(barcodeIdCtr: partCtr.barcodeIdCtr),
+            SpecimenIndividualSelector(
+              specimenUuid: specimenUuid,
+              selectedIds: partCtr.individualIds,
+            ),
           ],
         ),
       ),
@@ -1388,59 +1428,26 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
     }
   }
 
-  void _showTissueSettings() {
-    TextEditingController prefixCtr = TextEditingController();
-    TextEditingController numberCtr = TextEditingController();
-    showDialog(
+  Future<void> _showTissueSettings() async {
+    await showAdaptiveSheetDialog<void>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Tissue ID settings'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CommonTextField(
-                  controller: prefixCtr,
-                  labelText: 'Prefix',
-                  hintText: 'Enter tissue ID prefix',
-                  isLastField: false,
-                ),
-                CommonNumField(
-                  controller: numberCtr,
-                  labelText: 'Number',
-                  hintText: 'Enter tissue ID number',
-                  isLastField: false,
-                ),
-              ],
-            ),
+      builder: (context, isSheet) => AdaptiveSheetDialogBody(
+        title: 'Tissue ID settings',
+        showCloseButton: !isSheet,
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Done'),
           ),
-          actions: [
-            SecondaryButton(
-              onPressed: () => Navigator.of(context).pop(),
-              text: 'Cancel',
-            ),
-            PrimaryButton(
-              onPressed: () async {
-                String tissueID = await TissueIdServices(
-                  ref: ref,
-                ).setTissueID(prefixCtr.text, numberCtr.text);
-                widget.tissueIDct.text = tissueID;
-                if (mounted) {
-                  _pop();
-                }
-              },
-              label: 'Save',
-              icon: Icons.save_alt_outlined,
-            ),
-          ],
-        );
-      },
+        ],
+        child: NumberedIdFields(
+          store: TissueIdServices(ref: ref),
+          useHorizontalLayout: false,
+          previewLabel: 'Next tissue ID',
+        ),
+      ),
     );
-  }
-
-  void _pop() {
-    Navigator.pop(context);
+    if (mounted && _hasNoId()) _getNewNumber();
   }
 
   void _getNewNumber() {

@@ -8,6 +8,7 @@ import 'package:nahpu/screens/specimens/invertebrates/attributes.dart';
 import 'package:nahpu/screens/specimens/birds/attributes.dart';
 import 'package:nahpu/screens/specimens/mammalian/attributes.dart';
 import 'package:nahpu/screens/specimens/herpetofauna/attributes.dart';
+import 'package:nahpu/screens/specimens/fishes/attributes.dart';
 import 'package:nahpu/screens/specimens/fossils/attributes.dart';
 import 'package:nahpu/screens/specimens/shared/capture_records.dart';
 import 'package:nahpu/screens/specimens/shared/general_records.dart';
@@ -137,6 +138,11 @@ class SpecimenAttributeForms extends StatelessWidget {
         );
       case CatalogFmt.paleontology:
         return FossilAttributeForms(
+          useHorizontalLayout: useHorizontalLayout,
+          specimenUuid: specimenUuid,
+        );
+      case CatalogFmt.ichthyology:
+        return FishAttributeForms(
           useHorizontalLayout: useHorizontalLayout,
           specimenUuid: specimenUuid,
         );

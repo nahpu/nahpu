@@ -116,7 +116,8 @@ class SiteServices extends AppServices {
         dbAccess,
       ).createSiteAttribute(entries.copyWith(siteID: db.Value(siteId)));
     }
-    ref.invalidate(siteAttributeProvider(siteId));
+    // No invalidation: the form holds what was just written in its controllers,
+    // and re-reading here rebuilt every open site page on each keystroke.
   }
 
   Future<void> createSiteMediaFromList(
@@ -257,6 +258,25 @@ class CoordinateServices extends AppServices {
 
   Future<CoordinateData?> getCoordinateById(int coordinateId) async {
     return CoordinateQuery(dbAccess).getCoordinateById(coordinateId);
+  }
+
+  Future<CoordinateData?> resolveSpecimenCoordinate(
+    int? coordinateId,
+    int? collEventId,
+  ) async {
+    return CoordinateQuery(
+      dbAccess,
+    ).resolveSpecimenCoordinate(coordinateId, collEventId);
+  }
+
+  Future<int?> coordinateIdForEvent(
+    int? collEventId, {
+    int? currentCoordinateId,
+  }) async {
+    return CoordinateQuery(dbAccess).coordinateIdForEvent(
+      collEventId,
+      currentCoordinateId: currentCoordinateId,
+    );
   }
 
   Future<int> createCoordinate(CoordinateCompanion form) async {

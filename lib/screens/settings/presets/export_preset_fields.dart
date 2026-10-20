@@ -128,52 +128,54 @@ class _ExportPresetFieldsScreenState
       ),
       body: PopScope(
         canPop: true,
-        child: isLargeScreen
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: availableFieldsWidget,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: selectedFieldsWidget,
-                    ),
-                  ),
-                ],
-              )
-            : DefaultTabController(
-                length: 2,
-                child: Column(
+        child: SafeArea(
+          child: isLargeScreen
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const TabBar(
-                      tabs: [
-                        Tab(text: 'Available Fields'),
-                        Tab(text: 'Selected Mappings'),
-                      ],
-                    ),
                     Expanded(
-                      child: TabBarView(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: availableFieldsWidget,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: selectedFieldsWidget,
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: availableFieldsWidget,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: selectedFieldsWidget,
                       ),
                     ),
                   ],
+                )
+              : DefaultTabController(
+                  length: 2,
+                  child: Column(
+                    children: [
+                      const TabBar(
+                        tabs: [
+                          Tab(text: 'Available Fields'),
+                          Tab(text: 'Selected Mappings'),
+                        ],
+                      ),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: availableFieldsWidget,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: selectedFieldsWidget,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -315,14 +317,17 @@ class _ExportPresetFieldsScreenState
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (context) => _MappingCustomizerBottomSheet(
-          mapping: mapping,
-          recordType: _preset.recordType,
-          specimenRecordType: _preset.specimenRecordType,
-          headerFormat: _preset.headerFormat,
-          allowExpandRows: allowExpandRows,
-          onSave: onSave,
-          initialMappingKind: initialMappingKind,
+        builder: (context) => SafeArea(
+          top: false,
+          child: _MappingCustomizerBottomSheet(
+            mapping: mapping,
+            recordType: _preset.recordType,
+            specimenRecordType: _preset.specimenRecordType,
+            headerFormat: _preset.headerFormat,
+            allowExpandRows: allowExpandRows,
+            onSave: onSave,
+            initialMappingKind: initialMappingKind,
+          ),
         ),
       );
     }
@@ -625,6 +630,7 @@ Map<String, List<String>> _availableFieldGroups(
         'birdAttribute',
         'herpAttribute',
         'invertebrateAttribute',
+        'fishAttribute',
         'fossilAttribute',
         'specimenPart',
       };
@@ -634,25 +640,35 @@ Map<String, List<String>> _availableFieldGroups(
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.birds) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('herpAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('invertebrateAttribute');
+        allowedTables.remove('fishAttribute');
       } else if (specimenRecordType == SpecimenRecordType.fossils) {
         allowedTables.removeAll({
           'mammalAttribute',
           'birdAttribute',
           'herpAttribute',
           'invertebrateAttribute',
+          'fishAttribute',
         });
       } else if (specimenRecordType == SpecimenRecordType.invertebrates) {
         allowedTables.remove('mammalAttribute');
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
+        allowedTables.remove('fishAttribute');
+      } else if (specimenRecordType == SpecimenRecordType.fishes) {
+        allowedTables.remove('mammalAttribute');
+        allowedTables.remove('birdAttribute');
+        allowedTables.remove('herpAttribute');
+        allowedTables.remove('invertebrateAttribute');
       }
       break;
   }
@@ -707,6 +723,7 @@ bool _matchesSpecimenRecordType(
     SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
     SpecimenRecordType.invertebrates =>
       catalog == CatalogFmt.invertebrateZoology,
+    SpecimenRecordType.fishes => catalog == CatalogFmt.ichthyology,
     SpecimenRecordType.fossils => catalog == CatalogFmt.paleontology,
     SpecimenRecordType.allTaxa => true,
   };

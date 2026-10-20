@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2022-2026 NAHPU Team -->
+<component type="desktop-application">
+  <id>com.hhandika.nahpu</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>NAHPU</name>
+  <summary>A digital cataloging app for natural history specimens</summary>
+
+  <description>
+    <p>
+      NAHPU (NAtural History Project Utility), loosely named after the Greater
+      Malay Chevrotain, Tragulus napu, is a field cataloging application for
+      natural history collections.
+    </p>
+    <p>
+      NAHPU records specimens, collecting events, sites, narratives, and media
+      in a single project database. It works fully offline in the field and
+      keeps every project in a self-contained file you own.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>
+        Catalog mammalogy, ornithology, herpetology, ichthyology (beta), and
+        invertebrate zoology specimens with discipline-specific forms
+      </li>
+      <li>Record collecting events, sites, and coordinates on an offline map</li>
+      <li>Attach photographs, audio recordings, and field narratives</li>
+      <li>Export to Darwin Core and CSV for museum and aggregator ingest</li>
+      <li>Print specimen labels and catalog sheets</li>
+      <li>Share projects across desktop and mobile devices</li>
+    </ul>
+  </description>
+
+  <!-- The deb and rpm install com.hhandika.nahpu.desktop; snapcraft
+       mangles the same entry to nahpu_nahpu.desktop. AppStream allows
+       several launchables, so one metainfo file serves all three. -->
+  <launchable type="desktop-id">com.hhandika.nahpu.desktop</launchable>
+  <launchable type="desktop-id">nahpu_nahpu.desktop</launchable>
+
+  <developer id="app.nahpu">
+    <name>NAHPU Team</name>
+  </developer>
+
+  <url type="homepage">https://nahpu.app/</url>
+  <url type="bugtracker">https://github.com/nahpu/nahpu/issues</url>
+
+  <categories>
+    <category>Science</category>
+    <category>Biology</category>
+    <category>Education</category>
+  </categories>
+
+  <keywords>
+    <keyword>specimen</keyword>
+    <keyword>museum</keyword>
+    <keyword>collection</keyword>
+    <keyword>natural history</keyword>
+    <keyword>catalog</keyword>
+    <keyword>biodiversity</keyword>
+    <keyword>taxonomy</keyword>
+    <keyword>field</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="1.1.0" date="2026-10-18">
+      <description>
+        <p>
+          Adds the Ichthyology catalog format (beta) for single fish and lots,
+          with lot ranges that can follow the measured individuals, individuals
+          recorded within a lot, and specimen parts and parasites linked to the
+          individuals they came from. Adds auto-numbered tag IDs, tissue ID
+          suffixes that keep the zero padding of their number, and
+          conductivity and dissolved oxygen fields for collecting events.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.3" date="2026-10-04">
+      <description>
+        <p>
+          Fixes stat label names, the add personnel button staying inactive
+          after required fields are filled, and page navigation buttons hidden
+          behind the Android navigation bar on tablets. Project information
+          opens as a bottom sheet on small screens, and the Go to page sheet
+          gains a search button.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.2" date="2026-09-17">
+      <description>
+        <p>
+          Auto-selects the coordinate in specimen records when a site has only
+          one, fixes on-device directory access when exporting on Android,
+          fixes jerky scrolling with custom fields, improves button placement
+          on small screens, updates macOS entitlements, and fixes event
+          invalidation in personnel roles.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.1" date="2026-09-13">
+      <description>
+        <p>
+          Renames the arthropod catalog to invertebrates and names catalog
+          formats for their discipline, with automatic migration of existing
+          custom-field definitions. Replaces the database backup management UI
+          with a concise summary and action list, improves documentation and
+          record statistics, and fixes missing personnel photos when restoring
+          old database backups.
+        </p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-09-02">
+      <description>
+        <p>First stable release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

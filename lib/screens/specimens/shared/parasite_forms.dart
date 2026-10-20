@@ -10,8 +10,10 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/specimens/shared/individual_selector.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/specimens/parasite_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -133,19 +135,7 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
                               : getTaxonDisplayName(taxon),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        subtitle: Text(
-                          [
-                            if (parasite.parasiteID?.isNotEmpty == true)
-                              parasite.parasiteID!,
-                            if (parasite.category?.isNotEmpty == true)
-                              parasite.category!,
-                            if (parasite.anatomicalLocation?.isNotEmpty == true)
-                              parasite.anatomicalLocation!,
-                            if (parasite.count != null)
-                              'Count: ${parasite.count}',
-                          ].join(listTileSeparator),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        subtitle: _ParasiteSubtitle(parasite: parasite),
                         trailing: _isSelecting
                             ? null
                             : IconButton(
@@ -192,6 +182,33 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
       _selected.clear();
       _isSelecting = false;
     });
+  }
+}
+
+class _ParasiteSubtitle extends ConsumerWidget {
+  const _ParasiteSubtitle({required this.parasite});
+
+  final ParasiteData parasite;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final parasiteId = parasite.id;
+    final individuals = parasiteId == null
+        ? const <SpecimenIndividualData>[]
+        : ref.watch(individualsByParasiteProvider(parasiteId)).asData?.value ??
+              const <SpecimenIndividualData>[];
+    return Text(
+      [
+        if (individuals.isNotEmpty)
+          'Ind: ${individuals.map(individualShortId).join(', ')}',
+        if (parasite.parasiteID?.isNotEmpty == true) parasite.parasiteID!,
+        if (parasite.category?.isNotEmpty == true) parasite.category!,
+        if (parasite.anatomicalLocation?.isNotEmpty == true)
+          parasite.anatomicalLocation!,
+        if (parasite.count != null) 'Count: ${parasite.count}',
+      ].join(listTileSeparator),
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 
@@ -314,6 +331,13 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
   bool get _isEditing => widget.parasite != null;
 
   @override
+  void initState() {
+    super.initState();
+    final parasiteId = widget.parasite?.id;
+    if (parasiteId != null) _loadIndividuals(parasiteId);
+  }
+
+  @override
   void dispose() {
     _customFields.dispose();
     widget.controller.dispose();
@@ -328,8 +352,10 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ParasiteIds(
+            specimenUuid: widget.specimenUuid,
             parasiteUuid: widget.controller.parasiteUuid,
             parasiteIdController: widget.controller.parasiteIdCtr,
+            individualIds: widget.controller.individualIds,
           ),
           FormSection(
             title: 'Parasite details',
@@ -421,23 +447,41 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
     );
   }
 
+  Future<void> _loadIndividuals(int parasiteId) async {
+    final ids = await ParasiteServices(
+      ref: ref,
+    ).getIndividualIdsForParasite(parasiteId);
+    if (!mounted) return;
+    setState(() {
+      widget.controller.individualIds
+        ..clear()
+        ..addAll(ids);
+    });
+  }
+
   Future<void> _submit() async {
     final form = _form();
+    final services = ParasiteServices(ref: ref);
+    final individualIds = widget.controller.individualIds;
     try {
+      final database = ref.read(databaseProvider);
       if (_isEditing) {
-        await ParasiteServices(
-          ref: ref,
-        ).updateParasite(widget.parasite!.id!, widget.specimenUuid, form);
-      } else {
-        final database = ref.read(databaseProvider);
+        final parasiteId = widget.parasite!.id!;
         await database.transaction(() async {
-          final id = await ParasiteServices(
-            ref: ref,
-          ).createParasite(widget.specimenUuid, form);
+          await services.updateParasite(parasiteId, widget.specimenUuid, form);
+          await services.setParasiteIndividuals(parasiteId, individualIds);
+        });
+        services.invalidateParasiteIndividuals(parasiteId);
+      } else {
+        final id = await database.transaction(() async {
+          final id = await services.createParasite(widget.specimenUuid, form);
+          await services.setParasiteIndividuals(id, individualIds);
           await ref
               .read(customFieldServiceProvider)
               .setValues(CustomFieldOwner.parasite(id), _customFields.values);
+          return id;
         });
+        services.invalidateParasiteIndividuals(id);
       }
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
@@ -771,12 +815,16 @@ class _ParasiteVocabularyField extends ConsumerWidget {
 
 class _ParasiteIds extends StatelessWidget {
   const _ParasiteIds({
+    required this.specimenUuid,
     required this.parasiteUuid,
     required this.parasiteIdController,
+    required this.individualIds,
   });
 
+  final String specimenUuid;
   final String parasiteUuid;
   final TextEditingController parasiteIdController;
+  final Set<int> individualIds;
 
   @override
   Widget build(BuildContext context) {
@@ -798,6 +846,10 @@ class _ParasiteIds extends StatelessWidget {
             const SizedBox(height: 8),
             SelectableText('UUID: $parasiteUuid'),
             _ParasiteIdField(controller: parasiteIdController),
+            SpecimenIndividualSelector(
+              specimenUuid: specimenUuid,
+              selectedIds: individualIds,
+            ),
           ],
         ),
       ),

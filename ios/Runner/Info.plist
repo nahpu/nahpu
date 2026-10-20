@@ -33,17 +33,17 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to use your camera</string>
+	<string>NAHPU uses the camera to photograph specimens and scan project QR codes.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like access to document folder to read and write results</string>
+	<string>NAHPU accesses the Documents folder to read and write project files and exports.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>NAHPU uses your location to record site coordinates while you catalog specimens. NAHPU does not track your location in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>NAHPU uses your location to record site coordinates while you catalog specimens.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>$(PRODUCT_NAME) would like to use your microphone</string>
+	<string>NAHPU uses the microphone to record audio and video notes attached to specimen records.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to photos</string>
+	<string>NAHPU accesses your photo library so you can attach existing images to specimen and event records.</string>
 	<key>UIActivityViewController</key>
 	<true/>
 	<key>UIActivityViewControllerCanUseAirDrop</key>

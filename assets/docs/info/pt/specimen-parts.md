@@ -1,16 +1,15 @@
 ---
 title: "Partes do espécime"
+authors: []
 sidebar:
   order: 0
 ---
 
-As partes do espécime documentam o material físico derivado do espécime ou associado a ele, como pele, crânio, esqueleto, tecido, órgão ou lâmina. Cada parte deve levar os identificadores necessários para corresponder à sua etiqueta ou ao seu recipiente. Por padrão, o NAHPU a associa ao UUID do espécime e ao Field ID.
+As partes do espécime documentam o material físico derivado do espécime ou associado a ele, como pele, crânio, esqueleto, tecido, órgão ou lâmina.
 
-Registre o tipo de preparação, o tratamento, a contagem, o tissue ID, o código QR ou de barras, o Preparator responsável e a data e hora em que a parte foi retirada. O tipo e o local de armazenamento, os números de museu permanente e de empréstimo, e as observações descrevem onde o material está guardado e o que ele tem de incomum. Configure em Settings os tipos de parte e os tratamentos controlados e use-os de forma consistente.
+Por padrão, o NAHPU associa cada parte ao UUID do espécime. Você pode adicionar um `Tissue ID` personalizado ou um UUID adicional para cada parte.
 
-Mantenha os identificadores sincronizados com os recipientes físicos. Um tissue ID que já não corresponde ao seu frasco é mais difícil de corrigir do que um ausente.
-
-Após duplicar uma parte, confira identificadores, preparação, datas e armazenamento com o novo material. Os valores copiados são um ponto de partida para revisão.
+O NAHPU oferece opções padrão para os campos de lista suspensa no formulário `Specimen Part`. Para personalizar as opções, acesse `Settings` > `Specimens`.
 
 ## Saiba mais
 

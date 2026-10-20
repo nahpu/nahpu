@@ -161,8 +161,8 @@ class CollEventServices extends AppServices {
     return await CollEffortQuery(dbAccess).createCollEffort(form);
   }
 
-  void updateCollPersonnel(int id, CollPersonnelCompanion form) async {
-    CollPersonnelQuery(dbAccess).updateCollPersonnelEntry(id, form);
+  Future<void> updateCollPersonnel(int id, CollPersonnelCompanion form) async {
+    await CollPersonnelQuery(dbAccess).updateCollPersonnelEntry(id, form);
     invalidateCollPersonnel();
   }
 
@@ -268,7 +268,7 @@ class CollEventServices extends AppServices {
   }
 
   void invalidateCollPersonnel() {
-    // ref.invalidate(collPersonnelProvider);
+    ref.invalidate(collPersonnelProvider);
   }
 }
 

@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -31,6 +32,7 @@ class ExportFormState extends ConsumerState<ExportForm>
     with SingleTickerProviderStateMixin {
   final FileOpCtrModel exportCtr = FileOpCtrModel.empty();
   String _fileStem = 'export';
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   String? _selectedPresetName;
   ExportPresetModel? _selectedPreset;
@@ -133,6 +135,7 @@ class ExportFormState extends ConsumerState<ExportForm>
                   onClearDir: _clearDestination,
                   onShare: () => _shareFile(context),
                   onOpenFolder: _openFolder,
+                  onSaveCopy: _saveCopy,
                   onDismiss: _clearDestination,
                 ),
               ],
@@ -237,7 +240,7 @@ class ExportFormState extends ConsumerState<ExportForm>
         _ => format.name,
       };
       final savePath = await AppIOServices(
-        dir: _selectedDir,
+        dir: await _destination.resolve(_selectedDir),
         fileStem: _appendDate
             ? appendDateToFileStem(_fileStem, DateTime.now())
             : _fileStem.trim(),
@@ -269,6 +272,7 @@ class ExportFormState extends ConsumerState<ExportForm>
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final path = await FilePickerServices().selectDir();
     if (path == null || !mounted) return;
     setState(() {
@@ -286,6 +290,24 @@ class ExportFormState extends ConsumerState<ExportForm>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists
+  /// apps that accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(savePath);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to save a copy: $error')),
         );
       }
     }

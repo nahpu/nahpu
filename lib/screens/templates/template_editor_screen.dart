@@ -880,12 +880,15 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        builder: (context) => TextElementEditorBottomSheet(
-          initialText: ct.text,
-          recordType: _template.recordType,
-          onSave: (newText) {
-            _updateCustomText(page1, ct.copyWith(text: newText));
-          },
+        builder: (context) => SafeArea(
+          top: false,
+          child: TextElementEditorBottomSheet(
+            initialText: ct.text,
+            recordType: _template.recordType,
+            onSave: (newText) {
+              _updateCustomText(page1, ct.copyWith(text: newText));
+            },
+          ),
         ),
       );
     }

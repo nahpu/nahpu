@@ -41,7 +41,7 @@ void main() {
 
   test('fossil mappings preserve existing catalog and export enum codes', () {
     expect(CatalogFmt.invertebrateZoology.index, 3);
-    expect(SpecimenRecordType.allTaxa.index, 6);
+    expect(SpecimenRecordType.allTaxa.index, 7);
     expect(
       matchCatalogFmtToRecordType(CatalogFmt.paleontology),
       SpecimenRecordType.fossils,

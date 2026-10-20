@@ -1,14 +1,17 @@
 ---
 title: "Registro geral do espécime"
+authors: []
 sidebar:
   order: 0
 ---
 
-O registro geral identifica o espécime e as pessoas responsáveis pela catalogação, preparação e identificação. Escolha o táxon no registro do projeto e use `ID Confidence` para indicar a confiança na identificação.
+O registro geral identifica o espécime e as pessoas responsáveis pela catalogação, preparação e identificação. Escolha o táxon no registro do projeto. O campo Taxon fica desabilitado quando o registro de táxons está vazio. Nesse caso, acesse `Dashboard` e selecione `Add Taxon`. Use `ID Confidence` para registrar a confiança na identificação.
 
-Field IDs pessoais usam as iniciais e o número de campo de um Cataloger habilitado. Field IDs de projeto usam prefixo, número de catálogo e sufixo do projeto. Nenhum deles é o UUID do projeto. Confira o identificador com a etiqueta física antes de continuar.
+Os Field IDs de pessoal usam as iniciais e o número de campo pessoal de um `Cataloger` elegível. Os Field IDs de projeto usam o prefixo do projeto, o número de catálogo e o sufixo.
 
-Atribua Cataloger, Preparator e Determiner conforme o trabalho realizado. Registre a condição observada e as datas e horários conhecidos de coleta e preparação. Os campos são atualizados durante a edição; revise o registro e os erros de validação antes de sair.
+Atribua `Cataloger`, `Preparator` e `Determiner` de acordo com o trabalho realizado. Por padrão, o NAHPU atribui o catalogador aos três campos. Altere essas atribuições se pessoas diferentes realizarem o trabalho.
+
+Você pode personalizar as opções de `Condition`, `ID Confidence` e `Identification Methods` em `Settings` > `Specimens`.
 
 ## Saiba mais
 

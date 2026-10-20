@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/records/collevent_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
+import 'package:nahpu/services/types/events.dart';
 
 void main() {
   testWidgets('environmental fields are grouped by category', (tester) async {
@@ -39,24 +40,26 @@ void main() {
     await tester.pumpAndSettle();
 
     const orderedLabels = [
-      'Temperature (°C)',
-      'Day lowest temperature',
-      'Day highest temperature',
-      'Night lowest temperature',
-      'Night highest temperature',
-      'Humidity (%)',
-      'Average humidity',
-      'Dew point',
+      'Temperature',
+      'Day lowest temperature (°C)',
+      'Day highest temperature (°C)',
+      'Night lowest temperature (°C)',
+      'Night highest temperature (°C)',
+      'Humidity',
+      'Average humidity (%)',
+      'Dew point (°C)',
       'Environmental measurements',
-      'Cloud cover',
-      'Rainfall',
-      'Ambient temperature',
-      'Ambient humidity',
+      'Cloud cover (okta)',
+      'Rainfall (mm)',
+      'Ambient temperature (°C)',
+      'Ambient humidity (%)',
       'Aquatic Data',
-      'Water temperature',
+      'Water temperature (°C)',
       'pH',
-      'Dissolved oxygen',
-      'Flow velocity',
+      'Dissolved oxygen (mg/L)',
+      'Dissolved oxygen saturation (%)',
+      'Conductivity (µS/cm)',
+      'Flow velocity (m/s)',
       'Astronomy',
       'Sunrise',
       'Sunset',
@@ -72,13 +75,10 @@ void main() {
     for (var index = 1; index < yPositions.length; index++) {
       expect(yPositions[index], greaterThan(yPositions[index - 1]));
     }
-    expect(
-      find.widgetWithText(CheckboxListTile, 'Temperature (°C)'),
-      findsNothing,
-    );
+    expect(find.widgetWithText(CheckboxListTile, 'Temperature'), findsNothing);
 
     await tester.tap(
-      find.widgetWithText(CheckboxListTile, 'Water temperature'),
+      find.widgetWithText(CheckboxListTile, 'Water temperature (°C)'),
     );
     await tester.pumpAndSettle();
 
@@ -92,6 +92,23 @@ void main() {
         'notes',
       ],
     ]);
+  });
+
+  test('every numeric environmental field declares its unit', () {
+    const unitless = {'pH'};
+    for (final field in environmentalNumericFields) {
+      if (unitless.contains(field)) continue;
+      expect(
+        environmentalDataFieldUnits[field],
+        isNotNull,
+        reason: '$field needs a unit',
+      );
+    }
+    expect(
+      environmentalDataFieldLabelWithUnit('conductivity'),
+      'Conductivity (µS/cm)',
+    );
+    expect(environmentalDataFieldLabelWithUnit('pH'), 'pH');
   });
 }
 

@@ -1,14 +1,15 @@
 ---
 title: "Esforço de amostragem"
+authors: []
 sidebar:
   order: 0
 ---
 
-Os registros de esforço descrevem como a amostragem foi realizada. Adicione cada método separadamente e registre o número de unidades, a marca e o modelo do equipamento, seu tamanho ou dimensões e as notas. Inclua as unidades nos valores de tamanho (por exemplo, "10cm x 10cm x 10cm").
+Os registros de esforço descrevem métodos, contagens e outros detalhes relevantes. Duplicar um evento copia seus registros de esforço. O NAHPU oferece um conjunto limitado de métodos padrão. Para personalizar as opções, acesse `Settings` > `Events` > `Collection Methods`.
 
-Use as mesmas unidades e nomes de método controlados em todo o projeto para que os esforços possam ser comparados. Informe contexto suficiente para que outra pessoa entenda o esforço sem inferir dados ausentes. Duplicar um evento também copia os registros de esforço.
+Adicione cada método separadamente e registre o número de unidades, a marca e o modelo do equipamento, seu tamanho ou dimensões e as notas. Inclua as unidades nos valores de tamanho (por exemplo, "10 cm × 10 cm × 10 cm").
 
-Revise as contagens de equipamentos e os métodos copiados em cada evento. Registre zero apenas quando for uma contagem observada e explique esforços incompletos nas notas.
+Use as mesmas unidades e nomes de método controlados em todo o projeto para que os esforços possam ser comparados.
 
 ## Saiba mais
 

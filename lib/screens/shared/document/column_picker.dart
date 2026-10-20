@@ -68,30 +68,34 @@ class _SpecimenTableColumnSelectorState
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selected.clear();
-                    _selected.addAll(kDefaultPrintSpecimenTableColumnIds);
-                  });
-                },
-                child: const Text('Defaults'),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, _selected.toList()),
-                child: const Text('Apply'),
-              ),
-            ],
+        // Bottom sheets extend under the system navigation bar.
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selected.clear();
+                      _selected.addAll(kDefaultPrintSpecimenTableColumnIds);
+                    });
+                  },
+                  child: const Text('Defaults'),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, _selected.toList()),
+                  child: const Text('Apply'),
+                ),
+              ],
+            ),
           ),
         ),
       ],

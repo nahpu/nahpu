@@ -15,8 +15,14 @@ Future<String?> showTemplatePickerSheet({
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (context) =>
-        TemplatePickerSheet(savedNames: savedNames, currentName: currentName),
+    // useSafeArea only covers the top; keep the list above the navigation bar.
+    builder: (context) => SafeArea(
+      top: false,
+      child: TemplatePickerSheet(
+        savedNames: savedNames,
+        currentName: currentName,
+      ),
+    ),
   );
 }
 

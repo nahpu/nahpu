@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -192,6 +193,9 @@ class FocusDetectedLayout extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.symmetric(
           horizontal: NahpuPageMargin.horizontal,
+        ),
+        scrollCacheExtent: const ScrollCacheExtent.pixels(
+          NahpuScroll.recordFormCacheExtent,
         ),
         children: children,
       ),

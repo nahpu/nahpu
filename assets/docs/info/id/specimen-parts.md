@@ -1,16 +1,15 @@
 ---
 title: "Bagian spesimen"
+authors: []
 sidebar:
   order: 0
 ---
 
-Bagian spesimen mendokumentasikan material fisik yang berasal dari atau terkait dengan spesimen, seperti kulit, tengkorak, kerangka, jaringan, organ, atau preparat kaca. Setiap bagian sebaiknya membawa pengenal yang diperlukan agar cocok dengan label atau wadahnya. Secara bawaan, NAHPU mengaitkannya dengan UUID spesimen dan Field ID.
+Bagian spesimen mendokumentasikan material fisik yang berasal dari atau terkait dengan spesimen, seperti kulit, tengkorak, kerangka, jaringan, organ, atau preparat kaca.
 
-Catat tipe preparasi, perlakuan, jumlah, tissue ID, kode QR atau kode batang, Preparator yang bertanggung jawab, serta tanggal dan waktu bagian itu diambil. Tipe dan lokasi penyimpanan, nomor museum permanen dan pinjaman, serta keterangan menjelaskan di mana material disimpan dan apa yang tidak biasa padanya. Atur tipe bagian dan perlakuan terkontrol di Settings, lalu gunakan secara konsisten.
+Secara bawaan, NAHPU menghubungkan setiap bagian dengan UUID spesimen. Anda dapat menambahkan `Tissue ID` khusus atau UUID tambahan untuk setiap bagian.
 
-Jaga agar pengenal tetap selaras dengan wadah fisiknya. Tissue ID yang tidak lagi cocok dengan vialnya lebih sulit diperbaiki daripada yang belum diisi.
-
-Setelah menduplikasi bagian spesimen, cocokkan pengenal, preparasi, tanggal, dan penyimpanan dengan bahan yang baru. Nilai salinan merupakan titik awal untuk peninjauan.
+NAHPU menyediakan pilihan bawaan untuk bidang dropdown pada formulir `Specimen Part`. Untuk menyesuaikan pilihan, buka `Settings` > `Specimens`.
 
 ## Pelajari lebih lanjut
 

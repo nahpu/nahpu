@@ -87,6 +87,7 @@ void main() {
     const betaFormats = {
       CatalogFmt.herpetology,
       CatalogFmt.invertebrateZoology,
+      CatalogFmt.ichthyology,
       CatalogFmt.paleontology,
     };
     for (final fmt in CatalogFmt.values) {

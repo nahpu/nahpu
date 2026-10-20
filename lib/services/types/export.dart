@@ -66,6 +66,7 @@ enum SpecimenRecordType {
   allMammals,
   herpetofauna,
   invertebrates,
+  fishes,
   allTaxa,
   fossils,
 }
@@ -78,7 +79,7 @@ const List<String> specimenExportFmtList = [
   'Custom fields',
 ];
 
-enum TaxonRecordType { birds, mammals, herps, invertebrates }
+enum TaxonRecordType { birds, mammals, herps, invertebrates, fishes }
 
 /// Labels for [TaxonRecordType], in enum order.
 ///
@@ -89,6 +90,7 @@ const List<String> taxonRecordTypeList = [
   'Mammals',
   'Herpetofauna',
   'Invertebrates',
+  'Fishes',
 ];
 
 enum MammalRecordType { excludeBats, onlyBats, allMammals }
@@ -179,6 +181,7 @@ const List<String> parasiteExportList = [
   'parasite::museumPermanent',
   'parasite::museumLoan',
   'parasite::remark',
+  'parasite::individuals',
 ];
 
 const siteExportList = [
@@ -350,6 +353,27 @@ const invertebrateAttributeExportList = [
   'measurement::remark',
 ];
 
+const fishAttributeExportList = [
+  'measurement::specimenType',
+  'measurement::individualCount',
+  'measurement::sex',
+  'measurement::lifeStage',
+  'measurement::standardLength',
+  'measurement::totalLength',
+  'measurement::weight',
+  'measurement::weightUnit',
+  'measurement::minStandardLength',
+  'measurement::maxStandardLength',
+  'measurement::minTotalLength',
+  'measurement::maxTotalLength',
+  'measurement::minWeight',
+  'measurement::maxWeight',
+  'measurement::remark',
+];
+
+/// Lot individuals, one `|`-separated entry per individual.
+const String individualExportSimple = 'individual::individuals';
+
 const fossilAttributeExportList = [
   'measurement::fossilType',
   'measurement::specimenDescription',
@@ -398,6 +422,8 @@ const environmentalDataExportList = [
   'environment::dissolvedOxygen',
   'environment::flowVelocity',
   'environment::notes',
+  'environment::conductivity',
+  'environment::dissolvedOxygenPercent',
 ];
 
 const allMediaExportList = [

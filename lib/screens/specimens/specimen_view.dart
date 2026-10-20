@@ -5,7 +5,6 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/specimens/shared/search.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
-import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -72,22 +71,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer>
         title: const Text("Specimen Records"),
         actions: [
           IconButton(
-            onPressed: _specimenUuid == null
-                ? null
-                : () async {
-                    final specimenData = await SpecimenServices(
-                      ref: ref,
-                    ).getAllSpecimens();
-                    if (context.mounted) {
-                      // Pushed on top of the shell; Cancel pops back here.
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              SpecimenSearchView(specimenData: specimenData),
-                        ),
-                      );
-                    }
-                  },
+            onPressed: _specimenUuid == null ? null : _openSearch,
             icon: const Icon(Icons.search),
           ),
           const NewSpecimens(),
@@ -117,7 +101,22 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer>
       ),
       bottomSheet: Visibility(
         visible: isNavVisible,
-        child: PageNavButton(pageNav: pageNav),
+        child: PageNavButton(
+          pageNav: pageNav,
+          onSearch: _specimenUuid == null ? null : _openSearch,
+          bottomPadding: MediaQuery.paddingOf(context).bottom,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSearch() async {
+    final specimenData = await SpecimenServices(ref: ref).getAllSpecimens();
+    if (!mounted) return;
+    // Pushed on top of the shell; Cancel pops back here.
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SpecimenSearchView(specimenData: specimenData),
       ),
     );
   }
@@ -217,22 +216,18 @@ class _SpecimenPage extends ConsumerWidget {
         );
 
     CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(currentSpecimen.taxonGroup);
-    final specimenFormCtr = _updateController(currentSpecimen);
 
     return PageViewer(
       pageNav: pageNav,
       isNavButtonVisible: isNavButtonVisible,
       child: SpecimenForm(
-        key: ValueKey('${currentSpecimen.uuid}-${currentSpecimen.speciesID}'),
-        specimenUuid: currentSpecimen.uuid,
-        specimenCtr: specimenFormCtr,
+        // Keyed by the record alone. Keying by the selected taxon as well would
+        // discard the form -- and its scroll position -- on every selection.
+        key: ValueKey(currentSpecimen.uuid),
+        specimen: currentSpecimen,
         catalogFmt: catalogFmt,
       ),
     );
-  }
-
-  SpecimenFormCtrModel _updateController(SpecimenData specimenEntry) {
-    return SpecimenFormCtrModel.fromData(specimenEntry);
   }
 }
 
@@ -274,10 +269,9 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
                   CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(
                     specimen.taxonGroup,
                   );
-                  final specimenFormCtr = _updateController(specimen);
                   return SpecimenForm(
-                    specimenUuid: specimen.uuid,
-                    specimenCtr: specimenFormCtr,
+                    key: ValueKey(specimen.uuid),
+                    specimen: specimen,
                     catalogFmt: catalogFmt,
                   );
                 }
@@ -287,10 +281,6 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
             ),
       ),
     );
-  }
-
-  SpecimenFormCtrModel _updateController(SpecimenData specimenEntry) {
-    return SpecimenFormCtrModel.fromData(specimenEntry);
   }
 }
 

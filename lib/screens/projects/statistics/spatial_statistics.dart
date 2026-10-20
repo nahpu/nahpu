@@ -19,7 +19,7 @@ class SpatialStatisticsPanel extends ConsumerStatefulWidget {
   final String projectUuid;
   final String projectName;
 
-  /// Fixed card height, shared with the detailed counts card so switching
+  /// Fixed card height, shared with the Explore counts card so switching
   /// between them keeps the page steady.
   final double height;
 

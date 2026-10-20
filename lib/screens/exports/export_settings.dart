@@ -12,6 +12,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -37,6 +38,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
   rust_config.UserConfigTransferPreview? _preview;
   List<CustomFieldDefinitionData> _customFields = const [];
   final Set<int> _selectedCustomFieldIds = {};
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDirectory;
   File? _savedFile;
   bool _isLoadingPreview = true;
@@ -128,6 +130,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
             onClearDir: _clearDestination,
             onShare: _share,
             onOpenFolder: _openFolder,
+            onSaveCopy: _saveCopy,
             onDismiss: _clearDestination,
           ),
         ],
@@ -256,6 +259,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final selected = await FilePickerServices().selectDir();
     if (selected == null || !mounted) return;
     setState(() {
@@ -268,7 +272,7 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
     setState(() => _isRunning = true);
     try {
       final output = await AppIOServices(
-        dir: _selectedDirectory,
+        dir: await _destination.resolve(_selectedDirectory),
         fileStem: _appendDate
             ? appendDateToFileStem(
                 _exportController.fileNameCtr.text,
@@ -324,6 +328,24 @@ class _ExportSettingsFormState extends ConsumerState<ExportSettingsForm>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists
+  /// apps that accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final file = _savedFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(file);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to save a copy: $error')),
         );
       }
     }

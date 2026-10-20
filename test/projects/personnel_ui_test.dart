@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +8,7 @@ import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_details.dart';
 import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
+import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -178,6 +179,60 @@ void main() {
     _expectInsideScroll(tester, 'Show less');
     _expectOutsideScroll(tester, 'Cancel');
     _expectOutsideScroll(tester, 'Add');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('add cataloger enables submit after a single role selection', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(700, 1000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final controller = PersonnelFormCtrModel.empty();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: PersonnelFormPage(
+              ctr: controller,
+              personnelUuid: 'ada',
+              isEditing: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    PrimaryButton addButton() =>
+        tester.widget<PrimaryButton>(find.widgetWithText(PrimaryButton, 'Add'));
+
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cataloger').last);
+    await tester.pumpAndSettle();
+    expect(addButton().onPressed, isNull);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name*'),
+      'Ada Lovelace',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Initials*'),
+      'AL',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Cataloger number*'),
+      '42',
+    );
+    await tester.pumpAndSettle();
+    expect(addButton().onPressed, isNotNull);
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Name*'), '');
+    await tester.pumpAndSettle();
+    expect(addButton().onPressed, isNull);
     expect(tester.takeException(), isNull);
   });
 

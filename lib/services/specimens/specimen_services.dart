@@ -14,6 +14,7 @@ import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/specimens/numbered_id.dart';
 import 'package:nahpu/services/database/personnel_queries.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
@@ -29,7 +30,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 
 const String tissueIDPrefixKey = 'tissueIDPrefix';
+
+/// The integer counter used before tissue IDs kept zero padding. Read only
+/// to migrate it to [tissueIDNumberTextKey].
 const String tissueIDNumberKey = 'tissueIDNumber';
+const String tissueIDNumberTextKey = 'tissueIDNumberText';
+const String tissueIDSuffixKey = 'tissueIDSuffix';
 String formatProjectFieldId(ProjectData project, int? number) {
   if (number == null) return '';
   return formatProjectFieldIdParts(
@@ -110,6 +116,9 @@ class SpecimenServices extends AppServices {
           break;
         case CatalogFmt.invertebrateZoology:
           await _createInvertebrateSpecimen(specimenUuid);
+          break;
+        case CatalogFmt.ichthyology:
+          await _createFishSpecimen(specimenUuid);
           break;
         case CatalogFmt.paleontology:
           await FossilSpecimenQuery(dbAccess).save(
@@ -552,6 +561,34 @@ class SpecimenServices extends AppServices {
     ).updateInvertebrateAttributes(specimenUuid, entries);
   }
 
+  Future<void> _createFishSpecimen(String specimenUuid) async {
+    await FishSpecimenQuery(dbAccess).createFishAttributes(
+      FishAttributeCompanion(
+        specimenUuid: db.Value(specimenUuid),
+        specimenType: db.Value(FishSpecimenType.individual.index),
+        isAutoRange: const db.Value(1),
+        weightUnit: const db.Value('g'),
+      ),
+    );
+  }
+
+  Future<FishAttributeData> getFishAttributeData(String specimenUuid) {
+    return FishSpecimenQuery(dbAccess).getFishAttributeByUuid(specimenUuid);
+  }
+
+  Future<void> updateFishAttribute(
+    String specimenUuid,
+    FishAttributeCompanion entries,
+  ) {
+    return FishSpecimenQuery(
+      dbAccess,
+    ).updateFishAttributes(specimenUuid, entries);
+  }
+
+  Future<void> deleteFishAttributes(String specimenUuid) async {
+    await FishSpecimenQuery(dbAccess).deleteFishAttributes(specimenUuid);
+  }
+
   Future<void> deleteBirdAttributes(String specimenUuid) async {
     await BirdSpecimenQuery(dbAccess).deleteBirdAttributes(specimenUuid);
   }
@@ -602,10 +639,14 @@ class SpecimenServices extends AppServices {
       case CatalogFmt.invertebrateZoology:
         await deleteInvertebrateAttributes(specimenUuid);
         break;
+      case CatalogFmt.ichthyology:
+        await deleteFishAttributes(specimenUuid);
+        break;
       case CatalogFmt.paleontology:
         await FossilSpecimenQuery(dbAccess).deleteAttributes(specimenUuid);
         break;
     }
+    await SpecimenIndividualQuery(dbAccess).deleteIndividuals(specimenUuid);
     await SpecimenQuery(dbAccess).deleteAllSpecimenMedias(specimenUuid);
     await SpecimenQuery(dbAccess).deleteSpecimen(specimenUuid);
     invalidateSpecimenList();
@@ -636,10 +677,14 @@ class SpecimenServices extends AppServices {
         case CatalogFmt.invertebrateZoology:
           await deleteInvertebrateAttributes(specimen.uuid);
           break;
+        case CatalogFmt.ichthyology:
+          await deleteFishAttributes(specimen.uuid);
+          break;
         case CatalogFmt.paleontology:
           await FossilSpecimenQuery(dbAccess).deleteAttributes(specimen.uuid);
           break;
       }
+      await SpecimenIndividualQuery(dbAccess).deleteIndividuals(specimen.uuid);
     }
     await SpecimenQuery(dbAccess).deleteAllSpecimens(projectUuid);
     invalidateSpecimenList();
@@ -883,55 +928,71 @@ class ProjectFieldIdServices extends AppServices {
   }
 }
 
-class TissueIdServices extends AppServices {
+/// Auto-numbers tissue IDs as a prefix, a zero-padded number, and a suffix.
+class TissueIdServices extends AppServices implements NumberedIdStore {
   const TissueIdServices({required super.ref});
 
   SharedPreferences get _prefs => ref.read(settingProvider);
 
+  @override
+  NumberedIdFormat get format => NumberedIdFormat(
+    prefix: getPrefix(),
+    number: getNumberString(),
+    suffix: _prefs.getString(tissueIDSuffixKey) ?? '',
+  );
+
+  /// Returns the next tissue ID and advances the counter.
   Future<String> getNewNumber() async {
-    String prefix = getPrefix();
-    int? number = _getSettingNumber();
-    String numberString = getNumberString();
-    await incrementNumber(number ?? 0);
-    return '$prefix$numberString';
+    final current = format;
+    final next = current.incrementedNumber ?? '1';
+    await setNumber(next);
+    return current.nextTag ?? '${current.prefix}${current.suffix}';
   }
 
   String getPrefix() {
-    return _geSettingPrefix() ?? '';
+    return _prefs.getString(tissueIDPrefixKey) ?? '';
   }
 
+  /// The next number as stored, keeping its zero padding.
+  ///
+  /// Falls back to the integer the counter was stored as before suffixes
+  /// were supported.
   String getNumberString() {
-    return _getSettingNumber() == null ? '' : _getSettingNumber().toString();
+    final number = _prefs.getString(tissueIDNumberTextKey);
+    if (number != null) return number;
+    final legacy = _prefs.get(tissueIDNumberKey);
+    return legacy is int ? legacy.toString() : '';
   }
 
   Future<String?> repeatNumber(String specimenUuid) async {
     return SpecimenPartQuery(dbAccess).getLastEnteredTissueID(specimenUuid);
   }
 
-  Future<String> setTissueID(String prefix, String number) async {
+  Future<String> setTissueID(
+    String prefix,
+    String number, {
+    String suffix = '',
+  }) async {
     await setPrefix(prefix);
     await setNumber(number);
-    return '$prefix$number';
+    await setSuffix(suffix);
+    return format.nextTag ?? '$prefix$suffix';
   }
 
-  Future<void> incrementNumber(int number) async {
-    await setNumber((number + 1).toString());
-  }
-
+  @override
   Future<void> setPrefix(String prefix) async {
     await _prefs.setString(tissueIDPrefixKey, prefix);
   }
 
+  @override
   Future<void> setNumber(String number) async {
-    await _prefs.setInt(tissueIDNumberKey, int.tryParse(number) ?? 0);
+    await _prefs.setString(tissueIDNumberTextKey, numberedIdDigits(number));
+    await _prefs.remove(tissueIDNumberKey);
   }
 
-  String? _geSettingPrefix() {
-    return _prefs.getString(tissueIDPrefixKey);
-  }
-
-  int? _getSettingNumber() {
-    return _prefs.getInt(tissueIDNumberKey);
+  @override
+  Future<void> setSuffix(String suffix) async {
+    await _prefs.setString(tissueIDSuffixKey, suffix);
   }
 }
 
@@ -962,6 +1023,23 @@ class SpecimenPartServices extends AppServices {
     await SpecimenPartQuery(dbAccess).updateSpecimenPart(partId, form);
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
+  }
+
+  Future<List<int>> getIndividualIdsForPart(int partId) {
+    return SpecimenPartIndividualQuery(
+      dbAccess,
+    ).getIndividualIdsForPart(partId);
+  }
+
+  /// Replaces the individuals [partId] was taken from.
+  Future<void> setPartIndividuals(int partId, Iterable<int> individualIds) {
+    return SpecimenPartIndividualQuery(
+      dbAccess,
+    ).setIndividualsForPart(partId, individualIds);
+  }
+
+  void invalidatePartIndividuals(int partId) {
+    ref.invalidate(individualsByPartProvider(partId));
   }
 }
 

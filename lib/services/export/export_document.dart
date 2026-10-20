@@ -33,7 +33,7 @@ class ExportDocumentService {
 
   /// Exports documents to PDF using the provided parameters.
   Future<File> exportDocuments({
-    required Directory selectedDir,
+    required Directory? selectedDir,
     required String fileStem,
     required rust_config.DocumentLayoutPreset layout,
   }) async {

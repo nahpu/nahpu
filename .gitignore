@@ -52,15 +52,25 @@ app.*.map.json
 # Coverage
 coverage/
 
-# MacOS DMG Creations
-/installer/*.dmg
-/installer/nahpu.dmg
-
 # Rust
 /target/
+
+# Snapcraft
+/parts/
+/stage/
+/prime/
+*.snap
+
+# Linux packages (nfpm output)
+/dist/
+*.deb
+*.rpm
 
 *.jks
 
 keys/
 
 rust_builder/
+.kotlin/
+# Local build output for manual uploads
+/tmp/

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "NAHPU Team" "\0"
-            VALUE "FileDescription", "nahpu" "\0"
+            VALUE "FileDescription", "NAHPU" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "nahpu" "\0"
+            VALUE "InternalName", "NAHPU" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2022-2026 NAHPU Team. Licensed under the MIT License." "\0"
-            VALUE "OriginalFilename", "nahpu.exe" "\0"
-            VALUE "ProductName", "nahpu" "\0"
+            VALUE "OriginalFilename", "NAHPU.exe" "\0"
+            VALUE "ProductName", "NAHPU" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

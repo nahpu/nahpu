@@ -11,7 +11,7 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/templates/template_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/export/export_document.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/settings/presets/document_presets.dart';
@@ -50,6 +50,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   late TabController _mobileTabController;
 
   FileOpCtrModel exportCtr = FileOpCtrModel.empty();
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   File? _savePath;
   bool _isRunning = false;
@@ -106,6 +107,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
               onClearDir: _clearDestination,
               onShare: _shareExport,
               onOpenFolder: _openFolder,
+              onSaveCopy: _saveCopy,
               onDismiss: _clearDestination,
             ),
             onManagePresets: _managePresets,
@@ -225,6 +227,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final path = await FilePickerServices().selectDir();
     if (path == null || !mounted) return;
     setState(() {
@@ -290,15 +293,6 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
           _loading = false;
         });
       }
-
-      if (Platform.isAndroid || Platform.isIOS) {
-        final appDocDir = await getApplicationDocumentsDirectory();
-        if (mounted) {
-          setState(() {
-            _selectedDir = appDocDir;
-          });
-        }
-      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -351,12 +345,14 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
   }
 
   Future<void> _exportDocuments() async {
-    if (!exportCtr.isValid || _selectedDir == null || _layout == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter a file name and choose a directory first.'),
-        ),
-      );
+    // No directory is a valid state: the export then lands in NAHPU app
+    // storage, which is the only option on iOS and the fallback elsewhere.
+    // Requiring one here left the enabled button silently doing nothing once
+    // the destination had been cleared.
+    if (!exportCtr.isValid || _layout == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a file name first.')));
       return;
     }
 
@@ -367,7 +363,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
 
     try {
       final savePath = await ExportDocumentService(ref: ref).exportDocuments(
-        selectedDir: _selectedDir!,
+        selectedDir: await _destination.resolve(_selectedDir),
         fileStem: _appendDate
             ? appendDateToFileStem(exportCtr.fileNameCtr.text, DateTime.now())
             : exportCtr.fileNameCtr.text,
@@ -403,6 +399,24 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Unable to open the folder: $error')),
+        );
+      }
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists
+  /// apps that accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final savePath = _savePath;
+    if (savePath == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(savePath);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to save a copy: $error')),
         );
       }
     }

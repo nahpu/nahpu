@@ -68,6 +68,21 @@ void main() {
     expect(find.text('Elements · Front'), findsNothing);
   });
 
+  testWidgets('the list ends above the system navigation bar', (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(bottom: 48);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+    addTearDown(tester.view.reset);
+
+    await openSheet(tester, page, <String?>[]);
+
+    expect(
+      tester.getBottomLeft(find.byType(ListView)).dy,
+      lessThanOrEqualTo(800 - 48),
+    );
+  });
+
   testWidgets('an empty side says how to add elements', (tester) async {
     await openSheet(tester, const TemplatePage(), <String?>[]);
 

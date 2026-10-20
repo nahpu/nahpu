@@ -9,6 +9,7 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
@@ -27,6 +28,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   ProjectTransferArchiveFormat _format = ProjectTransferArchiveFormat.tarGzip;
   bool _lightExport = false;
   ProjectTransferPayload? _payload;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _directory;
   File? _output;
   bool _appendDate = false;
@@ -113,6 +115,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
               onClearDir: _clearDestination,
               onShare: _share,
               onOpenFolder: _openFolder,
+              onSaveCopy: _saveCopy,
               onDismiss: _clearDestination,
             );
             final settingsPane = _isSaving && jobProgress != null
@@ -220,6 +223,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final selected = await FilePickerServices().selectDir();
     if (selected == null || !mounted) return;
     setState(() {
@@ -260,7 +264,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
             ? appendDateToFileStem(_fileNameController.text, DateTime.now())
             : _fileNameController.text,
         format: format,
-        destinationDirectory: _directory,
+        destinationDirectory: await _destination.resolve(_directory),
         progress: reporter,
         cancel: cancellation,
       );
@@ -351,6 +355,23 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Unable to open the folder: $error')),
       );
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists
+  /// apps that accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final output = _output;
+    if (output == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(output);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to save a copy: $error')));
     }
   }
 

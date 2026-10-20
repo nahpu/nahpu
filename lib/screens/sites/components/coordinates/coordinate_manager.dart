@@ -409,6 +409,7 @@ class _CoordinateExportOverlayState
     extends ConsumerState<_CoordinateExportOverlay> {
   late final FileOpCtrModel _exportCtr;
   CoordinateFileFormat _format = CoordinateFileFormat.geoJson;
+  final ExportDestinationService _destination = ExportDestinationService();
   Directory? _selectedDir;
   File? _outputFile;
   bool _isRunning = false;
@@ -475,6 +476,9 @@ class _CoordinateExportOverlayState
             isRunning: _isRunning,
             onExport: _exportCtr.isValid ? _export : null,
             onShare: _share,
+            output: _outputFile,
+            onRevealFile: _openFolder,
+            onSaveCopy: _saveCopy,
           ),
         ],
       ),
@@ -492,6 +496,7 @@ class _CoordinateExportOverlayState
   }
 
   Future<void> _selectDirectory() async {
+    if (!_destination.canChooseDirectory) return;
     final directory = await FilePickerServices().selectDir();
     if (directory != null && mounted) {
       setState(() {
@@ -510,13 +515,21 @@ class _CoordinateExportOverlayState
         fileName: _appendDate
             ? appendDateToFileStem(_exportCtr.fileNameCtr.text, DateTime.now())
             : _exportCtr.fileNameCtr.text,
-        destinationDirectory: _selectedDir,
+        destinationDirectory: await _destination.resolve(_selectedDir),
       );
       if (!mounted) return;
       setState(() => _outputFile = file);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Exported to ${file.path}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            // Only a folder the user chose is worth naming; the fallback is a
+            // path they cannot act on.
+            _selectedDir != null
+                ? 'Exported to ${file.path}'
+                : 'Export complete',
+          ),
+        ),
+      );
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -540,6 +553,37 @@ class _CoordinateExportOverlayState
         ).showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
+  }
+
+  Future<void> _openFolder() async {
+    final file = _outputFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().openContainingDirectory(file);
+    } catch (error) {
+      _reportActionFailure('open the folder', error);
+    }
+  }
+
+  /// Hands the finished file to the system "Save to..." dialog.
+  ///
+  /// How Android reaches the Files app: its share sheet only lists apps that
+  /// accept a file, never a folder to drop one into.
+  Future<void> _saveCopy() async {
+    final file = _outputFile;
+    if (file == null) return;
+    try {
+      await FilePickerServices().saveCopyToDevice(file);
+    } catch (error) {
+      _reportActionFailure('save a copy', error);
+    }
+  }
+
+  void _reportActionFailure(String what, Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Unable to $what: $error')));
   }
 }
 

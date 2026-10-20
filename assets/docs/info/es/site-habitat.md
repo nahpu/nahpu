@@ -1,14 +1,13 @@
 ---
 title: "Atributos y hábitat del sitio"
+authors: []
 sidebar:
   order: 0
 ---
 
-Registre el hábitat observado en el sitio. Use valores controlados de tipo y condición de hábitat de forma consistente en todo el proyecto.
+Registre el hábitat observado en el sitio. NAHPU ofrece valores predeterminados para `Habitat Type`. Puede personalizarlos en `Settings` > `Sites` > `Habitat Types`.
 
-En la descripción, anote la evidencia que ayuda a interpretar el ambiente de recolecta, como vegetación dominante, sustrato, cobertura del dosel o del suelo, condiciones del agua, disturbio y uso del suelo. Mantenga los métodos, el equipo de muestreo y el esfuerzo en el evento de recolecta.
-
-Describa las condiciones observadas durante la visita, sin suponer que una descripción copiada sigue siendo válida. Registre las mediciones ambientales de una fecha específica en el evento.
+En la descripción, anote evidencias que ayuden a interpretar el entorno de recolecta, como la vegetación dominante, el sustrato, la cobertura del dosel o del suelo, las condiciones del agua, las perturbaciones y el uso del suelo. Registre los métodos, el equipo de muestreo y el esfuerzo en el evento de recolecta.
 
 ## Más información
 

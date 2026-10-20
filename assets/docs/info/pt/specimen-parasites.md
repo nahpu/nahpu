@@ -1,12 +1,13 @@
 ---
 title: "Registros de parasitas"
+authors: []
 sidebar:
   order: 0
 ---
 
-Um registro de parasita documenta material de parasita, ou uma interação entre organismos observada, associada ao espécime hospedeiro. Registre o que foi de fato observado ou coletado: táxon ou categoria, localização anatômica, contagem, método de detecção, preparação e preservação, quem identificou, estágio de vida e observações.
+Um registro de parasitas documenta material parasitário ou uma interação observada entre organismos associada ao espécime hospedeiro.
 
-Mantenha a associação com o hospedeiro e os identificadores dos parasitas coerentes com as etiquetas. Uma seção vazia não comprova ausência de parasitas; descreva o exame e o resultado quando essa distinção for relevante.
+Mantenha a associação com o hospedeiro e os identificadores de parasitas consistentes com as etiquetas das amostras. Uma seção de parasitas vazia não comprova que os parasitas estavam ausentes. Use os campos de exame e detecção de parasitas nos atributos do espécime quando essa distinção for relevante.
 
 ## Saiba mais
 

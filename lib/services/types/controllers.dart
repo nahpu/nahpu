@@ -5,6 +5,7 @@ import 'package:nahpu/services/types/invertebrates.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/types/events.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/projects/coordinate_input.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:uuid/uuid.dart';
@@ -248,6 +249,28 @@ class SiteFormCtrModel {
     localityCtr.text = draft.locality ?? '';
   }
 
+  /// Follows [site] and [attribute] without replacing the controllers.
+  ///
+  /// See [SpecimenFormCtrModel.syncFrom]: the form owns these for the life of
+  /// the record, so a reload updates them in place.
+  void syncFrom(SiteRecord site, SiteAttributeData? attribute) {
+    leadStaffCtr = site.leadStaffId;
+    siteTypeCtr = site.siteType;
+
+    _syncText(siteIDCtr, site.siteID);
+    _syncText(countryCtr, site.country);
+    _syncText(islandGroupCtr, site.islandGroup);
+    _syncText(stateProvinceCtr, site.stateProvince);
+    _syncText(countyCtr, site.county);
+    _syncText(municipalityCtr, site.municipality);
+    _syncText(localityCtr, site.locality);
+    _syncText(remarkCtr, site.remark);
+    _syncText(habitatTypeCtr, attribute?.habitatType);
+    _syncText(habitatDescriptionCtr, attribute?.habitatDescription);
+    _syncText(habitatConditionCtr, attribute?.habitatCondition);
+    _syncText(canopyCoverCtr, attribute?.canopyCover);
+  }
+
   void dispose() {
     siteIDCtr.dispose();
     countryCtr.dispose();
@@ -307,6 +330,21 @@ class CollEventFormCtrModel {
         primaryCollMethodCtr: collEvent.primaryCollMethod,
         noteCtr: TextEditingController(text: collEvent.collMethodNotes),
       );
+
+  /// Follows [collEvent] without replacing the controllers.
+  ///
+  /// See [SpecimenFormCtrModel.syncFrom].
+  void syncFrom(CollEventData collEvent) {
+    siteIDCtr = collEvent.siteID;
+    primaryCollMethodCtr = collEvent.primaryCollMethod;
+
+    _syncText(idSuffixCtr, collEvent.idSuffix);
+    _syncText(noteCtr, collEvent.collMethodNotes);
+    _syncDate(startDateCtr, collEvent.startDate);
+    _syncDate(endDateCtr, collEvent.endDate);
+    _syncTime(startTimeCtr, collEvent.startTime);
+    _syncTime(endTimeCtr, collEvent.endTime);
+  }
 
   void dispose() {
     idSuffixCtr.dispose();
@@ -473,6 +511,45 @@ class SpecimenFormCtrModel {
         //     TextSelection.collapsed(offset: specimen.trapID?.length ?? 0),
       );
 
+  /// Follows [specimen] without replacing the controllers.
+  ///
+  /// The form owns these controllers for as long as the record is on screen, so
+  /// a reload has to update them in place. Replacing them would drop the caret
+  /// and the scroll position of whatever the user is editing.
+  void syncFrom(SpecimenData specimen) {
+    catalogerCtr = specimen.catalogerID;
+    determinerCtr = specimen.determinerID;
+    preparatorCtr = specimen.preparatorID;
+    conditionCtr = specimen.condition;
+    collEventIDCtr = specimen.collEventID;
+    multipleCollectorCtr = specimen.isMultipleCollector;
+    collPersonnelCtr = specimen.collPersonnelID;
+    collMethodCtr = specimen.collMethodID;
+    relativeTimeCtr = specimen.isRelativeTime;
+    coordinateCtr = specimen.coordinateID;
+    idConfidenceCtr = specimen.iDConfidence;
+    idMethodCtr = specimen.iDMethod;
+    speciesCtr = specimen.speciesID;
+
+    _syncText(
+      coordinateExtentCtr,
+      specimen.coordinateExtentMeters?.truncateZero(),
+    );
+    _syncText(museumIDCtr, specimen.museumID);
+    _syncText(persFieldNumberCtr, specimen.fieldNumber?.toString());
+    _syncText(projFieldNumberCtr, specimen.projectFieldNumber?.toString());
+    _syncText(relativeCaptureTimeCtr, specimen.relativeCaptureTime);
+    _syncText(trapTypeCtr, specimen.trapType);
+    _syncText(methodIDCtr, specimen.methodID);
+
+    _syncDate(prepDateCtr, specimen.prepDate);
+    _syncDate(collDateCtr, specimen.collectionDate);
+    _syncDate(captureDateCtr, specimen.captureDate);
+    _syncTime(prepTimeCtr, specimen.prepTime);
+    _syncTime(collTimeCtr, specimen.collectionTime);
+    _syncTime(captureTimeCtr, specimen.captureTime);
+  }
+
   void dispose() {
     museumIDCtr.dispose();
     persFieldNumberCtr.dispose();
@@ -485,7 +562,29 @@ class SpecimenFormCtrModel {
     captureTimeCtr.dispose();
     trapTypeCtr.dispose();
     coordinateExtentCtr.dispose();
+    relativeCaptureTimeCtr.dispose();
+    methodIDCtr.dispose();
   }
+}
+
+/// Writes [value] to [controller] only when it differs from what is there.
+///
+/// An unconditional assignment resets the selection, so a record reload while
+/// the field is focused would move the caret to the start.
+void _syncText(TextEditingController controller, String? value) {
+  final text = value ?? '';
+  if (controller.text == text) return;
+  controller.text = text;
+}
+
+void _syncDate(DateEditingController controller, String? value) {
+  if (controller.date == value) return;
+  controller.date = value;
+}
+
+void _syncTime(TimeEditingController controller, String? value) {
+  if (controller.time == value) return;
+  controller.time = value;
 }
 
 class MammalAttributeCtrModel {
@@ -1006,6 +1105,164 @@ class HerpAttributeCtrModel {
   }
 }
 
+class FishAttributeCtrModel {
+  FishAttributeCtrModel({
+    required this.specimenType,
+    required this.sexCtr,
+    required this.lifeStageCtr,
+    required this.weightUnitCtr,
+    required this.isAutoRange,
+    required this.standardLengthCtr,
+    required this.totalLengthCtr,
+    required this.weightCtr,
+    required this.individualCountCtr,
+    required this.minStandardLengthCtr,
+    required this.maxStandardLengthCtr,
+    required this.minTotalLengthCtr,
+    required this.maxTotalLengthCtr,
+    required this.minWeightCtr,
+    required this.maxWeightCtr,
+    required this.remarkCtr,
+  });
+
+  FishSpecimenType specimenType;
+  int? sexCtr;
+  String? lifeStageCtr;
+  String weightUnitCtr;
+  bool isAutoRange;
+  TextEditingController standardLengthCtr;
+  TextEditingController totalLengthCtr;
+  TextEditingController weightCtr;
+  TextEditingController individualCountCtr;
+  TextEditingController minStandardLengthCtr;
+  TextEditingController maxStandardLengthCtr;
+  TextEditingController minTotalLengthCtr;
+  TextEditingController maxTotalLengthCtr;
+  TextEditingController minWeightCtr;
+  TextEditingController maxWeightCtr;
+  TextEditingController remarkCtr;
+
+  factory FishAttributeCtrModel.empty() => FishAttributeCtrModel(
+    specimenType: FishSpecimenType.individual,
+    sexCtr: null,
+    lifeStageCtr: null,
+    weightUnitCtr: 'g',
+    isAutoRange: true,
+    standardLengthCtr: TextEditingController(),
+    totalLengthCtr: TextEditingController(),
+    weightCtr: TextEditingController(),
+    individualCountCtr: TextEditingController(),
+    minStandardLengthCtr: TextEditingController(),
+    maxStandardLengthCtr: TextEditingController(),
+    minTotalLengthCtr: TextEditingController(),
+    maxTotalLengthCtr: TextEditingController(),
+    minWeightCtr: TextEditingController(),
+    maxWeightCtr: TextEditingController(),
+    remarkCtr: TextEditingController(),
+  );
+
+  factory FishAttributeCtrModel.fromData(FishAttributeData data) {
+    final model = FishAttributeCtrModel.empty();
+    model.specimenType = fishSpecimenTypeFromCode(data.specimenType);
+    model.sexCtr = data.sex;
+    model.lifeStageCtr = data.lifeStage;
+    model.weightUnitCtr = data.weightUnit ?? 'g';
+    model.standardLengthCtr.text = data.standardLength?.truncateZero() ?? '';
+    model.totalLengthCtr.text = data.totalLength?.truncateZero() ?? '';
+    model.weightCtr.text = data.weight?.truncateZero() ?? '';
+    model.remarkCtr.text = data.remark ?? '';
+    model.syncLot(data);
+    return model;
+  }
+
+  /// Follows the lot columns in [data], which change when automatic ranges
+  /// are recomputed from the individuals.
+  void syncLot(FishAttributeData data) {
+    isAutoRange = data.isAutoRange == 1;
+    _syncText(individualCountCtr, data.individualCount?.toString() ?? '');
+    _syncText(
+      minStandardLengthCtr,
+      data.minStandardLength?.truncateZero() ?? '',
+    );
+    _syncText(
+      maxStandardLengthCtr,
+      data.maxStandardLength?.truncateZero() ?? '',
+    );
+    _syncText(minTotalLengthCtr, data.minTotalLength?.truncateZero() ?? '');
+    _syncText(maxTotalLengthCtr, data.maxTotalLength?.truncateZero() ?? '');
+    _syncText(minWeightCtr, data.minWeight?.truncateZero() ?? '');
+    _syncText(maxWeightCtr, data.maxWeight?.truncateZero() ?? '');
+  }
+
+  void dispose() {
+    standardLengthCtr.dispose();
+    totalLengthCtr.dispose();
+    weightCtr.dispose();
+    individualCountCtr.dispose();
+    minStandardLengthCtr.dispose();
+    maxStandardLengthCtr.dispose();
+    minTotalLengthCtr.dispose();
+    maxTotalLengthCtr.dispose();
+    minWeightCtr.dispose();
+    maxWeightCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
+class SpecimenIndividualCtrModel {
+  SpecimenIndividualCtrModel({
+    required this.individualIdCtr,
+    required this.standardLengthCtr,
+    required this.totalLengthCtr,
+    required this.weightCtr,
+    required this.remarkCtr,
+    this.sexCtr,
+    this.lifeStageCtr,
+  });
+
+  TextEditingController individualIdCtr;
+  TextEditingController standardLengthCtr;
+  TextEditingController totalLengthCtr;
+  TextEditingController weightCtr;
+  TextEditingController remarkCtr;
+  int? sexCtr;
+  String? lifeStageCtr;
+
+  factory SpecimenIndividualCtrModel.empty({String? individualId}) =>
+      SpecimenIndividualCtrModel(
+        individualIdCtr: TextEditingController(text: individualId ?? ''),
+        standardLengthCtr: TextEditingController(),
+        totalLengthCtr: TextEditingController(),
+        weightCtr: TextEditingController(),
+        remarkCtr: TextEditingController(),
+      );
+
+  factory SpecimenIndividualCtrModel.fromData(SpecimenIndividualData data) =>
+      SpecimenIndividualCtrModel(
+        individualIdCtr: TextEditingController(text: data.individualID ?? ''),
+        standardLengthCtr: TextEditingController(
+          text: data.standardLength?.truncateZero() ?? '',
+        ),
+        totalLengthCtr: TextEditingController(
+          text: data.totalLength?.truncateZero() ?? '',
+        ),
+        weightCtr: TextEditingController(
+          text: data.weight?.truncateZero() ?? '',
+        ),
+        remarkCtr: TextEditingController(text: data.remark ?? ''),
+        sexCtr: data.sex,
+        lifeStageCtr: data.lifeStage,
+      );
+
+  void dispose() {
+    individualIdCtr.dispose();
+    standardLengthCtr.dispose();
+    totalLengthCtr.dispose();
+    weightCtr.dispose();
+    remarkCtr.dispose();
+  }
+}
+
 class InvertebrateAttributeCtrModel {
   InvertebrateAttributeCtrModel({
     required this.headWidthCtr,
@@ -1124,6 +1381,9 @@ class PartFormCtrModel {
   TextEditingController museumPermanentCtr;
   TextEditingController museumLoanCtr;
   TextEditingController remarkCtr = TextEditingController();
+
+  /// Individuals within the specimen lot that this part was taken from.
+  Set<int> individualIds = {};
 
   factory PartFormCtrModel.empty() => PartFormCtrModel(
     tissueIdCtr: TextEditingController(),
@@ -1379,6 +1639,9 @@ class ParasiteFormCtrModel {
 
   final String parasiteUuid;
   TextEditingController parasiteIdCtr;
+
+  /// Individuals within the specimen lot that this parasite was found on.
+  Set<int> individualIds = {};
   int? speciesId;
   String? identifierId;
   TextEditingController countCtr;
@@ -1738,20 +2001,27 @@ class EventPersonnelCtrModel {
   EventPersonnelCtrModel({
     required this.id,
     required this.nameIDCtr,
+    required this.nameCtr,
     required this.roleCtr,
   });
 
   int? id;
   String? nameIDCtr;
+  String? nameCtr;
   String? roleCtr;
 
-  factory EventPersonnelCtrModel.empty() =>
-      EventPersonnelCtrModel(id: null, nameIDCtr: null, roleCtr: null);
+  factory EventPersonnelCtrModel.empty() => EventPersonnelCtrModel(
+    id: null,
+    nameIDCtr: null,
+    nameCtr: null,
+    roleCtr: null,
+  );
 
   factory EventPersonnelCtrModel.fromData(CollPersonnelData data) =>
       EventPersonnelCtrModel(
         id: data.id,
         nameIDCtr: data.personnelId,
+        nameCtr: data.name,
         roleCtr: data.role,
       );
 }
@@ -1774,6 +2044,8 @@ class CollEnvironmentCtrModel {
     required this.waterTemperatureCtr,
     required this.pHCtr,
     required this.dissolvedOxygenCtr,
+    required this.dissolvedOxygenPercentCtr,
+    required this.conductivityCtr,
     required this.flowVelocityCtr,
     required this.noteCtr,
     required this.initialErrors,
@@ -1796,61 +2068,10 @@ class CollEnvironmentCtrModel {
   TextEditingController waterTemperatureCtr;
   TextEditingController pHCtr;
   TextEditingController dissolvedOxygenCtr;
+  TextEditingController dissolvedOxygenPercentCtr;
+  TextEditingController conductivityCtr;
   TextEditingController flowVelocityCtr;
   final Map<String, String> initialErrors;
-
-  factory CollEnvironmentCtrModel.fromData(EnvironmentData data) =>
-      CollEnvironmentCtrModel(
-        lowestDayTempCtr: TextEditingController(
-          text: data.lowestDayTempC?.toString() ?? '',
-        ),
-        highestDayTempCtr: TextEditingController(
-          text: data.highestDayTempC?.toString() ?? '',
-        ),
-        lowestNightTempCtr: TextEditingController(
-          text: data.lowestNightTempC?.toString() ?? '',
-        ),
-        highestNightTempCtr: TextEditingController(
-          text: data.highestNightTempC?.toString() ?? '',
-        ),
-        averageHumidityCtr: TextEditingController(
-          text: data.averageHumidity?.toString() ?? '',
-        ),
-        dewPointCtr: TextEditingController(
-          text: data.dewPointTemp?.toString() ?? '',
-        ),
-        sunriseTimeCtr: TextEditingController(
-          text: data.sunriseTime?.toString() ?? '',
-        ),
-        sunsetTimeCtr: TextEditingController(
-          text: data.sunsetTime?.toString() ?? '',
-        ),
-        moonPhaseCtr: data.moonPhase,
-        cloudCoverCtr: data.cloudCover,
-        rainfallInMmCtr: TextEditingController(
-          text: data.rainfallInMm?.toString() ?? '',
-        ),
-        ambientTemperatureCtr: TextEditingController(
-          text: data.ambientTemperature?.toString() ?? '',
-        ),
-        ambientHumidityCtr: TextEditingController(
-          text: data.ambientHumidity?.toString() ?? '',
-        ),
-        waterTemperatureCtr: TextEditingController(
-          text: data.waterTemperature?.toString() ?? '',
-        ),
-        pHCtr: TextEditingController(text: data.pH?.toString() ?? ''),
-        dissolvedOxygenCtr: TextEditingController(
-          text: data.dissolvedOxygen?.toString() ?? '',
-        ),
-        flowVelocityCtr: TextEditingController(
-          text: data.flowVelocity?.toString() ?? '',
-        ),
-        noteCtr: TextEditingController(text: data.notes ?? ''),
-        initialErrors: EditableEnvironmentData.fromRaw(
-          data.toJson(),
-        ).fieldErrors,
-      );
 
   factory CollEnvironmentCtrModel.fromEditableData(
     EditableEnvironmentData data,
@@ -1897,12 +2118,54 @@ class CollEnvironmentCtrModel {
     dissolvedOxygenCtr: TextEditingController(
       text: data.displayValue('dissolvedOxygen'),
     ),
+    dissolvedOxygenPercentCtr: TextEditingController(
+      text: data.displayValue('dissolvedOxygenPercent'),
+    ),
+    conductivityCtr: TextEditingController(
+      text: data.displayValue('conductivity'),
+    ),
     flowVelocityCtr: TextEditingController(
       text: data.displayValue('flowVelocity'),
     ),
     noteCtr: TextEditingController(text: data.displayValue('notes')),
     initialErrors: data.fieldErrors,
   );
+
+  /// Follows [data] without replacing the controllers.
+  ///
+  /// See [SpecimenFormCtrModel.syncFrom]. [initialErrors] is not refreshed: it
+  /// seeds which recovery fields the form reveals, and that choice is made once
+  /// when the record opens.
+  void syncFrom(EditableEnvironmentData data) {
+    moonPhaseCtr = data.value('moonPhase') == null
+        ? null
+        : data.displayValue('moonPhase');
+    cloudCoverCtr = data.value('cloudCover') == null
+        ? null
+        : data.displayValue('cloudCover');
+
+    _syncText(lowestDayTempCtr, data.displayValue('lowestDayTempC'));
+    _syncText(highestDayTempCtr, data.displayValue('highestDayTempC'));
+    _syncText(lowestNightTempCtr, data.displayValue('lowestNightTempC'));
+    _syncText(highestNightTempCtr, data.displayValue('highestNightTempC'));
+    _syncText(averageHumidityCtr, data.displayValue('averageHumidity'));
+    _syncText(dewPointCtr, data.displayValue('dewPointTemp'));
+    _syncText(sunriseTimeCtr, data.displayValue('sunriseTime'));
+    _syncText(sunsetTimeCtr, data.displayValue('sunsetTime'));
+    _syncText(rainfallInMmCtr, data.displayValue('rainfallInMm'));
+    _syncText(ambientTemperatureCtr, data.displayValue('ambientTemperature'));
+    _syncText(ambientHumidityCtr, data.displayValue('ambientHumidity'));
+    _syncText(waterTemperatureCtr, data.displayValue('waterTemperature'));
+    _syncText(pHCtr, data.displayValue('pH'));
+    _syncText(dissolvedOxygenCtr, data.displayValue('dissolvedOxygen'));
+    _syncText(
+      dissolvedOxygenPercentCtr,
+      data.displayValue('dissolvedOxygenPercent'),
+    );
+    _syncText(conductivityCtr, data.displayValue('conductivity'));
+    _syncText(flowVelocityCtr, data.displayValue('flowVelocity'));
+    _syncText(noteCtr, data.displayValue('notes'));
+  }
 
   void dispose() {
     lowestDayTempCtr.dispose();
@@ -1919,6 +2182,8 @@ class CollEnvironmentCtrModel {
     waterTemperatureCtr.dispose();
     pHCtr.dispose();
     dissolvedOxygenCtr.dispose();
+    dissolvedOxygenPercentCtr.dispose();
+    conductivityCtr.dispose();
     flowVelocityCtr.dispose();
     noteCtr.dispose();
   }

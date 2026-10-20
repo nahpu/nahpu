@@ -9,7 +9,20 @@ enum CatalogFmt {
   ornithology,
   herpetology,
   invertebrateZoology,
+  ichthyology,
   paleontology,
+}
+
+/// Whether a fish specimen record is one individual or a lot of individuals.
+/// Stored by index in `fishAttribute.specimenType`.
+enum FishSpecimenType { individual, lot }
+
+/// Reads a stored [FishSpecimenType] index, defaulting to an individual.
+FishSpecimenType fishSpecimenTypeFromCode(int? code) {
+  if (code == null || code < 0 || code >= FishSpecimenType.values.length) {
+    return FishSpecimenType.individual;
+  }
+  return FishSpecimenType.values[code];
 }
 
 enum SpecimenSex {
@@ -198,6 +211,7 @@ CatalogFmt? catalogFmtFromStoredName(String? name) => switch (name) {
   'ornithology' || 'birds' => CatalogFmt.ornithology,
   'herpetology' || 'herpetofauna' => CatalogFmt.herpetology,
   'invertebrateZoology' || 'arthropods' => CatalogFmt.invertebrateZoology,
+  'ichthyology' => CatalogFmt.ichthyology,
   'paleontology' || 'fossils' => CatalogFmt.paleontology,
   _ => null,
 };
@@ -289,6 +303,7 @@ const List<String> taxonGroupList = [
   'Mammals',
   'Herpetofauna',
   'Invertebrates',
+  'Fishes',
   'Fossils',
 ];
 
@@ -306,6 +321,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
     case 'Invertebrates':
     case 'Arthropods':
       return CatalogFmt.invertebrateZoology;
+    case 'Fishes':
+      return CatalogFmt.ichthyology;
     case 'Fossils':
       return CatalogFmt.paleontology;
     default:
@@ -323,6 +340,8 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
       return SpecimenRecordType.herpetofauna;
     case CatalogFmt.invertebrateZoology:
       return SpecimenRecordType.invertebrates;
+    case CatalogFmt.ichthyology:
+      return SpecimenRecordType.fishes;
     case CatalogFmt.paleontology:
       return SpecimenRecordType.fossils;
   }
@@ -340,6 +359,8 @@ String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
       return 'Herpetofauna';
     case SpecimenRecordType.invertebrates:
       return 'Invertebrates';
+    case SpecimenRecordType.fishes:
+      return 'Fishes';
     case SpecimenRecordType.fossils:
       return 'Fossils';
     default:
@@ -361,6 +382,8 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
     case 'Invertebrates':
     case 'Arthropods':
       return SpecimenRecordType.invertebrates;
+    case 'Fishes':
+      return SpecimenRecordType.fishes;
     case 'Fossils':
       return SpecimenRecordType.fossils;
     default:
@@ -384,6 +407,8 @@ String matchCatFmtToTaxonGroup(CatalogFmt catalogFmt) {
       return 'Herpetofauna';
     case CatalogFmt.invertebrateZoology:
       return 'Invertebrates';
+    case CatalogFmt.ichthyology:
+      return 'Fishes';
     case CatalogFmt.paleontology:
       return 'Fossils';
   }
@@ -404,6 +429,8 @@ String catalogFmtDisplayName(CatalogFmt catalogFmt) {
       return 'Herpetology';
     case CatalogFmt.invertebrateZoology:
       return 'Invertebrate zoology';
+    case CatalogFmt.ichthyology:
+      return 'Ichthyology';
     case CatalogFmt.paleontology:
       return 'Paleontology';
   }
@@ -418,6 +445,7 @@ bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
       return false;
     case CatalogFmt.herpetology:
     case CatalogFmt.invertebrateZoology:
+    case CatalogFmt.ichthyology:
     case CatalogFmt.paleontology:
       return true;
   }
@@ -433,6 +461,8 @@ IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
       return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
     case CatalogFmt.invertebrateZoology:
       return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
+    case CatalogFmt.ichthyology:
+      return isFilledIcon ? NahpuIcons.fishFilled : NahpuIcons.fishOutlined;
     case CatalogFmt.paleontology:
       return isFilledIcon ? NahpuIcons.fossilFilled : NahpuIcons.fossilOutlined;
   }
@@ -466,6 +496,8 @@ String matchCatalogFmtToIconPath(CatalogFmt fmt) {
       return 'assets/icons/frog.svg';
     case CatalogFmt.invertebrateZoology:
       return 'assets/icons/beetle.svg';
+    case CatalogFmt.ichthyology:
+      return 'assets/icons/fish.svg';
     case CatalogFmt.paleontology:
       return 'assets/icons/mammal_skeleton.svg';
   }

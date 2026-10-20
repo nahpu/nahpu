@@ -59,6 +59,19 @@ abstract final class NahpuBreakpoints {
   static const double laptop = 1280;
 }
 
+/// Scroll tuning for the record forms.
+abstract final class NahpuScroll {
+  /// How far beyond the viewport a record form keeps its panels mounted.
+  ///
+  /// A record form is a handful of tall cards, each watching its own database
+  /// provider. With the default 250 px window a fast flick unmounts and
+  /// remounts them, so every panel re-queried and briefly showed a progress
+  /// indicator in place of a full card -- a visible hitch mid-fling. This is
+  /// wide enough to span a whole form on a phone, and deliberately finite so
+  /// the first frame still only lays out what is near the viewport.
+  static const double recordFormCacheExtent = 2400;
+}
+
 /// Gap between a scrolling page and the screen edge. It stays the same at
 /// every screen size, so cards on the dashboard, the record forms, and the
 /// statistics page line up with each other.
