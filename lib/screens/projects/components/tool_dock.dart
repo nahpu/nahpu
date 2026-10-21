@@ -6,8 +6,6 @@ import 'package:nahpu/screens/exports/export_db.dart';
 import 'package:nahpu/screens/exports/export_documents.dart';
 import 'package:nahpu/screens/exports/export_records.dart';
 import 'package:nahpu/screens/exports/export_settings.dart';
-import 'package:nahpu/screens/home/home.dart';
-import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/settings/settings.dart';
@@ -59,10 +57,12 @@ class ToolDock extends ConsumerWidget {
               child: Row(
                 children: [
                   const ToolDockLabel(),
-                  const SizedBox(width: NahpuSpacing.md),
+                  const SizedBox(width: NahpuSpacing.lg),
                   for (final (index, tool) in tools.indexed) ...[
-                    if (index > 0 && tools[index - 1].category != tool.category)
-                      const ToolDockDivider(),
+                    if (index > 0)
+                      tools[index - 1].category == tool.category
+                          ? const SizedBox(width: NahpuToolDock.launcherGap)
+                          : const ToolDockDivider(),
                     ToolDockLauncher(
                       icon: tool.icon,
                       label: tool.label,
@@ -93,10 +93,6 @@ class ToolDock extends ConsumerWidget {
 
 /// Opens [tool] from the project dashboard.
 void openProjectTool(BuildContext context, WidgetRef ref, ProjectTool tool) {
-  if (tool == ProjectTool.closeProject) {
-    closeProject(context, ref, ref.read(projectUuidProvider));
-    return;
-  }
   final projectUuid = ref.read(projectUuidProvider);
   Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -122,9 +118,6 @@ class ProjectToolScreen extends StatelessWidget {
     return switch (tool) {
       ProjectTool.dataTable => const DataTableScreen(),
       ProjectTool.templates => const TemplateEditorScreen(),
-      // Handled by [openProjectTool] without a screen; home is a safe
-      // fallback should this ever be pushed.
-      ProjectTool.closeProject => const Home(),
       ProjectTool.mergeProject => const ImportProjectScreen(),
       ProjectTool.exportProject => const ExportProjectScreen(),
       ProjectTool.bundleRecords => const BundleRecordsForm(),
@@ -143,7 +136,6 @@ extension ProjectToolIcon on ProjectTool {
   IconData get icon => switch (this) {
     ProjectTool.dataTable => Icons.table_chart_outlined,
     ProjectTool.templates => Icons.edit_note_outlined,
-    ProjectTool.closeProject => Icons.exit_to_app_outlined,
     ProjectTool.mergeProject => Icons.move_to_inbox_outlined,
     ProjectTool.exportProject => Icons.outbox_outlined,
     ProjectTool.bundleRecords => Icons.archive_outlined,
@@ -163,7 +155,7 @@ class ToolDockDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return VerticalDivider(
-      width: NahpuSpacing.lg,
+      width: NahpuToolDock.dividerWidth,
       thickness: NahpuStroke.thin,
       indent: NahpuSpacing.sm,
       endIndent: NahpuSpacing.sm,

@@ -95,6 +95,12 @@ abstract final class NahpuDashboardPanel {
 abstract final class NahpuToolDock {
   static const double height = 72;
   static const double launcherWidth = 88;
+
+  /// Space between launchers in the same category.
+  static const double launcherGap = NahpuSpacing.md;
+
+  /// Space around the divider between tool categories.
+  static const double dividerWidth = NahpuSpacing.xxl;
 }
 
 /// Geometry for the project data table.

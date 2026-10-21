@@ -2,7 +2,6 @@
 /// two neighboring tools belong to different categories.
 enum ProjectToolCategory {
   utilities('Utilities'),
-  session('Session'),
   project('Project'),
   records('Records'),
   database('Database'),
@@ -16,8 +15,8 @@ enum ProjectToolCategory {
 /// A tool the project dashboard dock can launch.
 ///
 /// Covers the dock's own utilities and every project menu drawer item except
-/// deleting the project. Declaration order is the dock order, grouped by
-/// [category], so the dividers follow the drawer's sections.
+/// closing and deleting the project. Declaration order is the dock order,
+/// grouped by [category], so the dividers follow the drawer's sections.
 enum ProjectTool {
   dataTable(
     ProjectToolCategory.utilities,
@@ -28,11 +27,6 @@ enum ProjectTool {
     ProjectToolCategory.utilities,
     'Templates',
     'Create and edit document templates',
-  ),
-  closeProject(
-    ProjectToolCategory.session,
-    'Close project',
-    'Close this project and return home',
   ),
   mergeProject(
     ProjectToolCategory.project,
