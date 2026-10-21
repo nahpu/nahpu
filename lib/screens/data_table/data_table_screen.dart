@@ -125,12 +125,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  NahpuSpacing.md,
-                  NahpuSpacing.md,
-                  NahpuSpacing.md,
-                  0,
-                ),
+                padding: const EdgeInsets.all(NahpuSpacing.md),
                 child: DataTableToolbar(
                   type: _type,
                   specimenType: _specimenType,
@@ -142,43 +137,56 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                         in data?.columns ?? const <DataTableColumn>[])
                       if (column.field.isFilterable) column,
                   ],
+                  quickFilters: _quickFilters,
                   ruleCount: _rules.length,
                   onTypeChanged: _setType,
                   onSpecimenTypeChanged: _setSpecimenType,
                   onSearchChanged: _onSearchChanged,
                   onSearchFieldChanged: (column) =>
                       _update(() => _searchField = column?.key),
+                  onQuickFilterToggled: _toggleQuickFilter,
                   onEditRules: data == null ? null : _editRules,
                   onPickColumns: data == null ? null : _pickColumns,
                 ),
               ),
-              if (_type.quickFilters.isNotEmpty || _rules.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    NahpuSpacing.md,
-                    NahpuSpacing.md,
-                    NahpuSpacing.md,
-                    0,
-                  ),
-                  child: DataTableFilterChips(
-                    type: _type,
-                    selected: _quickFilters,
-                    rules: _rules,
-                    columns: data?.columns ?? const [],
-                    onToggled: _toggleQuickFilter,
-                    onRuleRemoved: (index) =>
-                        _update(() => _rules = [..._rules]..removeAt(index)),
-                  ),
-                ),
               Padding(
-                padding: const EdgeInsets.all(NahpuSpacing.md),
-                child: DataTableEditToolbar(
-                  isEditMode: _isEditMode,
-                  edits: _edits,
-                  onModeChanged: _setEditMode,
-                  onAutoSaveChanged: _setAutoSave,
-                  onSave: _save,
-                  onDiscard: _edits.discard,
+                padding: const EdgeInsets.fromLTRB(
+                  NahpuSpacing.md,
+                  0,
+                  NahpuSpacing.md,
+                  NahpuSpacing.md,
+                ),
+                // Edit controls first, then any active filters.
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      DataTableEditToolbar(
+                        isEditMode: _isEditMode,
+                        edits: _edits,
+                        onModeChanged: _setEditMode,
+                        onAutoSaveChanged: _setAutoSave,
+                        onSave: _save,
+                        onDiscard: _edits.discard,
+                      ),
+                      if (_quickFilters.isNotEmpty || _rules.isNotEmpty) ...[
+                        const DataTableToolbarDivider(),
+                        DataTableFilterChips(
+                          selected: _quickFilters,
+                          rules: _rules,
+                          columns: data?.columns ?? const [],
+                          onToggled: _toggleQuickFilter,
+                          onRuleRemoved: (index) => _update(
+                            () => _rules = [..._rules]..removeAt(index),
+                          ),
+                          onCleared: () => _update(() {
+                            _rules = const [];
+                            _quickFilters = const {};
+                          }),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               SizedBox(

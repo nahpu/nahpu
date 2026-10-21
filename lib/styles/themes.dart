@@ -33,6 +33,12 @@ class NahpuTheme {
     tertiary: _mossShadow,
   );
 
+  /// Text color for edits that are waiting to be saved, such as the data
+  /// table's "2 unsaved changes". Readable on the surface in both themes,
+  /// where [ColorScheme.tertiary] is too dark on the dark surface.
+  static Color pendingChange(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _canopyMist : _canopyDeep;
+
   /// Light surface used around printable template canvases in every app theme.
   static Color get templateEditorWorkspaceSurface => _lightColorScheme.surface;
 

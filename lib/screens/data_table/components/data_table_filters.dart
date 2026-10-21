@@ -4,58 +4,77 @@ import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Preset filters for the current record type, plus the active field rules
-/// as removable chips.
+/// The active preset filters and field rules as removable chips, shown
+/// after the edit controls only while any are on.
 class DataTableFilterChips extends StatelessWidget {
   const DataTableFilterChips({
     super.key,
-    required this.type,
     required this.selected,
     required this.rules,
     required this.columns,
     required this.onToggled,
     required this.onRuleRemoved,
+    required this.onCleared,
   });
 
-  final DataTableRecordType type;
   final Set<DataTableQuickFilter> selected;
   final List<DataTableFilterRule> rules;
   final List<DataTableColumn> columns;
   final ValueChanged<DataTableQuickFilter> onToggled;
   final ValueChanged<int> onRuleRemoved;
+  final VoidCallback onCleared;
 
   @override
   Widget build(BuildContext context) {
     final labels = {for (final column in columns) column.key: column.label};
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final filter in type.quickFilters)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: NahpuSpacing.md),
-              child: FilterChip(
-                label: Text(filter.label),
-                selected: selected.contains(filter),
-                shape: const StadiumBorder(),
-                onSelected: (_) => onToggled(filter),
-              ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Keep the menu's order rather than the order they were picked.
+        for (final filter in DataTableQuickFilter.values)
+          if (selected.contains(filter))
+            DataTableActiveFilterChip(
+              label: filter.label,
+              onDeleted: () => onToggled(filter),
             ),
-          for (var i = 0; i < rules.length; i++)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: NahpuSpacing.md),
-              child: InputChip(
-                label: Text(
-                  describeDataTableRule(
-                    rules[i],
-                    labels[rules[i].fieldKey] ?? rules[i].fieldKey,
-                  ),
-                ),
-                shape: const StadiumBorder(),
-                onDeleted: () => onRuleRemoved(i),
-              ),
+        for (var i = 0; i < rules.length; i++)
+          DataTableActiveFilterChip(
+            label: describeDataTableRule(
+              rules[i],
+              labels[rules[i].fieldKey] ?? rules[i].fieldKey,
             ),
-        ],
+            onDeleted: () => onRuleRemoved(i),
+          ),
+        TextButton(
+          style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+          onPressed: onCleared,
+          child: const Text('Clear filters'),
+        ),
+      ],
+    );
+  }
+}
+
+class DataTableActiveFilterChip extends StatelessWidget {
+  const DataTableActiveFilterChip({
+    super.key,
+    required this.label,
+    required this.onDeleted,
+  });
+
+  final String label;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: NahpuSpacing.md),
+      child: InputChip(
+        label: Text(label),
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+        onDeleted: onDeleted,
       ),
     );
   }

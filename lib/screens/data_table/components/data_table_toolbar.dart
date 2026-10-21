@@ -1,12 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
-import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Record type, taxon group, search, filters, and columns.
+/// One row with record type, taxon group, search, filters, and columns.
+/// Narrow screens split it in two.
 class DataTableToolbar extends StatelessWidget {
   const DataTableToolbar({
     super.key,
@@ -16,11 +15,13 @@ class DataTableToolbar extends StatelessWidget {
     required this.searchFocusNode,
     required this.searchField,
     required this.searchableColumns,
+    required this.quickFilters,
     required this.ruleCount,
     required this.onTypeChanged,
     required this.onSpecimenTypeChanged,
     required this.onSearchChanged,
     required this.onSearchFieldChanged,
+    required this.onQuickFilterToggled,
     required this.onEditRules,
     required this.onPickColumns,
   });
@@ -33,11 +34,13 @@ class DataTableToolbar extends StatelessWidget {
   /// Field the search is limited to; null searches the visible columns.
   final DataTableColumn? searchField;
   final List<DataTableColumn> searchableColumns;
+  final Set<DataTableQuickFilter> quickFilters;
   final int ruleCount;
   final ValueChanged<DataTableRecordType> onTypeChanged;
   final ValueChanged<SpecimenRecordType> onSpecimenTypeChanged;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<DataTableColumn?> onSearchFieldChanged;
+  final ValueChanged<DataTableQuickFilter> onQuickFilterToggled;
   final VoidCallback? onEditRules;
 
   /// Null until the first page loads.
@@ -45,62 +48,58 @@ class DataTableToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeSelector = RecordTypeSelector(
-      type: type,
-      onChanged: onTypeChanged,
-    );
-    final searchRow = Row(
-      children: [
-        if (type == DataTableRecordType.specimenRecords) ...[
-          SpecimenTypeMenu(
-            specimenType: specimenType,
-            onChanged: onSpecimenTypeChanged,
-          ),
-          const SizedBox(width: NahpuSpacing.md),
-        ],
-        Expanded(
-          child: DataTableSearchField(
-            controller: searchController,
-            focusNode: searchFocusNode,
-            hint: searchField == null
-                ? 'Search ${type.label.toLowerCase()}'
-                : 'Search ${searchField!.label}',
-            onChanged: onSearchChanged,
-            scope: DataTableSearchScopeMenu(
-              field: searchField,
-              columns: searchableColumns,
-              onChanged: onSearchFieldChanged,
-            ),
-          ),
-        ),
+    final menus = [
+      RecordTypeMenu(type: type, onChanged: onTypeChanged),
+      if (type == DataTableRecordType.specimenRecords) ...[
         const SizedBox(width: NahpuSpacing.md),
-        Badge(
-          isLabelVisible: ruleCount > 0,
-          label: Text('$ruleCount'),
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.filter_list),
-            label: const Text('Filters'),
-            style: _pillButtonStyle,
-            onPressed: onEditRules,
-          ),
-        ),
-        const SizedBox(width: NahpuSpacing.md),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.view_column_outlined),
-          label: const Text('Columns'),
-          style: _pillButtonStyle,
-          onPressed: onPickColumns,
+        SpecimenTypeMenu(
+          specimenType: specimenType,
+          onChanged: onSpecimenTypeChanged,
         ),
       ],
+    ];
+    final search = DataTableSearchField(
+      controller: searchController,
+      focusNode: searchFocusNode,
+      hint: searchField == null
+          ? 'Search ${type.label.toLowerCase()}'
+          : 'Search ${searchField!.label}',
+      onChanged: onSearchChanged,
+      scope: DataTableSearchScopeMenu(
+        field: searchField,
+        columns: searchableColumns,
+        onChanged: onSearchFieldChanged,
+      ),
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= NahpuBreakpoints.laptop) {
+        // Large screens have room to name the filter and column buttons.
+        final showLabels = constraints.maxWidth >= NahpuBreakpoints.laptop;
+        final tools = [
+          DataTableFilterMenu(
+            type: type,
+            selected: quickFilters,
+            ruleCount: ruleCount,
+            showLabel: showLabels,
+            onToggled: onQuickFilterToggled,
+            onEditRules: onEditRules,
+          ),
+          if (showLabels) const SizedBox(width: NahpuSpacing.xs),
+          DataTableToolButton(
+            icon: Icons.view_column_outlined,
+            label: 'Columns',
+            showLabel: showLabels,
+            onPressed: onPickColumns,
+          ),
+        ];
+        if (constraints.maxWidth >= NahpuBreakpoints.desktop) {
           return Row(
             children: [
-              typeSelector,
-              const SizedBox(width: NahpuSpacing.lg),
-              Expanded(child: searchRow),
+              ...menus,
+              const SizedBox(width: NahpuSpacing.md),
+              Expanded(child: search),
+              SizedBox(width: showLabels ? NahpuSpacing.md : NahpuSpacing.xs),
+              ...tools,
             ],
           );
         }
@@ -109,20 +108,15 @@ class DataTableToolbar extends StatelessWidget {
           children: [
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: typeSelector,
+              child: Row(children: menus),
             ),
             const SizedBox(height: NahpuSpacing.md),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: constraints.maxWidth,
-                  maxWidth: constraints.maxWidth < NahpuContentWidth.form
-                      ? NahpuContentWidth.form
-                      : constraints.maxWidth,
-                ),
-                child: searchRow,
-              ),
+            Row(
+              children: [
+                Expanded(child: search),
+                const SizedBox(width: NahpuSpacing.xs),
+                ...tools,
+              ],
             ),
           ],
         );
@@ -131,14 +125,61 @@ class DataTableToolbar extends StatelessWidget {
   }
 }
 
-final _pillButtonStyle = OutlinedButton.styleFrom(
-  minimumSize: const Size(0, NahpuControlSize.control),
-  shape: const StadiumBorder(),
-);
+class DataTableToolbarDivider extends StatelessWidget {
+  const DataTableToolbarDivider({super.key});
 
-/// Pill-shaped switch between record types.
-class RecordTypeSelector extends StatelessWidget {
-  const RecordTypeSelector({
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: NahpuControlSize.iconMedium,
+      child: VerticalDivider(width: NahpuSpacing.xl),
+    );
+  }
+}
+
+/// Pill button that opens a menu, with a dropdown arrow after its label.
+class DataTableMenuButton extends StatelessWidget {
+  const DataTableMenuButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.controller,
+  });
+
+  final IconData icon;
+  final String label;
+  final MenuController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, NahpuControlSize.control),
+        padding: const EdgeInsetsDirectional.only(
+          start: NahpuSpacing.lg,
+          end: NahpuSpacing.md,
+        ),
+        shape: const StadiumBorder(),
+      ),
+      onPressed: () =>
+          controller.isOpen ? controller.close() : controller.open(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: NahpuControlSize.iconSmall),
+          const SizedBox(width: NahpuSpacing.md),
+          Text(label),
+          const SizedBox(width: NahpuSpacing.xs),
+          const Icon(Icons.arrow_drop_down, size: NahpuControlSize.iconMedium),
+        ],
+      ),
+    );
+  }
+}
+
+/// Chooses the kind of record the table shows.
+class RecordTypeMenu extends StatelessWidget {
+  const RecordTypeMenu({
     super.key,
     required this.type,
     required this.onChanged,
@@ -149,76 +190,137 @@ class RecordTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: NahpuControlSize.control,
-      padding: const EdgeInsets.all(NahpuSpacing.xs),
-      decoration: ShapeDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        shape: const StadiumBorder(),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final value in DataTableRecordType.values)
-            RecordTypePill(
-              label: value.label,
-              isSelected: value == type,
-              onPressed: () => onChanged(value),
+    return MenuAnchor(
+      menuChildren: [
+        for (final value in DataTableRecordType.values)
+          MenuItemButton(
+            leadingIcon: Icon(
+              value == type ? Icons.check : null,
+              size: NahpuControlSize.iconMedium,
             ),
-        ],
+            onPressed: () => onChanged(value),
+            child: Text(value.label),
+          ),
+      ],
+      builder: (context, controller, _) => DataTableMenuButton(
+        icon: Icons.table_chart_outlined,
+        label: type.label,
+        controller: controller,
       ),
     );
   }
 }
 
-class RecordTypePill extends StatelessWidget {
-  const RecordTypePill({
+/// Preset filters for the record type, checked in place, and the field
+/// rules editor. The badge counts every active filter.
+class DataTableFilterMenu extends StatelessWidget {
+  const DataTableFilterMenu({
     super.key,
-    required this.label,
-    required this.isSelected,
-    required this.onPressed,
+    required this.type,
+    required this.selected,
+    required this.ruleCount,
+    required this.showLabel,
+    required this.onToggled,
+    required this.onEditRules,
   });
 
-  final String label;
-  final bool isSelected;
-  final VoidCallback onPressed;
+  final DataTableRecordType type;
+  final Set<DataTableQuickFilter> selected;
+  final int ruleCount;
+  final bool showLabel;
+  final ValueChanged<DataTableQuickFilter> onToggled;
+
+  /// Null until the first page loads.
+  final VoidCallback? onEditRules;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Semantics(
-      selected: isSelected,
-      button: true,
-      child: Material(
-        color: isSelected ? colorScheme.primary : Colors.transparent,
-        shape: const StadiumBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.lg),
-            child: Center(
-              child: Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: isSelected
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
+    final count = selected.length + ruleCount;
+    return MenuAnchor(
+      menuChildren: [
+        for (final filter in type.quickFilters)
+          CheckboxMenuButton(
+            value: selected.contains(filter),
+            closeOnActivate: false,
+            onChanged: (_) => onToggled(filter),
+            child: Text(filter.label),
           ),
+        if (type.quickFilters.isNotEmpty)
+          const Divider(height: NahpuStroke.thin),
+        MenuItemButton(
+          leadingIcon: const Icon(
+            Icons.tune,
+            size: NahpuControlSize.iconMedium,
+          ),
+          onPressed: onEditRules,
+          child: Text(ruleCount == 0 ? 'Add field rules' : 'Edit field rules'),
         ),
+      ],
+      builder: (context, controller, _) => DataTableToolButton(
+        icon: Icons.filter_list,
+        label: 'Filters',
+        showLabel: showLabel,
+        badgeCount: count,
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
       ),
+    );
+  }
+}
+
+/// Toolbar action shown as an icon with its label, or as the icon alone
+/// with the label as a tooltip. A nonzero [badgeCount] marks it active.
+class DataTableToolButton extends StatelessWidget {
+  const DataTableToolButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.showLabel,
+    required this.onPressed,
+    this.badgeCount = 0,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool showLabel;
+  final VoidCallback? onPressed;
+  final int badgeCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = badgeCount > 0;
+    final badgedIcon = Badge(
+      isLabelVisible: isActive,
+      label: Text('$badgeCount'),
+      child: Icon(icon),
+    );
+    if (!showLabel) {
+      return IconButton(
+        tooltip: label,
+        isSelected: isActive,
+        icon: badgedIcon,
+        onPressed: onPressed,
+      );
+    }
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, NahpuControlSize.control),
+        foregroundColor: isActive
+            ? colorScheme.primary
+            : colorScheme.onSurfaceVariant,
+        shape: const StadiumBorder(),
+      ),
+      icon: badgedIcon,
+      label: Text(label),
+      onPressed: onPressed,
     );
   }
 }
 
 /// Limits specimen records to one taxon group, as the export does. Icons
-/// follow the catalog formats, with the project's own format for all taxa.
-class SpecimenTypeMenu extends ConsumerWidget {
+/// follow the catalog formats, with a generic icon for all taxa.
+class SpecimenTypeMenu extends StatelessWidget {
   const SpecimenTypeMenu({
     super.key,
     required this.specimenType,
@@ -229,14 +331,15 @@ class SpecimenTypeMenu extends ConsumerWidget {
   final ValueChanged<SpecimenRecordType> onChanged;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final projectFmt =
-        ref.watch(catalogFmtNotifierProvider).value ?? CatalogFmt.mammalogy;
-    IconData icon(SpecimenRecordType type, {bool filled = false}) =>
-        matchCatFmtToIcon(
-          dataTableCatalogFmt(type) ?? projectFmt,
-          isFilledIcon: filled,
-        );
+  Widget build(BuildContext context) {
+    IconData icon(SpecimenRecordType type, {bool filled = false}) {
+      final catalogFmt = dataTableCatalogFmt(type);
+      if (catalogFmt == null) {
+        return filled ? Icons.category : Icons.category_outlined;
+      }
+      return matchCatFmtToIcon(catalogFmt, isFilledIcon: filled);
+    }
+
     return MenuAnchor(
       menuChildren: [
         for (final value in SpecimenRecordType.values)
@@ -252,12 +355,10 @@ class SpecimenTypeMenu extends ConsumerWidget {
             child: Text(value.dataTableLabel),
           ),
       ],
-      builder: (context, controller, _) => OutlinedButton.icon(
-        icon: Icon(icon(specimenType)),
-        label: Text(specimenType.dataTableLabel),
-        style: _pillButtonStyle,
-        onPressed: () =>
-            controller.isOpen ? controller.close() : controller.open(),
+      builder: (context, controller, _) => DataTableMenuButton(
+        icon: icon(specimenType),
+        label: specimenType.dataTableLabel,
+        controller: controller,
       ),
     );
   }

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
+import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
@@ -17,6 +19,13 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  Future<void> chooseRecordType(WidgetTester tester, String label) async {
+    await tester.tap(find.byType(RecordTypeMenu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(MenuItemButton, label));
+    await tester.pumpAndSettle();
+  }
+
   late AppExitCoordinator exitCoordinator;
   const header = [
     'specimen::specimenUUID',
@@ -230,6 +239,44 @@ void main() {
     expect(find.text('Skipped 2 read-only or linked cells.'), findsOneWidget);
   });
 
+  testWidgets('quick filters live in the filter menu', (tester) async {
+    await pumpScreen(tester);
+    expect(find.text('Clear filters'), findsNothing);
+
+    await tester.tap(find.text('Filters'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxMenuButton, 'Missing taxon'));
+    await tester.pumpAndSettle();
+    expect(loads.last.$2.quickFilters, {DataTableQuickFilter.missingTaxon});
+    // The menu stays open so several presets can be picked at once.
+    expect(find.byType(CheckboxMenuButton), findsWidgets);
+
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(InputChip, 'Missing taxon'), findsOneWidget);
+    await tester.tap(find.text('Clear filters'));
+    await tester.pumpAndSettle();
+    expect(loads.last.$2.quickFilters, isEmpty);
+    expect(find.byType(InputChip), findsNothing);
+  });
+
+  testWidgets('the toolbar fits narrow windows while editing', (tester) async {
+    await pumpScreen(tester);
+    await enterEditMode(tester);
+    await tester.tap(find.text('note 1'));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+    expect(find.text('1 unsaved change'), findsOneWidget);
+
+    for (final width in [900.0, 600.0, 375.0]) {
+      tester.view.physicalSize = Size(width, 900);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'at $width wide');
+      expect(find.byTooltip('Filters'), findsOneWidget, reason: 'icon only');
+    }
+  });
+
   testWidgets('leaving with unsaved edits asks first', (tester) async {
     await pumpScreen(tester);
     await enterEditMode(tester);
@@ -238,15 +285,13 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.delete);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sites'));
-    await tester.pumpAndSettle();
+    await chooseRecordType(tester, 'Sites');
     expect(find.text('Save your changes?'), findsOneWidget);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(loads.last.$1, DataTableRecordType.specimenRecords);
 
-    await tester.tap(find.text('Sites'));
-    await tester.pumpAndSettle();
+    await chooseRecordType(tester, 'Sites');
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
@@ -274,10 +319,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(saves.single.single.value, '');
-    expect(find.text('All changes saved'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(DataTableEditToolbar),
+        matching: find.text('All changes saved'),
+      ),
+      findsOneWidget,
+      reason: 'the status sits next to the edit controls',
+    );
 
-    await tester.tap(find.text('Sites'));
-    await tester.pumpAndSettle();
+    await chooseRecordType(tester, 'Sites');
     expect(find.text('Save your changes?'), findsNothing);
     expect(loads.last.$1, DataTableRecordType.sites);
   });
@@ -292,7 +343,9 @@ void main() {
     expect(find.text('note 2'), findsNothing);
     await withControl(tester, LogicalKeyboardKey.keyZ);
     expect(find.text('note 2'), findsOneWidget);
-    expect(find.text('All changes saved'), findsOneWidget);
+    expect(find.text('1 unsaved change'), findsNothing);
+    // Without auto-save, a clean table says nothing about saving.
+    expect(find.text('All changes saved'), findsNothing);
   });
 
   testWidgets('Ctrl+E toggles edit mode', (tester) async {
