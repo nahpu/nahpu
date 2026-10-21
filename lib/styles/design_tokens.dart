@@ -114,6 +114,12 @@ abstract final class NahpuDataTable {
   static const double columnWidth = 168;
   static const double wideColumnWidth = 280;
   static const double rowNumberWidth = 56;
+
+  /// The open-form button and the media icons beside the row number.
+  static const double rowActionsWidth = 96;
+
+  /// Everything before the first column.
+  static const double leadingWidth = rowNumberWidth + rowActionsWidth;
 }
 
 abstract final class NahpuContentWidth {

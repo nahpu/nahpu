@@ -19,10 +19,14 @@ class StatisticDataTable extends StatefulWidget {
     this.categoryLabel = 'Category',
     this.seriesLabel,
     this.countLabel = 'Count',
+    this.onSelect,
   });
 
   final List<StatisticTableRow> rows;
   final VoidCallback? onExport;
+
+  /// Opens the records behind a row, by its category and series.
+  final void Function(String category, String? series)? onSelect;
   final String categoryLabel;
   final String? seriesLabel;
   final String countLabel;
@@ -57,6 +61,7 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
             ),
           ],
           showEmptyRows: false,
+          showCheckboxColumn: false,
           rowsPerPage: _rowsPerPage,
           availableRowsPerPage: availableRows,
           onRowsPerPageChanged: (value) {
@@ -65,6 +70,7 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
           source: _StatisticDataSource(
             widget.rows,
             hasSeries: widget.seriesLabel != null,
+            onSelect: widget.onSelect,
           ),
           columns: [
             const DataColumn(label: Text('Rank'), numeric: true),
@@ -73,6 +79,8 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
               DataColumn(label: Text(widget.seriesLabel!)),
             DataColumn(label: Text(widget.countLabel), numeric: true),
             const DataColumn(label: Text('Percent'), numeric: true),
+            if (widget.onSelect != null)
+              const DataColumn(label: Text('Records')),
           ],
         ),
       ),
@@ -81,17 +89,25 @@ class _StatisticDataTableState extends State<StatisticDataTable> {
 }
 
 class _StatisticDataSource extends DataTableSource {
-  _StatisticDataSource(this.rows, {required this.hasSeries});
+  _StatisticDataSource(
+    this.rows, {
+    required this.hasSeries,
+    required this.onSelect,
+  });
 
   final List<StatisticTableRow> rows;
   final bool hasSeries;
+  final void Function(String category, String? series)? onSelect;
 
   @override
   DataRow? getRow(int index) {
     if (index >= rows.length) return null;
     final row = rows[index];
+    final select = onSelect;
+    final open = select == null ? null : () => select(row.category, row.series);
     return DataRow.byIndex(
       index: index,
+      onSelectChanged: open == null ? null : (_) => open(),
       cells: [
         DataCell(Text(row.rank.toString())),
         DataCell(
@@ -103,6 +119,15 @@ class _StatisticDataSource extends DataTableSource {
         if (hasSeries) DataCell(Text(row.series ?? 'Not recorded')),
         DataCell(Text(row.count.toString())),
         DataCell(Text('${row.percent.toStringAsFixed(1)}%')),
+        if (open != null)
+          DataCell(
+            IconButton(
+              key: ValueKey('statistics-table-records-${row.category}'),
+              tooltip: 'View records',
+              icon: const Icon(Icons.open_in_new),
+              onPressed: open,
+            ),
+          ),
       ],
     );
   }

@@ -12,6 +12,21 @@ final statisticDataProvider = StreamProvider.autoDispose
       ).watchStatistics(request);
     });
 
+/// Lists the keys of the records behind one statistics group.
+typedef StatisticRecordKeysLoader =
+    Future<List<Object>> Function(
+      StatisticRequest request, {
+      required String label,
+      String? seriesLabel,
+    });
+
+final statisticRecordKeysLoaderProvider = Provider<StatisticRecordKeysLoader>(
+  (ref) =>
+      (request, {required label, seriesLabel}) => StatisticsQuery(
+        ref.read(databaseProvider),
+      ).groupRecordKeys(request, label: label, seriesLabel: seriesLabel),
+);
+
 final statisticFilterOptionsProvider = StreamProvider.autoDispose
     .family<List<StatisticFilterOption>, StatisticFilterKind>((ref, kind) {
       final projectUuid = ref.watch(projectUuidProvider);

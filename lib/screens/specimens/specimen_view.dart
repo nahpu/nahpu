@@ -260,12 +260,12 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
             .watch(specimenEntryProvider)
             .when(
               data: (specimenEntry) {
-                if (specimenEntry.isEmpty) {
+                final specimen = specimenEntry
+                    .where((specimen) => specimen.uuid == widget.specimenUuid)
+                    .firstOrNull;
+                if (specimen == null) {
                   return const EmptySpecimen(isButtonVisible: false);
                 } else {
-                  final specimen = specimenEntry.firstWhere(
-                    (specimen) => specimen.uuid == widget.specimenUuid,
-                  );
                   CatalogFmt catalogFmt = matchTaxonGroupToCatFmt(
                     specimen.taxonGroup,
                   );

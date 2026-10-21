@@ -9,6 +9,7 @@ import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/data_table/data_table_tsv.dart';
 import 'package:nahpu/services/providers/data_table.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -47,6 +48,7 @@ class DataTableGrid extends ConsumerStatefulWidget {
     required this.onMessage,
     required this.onToggleEditMode,
     required this.onOpenLinked,
+    required this.onOpenRecord,
   });
 
   final DataTableRecordType type;
@@ -68,6 +70,9 @@ class DataTableGrid extends ConsumerStatefulWidget {
   /// Opens the dialog for a linked cell.
   final void Function(DataTableRecordRow row, DataTableColumn column)
   onOpenLinked;
+
+  /// Opens the form of a row's record.
+  final ValueChanged<DataTableRecordRow> onOpenRecord;
 
   @override
   ConsumerState<DataTableGrid> createState() => DataTableGridState();
@@ -117,7 +122,7 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
       for (final column in widget.columns) dataTableColumnWidth(column),
     ];
     final totalWidth =
-        NahpuDataTable.rowNumberWidth + widths.fold(0.0, (sum, w) => sum + w);
+        NahpuDataTable.leadingWidth + widths.fold(0.0, (sum, w) => sum + w);
     return Focus(
       focusNode: _focusNode,
       autofocus: true,
@@ -160,6 +165,7 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
                         onEditCell: _onDoubleTapCell,
                         onCommit: _commitEdit,
                         onCancel: _cancelEdit,
+                        onOpenRecord: widget.onOpenRecord,
                       ),
                     ),
                   ),
@@ -590,7 +596,7 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
       }
     }
     if (_horizontal.hasClients && focus.col < widget.columns.length) {
-      var left = NahpuDataTable.rowNumberWidth;
+      var left = NahpuDataTable.leadingWidth;
       for (var i = 0; i < focus.col; i++) {
         left += dataTableColumnWidth(widget.columns[i]);
       }
@@ -646,7 +652,7 @@ class DataTableHeaderRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const SizedBox(width: NahpuDataTable.rowNumberWidth),
+          const SizedBox(width: NahpuDataTable.leadingWidth),
           for (var i = 0; i < columns.length; i++)
             DataTableHeaderCell(
               column: columns[i],
@@ -760,6 +766,7 @@ class DataTableGridRow extends StatelessWidget {
     required this.onEditCell,
     required this.onCommit,
     required this.onCancel,
+    required this.onOpenRecord,
   });
 
   final int index;
@@ -780,6 +787,7 @@ class DataTableGridRow extends StatelessWidget {
   )
   onCommit;
   final VoidCallback onCancel;
+  final ValueChanged<DataTableRecordRow> onOpenRecord;
 
   @override
   Widget build(BuildContext context) {
@@ -808,6 +816,7 @@ class DataTableGridRow extends StatelessWidget {
               ),
             ),
           ),
+          DataTableRowActions(row: row, onOpen: () => onOpenRecord(row)),
           for (var col = 0; col < columns.length; col++)
             DataTableGridCell(
               width: widths[col],
@@ -833,6 +842,74 @@ class DataTableGridRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The open-form button and an icon for each kind of media a row has.
+class DataTableRowActions extends StatelessWidget {
+  const DataTableRowActions({
+    super.key,
+    required this.row,
+    required this.onOpen,
+  });
+
+  final DataTableRecordRow row;
+  final VoidCallback onOpen;
+
+  static const _mediaKinds = [
+    MediaKind.image,
+    MediaKind.audio,
+    MediaKind.video,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return SizedBox(
+      width: NahpuDataTable.rowActionsWidth,
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Open form',
+            icon: const Icon(Icons.open_in_new),
+            iconSize: NahpuControlSize.iconSmall,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(
+              width: NahpuControlSize.iconLarge,
+              height: NahpuControlSize.iconLarge,
+            ),
+            onPressed: onOpen,
+          ),
+          for (final kind in _mediaKinds)
+            if (row.mediaKinds.contains(kind))
+              Padding(
+                padding: const EdgeInsets.only(right: NahpuSpacing.xs),
+                child: Tooltip(
+                  message: _mediaTooltip(kind),
+                  child: Icon(
+                    _mediaIcon(kind),
+                    size: NahpuControlSize.iconSmall,
+                    color: color,
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  String _mediaTooltip(MediaKind kind) => switch (kind) {
+    MediaKind.image => 'Has photos',
+    MediaKind.audio => 'Has audio',
+    MediaKind.video => 'Has video',
+    MediaKind.other => 'Has media',
+  };
+
+  IconData _mediaIcon(MediaKind kind) => switch (kind) {
+    MediaKind.image => Icons.photo_outlined,
+    MediaKind.audio => Icons.mic_none,
+    MediaKind.video => Icons.videocam_outlined,
+    MediaKind.other => Icons.attach_file,
+  };
 }
 
 class DataTableGridCell extends StatelessWidget {

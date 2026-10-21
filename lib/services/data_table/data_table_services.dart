@@ -11,6 +11,7 @@ import 'package:nahpu/services/export/specimen_part_records.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/file_format.dart';
 
 export 'package:nahpu/services/data_table/data_table_models.dart';
 
@@ -41,6 +42,7 @@ class DataTableService extends AppServices {
         if (column.isEditableIn(type)) column.field,
     ];
     final raw = await pageQuery.rawValues(type, keys.keys, editable);
+    final media = await pageQuery.mediaFiles(type, keys.keys);
     final rows = <DataTableRecordRow>[];
     for (final key in keys.keys) {
       final values = await _rowValues(type, key, specimenType);
@@ -52,6 +54,8 @@ class DataTableService extends AppServices {
           attributeTable: raw.attributes[key],
           siteId: raw.siteIds[key],
           eventId: raw.eventIds[key],
+          specimenUuid: raw.specimenUuids[key],
+          mediaKinds: dataTableMediaKinds(media[key] ?? const []),
         ),
       );
     }
@@ -121,6 +125,11 @@ class DataTableService extends AppServices {
     }
   }
 }
+
+/// The image, audio, and video kinds among [files].
+Set<MediaKind> dataTableMediaKinds(Iterable<String> files) =>
+    {for (final file in files) matchMediaKindFromPath(file)}
+      ..remove(MediaKind.other);
 
 /// Pairs export [values] with their [header] keys.
 Map<String, String> dataTableRowFromValues(

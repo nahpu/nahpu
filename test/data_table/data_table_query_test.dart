@@ -4,6 +4,7 @@ import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/file_format.dart';
 
 import 'data_table_test_db.dart';
 
@@ -269,5 +270,80 @@ void main() {
     });
     expect(raw.attributes['s1'], 'mammalAttribute');
     expect(raw.attributes.containsKey('s3'), isFalse);
+  });
+
+  test('a key scope limits rows and count', () async {
+    final scoped = await specimens(
+      const DataTableQuery(
+        scope: DataTableKeyScope(keys: {'s1', 's3', 'other'}, label: 'Pick'),
+      ),
+    );
+    expect(scoped.totalRows, 2);
+    expect(scoped.keys, ['s1', 's3']);
+
+    final sites = await pages.run(
+      DataTableRecordType.sites,
+      const DataTableQuery(
+        scope: DataTableKeyScope(keys: {2}, label: 'Pick'),
+      ),
+      projectUuid: 'p1',
+    );
+    expect(sites.keys, [2]);
+  });
+
+  test('a key scope combines with search and rules', () async {
+    final scoped = await specimens(
+      const DataTableQuery(
+        scope: DataTableKeyScope(keys: {'s1', 's2'}, label: 'Pick'),
+        search: 'Good',
+        searchKeys: ['specimen::condition'],
+      ),
+    );
+    expect(scoped.keys, ['s1']);
+  });
+
+  test('reads media file names by record, and parts by specimen', () async {
+    Future<void> media(int id, String file) => db.customStatement(
+      'INSERT INTO media (primaryId, projectUuid, fileName) VALUES (?, ?, ?)',
+      [id, 'p1', file],
+    );
+    await media(1, 'skull.JPG');
+    await media(2, 'call.wav');
+    await media(3, 'site.mp4');
+    await db.customStatement(
+      'INSERT INTO specimenMedia (specimenUuid, mediaId) VALUES (?, ?), (?, ?)',
+      ['s1', 1, 's1', 2],
+    );
+    await db.customStatement(
+      'INSERT INTO siteMedia (siteId, mediaId) VALUES (?, ?)',
+      [2, 3],
+    );
+
+    final specimenFiles = await pages.mediaFiles(
+      DataTableRecordType.specimenRecords,
+      ['s1', 's2'],
+    );
+    expect(specimenFiles.keys, ['s1']);
+    expect(dataTableMediaKinds(specimenFiles['s1']!), {
+      MediaKind.image,
+      MediaKind.audio,
+    });
+
+    final partFiles = await pages.mediaFiles(
+      DataTableRecordType.specimenParts,
+      [1],
+    );
+    expect(partFiles[1], hasLength(2));
+
+    final siteFiles = await pages.mediaFiles(DataTableRecordType.sites, [1, 2]);
+    expect(dataTableMediaKinds(siteFiles[2]!), {MediaKind.video});
+    expect(siteFiles.containsKey(1), isFalse);
+  });
+
+  test('raw values carry the parent specimen of a part', () async {
+    final raw = await pages.rawValues(DataTableRecordType.specimenParts, [
+      1,
+    ], const []);
+    expect(raw.specimenUuids[1], 's1');
   });
 }

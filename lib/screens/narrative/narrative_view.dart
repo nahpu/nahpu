@@ -183,7 +183,7 @@ class NarrativePages extends StatelessWidget {
       controller: pageNav.pageController,
       itemCount: narrativeEntries.length,
       itemBuilder: (context, index) {
-        final narrativeCtr = _updateController(narrativeEntries, index);
+        final narrativeCtr = narrativeFormController(narrativeEntries[index]);
         return PageViewer(
           pageNav: pageNav,
           isNavButtonVisible: isNavButtonVisible,
@@ -196,34 +196,76 @@ class NarrativePages extends StatelessWidget {
       onPageChanged: onPageChanged,
     );
   }
+}
 
-  NarrativeFormCtrModel _updateController(
-    List<NarrativeData> narrativeEntries,
-    int index,
-  ) {
-    // Prefer the separate `time` column if present; otherwise try
-    // to parse a time from the existing date string for backwards
-    // compatibility with old data.
-    String? timeStd = narrativeEntries[index].time;
-    if ((timeStd == null || timeStd.isEmpty) &&
-        narrativeEntries[index].date != null) {
-      final storedDate = narrativeEntries[index].date!;
-      final parsed = DateTime.tryParse(storedDate);
-      if (parsed != null) {
-        final hh = parsed.hour.toString().padLeft(2, '0');
-        final mm = parsed.minute.toString().padLeft(2, '0');
-        final ss = parsed.second.toString().padLeft(2, '0');
-        timeStd = '$hh:$mm:$ss';
-      }
+/// Form controllers filled from [narrative].
+NarrativeFormCtrModel narrativeFormController(NarrativeData narrative) {
+  // Prefer the separate `time` column if present; otherwise try
+  // to parse a time from the existing date string for backwards
+  // compatibility with old data.
+  String? timeStd = narrative.time;
+  if ((timeStd == null || timeStd.isEmpty) && narrative.date != null) {
+    final parsed = DateTime.tryParse(narrative.date!);
+    if (parsed != null) {
+      final hh = parsed.hour.toString().padLeft(2, '0');
+      final mm = parsed.minute.toString().padLeft(2, '0');
+      final ss = parsed.second.toString().padLeft(2, '0');
+      timeStd = '$hh:$mm:$ss';
     }
+  }
 
-    return NarrativeFormCtrModel(
-      dateCtr: DateEditingController(date: narrativeEntries[index].date),
-      timeCtr: TimeEditingController(time: timeStd),
-      siteCtr: narrativeEntries[index].siteID,
-      writerCtr: narrativeEntries[index].writerId,
-      narrativeCtr: TextEditingController(
-        text: narrativeEntries[index].narrative,
+  return NarrativeFormCtrModel(
+    dateCtr: DateEditingController(date: narrative.date),
+    timeCtr: TimeEditingController(time: timeStd),
+    siteCtr: narrative.siteID,
+    writerCtr: narrative.writerId,
+    narrativeCtr: TextEditingController(text: narrative.narrative),
+  );
+}
+
+/// One narrative's form on its own page, opened from outside the narrative
+/// viewer.
+class NarrativeFormView extends ConsumerStatefulWidget {
+  const NarrativeFormView({super.key, required this.narrativeId});
+
+  final int narrativeId;
+
+  @override
+  NarrativeFormViewState createState() => NarrativeFormViewState();
+}
+
+class NarrativeFormViewState extends ConsumerState<NarrativeFormView> {
+  /// Disposed by [NarrativeForm].
+  NarrativeFormCtrModel? _narrativeCtr;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Narrative Record')),
+      body: SafeArea(
+        child: ref
+            .watch(narrativeEntryProvider)
+            .when(
+              data: (entries) {
+                final narrative = entries
+                    .where((n) => n.id == widget.narrativeId)
+                    .firstOrNull;
+                if (narrative == null) {
+                  return const EmptyNarrative(isButtonVisible: false);
+                }
+                // Built once, so typing isn't reset when the list reloads.
+                final narrativeCtr = _narrativeCtr ??= narrativeFormController(
+                  narrative,
+                );
+                return NarrativeForm(
+                  key: ValueKey(narrative.id),
+                  narrativeId: narrative.id,
+                  narrativeCtr: narrativeCtr,
+                );
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            ),
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
+import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/database/app_exit.dart';
@@ -16,6 +17,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -70,6 +72,10 @@ void main() {
               'measurement::testisLength': '1$i',
             },
             attributeTable: 'mammalAttribute',
+            specimenUuid: 'r$i',
+            mediaKinds: i == 1
+                ? const {MediaKind.image, MediaKind.audio}
+                : const {},
           ),
       ],
       totalRows: 3,
@@ -79,7 +85,11 @@ void main() {
     );
   }
 
-  Future<void> pumpScreen(WidgetTester tester, {bool autoSave = false}) async {
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    bool autoSave = false,
+    DataTableScreen screen = const DataTableScreen(),
+  }) async {
     loads.clear();
     saves.clear();
     SharedPreferences.setMockInitialValues({
@@ -136,7 +146,7 @@ void main() {
             );
           }),
         ],
-        child: const MaterialApp(home: DataTableScreen()),
+        child: MaterialApp(home: screen),
       ),
     );
     await tester.pumpAndSettle();
@@ -394,6 +404,8 @@ void main() {
 
     tester.view.physicalSize = const Size(375, 900);
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Ana Vale').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ana Vale').first);
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.f2);
@@ -483,5 +495,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(await quitting, AppExitResponse.cancel);
     expect(find.text('1 unsaved change'), findsOneWidget);
+  });
+
+  testWidgets('rows show their media kinds and an open-form button', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    expect(find.byTooltip('Open form'), findsNWidgets(3));
+    expect(find.byIcon(Icons.photo_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.mic_none), findsOneWidget);
+    expect(find.byIcon(Icons.videocam_outlined), findsNothing);
+
+    await tester.tap(find.byTooltip('Open form').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      tester.widget<SpecimenFormView>(find.byType(SpecimenFormView)),
+      isA<SpecimenFormView>().having((v) => v.specimenUuid, 'uuid', 'r1'),
+    );
+  });
+
+  testWidgets('an initial scope shows as a chip and can be cleared', (
+    tester,
+  ) async {
+    await pumpScreen(
+      tester,
+      screen: const DataTableScreen(
+        initialScope: DataTableKeyScope(
+          keys: {'r1', 'r2'},
+          label: 'Species: Myotis lucifugus',
+        ),
+      ),
+    );
+    expect(loads.first.$2.scope?.keys, {'r1', 'r2'});
+    final chip = find.widgetWithText(
+      InputChip,
+      'Species: Myotis lucifugus (2)',
+    );
+    expect(chip, findsOneWidget);
+
+    await tester.tap(
+      find.descendant(of: chip, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    expect(loads.last.$2.scope, isNull);
+    expect(chip, findsNothing);
   });
 }

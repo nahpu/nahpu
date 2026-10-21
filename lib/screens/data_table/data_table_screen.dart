@@ -9,6 +9,10 @@ import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
 import 'package:nahpu/screens/data_table/components/data_table_link_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_pagination.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
+import 'package:nahpu/screens/events/event_view.dart';
+import 'package:nahpu/screens/narrative/narrative_view.dart';
+import 'package:nahpu/screens/sites/site_view.dart';
+import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/database/app_exit.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
@@ -28,7 +32,16 @@ import 'package:nahpu/styles/design_tokens.dart';
 /// plain fields can be changed; edits wait for Save, or save as they are
 /// committed when auto-save is on.
 class DataTableScreen extends ConsumerStatefulWidget {
-  const DataTableScreen({super.key});
+  const DataTableScreen({
+    super.key,
+    this.initialType = DataTableRecordType.specimenRecords,
+    this.initialScope,
+  });
+
+  final DataTableRecordType initialType;
+
+  /// Opens the table limited to these records of [initialType].
+  final DataTableKeyScope? initialScope;
 
   @override
   DataTableScreenState createState() => DataTableScreenState();
@@ -45,7 +58,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   Timer? _searchDebounce;
   int _request = 0;
 
-  DataTableRecordType _type = DataTableRecordType.specimenRecords;
+  late DataTableRecordType _type = widget.initialType;
+  late DataTableKeyScope? _scope = widget.initialScope;
   SpecimenRecordType _specimenType = SpecimenRecordType.allTaxa;
   String? _searchField;
   List<DataTableFilterRule> _rules = const [];
@@ -169,9 +183,13 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                         onSave: _save,
                         onDiscard: _edits.discard,
                       ),
-                      if (_quickFilters.isNotEmpty || _rules.isNotEmpty) ...[
+                      if (_quickFilters.isNotEmpty ||
+                          _rules.isNotEmpty ||
+                          _scope != null) ...[
                         const DataTableToolbarDivider(),
                         DataTableFilterChips(
+                          scope: _scope,
+                          onScopeRemoved: () => _update(() => _scope = null),
                           selected: _quickFilters,
                           rules: _rules,
                           columns: data?.columns ?? const [],
@@ -182,6 +200,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                           onCleared: () => _update(() {
                             _rules = const [];
                             _quickFilters = const {};
+                            _scope = null;
                           }),
                         ),
                       ],
@@ -228,7 +247,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       final isFiltered =
           _searchController.text.trim().isNotEmpty ||
           _rules.isNotEmpty ||
-          _quickFilters.isNotEmpty;
+          _quickFilters.isNotEmpty ||
+          _scope != null;
       final taxa =
           _type == DataTableRecordType.specimenRecords &&
               _specimenType != SpecimenRecordType.allTaxa
@@ -259,7 +279,34 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       onMessage: _showMessage,
       onToggleEditMode: () => _setEditMode(!_isEditMode),
       onOpenLinked: _openLinked,
+      onOpenRecord: _openRecord,
     );
+  }
+
+  /// Opens the record's form over the table. The table keeps its place and
+  /// reloads when the form closes, to show any changes made there.
+  Future<void> _openRecord(DataTableRecordRow row) async {
+    if (!await _resolveUnsaved() || !mounted) return;
+    final key = row.key;
+    final Widget? form = switch (_type) {
+      DataTableRecordType.specimenRecords ||
+      DataTableRecordType.specimenParts => switch (row.specimenUuid) {
+        final String uuid => SpecimenFormView(specimenUuid: uuid),
+        null => null,
+      },
+      DataTableRecordType.sites => SiteFormView(siteId: key as int),
+      DataTableRecordType.events => CollEventFormView(eventId: key as int),
+      DataTableRecordType.narrative => NarrativeFormView(
+        narrativeId: key as int,
+      ),
+    };
+    if (form == null) return;
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => form));
+    if (!mounted) return;
+    _invalidateRecordLists();
+    _load();
   }
 
   Future<void> _openLinked(
@@ -331,6 +378,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     sort: _sort,
     page: _page,
     rowsPerPage: _rowsPerPage,
+    scope: _scope,
   );
 
   /// Fetches the current page. Earlier data stays on screen while it
@@ -429,6 +477,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       _searchField = null;
       _rules = const [];
       _quickFilters = const {};
+      // Scoped keys belong to the type they were picked for.
+      _scope = null;
       _data = null;
     });
   }

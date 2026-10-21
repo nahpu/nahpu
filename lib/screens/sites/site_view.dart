@@ -230,6 +230,45 @@ class _SitePage extends ConsumerWidget {
   }
 }
 
+/// One site's form on its own page, opened from outside the site viewer.
+class SiteFormView extends ConsumerWidget {
+  const SiteFormView({super.key, required this.siteId});
+
+  final int siteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Site Record')),
+      body: SafeArea(
+        child: ref
+            .watch(siteEntryProvider)
+            .when(
+              data: (sites) {
+                final site = sites.where((s) => s.id == siteId).firstOrNull;
+                if (site == null) {
+                  return const EmptySite(isButtonVisible: false);
+                }
+                return ref
+                    .watch(siteAttributeProvider(site.id))
+                    .when(
+                      data: (attribute) => SiteForm(
+                        key: ValueKey(site.id),
+                        site: site,
+                        attribute: attribute,
+                      ),
+                      loading: () => const CommonProgressIndicator(),
+                      error: (error, _) => Text(error.toString()),
+                    );
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            ),
+      ),
+    );
+  }
+}
+
 class EmptySite extends StatelessWidget {
   const EmptySite({super.key, required this.isButtonVisible});
 

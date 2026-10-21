@@ -4,7 +4,7 @@ import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// The active preset filters and field rules as removable chips, shown
+/// The record scope, active preset filters, and field rules as removable chips, shown
 /// after the edit controls only while any are on.
 class DataTableFilterChips extends StatelessWidget {
   const DataTableFilterChips({
@@ -15,8 +15,13 @@ class DataTableFilterChips extends StatelessWidget {
     required this.onToggled,
     required this.onRuleRemoved,
     required this.onCleared,
+    this.scope,
+    this.onScopeRemoved,
   });
 
+  /// Records picked elsewhere, such as from a statistics chart.
+  final DataTableKeyScope? scope;
+  final VoidCallback? onScopeRemoved;
   final Set<DataTableQuickFilter> selected;
   final List<DataTableFilterRule> rules;
   final List<DataTableColumn> columns;
@@ -30,6 +35,11 @@ class DataTableFilterChips extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (scope case final scope?)
+          DataTableActiveFilterChip(
+            label: '${scope.label} (${scope.keys.length})',
+            onDeleted: onScopeRemoved ?? () {},
+          ),
         // Keep the menu's order rather than the order they were picked.
         for (final filter in DataTableQuickFilter.values)
           if (selected.contains(filter))

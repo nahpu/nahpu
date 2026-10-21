@@ -4,6 +4,7 @@ import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_records.dart';
 import 'package:nahpu/screens/projects/statistics/statistic_filter_panel.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
@@ -129,7 +130,17 @@ class _TopSpeciesChart extends ConsumerWidget {
     return _StatisticAsyncContent(
       value: ref.watch(statisticDataProvider(request)),
       onRetry: () => ref.invalidate(statisticDataProvider(request)),
-      builder: (rows) => StatisticRankedBarList(data: rows, isSpecies: true),
+      builder: (rows) => StatisticRankedBarList(
+        data: rows,
+        isSpecies: true,
+        onSelect: (label, series) => openStatisticRecords(
+          context,
+          ref,
+          request,
+          label: label,
+          seriesLabel: series,
+        ),
+      ),
     );
   }
 }
@@ -473,6 +484,13 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       speciesId: _usesSpeciesFilter ? _speciesFilter?.id : null,
     );
     final details = ref.watch(statisticDataProvider(request));
+    void select(String label, String? series) => openStatisticRecords(
+      context,
+      ref,
+      request,
+      label: label,
+      seriesLabel: series,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Record Statistics')),
@@ -754,6 +772,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                       toggleKey: const ValueKey(
                                                         'statistics-detail-chart-toggle',
                                                       ),
+                                                      onSelect: select,
                                                     );
                                                   }
                                                   return StatisticBarChart(
@@ -766,6 +785,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                     height:
                                                         constraints.maxHeight,
                                                     fitHeight: true,
+                                                    onSelect: select,
                                                   );
                                                 }
                                                 final tableRows =
@@ -774,6 +794,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                     );
                                                 return StatisticDataTable(
                                                   rows: tableRows,
+                                                  onSelect: select,
                                                   categoryLabel:
                                                       request.categoryLabel,
                                                   seriesLabel:
@@ -1301,6 +1322,13 @@ class _StatisticSummaryCard extends ConsumerWidget {
       limit: isAdaptiveChart ? null : topStatisticCount,
     );
     final value = ref.watch(statisticDataProvider(request));
+    void select(String label, String? series) => openStatisticRecords(
+      context,
+      ref,
+      request,
+      label: label,
+      seriesLabel: series,
+    );
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Padding(
@@ -1346,6 +1374,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                       toggleKey: ValueKey(
                         'statistics-summary-chart-toggle-${request.group.name}',
                       ),
+                      onSelect: select,
                     );
                   }
                   return StatisticBarChart(
@@ -1355,6 +1384,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                     rank: request.rank,
                     compact: true,
                     height: _summaryChartHeight,
+                    onSelect: select,
                   );
                 },
               ),

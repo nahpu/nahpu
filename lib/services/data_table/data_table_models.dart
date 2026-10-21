@@ -1,5 +1,6 @@
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 /// Record types the project data table can show. Each matches a tabular
@@ -352,6 +353,18 @@ enum DataTableQuickFilter {
   final String sql;
 }
 
+/// Limits the table to a fixed set of records, such as the records behind one
+/// statistics bar.
+class DataTableKeyScope {
+  const DataTableKeyScope({required this.keys, required this.label});
+
+  /// Record keys as the table reads them: specimen UUIDs or row ids.
+  final Set<Object> keys;
+
+  /// What the scope shows, for the filter chip.
+  final String label;
+}
+
 /// What the user asked to see.
 class DataTableQuery {
   const DataTableQuery({
@@ -363,6 +376,7 @@ class DataTableQuery {
     this.sort,
     this.page = 0,
     this.rowsPerPage = 50,
+    this.scope,
   });
 
   final String search;
@@ -377,6 +391,9 @@ class DataTableQuery {
   final DataTableSort? sort;
   final int page;
   final int rowsPerPage;
+
+  /// Limits the table to these records; null shows every record.
+  final DataTableKeyScope? scope;
 }
 
 /// One record on the current page.
@@ -388,6 +405,8 @@ class DataTableRecordRow {
     this.attributeTable,
     this.siteId,
     this.eventId,
+    this.specimenUuid,
+    this.mediaKinds = const {},
   });
 
   /// The record's primary key: a specimen UUID or a row id.
@@ -406,6 +425,13 @@ class DataTableRecordRow {
   /// The site and event this record is linked to, if any.
   final int? siteId;
   final int? eventId;
+
+  /// The specimen this record belongs to: the key itself for specimens, the
+  /// parent specimen for parts.
+  final String? specimenUuid;
+
+  /// Kinds of media linked to this record. Parts show their specimen's media.
+  final Set<MediaKind> mediaKinds;
 }
 
 class DataTablePageData {

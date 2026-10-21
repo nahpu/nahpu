@@ -189,6 +189,36 @@ class CollEventPages extends StatelessWidget {
   }
 }
 
+/// One collecting event's form on its own page, opened from outside the
+/// event viewer.
+class CollEventFormView extends ConsumerWidget {
+  const CollEventFormView({super.key, required this.eventId});
+
+  final int eventId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Collecting Event Record')),
+      body: SafeArea(
+        child: ref
+            .watch(collEventEntryProvider)
+            .when(
+              data: (events) {
+                final event = events.where((e) => e.id == eventId).firstOrNull;
+                if (event == null) {
+                  return const EmptyCollEvent(isButtonVisible: false);
+                }
+                return CollEventForm(key: ValueKey(event.id), collEvent: event);
+              },
+              loading: () => const CommonProgressIndicator(),
+              error: (error, _) => Text(error.toString()),
+            ),
+      ),
+    );
+  }
+}
+
 class EmptyCollEvent extends StatelessWidget {
   const EmptyCollEvent({super.key, required this.isButtonVisible});
 

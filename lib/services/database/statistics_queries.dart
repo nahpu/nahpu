@@ -524,21 +524,9 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
       return _partStatisticsSql(request);
     }
 
-    final variables = <Variable>[Variable(request.projectUuid)];
-    final conditions = <String>['specimen.projectUuid = ?'];
-    if (request.siteId != null) {
-      conditions.add(
-        'coalesce(collEvent.siteID, specimenCoordinate.siteID) = ?',
-      );
-      variables.add(Variable(request.siteId!));
-    }
-
+    final (:conditions, :variables) = _specimenConditions(request);
     final label = _specimenDimension(request);
-    final series = switch (request.breakdown) {
-      StatisticBreakdown.sex => _sexLabel,
-      StatisticBreakdown.lifeStage => _lifeStageLabel,
-      null => null,
-    };
+    final series = _seriesDimension(request);
     final count = request.measure == StatisticMeasure.specimens
         ? 'COUNT(*)'
         : 'COUNT(DISTINCT $_identifiedSpecies)';
@@ -551,16 +539,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
       WITH $_attributeCte,
       grouped AS (
         SELECT $label AS label, $seriesColumn, $count AS count
-        FROM specimen
-        LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
-        LEFT JOIN collEvent ON collEvent.id = specimen.collEventID
-        LEFT JOIN coordinate specimenCoordinate
-          ON specimenCoordinate.id = specimen.coordinateID
-        LEFT JOIN site
-          ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
-        LEFT JOIN collEffort ON collEffort.id = specimen.collMethodID
-        LEFT JOIN normalized_attributes
-          ON normalized_attributes.specimenUuid = specimen.uuid
+        FROM $_specimenFrom
         WHERE ${conditions.join(' AND ')}
         GROUP BY $groupColumns
         HAVING $count > 0
@@ -580,36 +559,18 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
     return _StatisticsSql(
       sql: sql,
       variables: variables,
-      tables: {
-        db.specimen,
-        db.taxonomy,
-        db.collEvent,
-        db.coordinate,
-        db.site,
-        db.collEffort,
-        ..._attributeTables,
-      },
+      tables: _specimenTables,
     );
   }
 
   _StatisticsSql _partStatisticsSql(StatisticRequest request) {
-    final variables = <Variable>[Variable(request.projectUuid)];
-    final conditions = <String>['specimen.projectUuid = ?'];
-    if (request.speciesId != null) {
-      conditions.add('specimen.speciesID = ?');
-      variables.add(Variable(request.speciesId!));
-    }
-    final label = switch (request.group) {
-      StatisticGroup.partType => _partTypeLabel,
-      StatisticGroup.partTreatment => _treatmentLabel,
-      _ => throw ArgumentError('Unsupported part grouping: ${request.group}'),
-    };
+    final (:conditions, :variables) = _partConditions(request);
+    final label = _partDimension(request);
     var sql =
         '''
       SELECT $label AS label, NULL AS series_label,
         SUM($_partQuantity) AS count
-      FROM specimenPart
-      INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
+      FROM $_partFrom
       WHERE ${conditions.join(' AND ')}
       GROUP BY label
       ORDER BY count DESC, label COLLATE NOCASE ASC
@@ -624,6 +585,129 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
       tables: {db.specimen, db.specimenPart},
     );
   }
+
+  /// Keys of the records counted in one group of [request]: specimen UUIDs,
+  /// or part ids for part quantity.
+  ///
+  /// [label] and [seriesLabel] are the values a [StatisticDatum] reports, so a
+  /// chart element can list the records behind it. For a species count, the
+  /// group's specimens are returned.
+  Future<List<Object>> groupRecordKeys(
+    StatisticRequest request, {
+    required String label,
+    String? seriesLabel,
+  }) async {
+    final String sql;
+    final List<Variable> variables;
+    if (request.measure == StatisticMeasure.partQuantity) {
+      final where = _partConditions(request);
+      variables = [...where.variables, Variable(label)];
+      sql =
+          '''
+        SELECT specimenPart.id AS k
+        FROM $_partFrom
+        WHERE ${where.conditions.join(' AND ')}
+          AND ${_partDimension(request)} = ?
+        ORDER BY specimenPart.id
+      ''';
+    } else {
+      final where = _specimenConditions(request);
+      final conditions = [
+        ...where.conditions,
+        '${_specimenDimension(request)} = ?',
+      ];
+      variables = [...where.variables, Variable(label)];
+      final series = _seriesDimension(request);
+      if (series != null && seriesLabel != null) {
+        conditions.add('$series = ?');
+        variables.add(Variable(seriesLabel));
+      }
+      sql =
+          '''
+        WITH $_attributeCte
+        SELECT specimen.uuid AS k
+        FROM $_specimenFrom
+        WHERE ${conditions.join(' AND ')}
+        ORDER BY specimen.rowid
+      ''';
+    }
+    final rows = await customSelect(
+      sql,
+      variables: variables,
+      readsFrom: request.measure == StatisticMeasure.partQuantity
+          ? {db.specimen, db.specimenPart}
+          : _specimenTables,
+    ).get();
+    return [for (final row in rows) row.data['k']!];
+  }
+
+  /// Specimens with everything the specimen groupings read.
+  static const _specimenFrom = '''
+        specimen
+        LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID
+        LEFT JOIN collEvent ON collEvent.id = specimen.collEventID
+        LEFT JOIN coordinate specimenCoordinate
+          ON specimenCoordinate.id = specimen.coordinateID
+        LEFT JOIN site
+          ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
+        LEFT JOIN collEffort ON collEffort.id = specimen.collMethodID
+        LEFT JOIN normalized_attributes
+          ON normalized_attributes.specimenUuid = specimen.uuid
+  ''';
+
+  static const _partFrom = '''
+        specimenPart
+        INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
+  ''';
+
+  Set<ResultSetImplementation> get _specimenTables => {
+    db.specimen,
+    db.taxonomy,
+    db.collEvent,
+    db.coordinate,
+    db.site,
+    db.collEffort,
+    ..._attributeTables,
+  };
+
+  ({List<String> conditions, List<Variable> variables}) _specimenConditions(
+    StatisticRequest request,
+  ) {
+    final variables = <Variable>[Variable(request.projectUuid)];
+    final conditions = <String>['specimen.projectUuid = ?'];
+    if (request.siteId != null) {
+      conditions.add(
+        'coalesce(collEvent.siteID, specimenCoordinate.siteID) = ?',
+      );
+      variables.add(Variable(request.siteId!));
+    }
+    return (conditions: conditions, variables: variables);
+  }
+
+  ({List<String> conditions, List<Variable> variables}) _partConditions(
+    StatisticRequest request,
+  ) {
+    final variables = <Variable>[Variable(request.projectUuid)];
+    final conditions = <String>['specimen.projectUuid = ?'];
+    if (request.speciesId != null) {
+      conditions.add('specimen.speciesID = ?');
+      variables.add(Variable(request.speciesId!));
+    }
+    return (conditions: conditions, variables: variables);
+  }
+
+  String _partDimension(StatisticRequest request) => switch (request.group) {
+    StatisticGroup.partType => _partTypeLabel,
+    StatisticGroup.partTreatment => _treatmentLabel,
+    _ => throw ArgumentError('Unsupported part grouping: ${request.group}'),
+  };
+
+  String? _seriesDimension(StatisticRequest request) =>
+      switch (request.breakdown) {
+        StatisticBreakdown.sex => _sexLabel,
+        StatisticBreakdown.lifeStage => _lifeStageLabel,
+        null => null,
+      };
 
   String _specimenDimension(StatisticRequest request) =>
       switch (request.group) {

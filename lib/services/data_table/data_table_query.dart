@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
@@ -27,6 +29,7 @@ class DataTableRawValues {
     required this.attributes,
     this.siteIds = const {},
     this.eventIds = const {},
+    this.specimenUuids = const {},
   });
 
   final Map<Object, Map<String, String>> values;
@@ -37,6 +40,9 @@ class DataTableRawValues {
   /// The site and event each record is linked to.
   final Map<Object, int> siteIds;
   final Map<Object, int> eventIds;
+
+  /// The specimen each specimen or part record belongs to.
+  final Map<Object, String> specimenUuids;
 }
 
 /// Filters, sorts, counts, and pages records in SQL, so only one page of
@@ -105,6 +111,7 @@ class DataTablePageQuery {
     }
     final selected = fields.where((field) => field.isFilterable).toList();
     final isSpecimen = type == DataTableRecordType.specimenRecords;
+    final hasSpecimen = isSpecimen || type == DataTableRecordType.specimenParts;
     final links = switch (type) {
       DataTableRecordType.specimenRecords => const ['st.id', 'ce.id'],
       DataTableRecordType.events => const ['st.id', 'ce.id'],
@@ -121,6 +128,7 @@ class DataTablePageQuery {
       '${_key(type)} AS k',
       '${links[0]} AS linked_site',
       '${links[1]} AS linked_event',
+      '${hasSpecimen ? 's.uuid' : 'NULL'} AS specimen_uuid',
       for (var i = 0; i < selected.length; i++) '${selected[i].sqlExpr} AS f$i',
       if (isSpecimen)
         for (final table in dataTableAttributeTables)
@@ -139,10 +147,14 @@ class DataTablePageQuery {
     final attributes = <Object, String>{};
     final siteIds = <Object, int>{};
     final eventIds = <Object, int>{};
+    final specimenUuids = <Object, String>{};
     for (final row in rows) {
       final key = row.data['k']!;
       if (row.data['linked_site'] case final int id) siteIds[key] = id;
       if (row.data['linked_event'] case final int id) eventIds[key] = id;
+      if (row.data['specimen_uuid'] case final String uuid) {
+        specimenUuids[key] = uuid;
+      }
       values[key] = {
         for (var i = 0; i < selected.length; i++)
           selected[i].key: _text(row.data['f$i']),
@@ -161,7 +173,54 @@ class DataTablePageQuery {
       attributes: attributes,
       siteIds: siteIds,
       eventIds: eventIds,
+      specimenUuids: specimenUuids,
     );
+  }
+
+  /// Reads the file names of the media linked to [keys].
+  ///
+  /// Parts have no media of their own, so they read their specimen's media.
+  Future<Map<Object, List<String>>> mediaFiles(
+    DataTableRecordType type,
+    List<Object> keys,
+  ) async {
+    if (keys.isEmpty) return const {};
+    final (link, owner) = switch (type) {
+      DataTableRecordType.specimenRecords => (
+        'specimenMedia l ON l.specimenUuid = s.uuid',
+        's.uuid',
+      ),
+      DataTableRecordType.specimenParts => (
+        'specimenMedia l ON l.specimenUuid = s.uuid',
+        'p.id',
+      ),
+      DataTableRecordType.sites => ('siteMedia l ON l.siteId = st.id', 'st.id'),
+      DataTableRecordType.events => (
+        'eventMedia l ON l.eventID = ce.id',
+        'ce.id',
+      ),
+      DataTableRecordType.narrative => (
+        'narrativeMedia l ON l.narrativeId = n.id',
+        'n.id',
+      ),
+    };
+    final rows = await db
+        .customSelect(
+          'SELECT $owner AS k, coalesce(m.fileName, m.uri) AS file '
+          'FROM ${_from(type)} JOIN $link '
+          'JOIN media m ON m.primaryId = l.mediaId '
+          'WHERE ${_key(type)} IN (SELECT value FROM json_each(?))',
+          variables: [_keysVariable(keys)],
+          readsFrom: const {},
+        )
+        .get();
+    final files = <Object, List<String>>{};
+    for (final row in rows) {
+      if (row.data['file'] case final String file) {
+        files.putIfAbsent(row.data['k']!, () => []).add(file);
+      }
+    }
+    return files;
   }
 
   _WhereClause _where(
@@ -214,6 +273,13 @@ class DataTablePageQuery {
 
     for (final filter in query.quickFilters) {
       if (filter.recordType == type) clause.add(filter.sql, const []);
+    }
+
+    final scope = query.scope;
+    if (scope != null) {
+      clause.add('${_key(type)} IN (SELECT value FROM json_each(?))', [
+        _keysVariable(scope.keys),
+      ]);
     }
     return clause;
   }
@@ -418,6 +484,12 @@ String _asText(DataTableField field) => switch (field.valueType) {
 
 Variable _variable(Object key) =>
     key is int ? Variable.withInt(key) : Variable.withString(key.toString());
+
+/// Binds [keys] as one JSON array, read back with `json_each`, so a long key
+/// list never runs into the bound-variable limit.
+Variable _keysVariable(Iterable<Object> keys) => Variable.withString(
+  jsonEncode([for (final key in keys) key is int ? key : key.toString()]),
+);
 
 String _text(Object? value) {
   if (value == null) return '';

@@ -21,6 +21,64 @@ import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/themes.dart';
 
 void main() {
+  testWidgets('tapping chart elements selects their group', (tester) async {
+    final selected = <(String, String?)>[];
+    void select(String label, String? series) => selected.add((label, series));
+    const data = [
+      StatisticDatum(label: 'Myotis lucifugus', count: 5),
+      StatisticDatum(label: 'Eptesicus fuscus', count: 2),
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                StatisticRankedBarList(data: data, onSelect: select),
+                SizedBox(
+                  width: 600,
+                  child: StatisticBarChart(data: data, onSelect: select),
+                ),
+                SizedBox(
+                  height: 400,
+                  child: StatisticDataTable(
+                    rows: buildStatisticTableRows(data),
+                    onExport: null,
+                    onSelect: select,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistic-ranked-bar-Eptesicus fuscus')),
+    );
+    expect(selected.last, ('Eptesicus fuscus', null));
+
+    // The bar chart's axis label for the first group.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(StatisticBarChart),
+        matching: find.text('Myotis lucifugus'),
+      ),
+    );
+    expect(selected.last, ('Myotis lucifugus', null));
+
+    final viewRecords = find.byKey(
+      const ValueKey('statistics-table-records-Eptesicus fuscus'),
+    );
+    await tester.ensureVisible(viewRecords);
+    await tester.pumpAndSettle();
+    await tester.tap(viewRecords);
+    expect(selected.last, ('Eptesicus fuscus', null));
+    expect(selected, hasLength(3));
+  });
+
   testWidgets('record statistics panel shows project record counts', (
     tester,
   ) async {

@@ -591,6 +591,75 @@ void main() {
     },
   );
 
+  test('group record keys match each specimen count', () async {
+    for (final request in const [
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.species,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.site,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.date,
+      ),
+      StatisticRequest(
+        projectUuid: 'project-a',
+        measure: StatisticMeasure.specimens,
+        group: StatisticGroup.species,
+        breakdown: StatisticBreakdown.sex,
+      ),
+    ]) {
+      final rows = await query.watchStatistics(request).first;
+      expect(rows, isNotEmpty);
+      final seen = <Object>{};
+      for (final row in rows) {
+        final keys = await query.groupRecordKeys(
+          request,
+          label: row.label,
+          seriesLabel: row.seriesLabel,
+        );
+        expect(
+          keys,
+          hasLength(row.count),
+          reason: '${request.group} ${row.label} ${row.seriesLabel}',
+        );
+        seen.addAll(keys);
+      }
+      // Every specimen lands in exactly one group.
+      expect(seen, hasLength(rows.fold<int>(0, (sum, row) => sum + row.count)));
+    }
+  });
+
+  test('group record keys list the parts behind a part type', () async {
+    const request = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.partQuantity,
+      group: StatisticGroup.partType,
+    );
+    final rows = await query.watchStatistics(request).first;
+    final keys = <Object>[];
+    for (final row in rows) {
+      final group = await query.groupRecordKeys(request, label: row.label);
+      expect(group, isNotEmpty, reason: row.label);
+      keys.addAll(group);
+    }
+    final parts = await db
+        .customSelect(
+          'SELECT specimenPart.id FROM specimenPart '
+          'JOIN specimen ON specimen.uuid = specimenPart.specimenUuid '
+          "WHERE specimen.projectUuid = 'project-a'",
+        )
+        .get();
+    expect(keys.toSet(), hasLength(parts.length));
+    expect(keys, everyElement(isA<int>()));
+  });
+
   test('table rows include stable rank and percentages', () {
     final rows = buildStatisticTableRows(const [
       StatisticDatum(label: 'A', count: 3),
