@@ -12,6 +12,7 @@ class SpatialStatisticsLegend extends StatefulWidget {
     required this.total,
     required this.maximumCount,
     this.initiallyExpanded = true,
+    this.groupsOverlaps = false,
   });
 
   final SpatialStatisticKind kind;
@@ -19,6 +20,10 @@ class SpatialStatisticsLegend extends StatefulWidget {
   final int total;
   final int maximumCount;
   final bool initiallyExpanded;
+
+  /// Whether the map merges overlapping circles into numbered bubbles, which
+  /// the legend then explains.
+  final bool groupsOverlaps;
 
   @override
   State<SpatialStatisticsLegend> createState() =>
@@ -109,6 +114,8 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
                   'Each circle represents\none coordinate',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+              if (widget.groupsOverlaps)
+                _GroupedLegendSample(indicatorDiameter: indicatorDiameter),
             ],
           ],
         ),
@@ -117,6 +124,46 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
   }
 
   double _diameter(double radius) => radius * 2 + 3;
+}
+
+class _GroupedLegendSample extends StatelessWidget {
+  const _GroupedLegendSample({required this.indicatorDiameter});
+
+  static const _diameter = 18.0;
+
+  final double indicatorDiameter;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: math.max(indicatorDiameter, _diameter),
+            child: Center(
+              child: Container(
+                width: _diameter,
+                height: _diameter,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorScheme.primary.withValues(alpha: 0.88),
+                  border: Border.all(color: colorScheme.surface, width: 2),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'Grouped sites,\nzoom in to split',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LegendSample extends StatelessWidget {

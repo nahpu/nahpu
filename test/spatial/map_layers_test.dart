@@ -88,6 +88,11 @@ void main() {
         isNot(contains(SpatialMapStyleService.naturalEarthSourceId)),
       );
       expect(
+        jsonEncode(offlineStyle['layers']),
+        isNot(contains('nahpu-spatial-statistics')),
+        reason: 'statistics circles are a Flutter overlay so they can group',
+      );
+      expect(
         offlineSources,
         contains(SpatialMapStyleService.naturalEarthSourceId),
       );

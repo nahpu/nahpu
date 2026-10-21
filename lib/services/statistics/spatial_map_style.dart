@@ -15,8 +15,6 @@ class SpatialMapStyleService {
 
   static const naturalEarthAsset =
       'assets/maps/ne_110m_admin_0_countries.geojson';
-  static const statisticsSourceId = 'nahpu-spatial-statistics';
-  static const statisticsLayerId = 'nahpu-spatial-statistics-circles';
   static const coordinateSourceId = 'nahpu-coordinate-locations';
   static const coordinateLayerId = 'nahpu-coordinate-location-markers';
   static const naturalEarthSourceId = 'nahpu-natural-earth';
@@ -39,6 +37,8 @@ class SpatialMapStyleService {
       colorScheme.surface.toARGB32(),
       colorScheme.surfaceContainerHighest.toARGB32(),
       colorScheme.outlineVariant.toARGB32(),
+      // The circles are a Flutter overlay, but keying on the data still gives
+      // each result its own map, which fits its camera to the new rows.
       kind.name,
       total,
       for (final row in rows) '${row.coordinateId}:${row.count}',
@@ -51,9 +51,6 @@ class SpatialMapStyleService {
       () => _build(
         style: resolved,
         colorScheme: colorScheme,
-        kind: kind,
-        rows: rows,
-        total: total,
         catalog: catalog,
         userMapDirectory: userMapDirectory,
       ),
@@ -200,19 +197,12 @@ class SpatialMapStyleService {
   static Future<String> _build({
     required SpatialBasemapStyle style,
     required ColorScheme colorScheme,
-    required SpatialStatisticKind kind,
-    required List<SpatialStatisticDatum> rows,
-    required int total,
     required UserMapCatalog catalog,
     required Directory userMapDirectory,
   }) async {
     final loadedBase = await _loadBaseStyle(style, colorScheme);
     final base = loadedBase.style;
     final sources = Map<String, dynamic>.from(base['sources'] as Map? ?? {});
-    sources[statisticsSourceId] = {
-      'type': 'geojson',
-      'data': _statisticsFeatureCollection(kind, rows, total),
-    };
     base['sources'] = sources;
 
     final layers = (base['layers'] as List? ?? const [])
@@ -232,19 +222,6 @@ class SpatialMapStyleService {
       catalog: catalog,
       directory: userMapDirectory,
     );
-    layers.add({
-      'id': statisticsLayerId,
-      'type': 'circle',
-      'source': statisticsSourceId,
-      'paint': {
-        'circle-radius': ['get', 'radius'],
-        'circle-color': _hex(colorScheme.primary),
-        'circle-opacity': 0.32,
-        'circle-stroke-color': _hex(colorScheme.primary),
-        'circle-stroke-opacity': 0.86,
-        'circle-stroke-width': 1.5,
-      },
-    });
     base['layers'] = layers;
     return jsonEncode(base);
   }
@@ -465,44 +442,6 @@ class SpatialMapStyleService {
       },
     ],
   };
-
-  static Map<String, dynamic> _statisticsFeatureCollection(
-    SpatialStatisticKind kind,
-    List<SpatialStatisticDatum> rows,
-    int total,
-  ) {
-    final maximumCount = rows.fold<int>(
-      0,
-      (maximum, row) => mathMax(maximum, row.count ?? 0),
-    );
-    return {
-      'type': 'FeatureCollection',
-      'features': [
-        for (final row in rows)
-          {
-            'type': 'Feature',
-            'id': row.coordinateId,
-            'geometry': {
-              'type': 'Point',
-              'coordinates': [row.decimalLongitude, row.decimalLatitude],
-            },
-            'properties': {
-              'coordinateId': row.coordinateId,
-              'name': row.displayName,
-              'count': row.count ?? 0,
-              'percent': spatialStatisticPercent(row, total),
-              'radius': spatialMarkerRadius(
-                kind: kind,
-                count: row.count ?? 0,
-                maximumCount: maximumCount,
-              ),
-            },
-          },
-      ],
-    };
-  }
-
-  static int mathMax(int first, int second) => first > second ? first : second;
 
   static String _hex(Color color) {
     final value = color.toARGB32().toRadixString(16).padLeft(8, '0');

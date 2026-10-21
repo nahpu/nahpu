@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_markers.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
 import 'package:nahpu/screens/shared/maps/offline_basemap_notice.dart';
 import 'package:nahpu/services/sites/natural_earth.dart';
@@ -268,8 +269,6 @@ class _NaturalEarthMap extends StatelessWidget {
       0,
       (maximum, row) => math.max(maximum, row.count ?? 0),
     );
-    final markers = [...rows]
-      ..sort((a, b) => (b.count ?? 0).compareTo(a.count ?? 0));
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -308,17 +307,11 @@ class _NaturalEarthMap extends StatelessWidget {
                 ),
               const OfflineUserMapLayers(),
               if (rows.isNotEmpty)
-                MarkerLayer(
-                  markers: [
-                    for (final row in markers)
-                      _marker(
-                        context,
-                        row,
-                        maximumCount: maximumCount,
-                        total: total,
-                        colorScheme: colorScheme,
-                      ),
-                  ],
+                SpatialStatisticsMarkerLayer(
+                  kind: kind,
+                  rows: rows,
+                  total: total,
+                  maximumCount: maximumCount,
                 ),
             ],
           ),
@@ -347,53 +340,10 @@ class _NaturalEarthMap extends StatelessWidget {
                 total: total,
                 maximumCount: maximumCount,
                 initiallyExpanded: legendInitiallyExpanded,
+                groupsOverlaps: true,
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Marker _marker(
-    BuildContext context,
-    SpatialStatisticDatum row, {
-    required int maximumCount,
-    required int total,
-    required ColorScheme colorScheme,
-  }) {
-    final radius = spatialMarkerRadius(
-      kind: kind,
-      count: row.count ?? 0,
-      maximumCount: maximumCount,
-    );
-    final diameter = radius * 2 + 3;
-    final countText = kind.hasCounts
-        ? ', ${row.count} ${kind.countLabel} '
-              '(${spatialStatisticPercent(row, total).toStringAsFixed(1)}%)'
-        : '';
-    return Marker(
-      point: LatLng(row.decimalLatitude!, row.decimalLongitude!),
-      width: diameter,
-      height: diameter,
-      child: Semantics(
-        button: true,
-        label: '${row.displayName}$countText',
-        child: Tooltip(
-          message: '${row.displayName}$countText',
-          triggerMode: TooltipTriggerMode.tap,
-          waitDuration: Duration.zero,
-          showDuration: const Duration(seconds: 4),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colorScheme.primary.withValues(alpha: 0.32),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.86),
-                width: 2,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
