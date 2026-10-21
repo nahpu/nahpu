@@ -91,6 +91,25 @@ abstract final class NahpuDashboardPanel {
   static const double rowHeight = 470;
 }
 
+/// The tool dock pinned to the bottom of the project dashboard.
+abstract final class NahpuToolDock {
+  static const double height = 72;
+  static const double launcherWidth = 88;
+}
+
+/// Geometry for the project data table.
+abstract final class NahpuDataTable {
+  /// Widest a cell grows before its text is cut off with an ellipsis.
+  static const double maxCellWidth = 320;
+  static const double rowHeight = 40;
+
+  /// Column widths by content: numbers and dates, most fields, long text.
+  static const double narrowColumnWidth = 120;
+  static const double columnWidth = 168;
+  static const double wideColumnWidth = 280;
+  static const double rowNumberWidth = 56;
+}
+
 abstract final class NahpuContentWidth {
   /// Confirmations and other short dialogs.
   static const double dialog = 480;

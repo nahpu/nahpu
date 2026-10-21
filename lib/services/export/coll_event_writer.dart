@@ -23,16 +23,16 @@ class CollEventRecordWriter extends AppServices {
   final List<String>? selectedColumns;
   final Map<String, String>? customColumnNames;
 
-  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
-    List<String> header = [...siteExportList, ...collEventExportList];
-    List<CollEventData> collEventList = await CollEventServices(
-      ref: ref,
-    ).getAllCollEvents();
+  /// Columns of the event export, in order.
+  static const List<String> header = [
+    ...siteExportList,
+    ...collEventExportList,
+  ];
 
+  Future<void> writeCollEventDelimited(File filePath, ExportFmt format) async {
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var collEvent in collEventList) {
-      List<String> eventDetails = await getCOllEventSiteDetails(collEvent.id);
+    for (var eventDetails in await getCollEventRows()) {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
@@ -64,6 +64,18 @@ class CollEventRecordWriter extends AppServices {
       concatenateMultiEntries: true,
     );
     await writer.write();
+  }
+
+  /// One row per project event, aligned with [header].
+  Future<List<List<String>>> getCollEventRows() async {
+    List<CollEventData> collEventList = await CollEventServices(
+      ref: ref,
+    ).getAllCollEvents();
+    List<List<String>> rows = [];
+    for (var collEvent in collEventList) {
+      rows.add(await getCOllEventSiteDetails(collEvent.id));
+    }
+    return rows;
   }
 
   Future<List<String>> getCOllEventSiteDetails(int? collEventId) async {

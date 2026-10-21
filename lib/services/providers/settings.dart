@@ -27,6 +27,9 @@ const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 /// field and direction, so sorting sites does not reorder specimens.
 const String recordSortPrefKey = 'recordSort';
 
+/// Whether the data table saves each edit as it is committed.
+const String dataTableAutoSavePrefKey = 'dataTableAutoSave';
+
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
 // Required for research reproducibility. Can be exported/imported.
@@ -82,6 +85,24 @@ const String exportPresetPrefKey = 'exportPresets';
 final settingProvider = Provider<SharedPreferences>((ref) {
   return throw UnimplementedError();
 });
+
+/// The data table's auto-save choice, kept on this device. Off by default,
+/// so edits wait for Save until the user opts in.
+final dataTableAutoSaveProvider =
+    NotifierProvider<DataTableAutoSaveNotifier, bool>(
+      DataTableAutoSaveNotifier.new,
+    );
+
+class DataTableAutoSaveNotifier extends Notifier<bool> {
+  @override
+  bool build() =>
+      ref.watch(settingProvider).getBool(dataTableAutoSavePrefKey) ?? false;
+
+  Future<void> set(bool value) async {
+    state = value;
+    await ref.read(settingProvider).setBool(dataTableAutoSavePrefKey, value);
+  }
+}
 
 final userConfigSettingsServiceProvider = Provider<UserConfigSettingsService>(
   (ref) => const UserConfigSettingsService(),

@@ -35,37 +35,34 @@ class SpecimenRecordWriter {
   final bool useFieldNamesOnly;
   final List<String>? selectedColumns;
 
+  /// Columns of the specimen record export for [recordType], in order.
+  List<String> get header => [
+    ...collectingRecordExportList,
+    ...siteExportList,
+    ...collEventExportList,
+    ..._getAttributeHeader(),
+    if (_includeParasites) ...parasiteDetectionExportList,
+    if (_includeParasites) ...parasiteExportList,
+    if (_includeIndividuals) individualExportSimple,
+    partExportSimple,
+    'media::media',
+  ];
+
   Future<void> writeRecordDelimited(File filePath, ExportFmt format) async {
-    List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
-
-    List<String> header = [
-      ...collectingRecordExportList,
-      ...siteExportList,
-      ...collEventExportList,
-      ..._getAttributeHeader(),
-      if (_includeParasites) ...parasiteDetectionExportList,
-      if (_includeParasites) ...parasiteExportList,
-      if (_includeIndividuals) individualExportSimple,
-      partExportSimple,
-      'media::media',
-    ];
-
+    final header = this.header;
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var element in specimenList) {
-      List<List<String>> contents = await _getSpecimenDetails(element);
-      for (var content in contents) {
-        Map<String, dynamic> row = {};
-        for (int i = 0; i < header.length; i++) {
-          if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-            String key = useFieldNamesOnly
-                ? header[i].split('::').last
-                : header[i];
-            row[key] = content[i];
-          }
+    for (var content in await getRecordRows()) {
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < header.length; i++) {
+        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+          String key = useFieldNamesOnly
+              ? header[i].split('::').last
+              : header[i];
+          row[key] = content[i];
         }
-        jsonList.add(row);
       }
+      jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
@@ -85,7 +82,22 @@ class SpecimenRecordWriter {
     await writer.write();
   }
 
-  Future<List<List<String>>> _getSpecimenDetails(SpecimenData data) async {
+  /// Export rows for every specimen of [recordType], aligned with [header].
+  ///
+  /// A specimen gives more than one row only when multi-entry values are
+  /// expanded instead of concatenated.
+  Future<List<List<String>>> getRecordRows() async {
+    List<SpecimenData> specimenList = await _getSpecimenListByTaxonGroup();
+    List<List<String>> rows = [];
+    for (var element in specimenList) {
+      rows.addAll(await getRowsForSpecimen(element));
+    }
+    return rows;
+  }
+
+  /// Export rows for one specimen, aligned with [header]. One row unless
+  /// multi-entry values are expanded instead of concatenated.
+  Future<List<List<String>>> getRowsForSpecimen(SpecimenData data) async {
     List<String> collectingRecord = await _getCollectingRecord(data);
     List<String> parts = await _getPartListStrings(data.uuid);
     List<String> collSiteDetails = await _getCollEventSiteDetails(

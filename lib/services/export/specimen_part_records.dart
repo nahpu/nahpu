@@ -23,42 +23,28 @@ class SpecimenPartWriter extends AppServices {
   final List<String>? selectedColumns;
   final Map<String, String>? customColumnNames;
 
-  Future<void> writeDelimited(File filePath, ExportFmt format) async {
-    List<String> header = [
-      ...partExportListDelimited,
-      ...collectingRecordExportList,
-    ];
+  /// Columns of the specimen part export, in order.
+  static const List<String> header = [
+    ...partExportListDelimited,
+    ...collectingRecordExportList,
+  ];
 
-    List<String> specimenList = await _getSpecimenList();
+  Future<void> writeDelimited(File filePath, ExportFmt format) async {
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var uuid in specimenList) {
-      List<List<String>> parts = await SpecimenPartWriterServices(
-        ref: ref,
-        isWithLabel: false,
-      ).getPartList(uuid, isWithEmpty: true);
-      SpecimenData specimenData = await SpecimenServices(
-        ref: ref,
-      ).getSpecimen(uuid);
-      for (var part in parts) {
-        List<String> collectingRecords = await CollectingRecordWriterServices(
-          ref: ref,
-        ).getRecord(specimenData);
-        List<String> content = [...part, ...collectingRecords];
-
-        Map<String, dynamic> row = {};
-        for (int i = 0; i < header.length; i++) {
-          if (selectedColumns == null || selectedColumns!.contains(header[i])) {
-            String key = customColumnNames?.containsKey(header[i]) == true
-                ? customColumnNames![header[i]]!
-                : useFieldNamesOnly
-                ? header[i].split('::').last
-                : header[i];
-            row[key] = content[i];
-          }
+    for (var content in await getPartRows()) {
+      Map<String, dynamic> row = {};
+      for (int i = 0; i < header.length; i++) {
+        if (selectedColumns == null || selectedColumns!.contains(header[i])) {
+          String key = customColumnNames?.containsKey(header[i]) == true
+              ? customColumnNames![header[i]]!
+              : useFieldNamesOnly
+              ? header[i].split('::').last
+              : header[i];
+          row[key] = content[i];
         }
-        jsonList.add(row);
       }
+      jsonList.add(row);
     }
 
     String jsonContent = jsonEncode(jsonList);
@@ -78,6 +64,28 @@ class SpecimenPartWriter extends AppServices {
       concatenateMultiEntries: true,
     );
     await writer.write();
+  }
+
+  /// One row per specimen part, aligned with [header].
+  Future<List<List<String>>> getPartRows() async {
+    List<String> specimenList = await _getSpecimenList();
+    List<List<String>> rows = [];
+    for (var uuid in specimenList) {
+      List<List<String>> parts = await SpecimenPartWriterServices(
+        ref: ref,
+        isWithLabel: false,
+      ).getPartList(uuid, isWithEmpty: true);
+      SpecimenData specimenData = await SpecimenServices(
+        ref: ref,
+      ).getSpecimen(uuid);
+      for (var part in parts) {
+        List<String> collectingRecords = await CollectingRecordWriterServices(
+          ref: ref,
+        ).getRecord(specimenData);
+        rows.add([...part, ...collectingRecords]);
+      }
+    }
+    return rows;
   }
 
   Future<List<String>> _getSpecimenList() async {

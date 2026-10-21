@@ -22,17 +22,13 @@ class SiteWriterServices extends AppServices {
   final List<String>? selectedColumns;
   final Map<String, String>? customColumnNames;
 
-  Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
-    List<String> header = [...siteExportList, 'media::media'];
+  /// Columns of the site export, in order.
+  static const List<String> header = [...siteExportList, 'media::media'];
 
-    List<SiteRecord> siteList = await SiteServices(ref: ref).getAllSites();
+  Future<void> writeSiteDelimited(File filePath, ExportFmt format) async {
     List<Map<String, dynamic>> jsonList = [];
 
-    for (var site in siteList) {
-      List<String> siteDetails = await getSiteDetails(site.id);
-      String mediaDetails = await _getSiteMedia(site.id);
-      List<String> content = [...siteDetails, mediaDetails];
-
+    for (var content in await getSiteRows()) {
       Map<String, dynamic> row = {};
       for (int i = 0; i < header.length; i++) {
         if (selectedColumns == null || selectedColumns!.contains(header[i])) {
@@ -64,6 +60,23 @@ class SiteWriterServices extends AppServices {
       concatenateMultiEntries: true,
     );
     await writer.write();
+  }
+
+  /// One row per project site, aligned with [header].
+  Future<List<List<String>>> getSiteRows() async {
+    List<SiteRecord> siteList = await SiteServices(ref: ref).getAllSites();
+    List<List<String>> rows = [];
+    for (var site in siteList) {
+      rows.add(await getSiteRow(site.id));
+    }
+    return rows;
+  }
+
+  /// One site's export row, aligned with [header].
+  Future<List<String>> getSiteRow(int siteId) async {
+    List<String> siteDetails = await getSiteDetails(siteId);
+    String mediaDetails = await _getSiteMedia(siteId);
+    return [...siteDetails, mediaDetails];
   }
 
   Future<String> _getSiteMedia(int? siteID) async {

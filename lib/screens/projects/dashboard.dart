@@ -4,6 +4,7 @@ import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
 import 'package:nahpu/screens/projects/components/overview.dart';
+import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
@@ -43,6 +44,7 @@ class DashboardState extends ConsumerState<Dashboard> {
         builder: (BuildContext context, BoxConstraints c) {
           bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
           return SafeArea(
+            bottom: false,
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: NahpuPageMargin.horizontal,
@@ -57,6 +59,7 @@ class DashboardState extends ConsumerState<Dashboard> {
           );
         },
       ),
+      bottomNavigationBar: const ToolDock(),
     );
   }
 }
