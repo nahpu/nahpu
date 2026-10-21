@@ -11,4 +11,4 @@ Mantenga la asociación con el hospedador y los identificadores de parásitos co
 
 ## Más información
 
-- [Registros de Especímenes](https://nahpu.app/es/usages/specimens/#specimen-parts)
+- [Registros de Especímenes](https://nahpu.app/es/usages/specimens/parts/)

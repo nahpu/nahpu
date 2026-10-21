@@ -11,4 +11,4 @@ Pastikan hubungan dengan inang dan pengenal parasit konsisten dengan label sampe
 
 ## Pelajari lebih lanjut
 
-- [Catatan Spesimen](https://nahpu.app/id/usages/specimens/#specimen-parts)
+- [Catatan Spesimen](https://nahpu.app/id/usages/specimens/parts/)

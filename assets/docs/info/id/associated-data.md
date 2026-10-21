@@ -13,4 +13,4 @@ Gunakan `Media` untuk gambar, audio, dan video. Formulir media mencatat metadata
 
 ## Pelajari lebih lanjut
 
-- [Catatan Spesimen](https://nahpu.app/id/usages/specimens/#associated-data)
+- [Catatan Spesimen](https://nahpu.app/id/usages/specimens/associated-data-and-media/)

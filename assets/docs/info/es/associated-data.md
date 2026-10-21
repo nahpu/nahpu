@@ -13,4 +13,4 @@ Use `Media` para imágenes, audio y video. El formulario de medios registra meta
 
 ## Más información
 
-- [Registros de Especímenes](https://nahpu.app/es/usages/specimens/#associated-data)
+- [Registros de Especímenes](https://nahpu.app/es/usages/specimens/associated-data-and-media/)
