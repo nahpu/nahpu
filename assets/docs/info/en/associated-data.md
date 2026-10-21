@@ -13,4 +13,4 @@ Use `Media` for images, audio, and video. The media form records audiovisual met
 
 ## Learn more
 
-- [Specimen Records](https://nahpu.app/en/usages/specimens/#associated-data)
+- [Specimen Records](https://nahpu.app/en/usages/specimens/associated-data-and-media/)

@@ -9,9 +9,11 @@ As partes do espécime documentam o material físico derivado do espécime ou as
 
 Por padrão, o NAHPU associa cada parte ao UUID do espécime. Você pode adicionar um `Tissue ID` personalizado ou um UUID adicional para cada parte.
 
+Em um lote de peixes com indivíduos registrados, use `Individuals` para vincular uma parte ao peixe de origem.
+
 O NAHPU oferece opções padrão para os campos de lista suspensa no formulário `Specimen Part`. Para personalizar as opções, acesse `Settings` > `Specimens`.
 
 ## Saiba mais
 
-- [Registros de Espécimes](https://nahpu.app/pt/usages/specimens/#specimen-parts)
+- [Registros de Espécimes](https://nahpu.app/pt/usages/specimens/parts/)
 - [Configurações](https://nahpu.app/pt/usages/settings/)

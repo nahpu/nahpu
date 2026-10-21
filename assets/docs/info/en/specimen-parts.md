@@ -9,9 +9,11 @@ Specimen parts document the physical material derived from or associated with th
 
 By default, NAHPU associates each part with the specimen's UUID. You can add a custom `Tissue ID` or an additional UUID for each part.
 
+For a fish lot with recorded individuals, use `Individuals` to link a part to the fish it came from.
+
 NAHPU provides default options for the dropdown fields in the `Specimen Part` form. To customize the options, go to `Settings` > `Specimens`.
 
 ## Learn more
 
-- [Specimen Records](https://nahpu.app/en/usages/specimens/#specimen-parts)
+- [Specimen Records](https://nahpu.app/en/usages/specimens/parts/)
 - [Settings](https://nahpu.app/en/usages/settings/)
