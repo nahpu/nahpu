@@ -1,9 +1,10 @@
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
-import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Where focus goes after an edit is committed.
@@ -90,21 +91,7 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
                 ),
               ),
             ),
-            if (widget.field.valueType == DataTableValueType.coded)
-              DataTableOptionMenu(
-                options: [for (final (_, label) in widget.field.codes) label],
-                onOpen: () => _isPicking = true,
-                onClose: _endPicking,
-                onSelected: (value) => _finish(value, DataTableEditorExit.stay),
-              )
-            else if (widget.field.optionKey != null)
-              DataTableOptionMenu(
-                optionKey: widget.field.optionKey!,
-                onOpen: () => _isPicking = true,
-                onClose: _endPicking,
-                onSelected: (value) => _finish(value, DataTableEditorExit.stay),
-              )
-            else if (widget.field.valueType == DataTableValueType.date)
+            if (widget.field.valueType == DataTableValueType.date)
               IconButton(
                 tooltip: 'Pick a date',
                 iconSize: NahpuControlSize.iconSmall,
@@ -127,7 +114,6 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
   String? get _hint => switch (widget.field.valueType) {
     DataTableValueType.date => 'YYYY-MM-DD',
     DataTableValueType.time => 'HH:MM',
-    DataTableValueType.coded => 'Type or choose',
     _ => null,
   };
 
@@ -219,51 +205,128 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
   }
 }
 
-/// Lists a field's choices while editing: a fixed list, or the controlled
-/// vocabulary for [optionKey].
-class DataTableOptionMenu extends ConsumerWidget {
-  const DataTableOptionMenu({
+/// Dropdown editor for fields with a fixed list of values, as in the record
+/// forms: controlled vocabularies, sex, and other coded fields.
+///
+/// The list opens at once. Arrow keys move through it, Enter chooses, and
+/// Escape cancels. A typed character that started the edit jumps to the
+/// first choice starting with it.
+class DataTableChoiceEditor extends ConsumerStatefulWidget {
+  const DataTableChoiceEditor({
     super.key,
-    this.optionKey,
-    this.options,
-    required this.onOpen,
-    required this.onClose,
-    required this.onSelected,
+    required this.field,
+    required this.current,
+    required this.seed,
+    required this.onCommit,
+    required this.onCancel,
   });
 
-  final String? optionKey;
-  final List<String>? options;
-  final VoidCallback onOpen;
-  final VoidCallback onClose;
-  final ValueChanged<String> onSelected;
+  final DataTableField field;
+
+  /// The stored value, such as a vocabulary term or a code.
+  final String current;
+  final String? seed;
+  final void Function(String value, DataTableEditorExit exit) onCommit;
+  final VoidCallback onCancel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final key = optionKey;
-    final options =
-        this.options ??
-        (key == null
-            ? null
-            : ref.watch(effectiveUserDefinedFieldProvider(key)).value) ??
-        const <String>[];
+  ConsumerState<DataTableChoiceEditor> createState() =>
+      _DataTableChoiceEditorState();
+}
+
+class _DataTableChoiceEditorState extends ConsumerState<DataTableChoiceEditor> {
+  final _menu = MenuController();
+  bool _done = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loaded = ref.watch(dataTableChoicesProvider(widget.field.key));
+    final choices = dataTableChoicesWithCurrent(
+      widget.field,
+      loaded.value ?? const [],
+      widget.current,
+    );
+    final focusValue = _focusValue(choices);
+    if (loaded.hasValue && !_menu.isOpen && !_done) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_done && !_menu.isOpen) _menu.open();
+      });
+    }
     return MenuAnchor(
-      onOpen: onOpen,
-      onClose: onClose,
+      controller: _menu,
+      onClose: _onClose,
       menuChildren: [
-        for (final option in options)
+        MenuItemButton(
+          autofocus: focusValue == '',
+          onPressed: () => _choose(''),
+          child: Text(
+            'None',
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ),
+        for (final choice in choices)
           MenuItemButton(
-            onPressed: () => onSelected(option),
-            child: Text(option),
+            autofocus: choice.value == focusValue,
+            trailingIcon: choice.value == widget.current.trim()
+                ? const Icon(Icons.check, size: NahpuControlSize.iconMedium)
+                : null,
+            onPressed: () => _choose(choice.value),
+            child: Text(choice.label),
           ),
       ],
-      builder: (context, controller, _) => IconButton(
-        tooltip: 'Choose a value',
-        iconSize: NahpuControlSize.iconSmall,
-        icon: const Icon(Icons.arrow_drop_down),
-        onPressed: options.isEmpty
-            ? null
-            : () => controller.isOpen ? controller.close() : controller.open(),
+      child: Container(
+        color: theme.colorScheme.surface,
+        padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+        alignment: AlignmentDirectional.centerStart,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.field.labelFor(widget.current),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
       ),
     );
+  }
+
+  /// The choice to focus first: one starting with the typed character,
+  /// else the current value.
+  String _focusValue(List<DataTableChoice> choices) {
+    final seed = widget.seed?.trim().toLowerCase();
+    if (seed != null && seed.isNotEmpty) {
+      for (final choice in choices) {
+        if (choice.label.toLowerCase().startsWith(seed)) return choice.value;
+      }
+    }
+    final current = widget.current.trim();
+    if (choices.any((choice) => choice.value == current)) return current;
+    return choices.isEmpty ? '' : choices.first.value;
+  }
+
+  void _choose(String value) {
+    if (_done) return;
+    _done = true;
+    widget.onCommit(value, DataTableEditorExit.stay);
+  }
+
+  /// The menu closes first and runs a chosen item's handler in a later
+  /// post-frame callback, so wait a further frame before treating the close
+  /// as a cancel.
+  void _onClose() {
+    final binding = SchedulerBinding.instance;
+    binding.addPostFrameCallback((_) {
+      binding.addPostFrameCallback((_) {
+        if (_done || !mounted) return;
+        _done = true;
+        widget.onCancel();
+      });
+      binding.scheduleFrame();
+    });
   }
 }

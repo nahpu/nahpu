@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/data_table/components/data_table_cell_editor.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_link_service.dart';
 import 'package:nahpu/services/data_table/data_table_save_service.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
+import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Opens the dialog for a linked cell: a bottom sheet on small screens and
@@ -337,9 +337,8 @@ class _DataTableLinkedRecordDialogState
               column: column,
               controller: _controllers.putIfAbsent(
                 column.key,
-                () => TextEditingController(
-                  text: column.field.labelFor(record.raw[column.key] ?? ''),
-                ),
+                // Dropdown fields keep the stored value, such as a code.
+                () => TextEditingController(text: record.raw[column.key] ?? ''),
               ),
               error: _errors[column.key],
             ),
@@ -368,10 +367,7 @@ class _DataTableLinkedRecordDialogState
     for (final column in record.columns) {
       final field = column.field;
       final stored = record.raw[column.key] ?? '';
-      var text = _controllers[column.key]?.text ?? '';
-      if (field.valueType == DataTableValueType.coded && text.isNotEmpty) {
-        text = '${field.codeForInput(text) ?? text}';
-      }
+      final text = _controllers[column.key]?.text ?? '';
       if (text.trim() == stored.trim()) continue;
       try {
         dataTableStoredValue(field, text);
@@ -428,7 +424,8 @@ class _LinkedRecord {
   final int sharing;
 }
 
-/// One field of the linked-record form, with its choices or picker hint.
+/// One field of the linked-record form: a dropdown for listed values, as
+/// in the record forms, and a text field otherwise.
 class DataTableLinkedField extends StatelessWidget {
   const DataTableLinkedField({
     super.key,
@@ -444,14 +441,18 @@ class DataTableLinkedField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final field = column.field;
+    if (dataTableHasChoices(field)) {
+      return DataTableLinkedChoiceField(
+        column: column,
+        controller: controller,
+        error: error,
+      );
+    }
     final hint = switch (field.valueType) {
       DataTableValueType.date => 'YYYY-MM-DD',
       DataTableValueType.time => 'HH:MM',
       _ => null,
     };
-    final options = field.valueType == DataTableValueType.coded
-        ? [for (final (_, label) in field.codes) label]
-        : null;
     return TextField(
       controller: controller,
       decoration: InputDecoration(
@@ -459,16 +460,60 @@ class DataTableLinkedField extends StatelessWidget {
         hintText: hint,
         errorText: error,
         border: const OutlineInputBorder(),
-        suffixIcon: options != null || field.optionKey != null
-            ? DataTableOptionMenu(
-                optionKey: field.optionKey,
-                options: options,
-                onOpen: () {},
-                onClose: () {},
-                onSelected: (value) => controller.text = value,
-              )
-            : null,
       ),
+    );
+  }
+}
+
+class DataTableLinkedChoiceField extends ConsumerStatefulWidget {
+  const DataTableLinkedChoiceField({
+    super.key,
+    required this.column,
+    required this.controller,
+    required this.error,
+  });
+
+  final DataTableColumn column;
+
+  /// Holds the chosen stored value.
+  final TextEditingController controller;
+  final String? error;
+
+  @override
+  ConsumerState<DataTableLinkedChoiceField> createState() =>
+      _DataTableLinkedChoiceFieldState();
+}
+
+class _DataTableLinkedChoiceFieldState
+    extends ConsumerState<DataTableLinkedChoiceField> {
+  /// The stored value when the dialog opened, kept in the list even if the
+  /// vocabulary no longer has it.
+  late final String _initial = widget.controller.text;
+
+  @override
+  Widget build(BuildContext context) {
+    final field = widget.column.field;
+    final choices = dataTableChoicesWithCurrent(
+      field,
+      ref.watch(dataTableChoicesProvider(field.key)).value ?? const [],
+      _initial,
+    );
+    final value = widget.controller.text.trim();
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: widget.column.label,
+        errorText: widget.error,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        const DropdownMenuItem(value: '', child: Text('None')),
+        for (final choice in choices)
+          DropdownMenuItem(value: choice.value, child: Text(choice.label)),
+      ],
+      onChanged: (chosen) =>
+          setState(() => widget.controller.text = chosen ?? ''),
     );
   }
 }

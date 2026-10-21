@@ -1,3 +1,5 @@
+import 'dart:ui' show AppExitResponse;
+
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
+import 'package:nahpu/services/database/app_exit.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -14,12 +17,14 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late AppExitCoordinator exitCoordinator;
   const header = [
     'specimen::specimenUUID',
     'specimen::preparator',
     'measurement::remark',
     'measurement::sex',
     'measurement::testisLength',
+    'measurement::lifeStage',
   ];
   final loads = <(DataTableRecordType, DataTableQuery)>[];
   final saves = <List<DataTableEdit>>[];
@@ -47,8 +52,10 @@ void main() {
               'measurement::remark': 'note $i',
               'measurement::sex': 'Male',
               'measurement::testisLength': '1$i',
+              'measurement::lifeStage': 'Adult',
             },
             raw: {
+              'measurement::lifeStage': 'Adult',
               'measurement::remark': 'note $i',
               'measurement::sex': '0',
               'measurement::testisLength': '1$i',
@@ -82,7 +89,24 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          appExitCoordinatorProvider.overrideWithValue(
+            exitCoordinator = AppExitCoordinator(),
+          ),
           databaseProvider.overrideWithValue(database),
+          // The vocabularies come from user settings; fix them for the test.
+          dataTableChoicesProvider.overrideWith((ref, fieldKey) async {
+            if (fieldKey == 'measurement::sex') {
+              return const [
+                DataTableChoice('0', 'Male'),
+                DataTableChoice('1', 'Female'),
+                DataTableChoice('2', 'Unknown'),
+              ];
+            }
+            return const [
+              DataTableChoice('Adult', 'Adult'),
+              DataTableChoice('Juvenile', 'Juvenile'),
+            ];
+          }),
           settingProvider.overrideWithValue(prefs),
           dataTablePageLoaderProvider.overrideWithValue((
             ref,
@@ -290,8 +314,9 @@ void main() {
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.f2);
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, 'female');
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    // A dropdown, not a text field, as in the specimen form.
+    expect(find.byType(MenuItemButton), findsNWidgets(4));
+    await tester.tap(find.widgetWithText(MenuItemButton, 'Female'));
     await tester.pumpAndSettle();
 
     expect(find.text('Change sex?'), findsOneWidget);
@@ -333,5 +358,77 @@ void main() {
     await tester.tap(cell);
     await tester.pumpAndSettle();
     expect(find.text('Choose preparator'), findsOneWidget);
+  });
+
+  testWidgets('vocabulary cells use a dropdown driven by the keyboard', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await enterEditMode(tester);
+    await tester.tap(find.text('Adult').first);
+    await tester.pump();
+    // Typing opens the list at the first choice starting with the letter.
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyJ);
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNWidgets(1), reason: 'search only');
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.text('Juvenile'), findsOneWidget);
+    expect(find.text('1 unsaved change'), findsOneWidget);
+
+    // Escape closes the list without changing the cell.
+    await tester.tap(find.text('Adult').first);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+    await tester.pumpAndSettle();
+    expect(find.byType(MenuItemButton), findsWidgets);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byType(MenuItemButton), findsNothing);
+    expect(find.text('1 unsaved change'), findsOneWidget);
+  });
+
+  testWidgets('pasted values must be in the field\'s list', (tester) async {
+    await pumpScreen(tester);
+    await enterEditMode(tester);
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async => call.method == 'Clipboard.getData'
+          ? {'text': 'juvenile\nSubadult'}
+          : null,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.tap(find.text('Adult').first);
+    await tester.pump();
+    await withControl(tester, LogicalKeyboardKey.keyV);
+    expect(find.text('Juvenile'), findsOneWidget, reason: 'matched any case');
+    expect(
+      find.text('Skipped 1 value that isn\'t in its list.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('quitting the app asks about unsaved edits first', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await enterEditMode(tester);
+    await tester.tap(find.text('note 1'));
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.delete);
+    await tester.pumpAndSettle();
+
+    final quitting = exitCoordinator.handleExitRequest(null);
+    await tester.pumpAndSettle();
+    expect(find.text('Save your changes?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(await quitting, AppExitResponse.cancel);
+    expect(find.text('1 unsaved change'), findsOneWidget);
   });
 }

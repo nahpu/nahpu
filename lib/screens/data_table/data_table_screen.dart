@@ -10,6 +10,7 @@ import 'package:nahpu/screens/data_table/components/data_table_link_dialogs.dart
 import 'package:nahpu/screens/data_table/components/data_table_pagination.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
+import 'package:nahpu/services/database/app_exit.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
@@ -39,6 +40,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   final _grid = DataTableGridController();
   late final DataTableEditController _edits;
   late final AppLifecycleListener _lifecycle;
+  late final VoidCallback _removeExitGuard;
   final Map<DataTableRecordType, Set<String>> _visibleColumns = {};
   Timer? _searchDebounce;
   int _request = 0;
@@ -70,6 +72,11 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     );
     // Queued auto-saves go out before the app is backgrounded or closed.
     _lifecycle = AppLifecycleListener(onInactive: _edits.flush);
+    // Quitting the app asks about unsaved edits, as leaving the screen does,
+    // before the database closes.
+    _removeExitGuard = ref
+        .read(appExitCoordinatorProvider)
+        .addGuard(_resolveUnsaved);
     _load();
   }
 
@@ -77,6 +84,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   void dispose() {
     _searchDebounce?.cancel();
     _lifecycle.dispose();
+    _removeExitGuard();
     _edits.dispose();
     _grid.dispose();
     _searchFocus.dispose();

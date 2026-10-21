@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_cell_editor.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
@@ -7,6 +8,7 @@ import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/data_table/data_table_tsv.dart';
+import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -28,7 +30,7 @@ double dataTableColumnWidth(DataTableColumn column) {
 /// Rows are built lazily; the header stays pinned while rows scroll, and
 /// both scroll sideways together. Keyboard input follows spreadsheet
 /// conventions, with Command and Control interchangeable.
-class DataTableGrid extends StatefulWidget {
+class DataTableGrid extends ConsumerStatefulWidget {
   const DataTableGrid({
     super.key,
     required this.type,
@@ -68,10 +70,10 @@ class DataTableGrid extends StatefulWidget {
   onOpenLinked;
 
   @override
-  State<DataTableGrid> createState() => DataTableGridState();
+  ConsumerState<DataTableGrid> createState() => DataTableGridState();
 }
 
-class DataTableGridState extends State<DataTableGrid> {
+class DataTableGridState extends ConsumerState<DataTableGrid> {
   final _focusNode = FocusNode(debugLabel: 'data table grid');
   final _horizontal = ScrollController();
   final _vertical = ScrollController();
@@ -104,6 +106,13 @@ class DataTableGridState extends State<DataTableGrid> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep dropdown lists loaded, so pasted values can be checked against
+    // them right away.
+    for (final column in widget.columns) {
+      if (dataTableHasChoices(column.field)) {
+        ref.watch(dataTableChoicesProvider(column.key));
+      }
+    }
     final widths = [
       for (final column in widget.columns) dataTableColumnWidth(column),
     ];
@@ -249,6 +258,7 @@ class DataTableGridState extends State<DataTableGrid> {
     final edits = <(DataTableEdit, String)>[];
     final sexChanges = <(DataTableRecordRow, int?, int)>[];
     var typeChanges = 0;
+    var offList = 0;
     for (final entry in values.entries) {
       final pos = entry.key;
       if (!_isEditable(pos.col)) {
@@ -260,10 +270,18 @@ class DataTableGridState extends State<DataTableGrid> {
       final field = column.field;
       final stored = row.raw[column.key] ?? '';
       var value = entry.value;
+      if (dataTableHasChoices(field) && value.trim().isNotEmpty) {
+        // As in the forms, only listed values (or the stored one) go in.
+        final choice = _matchChoice(field, value, stored);
+        if (choice == null) {
+          offList++;
+          continue;
+        }
+        value = choice;
+      }
       if (field.valueType == DataTableValueType.coded &&
           value.trim().isNotEmpty) {
-        final code = field.codeForInput(value);
-        if (code != null) value = '$code';
+        final code = int.tryParse(value);
         if (code != null && '$code' != stored) {
           if (field.column == 'sex') {
             sexChanges.add((row, int.tryParse(stored), code));
@@ -275,6 +293,13 @@ class DataTableGridState extends State<DataTableGrid> {
       edits.add((_edit(row, column, value), stored));
     }
 
+    if (offList > 0) {
+      widget.onMessage(
+        offList == 1
+            ? 'Skipped 1 value that isn\'t in its list.'
+            : 'Skipped $offList values that aren\'t in their lists.',
+      );
+    }
     final clears = _sexClears(sexChanges);
     if (clears.isNotEmpty || typeChanges > 0) {
       final confirmed = await showAdaptiveConfirmation(
@@ -303,6 +328,24 @@ class DataTableGridState extends State<DataTableGrid> {
     }
     if (edits.isNotEmpty) widget.edits.commit(edits);
     return skipped;
+  }
+
+  /// The stored value for [text] in [field]'s dropdown list, matching a
+  /// value or label regardless of case. Null when it isn't listed.
+  String? _matchChoice(DataTableField field, String text, String stored) {
+    final choices = dataTableChoicesWithCurrent(
+      field,
+      ref.read(dataTableChoicesProvider(field.key)).value ?? const [],
+      stored,
+    );
+    final input = text.trim().toLowerCase();
+    for (final choice in choices) {
+      if (choice.value.toLowerCase() == input ||
+          choice.label.toLowerCase() == input) {
+        return choice.value;
+      }
+    }
+    return null;
   }
 
   DataTableEdit _edit(
@@ -846,7 +889,15 @@ class DataTableGridCell extends StatelessWidget {
         : isFocused
         ? colorScheme.primary
         : null;
-    final content = isEditing
+    final content = isEditing && dataTableHasChoices(column.field)
+        ? DataTableChoiceEditor(
+            field: column.field,
+            current: pending?.value ?? row.raw[column.key] ?? '',
+            seed: editSeed,
+            onCommit: onCommit,
+            onCancel: onCancel,
+          )
+        : isEditing
         ? DataTableCellEditor(
             field: column.field,
             initialText:

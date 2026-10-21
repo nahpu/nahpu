@@ -7,6 +7,7 @@ import 'package:nahpu/src/rust/frb_generated.dart';
 import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/home/home.dart';
+import 'package:nahpu/screens/shared/layout/app_exit_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/settings/config_services.dart';
@@ -36,7 +37,7 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [settingProvider.overrideWithValue(prefs)],
-      child: const NahpuApp(),
+      child: const AppExitHandler(child: NahpuApp()),
     ),
   );
 }
