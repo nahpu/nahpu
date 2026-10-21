@@ -10,6 +10,7 @@ import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
@@ -29,6 +30,9 @@ const String recordSortPrefKey = 'recordSort';
 
 /// Whether the data table saves each edit as it is committed.
 const String dataTableAutoSavePrefKey = 'dataTableAutoSave';
+
+/// The tools shown in the project dashboard dock, by [ProjectTool] name.
+const String projectToolsPrefKey = 'projectTools';
 
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
@@ -101,6 +105,38 @@ class DataTableAutoSaveNotifier extends Notifier<bool> {
   Future<void> set(bool value) async {
     state = value;
     await ref.read(settingProvider).setBool(dataTableAutoSavePrefKey, value);
+  }
+}
+
+/// The tools shown in the project dashboard dock, kept on this device.
+/// Never edited means [ProjectTool.defaults].
+final projectToolsProvider =
+    NotifierProvider<ProjectToolsNotifier, List<ProjectTool>>(
+      ProjectToolsNotifier.new,
+    );
+
+class ProjectToolsNotifier extends Notifier<List<ProjectTool>> {
+  @override
+  List<ProjectTool> build() => ProjectTool.decode(
+    ref.watch(settingProvider).getStringList(projectToolsPrefKey),
+  );
+
+  Future<void> setEnabled(ProjectTool tool, bool isEnabled) async {
+    await set(
+      isEnabled ? [...state, tool] : state.where((e) => e != tool).toList(),
+    );
+  }
+
+  Future<void> set(Iterable<ProjectTool> tools) async {
+    state = ProjectTool.sortTools(tools);
+    await ref
+        .read(settingProvider)
+        .setStringList(projectToolsPrefKey, ProjectTool.encode(state));
+  }
+
+  Future<void> reset() async {
+    state = ProjectTool.defaults;
+    await ref.read(settingProvider).remove(projectToolsPrefKey);
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:nahpu/screens/projects/personnel/manage_personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
+import 'package:nahpu/screens/settings/application/project_tool_settings.dart';
 import 'package:nahpu/screens/settings/database/db_settings.dart';
 import 'package:nahpu/screens/settings/presets/document_presets.dart';
 import 'package:nahpu/screens/settings/presets/export_presets.dart';
@@ -32,6 +33,7 @@ enum SettingsDestination {
   documentPresets,
   templateEditor,
   theme,
+  projectTools,
   dataUsage;
 
   /// Whether the page can open beside the section list on wide screens.
@@ -94,6 +96,7 @@ class SettingsDestinationPage extends StatelessWidget {
       SettingsDestination.documentPresets => const DocumentPresetsScreen(),
       SettingsDestination.templateEditor => const TemplateEditorScreen(),
       SettingsDestination.theme => const ThemeSettings(),
+      SettingsDestination.projectTools => const ProjectToolSettings(),
       SettingsDestination.dataUsage => const DataUsageSettings(),
     };
   }

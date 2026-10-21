@@ -38,6 +38,15 @@ class ApplicationSettings extends ConsumerWidget {
           loading: () => const CommonProgressIndicator(),
           error: (error, stackTrace) => const Text('Error'),
         ),
+        CommonSettingTile(
+          isNavigation: true,
+          icon: Icons.handyman_outlined,
+          title: 'Tools',
+          label: 'Choose the tools shown on the project dashboard',
+          value: '${ref.watch(projectToolsProvider).length}',
+          isSelected: selected == SettingsDestination.projectTools,
+          onTap: () => onOpen(SettingsDestination.projectTools),
+        ),
         DataUsage(
           isSelected: selected == SettingsDestination.dataUsage,
           onTap: () => onOpen(SettingsDestination.dataUsage),

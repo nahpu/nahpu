@@ -8,6 +8,8 @@ import 'package:nahpu/screens/projects/dashboard.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('project dashboard has no create speed dial', (tester) async {
@@ -116,8 +118,13 @@ Future<void> _pumpDashboard(
           ),
         );
   }
+  SharedPreferences.setMockInitialValues({});
+  final preferences = await SharedPreferences.getInstance();
   final container = ProviderContainer(
-    overrides: [databaseProvider.overrideWithValue(database)],
+    overrides: [
+      databaseProvider.overrideWithValue(database),
+      settingProvider.overrideWithValue(preferences),
+    ],
   );
   addTearDown(container.dispose);
   container.read(projectUuidProvider.notifier).updateProjectUuid(projectUuid);

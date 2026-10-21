@@ -1,17 +1,37 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
+import 'package:nahpu/screens/exports/bundle_records.dart';
+import 'package:nahpu/screens/exports/export_db.dart';
+import 'package:nahpu/screens/exports/export_documents.dart';
+import 'package:nahpu/screens/exports/export_records.dart';
+import 'package:nahpu/screens/exports/export_settings.dart';
+import 'package:nahpu/screens/home/home.dart';
+import 'package:nahpu/screens/projects/components/menu_drawer.dart';
+import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
+import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/screens/settings/settings.dart';
+import 'package:nahpu/screens/settings/settings_destination.dart';
+import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Rounded card along the bottom of the dashboard that launches project
 /// tools. Its outer padding matches the project navigation rail, so on large
 /// screens the two cards end at the same distance from the window edge.
-class ToolDock extends StatelessWidget {
+///
+/// The tools come from the application settings; a divider separates tools of
+/// different categories.
+class ToolDock extends ConsumerWidget {
   const ToolDock({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final tools = ref.watch(projectToolsProvider);
     return SafeArea(
       top: false,
       child: Padding(
@@ -40,18 +60,26 @@ class ToolDock extends StatelessWidget {
                 children: [
                   const ToolDockLabel(),
                   const SizedBox(width: NahpuSpacing.md),
+                  for (final (index, tool) in tools.indexed) ...[
+                    if (index > 0 && tools[index - 1].category != tool.category)
+                      const ToolDockDivider(),
+                    ToolDockLauncher(
+                      icon: tool.icon,
+                      label: tool.label,
+                      tooltip: tool.description,
+                      onPressed: () => openProjectTool(context, ref, tool),
+                    ),
+                  ],
+                  if (tools.isNotEmpty) const ToolDockDivider(),
                   ToolDockLauncher(
-                    icon: Icons.table_chart_outlined,
-                    label: 'Data table',
-                    tooltip: 'Browse, sort, and search project records',
-                    onPressed: () => _open(context, const DataTableScreen()),
-                  ),
-                  ToolDockLauncher(
-                    icon: Icons.edit_note_outlined,
-                    label: 'Templates',
-                    tooltip: 'Create and edit document templates',
-                    onPressed: () =>
-                        _open(context, const TemplateEditorScreen()),
+                    icon: Icons.edit_outlined,
+                    iconColor: colorScheme.outline,
+                    label: 'Edit tools',
+                    tooltip: 'Choose the tools shown here',
+                    onPressed: () => openSettingsDestination(
+                      context,
+                      SettingsDestination.projectTools,
+                    ),
                   ),
                 ],
               ),
@@ -61,11 +89,86 @@ class ToolDock extends StatelessWidget {
       ),
     );
   }
+}
 
-  void _open(BuildContext context, Widget screen) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (context) => screen));
+/// Opens [tool] from the project dashboard.
+void openProjectTool(BuildContext context, WidgetRef ref, ProjectTool tool) {
+  if (tool == ProjectTool.closeProject) {
+    closeProject(context, ref, ref.read(projectUuidProvider));
+    return;
+  }
+  final projectUuid = ref.read(projectUuidProvider);
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) =>
+          ProjectToolScreen(tool: tool, projectUuid: projectUuid),
+    ),
+  );
+}
+
+/// The screen a project tool opens.
+class ProjectToolScreen extends StatelessWidget {
+  const ProjectToolScreen({
+    super.key,
+    required this.tool,
+    required this.projectUuid,
+  });
+
+  final ProjectTool tool;
+  final String projectUuid;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (tool) {
+      ProjectTool.dataTable => const DataTableScreen(),
+      ProjectTool.templates => const TemplateEditorScreen(),
+      // Handled by [openProjectTool] without a screen; home is a safe
+      // fallback should this ever be pushed.
+      ProjectTool.closeProject => const Home(),
+      ProjectTool.mergeProject => const ImportProjectScreen(),
+      ProjectTool.exportProject => const ExportProjectScreen(),
+      ProjectTool.bundleRecords => const BundleRecordsForm(),
+      ProjectTool.exportRecords => const ExportForm(),
+      ProjectTool.exportDocuments => const ExportDocumentsView(),
+      ProjectTool.backupDatabase => const ExportDbForm(),
+      ProjectTool.settings => AppSettings(projectUuid: projectUuid),
+      ProjectTool.exportUserConfigs => const ExportSettingsForm(),
+      ProjectTool.importUserConfigs => const AppSettingsImport(),
+    };
+  }
+}
+
+/// The icon for each project tool, matching the project menu drawer.
+extension ProjectToolIcon on ProjectTool {
+  IconData get icon => switch (this) {
+    ProjectTool.dataTable => Icons.table_chart_outlined,
+    ProjectTool.templates => Icons.edit_note_outlined,
+    ProjectTool.closeProject => Icons.exit_to_app_outlined,
+    ProjectTool.mergeProject => Icons.move_to_inbox_outlined,
+    ProjectTool.exportProject => Icons.outbox_outlined,
+    ProjectTool.bundleRecords => Icons.archive_outlined,
+    ProjectTool.exportRecords => Icons.adaptive.share_outlined,
+    ProjectTool.exportDocuments => Icons.picture_as_pdf_outlined,
+    ProjectTool.backupDatabase => Icons.storage_outlined,
+    ProjectTool.settings => Icons.settings_outlined,
+    ProjectTool.exportUserConfigs => Icons.adaptive.share_outlined,
+    ProjectTool.importUserConfigs => Icons.download_outlined,
+  };
+}
+
+/// Separates tool categories in the dock.
+class ToolDockDivider extends StatelessWidget {
+  const ToolDockDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return VerticalDivider(
+      width: NahpuSpacing.lg,
+      thickness: NahpuStroke.thin,
+      indent: NahpuSpacing.sm,
+      endIndent: NahpuSpacing.sm,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
   }
 }
 
@@ -109,9 +212,13 @@ class ToolDockLauncher extends StatelessWidget {
     required this.label,
     required this.tooltip,
     required this.onPressed,
+    this.iconColor,
   });
 
   final IconData icon;
+
+  /// Defaults to the primary color.
+  final Color? iconColor;
   final String label;
   final String tooltip;
   final VoidCallback onPressed;
@@ -132,7 +239,7 @@ class ToolDockLauncher extends StatelessWidget {
               Icon(
                 icon,
                 size: NahpuControlSize.icon,
-                color: theme.colorScheme.primary,
+                color: iconColor ?? theme.colorScheme.primary,
               ),
               const SizedBox(height: NahpuSpacing.xxs),
               Text(
