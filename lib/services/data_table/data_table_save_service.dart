@@ -95,6 +95,12 @@ Object? dataTableStoredValue(DataTableField field, String raw) {
         throw FormatException('Enter a time as HH:MM', raw);
       }
       return value;
+    case DataTableValueType.coded:
+      final code = int.tryParse(value);
+      if (code == null || !field.codes.any((choice) => choice.$1 == code)) {
+        throw FormatException('Choose one of the listed values', raw);
+      }
+      return code;
   }
 }
 
@@ -258,7 +264,7 @@ class DataTableSaveService {
       SpecimenRecordType.birds => 'birdAttribute',
       SpecimenRecordType.herpetofauna => 'herpAttribute',
       SpecimenRecordType.invertebrates => 'invertebrateAttribute',
-      SpecimenRecordType.fishes => null,
+      SpecimenRecordType.fishes => 'fishAttribute',
       _ => 'mammalAttribute',
     };
   }

@@ -90,7 +90,14 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
                 ),
               ),
             ),
-            if (widget.field.optionKey != null)
+            if (widget.field.valueType == DataTableValueType.coded)
+              DataTableOptionMenu(
+                options: [for (final (_, label) in widget.field.codes) label],
+                onOpen: () => _isPicking = true,
+                onClose: _endPicking,
+                onSelected: (value) => _finish(value, DataTableEditorExit.stay),
+              )
+            else if (widget.field.optionKey != null)
               DataTableOptionMenu(
                 optionKey: widget.field.optionKey!,
                 onOpen: () => _isPicking = true,
@@ -120,6 +127,7 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
   String? get _hint => switch (widget.field.valueType) {
     DataTableValueType.date => 'YYYY-MM-DD',
     DataTableValueType.time => 'HH:MM',
+    DataTableValueType.coded => 'Type or choose',
     _ => null,
   };
 
@@ -211,25 +219,32 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
   }
 }
 
-/// Lists a field's controlled vocabulary while editing.
+/// Lists a field's choices while editing: a fixed list, or the controlled
+/// vocabulary for [optionKey].
 class DataTableOptionMenu extends ConsumerWidget {
   const DataTableOptionMenu({
     super.key,
-    required this.optionKey,
+    this.optionKey,
+    this.options,
     required this.onOpen,
     required this.onClose,
     required this.onSelected,
   });
 
-  final String optionKey;
+  final String? optionKey;
+  final List<String>? options;
   final VoidCallback onOpen;
   final VoidCallback onClose;
   final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final key = optionKey;
     final options =
-        ref.watch(effectiveUserDefinedFieldProvider(optionKey)).value ??
+        this.options ??
+        (key == null
+            ? null
+            : ref.watch(effectiveUserDefinedFieldProvider(key)).value) ??
         const <String>[];
     return MenuAnchor(
       onOpen: onOpen,

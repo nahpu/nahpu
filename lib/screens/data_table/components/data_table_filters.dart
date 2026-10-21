@@ -254,11 +254,13 @@ String? validateDataTableRule(DataTableField field, DataTableFilterRule rule) {
       DataTableValueType.date => isDataTableDate(text),
       DataTableValueType.time => isDataTableTime(text),
       DataTableValueType.text => true,
+      DataTableValueType.coded => field.codeForInput(text) != null,
     };
     if (!ok) {
       return switch (field.valueType) {
         DataTableValueType.date => 'Enter dates as YYYY-MM-DD.',
         DataTableValueType.time => 'Enter times as HH:MM.',
+        DataTableValueType.coded => 'Choose one of the listed values.',
         _ => 'Enter a number.',
       };
     }
@@ -376,7 +378,26 @@ class DataTableRuleRow extends StatelessWidget {
               onChanged();
             },
           ),
-          if (draft.op.takesValue)
+          if (draft.op.takesValue &&
+              draft.column.field.valueType == DataTableValueType.coded)
+            DropdownButton<String>(
+              value:
+                  draft.column.field.codes.any(
+                    (choice) => choice.$2 == draft.value.text,
+                  )
+                  ? draft.value.text
+                  : null,
+              hint: const Text('Value'),
+              items: [
+                for (final (_, label) in draft.column.field.codes)
+                  DropdownMenuItem(value: label, child: Text(label)),
+              ],
+              onChanged: (label) {
+                draft.value.text = label ?? '';
+                onChanged();
+              },
+            )
+          else if (draft.op.takesValue)
             SizedBox(
               width: NahpuDataTable.columnWidth,
               child: TextField(

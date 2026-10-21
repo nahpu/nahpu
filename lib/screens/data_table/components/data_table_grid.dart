@@ -1,11 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_cell_editor.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/data_table/data_table_tsv.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Width a column gets, by the kind of value it holds.
@@ -41,6 +43,8 @@ class DataTableGrid extends StatefulWidget {
     required this.onSave,
     required this.onFocusSearch,
     required this.onMessage,
+    required this.onToggleEditMode,
+    required this.onOpenLinked,
   });
 
   final DataTableRecordType type;
@@ -57,6 +61,11 @@ class DataTableGrid extends StatefulWidget {
   final VoidCallback onSave;
   final VoidCallback onFocusSearch;
   final ValueChanged<String> onMessage;
+  final VoidCallback onToggleEditMode;
+
+  /// Opens the dialog for a linked cell.
+  final void Function(DataTableRecordRow row, DataTableColumn column)
+  onOpenLinked;
 
   @override
   State<DataTableGrid> createState() => DataTableGridState();
@@ -167,6 +176,9 @@ class DataTableGridState extends State<DataTableGrid> {
   bool _isEditable(int col) =>
       widget.isEditMode && widget.columns[col].isEditableIn(widget.type);
 
+  DataTableLink? _link(int col) =>
+      widget.isEditMode ? widget.columns[col].linkIn(widget.type) : null;
+
   void _onTapCell(int row, int col) {
     final extend = HardwareKeyboard.instance.isShiftPressed;
     // An open editor commits itself when it loses focus.
@@ -180,7 +192,12 @@ class DataTableGridState extends State<DataTableGrid> {
   }
 
   void _beginEdit({String? seed}) {
-    final col = widget.grid.focus.col;
+    final pos = widget.grid.focus;
+    final col = pos.col;
+    if (_link(col) != null) {
+      widget.onOpenLinked(widget.page.rows[pos.row], widget.columns[col]);
+      return;
+    }
     if (!_isEditable(col)) {
       if (widget.isEditMode) {
         widget.onMessage('${widget.columns[col].label} is read-only here.');
@@ -191,12 +208,12 @@ class DataTableGridState extends State<DataTableGrid> {
   }
 
   /// Commits the editor's text, then moves like Enter or Tab would.
-  void _commitEdit(
+  Future<void> _commitEdit(
     DataTableCellPos pos,
     String text,
     DataTableEditorExit exit,
-  ) {
-    _setValues({pos: text});
+  ) async {
+    final setting = _setValues({pos: text});
     // The editor may commit after focus already moved to another cell, such
     // as when another cell is tapped; then there is nothing more to do.
     if (widget.grid.editing != pos) return;
@@ -214,6 +231,7 @@ class DataTableGridState extends State<DataTableGrid> {
         break;
     }
     _focusNode.requestFocus();
+    await setting;
   }
 
   void _cancelEdit() {
@@ -221,10 +239,16 @@ class DataTableGridState extends State<DataTableGrid> {
     _focusNode.requestFocus();
   }
 
-  /// Queues edits for editable cells. Returns how many were read-only.
-  int _setValues(Map<DataTableCellPos, String> values) {
+  /// Queues edits for editable cells. Returns how many were skipped
+  /// because they are read-only or edited in a dialog.
+  ///
+  /// Coded cells take a label or a code. A sex change that drops male or
+  /// female measurements asks first, then clears them in the same batch.
+  Future<int> _setValues(Map<DataTableCellPos, String> values) async {
     var skipped = 0;
     final edits = <(DataTableEdit, String)>[];
+    final sexChanges = <(DataTableRecordRow, int?, int)>[];
+    var typeChanges = 0;
     for (final entry in values.entries) {
       final pos = entry.key;
       if (!_isEditable(pos.col)) {
@@ -233,19 +257,105 @@ class DataTableGridState extends State<DataTableGrid> {
       }
       final row = widget.page.rows[pos.row];
       final column = widget.columns[pos.col];
-      edits.add((
-        DataTableEdit(
-          cell: DataTableCellId(row.key, column.key),
-          field: column.field,
-          value: entry.value,
-          row: row.raw,
-          attributeTable: row.attributeTable,
-        ),
-        row.raw[column.key] ?? '',
-      ));
+      final field = column.field;
+      final stored = row.raw[column.key] ?? '';
+      var value = entry.value;
+      if (field.valueType == DataTableValueType.coded &&
+          value.trim().isNotEmpty) {
+        final code = field.codeForInput(value);
+        if (code != null) value = '$code';
+        if (code != null && '$code' != stored) {
+          if (field.column == 'sex') {
+            sexChanges.add((row, int.tryParse(stored), code));
+          } else if (field.column == 'specimenType') {
+            typeChanges++;
+          }
+        }
+      }
+      edits.add((_edit(row, column, value), stored));
+    }
+
+    final clears = _sexClears(sexChanges);
+    if (clears.isNotEmpty || typeChanges > 0) {
+      final confirmed = await showAdaptiveConfirmation(
+        context: context,
+        title: clears.isNotEmpty ? 'Change sex?' : 'Change fish record type?',
+        message: [
+          if (clears.isNotEmpty)
+            'This clears ${clears.map((c) => c.$1.column).toSet().join(', ')} '
+                'that no longer apply to the new sex.',
+          if (typeChanges > 0)
+            'Switching between an individual and a lot changes which '
+                'measurements apply.',
+        ].join('\n\n'),
+        confirmLabel: 'Change',
+      );
+      if (!mounted) return skipped;
+      if (!confirmed) {
+        edits.removeWhere(
+          (edit) =>
+              edit.$1.field.column == 'sex' ||
+              edit.$1.field.column == 'specimenType',
+        );
+      } else {
+        edits.addAll(clears.map((clear) => (clear.$2, clear.$3)));
+      }
     }
     if (edits.isNotEmpty) widget.edits.commit(edits);
     return skipped;
+  }
+
+  DataTableEdit _edit(
+    DataTableRecordRow row,
+    DataTableColumn column,
+    String value, {
+    DataTableField? field,
+  }) => DataTableEdit(
+    cell: DataTableCellId(row.key, column.key),
+    field: field ?? column.field,
+    value: value,
+    row: row.raw,
+    attributeTable: row.attributeTable,
+  );
+
+  /// Clearing edits for measurements a sex change leaves behind: only the
+  /// ones that hold a value, so nothing needs asking when they are empty.
+  List<(DataTableField, DataTableEdit, String)> _sexClears(
+    List<(DataTableRecordRow, int?, int)> changes,
+  ) {
+    final clears = <(DataTableField, DataTableEdit, String)>[];
+    for (final (row, oldCode, newCode) in changes) {
+      final oldSex = getSpecimenSex(oldCode);
+      final newSex = getSpecimenSex(newCode);
+      final columns = dataTableSexClearedColumns[row.attributeTable];
+      if (oldSex == null || columns == null) continue;
+      final cleared = [
+        if (oldSex.supportsMaleAttributes &&
+            newSex?.supportsMaleAttributes != true)
+          ...columns.male,
+        if (oldSex.supportsFemaleAttributes &&
+            newSex?.supportsFemaleAttributes != true)
+          ...columns.female,
+      ];
+      for (final column in cleared) {
+        final key = 'measurement::$column';
+        final stored = row.raw[key] ?? '';
+        if (stored.isEmpty) continue;
+        final field = dataTableField(key);
+        clears.add((
+          field,
+          DataTableEdit(
+            cell: DataTableCellId(row.key, key),
+            field: field,
+            value: '',
+            row: row.raw,
+            attributeTable: row.attributeTable,
+          ),
+          stored,
+        ));
+      }
+    }
+    return clears;
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -277,6 +387,8 @@ class DataTableGridState extends State<DataTableGrid> {
         _copy();
       } else if (key == LogicalKeyboardKey.keyV) {
         _paste();
+      } else if (key == LogicalKeyboardKey.keyE) {
+        widget.onToggleEditMode();
       } else if (key == LogicalKeyboardKey.keyF) {
         widget.onFocusSearch();
       } else if (key == LogicalKeyboardKey.keyS) {
@@ -351,15 +463,17 @@ class DataTableGridState extends State<DataTableGrid> {
     grid.move(direction * visible, 0, extend: extend);
   }
 
-  void _clearSelection() {
+  Future<void> _clearSelection() async {
     if (!widget.isEditMode) return;
     final selection = widget.grid.selection;
-    final skipped = _setValues({
+    final skipped = await _setValues({
       for (var row = selection.top; row <= selection.bottom; row++)
         for (var col = selection.left; col <= selection.right; col++)
           (row: row, col: col): '',
     });
-    if (skipped > 0) widget.onMessage('Skipped $skipped read-only cells.');
+    if (skipped > 0 && mounted) {
+      widget.onMessage('Skipped $skipped read-only or linked cells.');
+    }
   }
 
   String _shownValue(int row, int col) {
@@ -368,7 +482,8 @@ class DataTableGridState extends State<DataTableGrid> {
     final pending = widget.edits.pendingFor(
       DataTableCellId(record.key, column.key),
     );
-    return pending?.value ?? record.values[column.key] ?? '';
+    if (pending != null) return column.field.labelFor(pending.value);
+    return record.values[column.key] ?? '';
   }
 
   Future<void> _copy() async {
@@ -410,9 +525,9 @@ class DataTableGridState extends State<DataTableGrid> {
         values[pos] = rows[r][c];
       }
     }
-    final skipped = _setValues(values);
+    final skipped = await _setValues(values);
     final notes = [
-      if (skipped > 0) 'skipped $skipped read-only cells',
+      if (skipped > 0) 'skipped $skipped read-only or linked cells',
       if (cutOff) 'cut off at the edge of the page',
     ];
     if (notes.isNotEmpty) widget.onMessage('Pasted; ${notes.join(' and ')}.');
@@ -494,7 +609,11 @@ class DataTableHeaderRow extends StatelessWidget {
               column: columns[i],
               width: widths[i],
               sort: sort?.columnKey == columns[i].key ? sort : null,
-              isLocked: isEditMode && !columns[i].isEditableIn(type),
+              isLinked: isEditMode && columns[i].linkIn(type) != null,
+              isLocked:
+                  isEditMode &&
+                  !columns[i].isEditableIn(type) &&
+                  columns[i].linkIn(type) == null,
               onSort: () => onSort(columns[i].key),
             ),
         ],
@@ -509,6 +628,7 @@ class DataTableHeaderCell extends StatelessWidget {
     required this.column,
     required this.width,
     required this.sort,
+    required this.isLinked,
     required this.isLocked,
     required this.onSort,
   });
@@ -516,6 +636,9 @@ class DataTableHeaderCell extends StatelessWidget {
   final DataTableColumn column;
   final double width;
   final DataTableSort? sort;
+
+  /// Edited in a dialog: another record is chosen or a shared one changed.
+  final bool isLinked;
   final bool isLocked;
   final VoidCallback onSort;
 
@@ -527,6 +650,7 @@ class DataTableHeaderCell extends StatelessWidget {
       column.key,
       if (field.isComputed)
         'Calculated during export: not searchable, sortable, or filterable.',
+      if (isLinked) 'Linked data: double-click or press F2 to edit.',
       if (isLocked) 'Read-only here.',
     ];
     final current = sort;
@@ -541,9 +665,9 @@ class DataTableHeaderCell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
             child: Row(
               children: [
-                if (isLocked) ...[
+                if (isLocked || isLinked) ...[
                   Icon(
-                    Icons.lock_outline,
+                    isLinked ? Icons.link : Icons.lock_outline,
                     size: NahpuControlSize.iconSmall,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -646,7 +770,10 @@ class DataTableGridRow extends StatelessWidget {
               width: widths[col],
               row: row,
               column: columns[col],
-              isReadOnly: isEditMode && !columns[col].isEditableIn(type),
+              isReadOnly:
+                  isEditMode &&
+                  !columns[col].isEditableIn(type) &&
+                  columns[col].linkIn(type) == null,
               isFocused: focus.row == index && focus.col == col,
               isSelected:
                   !selection.isSingleCell && selection.contains(index, col),
@@ -704,7 +831,9 @@ class DataTableGridCell extends StatelessWidget {
     final cell = DataTableCellId(row.key, column.key);
     final pending = edits.pendingFor(cell);
     final error = edits.errorFor(cell);
-    final text = pending?.value ?? row.values[column.key] ?? '';
+    final text = pending != null
+        ? column.field.labelFor(pending.value)
+        : row.values[column.key] ?? '';
     final background = pending != null
         ? colorScheme.tertiaryContainer
         : isSelected
@@ -721,7 +850,10 @@ class DataTableGridCell extends StatelessWidget {
         ? DataTableCellEditor(
             field: column.field,
             initialText:
-                editSeed ?? pending?.value ?? row.raw[column.key] ?? '',
+                editSeed ??
+                column.field.labelFor(
+                  pending?.value ?? row.raw[column.key] ?? '',
+                ),
             selectAll: editSeed == null,
             onCommit: onCommit,
             onCancel: onCancel,

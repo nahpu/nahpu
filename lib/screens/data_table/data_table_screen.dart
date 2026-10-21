@@ -6,13 +6,18 @@ import 'package:nahpu/screens/data_table/components/data_table_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_filters.dart';
 import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
+import 'package:nahpu/screens/data_table/components/data_table_link_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_pagination.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
+import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/data_table.dart';
+import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/providers/sites.dart';
+import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -208,11 +213,19 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
           _searchController.text.trim().isNotEmpty ||
           _rules.isNotEmpty ||
           _quickFilters.isNotEmpty;
+      final taxa =
+          _type == DataTableRecordType.specimenRecords &&
+              _specimenType != SpecimenRecordType.allTaxa
+          ? _specimenType.dataTableLabel.toLowerCase()
+          : null;
+      final records = _type.label.toLowerCase();
       return DataTableMessage(
         icon: isFiltered ? Icons.search_off : Icons.table_rows_outlined,
         message: isFiltered
-            ? 'No ${_type.label.toLowerCase()} match your search and filters.'
-            : 'This project has no ${_type.label.toLowerCase()} yet.',
+            ? 'No $records match your search and filters.'
+            : taxa != null
+            ? 'This project has no $records for $taxa.'
+            : 'This project has no $records yet.',
       );
     }
     return DataTableGrid(
@@ -228,7 +241,38 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       onSave: _save,
       onFocusSearch: _searchFocus.requestFocus,
       onMessage: _showMessage,
+      onToggleEditMode: () => _setEditMode(!_isEditMode),
+      onOpenLinked: _openLinked,
     );
+  }
+
+  Future<void> _openLinked(
+    DataTableRecordRow row,
+    DataTableColumn column,
+  ) async {
+    final link = column.linkIn(_type);
+    if (link == null) return;
+    final saved = await showDataTableLinkDialog(
+      context,
+      type: _type,
+      row: row,
+      column: column,
+      link: link,
+    );
+    if (!saved || !mounted) return;
+    _showMessage('Saved.');
+    _invalidateRecordLists();
+    _load();
+  }
+
+  /// Other screens list the records this table changed; refresh them.
+  void _invalidateRecordLists() {
+    ref
+      ..invalidate(specimenEntryProvider)
+      ..invalidate(specimenPartEntryProvider)
+      ..invalidate(siteEntryProvider)
+      ..invalidate(collEventEntryProvider)
+      ..invalidate(narrativeEntryProvider);
   }
 
   String _errorMessage(Object error) => switch (error) {

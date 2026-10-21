@@ -1,6 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Record type, taxon group, search, filters, and columns.
@@ -213,8 +216,9 @@ class RecordTypePill extends StatelessWidget {
   }
 }
 
-/// Limits specimen records to one taxon group, as the export does.
-class SpecimenTypeMenu extends StatelessWidget {
+/// Limits specimen records to one taxon group, as the export does. Icons
+/// follow the catalog formats, with the project's own format for all taxa.
+class SpecimenTypeMenu extends ConsumerWidget {
   const SpecimenTypeMenu({
     super.key,
     required this.specimenType,
@@ -225,21 +229,31 @@ class SpecimenTypeMenu extends StatelessWidget {
   final ValueChanged<SpecimenRecordType> onChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projectFmt =
+        ref.watch(catalogFmtNotifierProvider).value ?? CatalogFmt.mammalogy;
+    IconData icon(SpecimenRecordType type, {bool filled = false}) =>
+        matchCatFmtToIcon(
+          dataTableCatalogFmt(type) ?? projectFmt,
+          isFilledIcon: filled,
+        );
     return MenuAnchor(
       menuChildren: [
         for (final value in SpecimenRecordType.values)
           MenuItemButton(
             leadingIcon: Icon(
-              value == specimenType ? Icons.check : null,
+              icon(value, filled: value == specimenType),
               size: NahpuControlSize.iconMedium,
             ),
+            trailingIcon: value == specimenType
+                ? const Icon(Icons.check, size: NahpuControlSize.iconMedium)
+                : null,
             onPressed: () => onChanged(value),
             child: Text(value.dataTableLabel),
           ),
       ],
       builder: (context, controller, _) => OutlinedButton.icon(
-        icon: const Icon(Icons.pets_outlined),
+        icon: Icon(icon(specimenType)),
         label: Text(specimenType.dataTableLabel),
         style: _pillButtonStyle,
         onPressed: () =>

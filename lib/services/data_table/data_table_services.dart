@@ -50,6 +50,8 @@ class DataTableService extends AppServices {
           values: dataTableRowFromValues(header, values),
           raw: raw.values[key] ?? const {},
           attributeTable: raw.attributes[key],
+          siteId: raw.siteIds[key],
+          eventId: raw.eventIds[key],
         ),
       );
     }

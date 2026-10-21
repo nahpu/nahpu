@@ -424,6 +424,54 @@ class SpecimenServices extends AppServices {
     invalidateSpecimenList();
   }
 
+  /// Changes a specimen's cataloger the way the specimen form does, for
+  /// edits made outside it (the data table).
+  ///
+  /// The specimen keeps its field ID mode. In personnel mode it takes the
+  /// new cataloger's next field number when they register field numbers,
+  /// advancing their counter. The determiner and preparator follow only
+  /// when they were unset or were the previous cataloger, so a change made
+  /// away from the form never replaces someone else.
+  Future<void> reassignCataloger(
+    String specimenUuid,
+    String catalogerUuid,
+  ) async {
+    final specimen = await getSpecimen(specimenUuid);
+    final previous = specimen.catalogerID;
+    if (previous == catalogerUuid) return;
+    String follow(String? current) =>
+        current == null || current == previous ? catalogerUuid : current;
+    final defaultMode = await ref.read(fieldIdModeNotifierProvider.future);
+    final mode = specimen.projectFieldNumber != null
+        ? FieldIdMode.project
+        : specimen.fieldNumber != null
+        ? FieldIdMode.personnel
+        : defaultMode;
+    final cataloger = await PersonnelQuery(
+      dbAccess,
+    ).getPersonnelByUuid(catalogerUuid);
+    await _updateSpecimen(
+      specimenUuid,
+      SpecimenCompanion(
+        catalogerID: db.Value(catalogerUuid),
+        determinerID: db.Value(follow(specimen.determinerID)),
+        preparatorID: db.Value(follow(specimen.preparatorID)),
+        fieldNumber: mode == FieldIdMode.personnel && !cataloger.isRegisterField
+            ? const db.Value(null)
+            : const db.Value.absent(),
+      ),
+    );
+    if (mode == FieldIdMode.personnel && cataloger.isRegisterField) {
+      await setPersonnelFieldIdentifier(
+        specimenUuid: specimenUuid,
+        catalogerUuid: catalogerUuid,
+        fieldNumber: await getSpecimenFieldNumber(catalogerUuid),
+      );
+    } else {
+      invalidateSpecimenList();
+    }
+  }
+
   Future<void> setPersonnelFieldIdentifier({
     required String specimenUuid,
     required String catalogerUuid,

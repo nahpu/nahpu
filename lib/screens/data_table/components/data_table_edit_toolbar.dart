@@ -31,23 +31,9 @@ class DataTableEditToolbar extends StatelessWidget {
         runSpacing: NahpuSpacing.md,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          SegmentedButton<bool>(
-            showSelectedIcon: false,
-            style: SegmentedButton.styleFrom(shape: const StadiumBorder()),
-            segments: const [
-              ButtonSegment(
-                value: false,
-                icon: Icon(Icons.visibility_outlined),
-                label: Text('View'),
-              ),
-              ButtonSegment(
-                value: true,
-                icon: Icon(Icons.edit_outlined),
-                label: Text('Edit'),
-              ),
-            ],
-            selected: {isEditMode},
-            onSelectionChanged: (value) => onModeChanged(value.first),
+          DataTableEditModeToggle(
+            isEditMode: isEditMode,
+            onChanged: onModeChanged,
           ),
           if (isEditMode)
             Tooltip(
@@ -73,6 +59,38 @@ class DataTableEditToolbar extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// One pill that turns edit mode on and off.
+class DataTableEditModeToggle extends StatelessWidget {
+  const DataTableEditModeToggle({
+    super.key,
+    required this.isEditMode,
+    required this.onChanged,
+  });
+
+  final bool isEditMode;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isEditMode
+          ? 'Edit mode is on (Ctrl+E or ⌘E)'
+          : 'Edit mode is off (Ctrl+E or ⌘E)',
+      child: FilterChip(
+        avatar: Icon(
+          isEditMode ? Icons.edit : Icons.edit_outlined,
+          size: NahpuControlSize.iconMedium,
+        ),
+        showCheckmark: false,
+        label: const Text('Edit'),
+        selected: isEditMode,
+        shape: const StadiumBorder(),
+        onSelected: onChanged,
       ),
     );
   }

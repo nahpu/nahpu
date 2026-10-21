@@ -1,5 +1,6 @@
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 /// Record types the project data table can show. Each matches a tabular
 /// record export, and its columns are that export's fields.
@@ -99,6 +100,19 @@ extension DataTableSpecimenRecordTypeLabel on SpecimenRecordType {
   };
 }
 
+/// The catalog format whose icon stands for [type]; null for all taxa,
+/// which uses the project's own catalog format.
+CatalogFmt? dataTableCatalogFmt(SpecimenRecordType type) => switch (type) {
+  SpecimenRecordType.allTaxa => null,
+  SpecimenRecordType.birds => CatalogFmt.ornithology,
+  SpecimenRecordType.generalMammals ||
+  SpecimenRecordType.bats ||
+  SpecimenRecordType.allMammals => CatalogFmt.mammalogy,
+  SpecimenRecordType.herpetofauna => CatalogFmt.herpetology,
+  SpecimenRecordType.invertebrates => CatalogFmt.invertebrateZoology,
+  SpecimenRecordType.fishes => CatalogFmt.ichthyology,
+};
+
 /// Fields shown in italics, such as names that make up a scientific name.
 const dataTableItalicColumnKeys = {
   'specimen::genus',
@@ -120,6 +134,11 @@ class DataTableColumn {
   final String group;
   final DataTableField field;
 
+  /// How this column is changed from a dialog in [type], if it is linked
+  /// data rather than a plain field.
+  DataTableLink? linkIn(DataTableRecordType type) =>
+      dataTableLinkFor(type, key);
+
   bool isEditableIn(DataTableRecordType type) =>
       field.writeTarget != null &&
       type.writeTargets.contains(field.writeTarget);
@@ -127,9 +146,10 @@ class DataTableColumn {
 
 /// Builds columns from export header keys.
 ///
-/// Labels are the export field names, as in a field-names-only export. A
-/// name shared by two groups, such as `remark`, gets its group appended so
-/// the headers stay distinct.
+/// Labels are the export field names, as in a field-names-only export. The
+/// first field with a name keeps it plain; a later one from another group,
+/// such as a parasite's `remark` after the specimen's, gets its group
+/// appended so the headers stay distinct.
 List<DataTableColumn> dataTableColumnsFromHeader(List<String> header) {
   final keys = <String>{...header};
   String group(String key) {
@@ -138,18 +158,15 @@ List<DataTableColumn> dataTableColumnsFromHeader(List<String> header) {
   }
 
   String field(String key) => key.split('::').last;
-  final nameCounts = <String, int>{};
-  for (final key in keys) {
-    nameCounts.update(field(key), (count) => count + 1, ifAbsent: () => 1);
-  }
+  final seen = <String>{};
   return [
     for (final key in keys)
       DataTableColumn(
         key: key,
         group: group(key),
-        label: nameCounts[field(key)]! > 1
-            ? '${field(key)} (${group(key)})'
-            : field(key),
+        label: seen.add(field(key))
+            ? field(key)
+            : '${field(key)} (${group(key)})',
       ),
   ];
 }
@@ -163,6 +180,55 @@ Set<String> defaultDataTableColumnKeys(
   final available = columns.map((column) => column.key).toSet();
   final defaults = type.defaultColumnKeys.where(available.contains).toSet();
   return defaults.isEmpty ? available : defaults;
+}
+
+/// Linked data, edited in a dialog because a change reaches beyond the
+/// cell: another record is chosen, or a shared record is changed.
+enum DataTableLink {
+  /// Choose a different record.
+  cataloger,
+  preparator,
+  taxon,
+  event,
+  site,
+
+  /// Edit the site or event this record is linked to.
+  linkedSite,
+  linkedEvent;
+
+  bool get isRelink => this != linkedSite && this != linkedEvent;
+}
+
+DataTableLink? dataTableLinkFor(DataTableRecordType type, String key) {
+  final group = key.split('::').first;
+  switch (type) {
+    case DataTableRecordType.specimenRecords:
+      return switch (key) {
+        'specimen::cataloger' => DataTableLink.cataloger,
+        'specimen::preparator' => DataTableLink.preparator,
+        'specimen::order' ||
+        'specimen::family' ||
+        'specimen::genus' ||
+        'specimen::specificEpithet' => DataTableLink.taxon,
+        'event::collEventID' => DataTableLink.event,
+        _ => switch (group) {
+          'site' || 'siteAttribute' || 'geography' => DataTableLink.linkedSite,
+          'event' || 'environment' => DataTableLink.linkedEvent,
+          _ => null,
+        },
+      };
+    case DataTableRecordType.events:
+      if (key == 'site::site') return DataTableLink.site;
+      return switch (group) {
+        'site' || 'siteAttribute' || 'geography' => DataTableLink.linkedSite,
+        _ => null,
+      };
+    case DataTableRecordType.narrative:
+      return key == 'narrative::verbatimLocality' ? DataTableLink.site : null;
+    case DataTableRecordType.specimenParts:
+    case DataTableRecordType.sites:
+      return null;
+  }
 }
 
 class DataTableSort {
@@ -200,6 +266,7 @@ enum DataTableFilterOp {
           isEmpty,
           isNotEmpty,
         ],
+        DataTableValueType.coded => const [equals, isEmpty, isNotEmpty],
         _ => const [
           equals,
           greaterThan,
@@ -319,6 +386,8 @@ class DataTableRecordRow {
     required this.values,
     this.raw = const {},
     this.attributeTable,
+    this.siteId,
+    this.eventId,
   });
 
   /// The record's primary key: a specimen UUID or a row id.
@@ -333,6 +402,10 @@ class DataTableRecordRow {
 
   /// For specimens: the attribute table holding this specimen's row, if any.
   final String? attributeTable;
+
+  /// The site and event this record is linked to, if any.
+  final int? siteId;
+  final int? eventId;
 }
 
 class DataTablePageData {

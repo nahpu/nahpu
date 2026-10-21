@@ -138,7 +138,8 @@ void main() {
       expect(editable, contains('measurement::weight'));
       expect(editable, isNot(contains('specimen::cataloger')));
       expect(editable, isNot(contains('geography::country')));
-      expect(editable, isNot(contains('measurement::sex')));
+      expect(editable, contains('measurement::sex'));
+      expect(editable, isNot(contains('measurement::individualCount')));
       expect(editable, isNot(contains('measurement::standardLength')));
     });
 
@@ -157,9 +158,23 @@ void main() {
       ]);
       expect(columns.map((c) => c.label), [
         'fieldNumber',
-        'remark (measurement)',
+        'remark',
         'remark (parasite)',
       ]);
+    });
+
+    test('coded fields map labels and codes both ways', () {
+      final sex = dataTableField('measurement::sex');
+      expect(sex.valueType, DataTableValueType.coded);
+      expect(sex.labelFor('1'), 'Female');
+      expect(sex.codeForInput('male'), 0);
+      expect(sex.codeForInput('Fem'), isNull, reason: 'Female and Female?');
+      expect(sex.codeForInput('gyn'), 3);
+      expect(dataTableField('measurement::wingIsMolt').labelFor('1'), 'Yes');
+      expect(
+        sex.attributeTables.map((t) => t.table),
+        contains('fishAttribute'),
+      );
     });
 
     test('rows pair values with keys and pad short rows', () {

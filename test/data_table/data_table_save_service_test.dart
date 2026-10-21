@@ -70,6 +70,30 @@ void main() {
     );
   });
 
+  test('coded fields store their code', () async {
+    final result = await service.save(DataTableRecordType.specimenRecords, [
+      edit('s1', 'measurement::sex', '1', attributeTable: 'mammalAttribute'),
+      edit(
+        's1',
+        'measurement::testisLength',
+        '',
+        attributeTable: 'mammalAttribute',
+      ),
+    ]);
+    expect(result.errors, isEmpty);
+    expect(
+      await select(
+        'SELECT sex, testisLength FROM mammalAttribute WHERE specimenUuid = ?',
+        ['s1'],
+      ),
+      {'sex': 1, 'testisLength': null},
+    );
+    final bad = await service.save(DataTableRecordType.specimenRecords, [
+      edit('s1', 'measurement::sex', '42', attributeTable: 'mammalAttribute'),
+    ]);
+    expect(bad.errors.values.single, 'Choose one of the listed values');
+  });
+
   test('refuses a measurement the taxon group does not record', () async {
     final result = await service.save(DataTableRecordType.specimenRecords, [
       edit(

@@ -22,12 +22,21 @@ class DataTableKeyPage {
 
 /// Stored values of a page's editable fields, by record key.
 class DataTableRawValues {
-  const DataTableRawValues({required this.values, required this.attributes});
+  const DataTableRawValues({
+    required this.values,
+    required this.attributes,
+    this.siteIds = const {},
+    this.eventIds = const {},
+  });
 
   final Map<Object, Map<String, String>> values;
 
   /// For specimens: the attribute table that holds each specimen's row.
   final Map<Object, String> attributes;
+
+  /// The site and event each record is linked to.
+  final Map<Object, int> siteIds;
+  final Map<Object, int> eventIds;
 }
 
 /// Filters, sorts, counts, and pages records in SQL, so only one page of
@@ -96,12 +105,22 @@ class DataTablePageQuery {
     }
     final selected = fields.where((field) => field.isFilterable).toList();
     final isSpecimen = type == DataTableRecordType.specimenRecords;
+    final links = switch (type) {
+      DataTableRecordType.specimenRecords => const ['st.id', 'ce.id'],
+      DataTableRecordType.events => const ['st.id', 'ce.id'],
+      DataTableRecordType.narrative => const ['st.id', 'NULL'],
+      DataTableRecordType.sites => const ['st.id', 'NULL'],
+      DataTableRecordType.specimenParts => const ['NULL', 'NULL'],
+    };
     final joins = _joinClause(type, {
       ...selected.expand((field) => field.joins),
       if (isSpecimen) ...dataTableAttributeTables.map((table) => table.join),
+      if (type != DataTableRecordType.specimenParts) DataTableJoin.site,
     });
     final columns = [
       '${_key(type)} AS k',
+      '${links[0]} AS linked_site',
+      '${links[1]} AS linked_event',
       for (var i = 0; i < selected.length; i++) '${selected[i].sqlExpr} AS f$i',
       if (isSpecimen)
         for (final table in dataTableAttributeTables)
@@ -118,8 +137,12 @@ class DataTablePageQuery {
         .get();
     final values = <Object, Map<String, String>>{};
     final attributes = <Object, String>{};
+    final siteIds = <Object, int>{};
+    final eventIds = <Object, int>{};
     for (final row in rows) {
       final key = row.data['k']!;
+      if (row.data['linked_site'] case final int id) siteIds[key] = id;
+      if (row.data['linked_event'] case final int id) eventIds[key] = id;
       values[key] = {
         for (var i = 0; i < selected.length; i++)
           selected[i].key: _text(row.data['f$i']),
@@ -133,7 +156,12 @@ class DataTablePageQuery {
         }
       }
     }
-    return DataTableRawValues(values: values, attributes: attributes);
+    return DataTableRawValues(
+      values: values,
+      attributes: attributes,
+      siteIds: siteIds,
+      eventIds: eventIds,
+    );
   }
 
   _WhereClause _where(
@@ -199,6 +227,14 @@ class DataTablePageQuery {
     if (!DataTableFilterOp.forType(field.valueType).contains(rule.op)) {
       throw ArgumentError.value(rule.op, 'op', 'does not apply to this field');
     }
+    if (field.valueType == DataTableValueType.coded &&
+        rule.op == DataTableFilterOp.equals) {
+      final code = field.codeForInput(rule.value);
+      if (code == null) {
+        throw FormatException('Choose one of the listed values', rule.value);
+      }
+      return ('$expr = ?', [Variable.withInt(code)]);
+    }
     final isNumber =
         field.valueType == DataTableValueType.integer ||
         field.valueType == DataTableValueType.real;
@@ -251,7 +287,9 @@ class DataTablePageQuery {
     final sort = query.sort;
     for (final field in _sortFields(query)) {
       final direction = sort!.ascending ? 'ASC' : 'DESC';
-      final isText = field.valueType == DataTableValueType.text;
+      final isText =
+          field.valueType == DataTableValueType.text ||
+          field.valueType == DataTableValueType.coded;
       for (final term in field.orderTerms) {
         // Blanks sort last in both directions.
         terms
@@ -321,6 +359,7 @@ class DataTablePageQuery {
       case DataTableJoin.herp:
       case DataTableJoin.invertebrate:
       case DataTableJoin.fossil:
+      case DataTableJoin.fish:
         if (!hasSpecimen) return null;
         final table = dataTableAttributeTables.firstWhere(
           (t) => t.join == join,
@@ -372,10 +411,10 @@ String _projectColumn(DataTableRecordType type) => switch (type) {
   DataTableRecordType.narrative => 'n.projectUuid',
 };
 
-String _asText(DataTableField field) =>
-    field.valueType == DataTableValueType.text
-    ? field.sqlExpr!
-    : 'CAST(${field.sqlExpr} AS TEXT)';
+String _asText(DataTableField field) => switch (field.valueType) {
+  DataTableValueType.text || DataTableValueType.coded => field.displayExpr!,
+  _ => 'CAST(${field.sqlExpr} AS TEXT)',
+};
 
 Variable _variable(Object key) =>
     key is int ? Variable.withInt(key) : Variable.withString(key.toString());

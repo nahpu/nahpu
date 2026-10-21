@@ -15,11 +15,21 @@ Future<Database> seededDataTableDb() async {
 
   await run('INSERT INTO project (uuid, name) VALUES (?, ?)', ['p1', 'One']);
   await run('INSERT INTO project (uuid, name) VALUES (?, ?)', ['p2', 'Two']);
-  await run('INSERT INTO personnel (uuid, name, initial) VALUES (?, ?, ?)', [
-    'ana',
-    'Ana Vale',
-    'AV',
-  ]);
+  for (final (uuid, name, role, next) in [
+    ('ana', 'Ana Vale', 'Cataloger', 30),
+    ('ben', 'Ben Oru', 'Cataloger', 5),
+    ('cara', 'Cara Lim', 'Preparator only', null),
+  ]) {
+    await run(
+      'INSERT INTO personnel (uuid, name, role, currentFieldNumber) '
+      'VALUES (?, ?, ?, ?)',
+      [uuid, name, role, next],
+    );
+    await run(
+      'INSERT INTO personnelList (projectUuid, personnelUuid) VALUES (?, ?)',
+      ['p1', uuid],
+    );
+  }
   await run(
     'INSERT INTO taxonomy (id, taxonOrder, taxonFamily, genus, '
     'specificEpithet) VALUES (?, ?, ?, ?, ?)',
@@ -77,9 +87,9 @@ Future<Database> seededDataTableDb() async {
     ['other', 'p2', 'General Mammals', 'Good'],
   );
   await run(
-    'INSERT INTO mammalAttribute (specimenUuid, weight, remark) '
-    'VALUES (?, ?, ?)',
-    ['s1', 42.0, 'adult'],
+    'INSERT INTO mammalAttribute (specimenUuid, weight, remark, sex, '
+    'testisLength) VALUES (?, ?, ?, ?, ?)',
+    ['s1', 42.0, 'adult', 0, 12.0],
   );
   await run(
     'INSERT INTO specimenPart (id, specimenUuid, tissueID, type) '

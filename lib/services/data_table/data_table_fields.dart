@@ -1,8 +1,22 @@
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/types/birds.dart';
+import 'package:nahpu/services/types/invertebrates.dart';
+import 'package:nahpu/services/types/mammals.dart';
+import 'package:nahpu/services/types/specimens.dart';
 
 /// How a field's stored value is typed, which decides its editor, the
 /// filter operators it offers, and how input is validated.
-enum DataTableValueType { text, integer, real, date, time }
+enum DataTableValueType {
+  text,
+  integer,
+  real,
+  date,
+  time,
+
+  /// Stored as a number, shown as a label from a fixed list (sex, testis
+  /// position, and so on).
+  coded,
+}
 
 /// Where an edit to a field is written.
 enum DataTableWriteTarget {
@@ -37,7 +51,8 @@ enum DataTableJoin {
   bird,
   herp,
   invertebrate,
-  fossil;
+  fossil,
+  fish;
 
   /// Joins this one reads from.
   Set<DataTableJoin> get requires => switch (this) {
@@ -69,11 +84,21 @@ class DataTableAttributeTable {
 const _real = DataTableValueType.real;
 const _int = DataTableValueType.integer;
 const _text = DataTableValueType.text;
+const _coded = DataTableValueType.coded;
 
-/// Fish attributes are left out on purpose: lot and individual records gate
-/// which measurements apply, and lot ranges can follow the individuals.
+/// Fish measurements are left out on purpose: lot and individual records
+/// gate which measurements apply, and lot ranges can follow the
+/// individuals. Only a fish's sex and record type are editable here.
 const dataTableAttributeTables = [
   DataTableAttributeTable(DataTableJoin.mammal, 'mammalAttribute', 'ma', {
+    'sex': _coded,
+    'testisPosition': _coded,
+    'epididymisAppearance': _coded,
+    'reproductiveStage': _coded,
+    'mammaeCondition': _coded,
+    'vaginaOpening': _coded,
+    'pubicSymphysis': _coded,
+    'echolocation': _coded,
     'totalLength': _real,
     'tailLength': _real,
     'hindFootLength': _real,
@@ -101,6 +126,16 @@ const dataTableAttributeTables = [
     'remark': _text,
   }),
   DataTableAttributeTable(DataTableJoin.bird, 'birdAttribute', 'ba', {
+    'sex': _coded,
+    'broodPatch': _coded,
+    'skullOssification': _coded,
+    'hasBursa': _coded,
+    'fat': _coded,
+    'ovaryAppearance': _coded,
+    'oviductAppearance': _coded,
+    'wingIsMolt': _coded,
+    'tailIsMolt': _coded,
+    'bodyMolt': _coded,
     'weight': _real,
     'wingspan': _real,
     'irisColor': _text,
@@ -136,6 +171,7 @@ const dataTableAttributeTables = [
     'habitatRemark': _text,
   }),
   DataTableAttributeTable(DataTableJoin.herp, 'herpAttribute', 'ha', {
+    'sex': _coded,
     'lifeStage': _text,
     'weight': _real,
     'svl': _real,
@@ -146,6 +182,8 @@ const dataTableAttributeTables = [
     'invertebrateAttribute',
     'ia',
     {
+      'sex': _coded,
+      'caste': _coded,
       'headWidth': _real,
       'bodyLength': _real,
       'wingspanUpper': _real,
@@ -157,6 +195,7 @@ const dataTableAttributeTables = [
     },
   ),
   DataTableAttributeTable(DataTableJoin.fossil, 'fossilAttribute', 'fa', {
+    'sex': _coded,
     'fossilType': _text,
     'specimenDescription': _text,
     'ontogeneticStage': _text,
@@ -164,7 +203,91 @@ const dataTableAttributeTables = [
     'weightUnit': _text,
     'remark': _text,
   }),
+  DataTableAttributeTable(DataTableJoin.fish, 'fishAttribute', 'fsa', {
+    'sex': _coded,
+    'specimenType': _coded,
+  }),
 ];
+
+/// One choice of a coded field: the stored number and the label shown.
+typedef DataTableCode = (int code, String label);
+
+List<DataTableCode> _indexed(List<String> labels) => [
+  for (final (index, label) in labels.indexed) (index, label),
+];
+
+const List<DataTableCode> _yesNo = [(1, 'Yes'), (0, 'No')];
+
+/// Labels for coded columns, matching what the exports write.
+final Map<String, List<DataTableCode>> dataTableCodes = {
+  'sex': [
+    for (final sex in allowedSpecimenSexes)
+      (specimenSexCode[sex]!, specimenSexLabel[sex]!),
+  ],
+  'testisPosition': _indexed(testisPositionList),
+  'epididymisAppearance': _indexed(epididymisAppearanceList),
+  'reproductiveStage': _indexed(reproductiveStageList),
+  'mammaeCondition': _indexed(mammaeConditionList),
+  'vaginaOpening': _indexed(vaginaOpeningList),
+  'pubicSymphysis': _indexed(pubicSymphysisList),
+  'echolocation': _indexed(echolocationList),
+  'broodPatch': _yesNo,
+  'hasBursa': _yesNo,
+  'wingIsMolt': _yesNo,
+  'tailIsMolt': _yesNo,
+  'skullOssification': [
+    for (final value in skullOssificationList) (value, '$value'),
+  ],
+  'fat': _indexed(fatCategoryList),
+  'ovaryAppearance': _indexed(ovaryAppearanceList),
+  'oviductAppearance': _indexed(oviductAppearanceList),
+  'bodyMolt': _indexed(bodyMoltList),
+  'caste': _indexed(invertebrateCasteList),
+  'specimenType': [
+    for (final type in FishSpecimenType.values) (type.index, type.name),
+  ],
+};
+
+/// Columns cleared when a sex change drops male or female attributes,
+/// matching what the record forms clear.
+const dataTableSexClearedColumns = {
+  'mammalAttribute': (
+    male: [
+      'testisPosition',
+      'testisLength',
+      'testisWidth',
+      'epididymisAppearance',
+    ],
+    female: [
+      'vaginaOpening',
+      'pubicSymphysis',
+      'reproductiveStage',
+      'mammaeAxillaryCount',
+      'mammaeAbdominalCount',
+      'mammaeInguinalCount',
+      'mammaeCondition',
+      'embryoLeftCount',
+      'embryoRightCount',
+      'embryoCR',
+      'leftPlacentalScars',
+      'rightPlacentalScars',
+    ],
+  ),
+  'birdAttribute': (
+    male: ['testisLength', 'testisWidth', 'testisRemark'],
+    female: [
+      'ovaryLength',
+      'ovaryWidth',
+      'ovaryAppearance',
+      'firstOvaSize',
+      'secondOvaSize',
+      'thirdOvaSize',
+      'oviductWidth',
+      'oviductAppearance',
+      'ovaryRemark',
+    ],
+  ),
+};
 
 /// One export header key, as the data table understands it.
 ///
@@ -203,6 +326,48 @@ class DataTableField {
   /// For `measurement::` fields: every attribute table that has [column].
   final List<DataTableAttributeTable> attributeTables;
 
+  /// Choices of a coded field.
+  List<DataTableCode> get codes => valueType == DataTableValueType.coded
+      ? dataTableCodes[column] ?? const []
+      : const [];
+
+  /// The label for a stored code, or the text unchanged when it isn't one.
+  String labelFor(String raw) {
+    final code = int.tryParse(raw.trim());
+    for (final (value, label) in codes) {
+      if (value == code) return label;
+    }
+    return raw;
+  }
+
+  /// The code for typed or pasted text: a label (or the start of exactly
+  /// one), or the code itself. Null when nothing matches.
+  int? codeForInput(String text) {
+    final input = text.trim().toLowerCase();
+    if (input.isEmpty) return null;
+    for (final (code, label) in codes) {
+      if (label.toLowerCase() == input || '$code' == input) return code;
+    }
+    final starts = [
+      for (final (code, label) in codes)
+        if (label.toLowerCase().startsWith(input)) code,
+    ];
+    return starts.length == 1 ? starts.single : null;
+  }
+
+  /// What search and sort compare: labels for coded fields, so "male"
+  /// finds males rather than the digit 0.
+  String? get displayExpr {
+    if (sqlExpr == null || valueType != DataTableValueType.coded) {
+      return sqlExpr;
+    }
+    final cases = [
+      for (final (code, label) in codes)
+        "WHEN $code THEN '${label.replaceAll("'", "''")}'",
+    ];
+    return '(CASE $sqlExpr ${cases.join(' ')} END)';
+  }
+
   /// Searchable and filterable in SQL.
   bool get isFilterable => sqlExpr != null;
   bool get isSortable => sqlExpr != null || sortExprs.isNotEmpty;
@@ -210,7 +375,7 @@ class DataTableField {
   /// Derived during export, such as coordinates or media lists.
   bool get isComputed => !isSortable;
 
-  List<String> get orderTerms => sortExprs.isEmpty ? [sqlExpr!] : sortExprs;
+  List<String> get orderTerms => sortExprs.isEmpty ? [displayExpr!] : sortExprs;
 }
 
 /// The catalog entry for [key]. Keys the catalog doesn't know are computed:

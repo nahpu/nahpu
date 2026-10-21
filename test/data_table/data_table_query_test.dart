@@ -162,6 +162,39 @@ void main() {
     );
   });
 
+  test('coded fields search by label and filter by code', () async {
+    final search = await specimens(
+      const DataTableQuery(search: 'mal', searchKeys: ['measurement::sex']),
+    );
+    expect(search.keys, ['s1']);
+    final rule = await specimens(
+      const DataTableQuery(
+        rules: [
+          DataTableFilterRule(
+            fieldKey: 'measurement::sex',
+            op: DataTableFilterOp.equals,
+            value: 'Male',
+          ),
+        ],
+      ),
+    );
+    expect(rule.keys, ['s1']);
+    expect(
+      () => specimens(
+        const DataTableQuery(
+          rules: [
+            DataTableFilterRule(
+              fieldKey: 'measurement::sex',
+              op: DataTableFilterOp.equals,
+              value: 'Unicorn',
+            ),
+          ],
+        ),
+      ),
+      throwsFormatException,
+    );
+  });
+
   test('quick filters narrow the page', () async {
     final missing = await specimens(
       const DataTableQuery(quickFilters: {DataTableQuickFilter.missingTaxon}),
