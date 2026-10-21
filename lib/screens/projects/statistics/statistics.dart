@@ -4,6 +4,7 @@ import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_filter_panel.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
@@ -539,26 +540,127 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             onExplore: _exploreSelection,
                           ),
                         ] else ...[
-                          _StatisticControl<_DetailSection>(
-                            key: const ValueKey(
-                              'statistics-detail-section-control',
-                            ),
-                            values: _DetailSection.values,
-                            selected: _detailSection,
-                            valueLabel: (value) => value.label,
-                            valueIcon: (value) => value.icon,
-                            onSelected: (value) {
-                              setState(() => _detailSection = value);
-                            },
-                          ),
-                          const SizedBox(height: NahpuSpacing.xl),
                           if (_detailSection == _DetailSection.spatial)
                             SpatialStatisticsPanel(
                               projectUuid: projectUuid,
                               projectName: projectName,
                               height: _exploreStatisticsCardHeight,
+                              sectionSwitch: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
                             )
-                          else
+                          else ...[
+                            StatisticFilterPanel(
+                              section: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
+                              selector: SegmentedButton<StatisticMeasure>(
+                                key: const ValueKey(
+                                  'statistics-measure-control',
+                                ),
+                                showSelectedIcon: false,
+                                segments: [
+                                  for (final measure in StatisticMeasure.values)
+                                    ButtonSegment(
+                                      value: measure,
+                                      label: Text(measure.label),
+                                    ),
+                                ],
+                                selected: {_measure},
+                                onSelectionChanged: (selection) =>
+                                    _selectMeasure(
+                                      selection.single,
+                                      hasLifeStage,
+                                    ),
+                              ),
+                              fields: [
+                                StatisticDropdownField<StatisticGroup>(
+                                  key: const ValueKey(
+                                    'statistics-group-control',
+                                  ),
+                                  label: 'Group by',
+                                  values: _measure.groups(
+                                    hasLifeStage: hasLifeStage,
+                                  ),
+                                  selected: _group,
+                                  valueLabel: (value) => value.label,
+                                  onSelected: (value) {
+                                    setState(() {
+                                      _group = value;
+                                      _breakdown = null;
+                                    });
+                                  },
+                                ),
+                                if (_usesTaxonRank)
+                                  StatisticDropdownField<StatisticTaxonRank>(
+                                    key: const ValueKey(
+                                      'statistics-taxon-rank-control',
+                                    ),
+                                    label: 'Taxon rank',
+                                    values: StatisticTaxonRank.groupable,
+                                    selected: _rank,
+                                    valueLabel: (value) => value.label,
+                                    onSelected: (value) {
+                                      setState(() => _rank = value);
+                                    },
+                                  ),
+                                if (_canBreakDown)
+                                  _BreakdownControl(
+                                    key: const ValueKey(
+                                      'statistics-breakdown-control',
+                                    ),
+                                    selected: _breakdown,
+                                    hasSex: hasSex,
+                                    hasLifeStage: hasLifeStage,
+                                    onSelected: (value) {
+                                      setState(() => _breakdown = value);
+                                    },
+                                  ),
+                                if (_usesSiteFilter)
+                                  SearchableStatisticFilterPicker(
+                                    options: ref.watch(
+                                      statisticFilterOptionsProvider(
+                                        StatisticFilterKind.site,
+                                      ),
+                                    ),
+                                    selected: _siteFilter,
+                                    label: 'Site',
+                                    title: 'Select a site',
+                                    placeholder: 'All sites',
+                                    onChanged: (value) {
+                                      setState(() => _siteFilter = value);
+                                    },
+                                    onRetry: () => ref.invalidate(
+                                      statisticFilterOptionsProvider(
+                                        StatisticFilterKind.site,
+                                      ),
+                                    ),
+                                  ),
+                                if (_usesSpeciesFilter)
+                                  SearchableStatisticFilterPicker(
+                                    options: ref.watch(
+                                      statisticFilterOptionsProvider(
+                                        StatisticFilterKind.species,
+                                      ),
+                                    ),
+                                    selected: _speciesFilter,
+                                    label: 'Species',
+                                    title: 'Select a species',
+                                    placeholder: 'All species',
+                                    onChanged: (value) {
+                                      setState(() => _speciesFilter = value);
+                                    },
+                                    onRetry: () => ref.invalidate(
+                                      statisticFilterOptionsProvider(
+                                        StatisticFilterKind.species,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: NahpuSpacing.xl),
                             Card(
                               clipBehavior: Clip.antiAlias,
                               child: SizedBox(
@@ -567,114 +669,13 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 ),
                                 height: _exploreStatisticsCardHeight,
                                 child: Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(
+                                    NahpuSpacing.xl,
+                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      _StatisticControl<StatisticMeasure>(
-                                        key: const ValueKey(
-                                          'statistics-measure-control',
-                                        ),
-                                        label: 'Measure',
-                                        values: StatisticMeasure.values,
-                                        selected: _measure,
-                                        valueLabel: (value) => value.label,
-                                        onSelected: (value) =>
-                                            _selectMeasure(value, hasLifeStage),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _StatisticControl<StatisticGroup>(
-                                        key: const ValueKey(
-                                          'statistics-group-control',
-                                        ),
-                                        label: 'Group by',
-                                        values: _measure.groups(
-                                          hasLifeStage: hasLifeStage,
-                                        ),
-                                        selected: _group,
-                                        valueLabel: (value) => value.label,
-                                        onSelected: (value) {
-                                          setState(() {
-                                            _group = value;
-                                            _breakdown = null;
-                                          });
-                                        },
-                                      ),
-                                      if (_usesTaxonRank) ...[
-                                        const SizedBox(height: 12),
-                                        _StatisticControl<StatisticTaxonRank>(
-                                          key: const ValueKey(
-                                            'statistics-taxon-rank-control',
-                                          ),
-                                          label: 'Taxon rank',
-                                          values: StatisticTaxonRank.groupable,
-                                          selected: _rank,
-                                          valueLabel: (value) => value.label,
-                                          onSelected: (value) {
-                                            setState(() => _rank = value);
-                                          },
-                                        ),
-                                      ],
-                                      if (_canBreakDown) ...[
-                                        const SizedBox(height: 12),
-                                        _BreakdownControl(
-                                          key: const ValueKey(
-                                            'statistics-breakdown-control',
-                                          ),
-                                          selected: _breakdown,
-                                          hasSex: hasSex,
-                                          hasLifeStage: hasLifeStage,
-                                          onSelected: (value) {
-                                            setState(() => _breakdown = value);
-                                          },
-                                        ),
-                                      ],
-                                      if (_usesSiteFilter) ...[
-                                        const SizedBox(height: 12),
-                                        SearchableStatisticFilterPicker(
-                                          options: ref.watch(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.site,
-                                            ),
-                                          ),
-                                          selected: _siteFilter,
-                                          title: 'Select a site',
-                                          placeholder: 'All sites',
-                                          onChanged: (value) {
-                                            setState(() => _siteFilter = value);
-                                          },
-                                          onRetry: () => ref.invalidate(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.site,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                      if (_usesSpeciesFilter) ...[
-                                        const SizedBox(height: 12),
-                                        SearchableStatisticFilterPicker(
-                                          options: ref.watch(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.species,
-                                            ),
-                                          ),
-                                          selected: _speciesFilter,
-                                          title: 'Select a species',
-                                          placeholder: 'All species',
-                                          onChanged: (value) {
-                                            setState(
-                                              () => _speciesFilter = value,
-                                            );
-                                          },
-                                          onRetry: () => ref.invalidate(
-                                            statisticFilterOptionsProvider(
-                                              StatisticFilterKind.species,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                      const SizedBox(height: 16),
                                       Row(
                                         children: [
                                           Expanded(
@@ -809,6 +810,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 ),
                               ),
                             ),
+                          ],
                         ],
                       ],
                     ),
@@ -833,6 +835,10 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
   bool get _canBreakDown =>
       _measure == StatisticMeasure.specimens &&
       _group == StatisticGroup.species;
+
+  void _selectDetailSection(_DetailSection section) {
+    setState(() => _detailSection = section);
+  }
 
   void _selectMeasure(StatisticMeasure measure, bool hasLifeStage) {
     setState(() {
@@ -1360,54 +1366,31 @@ class _StatisticSummaryCard extends ConsumerWidget {
   }
 }
 
-class _StatisticControl<T> extends StatelessWidget {
-  const _StatisticControl({
-    super.key,
-    this.label,
-    required this.values,
+/// Switches Explore between count and spatial statistics.
+class _DetailSectionSwitch extends StatelessWidget {
+  const _DetailSectionSwitch({
     required this.selected,
-    required this.valueLabel,
-    this.valueIcon,
     required this.onSelected,
   });
 
-  /// Heading above the chips, or null when the chips speak for themselves.
-  final String? label;
-  final List<T> values;
-  final T selected;
-  final String Function(T value) valueLabel;
-
-  /// Leading icon for each chip. The selected chip swaps its icon for a check
-  /// instead of drawing the checkmark over it.
-  final IconData Function(T value)? valueIcon;
-  final ValueChanged<T> onSelected;
+  final _DetailSection selected;
+  final ValueChanged<_DetailSection> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label != null) ...[
-          Text(label!, style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 6),
-        ],
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final value in values)
-              ChoiceChip(
-                avatar: valueIcon == null
-                    ? null
-                    : Icon(selected == value ? Icons.check : valueIcon!(value)),
-                showCheckmark: valueIcon == null,
-                label: Text(valueLabel(value)),
-                selected: selected == value,
-                onSelected: (_) => onSelected(value),
-              ),
-          ],
-        ),
+    return SegmentedButton<_DetailSection>(
+      key: const ValueKey('statistics-detail-section-control'),
+      showSelectedIcon: false,
+      segments: [
+        for (final section in _DetailSection.values)
+          ButtonSegment(
+            value: section,
+            icon: Icon(section.icon),
+            label: Text(section.label),
+          ),
       ],
+      selected: {selected},
+      onSelectionChanged: (selection) => onSelected(selection.single),
     );
   }
 }
@@ -1428,37 +1411,33 @@ class _BreakdownControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Break down by', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ChoiceChip(
-              label: const Text('None'),
-              selected: selected == null,
-              onSelected: (_) => onSelected(null),
-            ),
-            if (hasSex)
-              ChoiceChip(
-                label: const Text('Sex'),
-                selected: selected == StatisticBreakdown.sex,
-                onSelected: (_) => onSelected(StatisticBreakdown.sex),
-              ),
-            if (hasLifeStage)
-              ChoiceChip(
-                label: const Text('Life stage'),
-                selected: selected == StatisticBreakdown.lifeStage,
-                onSelected: (_) => onSelected(StatisticBreakdown.lifeStage),
-              ),
-          ],
-        ),
+    return StatisticDropdownField<_BreakdownChoice>(
+      label: 'Break down by',
+      values: [
+        _BreakdownChoice.none,
+        if (hasSex) _BreakdownChoice.sex,
+        if (hasLifeStage) _BreakdownChoice.lifeStage,
       ],
+      selected: _BreakdownChoice.of(selected),
+      valueLabel: (value) => value.label,
+      onSelected: (value) => onSelected(value.breakdown),
     );
   }
+}
+
+/// [StatisticBreakdown] choices plus None, so the dropdown never holds null.
+enum _BreakdownChoice {
+  none('None', null),
+  sex('Sex', StatisticBreakdown.sex),
+  lifeStage('Life stage', StatisticBreakdown.lifeStage);
+
+  const _BreakdownChoice(this.label, this.breakdown);
+
+  final String label;
+  final StatisticBreakdown? breakdown;
+
+  static _BreakdownChoice of(StatisticBreakdown? breakdown) =>
+      values.firstWhere((choice) => choice.breakdown == breakdown);
 }
 
 class _StatisticAsyncContent extends StatelessWidget {
