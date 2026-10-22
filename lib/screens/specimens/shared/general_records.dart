@@ -226,15 +226,24 @@ class DeterminerField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isPaleoCatalogFmt = ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
+          data: (format) => format == CatalogFmt.paleontology,
+          loading: () => false,
+          error: (_, _) => false,
+        );
     return CommonPadding(
       child: DropdownButtonFormField<String>(
         key: ValueKey(specimenCtr.determinerCtr),
         initialValue: specimenCtr.determinerCtr,
         isExpanded: true,
-        decoration: const InputDecoration(
-          labelText: 'Determiner',
-          hintText: 'Choose a determiner (default is cataloger)',
-          hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
+        decoration: InputDecoration(
+          labelText: isPaleoCatalogFmt ? 'Identifier' : 'Determiner',
+          hintText: isPaleoCatalogFmt
+              ? 'Choose an identifier (default is cataloger)'
+              : 'Choose a determiner (default is cataloger)',
+          hintStyle: const TextStyle(overflow: TextOverflow.ellipsis),
         ),
         items: ref
             .watch(projectPersonnelProvider)
