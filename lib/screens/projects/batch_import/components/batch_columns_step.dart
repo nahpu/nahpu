@@ -12,6 +12,7 @@ class BatchColumnsStep extends StatelessWidget {
     super.key,
     required this.table,
     required this.type,
+    required this.targets,
     required this.mode,
     required this.headerMode,
     required this.matches,
@@ -23,6 +24,9 @@ class BatchColumnsStep extends StatelessWidget {
 
   final BatchImportTable table;
   final DataTableRecordType type;
+
+  /// Fields the columns can fill.
+  final List<BatchImportTarget> targets;
   final BatchImportMode mode;
   final BatchImportHeaderMode headerMode;
   final List<BatchColumnMatch> matches;
@@ -33,7 +37,6 @@ class BatchColumnsStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final targets = batchImportTargets(type);
     final mapped = matches.where((match) => match.fieldKey != null).length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -18,9 +18,12 @@ class BatchMappingStore {
   Map<String, String> load(
     DataTableRecordType type,
     BatchImportMode mode,
-    List<String> headers,
-  ) {
-    final raw = prefs.getString(storageKey(type, mode, headers));
+    List<String> headers, {
+    bool linked = false,
+  }) {
+    final raw = prefs.getString(
+      storageKey(type, mode, headers, linked: linked),
+    );
     if (raw == null) return const {};
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
@@ -38,8 +41,9 @@ class BatchMappingStore {
   Future<void> save(
     DataTableRecordType type,
     BatchImportMode mode,
-    List<BatchColumnMatch> matches,
-  ) async {
+    List<BatchColumnMatch> matches, {
+    bool linked = false,
+  }) async {
     final headers = [for (final match in matches) match.header];
     final choices = {
       for (final match in matches)
@@ -47,7 +51,7 @@ class BatchMappingStore {
             match.origin == BatchMatchOrigin.saved)
           normalizeBatchHeader(match.header): match.fieldKey ?? '',
     };
-    final key = storageKey(type, mode, headers);
+    final key = storageKey(type, mode, headers, linked: linked);
     if (choices.isEmpty) {
       await prefs.remove(key);
     } else {
@@ -55,15 +59,18 @@ class BatchMappingStore {
     }
   }
 
-  /// The same for any order of the same headers.
+  /// The same for any order of the same headers. [linked] imports keep
+  /// their own choices, whatever [type] is.
   static String storageKey(
     DataTableRecordType type,
     BatchImportMode mode,
-    List<String> headers,
-  ) {
+    List<String> headers, {
+    bool linked = false,
+  }) {
     final normalized = [for (final h in headers) normalizeBatchHeader(h)]
       ..sort();
-    return 'batchImportMapping.${type.name}.${mode.name}.'
+    final scope = linked ? 'linked' : type.name;
+    return 'batchImportMapping.$scope.${mode.name}.'
         '${_fnv1a(normalized.join('|'))}';
   }
 

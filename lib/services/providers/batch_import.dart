@@ -1,11 +1,14 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/data_table/data_table_link_service.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_reader.dart';
 import 'package:nahpu/services/import/batch/batch_import_service.dart';
 import 'package:nahpu/services/import/batch/batch_import_targets.dart';
+import 'package:nahpu/services/import/batch/batch_linked_models.dart';
+import 'package:nahpu/services/import/batch/batch_linked_service.dart';
 import 'package:nahpu/services/import/batch/batch_mapping_store.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/src/rust/api/dwc.dart' as rust_dwc;
@@ -21,14 +24,17 @@ final batchImportFileReaderProvider = Provider<BatchImportFileReader>(
           const BatchImportReader().readFile(filePath, sheetName: sheetName),
 );
 
-/// Darwin Core terms by field key for [DataTableRecordType]'s targets, from
+/// Darwin Core terms by field key for a record type's targets, or a linked
+/// import's when the type is null, from
 /// the same mapping the Darwin Core export uses. Fields exported as
 /// measurements or split over several terms are left out: a file column
 /// can't name them by one term. When fields share a term, such as an
 /// event's start and end dates, the first in picker order keeps it.
 final batchDwcTermsProvider = FutureProvider.autoDispose
-    .family<Map<String, String>, DataTableRecordType>((ref, type) async {
-      final targets = batchImportTargets(type);
+    .family<Map<String, String>, DataTableRecordType?>((ref, type) async {
+      final targets = type == null
+          ? batchLinkedTargets()
+          : batchImportTargets(type);
       final sources = {
         for (final target in targets)
           target.key: ?batchDwcSourceKey(target.key),
@@ -102,4 +108,49 @@ final batchImportApplierProvider = Provider<BatchImportApplier>(
 /// Asks the user for the file to import. Tests override it.
 final batchImportFilePickerProvider = Provider<Future<XFile?> Function()>(
   (ref) => FilePickerServices().selectAnyFile,
+);
+
+typedef BatchLinkedGroupLoader =
+    Future<BatchLinkedPlan> Function(
+      WidgetRef ref,
+      BatchImportTable table,
+      List<BatchColumnMatch> matches,
+    );
+
+/// Sorts a linked import's rows into sites, events, specimens, and parts
+/// against the open project.
+final batchLinkedGroupLoaderProvider = Provider<BatchLinkedGroupLoader>(
+  (ref) =>
+      (widgetRef, table, matches) =>
+          BatchLinkedService(ref: widgetRef).group(table, matches),
+);
+
+typedef BatchLinkedApplier =
+    Future<BatchLinkedResult> Function(
+      WidgetRef ref,
+      BatchLinkedPlan plan, {
+      bool includeMissingLinks,
+      void Function(int done, int total)? onProgress,
+    });
+
+final batchLinkedApplierProvider = Provider<BatchLinkedApplier>(
+  (ref) =>
+      (widgetRef, plan, {includeMissingLinks = true, onProgress}) =>
+          BatchLinkedService(ref: widgetRef).apply(
+            plan,
+            includeMissingLinks: includeMissingLinks,
+            onProgress: onProgress,
+          ),
+);
+
+typedef BatchLinkOptionsLoader =
+    Future<List<DataTableLinkOption>> Function(
+      WidgetRef ref,
+      DataTableLink link,
+    );
+
+/// The project's sites or events a group can be linked to.
+final batchLinkOptionsLoaderProvider = Provider<BatchLinkOptionsLoader>(
+  (ref) =>
+      (widgetRef, link) => DataTableLinkService(ref: widgetRef).options(link),
 );

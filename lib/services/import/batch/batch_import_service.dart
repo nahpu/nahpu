@@ -79,6 +79,17 @@ class BatchImportService extends AppServices {
     );
   }
 
+  /// Creates a record of [type] for [row] and writes its values and links,
+  /// inside the caller's transaction. Returns the new record's key.
+  Future<Object> createRecord(
+    DataTableRecordType type,
+    BatchRowPlan row,
+  ) async {
+    final key = await _create(type, row);
+    await _write(type, key, row, const {});
+    return key;
+  }
+
   /// Creates an empty record for [row] and returns its key.
   Future<Object> _create(DataTableRecordType type, BatchRowPlan row) async {
     switch (type) {
@@ -188,6 +199,9 @@ class BatchImportService extends AppServices {
     ).rawValues(type, [for (final row in rows) row.recordKey!], fields);
     return raw.values;
   }
+
+  /// Refreshes the record lists other screens show.
+  void invalidateRecordLists() => _invalidate();
 
   void _invalidate() {
     ref

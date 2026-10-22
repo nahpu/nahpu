@@ -45,16 +45,22 @@ class BatchImportPlanner {
           if (cells[entry.value].trim().isNotEmpty)
             entry.key: cells[entry.value].trim(),
       };
-      rows.add(_planRow(table.rowNumbers[index], values, seenKeys));
+      rows.add(planCells(table.rowNumbers[index], values, seenKeys));
     }
     return BatchImportReview(type: type, mode: mode, key: key, rows: rows);
   }
 
-  BatchRowPlan _planRow(
+  /// Plans one row from its non-blank [cells] by field key. [seenKeys]
+  /// collects the identities of rows planned so far, to find repeats.
+  ///
+  /// [allowEmpty] keeps a row that writes nothing of its own, such as a
+  /// linked import's specimen that only joins an event and holds parts.
+  BatchRowPlan planCells(
     int rowNumber,
     Map<String, String> cells,
-    Set<String> seenKeys,
-  ) {
+    Set<String> seenKeys, {
+    bool allowEmpty = false,
+  }) {
     final messages = <String>[];
     final values = <String, String>{};
     final links = <DataTableLink, Object>{};
@@ -197,7 +203,7 @@ class BatchImportPlanner {
         fieldNumber == null &&
         siteName == null &&
         parent == null;
-    if (status.isImportable && nothingToWrite) {
+    if (status.isImportable && nothingToWrite && !allowEmpty) {
       return BatchRowPlan(
         rowNumber: rowNumber,
         status: BatchRowStatus.invalid,

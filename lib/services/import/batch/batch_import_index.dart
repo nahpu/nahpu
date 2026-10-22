@@ -40,6 +40,50 @@ class BatchPersonRef {
   final String? initial;
 }
 
+/// A site a linked import's rows may already describe.
+class BatchSiteRef {
+  const BatchSiteRef({
+    required this.id,
+    required this.label,
+    this.siteId,
+    this.country,
+    this.locality,
+    this.latitude,
+    this.longitude,
+  });
+
+  final int id;
+
+  /// What the review shows for it: its site ID, or its row id.
+  final String label;
+  final String? siteId;
+  final String? country;
+  final String? locality;
+  final double? latitude;
+  final double? longitude;
+}
+
+/// An event a linked import's rows may already describe.
+class BatchEventRef {
+  const BatchEventRef({
+    required this.id,
+    required this.label,
+    this.siteId,
+    this.startDate,
+    this.method,
+  });
+
+  final int id;
+
+  /// Its event ID, as the data table shows it.
+  final String label;
+
+  /// The row id of its site.
+  final int? siteId;
+  final String? startDate;
+  final String? method;
+}
+
 /// The open project's records a batch import matches rows against, read
 /// once before the review.
 class BatchImportIndex {
@@ -52,6 +96,8 @@ class BatchImportIndex {
     this.tissueIds = const {},
     this.barcodeIds = const {},
     this.narrativeDates = const {},
+    this.siteRefs = const [],
+    this.eventRefs = const [],
   });
 
   final List<BatchSpecimenRef> specimens;
@@ -64,6 +110,8 @@ class BatchImportIndex {
   final Map<String, List<int>> tissueIds;
   final Map<String, List<int>> barcodeIds;
   final Map<String, List<int>> narrativeDates;
+  final List<BatchSiteRef> siteRefs;
+  final List<BatchEventRef> eventRefs;
 
   static Future<BatchImportIndex> load(Database db, String projectUuid) async {
     final project = await (db.select(
@@ -126,7 +174,49 @@ class BatchImportIndex {
         )
         .get();
 
+    final coordinates = <int, (double?, double?)>{};
+    for (final row
+        in await db
+            .customSelect(
+              'SELECT c.siteID, c.decimalLatitude, c.decimalLongitude '
+              'FROM coordinate c JOIN site s ON s.id = c.siteID '
+              'WHERE s.projectUuid = ? ORDER BY c.id',
+              variables: [Variable.withString(projectUuid)],
+              readsFrom: const {},
+            )
+            .get()) {
+      coordinates.putIfAbsent(
+        row.read<int>('siteID'),
+        () => (
+          row.readNullable<double>('decimalLatitude'),
+          row.readNullable<double>('decimalLongitude'),
+        ),
+      );
+    }
+
     return BatchImportIndex(
+      siteRefs: [
+        for (final site in siteRecords)
+          BatchSiteRef(
+            id: site.id,
+            label: site.siteID ?? 'Site ${site.id}',
+            siteId: site.siteID,
+            country: site.country,
+            locality: site.locality,
+            latitude: coordinates[site.id]?.$1,
+            longitude: coordinates[site.id]?.$2,
+          ),
+      ],
+      eventRefs: [
+        for (final event in events)
+          BatchEventRef(
+            id: event.id,
+            label: formatCollEventId(event, sitesById[event.siteID]),
+            siteId: event.siteID,
+            startDate: event.startDate,
+            method: event.primaryCollMethod,
+          ),
+      ],
       specimens: specimens,
       people: people,
       taxa: await TaxonomyQuery(db).getTaxonList(),

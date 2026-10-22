@@ -208,6 +208,23 @@ class BatchRowPlan {
 
   /// The specimen a new part belongs to.
   final String? parentSpecimenUuid;
+
+  BatchRowPlan copyWith({
+    BatchRowStatus? status,
+    List<String>? messages,
+    Map<DataTableLink, Object>? links,
+    String? parentSpecimenUuid,
+  }) => BatchRowPlan(
+    rowNumber: rowNumber,
+    status: status ?? this.status,
+    messages: messages ?? this.messages,
+    recordKey: recordKey,
+    values: values,
+    links: links ?? this.links,
+    fieldNumber: fieldNumber,
+    siteName: siteName,
+    parentSpecimenUuid: parentSpecimenUuid ?? this.parentSpecimenUuid,
+  );
 }
 
 class BatchImportReview {

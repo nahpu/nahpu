@@ -11,14 +11,20 @@ class BatchModeStep extends StatelessWidget {
     super.key,
     required this.mode,
     required this.type,
+    required this.linked,
     required this.onModeChanged,
     required this.onTypeChanged,
+    required this.onLinkedSelected,
   });
 
   final BatchImportMode mode;
   final DataTableRecordType type;
+
+  /// Rows hold sites, events, specimens, and parts together.
+  final bool linked;
   final ValueChanged<BatchImportMode> onModeChanged;
   final ValueChanged<DataTableRecordType> onTypeChanged;
+  final VoidCallback onLinkedSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +68,27 @@ class BatchModeStep extends StatelessWidget {
             for (final value in DataTableRecordType.values)
               ChoiceChip(
                 label: Text(value.label),
-                selected: value == type,
+                selected: !linked && value == type,
                 onSelected: (_) => onTypeChanged(value),
+              ),
+            if (mode == BatchImportMode.create)
+              ChoiceChip(
+                avatar: const Icon(Icons.account_tree_outlined),
+                label: const Text('Linked records'),
+                selected: linked,
+                onSelected: (_) => onLinkedSelected(),
               ),
           ],
         ),
+        if (linked) ...[
+          const SizedBox(height: NahpuSpacing.md),
+          Text(
+            'Each row can describe a site, its collecting event, a specimen, '
+            'and a part. Rows are grouped into sites and events, which you '
+            'can check before importing.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
       ],
     );
   }
