@@ -1,19 +1,26 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
+import 'package:nahpu/screens/data_table/components/data_table_export_dialog.dart';
 import 'package:nahpu/screens/data_table/components/data_table_filters.dart';
+import 'package:nahpu/screens/data_table/components/data_table_find_replace_bar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
 import 'package:nahpu/screens/data_table/components/data_table_link_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_pagination.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/events/event_view.dart';
 import 'package:nahpu/screens/narrative/narrative_view.dart';
+import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
+import 'package:nahpu/services/data_table/data_table_export.dart';
+import 'package:nahpu/services/data_table/data_table_find_replace.dart';
 import 'package:nahpu/services/database/app_exit.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
@@ -97,6 +104,14 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   /// for the last row after paging back.
   int? _focusRowAfterLoad;
 
+  /// What the find bar looks for; null while the bar is closed.
+  DataTableFindOptions? _find;
+  bool _isReplacing = false;
+
+  /// Direction a find step was heading when it turned the page: the next
+  /// page's first match (1) or the previous page's last (-1).
+  int? _findAfterLoad;
+
   @override
   void initState() {
     super.initState();
@@ -112,11 +127,16 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     _removeExitGuard = ref
         .read(appExitCoordinatorProvider)
         .addGuard(_resolveUnsaved);
+    // The find bar's count follows the focused cell and pending edits.
+    _grid.addListener(_onFindStateChanged);
+    _edits.addListener(_onFindStateChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _grid.removeListener(_onFindStateChanged);
+    _edits.removeListener(_onFindStateChanged);
     _searchDebounce?.cancel();
     _lifecycle.dispose();
     _removeExitGuard();
@@ -133,6 +153,9 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     final columns = data == null
         ? const <DataTableColumn>[]
         : _shown(data.columns);
+    final matches = data == null
+        ? const <DataTableCellPos>[]
+        : _matchesIn(data, columns);
     return ListenableBuilder(
       listenable: _edits,
       builder: (context, child) => PopScope(
@@ -148,10 +171,23 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
         appBar: AppBar(
           title: const Text('Data table'),
           actions: [
-            IconButton(
-              tooltip: 'Reload records',
-              icon: const Icon(Icons.refresh),
-              onPressed: _load,
+            AdaptiveMenuButton<DataTableMenuAction>(
+              tooltip: 'More actions',
+              itemBuilder: () => [
+                AdaptiveMenuItem(
+                  value: DataTableMenuAction.findReplace,
+                  label: 'Find and replace',
+                  icon: Icons.find_replace,
+                  enabled: _data != null,
+                ),
+                AdaptiveMenuItem(
+                  value: DataTableMenuAction.export,
+                  label: 'Export table',
+                  icon: Icons.file_download_outlined,
+                  enabled: _data != null,
+                ),
+              ],
+              onSelected: _onMenuAction,
             ),
           ],
         ),
@@ -182,6 +218,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                   onQuickFilterToggled: _toggleQuickFilter,
                   onEditRules: data == null ? null : _editRules,
                   onPickColumns: data == null ? null : _pickColumns,
+                  onRefresh: _load,
                 ),
               ),
               Padding(
@@ -234,22 +271,40 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                   ),
                 ),
               ),
+              if (_find != null && data != null)
+                DataTableFindReplaceBar(
+                  columns: columns,
+                  isEditMode: _isEditMode,
+                  matchCount: matches.length,
+                  currentMatch: _currentMatch(matches),
+                  isReplacing: _isReplacing,
+                  onChanged: _setFind,
+                  onPrevious: () => _findStep(-1),
+                  onNext: () => _findStep(1),
+                  onReplace: _replaceCurrent,
+                  onReplaceAll: _replaceAll,
+                  onClose: () => setState(() => _find = null),
+                ),
               SizedBox(
                 height: NahpuStroke.regular,
                 child: _isLoading ? const LinearProgressIndicator() : null,
               ),
               const Divider(height: NahpuStroke.thin),
-              Expanded(child: _content(data, columns)),
-              const Divider(height: NahpuStroke.thin),
-              DataTablePaginationBar(
-                page: data,
-                rowsPerPage: _rowsPerPage,
-                onPageChanged: _goToPage,
-                onRowsPerPageChanged: (value) => _update(() {
-                  _rowsPerPage = value;
-                  _page = 0;
-                }),
-              ),
+              Expanded(child: _content(data, columns, matches)),
+              // Paging waits while the keyboard is up, leaving room for the
+              // grid on phones.
+              if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
+                const Divider(height: NahpuStroke.thin),
+                DataTablePaginationBar(
+                  page: data,
+                  rowsPerPage: _rowsPerPage,
+                  onPageChanged: _goToPage,
+                  onRowsPerPageChanged: (value) => _update(() {
+                    _rowsPerPage = value;
+                    _page = 0;
+                  }),
+                ),
+              ],
             ],
           ),
         ),
@@ -257,7 +312,11 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     );
   }
 
-  Widget _content(DataTablePageData? data, List<DataTableColumn> columns) {
+  Widget _content(
+    DataTablePageData? data,
+    List<DataTableColumn> columns,
+    List<DataTableCellPos> matches,
+  ) {
     if (_error != null) {
       return DataTableMessage(
         icon: Icons.error_outline,
@@ -309,6 +368,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       onToggleEditMode: () => _setEditMode(!_isEditMode),
       onOpenLinked: _openLinked,
       onOpenRecord: _openRecord,
+      highlightedCells: matches.toSet(),
     );
   }
 
@@ -482,6 +542,9 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
           _grid.focus.col,
         );
       }
+      final findDirection = _findAfterLoad;
+      _findAfterLoad = null;
+      if (findDirection != null) _continueFind(data, findDirection);
     } catch (e) {
       if (!mounted || request != _request) return;
       setState(() {
@@ -640,9 +703,256 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     }, keepPage: true);
   }
 
+  void _onMenuAction(DataTableMenuAction action) => switch (action) {
+    DataTableMenuAction.findReplace => setState(
+      () => _find ??= const DataTableFindOptions(text: ''),
+    ),
+    DataTableMenuAction.export => _exportTable(),
+  };
+
+  void _onFindStateChanged() {
+    if (_find == null || !mounted) return;
+    // The grid can move focus while it lays out; wait for the frame.
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+      return;
+    }
+    setState(() {});
+  }
+
+  /// The text a cell shows, with its pending edit if it has one.
+  String _cellText(DataTableRecordRow row, DataTableColumn column) {
+    final pending = _edits.pendingFor(DataTableCellId(row.key, column.key));
+    return pending != null
+        ? column.field.labelFor(pending.value)
+        : row.values[column.key] ?? '';
+  }
+
+  String? _pendingValue(DataTableCellId cell) => _edits.pendingFor(cell)?.value;
+
+  List<DataTableCellPos> _matchesIn(
+    DataTablePageData data,
+    List<DataTableColumn> columns,
+  ) {
+    final find = _find;
+    if (find == null) return const [];
+    return findDataTableMatches(data.rows, columns, find, textOf: _cellText);
+  }
+
+  int? _currentMatch(List<DataTableCellPos> matches) {
+    final focus = _grid.focus;
+    final index = matches.indexOf(focus);
+    return index < 0 ? null : index + 1;
+  }
+
+  /// Applies new find options and moves to the first match when the focused
+  /// cell isn't one.
+  void _setFind(DataTableFindOptions options) {
+    setState(() => _find = options);
+    final data = _data;
+    if (data == null) return;
+    final matches = _matchesIn(data, _shown(data.columns));
+    if (matches.isNotEmpty && !matches.contains(_grid.focus)) {
+      _grid.moveTo(matches.first.row, matches.first.col);
+    }
+  }
+
+  /// Moves to the next match after the focused cell ([direction] 1) or the
+  /// one before it (-1), turning the page when this one has no more.
+  void _findStep(int direction) {
+    final data = _data;
+    final find = _find;
+    if (data == null || find == null || find.isEmpty) return;
+    final matches = _matchesIn(data, _shown(data.columns));
+    final focus = _grid.focus;
+    int compare(DataTableCellPos pos) => pos.row != focus.row
+        ? pos.row.compareTo(focus.row)
+        : pos.col.compareTo(focus.col);
+    final ahead = [
+      for (final pos in matches)
+        if (compare(pos) * direction > 0) pos,
+    ];
+    if (ahead.isNotEmpty) {
+      final target = direction > 0 ? ahead.first : ahead.last;
+      _grid.moveTo(target.row, target.col);
+      return;
+    }
+    _turnFindPage(data, direction);
+  }
+
+  void _turnFindPage(DataTablePageData data, int direction) {
+    final target = data.page + direction;
+    if (target < 0 || target >= data.pageCount) {
+      _showMessage(direction > 0 ? 'No more matches.' : 'No earlier matches.');
+      return;
+    }
+    _findAfterLoad = direction;
+    _goToPage(target);
+  }
+
+  /// After a find step turned the page: focuses its first or last match, or
+  /// keeps going when the page has none.
+  void _continueFind(DataTablePageData data, int direction) {
+    final columns = _shown(data.columns);
+    final matches = _matchesIn(data, columns);
+    if (matches.isEmpty) {
+      _turnFindPage(data, direction);
+      return;
+    }
+    final target = direction > 0 ? matches.first : matches.last;
+    _grid.setSize(data.rows.length, columns.length);
+    _grid.moveTo(target.row, target.col);
+  }
+
+  /// Replaces the match in the focused cell, then moves to the next one.
+  void _replaceCurrent() {
+    final data = _data;
+    final find = _find;
+    if (data == null || find == null || !_isEditMode) return;
+    final columns = _shown(data.columns);
+    final focus = _grid.focus;
+    if (focus.row < data.rows.length && focus.col < columns.length) {
+      final row = data.rows[focus.row];
+      final column = columns[focus.col];
+      if (find.includes(column) && find.matches(_cellText(row, column))) {
+        final plan = planDataTableReplacements(
+          _type,
+          [row],
+          [column],
+          find,
+          pendingOf: _pendingValue,
+        );
+        if (plan.edits.isEmpty) {
+          _showMessage(_leftAlone(plan) ?? 'This cell can\'t be replaced.');
+        } else {
+          _edits.commit(plan.edits);
+        }
+      }
+    }
+    _findStep(1);
+  }
+
+  /// Replaces every match in the visible columns of every record the search
+  /// and filters match. The changes wait for Save like any other edit.
+  Future<void> _replaceAll() async {
+    final data = _data;
+    final find = _find;
+    if (data == null || find == null || find.isEmpty || !_isEditMode) return;
+    setState(() => _isReplacing = true);
+    final List<DataTableRecordRow> rows;
+    try {
+      rows = await ref.read(dataTableRawRowsLoaderProvider)(
+        ref,
+        _type,
+        _query,
+        _specimenType,
+        data.columns,
+      );
+    } catch (e) {
+      if (mounted) _showMessage('Couldn\'t read records to replace: $e');
+      return;
+    } finally {
+      if (mounted) setState(() => _isReplacing = false);
+    }
+    if (!mounted) return;
+    final plan = planDataTableReplacements(
+      _type,
+      rows,
+      _shown(data.columns),
+      find,
+      pendingOf: _pendingValue,
+    );
+    if (plan.edits.isEmpty) {
+      _showMessage(_leftAlone(plan) ?? 'Nothing to replace.');
+      return;
+    }
+    final confirmed = await showAdaptiveConfirmation(
+      context: context,
+      title: 'Replace all?',
+      message:
+          'Replace ${_plural(plan.edits.length, 'value')} in '
+          '${_plural(plan.recordCount, 'record')}? '
+          '${_edits.autoSave ? 'Auto-save writes them right away.' : 'They wait for Save.'}',
+      confirmLabel: 'Replace',
+    );
+    if (!confirmed || !mounted) return;
+    final accepted = _edits.commit(plan.edits);
+    _showMessage(
+      ['Replaced ${_plural(accepted, 'value')}.', ?_leftAlone(plan)].join(' '),
+    );
+  }
+
+  /// Says which matches a replace had to leave alone, if any.
+  String? _leftAlone(DataTableReplacePlan plan) {
+    final parts = [
+      if (plan.skippedChoices > 0)
+        '${_plural(plan.skippedChoices, 'dropdown value')} skipped; '
+            'pick those from their list.',
+      if (plan.invalid > 0)
+        '${_plural(plan.invalid, 'value')} wouldn\'t fit '
+            '${plan.invalid == 1 ? 'its field' : 'their fields'}.',
+    ];
+    return parts.isEmpty ? null : parts.join(' ');
+  }
+
+  String _plural(int count, String noun) =>
+      count == 1 ? '1 $noun' : '$count ${noun}s';
+
+  /// Exports every record the table matches with its visible columns. Unsaved
+  /// edits are settled first, so the file holds what is stored.
+  Future<void> _exportTable() async {
+    if (!await _resolveUnsaved() || !mounted) return;
+    final data = _data;
+    if (data == null) return;
+    final columns = _shown(data.columns);
+    final query = _query;
+    final type = _type;
+    final specimenType = _specimenType;
+    final loader = ref.read(dataTablePageLoaderProvider);
+    final service = DataTableExportService(
+      loadPage: (query) => loader(ref, type, query, specimenType),
+    );
+    await showAdaptiveSheetDialog<void>(
+      context: context,
+      builder: (context, isSheet) => SafeArea(
+        top: false,
+        child: DataTableExportDialog(
+          recordCount: data.totalRows,
+          columnCount: columns.length,
+          defaultFileStem: 'nahpu_${type.name}',
+          showCloseButton: !isSheet,
+          onExport:
+              ({
+                required format,
+                required header,
+                required mappedOnly,
+                required fileStem,
+                required directory,
+                required onProgress,
+              }) => service.write(
+                query: query,
+                columns: columns,
+                format: format,
+                header: header,
+                mappedOnly: mappedOnly,
+                fileStem: fileStem,
+                directory: directory,
+                onProgress: onProgress,
+              ),
+        ),
+      ),
+    );
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
+
+/// Actions in the data table's app bar menu.
+enum DataTableMenuAction { findReplace, export }

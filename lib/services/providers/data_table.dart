@@ -29,6 +29,24 @@ final dataTablePageLoaderProvider = Provider<DataTablePageLoader>(
       ).fetchPage(type, query, specimenType: specimenType),
 );
 
+typedef DataTableRawRowsLoader =
+    Future<List<DataTableRecordRow>> Function(
+      WidgetRef ref,
+      DataTableRecordType type,
+      DataTableQuery query,
+      SpecimenRecordType specimenType,
+      List<DataTableColumn> columns,
+    );
+
+/// Loads the stored values of every record a query matches, for replacing
+/// across pages. Tests override it with fixed data.
+final dataTableRawRowsLoaderProvider = Provider<DataTableRawRowsLoader>(
+  (ref) =>
+      (widgetRef, type, query, specimenType, columns) => DataTableService(
+        ref: widgetRef,
+      ).fetchRawRows(type, query, columns: columns, specimenType: specimenType),
+);
+
 typedef DataTableEditSaver =
     Future<DataTableSaveResult> Function(
       WidgetRef ref,

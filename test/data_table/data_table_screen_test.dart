@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
+import 'package:nahpu/screens/data_table/components/data_table_find_replace_bar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
@@ -135,6 +136,24 @@ void main() {
           ) {
             loads.add((type, query));
             return Future.value(page(type, query));
+          }),
+          dataTableRawRowsLoaderProvider.overrideWithValue((
+            ref,
+            type,
+            query,
+            specimenType,
+            columns,
+          ) {
+            // One record beyond the page, as on a later page.
+            return Future.value([
+              ...page(type, query).rows,
+              const DataTableRecordRow(
+                key: 'r4',
+                values: {},
+                raw: {'measurement::remark': 'note 4'},
+                attributeTable: 'mammalAttribute',
+              ),
+            ]);
           }),
           dataTableEditSaverProvider.overrideWithValue((ref, type, edits) {
             saves.add(edits);
@@ -540,5 +559,70 @@ void main() {
     await tester.pumpAndSettle();
     expect(loads.last.$2.scope, isNull);
     expect(chip, findsNothing);
+  });
+
+  testWidgets('refresh sits beside the columns button', (tester) async {
+    await pumpScreen(tester);
+    expect(find.byTooltip('Reload records'), findsNothing);
+    final count = loads.length;
+    await tester.tap(find.widgetWithText(TextButton, 'Refresh'));
+    await tester.pumpAndSettle();
+    expect(loads.length, count + 1);
+  });
+
+  testWidgets('the app bar menu offers find and replace and export', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    expect(find.text('Find and replace'), findsOneWidget);
+    expect(find.text('Export table'), findsOneWidget);
+
+    await tester.tap(find.text('Export table'));
+    await tester.pumpAndSettle();
+    expect(find.text('Column headers'), findsOneWidget);
+    expect(find.textContaining('3 records'), findsOneWidget);
+    await tester.tap(find.text('Darwin Core'));
+    await tester.pumpAndSettle();
+    expect(find.text('Darwin Core-mapped columns only'), findsOneWidget);
+  });
+
+  testWidgets('replace all queues edits for every matching record', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Find and replace'));
+    await tester.pumpAndSettle();
+
+    final fields = find.descendant(
+      of: find.byType(DataTableFindReplaceBar),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(fields.first, 'note');
+    await tester.pumpAndSettle();
+    expect(find.text('1 of 3'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Replace all'))
+          .onPressed,
+      isNull,
+    );
+
+    await enterEditMode(tester);
+    await tester.enterText(fields.last, 'memo');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Replace all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Replace all?'), findsOneWidget);
+    expect(find.textContaining('4 values in 4 records'), findsOneWidget);
+    await tester.tap(find.text('Replace').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('4 unsaved changes'), findsOneWidget);
+    expect(find.text('memo 2'), findsOneWidget);
+    expect(saves, isEmpty);
   });
 }

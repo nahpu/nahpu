@@ -455,6 +455,21 @@ class DataTableQuery {
   /// With [allProjects], limits the records to these projects; empty reads
   /// every project.
   final Set<String> projectUuids;
+
+  /// The same search and filters on another page or page size.
+  DataTableQuery copyWith({int? page, int? rowsPerPage}) => DataTableQuery(
+    search: search,
+    searchField: searchField,
+    searchKeys: searchKeys,
+    rules: rules,
+    quickFilters: quickFilters,
+    sort: sort,
+    page: page ?? this.page,
+    rowsPerPage: rowsPerPage ?? this.rowsPerPage,
+    scope: scope,
+    allProjects: allProjects,
+    projectUuids: projectUuids,
+  );
 }
 
 /// What a search started outside the data table asks it to open with, such

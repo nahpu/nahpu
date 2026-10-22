@@ -86,6 +86,45 @@ class DataTableService extends AppServices {
     );
   }
 
+  /// Stored values of every record the query matches, across all pages, for
+  /// a replace that reaches past the page on screen. Rows hold only their
+  /// key, stored values, and attribute table.
+  Future<List<DataTableRecordRow>> fetchRawRows(
+    DataTableRecordType type,
+    DataTableQuery query, {
+    required List<DataTableColumn> columns,
+    SpecimenRecordType specimenType = SpecimenRecordType.allTaxa,
+  }) async {
+    final projectUuid = query.allProjects ? null : currentProjectUuid;
+    final pageQuery = DataTablePageQuery(dbAccess);
+    final editable = [
+      for (final column in columns)
+        if (column.isEditableIn(type)) column.field,
+    ];
+    final rows = <DataTableRecordRow>[];
+    for (var page = 0; ; page++) {
+      final keys = await pageQuery.run(
+        type,
+        query.copyWith(page: page, rowsPerPage: dataTableRawRowBatch),
+        projectUuid: projectUuid,
+        taxa: specimenType,
+      );
+      final raw = await pageQuery.rawValues(type, keys.keys, editable);
+      for (final key in keys.keys) {
+        rows.add(
+          DataTableRecordRow(
+            key: key,
+            values: const {},
+            raw: raw.values[key] ?? const {},
+            attributeTable: raw.attributes[key],
+          ),
+        );
+      }
+      if (page + 1 >= keys.pageCount) break;
+    }
+    return rows;
+  }
+
   List<String> _header(
     DataTableRecordType type,
     SpecimenRecordType taxa,
@@ -148,6 +187,9 @@ class DataTableService extends AppServices {
     }
   }
 }
+
+/// Records read per query by [DataTableService.fetchRawRows].
+const int dataTableRawRowBatch = 500;
 
 /// The image, audio, and video kinds among [files].
 Set<MediaKind> dataTableMediaKinds(Iterable<String> files) =>

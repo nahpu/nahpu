@@ -49,6 +49,7 @@ class DataTableGrid extends ConsumerStatefulWidget {
     required this.onToggleEditMode,
     required this.onOpenLinked,
     required this.onOpenRecord,
+    this.highlightedCells = const {},
   });
 
   final DataTableRecordType type;
@@ -73,6 +74,9 @@ class DataTableGrid extends ConsumerStatefulWidget {
 
   /// Opens the form of a row's record.
   final ValueChanged<DataTableRecordRow> onOpenRecord;
+
+  /// Cells marked as find matches.
+  final Set<DataTableCellPos> highlightedCells;
 
   @override
   ConsumerState<DataTableGrid> createState() => DataTableGridState();
@@ -166,6 +170,7 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
                         onCommit: _commitEdit,
                         onCancel: _cancelEdit,
                         onOpenRecord: widget.onOpenRecord,
+                        highlightedCells: widget.highlightedCells,
                       ),
                     ),
                   ),
@@ -767,6 +772,7 @@ class DataTableGridRow extends StatelessWidget {
     required this.onCommit,
     required this.onCancel,
     required this.onOpenRecord,
+    this.highlightedCells = const {},
   });
 
   final int index;
@@ -788,6 +794,7 @@ class DataTableGridRow extends StatelessWidget {
   onCommit;
   final VoidCallback onCancel;
   final ValueChanged<DataTableRecordRow> onOpenRecord;
+  final Set<DataTableCellPos> highlightedCells;
 
   @override
   Widget build(BuildContext context) {
@@ -829,6 +836,7 @@ class DataTableGridRow extends StatelessWidget {
               isFocused: focus.row == index && focus.col == col,
               isSelected:
                   !selection.isSingleCell && selection.contains(index, col),
+              isMatch: highlightedCells.contains((row: index, col: col)),
               isEditing: grid.editing == (row: index, col: col),
               editSeed: grid.editSeed,
               edits: edits,
@@ -921,6 +929,7 @@ class DataTableGridCell extends StatelessWidget {
     required this.isReadOnly,
     required this.isFocused,
     required this.isSelected,
+    this.isMatch = false,
     required this.isEditing,
     required this.editSeed,
     required this.edits,
@@ -936,6 +945,9 @@ class DataTableGridCell extends StatelessWidget {
   final bool isReadOnly;
   final bool isFocused;
   final bool isSelected;
+
+  /// Marks the cell as a find match.
+  final bool isMatch;
   final bool isEditing;
   final String? editSeed;
   final DataTableEditController edits;
@@ -958,6 +970,8 @@ class DataTableGridCell extends StatelessWidget {
         ? colorScheme.tertiaryContainer
         : isSelected
         ? colorScheme.primaryContainer
+        : isMatch
+        ? colorScheme.secondaryContainer
         : isReadOnly
         ? colorScheme.surfaceContainerLow
         : null;

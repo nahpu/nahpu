@@ -4,7 +4,8 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// One row with record type, taxon group, search, filters, and columns.
+/// One row with record type, taxon group, search, filters, columns, and
+/// refresh.
 /// Narrow screens split it in two.
 class DataTableToolbar extends StatelessWidget {
   const DataTableToolbar({
@@ -24,6 +25,7 @@ class DataTableToolbar extends StatelessWidget {
     required this.onQuickFilterToggled,
     required this.onEditRules,
     required this.onPickColumns,
+    required this.onRefresh,
   });
 
   final DataTableRecordType type;
@@ -45,6 +47,7 @@ class DataTableToolbar extends StatelessWidget {
 
   /// Null until the first page loads.
   final VoidCallback? onPickColumns;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +93,13 @@ class DataTableToolbar extends StatelessWidget {
             label: 'Columns',
             showLabel: showLabels,
             onPressed: onPickColumns,
+          ),
+          if (showLabels) const SizedBox(width: NahpuSpacing.xs),
+          DataTableToolButton(
+            icon: Icons.refresh,
+            label: 'Refresh',
+            showLabel: showLabels,
+            onPressed: onRefresh,
           ),
         ];
         if (constraints.maxWidth >= NahpuBreakpoints.desktop) {
