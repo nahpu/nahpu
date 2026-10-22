@@ -43,6 +43,11 @@ enum ProjectTool {
     'Batch import',
     'Import or update records from a spreadsheet',
   ),
+  specimenCheck(
+    ProjectToolCategory.records,
+    'Specimen check',
+    'Check tissues into boxes by scanning',
+  ),
   bundleRecords(
     ProjectToolCategory.records,
     'Bundle records',

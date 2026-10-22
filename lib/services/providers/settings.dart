@@ -34,6 +34,9 @@ const String dataTableAutoSavePrefKey = 'dataTableAutoSave';
 /// The tools shown in the project dashboard dock, by [ProjectTool] name.
 const String projectToolsPrefKey = 'projectTools';
 
+/// The tissue check setup: target field, value, box layout, and box number.
+const String tissueCheckPrefKey = 'tissueCheck';
+
 // User Configs keys (Project-level settings)
 // User defined fields, formats, presets, and other user-configured fields.
 // Required for research reproducibility. Can be exported/imported.

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -10,14 +9,7 @@ import 'package:nahpu/services/import/taxon_qr_session.dart';
 import 'package:nahpu/services/import/taxon_reader.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-bool get supportsTaxonQrScanning =>
-    kIsWeb ||
-    switch (defaultTargetPlatform) {
-      TargetPlatform.android ||
-      TargetPlatform.iOS ||
-      TargetPlatform.macOS => true,
-      _ => false,
-    };
+bool get supportsTaxonQrScanning => supportsCameraScanning;
 
 class TaxonQrImportModeDialog extends StatelessWidget {
   const TaxonQrImportModeDialog({super.key});

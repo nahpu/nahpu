@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
+import 'package:nahpu/screens/projects/specimen_check/specimen_check.dart';
 import 'package:nahpu/screens/settings/application/project_tool_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/project_tools.dart';
@@ -75,6 +76,22 @@ void main() {
       expect(container.read(projectToolsProvider), ProjectTool.defaults);
       expect(prefs.getStringList(projectToolsPrefKey), isNull);
     });
+  });
+
+  testWidgets('specimen check opens its screen', (tester) async {
+    Widget? screen;
+    await tester.pumpWidget(
+      Builder(
+        builder: (context) {
+          screen = const ProjectToolScreen(
+            tool: ProjectTool.specimenCheck,
+            projectUuid: 'project-a',
+          ).build(context);
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    expect(screen, isA<SpecimenCheckScreen>());
   });
 
   group('ToolDock', () {

@@ -1,12 +1,22 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:qr/qr.dart';
+
+/// Whether this platform can scan codes with the camera.
+bool get supportsCameraScanning =>
+    kIsWeb ||
+    switch (defaultTargetPlatform) {
+      TargetPlatform.android ||
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS => true,
+      _ => false,
+    };
 
 enum ScannerMode { qr, barcode }
 

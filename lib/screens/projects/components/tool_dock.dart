@@ -9,6 +9,7 @@ import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/projects/batch_import/batch_import.dart';
 import 'package:nahpu/screens/projects/project_transfer/export_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/screens/projects/specimen_check/specimen_check.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
@@ -122,6 +123,7 @@ class ProjectToolScreen extends StatelessWidget {
       ProjectTool.mergeProject => const ImportProjectScreen(),
       ProjectTool.exportProject => const ExportProjectScreen(),
       ProjectTool.batchImport => const BatchImportPage(),
+      ProjectTool.specimenCheck => const SpecimenCheckScreen(),
       ProjectTool.bundleRecords => const BundleRecordsForm(),
       ProjectTool.exportRecords => const ExportForm(),
       ProjectTool.exportDocuments => const ExportDocumentsView(),
@@ -141,6 +143,7 @@ extension ProjectToolIcon on ProjectTool {
     ProjectTool.mergeProject => Icons.move_to_inbox_outlined,
     ProjectTool.exportProject => Icons.outbox_outlined,
     ProjectTool.batchImport => Icons.post_add_outlined,
+    ProjectTool.specimenCheck => Icons.fact_check_outlined,
     ProjectTool.bundleRecords => Icons.archive_outlined,
     ProjectTool.exportRecords => Icons.adaptive.share_outlined,
     ProjectTool.exportDocuments => Icons.picture_as_pdf_outlined,

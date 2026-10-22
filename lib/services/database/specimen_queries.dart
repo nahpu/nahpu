@@ -875,6 +875,61 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  /// Returns the project's parts whose barcode ID or tissue ID is [code].
+  Future<List<SpecimenPartProjectRecord>> findPartsByCode(
+    String projectUuid,
+    String code,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                (specimenPart.barcodeID.equals(code) |
+                    specimenPart.tissueID.equals(code)),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns the project's part storage locations that start with [prefix].
+  Future<List<String>> getStorageLocationsWithPrefix(
+    String projectUuid,
+    String prefix,
+  ) async {
+    final query =
+        selectOnly(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([specimenPart.storageLocation])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimenPart.storageLocation.isNotNull(),
+          );
+    final rows = await query.get();
+    return rows
+        .map((row) => row.read(specimenPart.storageLocation)!)
+        .where((location) => location.trim().startsWith(prefix))
+        .toList(growable: false);
+  }
+
   Future<String?> getLastEnteredTissueID(String uuid) async {
     SpecimenPartData data =
         await (select(specimenPart)
