@@ -244,7 +244,9 @@ class DataTableSaveService {
             readsFrom: const {},
           )
           .getSingleOrNull();
-      table = _attributeTableForGroup(row?.data['taxonGroup'] as String?);
+      table = dataTableAttributeTableForGroup(
+        row?.data['taxonGroup'] as String?,
+      );
     }
     for (final edit in group) {
       final fits = edit.field.attributeTables.any((t) => t.table == table);
@@ -254,19 +256,7 @@ class DataTableSaveService {
         );
       }
     }
-    return table!;
-  }
-
-  String? _attributeTableForGroup(String? taxonGroup) {
-    final group = taxonGroup ?? '';
-    if (group.toLowerCase().contains('fossil')) return 'fossilAttribute';
-    return switch (matchTaxonGroupToRecordType(group)) {
-      SpecimenRecordType.birds => 'birdAttribute',
-      SpecimenRecordType.herpetofauna => 'herpAttribute',
-      SpecimenRecordType.invertebrates => 'invertebrateAttribute',
-      SpecimenRecordType.fishes => 'fishAttribute',
-      _ => 'mammalAttribute',
-    };
+    return table;
   }
 
   /// Localities are shared between sites, so an edit resolves the full
@@ -294,6 +284,19 @@ class DataTableSaveService {
       ),
     );
   }
+}
+
+/// The attribute table a specimen of [taxonGroup] keeps its row in.
+String dataTableAttributeTableForGroup(String? taxonGroup) {
+  final group = taxonGroup ?? '';
+  if (group.toLowerCase().contains('fossil')) return 'fossilAttribute';
+  return switch (matchTaxonGroupToRecordType(group)) {
+    SpecimenRecordType.birds => 'birdAttribute',
+    SpecimenRecordType.herpetofauna => 'herpAttribute',
+    SpecimenRecordType.invertebrates => 'invertebrateAttribute',
+    SpecimenRecordType.fishes => 'fishAttribute',
+    _ => 'mammalAttribute',
+  };
 }
 
 const _geographyColumns = [

@@ -38,6 +38,11 @@ enum ProjectTool {
     'Export project',
     'Export this project for transfer',
   ),
+  batchImport(
+    ProjectToolCategory.records,
+    'Batch import',
+    'Import or update records from a spreadsheet',
+  ),
   bundleRecords(
     ProjectToolCategory.records,
     'Bundle records',

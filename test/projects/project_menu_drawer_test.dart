@@ -62,7 +62,7 @@ Future<void> _pumpDrawer(
   bool showCloseProject = true,
 }) async {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(500, 900);
+  tester.view.physicalSize = const Size(500, 1000);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
 

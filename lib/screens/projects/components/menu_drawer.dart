@@ -14,6 +14,7 @@ import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/projects/batch_import/batch_import.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
@@ -79,6 +80,18 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
             },
           ),
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
+          ListTile(
+            leading: const Icon(Icons.post_add_outlined),
+            title: const Text('Batch import'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BatchImportPage(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.archive_outlined),
             title: const Text('Bundle records'),
