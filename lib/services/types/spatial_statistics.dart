@@ -52,7 +52,8 @@ class SpatialStatisticRequest {
     this.speciesId,
   });
 
-  final String projectUuid;
+  /// Project the statistics cover, or null for every project in the database.
+  final String? projectUuid;
   final SpatialStatisticKind kind;
   final int? speciesId;
 

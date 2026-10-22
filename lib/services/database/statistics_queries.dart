@@ -27,6 +27,22 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     END
   ''';
 
+  /// Condition limiting [column] to [projectUuid], or an always-true condition
+  /// when [projectUuid] is null, which covers every project in the database.
+  ///
+  /// The condition carries one `?` placeholder for the project UUID, or none.
+  static String _projectFilter(String column, String? projectUuid) =>
+      projectUuid == null ? '1' : '$column = ?';
+
+  /// Condition keeping a specimen on a site of its own project, which a
+  /// single-project filter on both tables already implies.
+  static String _sameProjectSite(String? projectUuid) =>
+      projectUuid == null ? 'AND specimen.projectUuid = site.projectUuid' : '';
+
+  /// [projectUuid] as the variables a [_projectFilter] condition binds.
+  static List<Variable> _projectVariables(String? projectUuid) =>
+      projectUuid == null ? [] : [Variable(projectUuid)];
+
   /// Label expression for a taxon rank, falling back to a `No <rank>` bucket.
   static String _taxonRankLabel(StatisticTaxonRank rank) {
     if (rank == StatisticTaxonRank.species) return _speciesLabel;
@@ -41,8 +57,13 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
   }
 
   /// Scalar subquery counting the distinct taxa at [rank] across the specimens
-  /// recorded in a project. Takes one positional project UUID.
-  static String _taxonRankCount(StatisticTaxonRank rank, String alias) {
+  /// matching [projectFilter], a condition on `specimen.projectUuid` from
+  /// [_projectFilter].
+  static String _taxonRankCount(
+    StatisticTaxonRank rank,
+    String alias,
+    String projectFilter,
+  ) {
     final value = rank == StatisticTaxonRank.species
         ? _identifiedSpecies
         : 'lower(trim(taxonomy.${rank.column}))';
@@ -54,7 +75,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             SELECT COUNT(DISTINCT $value)
             FROM specimen
             INNER JOIN taxonomy ON taxonomy.id = specimen.speciesID
-            WHERE specimen.projectUuid = ?
+            WHERE $projectFilter
               $presence
           ) AS $alias''';
   }
@@ -69,16 +90,20 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     'narrative',
   ];
 
-  /// Scalar subquery counting the project media files in [categories], matched
-  /// case-insensitively and ignoring surrounding spaces. Takes one positional
-  /// project UUID.
-  static String _mediaCount(List<String> categories, String alias) {
+  /// Scalar subquery counting the media files in [categories], matched
+  /// case-insensitively and ignoring surrounding spaces, limited by
+  /// [projectFilter], a condition on `media.projectUuid` from [_projectFilter].
+  static String _mediaCount(
+    List<String> categories,
+    String alias,
+    String projectFilter,
+  ) {
     final values = categories.map((category) => "'$category'").join(', ');
     return '''
           (
             SELECT COUNT(*)
             FROM media
-            WHERE media.projectUuid = ?
+            WHERE $projectFilter
               AND lower(trim(coalesce(media.category, ''))) IN ($values)
           ) AS $alias''';
   }
@@ -196,7 +221,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
   }
 
   Stream<List<StatisticFilterOption>> watchFilterOptions(
-    String projectUuid,
+    String? projectUuid,
     StatisticFilterKind kind,
   ) {
     switch (kind) {
@@ -216,10 +241,10 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
               ON specimenCoordinate.id = specimen.coordinateID
             INNER JOIN site
               ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
-            WHERE specimen.projectUuid = ?
+            WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
             ORDER BY label COLLATE NOCASE ASC
           ''',
-          variables: [Variable(projectUuid)],
+          variables: _projectVariables(projectUuid),
           readsFrom: {db.specimen, db.collEvent, db.coordinate, db.site},
         ).watch().map(_mapFilterOptions);
       case StatisticFilterKind.species:
@@ -235,16 +260,16 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
               END AS label
             FROM taxonomy
             INNER JOIN specimen ON specimen.speciesID = taxonomy.id
-            WHERE specimen.projectUuid = ?
+            WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
             ORDER BY label COLLATE NOCASE ASC
           ''',
-          variables: [Variable(projectUuid)],
+          variables: _projectVariables(projectUuid),
           readsFrom: {db.taxonomy, db.specimen},
         ).watch().map(_mapFilterOptions);
     }
   }
 
-  Stream<StatisticAvailability> watchAvailability(String projectUuid) {
+  Stream<StatisticAvailability> watchAvailability(String? projectUuid) {
     return customSelect(
       '''
         WITH $_attributeCte
@@ -259,9 +284,9 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         FROM specimen
         LEFT JOIN normalized_attributes
           ON normalized_attributes.specimenUuid = specimen.uuid
-        WHERE specimen.projectUuid = ?
+        WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
       ''',
-      variables: [Variable(projectUuid)],
+      variables: _projectVariables(projectUuid),
       readsFrom: _attributeTables,
     ).watchSingle().map(
       (row) => StatisticAvailability(
@@ -271,7 +296,22 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     );
   }
 
-  Stream<RecordStatisticTotals> watchRecordTotals(String projectUuid) {
+  /// Record totals for [projectUuid], or across every project when null.
+  ///
+  /// Across projects, taxa are counted once however many projects record
+  /// them, and project days add up each project's own date range.
+  Stream<RecordStatisticTotals> watchRecordTotals(String? projectUuid) {
+    String scoped(String column) => _projectFilter(column, projectUuid);
+    final specimenScope = scoped('specimen.projectUuid');
+    final mediaScope = scoped('media.projectUuid');
+    final siteScope = scoped('site.projectUuid');
+    final projectDates = projectUuid == null
+        ? '''
+          NULL AS project_start_date,
+          NULL AS project_end_date,'''
+        : '''
+          (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
+          (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,''';
     final sql =
         '''
         WITH RECURSIVE recorded_sites AS (
@@ -280,7 +320,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           LEFT JOIN collEvent ON collEvent.id = specimen.collEventID
           LEFT JOIN coordinate specimenCoordinate
             ON specimenCoordinate.id = specimen.coordinateID
-          WHERE specimen.projectUuid = ?
+          WHERE $specimenScope
             AND coalesce(collEvent.siteID, specimenCoordinate.siteID) IS NOT NULL
         ),
         event_ranges AS (
@@ -294,8 +334,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
             ) AS end_date
           FROM specimen
           INNER JOIN collEvent ON collEvent.id = specimen.collEventID
-          WHERE specimen.projectUuid = ?
-            AND collEvent.projectUuid = ?
+          WHERE $specimenScope
+            AND ${scoped('collEvent.projectUuid')}
         ),
         capture_days(day) AS (
           SELECT start_date
@@ -312,34 +352,34 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
         )
         SELECT
           (
-            SELECT COUNT(*) FROM site WHERE projectUuid = ?
+            SELECT COUNT(*) FROM site WHERE ${scoped('projectUuid')}
           ) AS recorded_site_count,
           (SELECT COUNT(*) FROM recorded_sites) AS sampled_site_count,
-          (SELECT COUNT(*) FROM collEvent WHERE projectUuid = ?) AS event_count,
-          (SELECT COUNT(*) FROM specimen WHERE projectUuid = ?) AS specimen_count,
-${_taxonRankCount(StatisticTaxonRank.taxonClass, 'class_count')},
-${_taxonRankCount(StatisticTaxonRank.order, 'order_count')},
-${_taxonRankCount(StatisticTaxonRank.family, 'family_count')},
-${_taxonRankCount(StatisticTaxonRank.genus, 'genus_count')},
-${_taxonRankCount(StatisticTaxonRank.species, 'species_count')},
-          (SELECT COUNT(*) FROM narrative WHERE projectUuid = ?) AS narrative_count,
-${_mediaCount(_recordMediaCategories, 'media_count')},
-${_mediaCount(const ['specimen'], 'specimen_media_count')},
-${_mediaCount(const ['site'], 'site_media_count')},
-${_mediaCount(const ['event'], 'event_media_count')},
-${_mediaCount(const ['narrative'], 'narrative_media_count')},
+          (SELECT COUNT(*) FROM collEvent WHERE ${scoped('projectUuid')}) AS event_count,
+          (SELECT COUNT(*) FROM specimen WHERE ${scoped('projectUuid')}) AS specimen_count,
+${_taxonRankCount(StatisticTaxonRank.taxonClass, 'class_count', specimenScope)},
+${_taxonRankCount(StatisticTaxonRank.order, 'order_count', specimenScope)},
+${_taxonRankCount(StatisticTaxonRank.family, 'family_count', specimenScope)},
+${_taxonRankCount(StatisticTaxonRank.genus, 'genus_count', specimenScope)},
+${_taxonRankCount(StatisticTaxonRank.species, 'species_count', specimenScope)},
+          (SELECT COUNT(*) FROM narrative WHERE ${scoped('projectUuid')}) AS narrative_count,
+${_mediaCount(_recordMediaCategories, 'media_count', mediaScope)},
+${_mediaCount(const ['specimen'], 'specimen_media_count', mediaScope)},
+${_mediaCount(const ['site'], 'site_media_count', mediaScope)},
+${_mediaCount(const ['event'], 'event_media_count', mediaScope)},
+${_mediaCount(const ['narrative'], 'narrative_media_count', mediaScope)},
           (
             SELECT MIN(coordinate.elevationInMeter)
             FROM coordinate
             INNER JOIN site ON site.id = coordinate.siteID
-            WHERE site.projectUuid = ?
+            WHERE $siteScope
               AND coordinate.elevationInMeter IS NOT NULL
           ) AS minimum_recorded_elevation,
           (
             SELECT MAX(coordinate.elevationInMeter)
             FROM coordinate
             INNER JOIN site ON site.id = coordinate.siteID
-            WHERE site.projectUuid = ?
+            WHERE $siteScope
               AND coordinate.elevationInMeter IS NOT NULL
           ) AS maximum_recorded_elevation,
           (
@@ -347,7 +387,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
             FROM coordinate
             INNER JOIN site ON site.id = coordinate.siteID
             INNER JOIN recorded_sites ON recorded_sites.id = site.id
-            WHERE site.projectUuid = ?
+            WHERE $siteScope
               AND coordinate.elevationInMeter IS NOT NULL
           ) AS minimum_sampled_elevation,
           (
@@ -355,33 +395,25 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
             FROM coordinate
             INNER JOIN site ON site.id = coordinate.siteID
             INNER JOIN recorded_sites ON recorded_sites.id = site.id
-            WHERE site.projectUuid = ?
+            WHERE $siteScope
               AND coordinate.elevationInMeter IS NOT NULL
           ) AS maximum_sampled_elevation,
-          (SELECT startDate FROM project WHERE uuid = ?) AS project_start_date,
-          (SELECT endDate FROM project WHERE uuid = ?) AS project_end_date,
+$projectDates
           (SELECT COUNT(DISTINCT day) FROM capture_days) AS total_capture_days
       ''';
     // Every placeholder in this query is the project UUID, so the count is read
     // back off the statement instead of being kept in sync by hand. Keep it
     // that way: a fragment carrying a literal `?` (such as `_sexLabel`) would
-    // inflate this count.
+    // inflate this count. Across projects there are no placeholders at all.
     final placeholderCount = '?'.allMatches(sql).length;
     return customSelect(
       sql,
-      variables: List.filled(placeholderCount, Variable(projectUuid)),
-      readsFrom: {
-        db.project,
-        db.site,
-        db.coordinate,
-        db.collEvent,
-        db.specimen,
-        db.taxonomy,
-        db.narrative,
-        db.media,
-      },
-    ).watchSingle().map(
-      (row) => RecordStatisticTotals(
+      variables: projectUuid == null
+          ? const []
+          : List.filled(placeholderCount, Variable(projectUuid)),
+      readsFrom: _recordTotalTables,
+    ).watchSingle().asyncMap(
+      (row) async => RecordStatisticTotals(
         recordedSiteCount: row.read<int>('recorded_site_count'),
         sampledSiteCount: row.read<int>('sampled_site_count'),
         eventCount: row.read<int>('event_count'),
@@ -409,12 +441,33 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         maximumSampledElevationInMeter: row.readNullable<double>(
           'maximum_sampled_elevation',
         ),
-        totalDays: _inclusiveDayCount(
-          row.readNullable<String>('project_start_date'),
-          row.readNullable<String>('project_end_date'),
-        ),
+        totalDays: projectUuid == null
+            ? await _summedProjectDays()
+            : _inclusiveDayCount(
+                row.readNullable<String>('project_start_date'),
+                row.readNullable<String>('project_end_date'),
+              ),
         totalCaptureDays: row.read<int>('total_capture_days'),
       ),
+    );
+  }
+
+  /// Record totals for each project, ordered by project name.
+  Stream<List<ProjectRecordTotals>> watchProjectRecordTotals() {
+    return customSelect(
+      'SELECT uuid, name FROM project ORDER BY name COLLATE NOCASE ASC',
+      readsFrom: _recordTotalTables,
+    ).watch().asyncMap(
+      (rows) => Future.wait([
+        for (final row in rows)
+          watchRecordTotals(row.read<String>('uuid')).first.then(
+            (totals) => ProjectRecordTotals(
+              projectUuid: row.read<String>('uuid'),
+              projectName: row.read<String>('name'),
+              totals: totals,
+            ),
+          ),
+      ]),
     );
   }
 
@@ -449,7 +502,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
   }
 
   Stream<List<StatisticFilterOption>> watchSpatialSpeciesOptions(
-    String projectUuid,
+    String? projectUuid,
   ) {
     return customSelect(
       '''
@@ -466,10 +519,15 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         INNER JOIN coordinate
           ON coordinate.id = $kResolvedSpecimenCoordinateIdSql
         INNER JOIN site ON site.id = coordinate.siteID
-        WHERE specimen.projectUuid = ? AND site.projectUuid = ?
+        WHERE ${_projectFilter('specimen.projectUuid', projectUuid)}
+          AND ${_projectFilter('site.projectUuid', projectUuid)}
+          ${_sameProjectSite(projectUuid)}
         ORDER BY label COLLATE NOCASE ASC
       ''',
-      variables: [Variable(projectUuid), Variable(projectUuid)],
+      variables: [
+        ..._projectVariables(projectUuid),
+        ..._projectVariables(projectUuid),
+      ],
       readsFrom: {
         db.taxonomy,
         db.specimen,
@@ -478,6 +536,24 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         db.site,
       },
     ).watch().map(_mapFilterOptions);
+  }
+
+  /// Sum of every project's inclusive day count, or null when no project has
+  /// a usable date range.
+  Future<int?> _summedProjectDays() async {
+    final rows = await customSelect(
+      'SELECT startDate, endDate FROM project',
+      readsFrom: {db.project},
+    ).get();
+    final days = rows
+        .map(
+          (row) => _inclusiveDayCount(
+            row.readNullable<String>('startDate'),
+            row.readNullable<String>('endDate'),
+          ),
+        )
+        .whereType<int>();
+    return days.isEmpty ? null : days.reduce((a, b) => a + b);
   }
 
   int? _inclusiveDayCount(String? start, String? end) {
@@ -660,6 +736,17 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
   ''';
 
+  Set<ResultSetImplementation> get _recordTotalTables => {
+    db.project,
+    db.site,
+    db.coordinate,
+    db.collEvent,
+    db.specimen,
+    db.taxonomy,
+    db.narrative,
+    db.media,
+  };
+
   Set<ResultSetImplementation> get _specimenTables => {
     db.specimen,
     db.taxonomy,
@@ -673,8 +760,10 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
   ({List<String> conditions, List<Variable> variables}) _specimenConditions(
     StatisticRequest request,
   ) {
-    final variables = <Variable>[Variable(request.projectUuid)];
-    final conditions = <String>['specimen.projectUuid = ?'];
+    final variables = _projectVariables(request.projectUuid);
+    final conditions = <String>[
+      _projectFilter('specimen.projectUuid', request.projectUuid),
+    ];
     if (request.siteId != null) {
       conditions.add(
         'coalesce(collEvent.siteID, specimenCoordinate.siteID) = ?',
@@ -687,8 +776,10 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
   ({List<String> conditions, List<Variable> variables}) _partConditions(
     StatisticRequest request,
   ) {
-    final variables = <Variable>[Variable(request.projectUuid)];
-    final conditions = <String>['specimen.projectUuid = ?'];
+    final variables = _projectVariables(request.projectUuid);
+    final conditions = <String>[
+      _projectFilter('specimen.projectUuid', request.projectUuid),
+    ];
     if (request.speciesId != null) {
       conditions.add('specimen.speciesID = ?');
       variables.add(Variable(request.speciesId!));
@@ -738,13 +829,17 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
       geography.municipality AS municipality,
       geography.locality AS locality
     ''';
-    final variables = <Variable>[Variable(request.projectUuid)];
+    final variables = _projectVariables(request.projectUuid);
     late String sql;
     late final Set<ResultSetImplementation> tables;
 
     switch (request.kind) {
       case SpatialStatisticKind.specimens:
-        sql = _spatialCountSql('COUNT(specimen.uuid)', coordinateColumns);
+        sql = _spatialCountSql(
+          'COUNT(specimen.uuid)',
+          coordinateColumns,
+          request.projectUuid,
+        );
         tables = {
           db.coordinate,
           db.site,
@@ -756,6 +851,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         sql = _spatialCountSql(
           'COUNT(DISTINCT $_speciesLabel)',
           coordinateColumns,
+          request.projectUuid,
           taxonomy: true,
         );
         tables = {
@@ -770,6 +866,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         sql = _spatialCountSql(
           'COUNT(DISTINCT ${_taxonRankLabel(StatisticTaxonRank.family)})',
           coordinateColumns,
+          request.projectUuid,
           taxonomy: true,
         );
         tables = {
@@ -785,6 +882,7 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         sql = _spatialCountSql(
           'COUNT(specimen.uuid)',
           coordinateColumns,
+          request.projectUuid,
           specimenCondition: 'AND specimen.speciesID = ?',
         );
         tables = {
@@ -796,13 +894,14 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         };
     }
 
-    variables.add(Variable(request.projectUuid));
+    variables.addAll(_projectVariables(request.projectUuid));
     return _StatisticsSql(sql: sql, variables: variables, tables: tables);
   }
 
   String _spatialCountSql(
     String countExpression,
-    String coordinateColumns, {
+    String coordinateColumns,
+    String? projectUuid, {
     bool taxonomy = false,
     String specimenCondition = '',
   }) =>
@@ -813,10 +912,11 @@ ${_mediaCount(const ['narrative'], 'narrative_media_count')},
         LEFT JOIN geography ON geography.id = site.geographyId
         INNER JOIN specimen
           ON $kResolvedSpecimenCoordinateIdSql = coordinate.id
-          AND specimen.projectUuid = ?
+          AND ${_projectFilter('specimen.projectUuid', projectUuid)}
           $specimenCondition
         ${taxonomy ? 'LEFT JOIN taxonomy ON taxonomy.id = specimen.speciesID' : ''}
-        WHERE site.projectUuid = ?
+        WHERE ${_projectFilter('site.projectUuid', projectUuid)}
+          ${_sameProjectSite(projectUuid)}
         GROUP BY coordinate.id
         HAVING count > 0
         ORDER BY count DESC, name COLLATE NOCASE ASC, coordinate.id ASC

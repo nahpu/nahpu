@@ -15,11 +15,13 @@ import 'package:nahpu/screens/sites/site_view.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/database/app_exit.dart';
+import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/providers/narrative.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -36,12 +38,17 @@ class DataTableScreen extends ConsumerStatefulWidget {
     super.key,
     this.initialType = DataTableRecordType.specimenRecords,
     this.initialScope,
+    this.allProjects = false,
   });
 
   final DataTableRecordType initialType;
 
   /// Opens the table limited to these records of [initialType].
   final DataTableKeyScope? initialScope;
+
+  /// Lists records from every project instead of the open one. A record's
+  /// form or link picker opens in that record's own project.
+  final bool allProjects;
 
   @override
   DataTableScreenState createState() => DataTableScreenState();
@@ -301,9 +308,12 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       ),
     };
     if (form == null) return;
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => form));
+    await _inRecordProject(
+      row,
+      () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => form)),
+    );
     if (!mounted) return;
     _invalidateRecordLists();
     _load();
@@ -315,17 +325,41 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   ) async {
     final link = column.linkIn(_type);
     if (link == null) return;
-    final saved = await showDataTableLinkDialog(
-      context,
-      type: _type,
-      row: row,
-      column: column,
-      link: link,
+    final saved = await _inRecordProject(
+      row,
+      () => showDataTableLinkDialog(
+        context,
+        type: _type,
+        row: row,
+        column: column,
+        link: link,
+      ),
     );
     if (!saved || !mounted) return;
     _showMessage('Saved.');
     _invalidateRecordLists();
     _load();
+  }
+
+  /// Runs [action] with [row]'s project open, so forms, media folders, and
+  /// link pickers resolve against the record's own project, then reopens the
+  /// project that was open before. Only an all-projects table switches.
+  Future<T> _inRecordProject<T>(
+    DataTableRecordRow row,
+    Future<T> Function() action,
+  ) async {
+    final previous = ref.read(projectUuidProvider);
+    final target = row.projectUuid;
+    if (!widget.allProjects || target == null || target == previous) {
+      return action();
+    }
+    final projects = ProjectServices(ref: ref);
+    projects.updateProjectUuid(target);
+    try {
+      return await action();
+    } finally {
+      if (mounted) projects.updateProjectUuid(previous);
+    }
   }
 
   /// Other screens list the records this table changed; refresh them.
@@ -379,6 +413,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     page: _page,
     rowsPerPage: _rowsPerPage,
     scope: _scope,
+    allProjects: widget.allProjects,
   );
 
   /// Fetches the current page. Earlier data stays on screen while it

@@ -15,8 +15,8 @@ import 'package:nahpu/services/types/file_format.dart';
 
 export 'package:nahpu/services/data_table/data_table_models.dart';
 
-/// Loads one page of current-project records as the tabular exports write
-/// them.
+/// Loads one page of current-project records, or of every project's when the
+/// query asks for all projects, as the tabular exports write them.
 ///
 /// Filtering, sorting, and paging happen in SQL; only the page's records
 /// are then built through the export writers.
@@ -34,7 +34,7 @@ class DataTableService extends AppServices {
     final keys = await pageQuery.run(
       type,
       query,
-      projectUuid: currentProjectUuid,
+      projectUuid: query.allProjects ? null : currentProjectUuid,
       taxa: specimenType,
     );
     final editable = [
@@ -55,6 +55,7 @@ class DataTableService extends AppServices {
           siteId: raw.siteIds[key],
           eventId: raw.eventIds[key],
           specimenUuid: raw.specimenUuids[key],
+          projectUuid: raw.projectUuids[key],
           mediaKinds: dataTableMediaKinds(media[key] ?? const []),
         ),
       );

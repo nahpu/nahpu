@@ -377,6 +377,7 @@ class DataTableQuery {
     this.page = 0,
     this.rowsPerPage = 50,
     this.scope,
+    this.allProjects = false,
   });
 
   final String search;
@@ -394,6 +395,9 @@ class DataTableQuery {
 
   /// Limits the table to these records; null shows every record.
   final DataTableKeyScope? scope;
+
+  /// Reads records from every project instead of the open one.
+  final bool allProjects;
 }
 
 /// One record on the current page.
@@ -406,6 +410,7 @@ class DataTableRecordRow {
     this.siteId,
     this.eventId,
     this.specimenUuid,
+    this.projectUuid,
     this.mediaKinds = const {},
   });
 
@@ -429,6 +434,9 @@ class DataTableRecordRow {
   /// The specimen this record belongs to: the key itself for specimens, the
   /// parent specimen for parts.
   final String? specimenUuid;
+
+  /// The project this record belongs to.
+  final String? projectUuid;
 
   /// Kinds of media linked to this record. Parts show their specimen's media.
   final Set<MediaKind> mediaKinds;

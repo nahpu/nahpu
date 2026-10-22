@@ -150,8 +150,11 @@ class _RecordCountMetrics extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final provider = recordStatisticTotalsProvider(
+      ref.watch(projectUuidProvider),
+    );
     return ref
-        .watch(recordStatisticTotalsProvider)
+        .watch(provider)
         .when(
           data: (value) => LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
@@ -171,8 +174,7 @@ class _RecordCountMetrics extends ConsumerWidget {
                 Text('Unable to load record statistics: $error'),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () =>
-                      ref.invalidate(recordStatisticTotalsProvider),
+                  onPressed: () => ref.invalidate(provider),
                   child: const Text('Retry'),
                 ),
               ],
@@ -426,9 +428,14 @@ class StatisticFullScreen extends ConsumerStatefulWidget {
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.species,
     ),
+    this.allProjects = false,
   });
 
   final StatisticSelection startingSelection;
+
+  /// Covers every project in the database instead of the open project, and
+  /// lists each project's totals under the overall summary.
+  final bool allProjects;
 
   @override
   ConsumerState<StatisticFullScreen> createState() =>
@@ -460,10 +467,22 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projectUuid = ref.watch(projectUuidProvider);
-    final totals = ref.watch(recordStatisticTotalsProvider);
-    final projectName = ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
-    final availability = ref.watch(statisticAvailabilityProvider);
+    final String? projectUuid = widget.allProjects
+        ? null
+        : ref.watch(projectUuidProvider);
+    final totals = ref.watch(recordStatisticTotalsProvider(projectUuid));
+    final projectName = widget.allProjects
+        ? 'NAHPU_all-projects'
+        : ref.watch(currProjInfoProvider).value?.name ?? 'NAHPU';
+    final availability = ref.watch(statisticAvailabilityProvider(projectUuid));
+    final siteOptions = statisticFilterOptionsProvider((
+      projectUuid: projectUuid,
+      kind: StatisticFilterKind.site,
+    ));
+    final speciesOptions = statisticFilterOptionsProvider((
+      projectUuid: projectUuid,
+      kind: StatisticFilterKind.species,
+    ));
     final hasSex = availability.when(
       data: (value) => value.hasSex,
       loading: () => false,
@@ -493,7 +512,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Record Statistics')),
+      appBar: AppBar(
+        title: Text(
+          widget.allProjects ? 'Database Statistics' : 'Record Statistics',
+        ),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -548,10 +571,20 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           CommonPadding(
                             child: _FullScreenRecordStatisticsSummary(
                               value: totals,
-                              onRetry: () =>
-                                  ref.invalidate(recordStatisticTotalsProvider),
+                              title: widget.allProjects
+                                  ? 'Total across all projects'
+                                  : null,
+                              onRetry: () => ref.invalidate(
+                                recordStatisticTotalsProvider(projectUuid),
+                              ),
                             ),
                           ),
+                          if (widget.allProjects) ...[
+                            const SizedBox(height: NahpuSpacing.md),
+                            const CommonPadding(
+                              child: _ProjectBreakdownTable(),
+                            ),
+                          ],
                           const SizedBox(height: NahpuSpacing.xl),
                           _StatisticSummary(
                             projectUuid: projectUuid,
@@ -638,11 +671,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   ),
                                 if (_usesSiteFilter)
                                   SearchableStatisticFilterPicker(
-                                    options: ref.watch(
-                                      statisticFilterOptionsProvider(
-                                        StatisticFilterKind.site,
-                                      ),
-                                    ),
+                                    options: ref.watch(siteOptions),
                                     selected: _siteFilter,
                                     label: 'Site',
                                     title: 'Select a site',
@@ -650,19 +679,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                     onChanged: (value) {
                                       setState(() => _siteFilter = value);
                                     },
-                                    onRetry: () => ref.invalidate(
-                                      statisticFilterOptionsProvider(
-                                        StatisticFilterKind.site,
-                                      ),
-                                    ),
+                                    onRetry: () => ref.invalidate(siteOptions),
                                   ),
                                 if (_usesSpeciesFilter)
                                   SearchableStatisticFilterPicker(
-                                    options: ref.watch(
-                                      statisticFilterOptionsProvider(
-                                        StatisticFilterKind.species,
-                                      ),
-                                    ),
+                                    options: ref.watch(speciesOptions),
                                     selected: _speciesFilter,
                                     label: 'Species',
                                     title: 'Select a species',
@@ -670,11 +691,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                     onChanged: (value) {
                                       setState(() => _speciesFilter = value);
                                     },
-                                    onRetry: () => ref.invalidate(
-                                      statisticFilterOptionsProvider(
-                                        StatisticFilterKind.species,
-                                      ),
-                                    ),
+                                    onRetry: () =>
+                                        ref.invalidate(speciesOptions),
                                   ),
                               ],
                             ),
@@ -906,15 +924,28 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
   const _FullScreenRecordStatisticsSummary({
     required this.value,
     required this.onRetry,
+    this.title,
   });
 
   final AsyncValue<RecordStatisticTotals> value;
   final VoidCallback onRetry;
 
+  /// Heading above the summary groups, or none.
+  final String? title;
+
   @override
   Widget build(BuildContext context) {
     return value.when(
-      data: (totals) => _FullScreenRecordStatisticsCard(totals: totals),
+      data: (totals) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (title != null) ...[
+            Text(title!, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: NahpuSpacing.sm),
+          ],
+          _FullScreenRecordStatisticsCard(totals: totals),
+        ],
+      ),
       loading: () => const SizedBox(
         height: 160,
         child: Center(child: CircularProgressIndicator()),
@@ -1260,10 +1291,110 @@ class _SummaryMetric extends StatelessWidget {
   }
 }
 
+/// Each project's record totals, listed under the database-wide summary.
+class _ProjectBreakdownTable extends ConsumerWidget {
+  const _ProjectBreakdownTable();
+
+  static const _metrics = [
+    RecordMetricKind.specimens,
+    RecordMetricKind.species,
+    RecordMetricKind.families,
+    RecordMetricKind.recordedSites,
+    RecordMetricKind.events,
+    RecordMetricKind.narratives,
+    RecordMetricKind.media,
+    RecordMetricKind.captureDays,
+    RecordMetricKind.projectDays,
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      key: const ValueKey('full-screen-record-stat-per-project'),
+      padding: const EdgeInsets.all(NahpuSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(NahpuRadius.md),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Per project', style: textTheme.titleSmall),
+          const SizedBox(height: NahpuSpacing.sm),
+          ref
+              .watch(projectRecordTotalsProvider)
+              .when(
+                data: (projects) => projects.isEmpty
+                    ? const Text('No projects yet.')
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: [
+                            const DataColumn(label: Text('Project')),
+                            for (final metric in _metrics)
+                              DataColumn(
+                                label: Text(metric.label),
+                                numeric: true,
+                              ),
+                          ],
+                          rows: [
+                            for (final project in projects)
+                              DataRow(
+                                cells: [
+                                  DataCell(Text(project.projectName)),
+                                  for (final metric in _metrics)
+                                    DataCell(
+                                      Text(_value(metric, project.totals)),
+                                    ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(NahpuSpacing.xl),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Unable to load project statistics: $error'),
+                    const SizedBox(height: NahpuSpacing.md),
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(projectRecordTotalsProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+
+  String _value(RecordMetricKind metric, RecordStatisticTotals totals) =>
+      switch (metric) {
+        RecordMetricKind.specimens => totals.specimenCount.toString(),
+        RecordMetricKind.species => totals.speciesCount.toString(),
+        RecordMetricKind.families => totals.familyCount.toString(),
+        RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),
+        RecordMetricKind.events => totals.eventCount.toString(),
+        RecordMetricKind.narratives => totals.narrativeCount.toString(),
+        RecordMetricKind.media => totals.mediaCount.toString(),
+        RecordMetricKind.captureDays => totals.totalCaptureDays.toString(),
+        RecordMetricKind.projectDays => _formatProjectDays(totals.totalDays),
+        _ => '',
+      };
+}
+
 class _StatisticSummary extends StatelessWidget {
   const _StatisticSummary({required this.projectUuid, required this.onExplore});
 
-  final String projectUuid;
+  final String? projectUuid;
   final ValueChanged<StatisticSelection> onExplore;
 
   @override
@@ -1307,7 +1438,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
     required this.onExplore,
   });
 
-  final String projectUuid;
+  final String? projectUuid;
   final _SummaryDefinition definition;
   final VoidCallback onExplore;
 

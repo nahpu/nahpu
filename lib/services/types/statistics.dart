@@ -193,7 +193,8 @@ class StatisticRequest {
     this.limit,
   });
 
-  final String projectUuid;
+  /// Project the statistics cover, or null for every project in the database.
+  final String? projectUuid;
   final StatisticMeasure measure;
   final StatisticGroup group;
 
@@ -340,6 +341,19 @@ class RecordStatisticTotals {
   final double? maximumSampledElevationInMeter;
   final int? totalDays;
   final int totalCaptureDays;
+}
+
+/// Record totals for one project, as listed in the database-wide summary.
+class ProjectRecordTotals {
+  const ProjectRecordTotals({
+    required this.projectUuid,
+    required this.projectName,
+    required this.totals,
+  });
+
+  final String projectUuid;
+  final String projectName;
+  final RecordStatisticTotals totals;
 }
 
 class StatisticTableRow {

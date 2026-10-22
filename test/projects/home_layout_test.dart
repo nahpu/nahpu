@@ -225,6 +225,33 @@ void main() {
     });
   }
 
+  testWidgets('home opens database statistics across every project', (
+    tester,
+  ) async {
+    await pumpHome(tester, size: const Size(1200, 1600), projects: 2);
+
+    await tester.tap(find.byKey(const ValueKey('home-database-statistics')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Database Statistics'), findsOneWidget);
+    expect(find.text('Total across all projects'), findsOneWidget);
+    final perProject = find.byKey(
+      const ValueKey('full-screen-record-stat-per-project'),
+    );
+    expect(perProject, findsOneWidget);
+    for (final name in ['Project 0', 'Project 1']) {
+      expect(
+        find.descendant(of: perProject, matching: find.text(name)),
+        findsOneWidget,
+      );
+    }
+    expect(tester.takeException(), isNull);
+
+    // Close the statistics streams so drift's close timers run in the test.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(Duration.zero);
+  });
+
   testWidgets('home with projects has no skyline backdrop', (tester) async {
     await pumpHome(tester, size: const Size(400, 800), projects: 2);
 

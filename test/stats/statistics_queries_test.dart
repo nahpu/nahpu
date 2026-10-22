@@ -510,6 +510,53 @@ void main() {
     expect(otherProjectTotals.narrativeMediaCount, 0);
   });
 
+  test('record totals without a project cover every project', () async {
+    final perProject = await query.watchProjectRecordTotals().first;
+    final all = await query.watchRecordTotals(null).first;
+    int sum(int Function(RecordStatisticTotals totals) count) => perProject
+        .map((project) => count(project.totals))
+        .fold(0, (total, value) => total + value);
+
+    expect(perProject.map((project) => project.projectUuid), [
+      'project-a',
+      'project-b',
+      'project-limit',
+    ]);
+    expect(perProject.first.projectName, 'Project A');
+    expect(perProject.first.totals.specimenCount, 4);
+    expect(all.specimenCount, sum((totals) => totals.specimenCount));
+    expect(all.eventCount, sum((totals) => totals.eventCount));
+    expect(all.narrativeCount, sum((totals) => totals.narrativeCount));
+    expect(all.recordedSiteCount, sum((totals) => totals.recordedSiteCount));
+    expect(all.mediaCount, sum((totals) => totals.mediaCount));
+    expect(
+      all.totalDays,
+      perProject
+          .map((project) => project.totals.totalDays)
+          .whereType<int>()
+          .fold(0, (total, value) => total + value),
+    );
+    expect(
+      all.speciesCount,
+      lessThanOrEqualTo(sum((totals) => totals.speciesCount)),
+      reason: 'a species recorded in two projects counts once',
+    );
+
+    final species = await query
+        .watchStatistics(
+          const StatisticRequest(
+            projectUuid: null,
+            measure: StatisticMeasure.specimens,
+            group: StatisticGroup.species,
+          ),
+        )
+        .first;
+    expect(
+      species.fold<int>(0, (total, row) => total + row.count),
+      all.specimenCount,
+    );
+  });
+
   test('record totals treat blank project dates as not recorded', () async {
     await (db.update(
       db.project,

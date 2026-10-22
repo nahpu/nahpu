@@ -30,6 +30,7 @@ class DataTableRawValues {
     this.siteIds = const {},
     this.eventIds = const {},
     this.specimenUuids = const {},
+    this.projectUuids = const {},
   });
 
   final Map<Object, Map<String, String>> values;
@@ -43,6 +44,9 @@ class DataTableRawValues {
 
   /// The specimen each specimen or part record belongs to.
   final Map<Object, String> specimenUuids;
+
+  /// The project each record belongs to.
+  final Map<Object, String> projectUuids;
 }
 
 /// Filters, sorts, counts, and pages records in SQL, so only one page of
@@ -58,7 +62,7 @@ class DataTablePageQuery {
   Future<DataTableKeyPage> run(
     DataTableRecordType type,
     DataTableQuery query, {
-    required String projectUuid,
+    required String? projectUuid,
     SpecimenRecordType taxa = SpecimenRecordType.allTaxa,
   }) async {
     final where = _where(type, query, projectUuid, taxa);
@@ -129,6 +133,7 @@ class DataTablePageQuery {
       '${links[0]} AS linked_site',
       '${links[1]} AS linked_event',
       '${hasSpecimen ? 's.uuid' : 'NULL'} AS specimen_uuid',
+      '${_projectColumn(type)} AS project_uuid',
       for (var i = 0; i < selected.length; i++) '${selected[i].sqlExpr} AS f$i',
       if (isSpecimen)
         for (final table in dataTableAttributeTables)
@@ -148,12 +153,16 @@ class DataTablePageQuery {
     final siteIds = <Object, int>{};
     final eventIds = <Object, int>{};
     final specimenUuids = <Object, String>{};
+    final projectUuids = <Object, String>{};
     for (final row in rows) {
       final key = row.data['k']!;
       if (row.data['linked_site'] case final int id) siteIds[key] = id;
       if (row.data['linked_event'] case final int id) eventIds[key] = id;
       if (row.data['specimen_uuid'] case final String uuid) {
         specimenUuids[key] = uuid;
+      }
+      if (row.data['project_uuid'] case final String uuid) {
+        projectUuids[key] = uuid;
       }
       values[key] = {
         for (var i = 0; i < selected.length; i++)
@@ -174,6 +183,7 @@ class DataTablePageQuery {
       siteIds: siteIds,
       eventIds: eventIds,
       specimenUuids: specimenUuids,
+      projectUuids: projectUuids,
     );
   }
 
@@ -226,11 +236,15 @@ class DataTablePageQuery {
   _WhereClause _where(
     DataTableRecordType type,
     DataTableQuery query,
-    String projectUuid,
+    String? projectUuid,
     SpecimenRecordType taxa,
   ) {
-    final clause = _WhereClause()
-      ..add('${_projectColumn(type)} = ?', [Variable.withString(projectUuid)]);
+    final clause = _WhereClause();
+    if (projectUuid != null) {
+      clause.add('${_projectColumn(type)} = ?', [
+        Variable.withString(projectUuid),
+      ]);
+    }
 
     final groups = _taxonGroups(type, taxa);
     if (groups.isNotEmpty) {
@@ -549,7 +563,8 @@ class _WhereClause {
   final variables = <Variable>[];
   final joins = <DataTableJoin>{};
 
-  String get sql => _parts.map((part) => '($part)').join(' AND ');
+  String get sql =>
+      _parts.isEmpty ? '1' : _parts.map((part) => '($part)').join(' AND ');
 
   void add(
     String sql,

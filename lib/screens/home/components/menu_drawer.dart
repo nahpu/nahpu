@@ -4,6 +4,7 @@ import 'package:nahpu/screens/exports/export_settings.dart';
 import 'package:nahpu/screens/home/components/cookbook.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
@@ -66,6 +67,20 @@ class HomeMenuDrawer extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => const ImportProjectScreen.newProject(),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          key: const ValueKey('home-drawer-database-statistics'),
+          leading: const Icon(Icons.analytics_outlined),
+          title: const Text('Database statistics'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const StatisticFullScreen(allProjects: true),
               ),
             );
           },

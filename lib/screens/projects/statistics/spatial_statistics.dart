@@ -21,7 +21,8 @@ class SpatialStatisticsPanel extends ConsumerStatefulWidget {
     required this.sectionSwitch,
   });
 
-  final String projectUuid;
+  /// Project the map covers, or null for every project.
+  final String? projectUuid;
   final String projectName;
 
   /// Counts/Spatial switch shown at the top of the filter panel.

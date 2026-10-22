@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/statistics_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
@@ -27,28 +26,41 @@ final statisticRecordKeysLoaderProvider = Provider<StatisticRecordKeysLoader>(
       ).groupRecordKeys(request, label: label, seriesLabel: seriesLabel),
 );
 
+/// Filter options for one project, or for every project when the UUID is
+/// null.
 final statisticFilterOptionsProvider = StreamProvider.autoDispose
-    .family<List<StatisticFilterOption>, StatisticFilterKind>((ref, kind) {
-      final projectUuid = ref.watch(projectUuidProvider);
+    .family<
+      List<StatisticFilterOption>,
+      ({String? projectUuid, StatisticFilterKind kind})
+    >((ref, key) {
       return StatisticsQuery(
         ref.watch(databaseProvider),
-      ).watchFilterOptions(projectUuid, kind);
+      ).watchFilterOptions(key.projectUuid, key.kind);
     });
 
-final statisticAvailabilityProvider =
-    StreamProvider.autoDispose<StatisticAvailability>((ref) {
-      final projectUuid = ref.watch(projectUuidProvider);
+/// Which breakdowns the records of a project, or of every project when
+/// null, can offer.
+final statisticAvailabilityProvider = StreamProvider.autoDispose
+    .family<StatisticAvailability, String?>((ref, projectUuid) {
       return StatisticsQuery(
         ref.watch(databaseProvider),
       ).watchAvailability(projectUuid);
     });
 
-final recordStatisticTotalsProvider =
-    StreamProvider.autoDispose<RecordStatisticTotals>((ref) {
-      final projectUuid = ref.watch(projectUuidProvider);
+/// Record totals for a project, or across every project when null.
+final recordStatisticTotalsProvider = StreamProvider.autoDispose
+    .family<RecordStatisticTotals, String?>((ref, projectUuid) {
       return StatisticsQuery(
         ref.watch(databaseProvider),
       ).watchRecordTotals(projectUuid);
+    });
+
+/// Record totals for each project in the database.
+final projectRecordTotalsProvider =
+    StreamProvider.autoDispose<List<ProjectRecordTotals>>((ref) {
+      return StatisticsQuery(
+        ref.watch(databaseProvider),
+      ).watchProjectRecordTotals();
     });
 
 final spatialStatisticDataProvider = StreamProvider.autoDispose
@@ -62,7 +74,7 @@ final spatialStatisticDataProvider = StreamProvider.autoDispose
     });
 
 final spatialSpeciesFilterOptionsProvider = StreamProvider.autoDispose
-    .family<List<StatisticFilterOption>, String>((ref, projectUuid) {
+    .family<List<StatisticFilterOption>, String?>((ref, projectUuid) {
       return StatisticsQuery(
         ref.watch(databaseProvider),
       ).watchSpatialSpeciesOptions(projectUuid);

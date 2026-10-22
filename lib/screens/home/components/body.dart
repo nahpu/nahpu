@@ -10,6 +10,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -154,16 +155,34 @@ class _ToggleViewState extends State<ToggleView> {
               'Existing projects',
               style: Theme.of(context).textTheme.labelLarge,
             ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  isListSelected = !isListSelected;
-                });
-              },
-              iconSize: 24,
-              icon: isListSelected
-                  ? const Icon(Icons.grid_view)
-                  : const Icon(Icons.list_alt),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  key: const ValueKey('home-database-statistics'),
+                  tooltip: 'Database statistics',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const StatisticFullScreen(allProjects: true),
+                    ),
+                  ),
+                  iconSize: 24,
+                  icon: const Icon(Icons.analytics_outlined),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isListSelected = !isListSelected;
+                    });
+                  },
+                  iconSize: 24,
+                  icon: isListSelected
+                      ? const Icon(Icons.grid_view)
+                      : const Icon(Icons.list_alt),
+                ),
+              ],
             ),
           ],
         ),

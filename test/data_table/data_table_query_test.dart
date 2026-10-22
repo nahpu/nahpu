@@ -340,6 +340,22 @@ void main() {
     expect(siteFiles.containsKey(1), isFalse);
   });
 
+  test('without a project, pages records from every project', () async {
+    final page = await pages.run(
+      DataTableRecordType.specimenRecords,
+      const DataTableQuery(),
+      projectUuid: null,
+    );
+    expect(page.totalRows, 4);
+    expect(page.keys, containsAll(['s1', 'other']));
+
+    final raw = await pages.rawValues(DataTableRecordType.specimenRecords, [
+      's1',
+      'other',
+    ], const []);
+    expect(raw.projectUuids, {'s1': 'p1', 'other': 'p2'});
+  });
+
   test('raw values carry the parent specimen of a part', () async {
     final raw = await pages.rawValues(DataTableRecordType.specimenParts, [
       1,

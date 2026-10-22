@@ -26,7 +26,9 @@ Future<void> openStatisticRecords(
     ).showSnackBar(const SnackBar(content: Text('No records in this group.')));
     return;
   }
+  final allProjects = request.projectUuid == null;
   final scopeLabel = [
+    if (allProjects) 'All projects',
     '${request.categoryLabel}: $label',
     if (request.breakdown != null && seriesLabel != null)
       '${request.breakdown!.label}: $seriesLabel',
@@ -38,6 +40,7 @@ Future<void> openStatisticRecords(
             ? DataTableRecordType.specimenParts
             : DataTableRecordType.specimenRecords,
         initialScope: DataTableKeyScope(keys: keys.toSet(), label: scopeLabel),
+        allProjects: allProjects,
       ),
     ),
   );
