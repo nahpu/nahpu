@@ -10,7 +10,6 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:nahpu/screens/projects/edit_project.dart';
-import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -76,9 +75,8 @@ class HomeBodyState extends ConsumerState<HomeBody> {
   }
 }
 
-/// Existing projects with the create and import actions. Narrow screens pin
-/// the actions above the list; wide screens give the list three quarters of
-/// the width and the actions the remaining quarter.
+/// Existing projects with the home actions pinned above the list. Wide
+/// screens give both more width.
 class HomeProjectsLayout extends StatelessWidget {
   const HomeProjectsLayout({
     super.key,
@@ -89,36 +87,19 @@ class HomeProjectsLayout extends StatelessWidget {
   final List<ProjectSummary> projectList;
 
   /// Whether the screen reaches [NahpuBreakpoints.desktop], measured before the
-  /// page padding so the split starts at the same width as other desktop
-  /// layouts.
+  /// page padding so the wider layout starts at the same width as other
+  /// desktop layouts.
   final bool isWide;
 
   @override
   Widget build(BuildContext context) {
-    if (isWide) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: NahpuContentWidth.homeSplit,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 3, child: ToggleView(projectList: projectList)),
-              const SizedBox(width: NahpuSpacing.xxl),
-              const Expanded(
-                child: SingleChildScrollView(
-                  child: HomeProjectActions(layout: ProjectActionLayout.side),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: NahpuContentWidth.home),
+        constraints: BoxConstraints(
+          maxWidth: isWide
+              ? NahpuContentWidth.homeSplit
+              : NahpuContentWidth.home,
+        ),
         child: Column(
           children: [
             const HomeProjectActions(layout: ProjectActionLayout.compact),
@@ -155,34 +136,16 @@ class _ToggleViewState extends State<ToggleView> {
               'Existing projects',
               style: Theme.of(context).textTheme.labelLarge,
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  key: const ValueKey('home-database-statistics'),
-                  tooltip: 'Database statistics',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const StatisticFullScreen(allProjects: true),
-                    ),
-                  ),
-                  iconSize: 24,
-                  icon: const Icon(Icons.analytics_outlined),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isListSelected = !isListSelected;
-                    });
-                  },
-                  iconSize: 24,
-                  icon: isListSelected
-                      ? const Icon(Icons.grid_view)
-                      : const Icon(Icons.list_alt),
-                ),
-              ],
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  isListSelected = !isListSelected;
+                });
+              },
+              iconSize: 24,
+              icon: isListSelected
+                  ? const Icon(Icons.grid_view)
+                  : const Icon(Icons.list_alt),
             ),
           ],
         ),

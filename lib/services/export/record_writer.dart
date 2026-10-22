@@ -218,8 +218,11 @@ class SpecimenRecordWriter {
       };
       return combinedHeader.map((key) => mapped[key] ?? '').toList();
     }
+    // Mixed exports read each specimen's own attributes, then line them up
+    // under the combined header.
     SpecimenRecordType currentType = recordType;
-    if (recordType == SpecimenRecordType.allTaxa) {
+    if (recordType == SpecimenRecordType.allTaxa ||
+        recordType == SpecimenRecordType.allMammals) {
       currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
     }
 
@@ -261,19 +264,7 @@ class SpecimenRecordWriter {
         break;
     }
 
-    if (recordType != SpecimenRecordType.allTaxa) {
-      return values;
-    }
-
-    List<String> combinedHeader = _getAttributeHeader();
-    Map<String, String> map = {};
-    for (int i = 0; i < keys.length; i++) {
-      if (i < values.length) {
-        map[keys[i]] = values[i];
-      }
-    }
-
-    return combinedHeader.map((k) => map[k] ?? '').toList();
+    return alignAttributeValues(_getAttributeHeader(), keys, values);
   }
 
   Future<List<String>> _getFossilAttributes(String specimenUuid) {
@@ -325,4 +316,21 @@ class SpecimenRecordWriter {
     ).getSpecimenMedias(specimenUuid);
     return specimenMedia;
   }
+}
+
+/// [values], read in the order of [keys], placed under [header]: fields the
+/// header has but [keys] lacks stay empty.
+///
+/// The all-mammals export, for one, lists bat fields that a non-bat mammal
+/// has no values for, so its values cannot be written in read order.
+List<String> alignAttributeValues(
+  List<String> header,
+  List<String> keys,
+  List<String> values,
+) {
+  final byKey = <String, String>{
+    for (var i = 0; i < keys.length && i < values.length; i++)
+      keys[i]: values[i],
+  };
+  return [for (final key in header) byKey[key] ?? ''];
 }

@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _createKey = ValueKey('home-create-project');
 const _importKey = ValueKey('home-import-project');
+const _statsKey = ValueKey('home-database-statistics');
 
 void main() {
   late Database database;
@@ -63,27 +64,29 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('compact home pins project actions above the scrolling list', (
+  testWidgets('compact home pins its actions above the scrolling list', (
     tester,
   ) async {
     await pumpHome(tester, size: const Size(400, 800), projects: 20);
 
-    final create = find.byKey(_createKey);
-    final importCard = find.byKey(_importKey);
+    final create = tester.getRect(find.byKey(_createKey));
+    final importCard = tester.getRect(find.byKey(_importKey));
+    final stats = tester.getRect(find.byKey(_statsKey));
     final list = find.byType(ListView);
-    expect(create, findsOneWidget);
-    expect(importCard, findsOneWidget);
-    expect(
-      find.ancestor(of: create, matching: find.byType(Scrollable)),
-      findsNothing,
-    );
-    expect(tester.getTopLeft(importCard).dy, tester.getTopLeft(create).dy);
-    expect(
-      tester.getBottomLeft(create).dy,
-      lessThan(tester.getTopLeft(list).dy),
-    );
+    for (final key in [_createKey, _importKey, _statsKey]) {
+      expect(
+        find.ancestor(of: find.byKey(key), matching: find.byType(Scrollable)),
+        findsNothing,
+      );
+    }
+    // Create takes its own row; import and statistics share the next one.
+    expect(importCard.top, greaterThan(create.bottom));
+    expect(stats.top, importCard.top);
+    expect(stats.size, importCard.size);
+    expect(create.width, greaterThan(importCard.width * 2));
+    expect(stats.bottom, lessThan(tester.getTopLeft(list).dy));
 
-    final actionsTop = tester.getTopLeft(create);
+    final actionsTop = create.top;
     await tester.drag(list, const Offset(0, -400));
     await tester.pumpAndSettle();
 
@@ -91,76 +94,34 @@ void main() {
       find.descendant(of: list, matching: find.byType(Scrollable)).first,
     );
     expect(scrollable.position.pixels, greaterThan(0));
-    expect(tester.getTopLeft(create), actionsTop);
+    expect(tester.getRect(find.byKey(_createKey)).top, actionsTop);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('wide home gives projects three quarters of the width', (
-    tester,
-  ) async {
-    await pumpHome(tester, size: const Size(1400, 900), projects: 2);
+  for (final width in [700.0, 1400.0]) {
+    testWidgets('home keeps its actions in one row at ${width.toInt()} wide', (
+      tester,
+    ) async {
+      await pumpHome(tester, size: Size(width, 900), projects: 2);
 
-    final projectsRect = tester.getRect(find.byType(ToggleView));
-    final actionsRect = tester.getRect(find.byType(HomeProjectActions));
-    expect(actionsRect.left, greaterThan(projectsRect.right));
-    expect(projectsRect.width / actionsRect.width, closeTo(3, 0.01));
-    // The action column starts level with the "Existing projects" header row.
-    expect(actionsRect.top, projectsRect.top);
-
-    // The actions stack at the full width of the side column.
-    final create = tester.getRect(find.byKey(_createKey));
-    final importCard = tester.getRect(find.byKey(_importKey));
-    expect(importCard.top, greaterThan(create.bottom));
-    expect(create.width, actionsRect.width);
-    expect(importCard.size, create.size);
-
-    // Square cards keep the icon above the title and the arrow, without a
-    // description.
-    for (final key in [_createKey, _importKey]) {
-      final card = find.byKey(key);
-      final title = find.descendant(of: card, matching: find.byType(Text));
-      final icon = find.descendant(of: card, matching: find.byType(SvgPicture));
-      expect(title, findsOneWidget);
+      final create = tester.getRect(find.byKey(_createKey));
+      final importCard = tester.getRect(find.byKey(_importKey));
+      final stats = tester.getRect(find.byKey(_statsKey));
+      final projects = tester.getRect(find.byType(ToggleView));
+      expect(importCard.top, create.top);
+      expect(stats.top, create.top);
+      expect(importCard.left, greaterThan(create.right));
+      expect(stats.left, greaterThan(importCard.right));
+      expect(stats.size, importCard.size);
+      expect(create.height, importCard.height);
+      expect(create.width, greaterThan(importCard.width * 1.9));
+      expect(create.bottom, lessThan(projects.top));
       expect(
-        tester.getTopLeft(title).dy,
-        greaterThan(tester.getBottomLeft(icon).dy),
+        tester.widget<Material>(find.byKey(_createKey)).color,
+        NahpuTheme.primaryAction,
       );
-      expect(
-        find.descendant(
-          of: card,
-          matching: find.byIcon(Icons.arrow_forward_rounded),
-        ),
-        findsOneWidget,
-      );
-    }
-
-    await tester.tap(find.byIcon(Icons.grid_view));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(GridView), findsOneWidget);
-    expect(tester.getRect(find.byType(HomeProjectActions)), actionsRect);
-    expect(tester.takeException(), isNull);
-  });
-
-  for (final width in [899.0, 900.0]) {
-    testWidgets(
-      'home ${width < 900 ? 'pins' : 'splits'} actions at ${width.toInt()} wide',
-      (tester) async {
-        await pumpHome(tester, size: Size(width, 800), projects: 2);
-
-        final create = tester.getRect(find.byKey(_createKey));
-        final importCard = tester.getRect(find.byKey(_importKey));
-        final projects = tester.getRect(find.byType(ToggleView));
-        if (width < 900) {
-          expect(importCard.top, create.top);
-          expect(create.bottom, lessThan(projects.top));
-        } else {
-          expect(importCard.top, greaterThan(create.bottom));
-          expect(create.left, greaterThan(projects.right));
-        }
-        expect(tester.takeException(), isNull);
-      },
-    );
+      expect(tester.takeException(), isNull);
+    });
   }
 
   for (final size in const [Size(400, 900), Size(1400, 900)]) {
@@ -172,6 +133,7 @@ void main() {
         expect(find.text('No projects found.'), findsOneWidget);
         expect(find.text('Setup NAHPU'), findsOneWidget);
         expect(find.byType(ListView), findsNothing);
+        expect(find.byKey(_statsKey), findsNothing);
 
         final actions = find.byType(HomeProjectActions);
         expect(actions, findsOneWidget);
@@ -230,7 +192,7 @@ void main() {
   ) async {
     await pumpHome(tester, size: const Size(1200, 1600), projects: 2);
 
-    await tester.tap(find.byKey(const ValueKey('home-database-statistics')));
+    await tester.tap(find.byKey(_statsKey));
     await tester.pumpAndSettle();
 
     expect(find.text('Database Statistics'), findsOneWidget);

@@ -39,6 +39,7 @@ class DataTableScreen extends ConsumerStatefulWidget {
     this.initialType = DataTableRecordType.specimenRecords,
     this.initialScope,
     this.allProjects = false,
+    this.initialSearch,
   });
 
   final DataTableRecordType initialType;
@@ -49,6 +50,10 @@ class DataTableScreen extends ConsumerStatefulWidget {
   /// Lists records from every project instead of the open one. A record's
   /// form or link picker opens in that record's own project.
   final bool allProjects;
+
+  /// Opens the table on this search and its filters, in place of
+  /// [initialType]. Its projects apply with [allProjects].
+  final DataTableSearchRequest? initialSearch;
 
   @override
   DataTableScreenState createState() => DataTableScreenState();
@@ -65,12 +70,20 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   Timer? _searchDebounce;
   int _request = 0;
 
-  late DataTableRecordType _type = widget.initialType;
+  late DataTableRecordType _type =
+      widget.initialSearch?.type ?? widget.initialType;
   late DataTableKeyScope? _scope = widget.initialScope;
-  SpecimenRecordType _specimenType = SpecimenRecordType.allTaxa;
-  String? _searchField;
+  late SpecimenRecordType _specimenType =
+      widget.initialSearch?.specimenType ?? SpecimenRecordType.allTaxa;
+  late String? _searchField = widget.initialSearch?.searchField;
   List<DataTableFilterRule> _rules = const [];
-  Set<DataTableQuickFilter> _quickFilters = const {};
+  late Set<DataTableQuickFilter> _quickFilters =
+      widget.initialSearch?.quickFilters ?? const {};
+
+  /// With [DataTableScreen.allProjects], the projects the table is limited
+  /// to; empty shows every project.
+  late Set<String> _projectUuids =
+      widget.initialSearch?.projectUuids ?? const {};
   DataTableSort? _sort;
   int _page = 0;
   int _rowsPerPage = dataTableRowsPerPageOptions[1];
@@ -87,6 +100,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   @override
   void initState() {
     super.initState();
+    _searchController.text = widget.initialSearch?.search ?? '';
     _edits = DataTableEditController(
       saver: _saveEdits,
       initialAutoSave: ref.read(dataTableAutoSaveProvider),
@@ -192,9 +206,13 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                       ),
                       if (_quickFilters.isNotEmpty ||
                           _rules.isNotEmpty ||
-                          _scope != null) ...[
+                          _scope != null ||
+                          _projectLabel != null) ...[
                         const DataTableToolbarDivider(),
                         DataTableFilterChips(
+                          projectLabel: _projectLabel,
+                          onProjectsRemoved: () =>
+                              _update(() => _projectUuids = const {}),
                           scope: _scope,
                           onScopeRemoved: () => _update(() => _scope = null),
                           selected: _quickFilters,
@@ -208,6 +226,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                             _rules = const [];
                             _quickFilters = const {};
                             _scope = null;
+                            _projectUuids = const {};
                           }),
                         ),
                       ],
@@ -255,7 +274,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
           _searchController.text.trim().isNotEmpty ||
           _rules.isNotEmpty ||
           _quickFilters.isNotEmpty ||
-          _scope != null;
+          _scope != null ||
+          _projectLabel != null;
       final taxa =
           _type == DataTableRecordType.specimenRecords &&
               _specimenType != SpecimenRecordType.allTaxa
@@ -266,6 +286,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
         icon: isFiltered ? Icons.search_off : Icons.table_rows_outlined,
         message: isFiltered
             ? 'No $records match your search and filters.'
+            : widget.allProjects
+            ? 'No $records${taxa == null ? '' : ' for $taxa'} yet.'
             : taxa != null
             ? 'This project has no $records for $taxa.'
             : 'This project has no $records yet.',
@@ -390,11 +412,14 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     final shown = chosen == null
         ? const <DataTableColumn>[]
         : columns.where((column) => chosen.contains(column.key)).toList();
-    if (shown.isNotEmpty) return shown;
+    if (shown.isNotEmpty) return orderDataTableColumns(_type, shown);
     // Nothing chosen yet, or the choice has no field in this export (another
     // taxon group): fall back to the defaults.
     final defaults = defaultDataTableColumnKeys(_type, columns);
-    return columns.where((column) => defaults.contains(column.key)).toList();
+    return orderDataTableColumns(_type, [
+      for (final column in columns)
+        if (defaults.contains(column.key)) column,
+    ]);
   }
 
   List<String> get _visibleKeys {
@@ -414,7 +439,19 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     rowsPerPage: _rowsPerPage,
     scope: _scope,
     allProjects: widget.allProjects,
+    projectUuids: widget.allProjects ? _projectUuids : const {},
   );
+
+  /// Chip label for the projects the table is limited to, or null when it
+  /// shows every project.
+  String? get _projectLabel {
+    if (!widget.allProjects || _projectUuids.isEmpty) return null;
+    final projects = ref.watch(projectListProvider).asData?.value ?? const [];
+    final names = {for (final project in projects) project.uuid: project.name};
+    return dataTableProjectScopeLabel([
+      for (final uuid in _projectUuids) names[uuid] ?? uuid,
+    ]);
+  }
 
   /// Fetches the current page. Earlier data stays on screen while it
   /// loads, so saving or paging doesn't flash the table.

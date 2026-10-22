@@ -356,6 +356,80 @@ void main() {
     expect(raw.projectUuids, {'s1': 'p1', 'other': 'p2'});
   });
 
+  test('default columns keep their listed order, sex near the front', () {
+    final columns = dataTableColumnsFromHeader(const [
+      'specimen::cataloger',
+      'specimen::condition',
+      'specimen::extraNote',
+      'event::collEventID',
+      'measurement::sex',
+    ]);
+    expect(
+      orderDataTableColumns(
+        DataTableRecordType.specimenRecords,
+        columns,
+      ).map((column) => column.key),
+      [
+        'specimen::cataloger',
+        'specimen::condition',
+        'measurement::sex',
+        'event::collEventID',
+        'specimen::extraNote',
+      ],
+    );
+  });
+
+  test('project scope labels name up to two projects', () {
+    expect(dataTableProjectScopeLabel(['Ridge']), 'Project: Ridge');
+    expect(
+      dataTableProjectScopeLabel(['Ridge', 'Valley']),
+      'Projects: Ridge, Valley',
+    );
+    expect(dataTableProjectScopeLabel(['A', 'B', 'C']), '3 projects');
+  });
+
+  test('without a project, limits records to the picked projects', () async {
+    final page = await pages.run(
+      DataTableRecordType.specimenRecords,
+      const DataTableQuery(allProjects: true, projectUuids: {'p2'}),
+      projectUuid: null,
+    );
+    expect(page.keys, ['other']);
+  });
+
+  test('every record type can be limited to records with media', () async {
+    await db.customStatement(
+      'INSERT INTO media (primaryId, projectUuid, fileName) '
+      'VALUES (1, ?, ?), (2, ?, ?)',
+      ['p1', 'skull.JPG', 'p1', 'site.mp4'],
+    );
+    await db.customStatement(
+      'INSERT INTO specimenMedia (specimenUuid, mediaId) VALUES (?, 1)',
+      ['s1'],
+    );
+    await db.customStatement(
+      'INSERT INTO siteMedia (siteId, mediaId) VALUES (2, 2)',
+    );
+
+    Future<List<Object>> withMedia(DataTableRecordType type) async {
+      final filter = type.quickFilters.singleWhere(
+        (filter) => filter.label == 'Has media',
+      );
+      final page = await pages.run(
+        type,
+        DataTableQuery(quickFilters: {filter}),
+        projectUuid: 'p1',
+      );
+      return page.keys;
+    }
+
+    expect(await withMedia(DataTableRecordType.specimenRecords), ['s1']);
+    expect(await withMedia(DataTableRecordType.specimenParts), [1]);
+    expect(await withMedia(DataTableRecordType.sites), [2]);
+    expect(await withMedia(DataTableRecordType.events), isEmpty);
+    expect(await withMedia(DataTableRecordType.narrative), isEmpty);
+  });
+
   test('raw values carry the parent specimen of a part', () async {
     final raw = await pages.rawValues(DataTableRecordType.specimenParts, [
       1,

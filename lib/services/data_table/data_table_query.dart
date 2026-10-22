@@ -244,6 +244,11 @@ class DataTablePageQuery {
       clause.add('${_projectColumn(type)} = ?', [
         Variable.withString(projectUuid),
       ]);
+    } else if (query.projectUuids.isNotEmpty) {
+      final placeholders = List.filled(query.projectUuids.length, '?');
+      clause.add('${_projectColumn(type)} IN (${placeholders.join(', ')})', [
+        for (final uuid in query.projectUuids) Variable.withString(uuid),
+      ]);
     }
 
     final groups = _taxonGroups(type, taxa);

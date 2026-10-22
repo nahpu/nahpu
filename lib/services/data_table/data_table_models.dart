@@ -183,6 +183,27 @@ Set<String> defaultDataTableColumnKeys(
   return defaults.isEmpty ? available : defaults;
 }
 
+/// [columns] in display order: the defaults of [type] in the order it lists
+/// them, so key fields such as sex stay near the front, then the rest in
+/// export order.
+List<DataTableColumn> orderDataTableColumns(
+  DataTableRecordType type,
+  List<DataTableColumn> columns,
+) {
+  final rank = {
+    for (final (index, key) in type.defaultColumnKeys.indexed) key: index,
+  };
+  final defaults = [
+    for (final column in columns)
+      if (rank.containsKey(column.key)) column,
+  ]..sort((a, b) => rank[a.key]!.compareTo(rank[b.key]!));
+  return [
+    ...defaults,
+    for (final column in columns)
+      if (!rank.containsKey(column.key)) column,
+  ];
+}
+
 /// Linked data, edited in a dialog because a change reaches beyond the
 /// cell: another record is chosen, or a shared record is changed.
 enum DataTableLink {
@@ -319,10 +340,24 @@ enum DataTableQuickFilter {
     'Has parts',
     'EXISTS (SELECT 1 FROM specimenPart sp WHERE sp.specimenUuid = s.uuid)',
   ),
+  specimenHasMedia(
+    DataTableRecordType.specimenRecords,
+    'Has media',
+    'EXISTS (SELECT 1 FROM specimenMedia l '
+        'JOIN media m ON m.primaryId = l.mediaId '
+        'WHERE l.specimenUuid = s.uuid)',
+  ),
   noTissueId(
     DataTableRecordType.specimenParts,
     'No tissue ID',
     "(p.tissueID IS NULL OR TRIM(p.tissueID) = '')",
+  ),
+  partHasMedia(
+    DataTableRecordType.specimenParts,
+    'Has media',
+    'EXISTS (SELECT 1 FROM specimenMedia l '
+        'JOIN media m ON m.primaryId = l.mediaId '
+        'WHERE l.specimenUuid = s.uuid)',
   ),
   noCoordinates(
     DataTableRecordType.sites,
@@ -334,6 +369,13 @@ enum DataTableQuickFilter {
     'No locality',
     'st.geographyId IS NULL',
   ),
+  siteHasMedia(
+    DataTableRecordType.sites,
+    'Has media',
+    'EXISTS (SELECT 1 FROM siteMedia l '
+        'JOIN media m ON m.primaryId = l.mediaId '
+        'WHERE l.siteId = st.id)',
+  ),
   noSpecimens(
     DataTableRecordType.events,
     'No specimens',
@@ -344,7 +386,21 @@ enum DataTableQuickFilter {
     'No end date',
     "(ce.endDate IS NULL OR TRIM(ce.endDate) = '')",
   ),
-  noSite(DataTableRecordType.narrative, 'No site', 'n.siteID IS NULL');
+  eventHasMedia(
+    DataTableRecordType.events,
+    'Has media',
+    'EXISTS (SELECT 1 FROM eventMedia l '
+        'JOIN media m ON m.primaryId = l.mediaId '
+        'WHERE l.eventID = ce.id)',
+  ),
+  noSite(DataTableRecordType.narrative, 'No site', 'n.siteID IS NULL'),
+  narrativeHasMedia(
+    DataTableRecordType.narrative,
+    'Has media',
+    'EXISTS (SELECT 1 FROM narrativeMedia l '
+        'JOIN media m ON m.primaryId = l.mediaId '
+        'WHERE l.narrativeId = n.id)',
+  );
 
   const DataTableQuickFilter(this.recordType, this.label, this.sql);
 
@@ -378,6 +434,7 @@ class DataTableQuery {
     this.rowsPerPage = 50,
     this.scope,
     this.allProjects = false,
+    this.projectUuids = const {},
   });
 
   final String search;
@@ -398,7 +455,57 @@ class DataTableQuery {
 
   /// Reads records from every project instead of the open one.
   final bool allProjects;
+
+  /// With [allProjects], limits the records to these projects; empty reads
+  /// every project.
+  final Set<String> projectUuids;
 }
+
+/// What a search started outside the data table asks it to open with, such
+/// as the home screen search across projects.
+class DataTableSearchRequest {
+  const DataTableSearchRequest({
+    this.type = DataTableRecordType.specimenRecords,
+    this.search = '',
+    this.searchField,
+    this.specimenType = SpecimenRecordType.allTaxa,
+    this.quickFilters = const {},
+    this.projectUuids = const {},
+  });
+
+  final DataTableRecordType type;
+  final String search;
+
+  /// Field key the search is limited to; null searches the visible fields.
+  final String? searchField;
+
+  /// Taxon group, for specimen records.
+  final SpecimenRecordType specimenType;
+
+  /// Quick filters of [type].
+  final Set<DataTableQuickFilter> quickFilters;
+
+  /// Projects to search; empty searches every project.
+  final Set<String> projectUuids;
+}
+
+/// Fields a search started outside the table can be limited to: the
+/// searchable default columns of [type].
+List<String> dataTableSearchFieldKeys(DataTableRecordType type) => [
+  for (final key in type.defaultColumnKeys)
+    if (dataTableField(key).isFilterable) key,
+];
+
+/// Chip label for a search limited to the projects named [names]: up to two
+/// by name, more by count.
+String dataTableProjectScopeLabel(List<String> names) => switch (names) {
+  [final name] => 'Project: $name',
+  [final first, final second] => 'Projects: $first, $second',
+  _ => '${names.length} projects',
+};
+
+/// A field's name as the table's column headers show it.
+String dataTableFieldLabel(String key) => key.split('::').last;
 
 /// One record on the current page.
 class DataTableRecordRow {

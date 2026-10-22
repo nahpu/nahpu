@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/home/components/menu_drawer.dart';
 import 'package:nahpu/screens/home/components/body.dart';
+import 'package:nahpu/screens/home/components/global_search.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/db_services.dart';
@@ -38,6 +39,7 @@ class HomeState extends ConsumerState<Home> {
               Text("NAHPU", style: Theme.of(context).textTheme.titleLarge),
             ],
           ),
+          actions: const [GlobalSearchButton()],
         ),
         resizeToAvoidBottomInset: false,
         drawer: const HomeMenuDrawer(),

@@ -2,10 +2,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/screens/projects/new_project.dart';
 import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
+import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/styles/themes.dart';
 
-/// The project actions offered on the home screen.
+/// The actions offered on the home screen: the project actions, and the
+/// statistics across every project.
 enum HomeProjectAction {
   createProject(
     key: ValueKey('home-create-project'),
@@ -17,6 +19,12 @@ enum HomeProjectAction {
     key: ValueKey('home-import-project'),
     title: 'Import project',
     iconPath: 'assets/icons/project_import.svg',
+    isPrimary: false,
+  ),
+  databaseStatistics(
+    key: ValueKey('home-database-statistics'),
+    title: 'Statistics',
+    iconPath: 'assets/icons/database.svg',
     isPrimary: false,
   );
 
@@ -45,11 +53,8 @@ enum HomeProjectAction {
 
 /// How [HomeProjectActions] arranges its cards.
 enum ProjectActionLayout {
-  /// One row pinned above the project list on narrow screens.
+  /// Create, import, and statistics pinned above the project list.
   compact,
-
-  /// Square cards stacked beside the project list on wide screens.
-  side,
 
   /// Cards in the middle of the screen when there are no projects yet.
   centered,
@@ -77,15 +82,7 @@ class HomeProjectActions extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (layout) {
       case ProjectActionLayout.compact:
-        return const ProjectActionRow(
-          style: ProjectActionCardStyle.row,
-          gap: NahpuSpacing.md,
-        );
-      case ProjectActionLayout.side:
-        return const ProjectActionColumn(
-          style: ProjectActionCardStyle.tall,
-          gap: NahpuSpacing.lg,
-        );
+        return const HomeActionBar();
       case ProjectActionLayout.centered:
         return ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
@@ -108,6 +105,67 @@ class HomeProjectActions extends StatelessWidget {
           ),
         );
     }
+  }
+}
+
+/// Create, import, and statistics as one group. Create is the filled card
+/// and takes twice the width of the other two; on narrow screens it takes a
+/// row of its own above them.
+class HomeActionBar extends StatelessWidget {
+  const HomeActionBar({super.key});
+
+  static const double _gap = NahpuSpacing.md;
+
+  @override
+  Widget build(BuildContext context) {
+    const create = ProjectActionCard(
+      action: HomeProjectAction.createProject,
+      style: ProjectActionCardStyle.row,
+    );
+    const others = [
+      Expanded(
+        child: ProjectActionCard(
+          action: HomeProjectAction.importProject,
+          style: ProjectActionCardStyle.row,
+        ),
+      ),
+      SizedBox(width: _gap),
+      Expanded(
+        child: ProjectActionCard(
+          action: HomeProjectAction.databaseStatistics,
+          style: ProjectActionCardStyle.row,
+        ),
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < NahpuBreakpoints.compact) {
+          return const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              create,
+              SizedBox(height: _gap),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: others,
+                ),
+              ),
+            ],
+          );
+        }
+        return const IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(flex: 2, child: create),
+              SizedBox(width: _gap),
+              ...others,
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -227,6 +285,9 @@ class ProjectActionCard extends StatelessWidget {
           HomeProjectAction.createProject => const CreateProjectForm(),
           HomeProjectAction.importProject =>
             const ImportProjectScreen.newProject(),
+          HomeProjectAction.databaseStatistics => const StatisticFullScreen(
+            allProjects: true,
+          ),
         },
       ),
     );

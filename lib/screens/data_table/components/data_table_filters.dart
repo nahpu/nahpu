@@ -17,11 +17,17 @@ class DataTableFilterChips extends StatelessWidget {
     required this.onCleared,
     this.scope,
     this.onScopeRemoved,
+    this.projectLabel,
+    this.onProjectsRemoved,
   });
 
   /// Records picked elsewhere, such as from a statistics chart.
   final DataTableKeyScope? scope;
   final VoidCallback? onScopeRemoved;
+
+  /// The projects a search across projects is limited to, if any.
+  final String? projectLabel;
+  final VoidCallback? onProjectsRemoved;
   final Set<DataTableQuickFilter> selected;
   final List<DataTableFilterRule> rules;
   final List<DataTableColumn> columns;
@@ -35,6 +41,12 @@ class DataTableFilterChips extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (projectLabel case final projectLabel?)
+          DataTableActiveFilterChip(
+            key: const ValueKey('data-table-project-scope'),
+            label: projectLabel,
+            onDeleted: onProjectsRemoved ?? () {},
+          ),
         if (scope case final scope?)
           DataTableActiveFilterChip(
             label: '${scope.label} (${scope.keys.length})',
