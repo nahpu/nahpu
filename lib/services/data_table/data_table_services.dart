@@ -2,6 +2,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
 import 'package:nahpu/services/export/collecting_records.dart';
 import 'package:nahpu/services/export/narrative_writer.dart';
@@ -28,13 +29,23 @@ class DataTableService extends AppServices {
     DataTableQuery query, {
     SpecimenRecordType specimenType = SpecimenRecordType.allTaxa,
   }) async {
-    final header = _header(type, specimenType);
+    final projectUuid = query.allProjects ? null : currentProjectUuid;
+    // Bat columns only when a mammal in scope has bat data.
+    final includeBatFields =
+        type == DataTableRecordType.specimenRecords &&
+        (specimenType == SpecimenRecordType.mammals ||
+            specimenType == SpecimenRecordType.allTaxa) &&
+        await SpecimenQuery(dbAccess).hasBatMeasurements(
+          projectUuid: projectUuid,
+          projectUuids: query.projectUuids,
+        );
+    final header = _header(type, specimenType, includeBatFields);
     final columns = dataTableColumnsFromHeader(header);
     final pageQuery = DataTablePageQuery(dbAccess);
     final keys = await pageQuery.run(
       type,
       query,
-      projectUuid: query.allProjects ? null : currentProjectUuid,
+      projectUuid: projectUuid,
       taxa: specimenType,
     );
     final editable = [
@@ -45,7 +56,12 @@ class DataTableService extends AppServices {
     final media = await pageQuery.mediaFiles(type, keys.keys);
     final rows = <DataTableRecordRow>[];
     for (final key in keys.keys) {
-      final values = await _rowValues(type, key, specimenType);
+      final values = await _rowValues(
+        type,
+        key,
+        specimenType,
+        includeBatFields,
+      );
       rows.add(
         DataTableRecordRow(
           key: key,
@@ -70,22 +86,27 @@ class DataTableService extends AppServices {
     );
   }
 
-  List<String> _header(DataTableRecordType type, SpecimenRecordType taxa) =>
-      switch (type) {
-        DataTableRecordType.specimenRecords => SpecimenRecordWriter(
-          ref: ref,
-          recordType: taxa,
-        ).header,
-        DataTableRecordType.specimenParts => SpecimenPartWriter.header,
-        DataTableRecordType.sites => SiteWriterServices.header,
-        DataTableRecordType.events => CollEventRecordWriter.header,
-        DataTableRecordType.narrative => narrativeExportList,
-      };
+  List<String> _header(
+    DataTableRecordType type,
+    SpecimenRecordType taxa,
+    bool includeBatFields,
+  ) => switch (type) {
+    DataTableRecordType.specimenRecords => SpecimenRecordWriter(
+      ref: ref,
+      recordType: taxa,
+      includeBatFields: includeBatFields,
+    ).header,
+    DataTableRecordType.specimenParts => SpecimenPartWriter.header,
+    DataTableRecordType.sites => SiteWriterServices.header,
+    DataTableRecordType.events => CollEventRecordWriter.header,
+    DataTableRecordType.narrative => narrativeExportList,
+  };
 
   Future<List<String>> _rowValues(
     DataTableRecordType type,
     Object key,
     SpecimenRecordType taxa,
+    bool includeBatFields,
   ) async {
     switch (type) {
       case DataTableRecordType.specimenRecords:
@@ -95,6 +116,7 @@ class DataTableService extends AppServices {
         final rows = await SpecimenRecordWriter(
           ref: ref,
           recordType: taxa,
+          includeBatFields: includeBatFields,
         ).getRowsForSpecimen(specimen);
         return rows.isEmpty ? const [] : rows.first;
       case DataTableRecordType.specimenParts:

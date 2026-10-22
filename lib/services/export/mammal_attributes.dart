@@ -1,4 +1,5 @@
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/mammals.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -10,11 +11,13 @@ class MammalAttributes extends AppServices {
   MammalAttributes({
     required super.ref,
     required this.specimenUuid,
-    required this.isBatRecord,
+    required this.includeBatFields,
   });
 
   final String specimenUuid;
-  final bool isBatRecord;
+
+  /// Adds the bat measurements, in [batAttributeExportList] order.
+  final bool includeBatFields;
   late MammalAttributeData data;
 
   Future<List<String>> getAttributes() async {
@@ -29,7 +32,7 @@ class MammalAttributes extends AppServices {
       data.earLength?.truncateZero() ?? '',
     ];
 
-    List<String> batMeasurements = isBatRecord
+    List<String> batMeasurements = includeBatFields
         ? [
             data.forearm?.truncateZero() ?? '',
             data.tibia?.truncateZero() ?? '',

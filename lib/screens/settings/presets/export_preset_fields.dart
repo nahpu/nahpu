@@ -631,9 +631,7 @@ Map<String, List<String>> _availableFieldGroups(
         'fossilAttribute',
         'specimenPart',
       };
-      if (specimenRecordType == SpecimenRecordType.generalMammals ||
-          specimenRecordType == SpecimenRecordType.bats ||
-          specimenRecordType == SpecimenRecordType.allMammals) {
+      if (specimenRecordType == SpecimenRecordType.mammals) {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
         allowedTables.remove('invertebrateAttribute');
@@ -706,9 +704,7 @@ bool _matchesSpecimenRecordType(
   }
   return switch (recordType) {
     SpecimenRecordType.birds => catalog == CatalogFmt.ornithology,
-    SpecimenRecordType.generalMammals ||
-    SpecimenRecordType.bats ||
-    SpecimenRecordType.allMammals => catalog == CatalogFmt.mammalogy,
+    SpecimenRecordType.mammals => catalog == CatalogFmt.mammalogy,
     SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
     SpecimenRecordType.invertebrates =>
       catalog == CatalogFmt.invertebrateZoology,

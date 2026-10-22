@@ -10,6 +10,7 @@ import 'package:nahpu/services/database/taxonomy_queries.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -227,16 +228,8 @@ class SpecimenServices extends AppServices {
     return await SpecimenQuery(dbAccess).getSpecimenMediaByMediaId(mediaId);
   }
 
-  Future<List<SpecimenData>> getMammalSpecimens() async {
-    return SpecimenQuery(dbAccess).getAllMammalSpecimens(currentProjectUuid);
-  }
-
   Future<List<SpecimenData>> getBirdSpecimens() async {
     return SpecimenQuery(dbAccess).getAllAvianSpecimens(currentProjectUuid);
-  }
-
-  Future<List<SpecimenData>> getBatSpecimens() async {
-    return SpecimenQuery(dbAccess).getAllBatSpecimens(currentProjectUuid);
   }
 
   Future<List<SpecimenData>> getSpecimenList() async {
@@ -257,26 +250,16 @@ class SpecimenServices extends AppServices {
     return allSpecimens;
   }
 
-  Future<List<SpecimenData>> getSpecimenListByTaxonGroup(
-    String taxonGroup,
+  /// The project's specimens of [recordType]; every specimen for all taxa.
+  Future<List<SpecimenData>> getSpecimenListByRecordType(
+    SpecimenRecordType recordType,
   ) async {
-    List<SpecimenData> specimenList = await getSpecimenList();
-    List<SpecimenData> filteredList = specimenList
-        .where((element) => element.taxonGroup == taxonGroup)
+    final specimenList = await getSpecimenList();
+    final groups = taxonGroupsForRecordType(recordType);
+    if (groups.isEmpty) return specimenList;
+    return specimenList
+        .where((element) => groups.contains(element.taxonGroup))
         .toList();
-    return filteredList;
-  }
-
-  Future<List<SpecimenData>> getSpecimenListForAllMammals() async {
-    List<SpecimenData> specimenList = await getSpecimenList();
-    List<SpecimenData> filteredList = specimenList
-        .where(
-          (element) =>
-              element.taxonGroup == 'General Mammals' ||
-              element.taxonGroup == 'Bats',
-        )
-        .toList();
-    return filteredList;
   }
 
   Future<List<int?>> getAllSpecies() {

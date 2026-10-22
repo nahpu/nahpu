@@ -92,9 +92,7 @@ extension DataTableSpecimenRecordTypeLabel on SpecimenRecordType {
   String get dataTableLabel => switch (this) {
     SpecimenRecordType.allTaxa => 'All taxa',
     SpecimenRecordType.birds => 'Birds',
-    SpecimenRecordType.generalMammals => 'Mammals without bats',
-    SpecimenRecordType.bats => 'Bats',
-    SpecimenRecordType.allMammals => 'All mammals',
+    SpecimenRecordType.mammals => 'Mammals',
     SpecimenRecordType.herpetofauna => 'Herpetofauna',
     SpecimenRecordType.invertebrates => 'Invertebrates',
     SpecimenRecordType.fishes => 'Fishes',
@@ -106,9 +104,7 @@ extension DataTableSpecimenRecordTypeLabel on SpecimenRecordType {
 CatalogFmt? dataTableCatalogFmt(SpecimenRecordType type) => switch (type) {
   SpecimenRecordType.allTaxa => null,
   SpecimenRecordType.birds => CatalogFmt.ornithology,
-  SpecimenRecordType.generalMammals ||
-  SpecimenRecordType.bats ||
-  SpecimenRecordType.allMammals => CatalogFmt.mammalogy,
+  SpecimenRecordType.mammals => CatalogFmt.mammalogy,
   SpecimenRecordType.herpetofauna => CatalogFmt.herpetology,
   SpecimenRecordType.invertebrates => CatalogFmt.invertebrateZoology,
   SpecimenRecordType.fishes => CatalogFmt.ichthyology,

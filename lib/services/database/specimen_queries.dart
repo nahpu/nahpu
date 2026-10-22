@@ -270,18 +270,37 @@ class SpecimenQuery extends DatabaseAccessor<Database>
         .get();
   }
 
-  Future<List<SpecimenData>> getAllMammalSpecimens(String projectUuid) {
-    return (select(specimen)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..where((t) => t.taxonGroup.equals('Non-Bat Mammals')))
-        .get();
-  }
-
-  Future<List<SpecimenData>> getAllBatSpecimens(String projectUuid) {
-    return (select(specimen)
-          ..where((t) => t.projectUuid.equals(projectUuid))
-          ..where((t) => t.taxonGroup.equals('Bats')))
-        .get();
+  /// Whether any mammal in scope has bat fields shown or a bat measurement
+  /// recorded, so exports know to include the bat columns.
+  ///
+  /// Scope is [projectUuid], or else the [projectUuids], or else every
+  /// project.
+  Future<bool> hasBatMeasurements({
+    String? projectUuid,
+    Set<String> projectUuids = const {},
+  }) async {
+    final scope = projectUuid != null ? {projectUuid} : projectUuids;
+    final placeholders = List.filled(scope.length, '?').join(', ');
+    final row = await customSelect(
+      '''
+        SELECT EXISTS (
+          SELECT 1 FROM mammalAttribute ma
+          JOIN specimen s ON s.uuid = ma.specimenUuid
+          WHERE ${scope.isEmpty ? '1' : 's.projectUuid IN ($placeholders)'}
+            AND (ma.showBatFields = 1
+              OR ma.forearm IS NOT NULL
+              OR ma.tibia IS NOT NULL
+              OR ma.echolocation IS NOT NULL
+              OR ma.frequencyMax IS NOT NULL
+              OR ma.frequencyMin IS NOT NULL
+              OR ma.frequencyAtMaxEnergy IS NOT NULL
+              OR ma.duration IS NOT NULL)
+        ) AS has_bat
+      ''',
+      variables: [for (final uuid in scope) Variable(uuid)],
+      readsFrom: {specimen, mammalAttribute},
+    ).getSingle();
+    return row.read<int>('has_bat') == 1;
   }
 
   Future<List<int?>> getAllSpecies(String uuid) {

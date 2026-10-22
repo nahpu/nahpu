@@ -269,7 +269,7 @@ class DwcBundleWriter extends AppServices {
     BundleArchiveFormat archiveFormat,
     Set<String> requestedGroups,
   ) async {
-    final selectedGroups = _expandTaxonSelection(requestedGroups);
+    final selectedGroups = _normalizeTaxonSelection(requestedGroups);
     final project = await ProjectServices(
       ref: ref,
     ).getProjectByUuid(currentProjectUuid);
@@ -1510,10 +1510,8 @@ class DwcBundleWriter extends AppServices {
     return 'Text';
   }
 
-  Set<String> _expandTaxonSelection(Set<String> selectedGroups) {
-    final normalized = selectedGroups.map(normalizeBundleTaxonGroup).toSet();
-    if (normalized.contains('Mammals')) normalized.add('Bats');
-    return normalized;
+  Set<String> _normalizeTaxonSelection(Set<String> selectedGroups) {
+    return selectedGroups.map(normalizeBundleTaxonGroup).toSet();
   }
 
   Future<String> _eventId(CollEventData event) async {
@@ -1873,8 +1871,12 @@ String normalizeBundleTaxonGroup(String? value) {
     RegExp(r'[^a-z]'),
     '',
   );
-  if (normalized == 'bat' || normalized == 'bats') return 'Bats';
-  if (normalized.contains('mammal')) return 'Mammals';
+  // `Bats` is a legacy label; bats are mammals with bat fields shown.
+  if (normalized.contains('mammal') ||
+      normalized == 'bat' ||
+      normalized == 'bats') {
+    return 'Mammals';
+  }
   if (normalized.contains('bird') ||
       normalized.contains('avian') ||
       normalized == 'aves') {

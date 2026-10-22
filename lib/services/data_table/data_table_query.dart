@@ -458,11 +458,7 @@ class DataTablePageQuery {
   List<String> _taxonGroups(DataTableRecordType type, SpecimenRecordType taxa) {
     if (type != DataTableRecordType.specimenRecords) return const [];
     // Same groups the specimen record export selects.
-    return switch (taxa) {
-      SpecimenRecordType.allTaxa => const [],
-      SpecimenRecordType.allMammals => const ['General Mammals', 'Bats'],
-      _ => [matchRecordTypeToTaxonGroup(taxa)],
-    };
+    return taxonGroupsForRecordType(taxa).toList();
   }
 }
 

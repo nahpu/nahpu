@@ -14,7 +14,6 @@ import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
     show formatTemplateText, truncateTrailingDecimalZeroText;
 import 'package:nahpu/src/rust/api/export.dart';
@@ -150,18 +149,10 @@ class PresetRecordExporter {
     }
   }
 
-  Future<List<SpecimenData>> _specimens() async {
-    final service = SpecimenServices(ref: ref);
-    switch (preset.specimenRecordType) {
-      case SpecimenRecordType.allTaxa:
-        return service.getSpecimenList();
-      case SpecimenRecordType.allMammals:
-        return service.getSpecimenListForAllMammals();
-      default:
-        return service.getSpecimenListByTaxonGroup(
-          matchRecordTypeToTaxonGroup(preset.specimenRecordType),
-        );
-    }
+  Future<List<SpecimenData>> _specimens() {
+    return SpecimenServices(
+      ref: ref,
+    ).getSpecimenListByRecordType(preset.specimenRecordType);
   }
 
   PresetExportPreviewData _darwinCorePreviewData(

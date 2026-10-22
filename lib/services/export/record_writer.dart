@@ -26,10 +26,15 @@ class SpecimenRecordWriter {
     this.concatenateMultiEntry = true,
     this.useFieldNamesOnly = false,
     this.selectedColumns,
+    this.includeBatFields = false,
   });
 
   final WidgetRef ref;
   final SpecimenRecordType recordType;
+
+  /// Adds the bat measurement columns for mammals. Set it only when a mammal
+  /// in the export has bat data, from [SpecimenQuery.hasBatMeasurements].
+  final bool includeBatFields;
   final bool isAllFields;
   final bool concatenateMultiEntry;
   final bool useFieldNamesOnly;
@@ -147,16 +152,15 @@ class SpecimenRecordWriter {
     return await service.getRecord(data);
   }
 
+  List<String> get _mammalHeader =>
+      includeBatFields ? batAttributeExportList : mammalAttributeExportList;
+
   List<String> _getAttributeHeader() {
     switch (recordType) {
-      case SpecimenRecordType.generalMammals:
-        return mammalAttributeExportList;
+      case SpecimenRecordType.mammals:
+        return _mammalHeader;
       case SpecimenRecordType.birds:
         return birdAttributeExportList;
-      case SpecimenRecordType.bats:
-        return batAttributeExportList;
-      case SpecimenRecordType.allMammals:
-        return batAttributeExportList;
       case SpecimenRecordType.herpetofauna:
         return herpAttributeExportList;
       case SpecimenRecordType.invertebrates:
@@ -165,9 +169,8 @@ class SpecimenRecordWriter {
         return fishAttributeExportList;
       case SpecimenRecordType.allTaxa:
         return <String>{
-          ...mammalAttributeExportList,
+          ..._mammalHeader,
           ...birdAttributeExportList,
-          ...batAttributeExportList,
           ...herpAttributeExportList,
           ...invertebrateAttributeExportList,
           ...fishAttributeExportList,
@@ -176,17 +179,8 @@ class SpecimenRecordWriter {
     }
   }
 
-  Future<List<SpecimenData>> _getSpecimenListByTaxonGroup() async {
-    final service = SpecimenServices(ref: ref);
-
-    if (recordType == SpecimenRecordType.allMammals) {
-      return await service.getSpecimenListForAllMammals();
-    } else if (recordType == SpecimenRecordType.allTaxa) {
-      return await service.getSpecimenList();
-    }
-
-    String taxonGroup = matchRecordTypeToTaxonGroup(recordType);
-    return await service.getSpecimenListByTaxonGroup(taxonGroup);
+  Future<List<SpecimenData>> _getSpecimenListByTaxonGroup() {
+    return SpecimenServices(ref: ref).getSpecimenListByRecordType(recordType);
   }
 
   Future<List<String>> _getCollEventSiteDetails(int? collEventId) async {
@@ -218,11 +212,10 @@ class SpecimenRecordWriter {
       };
       return combinedHeader.map((key) => mapped[key] ?? '').toList();
     }
-    // Mixed exports read each specimen's own attributes, then line them up
-    // under the combined header.
+    // An all-taxa export reads each specimen's own attributes, then lines
+    // them up under the combined header.
     SpecimenRecordType currentType = recordType;
-    if (recordType == SpecimenRecordType.allTaxa ||
-        recordType == SpecimenRecordType.allMammals) {
+    if (recordType == SpecimenRecordType.allTaxa) {
       currentType = matchTaxonGroupToRecordType(data.taxonGroup ?? '');
     }
 
@@ -230,18 +223,13 @@ class SpecimenRecordWriter {
     List<String> keys;
 
     switch (currentType) {
-      case SpecimenRecordType.generalMammals:
-      case SpecimenRecordType.allMammals:
-        keys = mammalAttributeExportList;
-        values = await _getMammalAttributes(data.uuid, false);
+      case SpecimenRecordType.mammals:
+        keys = _mammalHeader;
+        values = await _getMammalAttributes(data.uuid);
         break;
       case SpecimenRecordType.birds:
         keys = birdAttributeExportList;
         values = await _getBirdAttributes(data.uuid);
-        break;
-      case SpecimenRecordType.bats:
-        keys = batAttributeExportList;
-        values = await _getMammalAttributes(data.uuid, true);
         break;
       case SpecimenRecordType.herpetofauna:
         keys = herpAttributeExportList;
@@ -274,14 +262,11 @@ class SpecimenRecordWriter {
     ).getAttributes();
   }
 
-  Future<List<String>> _getMammalAttributes(
-    String specimenUuid,
-    bool isBatRecord,
-  ) async {
+  Future<List<String>> _getMammalAttributes(String specimenUuid) async {
     MammalAttributes mammals = MammalAttributes(
       specimenUuid: specimenUuid,
       ref: ref,
-      isBatRecord: isBatRecord,
+      includeBatFields: includeBatFields,
     );
     return await mammals.getAttributes();
   }
@@ -321,8 +306,8 @@ class SpecimenRecordWriter {
 /// [values], read in the order of [keys], placed under [header]: fields the
 /// header has but [keys] lacks stay empty.
 ///
-/// The all-mammals export, for one, lists bat fields that a non-bat mammal
-/// has no values for, so its values cannot be written in read order.
+/// An all-taxa export, for one, lists every group's fields while a specimen
+/// has values for its own group only.
 List<String> alignAttributeValues(
   List<String> header,
   List<String> keys,

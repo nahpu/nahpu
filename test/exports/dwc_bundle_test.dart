@@ -26,7 +26,7 @@ void main() {
     expect(normalizeBundleTaxonGroup('Avians'), 'Birds');
     expect(normalizeBundleTaxonGroup('General Mammals'), 'Mammals');
     expect(normalizeBundleTaxonGroup('Non-Bat Mammals'), 'Mammals');
-    expect(normalizeBundleTaxonGroup('Bats'), 'Bats');
+    expect(normalizeBundleTaxonGroup('Bats'), 'Mammals');
     expect(normalizeBundleTaxonGroup('Herpetofauna'), 'Herpetofauna');
     expect(normalizeBundleTaxonGroup('Fishes'), 'Fishes');
     expect(normalizeBundleTaxonGroup('Ichthyology'), 'Fishes');
@@ -472,14 +472,14 @@ void main() {
     tester,
   ) async {
     var mode = BundleTaxonSelectionMode.all;
-    var selected = <String>{'Birds', 'Mammals', 'Bats'};
+    var selected = <String>{'Birds', 'Mammals'};
 
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: StatefulBuilder(
             builder: (context, setState) => BundleTaxonSelectionCard(
-              availableTaxonGroups: const {'Birds', 'Mammals', 'Bats'},
+              availableTaxonGroups: const {'Birds', 'Mammals'},
               selectedTaxonGroups: selected,
               selectionMode: mode,
               isLoading: false,
@@ -497,13 +497,10 @@ void main() {
     await tester.pump();
 
     expect(mode, BundleTaxonSelectionMode.selected);
-    expect(selected, isNot(contains('Birds')));
-    expect(selected, containsAll(<String>{'Mammals', 'Bats'}));
-    final batsTile = tester.widget<CheckboxListTile>(
-      find.widgetWithText(CheckboxListTile, 'Bats'),
-    );
-    expect(batsTile.value, isTrue);
-    expect(batsTile.onChanged, isNull);
+    expect(selected, {'Mammals'});
+    // Bats are mammals, so there is no separate choice for them.
+    expect(find.textContaining('Bats'), findsNothing);
+    expect(find.textContaining('includes bats'), findsNothing);
   });
 
   testWidgets('only files with fields show an expansion control', (

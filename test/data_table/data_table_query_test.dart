@@ -3,6 +3,7 @@ import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_format.dart';
 
@@ -377,6 +378,38 @@ void main() {
         'specimen::extraNote',
       ],
     );
+  });
+
+  test('mammals include the legacy General Mammals and Bats labels', () async {
+    await db.customStatement(
+      "UPDATE specimen SET taxonGroup = 'Mammals' WHERE uuid = 's3'",
+    );
+    await db.customStatement(
+      'INSERT INTO specimen (uuid, projectUuid, taxonGroup) '
+      "VALUES ('bat', 'p1', 'Bats')",
+    );
+    final page = await specimens(
+      const DataTableQuery(),
+      taxa: SpecimenRecordType.mammals,
+    );
+    expect(page.keys.toSet(), {'s1', 's3', 'bat'});
+  });
+
+  test('bat measurements are found only where recorded', () async {
+    final query = SpecimenQuery(db);
+    expect(await query.hasBatMeasurements(projectUuid: 'p1'), isFalse);
+
+    await db.customStatement(
+      "UPDATE mammalAttribute SET forearm = 41.5 WHERE specimenUuid = 's1'",
+    );
+    expect(await query.hasBatMeasurements(projectUuid: 'p1'), isTrue);
+    expect(await query.hasBatMeasurements(projectUuids: {'p2'}), isFalse);
+    expect(await query.hasBatMeasurements(), isTrue);
+
+    await db.customStatement(
+      'UPDATE mammalAttribute SET forearm = NULL, showBatFields = 1',
+    );
+    expect(await query.hasBatMeasurements(projectUuid: 'p1'), isTrue);
   });
 
   test('project scope labels name up to two projects', () {

@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
 import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
+import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
@@ -515,7 +516,7 @@ class _PresetSettingsCard extends StatelessWidget {
                       .map(
                         (type) => DropdownMenuItem(
                           value: type,
-                          child: Text(type.name),
+                          child: Text(type.dataTableLabel),
                         ),
                       )
                       .toList(growable: false),

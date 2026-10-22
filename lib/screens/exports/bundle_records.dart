@@ -674,33 +674,19 @@ class BundleTaxonSelectionCard extends StatelessWidget {
               )
             else
               ...availableTaxonGroups.map((group) {
-                final isRequiredBat =
-                    group == 'Bats' && selectedTaxonGroups.contains('Mammals');
                 return CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
-                  value: isRequiredBat || selectedTaxonGroups.contains(group),
-                  title: Text(
-                    group == 'Mammals' ? 'Mammals (includes bats)' : group,
-                  ),
-                  subtitle: group == 'Mammals'
-                      ? const Text('Bats are always included with mammals.')
-                      : isRequiredBat
-                      ? const Text('Included with mammals.')
-                      : null,
-                  onChanged: isRequiredBat
-                      ? null
-                      : (selected) {
-                          final next = selectedTaxonGroups.toSet();
-                          if (selected == true) {
-                            next.add(group);
-                          } else {
-                            next.remove(group);
-                          }
-                          if (group == 'Mammals' && selected == true) {
-                            next.add('Bats');
-                          }
-                          onChanged(next);
-                        },
+                  value: selectedTaxonGroups.contains(group),
+                  title: Text(group),
+                  onChanged: (selected) {
+                    final next = selectedTaxonGroups.toSet();
+                    if (selected == true) {
+                      next.add(group);
+                    } else {
+                      next.remove(group);
+                    }
+                    onChanged(next);
+                  },
                 );
               }),
           ],

@@ -308,7 +308,8 @@ CatalogFmt matchTaxonGroupToCatFmt(String? taxonGroup) {
   switch (taxonGroup) {
     case 'Birds':
       return CatalogFmt.ornithology;
-    case 'General Mammals':
+    // 'General Mammals', 'Bats', and 'Non-Bat Mammals' are legacy labels
+    // and fall through to mammalogy with everything unrecognized.
     case 'Mammals':
       return CatalogFmt.mammalogy;
     case 'Herpetofauna':
@@ -330,7 +331,7 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
     case CatalogFmt.ornithology:
       return SpecimenRecordType.birds;
     case CatalogFmt.mammalogy:
-      return SpecimenRecordType.generalMammals;
+      return SpecimenRecordType.mammals;
     case CatalogFmt.herpetology:
       return SpecimenRecordType.herpetofauna;
     case CatalogFmt.invertebrateZoology:
@@ -340,34 +341,33 @@ SpecimenRecordType matchCatalogFmtToRecordType(CatalogFmt catalogFmt) {
   }
 }
 
-String matchRecordTypeToTaxonGroup(SpecimenRecordType recordType) {
-  switch (recordType) {
-    case SpecimenRecordType.birds:
-      return 'Birds';
-    case SpecimenRecordType.generalMammals:
-      return 'General Mammals';
-    case SpecimenRecordType.bats:
-      return 'Bats';
-    case SpecimenRecordType.herpetofauna:
-      return 'Herpetofauna';
-    case SpecimenRecordType.invertebrates:
-      return 'Invertebrates';
-    case SpecimenRecordType.fishes:
-      return 'Fishes';
-    default:
-      throw Exception('Invalid record type');
-  }
-}
+/// Every `specimen.taxonGroup` label stored for mammals.
+///
+/// New records store `Mammals`. `General Mammals`, `Bats`, and
+/// `Non-Bat Mammals` are legacy labels from when bats had their own group;
+/// they are read as mammals and never written.
+const Set<String> mammalTaxonGroups = {
+  'Mammals',
+  'General Mammals',
+  'Bats',
+  'Non-Bat Mammals',
+};
+
+/// The stored taxon group labels [recordType] selects; empty for all taxa.
+Set<String> taxonGroupsForRecordType(SpecimenRecordType recordType) =>
+    switch (recordType) {
+      SpecimenRecordType.birds => const {'Birds'},
+      SpecimenRecordType.mammals => mammalTaxonGroups,
+      SpecimenRecordType.herpetofauna => const {'Herpetofauna'},
+      SpecimenRecordType.invertebrates => const {'Invertebrates'},
+      SpecimenRecordType.fishes => const {'Fishes'},
+      SpecimenRecordType.allTaxa => const {},
+    };
 
 SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
   switch (taxonGroup) {
     case 'Birds':
       return SpecimenRecordType.birds;
-    case 'General Mammals':
-    case 'Mammals':
-      return SpecimenRecordType.generalMammals;
-    case 'Bats':
-      return SpecimenRecordType.bats;
     case 'Herpetofauna':
       return SpecimenRecordType.herpetofauna;
     case 'Invertebrates':
@@ -375,8 +375,9 @@ SpecimenRecordType matchTaxonGroupToRecordType(String taxonGroup) {
       return SpecimenRecordType.invertebrates;
     case 'Fishes':
       return SpecimenRecordType.fishes;
+    // Mammals, with their legacy labels, and anything unrecognized.
     default:
-      return SpecimenRecordType.generalMammals;
+      return SpecimenRecordType.mammals;
   }
 }
 
