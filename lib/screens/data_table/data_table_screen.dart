@@ -7,7 +7,7 @@ import 'package:nahpu/screens/data_table/components/data_table_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
 import 'package:nahpu/screens/data_table/components/data_table_export_dialog.dart';
 import 'package:nahpu/screens/data_table/components/data_table_filters.dart';
-import 'package:nahpu/screens/data_table/components/data_table_find_replace_bar.dart';
+import 'package:nahpu/screens/data_table/components/data_table_find_replace_panel.dart';
 import 'package:nahpu/screens/data_table/components/data_table_grid.dart';
 import 'package:nahpu/screens/data_table/components/data_table_link_dialogs.dart';
 import 'package:nahpu/screens/data_table/components/data_table_pagination.dart';
@@ -104,9 +104,16 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   /// for the last row after paging back.
   int? _focusRowAfterLoad;
 
-  /// What the find bar looks for; null while the bar is closed.
+  /// What the find panel looks for; null while the panel is closed.
   DataTableFindOptions? _find;
+
+  /// The last search, which the find panel reopens with.
+  DataTableFindOptions _lastFind = const DataTableFindOptions(text: '');
   bool _isReplacing = false;
+
+  /// Tells the open find panel that edit mode, the page, or a replace in
+  /// progress changed.
+  final _findTick = ValueNotifier<int>(0);
 
   /// Direction a find step was heading when it turned the page: the next
   /// page's first match (1) or the previous page's last (-1).
@@ -127,7 +134,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     _removeExitGuard = ref
         .read(appExitCoordinatorProvider)
         .addGuard(_resolveUnsaved);
-    // The find bar's count follows the focused cell and pending edits.
+    // Find highlights follow the focused cell and pending edits.
     _grid.addListener(_onFindStateChanged);
     _edits.addListener(_onFindStateChanged);
     _load();
@@ -137,6 +144,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   void dispose() {
     _grid.removeListener(_onFindStateChanged);
     _edits.removeListener(_onFindStateChanged);
+    _findTick.dispose();
     _searchDebounce?.cancel();
     _lifecycle.dispose();
     _removeExitGuard();
@@ -271,20 +279,6 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
                   ),
                 ),
               ),
-              if (_find != null && data != null)
-                DataTableFindReplaceBar(
-                  columns: columns,
-                  isEditMode: _isEditMode,
-                  matchCount: matches.length,
-                  currentMatch: _currentMatch(matches),
-                  isReplacing: _isReplacing,
-                  onChanged: _setFind,
-                  onPrevious: () => _findStep(-1),
-                  onNext: () => _findStep(1),
-                  onReplace: _replaceCurrent,
-                  onReplaceAll: _replaceAll,
-                  onClose: () => setState(() => _find = null),
-                ),
               SizedBox(
                 height: NahpuStroke.regular,
                 child: _isLoading ? const LinearProgressIndicator() : null,
@@ -542,6 +536,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
           _grid.focus.col,
         );
       }
+      _findTick.value++;
       final findDirection = _findAfterLoad;
       _findAfterLoad = null;
       if (findDirection != null) _continueFind(data, findDirection);
@@ -627,6 +622,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     if (!isEditMode && !await _resolveUnsaved()) return;
     _grid.endEdit();
     setState(() => _isEditMode = isEditMode);
+    _findTick.value++;
   }
 
   Future<void> _setAutoSave(bool value) async {
@@ -704,11 +700,50 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   }
 
   void _onMenuAction(DataTableMenuAction action) => switch (action) {
-    DataTableMenuAction.findReplace => setState(
-      () => _find ??= const DataTableFindOptions(text: ''),
-    ),
+    DataTableMenuAction.findReplace => _openFind(),
     DataTableMenuAction.export => _exportTable(),
   };
+
+  /// Opens find and replace over the table, which keeps its matches
+  /// highlighted until the panel closes.
+  Future<void> _openFind() async {
+    final data = _data;
+    if (data == null || _find != null) return;
+    setState(() => _find = _lastFind);
+    await showAdaptiveSheetDialog<void>(
+      context: context,
+      builder: (context, isSheet) => SafeArea(
+        top: false,
+        child: DataTableFindReplacePanel(
+          initial: _lastFind,
+          columns: _shown(data.columns),
+          listenable: Listenable.merge([_grid, _edits, _findTick]),
+          status: _findStatus,
+          showCloseButton: !isSheet,
+          onChanged: _setFind,
+          onPrevious: () => _findStep(-1),
+          onNext: () => _findStep(1),
+          onReplace: _replaceCurrent,
+          onReplaceAll: _replaceAll,
+          onEnableEditMode: () => _setEditMode(true),
+        ),
+      ),
+    );
+    if (mounted) setState(() => _find = null);
+  }
+
+  DataTableFindStatus _findStatus() {
+    final data = _data;
+    final matches = data == null
+        ? const <DataTableCellPos>[]
+        : _matchesIn(data, _shown(data.columns));
+    return DataTableFindStatus(
+      matchCount: matches.length,
+      currentMatch: _currentMatch(matches),
+      isEditMode: _isEditMode,
+      isReplacing: _isReplacing,
+    );
+  }
 
   void _onFindStateChanged() {
     if (_find == null || !mounted) return;
@@ -751,7 +786,8 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   /// Applies new find options and moves to the first match when the focused
   /// cell isn't one.
   void _setFind(DataTableFindOptions options) {
-    setState(() => _find = options);
+    setState(() => _find = _lastFind = options);
+    _findTick.value++;
     final data = _data;
     if (data == null) return;
     final matches = _matchesIn(data, _shown(data.columns));
@@ -842,6 +878,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     final find = _find;
     if (data == null || find == null || find.isEmpty || !_isEditMode) return;
     setState(() => _isReplacing = true);
+    _findTick.value++;
     final List<DataTableRecordRow> rows;
     try {
       rows = await ref.read(dataTableRawRowsLoaderProvider)(
@@ -855,7 +892,10 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       if (mounted) _showMessage('Couldn\'t read records to replace: $e');
       return;
     } finally {
-      if (mounted) setState(() => _isReplacing = false);
+      if (mounted) {
+        setState(() => _isReplacing = false);
+        _findTick.value++;
+      }
     }
     if (!mounted) return;
     final plan = planDataTableReplacements(

@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_edit_toolbar.dart';
-import 'package:nahpu/screens/data_table/components/data_table_find_replace_bar.dart';
+import 'package:nahpu/screens/data_table/components/data_table_find_replace_panel.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
@@ -597,30 +597,30 @@ void main() {
     await tester.tap(find.text('Find and replace'));
     await tester.pumpAndSettle();
 
-    final fields = find.descendant(
-      of: find.byType(DataTableFindReplaceBar),
-      matching: find.byType(TextField),
-    );
+    final panel = find.byType(DataTableFindReplacePanel);
+    expect(panel, findsOneWidget);
+    final fields = find.descendant(of: panel, matching: find.byType(TextField));
     await tester.enterText(fields.first, 'note');
     await tester.pumpAndSettle();
     expect(find.text('1 of 3'), findsOneWidget);
-    expect(
-      tester
-          .widget<TextButton>(find.widgetWithText(TextButton, 'Replace all'))
-          .onPressed,
-      isNull,
-    );
+    expect(find.text('Replace all'), findsNothing);
 
-    await enterEditMode(tester);
+    // Edit mode turns on from the panel; the table stays behind it.
+    await tester.tap(find.text('Turn on edit mode'));
+    await tester.pumpAndSettle();
     await tester.enterText(fields.last, 'memo');
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Replace all'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Replace all'));
     await tester.pumpAndSettle();
     expect(find.text('Replace all?'), findsOneWidget);
     expect(find.textContaining('4 values in 4 records'), findsOneWidget);
     await tester.tap(find.text('Replace').last);
     await tester.pumpAndSettle();
+    expect(find.text('memo 2'), findsOneWidget);
 
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(panel, findsNothing);
     expect(find.text('4 unsaved changes'), findsOneWidget);
     expect(find.text('memo 2'), findsOneWidget);
     expect(saves, isEmpty);
