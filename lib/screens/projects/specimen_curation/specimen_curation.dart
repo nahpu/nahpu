@@ -1,41 +1,41 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_box_card.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_camera_scanner.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_check_log.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_check_setup.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_scan_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_camera_scanner.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/providers/specimen_check.dart';
+import 'package:nahpu/services/providers/specimen_curation.dart';
 import 'package:nahpu/services/providers/specimens.dart';
-import 'package:nahpu/services/specimen_check/specimen_check_mode.dart';
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_service.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_session.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Checks specimens against the project by scanning. Tissue check fills a
-/// box: each scanned tube gets the chosen field value and the next cell as
-/// its storage location.
-class SpecimenCheckScreen extends ConsumerStatefulWidget {
-  const SpecimenCheckScreen({super.key, this.cameraAvailable});
+/// Curates specimens by scanning. Tissue mode fills a box: each scanned tube
+/// gets the chosen field value and the next cell as its storage location.
+class SpecimenCurationScreen extends ConsumerStatefulWidget {
+  const SpecimenCurationScreen({super.key, this.cameraAvailable});
 
   /// Overrides the platform check for the camera button. Used by tests.
   final bool? cameraAvailable;
 
   @override
-  ConsumerState<SpecimenCheckScreen> createState() =>
-      _SpecimenCheckScreenState();
+  ConsumerState<SpecimenCurationScreen> createState() =>
+      _SpecimenCurationScreenState();
 }
 
-class _SpecimenCheckScreenState extends ConsumerState<SpecimenCheckScreen> {
+class _SpecimenCurationScreenState
+    extends ConsumerState<SpecimenCurationScreen> {
   late final TissueCheckSession _session;
-  SpecimenCheckMode _mode = SpecimenCheckMode.tissue;
+  SpecimenCurationMode _mode = SpecimenCurationMode.tissue;
   TissueScanOutcome? _outcome;
   int _busyCount = 0;
 
@@ -86,7 +86,7 @@ class _SpecimenCheckScreenState extends ConsumerState<SpecimenCheckScreen> {
     final logCard = TissueCheckLogCard(entries: _session.entries);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen check')),
+      appBar: AppBar(title: const Text('Specimen curation')),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -108,9 +108,9 @@ class _SpecimenCheckScreenState extends ConsumerState<SpecimenCheckScreen> {
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: SegmentedButton<SpecimenCheckMode>(
+                        child: SegmentedButton<SpecimenCurationMode>(
                           segments: [
-                            for (final mode in SpecimenCheckMode.values)
+                            for (final mode in SpecimenCurationMode.values)
                               ButtonSegment(
                                 value: mode,
                                 label: Text(mode.label),
@@ -132,14 +132,14 @@ class _SpecimenCheckScreenState extends ConsumerState<SpecimenCheckScreen> {
                             const SizedBox(width: NahpuSpacing.xl),
                             Expanded(
                               flex: 20,
-                              child: SpecimenCheckColumn(
+                              child: SpecimenCurationColumn(
                                 children: [setupCard, scanCard, logCard],
                               ),
                             ),
                           ],
                         )
                       else
-                        SpecimenCheckColumn(
+                        SpecimenCurationColumn(
                           children: [boxCard, setupCard, scanCard, logCard],
                         ),
                     ],
@@ -237,8 +237,8 @@ class _SpecimenCheckScreenState extends ConsumerState<SpecimenCheckScreen> {
 }
 
 /// Stacks the tissue check cards with even spacing.
-class SpecimenCheckColumn extends StatelessWidget {
-  const SpecimenCheckColumn({super.key, required this.children});
+class SpecimenCurationColumn extends StatelessWidget {
+  const SpecimenCurationColumn({super.key, required this.children});
 
   final List<Widget> children;
 

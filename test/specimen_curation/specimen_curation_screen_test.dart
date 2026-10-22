@@ -3,13 +3,13 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_box_card.dart';
-import 'package:nahpu/screens/projects/specimen_check/specimen_check.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/specimen_curation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -64,7 +64,7 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: const MaterialApp(
-          home: SpecimenCheckScreen(cameraAvailable: false),
+          home: SpecimenCurationScreen(cameraAvailable: false),
         ),
       ),
     );
@@ -130,5 +130,23 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('tissue-scan-input')));
     await tester.pumpAndSettle();
     expect(scanFieldHasFocus(tester), isTrue);
+  });
+
+  testWidgets('phones stack numbering above fill order', (tester) async {
+    await pumpScreen(tester, size: const Size(420, 2400));
+    final numbering = tester.getTopLeft(find.text('Numbering'));
+    final fillOrder = tester.getTopLeft(find.text('Fill order'));
+    expect(fillOrder.dy, greaterThan(numbering.dy));
+    expect(fillOrder.dx, numbering.dx);
+  });
+
+  testWidgets('wider screens keep numbering and fill order on one row', (
+    tester,
+  ) async {
+    await pumpScreen(tester, size: const Size(1280, 1600));
+    final numbering = tester.getTopLeft(find.text('Numbering'));
+    final fillOrder = tester.getTopLeft(find.text('Fill order'));
+    expect(fillOrder.dy, numbering.dy);
+    expect(fillOrder.dx, greaterThan(numbering.dx));
   });
 }

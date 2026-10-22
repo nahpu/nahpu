@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Takes scanned codes. Keyboard-wedge scanners type into the field and end

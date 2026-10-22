@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:nahpu/screens/projects/specimen_check/components/tissue_scan_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Scans tubes with the camera until the user is done. Each code goes to

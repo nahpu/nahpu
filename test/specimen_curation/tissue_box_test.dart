@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 
 void main() {
   group('TissueBoxLayout', () {

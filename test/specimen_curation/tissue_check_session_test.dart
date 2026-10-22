@@ -2,10 +2,10 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/database/database.dart';
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_service.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_session.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 
 const _project = 'project-a';
 const _otherProject = 'project-b';

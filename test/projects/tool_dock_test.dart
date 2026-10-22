@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
-import 'package:nahpu/screens/projects/specimen_check/specimen_check.dart';
+import 'package:nahpu/screens/projects/specimen_curation/specimen_curation.dart';
 import 'package:nahpu/screens/settings/application/project_tool_settings.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/project_tools.dart';
@@ -36,10 +36,11 @@ void main() {
   }
 
   group('ProjectTool', () {
-    test('defaults to the data table and templates', () {
+    test('defaults to the data table, templates, and curation', () {
       expect(ProjectTool.decode(null), [
         ProjectTool.dataTable,
         ProjectTool.templates,
+        ProjectTool.specimenCuration,
       ]);
     });
 
@@ -64,11 +65,13 @@ void main() {
       await notifier.setEnabled(ProjectTool.templates, false);
       expect(container.read(projectToolsProvider), [
         ProjectTool.dataTable,
+        ProjectTool.specimenCuration,
         ProjectTool.backupDatabase,
       ]);
       final prefs = container.read(settingProvider);
       expect(prefs.getStringList(projectToolsPrefKey), [
         'dataTable',
+        'specimenCuration',
         'backupDatabase',
       ]);
 
@@ -78,20 +81,20 @@ void main() {
     });
   });
 
-  testWidgets('specimen check opens its screen', (tester) async {
+  testWidgets('specimen curation opens its screen', (tester) async {
     Widget? screen;
     await tester.pumpWidget(
       Builder(
         builder: (context) {
           screen = const ProjectToolScreen(
-            tool: ProjectTool.specimenCheck,
+            tool: ProjectTool.specimenCuration,
             projectUuid: 'project-a',
           ).build(context);
           return const SizedBox.shrink();
         },
       ),
     );
-    expect(screen, isA<SpecimenCheckScreen>());
+    expect(screen, isA<SpecimenCurationScreen>());
   });
 
   group('ToolDock', () {
@@ -101,9 +104,10 @@ void main() {
 
       expect(find.text('Data table'), findsOneWidget);
       expect(find.text('Templates'), findsOneWidget);
+      expect(find.text('Curation'), findsOneWidget);
       expect(find.text('Settings'), findsNothing);
-      // Only the divider before the edit launcher.
-      expect(find.byType(ToolDockDivider), findsOneWidget);
+      // Utilities | records | edit.
+      expect(find.byType(ToolDockDivider), findsNWidgets(2));
     });
 
     testWidgets('adds a divider between categories', (tester) async {
@@ -135,6 +139,7 @@ void main() {
       ProjectTool.dataTable,
       ProjectTool.templates,
       ProjectTool.mergeProject,
+      ProjectTool.specimenCuration,
     ]);
   });
 }

@@ -43,10 +43,10 @@ enum ProjectTool {
     'Batch import',
     'Import or update records from a spreadsheet',
   ),
-  specimenCheck(
+  specimenCuration(
     ProjectToolCategory.records,
-    'Specimen check',
-    'Check tissues into boxes by scanning',
+    'Curation',
+    'Specimen curation: scan tissues into storage boxes',
   ),
   bundleRecords(
     ProjectToolCategory.records,
@@ -90,10 +90,11 @@ enum ProjectTool {
   final String label;
   final String description;
 
-  /// The tools shown before the user edits the list.
+  /// The tools shown before the user edits the list, for every taxon group.
   static const List<ProjectTool> defaults = [
     ProjectTool.dataTable,
     ProjectTool.templates,
+    ProjectTool.specimenCuration,
   ];
 
   /// Reads a saved tool list. Null means never edited, so [defaults] apply.

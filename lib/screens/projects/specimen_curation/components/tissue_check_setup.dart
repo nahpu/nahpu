@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Which field a check writes, the value it writes, and the box layout.
@@ -119,62 +119,52 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               ),
             ),
             const SizedBox(height: NahpuSpacing.xl),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<TissueCellNumbering>(
-                    initialValue: layout.numbering,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Numbering'),
-                    items: [
-                      for (final numbering in TissueCellNumbering.values)
-                        DropdownMenuItem(
-                          value: numbering,
-                          child: Text(numbering.label),
-                        ),
-                    ],
-                    onChanged: (numbering) {
-                      if (numbering == null) return;
-                      widget.onChanged(
-                        settings.copyWith(
-                          layout: TissueBoxLayout(
-                            size: layout.size,
-                            numbering: numbering,
-                            fillOrder: layout.fillOrder,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: NahpuSpacing.md),
-                Expanded(
-                  child: DropdownButtonFormField<TissueFillOrder>(
-                    initialValue: layout.fillOrder,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Fill order'),
-                    items: [
-                      for (final order in TissueFillOrder.values)
-                        DropdownMenuItem(
-                          value: order,
-                          child: Text(order.label),
-                        ),
-                    ],
-                    onChanged: (order) {
-                      if (order == null) return;
-                      widget.onChanged(
-                        settings.copyWith(
-                          layout: TissueBoxLayout(
-                            size: layout.size,
-                            numbering: layout.numbering,
-                            fillOrder: order,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            TissueSetupPair(
+              first: DropdownButtonFormField<TissueCellNumbering>(
+                initialValue: layout.numbering,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Numbering'),
+                items: [
+                  for (final numbering in TissueCellNumbering.values)
+                    DropdownMenuItem(
+                      value: numbering,
+                      child: Text(numbering.label),
+                    ),
+                ],
+                onChanged: (numbering) {
+                  if (numbering == null) return;
+                  widget.onChanged(
+                    settings.copyWith(
+                      layout: TissueBoxLayout(
+                        size: layout.size,
+                        numbering: numbering,
+                        fillOrder: layout.fillOrder,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              second: DropdownButtonFormField<TissueFillOrder>(
+                initialValue: layout.fillOrder,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Fill order'),
+                items: [
+                  for (final order in TissueFillOrder.values)
+                    DropdownMenuItem(value: order, child: Text(order.label)),
+                ],
+                onChanged: (order) {
+                  if (order == null) return;
+                  widget.onChanged(
+                    settings.copyWith(
+                      layout: TissueBoxLayout(
+                        size: layout.size,
+                        numbering: layout.numbering,
+                        fillOrder: order,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: NahpuSpacing.xl),
             Row(
@@ -231,5 +221,35 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
 
   void _sync(TextEditingController controller, String text) {
     if (controller.text != text) controller.text = text;
+  }
+}
+
+/// Two setup fields side by side, stacked on small screens where each needs
+/// the full width.
+class TissueSetupPair extends StatelessWidget {
+  const TissueSetupPair({super.key, required this.first, required this.second});
+
+  final Widget first;
+  final Widget second;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.sizeOf(context).width < NahpuBreakpoints.compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          first,
+          const SizedBox(height: NahpuSpacing.xl),
+          second,
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: first),
+        const SizedBox(width: NahpuSpacing.md),
+        Expanded(child: second),
+      ],
+    );
   }
 }

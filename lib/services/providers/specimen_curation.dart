@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/settings.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 
 /// The tissue check setup, kept on this device.
 final tissueCheckSettingsProvider =

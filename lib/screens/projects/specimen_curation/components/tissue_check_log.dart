@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// The tubes checked in this session, newest first.

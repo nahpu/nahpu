@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// The tissue box being filled: its name, fill count, next cell, and grid.

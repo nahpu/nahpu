@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
-import 'package:nahpu/services/specimen_check/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 
 enum TissueMatchStatus { matched, notFound, ambiguous }
 

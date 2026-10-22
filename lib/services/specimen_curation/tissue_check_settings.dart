@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:nahpu/services/specimen_check/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 
 /// The specimen part field a tissue check writes.
 enum TissueCheckField {
