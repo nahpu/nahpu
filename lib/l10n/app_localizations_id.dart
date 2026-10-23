@@ -50,6 +50,112 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeSearchRecords => 'Cari catatan';
 
   @override
+  String get homeSearchReset => 'Atur ulang';
+
+  @override
+  String get homeSearchShowResults => 'Tampilkan hasil';
+
+  @override
+  String get homeSearchHint =>
+      'Nomor lapangan, takson, lokasi, atau nilai apa pun';
+
+  @override
+  String get homeSearchRecordType => 'Jenis catatan';
+
+  @override
+  String get homeSearchIn => 'Cari di';
+
+  @override
+  String get homeSearchAllFields => 'Semua bidang';
+
+  @override
+  String get homeSearchProjects => 'Proyek';
+
+  @override
+  String get homeSearchAllProjects => 'Semua proyek';
+
+  @override
+  String get homeSearchTaxa => 'Takson';
+
+  @override
+  String get homeSearchQuickFilters => 'Filter cepat';
+
+  @override
+  String homeProjectAccessed(String date) {
+    return 'Diakses: $date';
+  }
+
+  @override
+  String homeProjectCreated(String date) {
+    return 'Dibuat: $date';
+  }
+
+  @override
+  String get homeProjectActions => 'Tindakan proyek';
+
+  @override
+  String get homeProjectEditInfo => 'Sunting info';
+
+  @override
+  String get homeProjectShowQr => 'Tampilkan QR';
+
+  @override
+  String get homeProjectExportInfo => 'Ekspor info';
+
+  @override
+  String get homeProjectDetails => 'Detail';
+
+  @override
+  String get homeProjectInformation => 'Informasi proyek';
+
+  @override
+  String get homeProjectQrCode => 'Kode QR proyek';
+
+  @override
+  String get homeProjectQrDescription =>
+      'Pindai kode ini saat membuat proyek baru untuk mentransfer informasi proyek.';
+
+  @override
+  String aboutTitle(String appName) {
+    return 'Tentang $appName';
+  }
+
+  @override
+  String get aboutTagline =>
+      'Memikirkan ulang inventarisasi keanekaragaman hayati di era digital';
+
+  @override
+  String get aboutLicenses => 'Lisensi';
+
+  @override
+  String get aboutAppVersion => 'Versi aplikasi';
+
+  @override
+  String aboutVersionBuild(String version, String build) {
+    return 'v$version (build $build)';
+  }
+
+  @override
+  String get aboutCodename => 'Nama kode';
+
+  @override
+  String get aboutCodenameNote =>
+      'Dari uji lapangan nyata pertama NAHPU di Gunung Gede, Jawa Barat, Indonesia.';
+
+  @override
+  String get aboutDatabaseSchema => 'Skema basis data';
+
+  @override
+  String aboutSchemaSupported(String version) {
+    return 'Aplikasi mendukung v$version';
+  }
+
+  @override
+  String aboutDescription(String appName) {
+    return '$appName adalah aplikasi katalog digital lintas platform yang dirancang untuk pengumpulan dan pengelolaan data spesimen sejarah alam, yang memberikan wawasan saat pengumpulan.';
+  }
+
+  @override
   String get drawerCreateProject => 'Buat proyek';
 
   @override

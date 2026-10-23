@@ -183,13 +183,15 @@ class AppAbout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     final appVersion = ref
         .watch(packageInfoProvider)
         .when(
-          data: (info) => 'v${info.version} (build ${info.buildNumber})',
+          data: (info) =>
+              l10n.aboutVersionBuild(info.version, info.buildNumber),
           loading: () => null,
-          error: (error, stackTrace) => 'Unavailable',
+          error: (error, stackTrace) => l10n.commonUnavailable,
         );
     final schema = ref.watch(databaseSchemaVersionProvider);
     final schemaVersion = schema.asData?.value;
@@ -206,7 +208,7 @@ class AppAbout extends ConsumerWidget {
           ),
         ),
         AdaptiveSheetDialogBody(
-          title: 'About $appName',
+          title: l10n.aboutTitle(appName),
           showCloseButton: showCloseButton,
           actions: [
             TextButton(
@@ -216,7 +218,7 @@ class AppAbout extends ConsumerWidget {
                 applicationVersion: appVersion,
                 applicationIcon: const _AboutLogo(),
               ),
-              child: const Text('Licenses'),
+              child: Text(l10n.aboutLicenses),
             ),
           ],
           child: Column(
@@ -234,27 +236,28 @@ class AppAbout extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _AboutInfoRow(label: 'App version', value: appVersion),
-                    const Divider(height: NahpuSpacing.md),
-                    const _AboutInfoRow(
-                      label: 'Codename',
-                      value: versionName,
-                      note:
-                          'From NAHPU’s first real-world field test on '
-                          'Mt. Gede, West Java, Indonesia.',
+                    _AboutInfoRow(
+                      label: l10n.aboutAppVersion,
+                      value: appVersion,
                     ),
                     const Divider(height: NahpuSpacing.md),
                     _AboutInfoRow(
-                      label: 'Database schema',
+                      label: l10n.aboutCodename,
+                      value: versionName,
+                      note: l10n.aboutCodenameNote,
+                    ),
+                    const Divider(height: NahpuSpacing.md),
+                    _AboutInfoRow(
+                      label: l10n.aboutDatabaseSchema,
                       value: schema.hasError
-                          ? 'Unavailable'
+                          ? l10n.commonUnavailable
                           : schemaVersion == null
                           ? null
                           : 'v$schemaVersion',
                       note:
                           schemaVersion != null &&
                               schemaVersion != kSchemaVersion
-                          ? 'App supports v$kSchemaVersion'
+                          ? l10n.aboutSchemaSupported('$kSchemaVersion')
                           : null,
                       isNoteWarning: true,
                     ),
@@ -262,11 +265,7 @@ class AppAbout extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: NahpuSpacing.xl),
-              const Text(
-                '$appName is a cross-platform digital catalog app designed '
-                'for natural history specimen data collection and '
-                'management, providing insights at the point of collection.',
-              ),
+              Text(l10n.aboutDescription(appName)),
               // Leaves the lower ridges clear of the text.
               const SizedBox(height: NahpuSpacing.displayLarge),
             ],
@@ -300,7 +299,7 @@ class _AboutHeader extends StatelessWidget {
               ),
               const SizedBox(height: NahpuSpacing.xxs),
               Text(
-                'Rethinking biodiversity inventories in the digital age',
+                context.l10n.aboutTagline,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontFamily: 'Merriweather',
                   color: theme.colorScheme.onSurfaceVariant,

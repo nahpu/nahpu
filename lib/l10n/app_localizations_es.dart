@@ -51,6 +51,112 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeSearchRecords => 'Buscar registros';
 
   @override
+  String get homeSearchReset => 'Restablecer';
+
+  @override
+  String get homeSearchShowResults => 'Mostrar resultados';
+
+  @override
+  String get homeSearchHint =>
+      'Número de campo, taxón, sitio o cualquier valor';
+
+  @override
+  String get homeSearchRecordType => 'Tipo de registro';
+
+  @override
+  String get homeSearchIn => 'Buscar en';
+
+  @override
+  String get homeSearchAllFields => 'Todos los campos';
+
+  @override
+  String get homeSearchProjects => 'Proyectos';
+
+  @override
+  String get homeSearchAllProjects => 'Todos los proyectos';
+
+  @override
+  String get homeSearchTaxa => 'Taxones';
+
+  @override
+  String get homeSearchQuickFilters => 'Filtros rápidos';
+
+  @override
+  String homeProjectAccessed(String date) {
+    return 'Último acceso: $date';
+  }
+
+  @override
+  String homeProjectCreated(String date) {
+    return 'Creado: $date';
+  }
+
+  @override
+  String get homeProjectActions => 'Acciones del proyecto';
+
+  @override
+  String get homeProjectEditInfo => 'Editar información';
+
+  @override
+  String get homeProjectShowQr => 'Mostrar QR';
+
+  @override
+  String get homeProjectExportInfo => 'Exportar información';
+
+  @override
+  String get homeProjectDetails => 'Detalles';
+
+  @override
+  String get homeProjectInformation => 'Información del proyecto';
+
+  @override
+  String get homeProjectQrCode => 'Código QR del proyecto';
+
+  @override
+  String get homeProjectQrDescription =>
+      'Escanee este código al crear un proyecto nuevo para transferir la información del proyecto.';
+
+  @override
+  String aboutTitle(String appName) {
+    return 'Acerca de $appName';
+  }
+
+  @override
+  String get aboutTagline =>
+      'Repensando los inventarios de biodiversidad en la era digital';
+
+  @override
+  String get aboutLicenses => 'Licencias';
+
+  @override
+  String get aboutAppVersion => 'Versión de la aplicación';
+
+  @override
+  String aboutVersionBuild(String version, String build) {
+    return 'v$version (compilación $build)';
+  }
+
+  @override
+  String get aboutCodename => 'Nombre en clave';
+
+  @override
+  String get aboutCodenameNote =>
+      'De la primera prueba de campo real de NAHPU en el monte Gede, Java Occidental, Indonesia.';
+
+  @override
+  String get aboutDatabaseSchema => 'Esquema de la base de datos';
+
+  @override
+  String aboutSchemaSupported(String version) {
+    return 'La aplicación admite la v$version';
+  }
+
+  @override
+  String aboutDescription(String appName) {
+    return '$appName es una aplicación de catálogo digital multiplataforma diseñada para la recopilación y gestión de datos de especímenes de historia natural, que ofrece información en el momento de la recolección.';
+  }
+
+  @override
   String get drawerCreateProject => 'Crear proyecto';
 
   @override

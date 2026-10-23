@@ -7,7 +7,11 @@ import 'package:path/path.dart' as p;
 /// user-facing literals left, so later edits cannot slip English back in.
 final _localizedFiles = [
   p.join('lib', 'screens', 'home', 'home.dart'),
+  p.join('lib', 'screens', 'home', 'components', 'body.dart'),
   p.join('lib', 'screens', 'home', 'components', 'cookbook.dart'),
+  p.join('lib', 'screens', 'home', 'components', 'global_search.dart'),
+  p.join('lib', 'screens', 'home', 'components', 'menu_drawer.dart'),
+  p.join('lib', 'screens', 'home', 'components', 'project_actions.dart'),
   p.join(
     'lib',
     'screens',
@@ -26,6 +30,10 @@ final _literal = RegExp(
   r'''['"]([^'"]+)['"]''',
 );
 
+/// Interpolated code, such as `${l10n.title}` or `$count`, is not UI text.
+final _interpolation = RegExp(r'\$\{[^}]*\}|\$\w+');
+final _word = RegExp('[A-Za-z]{2,}');
+
 void main() {
   test('localized screens have no hard-coded UI text', () {
     for (final path in _localizedFiles) {
@@ -34,6 +42,7 @@ void main() {
           .allMatches(source)
           .map((match) => match[1]!)
           .where((text) => !_untranslatable.contains(text))
+          .where((text) => text.replaceAll(_interpolation, '').contains(_word))
           .toList();
       expect(literals, isEmpty, reason: path);
     }

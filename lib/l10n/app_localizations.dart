@@ -180,6 +180,186 @@ abstract class AppLocalizations {
   /// **'Search records'**
   String get homeSearchRecords;
 
+  /// No description provided for @homeSearchReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get homeSearchReset;
+
+  /// No description provided for @homeSearchShowResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Show results'**
+  String get homeSearchShowResults;
+
+  /// No description provided for @homeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Field number, taxon, site, or any value'**
+  String get homeSearchHint;
+
+  /// No description provided for @homeSearchRecordType.
+  ///
+  /// In en, this message translates to:
+  /// **'Record type'**
+  String get homeSearchRecordType;
+
+  /// No description provided for @homeSearchIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Search in'**
+  String get homeSearchIn;
+
+  /// No description provided for @homeSearchAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields'**
+  String get homeSearchAllFields;
+
+  /// No description provided for @homeSearchProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get homeSearchProjects;
+
+  /// No description provided for @homeSearchAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'All projects'**
+  String get homeSearchAllProjects;
+
+  /// No description provided for @homeSearchTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxa'**
+  String get homeSearchTaxa;
+
+  /// No description provided for @homeSearchQuickFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick filters'**
+  String get homeSearchQuickFilters;
+
+  /// No description provided for @homeProjectAccessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessed: {date}'**
+  String homeProjectAccessed(String date);
+
+  /// No description provided for @homeProjectCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created: {date}'**
+  String homeProjectCreated(String date);
+
+  /// No description provided for @homeProjectActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Project actions'**
+  String get homeProjectActions;
+
+  /// No description provided for @homeProjectEditInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit info'**
+  String get homeProjectEditInfo;
+
+  /// No description provided for @homeProjectShowQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR'**
+  String get homeProjectShowQr;
+
+  /// No description provided for @homeProjectExportInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Export info'**
+  String get homeProjectExportInfo;
+
+  /// No description provided for @homeProjectDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get homeProjectDetails;
+
+  /// No description provided for @homeProjectInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Project information'**
+  String get homeProjectInformation;
+
+  /// No description provided for @homeProjectQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Project QR code'**
+  String get homeProjectQrCode;
+
+  /// No description provided for @homeProjectQrDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this code when creating a new project to transfer project information.'**
+  String get homeProjectQrDescription;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About {appName}'**
+  String aboutTitle(String appName);
+
+  /// No description provided for @aboutTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Rethinking biodiversity inventories in the digital age'**
+  String get aboutTagline;
+
+  /// No description provided for @aboutLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Licenses'**
+  String get aboutLicenses;
+
+  /// No description provided for @aboutAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get aboutAppVersion;
+
+  /// No description provided for @aboutVersionBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'v{version} (build {build})'**
+  String aboutVersionBuild(String version, String build);
+
+  /// No description provided for @aboutCodename.
+  ///
+  /// In en, this message translates to:
+  /// **'Codename'**
+  String get aboutCodename;
+
+  /// No description provided for @aboutCodenameNote.
+  ///
+  /// In en, this message translates to:
+  /// **'From NAHPU’s first real-world field test on Mt. Gede, West Java, Indonesia.'**
+  String get aboutCodenameNote;
+
+  /// No description provided for @aboutDatabaseSchema.
+  ///
+  /// In en, this message translates to:
+  /// **'Database schema'**
+  String get aboutDatabaseSchema;
+
+  /// No description provided for @aboutSchemaSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'App supports v{version}'**
+  String aboutSchemaSupported(String version);
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{appName} is a cross-platform digital catalog app designed for natural history specimen data collection and management, providing insights at the point of collection.'**
+  String aboutDescription(String appName);
+
   /// No description provided for @drawerCreateProject.
   ///
   /// In en, this message translates to:

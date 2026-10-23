@@ -66,17 +66,18 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final projects = ref.watch(projectListProvider).asData?.value ?? const [];
     return AdaptiveSheetDialogBody(
       title: context.l10n.homeSearchRecords,
       showCloseButton: !widget.isSheet,
       actions: [
-        TextButton(onPressed: _reset, child: const Text('Reset')),
+        TextButton(onPressed: _reset, child: Text(l10n.homeSearchReset)),
         FilledButton.icon(
           key: const ValueKey('global-search-submit'),
           onPressed: _submit,
           icon: const Icon(Icons.table_view_outlined),
-          label: const Text('Show results'),
+          label: Text(l10n.homeSearchShowResults),
         ),
       ],
       child: Column(
@@ -88,14 +89,14 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
             autofocus: true,
             textInputAction: TextInputAction.search,
             onSubmitted: (_) => _submit(),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Field number, taxon, site, or any value',
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: l10n.homeSearchHint,
             ),
           ),
           const SizedBox(height: NahpuSpacing.lg),
           _SearchSection(
-            label: 'Record type',
+            label: l10n.homeSearchRecordType,
             child: Wrap(
               spacing: NahpuSpacing.xs,
               runSpacing: NahpuSpacing.xs,
@@ -110,13 +111,16 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
             ),
           ),
           _SearchSection(
-            label: 'Search in',
+            label: l10n.homeSearchIn,
             child: DropdownButtonFormField<String?>(
               key: ValueKey('global-search-in-${_type.name}'),
               initialValue: _searchField,
               isExpanded: true,
               items: [
-                const DropdownMenuItem(value: null, child: Text('All fields')),
+                DropdownMenuItem(
+                  value: null,
+                  child: Text(l10n.homeSearchAllFields),
+                ),
                 for (final key in dataTableSearchFieldKeys(_type))
                   DropdownMenuItem(
                     value: key,
@@ -128,13 +132,13 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
           ),
           if (projects.length > 1)
             _SearchSection(
-              label: 'Projects',
+              label: l10n.homeSearchProjects,
               child: Wrap(
                 spacing: NahpuSpacing.xs,
                 runSpacing: NahpuSpacing.xs,
                 children: [
                   FilterChip(
-                    label: const Text('All projects'),
+                    label: Text(l10n.homeSearchAllProjects),
                     selected: _projectUuids.isEmpty,
                     onSelected: (_) => setState(() => _projectUuids = const {}),
                   ),
@@ -149,7 +153,7 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
             ),
           if (_type == DataTableRecordType.specimenRecords)
             _SearchSection(
-              label: 'Taxa',
+              label: l10n.homeSearchTaxa,
               child: DropdownButtonFormField<SpecimenRecordType>(
                 initialValue: _specimenType,
                 isExpanded: true,
@@ -167,7 +171,7 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
             ),
           if (_typeQuickFilters.isNotEmpty)
             _SearchSection(
-              label: 'Quick filters',
+              label: l10n.homeSearchQuickFilters,
               child: Wrap(
                 spacing: NahpuSpacing.xs,
                 runSpacing: NahpuSpacing.xs,

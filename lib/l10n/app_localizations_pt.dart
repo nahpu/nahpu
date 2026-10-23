@@ -51,6 +51,112 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeSearchRecords => 'Pesquisar registros';
 
   @override
+  String get homeSearchReset => 'Redefinir';
+
+  @override
+  String get homeSearchShowResults => 'Mostrar resultados';
+
+  @override
+  String get homeSearchHint =>
+      'Número de campo, táxon, local ou qualquer valor';
+
+  @override
+  String get homeSearchRecordType => 'Tipo de registro';
+
+  @override
+  String get homeSearchIn => 'Pesquisar em';
+
+  @override
+  String get homeSearchAllFields => 'Todos os campos';
+
+  @override
+  String get homeSearchProjects => 'Projetos';
+
+  @override
+  String get homeSearchAllProjects => 'Todos os projetos';
+
+  @override
+  String get homeSearchTaxa => 'Táxons';
+
+  @override
+  String get homeSearchQuickFilters => 'Filtros rápidos';
+
+  @override
+  String homeProjectAccessed(String date) {
+    return 'Acessado em: $date';
+  }
+
+  @override
+  String homeProjectCreated(String date) {
+    return 'Criado em: $date';
+  }
+
+  @override
+  String get homeProjectActions => 'Ações do projeto';
+
+  @override
+  String get homeProjectEditInfo => 'Editar informações';
+
+  @override
+  String get homeProjectShowQr => 'Mostrar QR';
+
+  @override
+  String get homeProjectExportInfo => 'Exportar informações';
+
+  @override
+  String get homeProjectDetails => 'Detalhes';
+
+  @override
+  String get homeProjectInformation => 'Informações do projeto';
+
+  @override
+  String get homeProjectQrCode => 'Código QR do projeto';
+
+  @override
+  String get homeProjectQrDescription =>
+      'Leia este código ao criar um novo projeto para transferir as informações do projeto.';
+
+  @override
+  String aboutTitle(String appName) {
+    return 'Sobre o $appName';
+  }
+
+  @override
+  String get aboutTagline =>
+      'Repensando inventários de biodiversidade na era digital';
+
+  @override
+  String get aboutLicenses => 'Licenças';
+
+  @override
+  String get aboutAppVersion => 'Versão do aplicativo';
+
+  @override
+  String aboutVersionBuild(String version, String build) {
+    return 'v$version (compilação $build)';
+  }
+
+  @override
+  String get aboutCodename => 'Codinome';
+
+  @override
+  String get aboutCodenameNote =>
+      'Do primeiro teste de campo real do NAHPU no Monte Gede, Java Ocidental, Indonésia.';
+
+  @override
+  String get aboutDatabaseSchema => 'Esquema do banco de dados';
+
+  @override
+  String aboutSchemaSupported(String version) {
+    return 'O aplicativo suporta a v$version';
+  }
+
+  @override
+  String aboutDescription(String appName) {
+    return 'O $appName é um aplicativo de catálogo digital multiplataforma criado para a coleta e o gerenciamento de dados de espécimes de história natural, oferecendo informações no momento da coleta.';
+  }
+
+  @override
   String get drawerCreateProject => 'Criar projeto';
 
   @override

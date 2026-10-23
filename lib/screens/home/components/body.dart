@@ -384,8 +384,9 @@ class ListProjectCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          'Accessed: $_lastAccessedDate'
-          '${listTileSeparator}Created: $_creationDate',
+          '${context.l10n.homeProjectAccessed(_lastAccessedDate)}'
+          '$listTileSeparator'
+          '${context.l10n.homeProjectCreated(_creationDate)}',
           style: Theme.of(context).textTheme.labelSmall,
           overflow: TextOverflow.ellipsis,
         ),
@@ -447,7 +448,7 @@ class GridProjectCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Text(
-              _lastAccessedDate,
+              context.l10n.homeProjectAccessed(_lastAccessedDate),
               style: Theme.of(context).textTheme.labelSmall,
               overflow: TextOverflow.ellipsis,
             ),
@@ -461,7 +462,7 @@ class GridProjectCard extends StatelessWidget {
 
   String get _lastAccessedDate {
     final value = parseDate(project.lastAccessed);
-    return 'Accessed: ${value.date} ${value.time}';
+    return '${value.date} ${value.time}';
   }
 }
 
@@ -609,34 +610,34 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<MenuSelection>(
-      tooltip: 'Project actions',
+      tooltip: context.l10n.homeProjectActions,
       icon: const Icon(Icons.more_vert),
       itemBuilder: _items,
       onSelected: _onSelected,
     );
   }
 
-  List<AdaptiveMenuItem<MenuSelection>> _items() => const [
+  List<AdaptiveMenuItem<MenuSelection>> _items() => [
     AdaptiveMenuItem(
       value: MenuSelection.editInfo,
       icon: Icons.edit_outlined,
-      label: 'Edit info',
+      label: context.l10n.homeProjectEditInfo,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.showQr,
       icon: Icons.qr_code_outlined,
-      label: 'Show QR',
+      label: context.l10n.homeProjectShowQr,
       hasDividerBefore: true,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.exportInfo,
       icon: Icons.file_upload_outlined,
-      label: 'Export info',
+      label: context.l10n.homeProjectExportInfo,
     ),
     AdaptiveMenuItem(
       value: MenuSelection.details,
       icon: Icons.info_outlined,
-      label: 'Details',
+      label: context.l10n.homeProjectDetails,
       hasDividerBefore: true,
     ),
   ];
@@ -677,7 +678,7 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
     showAdaptiveSheetDialog<void>(
       context: context,
       builder: (context, isSheet) => AdaptiveSheetDialogBody(
-        title: 'Project information',
+        title: context.l10n.homeProjectInformation,
         showCloseButton: !isSheet,
         child: ProjectInfo(projectData: value, showExport: false),
       ),
@@ -689,11 +690,9 @@ class ProjectPopUpMenuState extends ConsumerState<ProjectPopUpMenu> {
       context: context,
       builder: (context) {
         return QrCodeDialog(
-          title: 'Project QR code',
+          title: context.l10n.homeProjectQrCode,
           data: ProjectExchangeService.encodeQr(value),
-          description:
-              'Scan this code when creating a new project to transfer '
-              'project information.',
+          description: context.l10n.homeProjectQrDescription,
         );
       },
     );

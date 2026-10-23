@@ -50,6 +50,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSearchRecords => 'Search records';
 
   @override
+  String get homeSearchReset => 'Reset';
+
+  @override
+  String get homeSearchShowResults => 'Show results';
+
+  @override
+  String get homeSearchHint => 'Field number, taxon, site, or any value';
+
+  @override
+  String get homeSearchRecordType => 'Record type';
+
+  @override
+  String get homeSearchIn => 'Search in';
+
+  @override
+  String get homeSearchAllFields => 'All fields';
+
+  @override
+  String get homeSearchProjects => 'Projects';
+
+  @override
+  String get homeSearchAllProjects => 'All projects';
+
+  @override
+  String get homeSearchTaxa => 'Taxa';
+
+  @override
+  String get homeSearchQuickFilters => 'Quick filters';
+
+  @override
+  String homeProjectAccessed(String date) {
+    return 'Accessed: $date';
+  }
+
+  @override
+  String homeProjectCreated(String date) {
+    return 'Created: $date';
+  }
+
+  @override
+  String get homeProjectActions => 'Project actions';
+
+  @override
+  String get homeProjectEditInfo => 'Edit info';
+
+  @override
+  String get homeProjectShowQr => 'Show QR';
+
+  @override
+  String get homeProjectExportInfo => 'Export info';
+
+  @override
+  String get homeProjectDetails => 'Details';
+
+  @override
+  String get homeProjectInformation => 'Project information';
+
+  @override
+  String get homeProjectQrCode => 'Project QR code';
+
+  @override
+  String get homeProjectQrDescription =>
+      'Scan this code when creating a new project to transfer project information.';
+
+  @override
+  String aboutTitle(String appName) {
+    return 'About $appName';
+  }
+
+  @override
+  String get aboutTagline =>
+      'Rethinking biodiversity inventories in the digital age';
+
+  @override
+  String get aboutLicenses => 'Licenses';
+
+  @override
+  String get aboutAppVersion => 'App version';
+
+  @override
+  String aboutVersionBuild(String version, String build) {
+    return 'v$version (build $build)';
+  }
+
+  @override
+  String get aboutCodename => 'Codename';
+
+  @override
+  String get aboutCodenameNote =>
+      'From NAHPU’s first real-world field test on Mt. Gede, West Java, Indonesia.';
+
+  @override
+  String get aboutDatabaseSchema => 'Database schema';
+
+  @override
+  String aboutSchemaSupported(String version) {
+    return 'App supports v$version';
+  }
+
+  @override
+  String aboutDescription(String appName) {
+    return '$appName is a cross-platform digital catalog app designed for natural history specimen data collection and management, providing insights at the point of collection.';
+  }
+
+  @override
   String get drawerCreateProject => 'Create project';
 
   @override
