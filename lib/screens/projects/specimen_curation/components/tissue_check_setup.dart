@@ -10,10 +10,16 @@ class TissueCheckSetupCard extends StatefulWidget {
     super.key,
     required this.settings,
     required this.onChanged,
+    this.partTypes = const [],
+    this.treatments = const [],
   });
 
   final TissueCheckSettings settings;
   final ValueChanged<TissueCheckSettings> onChanged;
+
+  /// The part type and treatment vocabularies the filters offer.
+  final List<String> partTypes;
+  final List<String> treatments;
 
   @override
   State<TissueCheckSetupCard> createState() => _TissueCheckSetupCardState();
@@ -57,6 +63,40 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text('Find tubes', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: NahpuSpacing.lg),
+            SegmentedButton<TissueIdentifyBy>(
+              segments: [
+                for (final by in TissueIdentifyBy.values)
+                  ButtonSegment(value: by, label: Text(by.label)),
+              ],
+              selected: {settings.identifyBy},
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) => widget.onChanged(
+                settings.copyWith(identifyBy: selection.first),
+              ),
+            ),
+            const SizedBox(height: NahpuSpacing.xl),
+            TissueSetupPair(
+              first: TissueFilterDropdown(
+                key: const ValueKey('tissue-type-filter'),
+                label: 'Tissue type',
+                value: settings.partType,
+                options: widget.partTypes,
+                onChanged: (type) =>
+                    widget.onChanged(settings.copyWith(partType: () => type)),
+              ),
+              second: TissueFilterDropdown(
+                key: const ValueKey('tissue-preservation-filter'),
+                label: 'Preservation',
+                value: settings.preservation,
+                options: widget.treatments,
+                onChanged: (treatment) => widget.onChanged(
+                  settings.copyWith(preservation: () => treatment),
+                ),
+              ),
+            ),
+            const SizedBox(height: NahpuSpacing.xxl),
             Text('Update field', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: NahpuSpacing.lg),
             Row(
@@ -250,6 +290,41 @@ class TissueSetupPair extends StatelessWidget {
         const SizedBox(width: NahpuSpacing.md),
         Expanded(child: second),
       ],
+    );
+  }
+}
+
+/// A vocabulary filter with an Any choice, shown as null.
+class TissueFilterDropdown extends StatelessWidget {
+  const TissueFilterDropdown({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String? value;
+  final List<String> options;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final values = [
+      ...options,
+      if (value != null && !options.contains(value)) value!,
+    ];
+    return DropdownButtonFormField<String?>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: label),
+      items: [
+        const DropdownMenuItem<String?>(value: null, child: Text('Any')),
+        for (final option in values)
+          DropdownMenuItem<String?>(value: option, child: Text(option)),
+      ],
+      onChanged: onChanged,
     );
   }
 }

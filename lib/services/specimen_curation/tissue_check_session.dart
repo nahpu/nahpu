@@ -2,6 +2,7 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
 
 enum TissueScanStatus {
   checked,
@@ -43,7 +44,7 @@ class TissueCheckEntry {
 
   final String code;
 
-  /// The tissue ID, or the scanned code when the part has none.
+  /// The tissue ID, or the field ID with part type and treatment.
   final String label;
   final int partId;
   final TissueCheckField field;
@@ -78,6 +79,10 @@ class TissueCheckSession {
   final void Function()? onWrite;
 
   TissueCheckSettings _settings;
+
+  /// Part types and treatments that smart entry recognizes after an ID.
+  List<String> partTypes = const [];
+  List<String> treatments = const [];
   final Map<TissueCell, String?> _occupied = {};
   final List<TissueCheckEntry> _entries = [];
   TissueCell? _next;
@@ -141,6 +146,35 @@ class TissueCheckSession {
     return _serial(() => _scan(code.trim(), pickPart));
   }
 
+  /// Places [record] in the next cell without a scan, as the work list does.
+  Future<TissueScanOutcome> place(SpecimenPartProjectRecord record) {
+    return _serial(() async {
+      await service.loadFieldIds();
+      return _place(record, labelFor(record));
+    });
+  }
+
+  /// Unplaced parts that match the type and treatment filters, in field ID
+  /// order.
+  Future<List<SpecimenPartProjectRecord>> workList() {
+    return service.workList(
+      partType: _settings.partType,
+      preservation: _settings.preservation,
+    );
+  }
+
+  /// How a part is named in messages and the log: its tissue ID, or its
+  /// field ID with part type and treatment.
+  String labelFor(SpecimenPartProjectRecord record) {
+    final tissueId = record.part.tissueID?.trim() ?? '';
+    if (tissueId.isNotEmpty) return tissueId;
+    return [
+      service.fieldIdOf(record.specimen.uuid),
+      record.part.type ?? '',
+      record.part.treatment ?? '',
+    ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
+  }
+
   /// Reverts the most recent check. Returns null when there is none.
   Future<TissueScanOutcome?> undoLast() {
     return _serial(() async {
@@ -185,14 +219,17 @@ class TissueCheckSession {
         'Enter a value for ${_settings.field.label} first',
       );
     }
-    if (_entries.any((e) => e.code == code)) {
-      return TissueScanOutcome(
-        TissueScanStatus.duplicate,
-        'Already checked: $code',
-      );
-    }
-
-    final match = await service.find(code);
+    final query = parseTissueEntry(
+      code,
+      types: partTypes,
+      treatments: treatments,
+    );
+    final match = await service.find(
+      query,
+      identifyBy: _settings.identifyBy,
+      partType: _settings.partType,
+      preservation: _settings.preservation,
+    );
     final SpecimenPartProjectRecord? record;
     switch (match.status) {
       case TissueMatchStatus.notFound:
@@ -208,9 +245,22 @@ class TissueCheckSession {
     if (record == null) {
       return TissueScanOutcome(TissueScanStatus.skipped, 'Skipped: $code');
     }
+    return _place(record, code);
+  }
 
+  Future<TissueScanOutcome> _place(
+    SpecimenPartProjectRecord record,
+    String code,
+  ) async {
+    final value = _settings.value.trim();
+    if (value.isEmpty) {
+      return TissueScanOutcome(
+        TissueScanStatus.invalid,
+        'Enter a value for ${_settings.field.label} first',
+      );
+    }
     final part = record.part;
-    final label = _labelFor(part.tissueID, code);
+    final label = labelFor(record).isEmpty ? code : labelFor(record);
     if (_entries.any((e) => e.partId == part.id)) {
       return TissueScanOutcome(
         TissueScanStatus.duplicate,
@@ -292,11 +342,6 @@ class TissueCheckSession {
       }
     }
     _next = layout.firstFree(_occupied.keys.toSet());
-  }
-
-  String _labelFor(String? tissueId, String code) {
-    final id = tissueId?.trim() ?? '';
-    return id.isEmpty ? code : id;
   }
 
   Future<T> _serial<T>(Future<T> Function() operation) {

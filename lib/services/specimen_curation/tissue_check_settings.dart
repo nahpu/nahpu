@@ -12,6 +12,16 @@ enum TissueCheckField {
   final String label;
 }
 
+/// How a scanned or typed code finds a specimen part.
+enum TissueIdentifyBy {
+  tissueId('Tissue ID or barcode'),
+  fieldId('Field ID');
+
+  const TissueIdentifyBy(this.label);
+
+  final String label;
+}
+
 /// The tissue check setup, kept on this device between sessions.
 class TissueCheckSettings {
   const TissueCheckSettings({
@@ -21,6 +31,9 @@ class TissueCheckSettings {
     this.boxLabel = 'Box',
     this.boxNumber = 1,
     this.overwrite = false,
+    this.identifyBy = TissueIdentifyBy.tissueId,
+    this.partType,
+    this.preservation,
   });
 
   final TissueCheckField field;
@@ -29,6 +42,13 @@ class TissueCheckSettings {
   final String boxLabel;
   final int boxNumber;
   final bool overwrite;
+  final TissueIdentifyBy identifyBy;
+
+  /// The part type to match, such as Liver. Null matches any type.
+  final String? partType;
+
+  /// The treatment to match, such as ETOH. Null matches any treatment.
+  final String? preservation;
 
   String get boxName => formatTissueBoxName(boxLabel, boxNumber);
 
@@ -39,6 +59,9 @@ class TissueCheckSettings {
     String? boxLabel,
     int? boxNumber,
     bool? overwrite,
+    TissueIdentifyBy? identifyBy,
+    String? Function()? partType,
+    String? Function()? preservation,
   }) {
     return TissueCheckSettings(
       field: field ?? this.field,
@@ -47,6 +70,9 @@ class TissueCheckSettings {
       boxLabel: boxLabel ?? this.boxLabel,
       boxNumber: boxNumber ?? this.boxNumber,
       overwrite: overwrite ?? this.overwrite,
+      identifyBy: identifyBy ?? this.identifyBy,
+      partType: partType == null ? this.partType : partType(),
+      preservation: preservation == null ? this.preservation : preservation(),
     );
   }
 
@@ -59,6 +85,9 @@ class TissueCheckSettings {
     'boxLabel': boxLabel,
     'boxNumber': boxNumber,
     'overwrite': overwrite,
+    'identifyBy': identifyBy.name,
+    'partType': partType,
+    'preservation': preservation,
   });
 
   /// Reads [encoded], falling back to defaults for missing or unknown values.
@@ -94,10 +123,23 @@ class TissueCheckSettings {
             : defaults.boxLabel,
         boxNumber: boxNumber is int && boxNumber > 0 ? boxNumber : 1,
         overwrite: json['overwrite'] == true,
+        identifyBy: _byName(
+          TissueIdentifyBy.values,
+          json['identifyBy'],
+          defaults.identifyBy,
+        ),
+        partType: _optionalText(json['partType']),
+        preservation: _optionalText(json['preservation']),
       );
     } on FormatException {
       return defaults;
     }
+  }
+
+  static String? _optionalText(Object? value) {
+    if (value is! String) return null;
+    final text = value.trim();
+    return text.isEmpty ? null : text;
   }
 
   static T _byName<T extends Enum>(List<T> values, Object? name, T fallback) {

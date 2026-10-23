@@ -42,14 +42,18 @@ void main() {
 
   tearDown(() => database.close());
 
-  Future<void> pumpScreen(WidgetTester tester, {Size? size}) async {
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    Size? size,
+    TissueCheckSettings settings = const TissueCheckSettings(value: 'EXM'),
+  }) async {
     if (size != null) {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
     }
     SharedPreferences.setMockInitialValues({
-      tissueCheckPrefKey: const TissueCheckSettings(value: 'EXM').encode(),
+      tissueCheckPrefKey: settings.encode(),
     });
     final preferences = await SharedPreferences.getInstance();
     final container = ProviderContainer(
@@ -148,5 +152,91 @@ void main() {
     final fillOrder = tester.getTopLeft(find.text('Fill order'));
     expect(fillOrder.dy, numbering.dy);
     expect(fillOrder.dx, greaterThan(numbering.dx));
+  });
+
+  Future<void> addFieldIdParts() async {
+    await database
+        .into(database.personnel)
+        .insert(
+          const PersonnelCompanion(uuid: Value('p-abc'), initial: Value('ABC')),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen-b'),
+            projectUuid: Value('project-a'),
+            catalogerID: Value('p-abc'),
+            fieldNumber: Value(1),
+          ),
+        );
+    for (final (type, treatment) in [('Liver', 'ETOH'), ('Muscle', 'DMSO')]) {
+      await database
+          .into(database.specimenPart)
+          .insert(
+            SpecimenPartCompanion(
+              specimenUuid: const Value('specimen-b'),
+              type: Value(type),
+              treatment: Value(treatment),
+            ),
+          );
+    }
+  }
+
+  testWidgets('field ID entry with a type places the right part', (
+    tester,
+  ) async {
+    await addFieldIdParts();
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: const TissueCheckSettings(
+        value: 'EXM',
+        identifyBy: TissueIdentifyBy.fieldId,
+        partType: 'Muscle',
+      ),
+    );
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'abc 1',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.text('ABC1 · Muscle · DMSO'), findsOneWidget);
+    final muscle = await (database.select(
+      database.specimenPart,
+    )..where((row) => row.type.equals('Muscle'))).getSingle();
+    expect(muscle.storageLocation, 'Box 1: A1');
+  });
+
+  testWidgets('the work list places parts into the next cell', (tester) async {
+    await addFieldIdParts();
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: const TissueCheckSettings(value: 'EXM', partType: 'Liver'),
+    );
+
+    await tester.tap(find.text('Work list'));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('tissue-work-list-current')),
+      findsOneWidget,
+    );
+    expect(find.text('ABC1 · Liver · ETOH'), findsOneWidget);
+
+    await tester.tap(find.text('Place'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 / 81 filled'), findsOneWidget);
+    expect(
+      find.text(
+        'No unplaced parts match the tissue type and preservation '
+        'filters.',
+      ),
+      findsOneWidget,
+    );
   });
 }

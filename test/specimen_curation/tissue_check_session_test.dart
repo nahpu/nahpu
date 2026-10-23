@@ -6,6 +6,7 @@ import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
 
 const _project = 'project-a';
 const _otherProject = 'project-b';
@@ -24,29 +25,29 @@ void main() {
 
   group('TissueCheckService', () {
     test('matches barcode IDs before tissue IDs', () async {
-      final match = await service.find('QR-1');
+      final match = await service.find(TissueQuery('QR-1'));
       expect(match.status, TissueMatchStatus.matched);
       expect(match.records.single.part.tissueID, 'T-2');
     });
 
     test('matches tissue IDs within the project only', () async {
-      final match = await service.find(' T-1 ');
+      final match = await service.find(TissueQuery(' T-1 '));
       expect(match.status, TissueMatchStatus.matched);
       expect(match.records.single.part.specimenUuid, 'specimen-a');
       expect(
-        (await service.find('T-OTHER')).status,
+        (await service.find(TissueQuery('T-OTHER'))).status,
         TissueMatchStatus.notFound,
       );
     });
 
     test('reports codes shared by several parts', () async {
-      final match = await service.find('T-DUP');
+      final match = await service.find(TissueQuery('T-DUP'));
       expect(match.status, TissueMatchStatus.ambiguous);
       expect(match.records, hasLength(2));
     });
 
     test('writes only the chosen field and the location', () async {
-      final part = (await service.find('T-1')).records.single.part;
+      final part = (await service.find(TissueQuery('T-1'))).records.single.part;
       final write = await service.apply(
         part,
         field: TissueCheckField.museumLoan,
@@ -63,7 +64,9 @@ void main() {
     });
 
     test('keeps a stored location unless overwriting', () async {
-      final part = (await service.find('T-STORED')).records.single.part;
+      final part = (await service.find(
+        TissueQuery('T-STORED'),
+      )).records.single.part;
       final write = await service.apply(
         part,
         field: TissueCheckField.museumPermanent,
@@ -110,7 +113,9 @@ void main() {
       final outcome = await session.scan('T-1');
       expect(outcome.status, TissueScanStatus.checked);
       expect(session.nextLocation, 'Box 1: A3');
-      final stored = (await service.find('T-1')).records.single.part;
+      final stored = (await service.find(
+        TissueQuery('T-1'),
+      )).records.single.part;
       expect(stored.museumPermanent, 'EXM');
       expect(stored.storageLocation, 'Box 1: A2');
     });
@@ -180,7 +185,7 @@ void main() {
       expect(session.entries, isEmpty);
       expect(session.occupied, isEmpty);
       expect(session.nextLocation, 'Box 1: A1');
-      final part = (await service.find('T-1')).records.single.part;
+      final part = (await service.find(TissueQuery('T-1'))).records.single.part;
       expect(part.museumPermanent, isNull);
       expect(part.storageLocation, isNull);
     });

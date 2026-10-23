@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
+import 'package:nahpu/services/import/batch/batch_import_index.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
+import 'package:nahpu/services/specimens/specimen_services.dart';
 
 enum TissueMatchStatus { matched, notFound, ambiguous }
 
@@ -33,28 +36,138 @@ class TissueCheckWrite {
 /// Finds scanned tubes and writes their check-in values. It works on the
 /// database directly; callers refresh any providers that show parts.
 class TissueCheckService {
-  const TissueCheckService({required this.database, required this.projectUuid});
+  TissueCheckService({required this.database, required this.projectUuid});
 
   final Database database;
   final String projectUuid;
 
-  /// Looks up [code] by barcode ID first, then by tissue ID.
-  Future<TissueCheckMatch> find(String code) async {
-    final text = code.trim();
+  /// Field IDs by specimen uuid, and specimen uuids by normalized field ID
+  /// and by bare number. Built once, since field IDs rarely change while a
+  /// box is filled.
+  Map<String, String>? _fieldIds;
+  final Map<String, List<String>> _byFieldId = {};
+  final Map<String, List<String>> _byNumber = {};
+
+  /// The field ID of [specimenUuid], once [loadFieldIds] has run.
+  String fieldIdOf(String specimenUuid) => _fieldIds?[specimenUuid] ?? '';
+
+  /// Builds the field ID lookup for the project.
+  Future<void> loadFieldIds() async {
+    if (_fieldIds != null) return;
+    final project = await (database.select(
+      database.project,
+    )..where((t) => t.uuid.equals(projectUuid))).getSingleOrNull();
+    final rows = await SpecimenPartQuery(database).getFieldIdRows(projectUuid);
+    final fieldIds = <String, String>{};
+    for (final row in rows) {
+      final fieldId = formatSpecimenFieldId(
+        catalogNumberPrefix: project?.catalogNumberPrefix,
+        catalogNumberSuffix: project?.catalogNumberSuffix,
+        catalogerInitial: row.catalogerInitial,
+        fieldNumber: row.fieldNumber,
+        projectFieldNumber: row.projectFieldNumber,
+      );
+      if (fieldId.isEmpty) continue;
+      fieldIds[row.uuid] = fieldId;
+      _byFieldId.putIfAbsent(normalizeBatchId(fieldId), () => []).add(row.uuid);
+      final number = row.projectFieldNumber ?? row.fieldNumber;
+      if (number != null) {
+        _byNumber.putIfAbsent('$number', () => []).add(row.uuid);
+      }
+    }
+    _fieldIds = fieldIds;
+  }
+
+  /// Finds the parts [query] points to, by tissue ID or barcode, or by
+  /// field ID, then narrows them by part type and treatment. The query's
+  /// own type and treatment win over [partType] and [preservation].
+  Future<TissueCheckMatch> find(
+    TissueQuery query, {
+    TissueIdentifyBy identifyBy = TissueIdentifyBy.tissueId,
+    String? partType,
+    String? preservation,
+  }) async {
+    final text = query.id.trim();
     if (text.isEmpty) {
       return const TissueCheckMatch(TissueMatchStatus.notFound, []);
     }
-    final records = await SpecimenPartQuery(
-      database,
-    ).findPartsByCode(projectUuid, text);
-    final byBarcode = records.where((e) => e.part.barcodeID == text).toList();
-    final candidates = byBarcode.isNotEmpty ? byBarcode : records;
+    final records = switch (identifyBy) {
+      TissueIdentifyBy.tissueId => await _findByCode(text),
+      TissueIdentifyBy.fieldId => await _findByFieldId(text),
+    };
+    final type = query.partType ?? partType;
+    final treatment = query.preservation ?? preservation;
+    final candidates = records
+        .where(
+          (e) =>
+              matchesTissueFilter(e.part.type, type) &&
+              matchesTissueFilter(e.part.treatment, treatment),
+        )
+        .toList(growable: false);
     return switch (candidates.length) {
       0 => const TissueCheckMatch(TissueMatchStatus.notFound, []),
       1 => TissueCheckMatch(TissueMatchStatus.matched, candidates),
       _ => TissueCheckMatch(TissueMatchStatus.ambiguous, candidates),
     };
   }
+
+  /// The project's parts without a storage location that match
+  /// [partType] and [preservation], in field ID order.
+  Future<List<SpecimenPartProjectRecord>> workList({
+    String? partType,
+    String? preservation,
+  }) async {
+    await loadFieldIds();
+    final records = await SpecimenPartQuery(
+      database,
+    ).getSpecimenPartsForProject(projectUuid);
+    final parts = records
+        .where(
+          (e) =>
+              (e.part.storageLocation ?? '').trim().isEmpty &&
+              matchesTissueFilter(e.part.type, partType) &&
+              matchesTissueFilter(e.part.treatment, preservation),
+        )
+        .toList();
+    parts.sort(_compareByFieldId);
+    return parts;
+  }
+
+  Future<List<SpecimenPartProjectRecord>> _findByCode(String code) async {
+    final records = await SpecimenPartQuery(
+      database,
+    ).findPartsByCode(projectUuid, code);
+    final byBarcode = records.where((e) => e.part.barcodeID == code).toList();
+    return byBarcode.isNotEmpty ? byBarcode : records;
+  }
+
+  /// Matches the whole field ID first. A bare number matches every
+  /// specimen with that number, whatever its prefix or initial.
+  Future<List<SpecimenPartProjectRecord>> _findByFieldId(String text) async {
+    await loadFieldIds();
+    final key = normalizeBatchId(text);
+    final uuids = _byFieldId[key] ?? _byNumber[key] ?? const <String>[];
+    if (uuids.isEmpty) return const [];
+    return SpecimenPartQuery(database).getPartsForSpecimens(projectUuid, uuids);
+  }
+
+  int _compareByFieldId(
+    SpecimenPartProjectRecord a,
+    SpecimenPartProjectRecord b,
+  ) {
+    final aId = fieldIdOf(a.specimen.uuid);
+    final bId = fieldIdOf(b.specimen.uuid);
+    final byPrefix = _prefixOf(aId).compareTo(_prefixOf(bId));
+    if (byPrefix != 0) return byPrefix;
+    final aNumber = a.specimen.projectFieldNumber ?? a.specimen.fieldNumber;
+    final bNumber = b.specimen.projectFieldNumber ?? b.specimen.fieldNumber;
+    final byNumber = (aNumber ?? 0).compareTo(bNumber ?? 0);
+    if (byNumber != 0) return byNumber;
+    return (a.part.id ?? 0).compareTo(b.part.id ?? 0);
+  }
+
+  String _prefixOf(String fieldId) =>
+      fieldId.replaceAll(RegExp(r'\d'), '').toLowerCase();
 
   /// Writes [value] to [field] and [location] to the storage location.
   ///

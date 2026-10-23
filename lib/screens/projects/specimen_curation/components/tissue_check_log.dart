@@ -94,10 +94,12 @@ class TissueMatchDialog extends StatelessWidget {
     super.key,
     required this.code,
     required this.records,
+    required this.labelFor,
   });
 
   final String code;
   final List<SpecimenPartProjectRecord> records;
+  final String Function(SpecimenPartProjectRecord record) labelFor;
 
   @override
   Widget build(BuildContext context) {
@@ -107,27 +109,49 @@ class TissueMatchDialog extends StatelessWidget {
         for (final record in records)
           SimpleDialogOption(
             onPressed: () => Navigator.pop(context, record),
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                record.part.tissueID ?? record.part.barcodeID ?? code,
-              ),
-              subtitle: Text(
-                [
-                  if (record.specimen.fieldNumber != null)
-                    'Field no. ${record.specimen.fieldNumber}',
-                  if ((record.part.type ?? '').isNotEmpty) record.part.type!,
-                  if ((record.part.storageLocation ?? '').isNotEmpty)
-                    'At ${record.part.storageLocation}',
-                ].join(' · '),
-              ),
-            ),
+            child: TissueMatchOption(record: record, label: labelFor(record)),
           ),
         SimpleDialogOption(
           onPressed: () => Navigator.pop(context),
           child: const Text('Skip'),
         ),
       ],
+    );
+  }
+}
+
+/// One part in the match picker: its label, its treatment and count, and
+/// where it is stored when already placed.
+class TissueMatchOption extends StatelessWidget {
+  const TissueMatchOption({
+    super.key,
+    required this.record,
+    required this.label,
+  });
+
+  final SpecimenPartProjectRecord record;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final part = record.part;
+    final location = part.storageLocation?.trim() ?? '';
+    final details = [
+      if ((part.type ?? '').trim().isNotEmpty) part.type!.trim(),
+      if ((part.treatment ?? '').trim().isNotEmpty) part.treatment!.trim(),
+      if ((part.count ?? '').trim().isNotEmpty) 'Count ${part.count!.trim()}',
+    ].join(' · ');
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(label),
+      subtitle: details.isEmpty ? null : Text(details),
+      trailing: location.isEmpty
+          ? null
+          : Chip(
+              avatar: const Icon(Icons.inventory_2_outlined),
+              label: Text('At $location'),
+              visualDensity: VisualDensity.compact,
+            ),
     );
   }
 }

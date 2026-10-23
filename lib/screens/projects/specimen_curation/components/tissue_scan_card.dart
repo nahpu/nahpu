@@ -1,9 +1,12 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
-/// Takes scanned codes. Keyboard-wedge scanners type into the field and end
-/// with Enter; the camera button opens a continuous camera scanner.
+/// Takes scanned codes, or shows the work list. Keyboard-wedge scanners
+/// type into the field and end with Enter; the camera button opens a
+/// continuous camera scanner.
 class TissueScanCard extends StatefulWidget {
   const TissueScanCard({
     super.key,
@@ -14,6 +17,10 @@ class TissueScanCard extends StatefulWidget {
     required this.onUndo,
     this.autofocus = false,
     this.onOpenCamera,
+    this.identifyBy = TissueIdentifyBy.tissueId,
+    this.entryMode = TissueEntryMode.scan,
+    this.onEntryModeChanged,
+    this.workList,
   });
 
   final TissueScanOutcome? outcome;
@@ -28,6 +35,17 @@ class TissueScanCard extends StatefulWidget {
 
   /// Null hides the camera button on platforms without camera scanning.
   final VoidCallback? onOpenCamera;
+
+  /// Sets the field's label and hint.
+  final TissueIdentifyBy identifyBy;
+
+  final TissueEntryMode entryMode;
+
+  /// Null hides the Scan and Work list toggle.
+  final ValueChanged<TissueEntryMode>? onEntryModeChanged;
+
+  /// Shown in place of the scan field in work list mode.
+  final Widget? workList;
 
   @override
   State<TissueScanCard> createState() => _TissueScanCardState();
@@ -54,38 +72,58 @@ class _TissueScanCardState extends State<TissueScanCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Scan tube', style: theme.textTheme.titleSmall),
-            const SizedBox(height: NahpuSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const ValueKey('tissue-scan-input'),
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    autofocus: widget.autofocus,
-                    textInputAction: TextInputAction.done,
-                    decoration: const InputDecoration(
-                      labelText: 'Barcode or tissue ID',
-                      hintText: 'Scan or type, then press Enter',
-                      prefixIcon: Icon(Icons.qr_code_scanner),
-                    ),
-                    onSubmitted: _submit,
-                    // Keeps focus on Enter, so back-to-back scans are not
-                    // lost while the field would refocus.
-                    onEditingComplete: () {},
-                  ),
-                ),
-                if (widget.onOpenCamera != null) ...[
-                  const SizedBox(width: NahpuSpacing.md),
-                  IconButton.outlined(
-                    tooltip: 'Scan with camera',
-                    onPressed: widget.onOpenCamera,
-                    icon: const Icon(Icons.photo_camera_outlined),
-                  ),
+            if (widget.onEntryModeChanged == null)
+              Text('Scan tube', style: theme.textTheme.titleSmall)
+            else
+              SegmentedButton<TissueEntryMode>(
+                segments: [
+                  for (final mode in TissueEntryMode.values)
+                    ButtonSegment(value: mode, label: Text(mode.label)),
                 ],
-              ],
-            ),
+                selected: {widget.entryMode},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) =>
+                    widget.onEntryModeChanged!(selection.first),
+              ),
+            const SizedBox(height: NahpuSpacing.lg),
+            if (widget.entryMode == TissueEntryMode.workList &&
+                widget.workList != null)
+              widget.workList!
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const ValueKey('tissue-scan-input'),
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: widget.autofocus,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: widget.identifyBy.label,
+                        hintText: switch (widget.identifyBy) {
+                          TissueIdentifyBy.tissueId =>
+                            'Scan or type, then press Enter',
+                          TissueIdentifyBy.fieldId => 'ABC123 liver etoh',
+                        },
+                        prefixIcon: const Icon(Icons.qr_code_scanner),
+                      ),
+                      onSubmitted: _submit,
+                      // Keeps focus on Enter, so back-to-back scans are not
+                      // lost while the field would refocus.
+                      onEditingComplete: () {},
+                    ),
+                  ),
+                  if (widget.onOpenCamera != null) ...[
+                    const SizedBox(width: NahpuSpacing.md),
+                    IconButton.outlined(
+                      tooltip: 'Scan with camera',
+                      onPressed: widget.onOpenCamera,
+                      icon: const Icon(Icons.photo_camera_outlined),
+                    ),
+                  ],
+                ],
+              ),
             const SizedBox(height: NahpuSpacing.md),
             Row(
               children: [

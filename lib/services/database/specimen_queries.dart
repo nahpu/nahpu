@@ -905,6 +905,55 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  /// Returns the project's parts that belong to the specimens [uuids].
+  Future<List<SpecimenPartProjectRecord>> getPartsForSpecimens(
+    String projectUuid,
+    Iterable<String> uuids,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimen.uuid.isIn(uuids),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  /// Returns what each project specimen's field ID is built from.
+  Future<List<SpecimenFieldIdRow>> getFieldIdRows(String projectUuid) async {
+    final rows = await customSelect(
+      'SELECT s.uuid, s.fieldNumber, s.projectFieldNumber, p.initial '
+      'FROM specimen s LEFT JOIN personnel p ON p.uuid = s.catalogerID '
+      'WHERE s.projectUuid = ?',
+      variables: [Variable.withString(projectUuid)],
+      readsFrom: {specimen},
+    ).get();
+    return [
+      for (final row in rows)
+        SpecimenFieldIdRow(
+          uuid: row.read<String>('uuid'),
+          fieldNumber: row.readNullable<int>('fieldNumber'),
+          projectFieldNumber: row.readNullable<int>('projectFieldNumber'),
+          catalogerInitial: row.readNullable<String>('initial'),
+        ),
+    ];
+  }
+
   /// Returns the project's part storage locations that start with [prefix].
   Future<List<String>> getStorageLocationsWithPrefix(
     String projectUuid,
@@ -1033,6 +1082,21 @@ class SpecimenPartDistinctTypes {
 
   final List<String> type;
   final List<String> treatment;
+}
+
+/// The values a specimen's field ID is built from.
+class SpecimenFieldIdRow {
+  const SpecimenFieldIdRow({
+    required this.uuid,
+    this.fieldNumber,
+    this.projectFieldNumber,
+    this.catalogerInitial,
+  });
+
+  final String uuid;
+  final int? fieldNumber;
+  final int? projectFieldNumber;
+  final String? catalogerInitial;
 }
 
 /// A specimen part paired with the specimen that owns it.

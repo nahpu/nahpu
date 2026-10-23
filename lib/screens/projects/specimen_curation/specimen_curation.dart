@@ -6,12 +6,15 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_camer
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/specimen_curation.dart';
 import 'package:nahpu/services/providers/specimens.dart';
+import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
@@ -36,8 +39,13 @@ class _SpecimenCurationScreenState
     extends ConsumerState<SpecimenCurationScreen> {
   late final TissueCheckSession _session;
   SpecimenCurationMode _mode = SpecimenCurationMode.tissue;
+  TissueEntryMode _entryMode = TissueEntryMode.scan;
   TissueScanOutcome? _outcome;
   int _busyCount = 0;
+
+  /// The work list, or null while it loads.
+  List<SpecimenPartProjectRecord>? _workList;
+  int _workIndex = 0;
 
   @override
   void initState() {
@@ -60,6 +68,8 @@ class _SpecimenCurationScreenState
   @override
   Widget build(BuildContext context) {
     final settings = _session.settings;
+    final partTypes = _vocabulary(specimenTypePrefKey);
+    final treatments = _vocabulary(treatmentPrefKey);
     final boxCard = TissueBoxCard(
       boxName: settings.boxName,
       layout: _session.layout,
@@ -71,6 +81,8 @@ class _SpecimenCurationScreenState
     final setupCard = TissueCheckSetupCard(
       settings: settings,
       onChanged: _updateSettings,
+      partTypes: partTypes,
+      treatments: treatments,
     );
     final scanCard = TissueScanCard(
       outcome: _outcome,
@@ -82,6 +94,19 @@ class _SpecimenCurationScreenState
       onOpenCamera: widget.cameraAvailable ?? supportsCameraScanning
           ? _openCamera
           : null,
+      identifyBy: settings.identifyBy,
+      entryMode: _entryMode,
+      onEntryModeChanged: _setEntryMode,
+      workList: TissueWorkListPanel(
+        records: _workList,
+        index: _workIndex,
+        labelFor: _session.labelFor,
+        nextLocation: _session.nextLocation,
+        isBusy: _busyCount > 0,
+        onPlace: _placeCurrent,
+        onSkip: _skipCurrent,
+        onSelect: (index) => setState(() => _workIndex = index),
+      ),
     );
     final logCard = TissueCheckLogCard(entries: _session.entries);
 
@@ -171,12 +196,68 @@ class _SpecimenCurationScreenState
   }
 
   void _updateSettings(TissueCheckSettings settings) {
+    final previous = _session.settings;
     final update = _session.updateSettings(settings);
     setState(() {});
     _run(() => update);
+    final filtersChanged =
+        previous.partType != settings.partType ||
+        previous.preservation != settings.preservation;
+    if (filtersChanged && _entryMode == TissueEntryMode.workList) {
+      _reloadWorkList();
+    }
+  }
+
+  /// The configured values plus those already used in the database.
+  List<String> _vocabulary(String prefKey) {
+    return ref.watch(effectiveUserDefinedFieldProvider(prefKey)).value ??
+        const [];
+  }
+
+  void _setEntryMode(TissueEntryMode mode) {
+    setState(() => _entryMode = mode);
+    if (mode == TissueEntryMode.workList) _reloadWorkList();
+  }
+
+  Future<void> _reloadWorkList() async {
+    setState(() => _workList = null);
+    final records = await _session.workList();
+    if (!mounted) return;
+    setState(() {
+      _workList = records;
+      _workIndex = records.isEmpty
+          ? 0
+          : _workIndex.clamp(0, records.length - 1);
+    });
+  }
+
+  Future<void> _placeCurrent() async {
+    final records = _workList;
+    if (records == null || records.isEmpty) return;
+    final record = records[_workIndex];
+    await _run(() async {
+      final outcome = await _session.place(record);
+      if (!mounted) return;
+      setState(() {
+        _outcome = outcome;
+        if (outcome.status == TissueScanStatus.checked) {
+          records.removeAt(_workIndex);
+          if (_workIndex >= records.length) _workIndex = 0;
+        }
+      });
+    });
+  }
+
+  void _skipCurrent() {
+    final count = _workList?.length ?? 0;
+    if (count < 2) return;
+    setState(() => _workIndex = (_workIndex + 1) % count);
   }
 
   Future<void> _scan(String code) async {
+    _session
+      ..partTypes = _vocabularyNow(specimenTypePrefKey)
+      ..treatments = _vocabularyNow(treatmentPrefKey);
     await _run(() async {
       final outcome = await _session.scan(
         code,
@@ -184,6 +265,11 @@ class _SpecimenCurationScreenState
       );
       if (mounted) setState(() => _outcome = outcome);
     });
+  }
+
+  List<String> _vocabularyNow(String prefKey) {
+    return ref.read(effectiveUserDefinedFieldProvider(prefKey)).value ??
+        const [];
   }
 
   Future<TissueScanOutcome> _scanFromCamera(String code) async {
@@ -200,6 +286,9 @@ class _SpecimenCurationScreenState
       final outcome = await _session.undoLast();
       if (mounted && outcome != null) setState(() => _outcome = outcome);
     });
+    if (mounted && _entryMode == TissueEntryMode.workList) {
+      await _reloadWorkList();
+    }
   }
 
   Future<SpecimenPartProjectRecord?> _pickPart(
@@ -209,7 +298,11 @@ class _SpecimenCurationScreenState
     if (!mounted) return null;
     return showDialog<SpecimenPartProjectRecord>(
       context: context,
-      builder: (context) => TissueMatchDialog(code: code, records: records),
+      builder: (context) => TissueMatchDialog(
+        code: code,
+        records: records,
+        labelFor: _session.labelFor,
+      ),
     );
   }
 
