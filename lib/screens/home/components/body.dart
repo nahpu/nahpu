@@ -25,6 +25,7 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/home/components/project_actions.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MenuSelection { editInfo, details, exportInfo, showQr, deleteProject }
 
@@ -133,7 +134,7 @@ class _ToggleViewState extends State<ToggleView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Existing projects',
+              context.l10n.homeExistingProjects,
               style: Theme.of(context).textTheme.labelLarge,
             ),
             IconButton(
@@ -180,13 +181,13 @@ class ProjectNotFound extends StatelessWidget {
               ),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
-                'No projects found.',
+                context.l10n.homeNoProjectsTitle,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleLarge,
               ),
               const SizedBox(height: NahpuSpacing.xs),
               Text(
-                'Create or import a project to get started.',
+                context.l10n.homeNoProjectsBody,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge,
               ),
@@ -194,8 +195,7 @@ class ProjectNotFound extends StatelessWidget {
               const HomeProjectActions(layout: ProjectActionLayout.centered),
               const SizedBox(height: NahpuSpacing.xxl),
               Text(
-                'New to NAHPU? Run Setup NAHPU to choose your catalog format, '
-                'identifiers, vocabularies, and export presets.',
+                context.l10n.homeSetupHint,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -210,7 +210,7 @@ class ProjectNotFound extends StatelessWidget {
                   ),
                 ),
                 icon: const Icon(Icons.auto_fix_high_outlined),
-                label: const Text('Setup NAHPU'),
+                label: Text(context.l10n.homeSetupNahpu),
               ),
               const SizedBox(height: NahpuSpacing.xl),
               const LegalNotice(),

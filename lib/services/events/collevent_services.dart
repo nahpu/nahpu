@@ -15,6 +15,7 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/associated_data/associated_data_services.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:path/path.dart' show basename;
+import 'package:nahpu/services/localization/invariant_formats.dart';
 
 /// Renders the event ID from its parts: site, start date, and optional suffix.
 ///
@@ -350,7 +351,7 @@ class EventDuplicateService extends AppServices {
 
   // Increment date by one day
   String? _incrementDate(String date) {
-    DateFormat dateFormat = DateFormat.yMMMd();
+    DateFormat dateFormat = InvariantFormats.legacyDate;
     try {
       DateTime? parsedDate = dateFormat.parse(date);
       DateTime newDate = parsedDate.add(const Duration(days: 1));

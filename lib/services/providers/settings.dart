@@ -24,6 +24,14 @@ const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
 
+/// The UI language code, kept apart from [regionalFormatPrefKey] so labels
+/// and date formats can differ. Missing follows the device.
+const String appLanguagePrefKey = 'appLanguage';
+
+/// The intl locale for on-screen dates and numbers. Missing matches the
+/// UI language.
+const String regionalFormatPrefKey = 'regionalFormat';
+
 /// Prefix for the per-viewer record sort. Each record viewer stores its own
 /// field and direction, so sorting sites does not reorder specimens.
 const String recordSortPrefKey = 'recordSort';

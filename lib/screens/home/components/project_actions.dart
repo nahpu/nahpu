@@ -5,40 +5,42 @@ import 'package:nahpu/screens/projects/project_transfer/import_project.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/styles/themes.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// The actions offered on the home screen: the project actions, and the
 /// statistics across every project.
 enum HomeProjectAction {
   createProject(
     key: ValueKey('home-create-project'),
-    title: 'Create project',
     iconPath: 'assets/icons/project_create.svg',
     isPrimary: true,
   ),
   importProject(
     key: ValueKey('home-import-project'),
-    title: 'Import project',
     iconPath: 'assets/icons/project_import.svg',
     isPrimary: false,
   ),
   databaseStatistics(
     key: ValueKey('home-database-statistics'),
-    title: 'Statistics',
     iconPath: 'assets/icons/database.svg',
     isPrimary: false,
   );
 
   const HomeProjectAction({
     required this.key,
-    required this.title,
     required this.iconPath,
     required this.isPrimary,
   });
 
   final ValueKey<String> key;
-  final String title;
   final String iconPath;
   final bool isPrimary;
+
+  String title(AppLocalizations l10n) => switch (this) {
+    HomeProjectAction.createProject => l10n.drawerCreateProject,
+    HomeProjectAction.importProject => l10n.drawerImportProject,
+    HomeProjectAction.databaseStatistics => l10n.homeStatistics,
+  };
 
   Color containerOf(ColorScheme colors) {
     return isPrimary
@@ -387,7 +389,7 @@ class _RowActionContent extends StatelessWidget {
         const SizedBox(width: NahpuSpacing.md),
         Expanded(
           child: Text(
-            action.title,
+            action.title(context.l10n),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -432,7 +434,7 @@ class _TallActionContent extends StatelessWidget {
         ),
         const SizedBox(height: NahpuSpacing.lg),
         Text(
-          action.title,
+          action.title(context.l10n),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.titleMedium?.copyWith(

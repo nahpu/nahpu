@@ -1,0 +1,86 @@
+{
+  "@@locale": "en",
+  "@@x-reviewed": true,
+
+  "commonBeta": "Beta",
+  "@commonBeta": {"description": "Badge on features that are still in beta."},
+  "commonRetry": "Retry",
+  "commonUnavailable": "Unavailable",
+  "@commonUnavailable": {"description": "Shown when a value, such as the app version, cannot be read."},
+  "commonError": "Error",
+
+  "homeDatabaseErrorTitle": "Unable to open the NAHPU database.",
+  "homeDatabaseErrorBody": "Your data was not deleted. Retry the database migration or restart NAHPU.",
+  "homeExistingProjects": "Existing projects",
+  "homeNoProjectsTitle": "No projects found.",
+  "homeNoProjectsBody": "Create or import a project to get started.",
+  "homeSetupHint": "New to NAHPU? Run Setup NAHPU to choose your catalog format, identifiers, vocabularies, and export presets.",
+  "@homeSetupHint": {"description": "Uses the homeSetupNahpu label as the name of the setup wizard."},
+  "homeSetupNahpu": "Setup NAHPU",
+  "@homeSetupNahpu": {"description": "Name of the setup wizard, used as a button and menu label."},
+  "homeStatistics": "Statistics",
+  "homeSearchRecords": "Search records",
+
+  "drawerCreateProject": "Create project",
+  "drawerImportProject": "Import project",
+  "drawerDatabaseStatistics": "Database statistics",
+  "drawerBackupDatabase": "Backup database",
+  "drawerSettings": "Settings",
+  "drawerExportUserConfigs": "Export user configs",
+  "drawerImportUserConfigs": "Import user configs",
+  "drawerAbout": "About",
+  "drawerWebsite": "NAHPU website",
+  "drawerCookbook": "Cookbook",
+  "@drawerCookbook": {"description": "Name of the bundled how-to guide. Match the documentation website."},
+
+  "settingsApplications": "Applications",
+  "@settingsApplications": {"description": "Heading of the app-wide settings section."},
+  "settingsTheme": "Theme",
+  "settingsThemeLabel": "Set light or dark appearance",
+  "settingsThemeDark": "Dark",
+  "settingsThemeLight": "Light",
+  "settingsThemeSystem": "System",
+  "settingsTools": "Tools",
+  "settingsToolsLabel": "Choose the tools shown on the project dashboard",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "System default",
+  "settingsLanguageSystemLabel": "Follows the device language ({language})",
+  "@settingsLanguageSystemLabel": {
+    "placeholders": {"language": {"type": "String", "example": "English"}}
+  },
+  "settingsLanguageBetaNote": "Language support is in beta. Some screens are still in English, and translations may be machine drafts.",
+  "settingsRegionalFormat": "Regional format",
+  "settingsRegionalFormatMatchLanguage": "Match language",
+  "settingsRegionalFormatNote": "Changes only how dates and numbers are shown. Saved records and exports keep standard formats.",
+  "settingsRegionalFormatPreview": "Example: {date} · {number}",
+  "@settingsRegionalFormatPreview": {
+    "placeholders": {
+      "date": {"type": "String", "example": "Mar 18, 2024"},
+      "number": {"type": "String", "example": "1,234.5"}
+    }
+  },
+
+  "docsContents": "Contents",
+  "docsCollapse": "Collapse {title}",
+  "@docsCollapse": {"placeholders": {"title": {"type": "String"}}},
+  "docsExpand": "Expand {title}",
+  "@docsExpand": {"placeholders": {"title": {"type": "String"}}},
+  "docsLoadError": "Unable to load this documentation.",
+  "docsOnlineLinks": "These links open the NAHPU documentation and need an internet connection.",
+  "docsAsideNote": "Note",
+  "docsAsideCaution": "Caution",
+  "docsAsideTip": "Tip",
+  "docsAiTranslation": "AI-assisted translation.",
+  "docsAiCheck": "Check for accuracy",
+  "docsReviewedBy": "Human-checked and revised by {reviewers}.",
+  "@docsReviewedBy": {"placeholders": {"reviewers": {"type": "String"}}},
+  "docsReviewerPair": "{first} and {second}",
+  "@docsReviewerPair": {
+    "placeholders": {"first": {"type": "String"}, "second": {"type": "String"}}
+  },
+  "docsReviewerList": "{leading}, and {last}",
+  "@docsReviewerList": {
+    "description": "Joins three or more reviewers. leading is already comma-separated.",
+    "placeholders": {"leading": {"type": "String"}, "last": {"type": "String"}}
+  }
+}

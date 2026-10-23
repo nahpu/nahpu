@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/database/db_services.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
@@ -88,18 +89,20 @@ class _DatabaseErrorView extends StatelessWidget {
             const Icon(Icons.storage_rounded, size: 48),
             const SizedBox(height: 16),
             Text(
-              'Unable to open the NAHPU database.',
+              context.l10n.homeDatabaseErrorTitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your data was not deleted. Retry the database migration or '
-              'restart NAHPU.',
+            Text(
+              context.l10n.homeDatabaseErrorBody,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.commonRetry),
+            ),
           ],
         ),
       ),

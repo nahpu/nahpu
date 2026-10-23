@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/docs/documentation_widgets.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/decoration.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -398,7 +399,8 @@ class _InfoDocumentContent extends ConsumerStatefulWidget {
 }
 
 class _InfoDocumentContentState extends ConsumerState<_InfoDocumentContent> {
-  DocsLanguage _language = DocsLanguage.english;
+  /// Opens in the UI language; the chips switch this view only.
+  late DocsLanguage _language = context.appLanguage;
   Future<MarkdownDocument>? _document;
 
   @override

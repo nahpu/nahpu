@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nahpu/styles/decoration.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Used by specimen forms to avoid the
 /// bottom sheet covering the last field
@@ -57,9 +58,10 @@ class CommonDivider extends StatelessWidget {
 
 /// Small pill marking a feature that is still in beta.
 class BetaBadge extends StatelessWidget {
-  const BetaBadge({super.key, this.label = 'Beta'});
+  const BetaBadge({super.key, this.label});
 
-  final String label;
+  /// Defaults to the translated "Beta".
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class BetaBadge extends StatelessWidget {
         border: Border.all(color: colors.outline, width: NahpuStroke.thin),
       ),
       child: Text(
-        label,
+        label ?? context.l10n.commonBeta,
         style: Theme.of(
           context,
         ).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),

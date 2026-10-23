@@ -1,11 +1,11 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/invariant_formats.dart';
 
 /// Where focus goes after an edit is committed.
 enum DataTableEditorExit { down, up, next, previous, stay }
@@ -178,7 +178,7 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
       return;
     }
     _isPicking = false;
-    _finish(DateFormat('yyyy-MM-dd').format(picked), DataTableEditorExit.stay);
+    _finish(InvariantFormats.date.format(picked), DataTableEditorExit.stay);
   }
 
   Future<void> _pickTime() async {

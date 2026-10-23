@@ -1,21 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaml/yaml.dart';
+import 'package:nahpu/services/localization/app_language.dart';
 
-enum DocsLanguage {
-  english('en', 'English', 'EN'),
-  portuguese('pt', 'Português', 'BR'),
-  spanish('es', 'Español', 'ES'),
-  indonesian('id', 'Bahasa Indonesia', 'ID');
+export 'package:nahpu/services/localization/app_language.dart';
 
-  const DocsLanguage(this.code, this.nativeLabel, this.shortLabel);
-
-  final String code;
-  final String nativeLabel;
-
-  /// Two-letter label shown on the compact language chips.
-  final String shortLabel;
-}
+/// Documentation ships in the same languages as the UI, so both share one
+/// list and cannot drift apart.
+typedef DocsLanguage = AppLanguage;
 
 enum InfoTopic {
   projectOverview('project-overview'),

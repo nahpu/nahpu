@@ -6,6 +6,7 @@ import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// App bar search across every project. Opens the search sheet, then the
 /// data table with the search and filters picked there.
@@ -16,7 +17,7 @@ class GlobalSearchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       key: const ValueKey('home-global-search'),
-      tooltip: 'Search records',
+      tooltip: context.l10n.homeSearchRecords,
       icon: const Icon(Icons.search),
       onPressed: () => _search(context),
     );
@@ -67,7 +68,7 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
   Widget build(BuildContext context) {
     final projects = ref.watch(projectListProvider).asData?.value ?? const [];
     return AdaptiveSheetDialogBody(
-      title: 'Search records',
+      title: context.l10n.homeSearchRecords,
       showCloseButton: !widget.isSheet,
       actions: [
         TextButton(onPressed: _reset, child: const Text('Reset')),

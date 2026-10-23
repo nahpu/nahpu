@@ -2,6 +2,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/docs/documentation_repository.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MdocAsideType { note, caution, tip }
 
@@ -516,19 +517,12 @@ class _MdocAsideAttributes {
   final String? title;
 }
 
+/// The aside title in the document's own language, not the UI language.
 String _defaultAsideTitle(DocsLanguage language, MdocAsideType type) {
-  return switch ((language, type)) {
-    (DocsLanguage.english, MdocAsideType.note) => 'Note',
-    (DocsLanguage.english, MdocAsideType.caution) => 'Caution',
-    (DocsLanguage.english, MdocAsideType.tip) => 'Tip',
-    (DocsLanguage.portuguese, MdocAsideType.note) => 'Nota',
-    (DocsLanguage.portuguese, MdocAsideType.caution) => 'Cuidado',
-    (DocsLanguage.portuguese, MdocAsideType.tip) => 'Dica',
-    (DocsLanguage.spanish, MdocAsideType.note) => 'Nota',
-    (DocsLanguage.spanish, MdocAsideType.caution) => 'Precaución',
-    (DocsLanguage.spanish, MdocAsideType.tip) => 'Consejo',
-    (DocsLanguage.indonesian, MdocAsideType.note) => 'Catatan',
-    (DocsLanguage.indonesian, MdocAsideType.caution) => 'Perhatian',
-    (DocsLanguage.indonesian, MdocAsideType.tip) => 'Kiat',
+  final strings = localizationsFor(language);
+  return switch (type) {
+    MdocAsideType.note => strings.docsAsideNote,
+    MdocAsideType.caution => strings.docsAsideCaution,
+    MdocAsideType.tip => strings.docsAsideTip,
   };
 }

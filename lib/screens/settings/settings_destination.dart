@@ -33,6 +33,8 @@ enum SettingsDestination {
   documentPresets,
   templateEditor,
   theme,
+  language,
+  regionalFormat,
   projectTools,
   dataUsage;
 
@@ -96,6 +98,8 @@ class SettingsDestinationPage extends StatelessWidget {
       SettingsDestination.documentPresets => const DocumentPresetsScreen(),
       SettingsDestination.templateEditor => const TemplateEditorScreen(),
       SettingsDestination.theme => const ThemeSettings(),
+      SettingsDestination.language => const LanguageSettings(),
+      SettingsDestination.regionalFormat => const RegionalFormatSettings(),
       SettingsDestination.projectTools => const ProjectToolSettings(),
       SettingsDestination.dataUsage => const DataUsageSettings(),
     };

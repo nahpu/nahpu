@@ -1,0 +1,7 @@
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+# Screens read strings through `context.l10n`, which falls back to English.
+nullable-getter: true
+untranslated-messages-file: build/untranslated_messages.json

@@ -22,6 +22,7 @@ import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const String nahpuWebsite = 'https://nahpu.app/';
 const String versionName = 'Tropical Mountains';
@@ -49,7 +50,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.create_outlined),
-          title: const Text('Create project'),
+          title: Text(context.l10n.drawerCreateProject),
           onTap: () {
             Navigator.push(
               context,
@@ -61,7 +62,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Import project'),
+          title: Text(context.l10n.drawerImportProject),
           onTap: () {
             Navigator.push(
               context,
@@ -74,7 +75,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ListTile(
           key: const ValueKey('home-drawer-database-statistics'),
           leading: const Icon(Icons.analytics_outlined),
-          title: const Text('Database statistics'),
+          title: Text(context.l10n.drawerDatabaseStatistics),
           onTap: () {
             Navigator.push(
               context,
@@ -88,7 +89,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.storage_outlined),
-          title: const Text('Backup database'),
+          title: Text(context.l10n.drawerBackupDatabase),
           onTap: () {
             Navigator.push(
               context,
@@ -99,7 +100,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.settings_outlined),
-          title: const Text('Settings'),
+          title: Text(context.l10n.drawerSettings),
           onTap: () {
             Navigator.push(
               context,
@@ -110,7 +111,7 @@ class HomeMenuDrawer extends StatelessWidget {
 
         ListTile(
           leading: Icon(Icons.adaptive.share_outlined),
-          title: const Text('Export user configs'),
+          title: Text(context.l10n.drawerExportUserConfigs),
           onTap: () {
             Navigator.push(
               context,
@@ -122,7 +123,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.download_outlined),
-          title: const Text('Import user configs'),
+          title: Text(context.l10n.drawerImportUserConfigs),
           onTap: () {
             Navigator.push(
               context,
@@ -139,7 +140,7 @@ class HomeMenuDrawer extends StatelessWidget {
         const CommonLineDivider(),
         ListTile(
           leading: const Icon(Icons.info_outlined),
-          title: const Text('About'),
+          title: Text(context.l10n.drawerAbout),
           onTap: () {
             showAdaptiveSheetDialog<void>(
               context: context,
@@ -151,7 +152,7 @@ class HomeMenuDrawer extends StatelessWidget {
         ),
         ListTile(
           leading: const Icon(Icons.web_outlined),
-          title: const Text('NAHPU website'),
+          title: Text(context.l10n.drawerWebsite),
           onTap: () {
             _launchHelpUrl();
           },
@@ -398,7 +399,7 @@ class SetupWizardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.auto_fix_high_outlined),
-      title: const Text('Setup NAHPU'),
+      title: Text(context.l10n.homeSetupNahpu),
       onTap: () {
         Navigator.push(
           context,
@@ -416,7 +417,7 @@ class CookbookTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
-      title: const Text('Cookbook'),
+      title: Text(context.l10n.drawerCookbook),
       onTap: () async {
         Navigator.push(
           context,

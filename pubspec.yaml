@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   cupertino_icons: ^1.0.5
   flutter_speed_dial: ^7.0.0
@@ -128,6 +130,9 @@ flutter_launcher_icons:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Generates AppLocalizations from lib/l10n/ (see l10n.yaml).
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
