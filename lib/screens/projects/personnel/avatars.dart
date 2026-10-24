@@ -12,6 +12,7 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:path/path.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const int avatarSize = 160;
 
@@ -47,7 +48,7 @@ class PersonnelAvatarState extends ConsumerState<PersonnelAvatar> {
                       loading: () =>
                           const Center(child: CommonProgressIndicator()),
                       error: (error, stack) =>
-                          const Center(child: Text('Error')),
+                          Center(child: Text(context.l10n.commonError)),
                     )
               : Positioned.fill(
                   child: AvatarViewer(avatarCtr: widget.ctr.photoPathCtr),
@@ -133,7 +134,9 @@ class AvatarViewerState extends ConsumerState<AvatarViewer> {
                   foregroundImage: FileImage(snapshot.data as File),
                 );
               } else {
-                return const Center(child: Text('Image not found'));
+                return Center(
+                  child: Text(context.l10n.projectPersonnelImageNotFound),
+                );
               }
             },
             future: _getPersonnelMediaPath(),
@@ -224,7 +227,7 @@ class ImageSpeedDials extends StatelessWidget {
         color: Theme.of(context).colorScheme.onSecondary,
       ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
-      label: 'Take Photo',
+      label: context.l10n.projectPersonnelTakePhoto,
       onTap: onTakePhoto,
     );
   }
@@ -236,7 +239,7 @@ class ImageSpeedDials extends StatelessWidget {
         color: Theme.of(context).colorScheme.onSecondary,
       ),
       backgroundColor: Theme.of(context).colorScheme.secondary,
-      label: 'Select Photo',
+      label: context.l10n.projectPersonnelSelectPhoto,
       onTap: onSelectPhoto,
     );
   }

@@ -13,6 +13,7 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 enum PersonnelMenuAction { edit, delete }
 
@@ -29,7 +30,7 @@ class PersonnelViewerState extends ConsumerState<PersonnelViewer> {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Personnel',
+      title: context.l10n.settingsNavPersonnel,
       infoTopic: InfoTopic.projectPersonnel,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
@@ -182,11 +183,11 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
       _pop();
     }
 
-    if (numberPersonnelDeleted < _selectedPersonnel.length) {
+    if (mounted && numberPersonnelDeleted < _selectedPersonnel.length) {
       _showError(
-        '${_selectedPersonnel.length - numberPersonnelDeleted} '
-        'personnel could not be removed as they are being '
-        'used by project records.',
+        context.l10n.projectPersonnelRemoveBlocked(
+          _selectedPersonnel.length - numberPersonnelDeleted,
+        ),
       );
     }
   }
@@ -212,7 +213,7 @@ class EmptyPersonnel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'No personnel found.',
+            context.l10n.projectPersonnelNoneFound,
             style: Theme.of(context).textTheme.labelLarge,
             textAlign: TextAlign.center,
           ),
@@ -234,7 +235,7 @@ class AddPersonnelButton extends StatelessWidget {
       spacing: 8,
       children: [
         SecondaryButton(
-          text: 'Manage',
+          text: context.l10n.projectPersonnelManageButton,
           onPressed: () {
             Navigator.push(
               context,
@@ -249,7 +250,7 @@ class AddPersonnelButton extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const AddPersonnel()),
             );
           },
-          label: 'Add personnel',
+          label: context.l10n.recordsSpecimenAddPersonnel,
           icon: Icons.add,
         ),
       ],
@@ -361,15 +362,15 @@ class PersonnelSubtitle extends StatelessWidget {
           (role != null && role != '')
               ? TextSpan(
                   children: [
-                    const WidgetSpan(
+                    WidgetSpan(
                       child: Tooltip(
-                        message: 'Role',
+                        message: context.l10n.projectPersonnelRole,
                         child: TileIcon(icon: Icons.account_circle_outlined),
                       ),
                       alignment: PlaceholderAlignment.middle,
                     ),
                     TextSpan(
-                      text: ' $role ',
+                      text: ' ${personnelRoleLabel(context.l10n, role!)} ',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                   ],
@@ -378,9 +379,9 @@ class PersonnelSubtitle extends StatelessWidget {
           (affiliation != null && affiliation != '')
               ? TextSpan(
                   children: [
-                    const WidgetSpan(
+                    WidgetSpan(
                       child: Tooltip(
-                        message: 'Affiliation',
+                        message: context.l10n.projectPersonnelAffiliation,
                         child: TileIcon(icon: Icons.business_rounded),
                       ),
                       alignment: PlaceholderAlignment.middle,
@@ -395,9 +396,9 @@ class PersonnelSubtitle extends StatelessWidget {
           (orcid != null && orcid != '')
               ? TextSpan(
                   children: [
-                    const WidgetSpan(
+                    WidgetSpan(
                       child: Tooltip(
-                        message: 'ORCID iD',
+                        message: context.l10n.projectPersonnelOrcid,
                         child: TileIcon(icon: Icons.badge_outlined),
                       ),
                       alignment: PlaceholderAlignment.middle,
@@ -415,7 +416,8 @@ class PersonnelSubtitle extends StatelessWidget {
                   children: [
                     WidgetSpan(
                       child: Tooltip(
-                        message: 'Current Field Number',
+                        message:
+                            context.l10n.projectPersonnelCurrentFieldNumber,
                         child: TileIcon(icon: Icons.numbers_outlined),
                       ),
                       alignment: PlaceholderAlignment.middle,

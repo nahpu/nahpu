@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -31,7 +32,7 @@ class EditProjectState extends ConsumerState<EditProject> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit project'),
+        title: Text(context.l10n.projectEditProject),
         automaticallyImplyLeading: false,
       ),
       body: Center(

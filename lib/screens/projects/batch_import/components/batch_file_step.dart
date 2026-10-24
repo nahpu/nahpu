@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Second step: choose the file, and the sheet for a workbook.
 class BatchFileStep extends StatelessWidget {
@@ -34,11 +35,9 @@ class BatchFileStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const NahpuStepHeading(
-          title: 'Choose a file',
-          message:
-              'The first row must hold the column names. Each row after it '
-              'is one record.',
+        NahpuStepHeading(
+          title: context.l10n.projectBatchChooseFile,
+          message: context.l10n.projectBatchChooseFileBody,
         ),
         const SizedBox(height: NahpuSpacing.xl),
         Center(
@@ -64,7 +63,9 @@ class BatchFileStep extends StatelessWidget {
           if (table.sheetNames.length > 1) ...[
             DropdownButtonFormField<String>(
               initialValue: table.sheetName,
-              decoration: const InputDecoration(labelText: 'Sheet'),
+              decoration: InputDecoration(
+                labelText: context.l10n.projectBatchSheet,
+              ),
               items: [
                 for (final sheet in table.sheetNames)
                   DropdownMenuItem(value: sheet, child: Text(sheet)),
@@ -101,7 +102,10 @@ class BatchTablePreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${table.rows.length} rows · ${table.headers.length} columns',
+            context.l10n.projectBatchTableSize(
+              table.rows.length,
+              table.headers.length,
+            ),
             style: theme.textTheme.titleSmall,
           ),
           const SizedBox(height: NahpuSpacing.md),

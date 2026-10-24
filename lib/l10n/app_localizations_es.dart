@@ -5598,4 +5598,2588 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get removeEventPersonnelBody =>
       '¿Está seguro de que desea quitar de este evento al personal seleccionado?';
+
+  @override
+  String get projectDeleteProject => 'Eliminar proyecto';
+
+  @override
+  String get projectDeleteProjectTitle => '¿Eliminar proyecto?';
+
+  @override
+  String get projectDeleteProjectPrompt =>
+      'Eliminará este proyecto y sus datos relacionados. Esta acción no se puede deshacer.';
+
+  @override
+  String get projectNoProject => 'Ningún proyecto';
+
+  @override
+  String get projectOverview => 'Resumen del proyecto';
+
+  @override
+  String projectOverviewLoadError(Object error) {
+    return 'No se pudieron obtener los datos de la base de datos. Compruebe que el nombre del proyecto exista. $error';
+  }
+
+  @override
+  String projectSaveFailed(String error) {
+    return 'No se pudo guardar el proyecto: $error';
+  }
+
+  @override
+  String get projectDetails => 'Detalles del proyecto';
+
+  @override
+  String get projectNameLabel => 'Nombre del proyecto*';
+
+  @override
+  String get projectNameHint => 'Ingrese el nombre del proyecto (obligatorio)';
+
+  @override
+  String get projectDescriptionLabel => 'Descripción del proyecto';
+
+  @override
+  String get projectDescriptionHint =>
+      'Ingrese una breve descripción del proyecto';
+
+  @override
+  String get projectPrincipalInvestigator => 'Investigador principal';
+
+  @override
+  String get projectPrincipalInvestigatorHint =>
+      'Ingrese el investigador principal';
+
+  @override
+  String get projectAccession => 'Número de acceso';
+
+  @override
+  String get projectAccessionHint =>
+      'Ingrese un número de acceso institucional';
+
+  @override
+  String get projectPlaceAndTime => 'Lugar y hora';
+
+  @override
+  String get projectLocation => 'Ubicación';
+
+  @override
+  String get projectLocationHint => 'Ingrese la ubicación general del proyecto';
+
+  @override
+  String get projectTimeZoneNote =>
+      'NAHPU guarda las fechas y horas de colecta tal como se ingresan en la hora local de campo. La zona horaria del proyecto registra ese contexto para que los datos intercambiados se interpreten de forma coherente en sistemas de gestión de colecciones de terceros y otras herramientas.';
+
+  @override
+  String get projectDates => 'Fechas del proyecto';
+
+  @override
+  String get projectStartDate => 'Fecha de inicio';
+
+  @override
+  String get projectEndDate => 'Fecha de finalización';
+
+  @override
+  String get projectChooseDate => 'Elija una fecha';
+
+  @override
+  String projectClearField(String label) {
+    return 'Borrar $label';
+  }
+
+  @override
+  String get projectTimeZone => 'Zona horaria';
+
+  @override
+  String get projectChooseTimeZone => 'Elija una zona horaria';
+
+  @override
+  String get projectTimeZoneUtc => '(UTC) Tiempo universal coordinado';
+
+  @override
+  String get projectMainTaxonGroup => 'Grupo taxonómico principal';
+
+  @override
+  String get projectChooseTaxonGroup => 'Elija un grupo taxonómico';
+
+  @override
+  String projectTaxonSettingLoadError(String error) {
+    return 'No se pudo cargar la configuración del taxón: $error';
+  }
+
+  @override
+  String get projectIdentity => 'Identidad';
+
+  @override
+  String get projectDescription => 'Descripción';
+
+  @override
+  String get projectSchedule => 'Calendario';
+
+  @override
+  String get projectRecordMetadata => 'Metadatos del registro';
+
+  @override
+  String get projectCreated => 'Creado';
+
+  @override
+  String get projectLastAccessed => 'Último acceso';
+
+  @override
+  String get projectNotProvided => 'No indicado';
+
+  @override
+  String get projectUuid => 'UUID';
+
+  @override
+  String get projectQrTooltip =>
+      'Código QR del proyecto. Toque para verlo completo.';
+
+  @override
+  String get projectEditTools => 'Editar herramientas';
+
+  @override
+  String get projectEditToolsTooltip =>
+      'Elija las herramientas que se muestran aquí';
+
+  @override
+  String get projectUtilities => 'Utilidades del proyecto';
+
+  @override
+  String get projectDashboard => 'Panel del proyecto';
+
+  @override
+  String get projectEditProject => 'Editar proyecto';
+
+  @override
+  String get projectPersonnelRoleCataloger => 'Catalogador';
+
+  @override
+  String get projectPersonnelRoleDeterminer => 'Solo determinador';
+
+  @override
+  String get projectPersonnelRolePreparator => 'Solo preparador';
+
+  @override
+  String get projectPersonnelRoleNone => 'Ninguno';
+
+  @override
+  String get projectPersonnelSelectExisting => 'Seleccionar existente';
+
+  @override
+  String get projectPersonnelSelectFromDatabase =>
+      'Seleccionar de la base de datos';
+
+  @override
+  String get projectPersonnelAddNew => 'Agregar nuevo';
+
+  @override
+  String get projectPersonnelAddNewPersonnel => 'Agregar nuevo personal';
+
+  @override
+  String get projectPersonnelImageNotFound => 'Imagen no encontrada';
+
+  @override
+  String get projectPersonnelTakePhoto => 'Tomar foto';
+
+  @override
+  String get projectPersonnelSelectPhoto => 'Seleccionar foto';
+
+  @override
+  String get projectPersonnelEdit => 'Editar personal';
+
+  @override
+  String get projectPersonnelManage => 'Gestionar personal';
+
+  @override
+  String get projectPersonnelManageButton => 'Gestionar';
+
+  @override
+  String get projectPersonnelNoneFound => 'No se encontró personal.';
+
+  @override
+  String get projectPersonnelSelectToView =>
+      'Seleccione personal para ver los detalles';
+
+  @override
+  String get projectPersonnelSearch => 'Buscar personal';
+
+  @override
+  String get projectPersonnelUnnamed => 'Personal sin nombre';
+
+  @override
+  String get projectPersonnelAssigned =>
+      'Este personal está asignado a un proyecto';
+
+  @override
+  String projectPersonnelDeleted(int deleted) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: 'Se eliminaron $deleted personas.',
+      one: 'Se eliminó 1 persona.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectPersonnelDeletedPartly(int deleted, int protected) {
+    return 'Se eliminaron $deleted personas. $protected personas no se pudieron eliminar porque están asignadas a un proyecto.';
+  }
+
+  @override
+  String projectPersonnelNoMatch(String query) {
+    return 'Ningún personal coincide con «$query».';
+  }
+
+  @override
+  String projectSelectedCount(int count) {
+    return '$count seleccionados';
+  }
+
+  @override
+  String get projectPersonnelAdded => 'Agregado';
+
+  @override
+  String projectPersonnelAddCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Agregar $count personas',
+      one: 'Agregar 1 persona',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectPersonnelRemoveBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No se pudieron quitar $count personas porque las usan registros del proyecto.',
+      one: 'No se pudo quitar 1 persona porque la usan registros del proyecto.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectPersonnelRole => 'Función';
+
+  @override
+  String get projectPersonnelRoleHint => 'Ingrese la función';
+
+  @override
+  String get projectPersonnelAffiliation => 'Afiliación';
+
+  @override
+  String get projectPersonnelAffiliationHint => 'Ingrese la afiliación';
+
+  @override
+  String get projectPersonnelOrcid => 'ORCID iD';
+
+  @override
+  String get projectPersonnelOrcidInvalid =>
+      'Ingrese un ORCID iD válido con guiones';
+
+  @override
+  String get projectPersonnelCurrentFieldNumber => 'Número de campo actual';
+
+  @override
+  String get projectPersonnelInitials => 'Iniciales';
+
+  @override
+  String get projectPersonnelInitialsLabel => 'Iniciales*';
+
+  @override
+  String get projectPersonnelInitialsHint => 'p. ej., HH o H-H';
+
+  @override
+  String get projectPersonnelEmail => 'Correo electrónico';
+
+  @override
+  String get projectPersonnelEmailHint => 'Ingrese el correo electrónico';
+
+  @override
+  String get projectPersonnelPhone => 'Teléfono';
+
+  @override
+  String get projectPersonnelPhoneHint => 'Ingrese el teléfono';
+
+  @override
+  String get projectPersonnelSpecimenCare => 'Cuidado de especímenes';
+
+  @override
+  String get projectPersonnelSpecimenCareRole =>
+      'Función en el cuidado de especímenes';
+
+  @override
+  String get projectPersonnelRegisterFieldNumber => 'Registrar número de campo';
+
+  @override
+  String get projectPersonnelRegisterPersonalFieldNumber =>
+      'Registrar número de campo personal';
+
+  @override
+  String get projectPersonnelRegisterFieldNumberNote =>
+      'Las iniciales y el número del catalogador se usarán para generar el ID de campo del espécimen.';
+
+  @override
+  String get projectEnabled => 'Activado';
+
+  @override
+  String get projectDisabled => 'Desactivado';
+
+  @override
+  String get projectPersonnelProfile => 'Perfil';
+
+  @override
+  String get projectPersonnelContact => 'Contacto';
+
+  @override
+  String get projectPersonnelNotes => 'Notas';
+
+  @override
+  String get projectPersonnelNotesHint => 'Escriba notas';
+
+  @override
+  String get projectPersonnelNameLabel => 'Nombre*';
+
+  @override
+  String get projectPersonnelNameHint => 'Ingrese un nombre (obligatorio)';
+
+  @override
+  String get projectPersonnelCatalogerNumberLabel => 'Número del catalogador*';
+
+  @override
+  String projectErrorDetail(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get projectLoading => 'Cargando…';
+
+  @override
+  String get projectTaxonNew => 'Nuevo taxón';
+
+  @override
+  String get projectTaxonEdit => 'Editar taxón';
+
+  @override
+  String get projectTaxonAdd => 'Agregar taxón';
+
+  @override
+  String get projectTaxonClassification => 'Clasificación';
+
+  @override
+  String get projectTaxonRank => 'Rango';
+
+  @override
+  String get projectTaxonRankLabel => 'Rango taxonómico';
+
+  @override
+  String get projectTaxonRankHint =>
+      'Seleccione el rango que representa este registro';
+
+  @override
+  String get projectTaxonRankRequired =>
+      'Seleccione un rango e ingrese su nombre.';
+
+  @override
+  String projectTaxonEnterValue(String field) {
+    return 'Ingrese $field';
+  }
+
+  @override
+  String get projectTaxonKingdom => 'Reino';
+
+  @override
+  String get projectTaxonPhylum => 'Filo';
+
+  @override
+  String get projectTaxonClass => 'Clase';
+
+  @override
+  String get projectTaxonOrder => 'Orden';
+
+  @override
+  String get projectTaxonFamily => 'Familia';
+
+  @override
+  String get projectTaxonGenus => 'Género';
+
+  @override
+  String get projectTaxonSpecies => 'Especie';
+
+  @override
+  String get projectTaxonSubspecies => 'Subespecie';
+
+  @override
+  String get projectTaxonSpecificEpithet => 'Epíteto específico';
+
+  @override
+  String get projectTaxonSubspecificEpithet => 'Epíteto subespecífico';
+
+  @override
+  String get projectTaxonAdditionalDetails => 'Detalles adicionales';
+
+  @override
+  String get projectTaxonAuthors => 'Autores';
+
+  @override
+  String get projectTaxonAuthorsHint => 'Ingrese los autores';
+
+  @override
+  String get projectTaxonCommonName => 'Nombre común';
+
+  @override
+  String get projectTaxonCommonNameHint => 'Ingrese un nombre común';
+
+  @override
+  String get projectTaxonRedListLabel =>
+      'Categoría de la Lista Roja de la UICN';
+
+  @override
+  String get projectTaxonRedListHint => 'p. ej., En peligro, Vulnerable, etc.';
+
+  @override
+  String get projectTaxonRedListCategory => 'Categoría de la Lista Roja';
+
+  @override
+  String get projectTaxonCitesStatus => 'Estado CITES';
+
+  @override
+  String get projectTaxonCitesHint =>
+      'p. ej., Apéndice I, Apéndice II, No CITES, etc.';
+
+  @override
+  String get projectTaxonCountryStatusLabel =>
+      'Estado de conservación en el país';
+
+  @override
+  String get projectTaxonCountryStatusHint => 'p. ej., Protegida, común, etc.';
+
+  @override
+  String get projectTaxonCountryStatus => 'Estado en el país';
+
+  @override
+  String get projectTaxonSortingOrder => 'Orden de clasificación';
+
+  @override
+  String get projectTaxonSortingOrderHint => 'p. ej., 1, 2, 3';
+
+  @override
+  String get projectTaxonNotesHint => 'Ingrese notas';
+
+  @override
+  String get projectTaxonAllFields => 'Todos los campos';
+
+  @override
+  String get projectTaxonConservation => 'Conservación';
+
+  @override
+  String get projectTaxonTotalRecords => 'Total de registros';
+
+  @override
+  String get projectTaxonCurrentProject => 'Proyecto actual';
+
+  @override
+  String get projectTaxonAllProjects => 'Todos los proyectos';
+
+  @override
+  String projectTaxonRecordTotalsError(String error) {
+    return 'No se pudieron cargar los totales de registros: $error';
+  }
+
+  @override
+  String get projectTaxonQrTooltip =>
+      'Código QR del taxón. Toque para verlo completo.';
+
+  @override
+  String get projectTaxonQrCode => 'Código QR del taxón';
+
+  @override
+  String get projectTaxonQrDescription =>
+      'Escanee este código en NAHPU para importar este taxón.';
+
+  @override
+  String get projectTaxonRegistry => 'Registro de taxones';
+
+  @override
+  String projectTaxonImported(int taxa, int families) {
+    return 'Se importaron $taxa taxones de $families familias.';
+  }
+
+  @override
+  String get projectTaxonEmpty =>
+      'No se encontraron taxones.\nAgregue o importe taxones para comenzar a registrar capturas.';
+
+  @override
+  String get projectTaxonMetricOrders => 'órdenes';
+
+  @override
+  String get projectTaxonMetricFamilies => 'familias';
+
+  @override
+  String get projectTaxonMetricSpecies => 'especies registradas';
+
+  @override
+  String get projectTaxonMetricTaxa => 'taxones';
+
+  @override
+  String get projectTaxonSpecimenRecords => 'Registros de especímenes';
+
+  @override
+  String get projectTaxonSearchSpecimens => 'Buscar especímenes';
+
+  @override
+  String get projectTaxonNoSpecimens => 'No se encontraron especímenes';
+
+  @override
+  String projectTaxonSpecimensFound(int found, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total especímenes',
+      one: '1 espécimen',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total especímenes',
+      one: '1 espécimen',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      found,
+      locale: localeName,
+      other: 'Encontrados: $found de $_temp0',
+      one: 'Encontrado: 1 de $_temp1',
+    );
+    return '$_temp2';
+  }
+
+  @override
+  String projectTaxonSpecimenCount(int count) {
+    return 'Conteo de especímenes: $count';
+  }
+
+  @override
+  String get projectTaxonImportFromQr => 'Importar desde QR';
+
+  @override
+  String get projectTaxonSingle => 'Un solo taxón';
+
+  @override
+  String get projectTaxonMultiple => 'Varios taxones';
+
+  @override
+  String get projectTaxonScanQr => 'Escanear QR del taxón';
+
+  @override
+  String get projectTaxonScanMultiple => 'Escanear varios taxones';
+
+  @override
+  String get projectCameraDenied =>
+      'Se denegó el acceso a la cámara. Permita el acceso a la cámara en la configuración del dispositivo y vuelva a intentarlo.';
+
+  @override
+  String get projectTaxonCameraUnavailable =>
+      'El escaneo con la cámara no está disponible. Vuelva a intentarlo o importe un archivo.';
+
+  @override
+  String get projectTaxonCameraError =>
+      'No se pudo usar la cámara. Vuelva a intentarlo o importe un archivo.';
+
+  @override
+  String projectTaxonReadyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count taxones listos',
+      one: '1 taxón listo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectTaxonScanPrompt =>
+      'Escanee un código QR de taxón de NAHPU.';
+
+  @override
+  String get projectRetryCamera => 'Reintentar la cámara';
+
+  @override
+  String get projectTaxonManage => 'Gestionar taxones';
+
+  @override
+  String get projectTaxonNoneFound => 'No se encontraron taxones';
+
+  @override
+  String get projectTaxonSelectToView =>
+      'Seleccione un taxón para ver los detalles';
+
+  @override
+  String projectTaxonSearchIn(String category) {
+    return 'Buscar $category';
+  }
+
+  @override
+  String projectTaxonSearchCategoryTooltip(String category) {
+    return 'Categoría de búsqueda: $category';
+  }
+
+  @override
+  String get projectTaxonSearchCategory => 'Categoría de búsqueda';
+
+  @override
+  String get projectTaxonInUse => 'El taxón está en uso por un espécimen';
+
+  @override
+  String projectTaxonDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se eliminaron $count taxones.',
+      one: 'Se eliminó 1 taxón.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectTaxonDeletedPartly(int deleted, int protected) {
+    return 'Se eliminaron $deleted taxones. $protected taxones no se pudieron eliminar porque los usan especímenes.';
+  }
+
+  @override
+  String projectTaxonNoMatch(String query) {
+    return 'Ningún taxón coincide con «$query».';
+  }
+
+  @override
+  String projectTaxonNoMatchIn(String query, String category) {
+    return 'Ningún taxón coincide con «$query» en $category.';
+  }
+
+  @override
+  String get projectTaxonManual => 'Manual';
+
+  @override
+  String get projectImportSetupTab => 'Configuración';
+
+  @override
+  String get projectTaxonQrSource => 'QR de taxón de NAHPU';
+
+  @override
+  String get projectMapColumns => 'Asignar columnas';
+
+  @override
+  String get projectParsingError => 'Error de análisis';
+
+  @override
+  String get projectCheckColumns => 'Revise las columnas';
+
+  @override
+  String get projectHideAdvancedOptions => 'Ocultar opciones avanzadas';
+
+  @override
+  String get projectAdvancedOptions => 'Opciones avanzadas';
+
+  @override
+  String get projectTaxonReview => 'Revisar taxones';
+
+  @override
+  String get projectTaxonPreviewEmpty =>
+      'Seleccione un archivo o escanee un QR de taxón para ver la importación.';
+
+  @override
+  String projectTaxonReviewSummary(int registered, int duplicates) {
+    return '$registered ya registrados · $duplicates duplicados';
+  }
+
+  @override
+  String get projectTaxonAlreadyRegistered => 'Ya registrado';
+
+  @override
+  String get projectTaxonDuplicate => 'Duplicado';
+
+  @override
+  String projectImportSelectedCount(int count) {
+    return 'Importar $count seleccionados';
+  }
+
+  @override
+  String get projectTaxonSelectSharedClass =>
+      'Seleccione la clase común a todas las filas';
+
+  @override
+  String get projectTaxonClassForAllRows => 'Clase para todas las filas';
+
+  @override
+  String projectTaxonKingdomPhylum(String kingdom, String phylum) {
+    return 'Reino: $kingdom · Filo: $phylum';
+  }
+
+  @override
+  String get projectParserExcel => 'Analizador de Excel';
+
+  @override
+  String get projectParserDelimited => 'Analizador de texto delimitado';
+
+  @override
+  String get projectDelimiterNotApplicable => 'No aplica (archivo de Excel)';
+
+  @override
+  String get projectDelimiterTab => 'Tabulación (\"\\t\")';
+
+  @override
+  String get projectDelimiterComma => 'Coma (\",\")';
+
+  @override
+  String get projectDelimiterSemicolon => 'Punto y coma (\";\")';
+
+  @override
+  String get projectDelimiterCustomRaw => 'Personalizado (texto sin formato)';
+
+  @override
+  String get projectParsingDetails => 'Detalles del análisis';
+
+  @override
+  String projectParserValue(String parser) {
+    return 'Analizador: $parser';
+  }
+
+  @override
+  String projectDelimiterValue(String delimiter) {
+    return 'Delimitador: $delimiter';
+  }
+
+  @override
+  String get projectCustomDelimiterRequired =>
+      'Ingrese un delimitador personalizado para continuar.';
+
+  @override
+  String get projectParser => 'Analizador';
+
+  @override
+  String get projectParserAutoDetect => 'Detectar automáticamente';
+
+  @override
+  String get projectCustomDelimiter => 'Delimitador personalizado';
+
+  @override
+  String get projectCustomDelimiterHint =>
+      'Ingrese el texto sin formato (ejemplo: | o \\t)';
+
+  @override
+  String get projectRetryParse => 'Reintentar el análisis';
+
+  @override
+  String get projectTaxonSupportedInputs => 'Entradas compatibles:';
+
+  @override
+  String get projectTaxonSupportedFormats =>
+      'CSV (.csv), TSV (.tsv), Excel (.xlsx), QR de taxón de NAHPU';
+
+  @override
+  String get projectReadingFile => 'Leyendo archivo…';
+
+  @override
+  String get projectQrUnavailable =>
+      'El escaneo de QR no está disponible en esta plataforma.';
+
+  @override
+  String get projectClearImport => 'Borrar importación';
+
+  @override
+  String get projectWizardWelcome => 'Bienvenida';
+
+  @override
+  String get projectWizardMainTaxon => 'Taxón principal';
+
+  @override
+  String get projectWizardReview => 'Revisión';
+
+  @override
+  String get projectWizardCreateOnce =>
+      'Cree una vez para todos los dispositivos';
+
+  @override
+  String get projectWizardCreateOnceBody =>
+      'Cree un proyecto nuevo solo en el primer dispositivo. Use QR/Importar JSON para transferir la información y la identidad del proyecto.';
+
+  @override
+  String get projectWizardCreateNew => 'Crear proyecto nuevo';
+
+  @override
+  String get projectScanQr => 'Escanear QR del proyecto';
+
+  @override
+  String get projectWizardMainTaxonBody =>
+      'Elija el taxón principal para adaptar los formularios de especímenes y los valores predeterminados de NAHPU en este dispositivo. Un proyecto puede contener varios grupos taxonómicos, y puede cambiar el taxón principal más tarde en Configuración.';
+
+  @override
+  String get projectWizardFieldIdsTitle => 'Configurar los ID de campo';
+
+  @override
+  String projectWizardFieldIdsLoadError(String error) {
+    return 'No se pudo cargar la configuración de ID de campo: $error';
+  }
+
+  @override
+  String get projectWizardFieldIdsBody =>
+      'Elija cómo se generan los ID de campo de los especímenes. Puede cambiarlo más tarde en Configuración > Catálogos > Especímenes.';
+
+  @override
+  String get projectWizardCatalogerRequired =>
+      'Se requiere un catalogador registrado';
+
+  @override
+  String get projectWizardCatalogerRequiredBody =>
+      'A continuación, elija un catalogador elegible o cree uno con iniciales y un número de campo personal actual.';
+
+  @override
+  String projectWizardPrefixHint(String example) {
+    return 'p. ej., $example';
+  }
+
+  @override
+  String get projectCurrentCatalogNumber => 'Número de catálogo actual';
+
+  @override
+  String get projectWizardNextNumberHint => 'Ingrese el siguiente número';
+
+  @override
+  String get projectWizardCurrentNumberRequired => 'Ingrese un número actual';
+
+  @override
+  String get projectWizardAutoIncrementCatalog =>
+      'Incrementar automáticamente el número de catálogo';
+
+  @override
+  String projectWizardPersonnelLoadError(String error) {
+    return 'No se pudo cargar el personal: $error';
+  }
+
+  @override
+  String get projectWizardCreateCataloger => 'Crear un catalogador';
+
+  @override
+  String get projectWizardChooseCataloger => 'Elegir un catalogador';
+
+  @override
+  String get projectWizardNoCatalogerBody =>
+      'No hay ningún catalogador registrado disponible. Cree uno ahora; la función y el registro del número de campo personal se completan automáticamente.';
+
+  @override
+  String get projectWizardCreateAnotherCatalogerBody =>
+      'Cree otro catalogador. La función y el registro del número de campo personal se completan automáticamente.';
+
+  @override
+  String get projectWizardChooseCatalogerBody =>
+      'Elija el catalogador cuyas iniciales y número de campo actual se usarán en los ID de campo del personal.';
+
+  @override
+  String get projectWizardCatalogerLabel => 'Catalogador*';
+
+  @override
+  String get projectWizardCatalogerNameHint =>
+      'Ingrese el nombre del catalogador';
+
+  @override
+  String get projectWizardCurrentFieldNumberLabel => 'Número de campo actual*';
+
+  @override
+  String get projectWizardCurrentFieldNumberHint =>
+      'Ingrese el siguiente número de campo personal';
+
+  @override
+  String get projectWizardCatalogerRoleSet =>
+      'Función en el cuidado de especímenes: Catalogador';
+
+  @override
+  String get projectWizardFieldNumberEnabled =>
+      'Registro del número de campo personal activado';
+
+  @override
+  String get projectWizardReviewImported => 'Revisar proyecto importado';
+
+  @override
+  String get projectWizardReviewProject => 'Revisar proyecto';
+
+  @override
+  String get projectWizardImportNote =>
+      'Esta transferencia de información del proyecto conserva el UUID de origen. No incluye registros, personal, taxones ni la configuración del dispositivo.';
+
+  @override
+  String get projectName => 'Nombre del proyecto';
+
+  @override
+  String get projectFieldIdPrefix => 'Prefijo del ID de campo';
+
+  @override
+  String get projectFieldIdSuffix => 'Sufijo del ID de campo';
+
+  @override
+  String get projectWizardExistingCataloger =>
+      'Catalogador existente seleccionado';
+
+  @override
+  String get projectWizardNotConfigured => 'No configurado';
+
+  @override
+  String get projectWizardDeviceSetup => 'Configuración del dispositivo';
+
+  @override
+  String get projectWizardKeepCurrent => 'Mantener la configuración actual';
+
+  @override
+  String get projectWizardFieldIdMode => 'Modo de ID de campo';
+
+  @override
+  String get projectWizardAutoIncrement => 'Incremento automático';
+
+  @override
+  String get projectOn => 'Activado';
+
+  @override
+  String get projectOff => 'Desactivado';
+
+  @override
+  String get projectWizardTaxonomyReadiness => 'Preparación de la taxonomía';
+
+  @override
+  String get projectWizardTaxaCountUnavailable =>
+      'El conteo de taxones disponibles no está disponible.';
+
+  @override
+  String projectWizardAvailableTaxa(int count) {
+    return 'Taxones disponibles: $count';
+  }
+
+  @override
+  String get projectWizardNoTaxa => 'No hay taxones disponibles';
+
+  @override
+  String get projectWizardNoTaxaBody =>
+      'Agregue o importe taxones en el Registro de taxones antes de crear un nuevo registro de espécimen.';
+
+  @override
+  String get projectWizardSkip => 'Omitir';
+
+  @override
+  String get projectWizardCreating => 'Creando…';
+
+  @override
+  String get projectWizardCatalogerNameRequired =>
+      'El nombre del catalogador es obligatorio';
+
+  @override
+  String get projectWizardNameTooShort => 'El nombre es demasiado corto';
+
+  @override
+  String get projectWizardInvalidCharacters => 'Caracteres no válidos';
+
+  @override
+  String get projectWizardInitialsRequired => 'Las iniciales son obligatorias';
+
+  @override
+  String get projectWizardInitialsTooShort =>
+      'Las iniciales son demasiado cortas';
+
+  @override
+  String get projectWizardFieldNumberRequired =>
+      'El número de campo actual es obligatorio';
+
+  @override
+  String get projectWizardInvalidFieldNumber => 'Número de campo no válido';
+
+  @override
+  String get projectInvalidQr => 'Código QR del proyecto no válido.';
+
+  @override
+  String get projectNameRequired => 'El nombre del proyecto es obligatorio';
+
+  @override
+  String get projectNameTooShort => 'El nombre del proyecto es demasiado corto';
+
+  @override
+  String get projectNameTooLong => 'El nombre del proyecto es demasiado largo';
+
+  @override
+  String get projectNameInvalid => 'El nombre del proyecto no es válido';
+
+  @override
+  String get projectNameExists => 'Ya existe un proyecto con ese nombre';
+
+  @override
+  String get projectUuidExists =>
+      'Ya existe un proyecto con este UUID en este dispositivo.';
+
+  @override
+  String projectCreateFailed(String error) {
+    return 'No se pudo crear el proyecto: $error';
+  }
+
+  @override
+  String get projectWizardChooseExisting => 'Elegir existente';
+
+  @override
+  String get projectWizardCreateNewCataloger => 'Crear nuevo';
+
+  @override
+  String projectUuidValue(String uuid) {
+    return 'UUID del proyecto: $uuid';
+  }
+
+  @override
+  String get projectImportInfoJson =>
+      'Importar JSON de información del proyecto';
+
+  @override
+  String get projectTransferProjectInfo => 'Información del proyecto';
+
+  @override
+  String get projectTransferTaxonomy => 'Taxonomía';
+
+  @override
+  String get projectTransferSites => 'Sitios';
+
+  @override
+  String get projectTransferEvents => 'Eventos';
+
+  @override
+  String get projectTransferSpecimens => 'Especímenes';
+
+  @override
+  String get projectTransferNarratives => 'Narrativas';
+
+  @override
+  String get projectTransferCustomFields => 'Campos personalizados';
+
+  @override
+  String get projectTransferMedia => 'Multimedia';
+
+  @override
+  String get projectTransferKeepCurrent => 'Mantener actual';
+
+  @override
+  String get projectTransferUseImported => 'Usar importado';
+
+  @override
+  String get projectTransferImportAsNew => 'Importar como nuevo';
+
+  @override
+  String get projectExporting => 'Exportando proyecto';
+
+  @override
+  String get projectExportingHint =>
+      'Los proyectos con muchas fotos pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+
+  @override
+  String get projectExportAnother => 'Exportar otro';
+
+  @override
+  String get projectExportCancelTitle => '¿Cancelar la exportación?';
+
+  @override
+  String get projectExportCancelBody =>
+      'La exportación sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
+
+  @override
+  String get projectExportKeepExporting => 'Seguir exportando';
+
+  @override
+  String get projectExportCancel => 'Cancelar exportación';
+
+  @override
+  String projectOpenFolderFailed(String error) {
+    return 'No se pudo abrir la carpeta: $error';
+  }
+
+  @override
+  String projectSaveCopyFailed(String error) {
+    return 'No se pudo guardar una copia: $error';
+  }
+
+  @override
+  String get projectExportArchiveTitle => 'Archivo de respaldo y transferencia';
+
+  @override
+  String get projectExportArchiveBody =>
+      'Use este archivo como respaldo del proyecto o para transferirlo a otro dispositivo y combinarlo allí.';
+
+  @override
+  String get projectExportLight => 'Exportación ligera';
+
+  @override
+  String get projectExportLightBody =>
+      'Exporte el proyecto sin archivos multimedia para cargas con internet limitado. Use TAR.GZ o ZIP para un respaldo completo del proyecto.';
+
+  @override
+  String get projectExportArchiveContents => 'Contenido del archivo';
+
+  @override
+  String get projectExportExcluded => 'Excluido';
+
+  @override
+  String get projectExportMediaSize => 'Tamaño de multimedia';
+
+  @override
+  String projectWarningCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count advertencias',
+      one: '1 advertencia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectTransferFileAndSafety => 'Archivo y seguridad';
+
+  @override
+  String get projectTransferReviewImport => 'Revisar e importar';
+
+  @override
+  String get projectTransferReviewMerge => 'Revisar y combinar';
+
+  @override
+  String get projectTransferResult => 'Resultado';
+
+  @override
+  String get projectTransferChooseFirst =>
+      'Elija primero una transferencia de proyecto';
+
+  @override
+  String get projectTransferChooseFirstBody =>
+      'Vuelva a Archivo y seguridad para seleccionar un archivo.';
+
+  @override
+  String get projectTransferChooseTitle =>
+      'Elija una transferencia de proyecto de NAHPU';
+
+  @override
+  String get projectTransferChooseBody =>
+      'Las transferencias de proyecto pueden ser JSON.GZ, ZIP o TAR.GZ. JSON.GZ solo contiene registros. ZIP y TAR.GZ incluyen multimedia.';
+
+  @override
+  String get projectTransferReadingArchive => 'Leyendo archivo';
+
+  @override
+  String get projectTransferReadingArchiveHint =>
+      'Las transferencias con multimedia pueden tardar varios minutos en descomprimirse. Mantenga NAHPU abierto.';
+
+  @override
+  String get projectTransferChooseArchive => 'Elegir archivo';
+
+  @override
+  String get projectTransferChooseAnotherArchive => 'Elegir otro archivo';
+
+  @override
+  String get projectTransferBackupBeforeImport => 'Respalde antes de importar';
+
+  @override
+  String get projectTransferBackupBeforeMerge => 'Respalde antes de combinar';
+
+  @override
+  String get projectTransferBackupBody =>
+      'Un respaldo de la base de datos le da un punto de recuperación si los cambios importados no son los esperados.';
+
+  @override
+  String get projectTransferBackupNow => 'Respaldar ahora';
+
+  @override
+  String get projectTransferBackupAckImport =>
+      'Entiendo que debo tener un respaldo antes de importar.';
+
+  @override
+  String get projectTransferBackupAckMerge =>
+      'Entiendo que debo tener un respaldo antes de combinar.';
+
+  @override
+  String get projectTransferNewIdentity => 'Nueva identidad del proyecto';
+
+  @override
+  String projectTransferArchiveUuid(String uuid) {
+    return 'UUID del archivo: $uuid';
+  }
+
+  @override
+  String get projectTransferDestinationName => 'Nombre del proyecto de destino';
+
+  @override
+  String get projectTransferDestinationNameHelper =>
+      'Asigna el nombre del nuevo proyecto en este dispositivo. El archivo no cambia.';
+
+  @override
+  String projectTransferNameConflict(String name) {
+    return 'Ya existe un proyecto llamado «$name». Elija otro nombre. Si son copias del mismo proyecto, cancele y use Combinar proyecto.';
+  }
+
+  @override
+  String get projectTransferAlreadyExists => 'Este proyecto ya existe';
+
+  @override
+  String get projectTransferAlreadyExistsBody =>
+      'Los UUID coincidentes identifican el mismo proyecto. La importación está bloqueada. Combine este archivo con el proyecto existente.';
+
+  @override
+  String get projectTransferOpenMerge => 'Abrir Combinar proyecto';
+
+  @override
+  String get projectTransferUuidMismatch => 'El UUID del proyecto no coincide';
+
+  @override
+  String projectTransferUuidMismatchBody(String archive, String active) {
+    return 'Archivo: $archive\nProyecto activo: $active';
+  }
+
+  @override
+  String get projectTransferForceMerge =>
+      'Forzar la combinación con el proyecto activo';
+
+  @override
+  String get projectTransferForceMergeBody =>
+      'Los registros importados del proyecto usarán el UUID del proyecto activo. Los conflictos seguirán requiriendo las opciones que se muestran después.';
+
+  @override
+  String projectTransferTypeToConfirm(String name) {
+    return 'Escriba «$name» para confirmar';
+  }
+
+  @override
+  String get projectCatalogNumberPrefix => 'Prefijo del número de catálogo';
+
+  @override
+  String get projectCatalogNumberSuffix => 'Sufijo del número de catálogo';
+
+  @override
+  String get projectTransferProjectInfoBody =>
+      'Los valores actuales se mantienen de forma predeterminada. Seleccione valores importados individuales cuando quiera reemplazarlos.';
+
+  @override
+  String get projectTransferKeepAllCurrent => 'Mantener todos los actuales';
+
+  @override
+  String get projectTransferUseAllImported => 'Usar todos los importados';
+
+  @override
+  String get projectTransferReviewMatches =>
+      'Revise las coincidencias antes de continuar. «Mantener actual» vincula las dependencias importadas al registro existente sin reemplazarlo.';
+
+  @override
+  String get projectTransferBulkTooltip =>
+      'Aplicar una opción a todos los registros coincidentes';
+
+  @override
+  String projectTransferActionForAll(String action) {
+    return '$action para todos';
+  }
+
+  @override
+  String get projectTransferBulkAction => 'Acción en lote';
+
+  @override
+  String get projectTransferStatusNew => 'Nuevos';
+
+  @override
+  String get projectTransferStatusMatched => 'Coincidentes';
+
+  @override
+  String get projectTransferNeedsAttention => 'Requiere atención';
+
+  @override
+  String get projectTransferSkipped => 'Omitidos';
+
+  @override
+  String get projectTransferNoConflicts => 'Sin conflictos';
+
+  @override
+  String get projectTransferNoConflictsBody =>
+      'Todos los registros de esta sección se pueden importar como nuevos.';
+
+  @override
+  String get projectTransferReviewBody =>
+      'Todavía no se ha escrito nada. Los cambios en la base de datos se confirmarán juntos; un error los revierte todos.';
+
+  @override
+  String get projectTransferSourceProject => 'Proyecto de origen';
+
+  @override
+  String get projectTransferDestination => 'Destino';
+
+  @override
+  String get projectTransferUuidHandling => 'Manejo del UUID';
+
+  @override
+  String projectTransferNewUuid(String uuid) {
+    return 'Nuevo UUID del proyecto: $uuid';
+  }
+
+  @override
+  String get projectTransferForceMergeUuid =>
+      'Forzar la combinación con el UUID activo';
+
+  @override
+  String get projectTransferMatchingUuid => 'UUID del proyecto coincidente';
+
+  @override
+  String get projectTransferConflicts => 'Conflictos';
+
+  @override
+  String get projectTransferMediaFiles => 'Archivos multimedia';
+
+  @override
+  String get projectTransferResolveConflicts =>
+      'Resuelva los conflictos antes de combinar';
+
+  @override
+  String projectTransferDuplicateIdentifiers(String sections) {
+    return 'Los identificadores duplicados aún necesitan una acción en $sections.';
+  }
+
+  @override
+  String get projectTransferArchiveWarnings => 'Advertencias del archivo';
+
+  @override
+  String get projectTransferImportUnfinished => 'La importación no terminó';
+
+  @override
+  String get projectTransferMergeUnfinished => 'La combinación no terminó';
+
+  @override
+  String get projectTransferImportRetry =>
+      'Vuelva a Revisar e importar e inténtelo de nuevo.';
+
+  @override
+  String get projectTransferMergeRetry =>
+      'Vuelva a Revisar y combinar e inténtelo de nuevo.';
+
+  @override
+  String get projectTransferImported => 'Proyecto importado';
+
+  @override
+  String get projectTransferMerged => 'Datos del proyecto combinados';
+
+  @override
+  String get projectTransferCountImported => 'Importados';
+
+  @override
+  String get projectTransferCountMerged => 'Combinados';
+
+  @override
+  String get projectTransferCountUpdated => 'Actualizados';
+
+  @override
+  String get projectTransferSkippedOnConflict => 'Omitidos por conflicto';
+
+  @override
+  String get projectTransferMediaCopied => 'Multimedia copiado';
+
+  @override
+  String get projectTransferWarnings => 'Advertencias';
+
+  @override
+  String get projectTransferConflict => 'Conflicto';
+
+  @override
+  String get projectTransferCurrent => 'Actual';
+
+  @override
+  String get projectTransferConflictAction => 'Acción ante el conflicto';
+
+  @override
+  String get projectTransferChooseAction => 'Elija una acción';
+
+  @override
+  String get projectTransferChooseActionToContinue =>
+      'Elija una acción para continuar';
+
+  @override
+  String get projectTransferNotSet => 'Sin definir';
+
+  @override
+  String get projectTransferNoDetails => 'Sin detalles';
+
+  @override
+  String get projectBatchSpecimenParts => 'Partes de especímenes';
+
+  @override
+  String get projectBatchNarrative => 'Narrativa';
+
+  @override
+  String get projectBatchModeUpdate => 'Actualizar registros existentes';
+
+  @override
+  String get projectBatchModeCreate => 'Importar registros nuevos';
+
+  @override
+  String get projectBatchHeaderAuto => 'Automático';
+
+  @override
+  String get projectBatchDarwinCore => 'Darwin Core';
+
+  @override
+  String get projectBatchHeaderNames => 'Nombres de columnas';
+
+  @override
+  String get projectBatchKeySpecimenUuid => 'UUID del espécimen';
+
+  @override
+  String get projectBatchKeyCatalogNumber => 'Número de catálogo';
+
+  @override
+  String get projectBatchKeyCatalogerFieldNumber =>
+      'Catalogador y número de campo';
+
+  @override
+  String get projectBatchKeyTissueId => 'ID del tejido';
+
+  @override
+  String get projectBatchKeyBarcodeId => 'ID del código de barras';
+
+  @override
+  String get projectBatchKeySiteId => 'ID del sitio';
+
+  @override
+  String get projectBatchKeyEventId => 'ID del evento';
+
+  @override
+  String get projectBatchKeyNarrativeDate => 'Fecha de la narrativa';
+
+  @override
+  String get projectBatchStatusReady => 'Listo';
+
+  @override
+  String get projectBatchStatusMissingLink => 'Vínculo faltante';
+
+  @override
+  String get projectBatchStatusNoMatch => 'Sin coincidencia';
+
+  @override
+  String get projectBatchStatusAmbiguous => 'Varias coincidencias';
+
+  @override
+  String get projectBatchStatusExists => 'Ya está en el proyecto';
+
+  @override
+  String get projectBatchStatusDuplicateInFile => 'Repetido en el archivo';
+
+  @override
+  String get projectBatchStatusInvalid => 'Valores no válidos';
+
+  @override
+  String get projectBatchUpdateRecords => 'Actualizar registros';
+
+  @override
+  String get projectBatchImportRecords => 'Importar registros';
+
+  @override
+  String get projectBatchStepMode => 'Modo';
+
+  @override
+  String get projectBatchStepFile => 'Archivo';
+
+  @override
+  String get projectBatchStepColumns => 'Columnas';
+
+  @override
+  String get projectBatchStepGroups => 'Grupos';
+
+  @override
+  String get projectBatchUnsupportedFile =>
+      'Elija un archivo CSV, TSV o Excel.';
+
+  @override
+  String get projectBatchModeTitle => '¿Qué desea hacer?';
+
+  @override
+  String get projectBatchModeBody =>
+      'Traiga registros desde un archivo CSV, TSV o Excel. Las columnas pueden usar términos Darwin Core o sus propios nombres.';
+
+  @override
+  String get projectBatchModeCreateBody =>
+      'Agregue un registro por fila. Los taxones, el personal, los sitios y los eventos se vinculan cuando ya están en el proyecto.';
+
+  @override
+  String get projectBatchModeUpdateBody =>
+      'Asocie cada fila a un registro mediante una columna clave, como el número de catálogo, y escriba las demás columnas. Las celdas vacías no se modifican.';
+
+  @override
+  String get projectBatchRecords => 'Registros';
+
+  @override
+  String get projectBatchLinkedRecords => 'Registros vinculados';
+
+  @override
+  String get projectBatchLinkedRecordsBody =>
+      'Cada fila puede describir un sitio, su evento de colecta, un espécimen y una parte. Las filas se agrupan en sitios y eventos, que puede revisar antes de importar.';
+
+  @override
+  String get projectBatchChooseFile => 'Elija un archivo';
+
+  @override
+  String get projectBatchChooseFileBody =>
+      'La primera fila debe contener los nombres de las columnas. Cada fila posterior es un registro.';
+
+  @override
+  String get projectBatchSheet => 'Hoja';
+
+  @override
+  String projectBatchTableSize(int rows, int columns) {
+    String _temp0 = intl.Intl.pluralLogic(
+      rows,
+      locale: localeName,
+      other: '$rows filas',
+      one: '1 fila',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      columns,
+      locale: localeName,
+      other: '$columns columnas',
+      one: '1 columna',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get projectBatchMatchColumns => 'Asociar columnas';
+
+  @override
+  String projectBatchMatchColumnsBody(int mapped, int total) {
+    return '$mapped de $total columnas coinciden con un campo. Cambie cualquier coincidencia u omita una columna. Sus cambios se recuerdan para archivos con las mismas columnas.';
+  }
+
+  @override
+  String get projectBatchKeyColumn => 'Columna clave';
+
+  @override
+  String projectBatchKeyColumnMissing(String keys) {
+    return 'Asocie una columna a uno de estos: $keys.';
+  }
+
+  @override
+  String get projectBatchKeyColumnBody =>
+      'Las filas actualizan el registro con el mismo valor.';
+
+  @override
+  String get projectBatchMatchRecordsBy => 'Asociar registros por';
+
+  @override
+  String get projectBatchNoValues => 'Sin valores';
+
+  @override
+  String get projectBatchNahpuField => 'Campo de NAHPU';
+
+  @override
+  String get projectBatchSkipColumn => 'Omitir columna';
+
+  @override
+  String projectBatchFieldInUse(String field) {
+    return '$field (en uso)';
+  }
+
+  @override
+  String get projectBatchNameMatch => 'Coincidencia de nombre';
+
+  @override
+  String projectBatchCloseMatch(int percent) {
+    return 'Coincidencia cercana $percent %';
+  }
+
+  @override
+  String get projectBatchSkippedByYou => 'Omitida por usted';
+
+  @override
+  String get projectBatchYourChoice => 'Su elección';
+
+  @override
+  String get projectBatchSearch => 'Buscar';
+
+  @override
+  String projectBatchLoadRecordsFailed(String error) {
+    return 'No se pudieron cargar los registros: $error';
+  }
+
+  @override
+  String get projectBatchNoMatchingRecords => 'No hay registros coincidentes.';
+
+  @override
+  String get projectBatchNoOtherGroup =>
+      'No hay otro grupo con el cual combinar.';
+
+  @override
+  String get projectBatchMoveToNewGroup => 'Mover a un grupo nuevo';
+
+  @override
+  String get projectBatchCheckGroups => 'Revisar grupos';
+
+  @override
+  String get projectBatchCheckGroupsBody =>
+      'Las filas que describen el mismo sitio o evento se agrupan. Vincule un grupo a un registro del proyecto, combine grupos que sean el mismo lugar o visita, o separe filas.';
+
+  @override
+  String projectBatchSitesCount(int count) {
+    return 'Sitios ($count)';
+  }
+
+  @override
+  String projectBatchEventsCount(int count) {
+    return 'Eventos ($count)';
+  }
+
+  @override
+  String projectBatchSpecimensCount(int count) {
+    return 'Especímenes ($count)';
+  }
+
+  @override
+  String get projectBatchNoSiteColumns => 'Ninguna columna describe un sitio.';
+
+  @override
+  String get projectBatchNoEventColumns =>
+      'Ninguna columna describe un evento.';
+
+  @override
+  String get projectBatchNoSpecimenColumns =>
+      'Ninguna columna describe un espécimen.';
+
+  @override
+  String get projectBatchNewSite => 'Sitio nuevo';
+
+  @override
+  String projectBatchEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eventos',
+      one: '1 evento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchSpecimenCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especímenes',
+      one: '1 espécimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchPartCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count partes',
+      one: '1 parte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectBatchSetSiteId => 'Definir ID del sitio';
+
+  @override
+  String get projectBatchLinkSite => 'Vincular a un sitio existente';
+
+  @override
+  String get projectBatchMergeIntoSite => 'Combinar con el sitio';
+
+  @override
+  String get projectBatchMoveRowsToSite => 'Mover filas a un sitio nuevo';
+
+  @override
+  String projectBatchRow(String row) {
+    return 'Fila $row';
+  }
+
+  @override
+  String projectBatchRows(String rows) {
+    return 'Filas $rows';
+  }
+
+  @override
+  String projectBatchRowsMore(int count, String rows) {
+    return 'Filas $rows y $count más';
+  }
+
+  @override
+  String get projectBatchNoSite => 'Sin sitio';
+
+  @override
+  String get projectBatchNoEvent => 'Sin evento';
+
+  @override
+  String projectBatchEventLabel(String event) {
+    return 'Evento: $event';
+  }
+
+  @override
+  String get projectBatchSetIdSuffix => 'Definir sufijo del ID';
+
+  @override
+  String get projectBatchLinkEvent => 'Vincular a un evento existente';
+
+  @override
+  String get projectBatchSetEventIdSuffix => 'Definir sufijo del ID del evento';
+
+  @override
+  String get projectBatchMergeIntoEvent => 'Combinar con el evento';
+
+  @override
+  String get projectBatchMoveRowsToEvent => 'Mover filas a un evento nuevo';
+
+  @override
+  String get projectBatchExcluded => 'Excluido';
+
+  @override
+  String get projectBatchCheck => 'Revisar';
+
+  @override
+  String get projectBatchLinksToExisting => 'Vincula a existente';
+
+  @override
+  String get projectBatchChangeGroup => 'Cambiar grupo';
+
+  @override
+  String get projectBatchLinkExisting => 'Vincular a existente…';
+
+  @override
+  String get projectBatchCreateNew => 'Crear uno nuevo';
+
+  @override
+  String get projectBatchMergeInto => 'Combinar con…';
+
+  @override
+  String get projectBatchSplitRows => 'Separar filas…';
+
+  @override
+  String get projectBatchLinkedReviewBody =>
+      'Primero se escriben los sitios, luego sus eventos y después los especímenes y sus partes.';
+
+  @override
+  String projectBatchSitesSummary(int created, int linked) {
+    return 'Sitios: $created nuevos, $linked vinculados';
+  }
+
+  @override
+  String projectBatchEventsSummary(int created, int linked) {
+    return 'Eventos: $created nuevos, $linked vinculados';
+  }
+
+  @override
+  String projectBatchSpecimensSummary(int count) {
+    return 'Especímenes: $count';
+  }
+
+  @override
+  String projectBatchPartsSummary(int count) {
+    return 'Partes: $count';
+  }
+
+  @override
+  String projectBatchRowsSkipped(int count) {
+    return 'Filas omitidas: $count';
+  }
+
+  @override
+  String get projectBatchImportSpecimensMissingLinks =>
+      'Importar especímenes con vínculos faltantes';
+
+  @override
+  String get projectBatchImportSpecimensMissingLinksBody =>
+      'El taxón o la persona queda vacío. Agréguelo primero al proyecto para vincularlo.';
+
+  @override
+  String projectBatchWritingRecords(int done, int total) {
+    return 'Escribiendo $done de $total registros';
+  }
+
+  @override
+  String projectBatchWritingRows(int done, int total) {
+    return 'Escribiendo $done de $total filas';
+  }
+
+  @override
+  String get projectBatchNoProblems => 'No se encontraron problemas.';
+
+  @override
+  String projectBatchMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Y $count filas más.',
+      one: 'Y 1 fila más.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchSiteProblem(String site, String message) {
+    return 'Sitio $site: $message';
+  }
+
+  @override
+  String projectBatchSpecimenSkipped(String status) {
+    return 'Espécimen omitido: $status.';
+  }
+
+  @override
+  String get projectBatchExcludedRow => 'Excluida.';
+
+  @override
+  String get projectBatchDoneWithErrors => 'Listo, con errores';
+
+  @override
+  String projectBatchAddedSpecimensParts(int specimens, int parts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      specimens,
+      locale: localeName,
+      other: '$specimens especímenes',
+      one: '1 espécimen',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      parts,
+      locale: localeName,
+      other: '$parts partes',
+      one: '1 parte',
+    );
+    return 'Se agregaron $_temp0 y $_temp1.';
+  }
+
+  @override
+  String projectBatchRowsWithErrors(int count) {
+    return 'Filas con errores: $count';
+  }
+
+  @override
+  String get projectBatchOpenSpecimenTable =>
+      'Abrir la tabla de registros de especímenes';
+
+  @override
+  String projectBatchUpdatedRecords(int count, String records) {
+    return 'Se actualizaron $count $records.';
+  }
+
+  @override
+  String projectBatchAddedRecords(int count, String records) {
+    return 'Se agregaron $count $records.';
+  }
+
+  @override
+  String projectBatchUpdatedCount(int count) {
+    return 'Actualizados: $count';
+  }
+
+  @override
+  String projectBatchAddedCount(int count) {
+    return 'Agregados: $count';
+  }
+
+  @override
+  String projectBatchSkippedInReview(int count) {
+    return 'Omitidos en la revisión: $count';
+  }
+
+  @override
+  String projectBatchFailedCount(int count) {
+    return 'Con error: $count';
+  }
+
+  @override
+  String projectBatchOpenTable(String records) {
+    return 'Abrir la tabla de $records';
+  }
+
+  @override
+  String projectBatchReviewUpdate(int count, int total, String records) {
+    return 'Esto actualizará $count de $total $records. Se omiten las filas con problemas.';
+  }
+
+  @override
+  String projectBatchReviewAdd(int count, int total, String records) {
+    return 'Esto agregará $count de $total $records. Se omiten las filas con problemas.';
+  }
+
+  @override
+  String get projectBatchImportRowsMissingLinks =>
+      'Importar filas con vínculos faltantes';
+
+  @override
+  String get projectBatchImportRowsMissingLinksBody =>
+      'El taxón, la persona, el sitio o el evento queda vacío. Agréguelo primero al proyecto para vincularlo.';
+
+  @override
+  String get projectStatsPartQuantity => 'Cantidad de partes';
+
+  @override
+  String get projectStatsQuantity => 'Cantidad';
+
+  @override
+  String get projectStatsSite => 'Sitio';
+
+  @override
+  String get projectStatsDate => 'Fecha';
+
+  @override
+  String get projectStatsMethod => 'Método';
+
+  @override
+  String get projectStatsSex => 'Sexo';
+
+  @override
+  String get projectStatsLifeStage => 'Etapa de vida';
+
+  @override
+  String get projectStatsPartType => 'Tipo de parte';
+
+  @override
+  String get projectStatsTreatment => 'Tratamiento';
+
+  @override
+  String projectStatsTitle(String measure, String category) {
+    return '$measure por $category';
+  }
+
+  @override
+  String projectStatsTitleWithBreakdown(
+    String measure,
+    String category,
+    String breakdown,
+  ) {
+    return '$measure por $category y $breakdown';
+  }
+
+  @override
+  String projectStatsTitleAtSite(String title, String site) {
+    return '$title en $site';
+  }
+
+  @override
+  String projectStatsTitleForSpecies(String title, String species) {
+    return '$title de $species';
+  }
+
+  @override
+  String get projectStatsCoordinatesBySpecies => 'Coordenadas por especie';
+
+  @override
+  String get projectStatsSpatialSpecimensTitle =>
+      'Conteo de especímenes por coordenadas del sitio';
+
+  @override
+  String get projectStatsSpatialSpeciesTitle =>
+      'Conteo de especies por coordenadas del sitio';
+
+  @override
+  String get projectStatsSpatialFamiliesTitle =>
+      'Conteo de familias por coordenadas del sitio';
+
+  @override
+  String get projectStatsSpatialSelectedSpeciesTitle =>
+      'Conteo de la especie seleccionada por coordenadas';
+
+  @override
+  String get projectStatsCountSpecimens => 'especímenes';
+
+  @override
+  String get projectStatsCountSpecies => 'especies';
+
+  @override
+  String get projectStatsCountFamilies => 'familias';
+
+  @override
+  String get projectStatsClasses => 'Clases';
+
+  @override
+  String get projectStatsOrders => 'Órdenes';
+
+  @override
+  String get projectStatsFamilies => 'Familias';
+
+  @override
+  String get projectStatsGenera => 'Géneros';
+
+  @override
+  String get projectStatsSpecimenMedia => 'Multimedia de especímenes';
+
+  @override
+  String get projectStatsSiteMedia => 'Multimedia de sitios';
+
+  @override
+  String get projectStatsEventMedia => 'Multimedia de eventos';
+
+  @override
+  String get projectStatsNarrativeMedia => 'Multimedia de narrativas';
+
+  @override
+  String get projectStatsRecordedSites => 'Sitios registrados';
+
+  @override
+  String get projectStatsSampledSites => 'Sitios muestreados';
+
+  @override
+  String get projectStatsCaptureDays => 'Días de captura';
+
+  @override
+  String get projectStatsProjectDays => 'Días de proyecto';
+
+  @override
+  String get projectStatsRecordedElevation => 'Elevación registrada';
+
+  @override
+  String get projectStatsSampledElevation => 'Elevación muestreada';
+
+  @override
+  String get projectStatsNotRecorded => 'No registrado';
+
+  @override
+  String get projectStatsRecordStatistics => 'Estadísticas de registros';
+
+  @override
+  String get projectStatsTopSpecies => 'Especies más registradas';
+
+  @override
+  String get projectStatsRecordCounts => 'Conteo de registros';
+
+  @override
+  String get projectStatsShowRecordCounts => 'Mostrar conteo de registros';
+
+  @override
+  String get projectStatsShowTopSpecies => 'Mostrar especies más registradas';
+
+  @override
+  String get projectStatsExploreMore => 'Explorar más estadísticas';
+
+  @override
+  String projectStatsRecordLoadError(String error) {
+    return 'No se pudieron cargar las estadísticas de registros: $error';
+  }
+
+  @override
+  String get projectStatsSummary => 'Resumen';
+
+  @override
+  String get projectStatsExplore => 'Explorar';
+
+  @override
+  String get projectStatsTotalAllProjects => 'Total de todos los proyectos';
+
+  @override
+  String get projectStatsGroupBy => 'Agrupar por';
+
+  @override
+  String get projectStatsSelectSite => 'Seleccione un sitio';
+
+  @override
+  String get projectStatsAllSites => 'Todos los sitios';
+
+  @override
+  String get projectStatsSelectSpecies => 'Seleccione una especie';
+
+  @override
+  String get projectStatsAllSpecies => 'Todas las especies';
+
+  @override
+  String get projectStatsChart => 'Gráfico';
+
+  @override
+  String get projectStatsTable => 'Tabla';
+
+  @override
+  String get projectStatsRecordSummary => 'Resumen de registros';
+
+  @override
+  String get projectStatsTaxonomicBreakdown => 'Desglose taxonómico';
+
+  @override
+  String get projectStatsMediaBreakdown => 'Desglose de multimedia';
+
+  @override
+  String get projectStatsPerProject => 'Por proyecto';
+
+  @override
+  String get projectStatsNoProjects => 'Aún no hay proyectos.';
+
+  @override
+  String projectStatsProjectLoadError(String error) {
+    return 'No se pudieron cargar las estadísticas del proyecto: $error';
+  }
+
+  @override
+  String get projectStatsViewDetails => 'Ver detalles';
+
+  @override
+  String get projectStatsBreakDownBy => 'Desglosar por';
+
+  @override
+  String projectStatsLoadError(String error) {
+    return 'No se pudieron cargar las estadísticas: $error';
+  }
+
+  @override
+  String get projectStatsSpecimensBySpecies => 'Especímenes por especie';
+
+  @override
+  String get projectStatsSpecimensByFamily => 'Especímenes por familia';
+
+  @override
+  String get projectStatsSpecimensBySite => 'Especímenes por sitio';
+
+  @override
+  String get projectStatsSpecimensByDate => 'Especímenes por fecha';
+
+  @override
+  String get projectStatsSpecimensByMethod => 'Especímenes por método';
+
+  @override
+  String get projectStatsSpecimensBySex => 'Especímenes por sexo';
+
+  @override
+  String get projectStatsPartQuantityByType => 'Cantidad de partes por tipo';
+
+  @override
+  String get projectStatsPartQuantityByTreatment =>
+      'Cantidad de partes por tratamiento';
+
+  @override
+  String get projectStatsCounts => 'Conteos';
+
+  @override
+  String get projectStatsSpatial => 'Espacial';
+
+  @override
+  String get projectStatsNoData => 'No hay datos para mostrar';
+
+  @override
+  String projectStatsTapToView(String label) {
+    return '$label\nToque para ver los registros';
+  }
+
+  @override
+  String get projectStatsShowBarChart => 'Mostrar gráfico de barras';
+
+  @override
+  String get projectStatsShowPieChart => 'Mostrar gráfico circular';
+
+  @override
+  String get projectStatsClearSelection => 'Borrar selección';
+
+  @override
+  String projectStatsChoicesLoadError(String error) {
+    return 'No se pudieron cargar las opciones: $error';
+  }
+
+  @override
+  String get projectStatsNoMatchingChoices => 'No hay opciones coincidentes';
+
+  @override
+  String get projectStatsNoRecordsInGroup => 'No hay registros en este grupo.';
+
+  @override
+  String get projectStatsShow => 'Mostrar';
+
+  @override
+  String projectStatsSpeciesCountsByCoordinates(String species) {
+    return 'Conteo de $species por coordenadas';
+  }
+
+  @override
+  String get projectStatsMap => 'Mapa';
+
+  @override
+  String projectStatsSpatialLoadError(String error) {
+    return 'No se pudieron cargar las estadísticas espaciales: $error';
+  }
+
+  @override
+  String get projectStatsNoSpecimenCoords =>
+      'No hay especímenes asignados a las coordenadas del proyecto.';
+
+  @override
+  String get projectStatsNoSpeciesCoords =>
+      'No hay especies asociadas a las coordenadas del proyecto.';
+
+  @override
+  String get projectStatsNoFamilyCoords =>
+      'No hay familias asociadas a las coordenadas del proyecto.';
+
+  @override
+  String get projectStatsNoSelectedSpeciesCoords =>
+      'No hay especímenes de la especie seleccionada asignados a las coordenadas del proyecto.';
+
+  @override
+  String projectStatsNoSpeciesCoordsFor(String species) {
+    return 'No hay especímenes de $species asignados a las coordenadas del proyecto.';
+  }
+
+  @override
+  String projectStatsCoordinateLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Coordenadas',
+      one: 'Coordenada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsMeanPerCoordinate(String counted) {
+    return 'Promedio de $counted por coordenada';
+  }
+
+  @override
+  String get projectStatsTopCoordinate => 'Coordenada principal';
+
+  @override
+  String projectStatsTopValue(String name) {
+    return 'Principal: $name';
+  }
+
+  @override
+  String projectStatsCategoryCount(int count, String category) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Categorías ($category)',
+      one: 'Categoría ($category)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsMeanPerCategory(String counted) {
+    return 'Promedio de $counted por categoría';
+  }
+
+  @override
+  String get projectStatsTopCategory => 'Categoría principal';
+
+  @override
+  String get projectStatsTopCategoryShare =>
+      'Proporción de la categoría principal';
+
+  @override
+  String projectStatsTotalCount(String value) {
+    return 'Conteo total: $value';
+  }
+
+  @override
+  String get projectStatsElevation => 'Elevación';
+
+  @override
+  String get projectStatsSelectSpeciesPrompt =>
+      'Seleccione una especie para ver la abundancia por coordenada.';
+
+  @override
+  String get projectStatsCollapseLegend => 'Contraer la leyenda del mapa';
+
+  @override
+  String get projectStatsExpandLegend => 'Expandir la leyenda del mapa';
+
+  @override
+  String get projectStatsLegend => 'Leyenda';
+
+  @override
+  String get projectStatsLegendCircle =>
+      'Cada círculo representa\nuna coordenada';
+
+  @override
+  String get projectStatsLegendGrouped =>
+      'Sitios agrupados,\nacerque para separar';
+
+  @override
+  String projectStatsUnmappedRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count registros aparecen en la tabla, pero no se pueden mapear porque falta la latitud o la longitud o no es válida.',
+      one:
+          '1 registro aparece en la tabla, pero no se puede mapear porque falta la latitud o la longitud o no es válida.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsSpatialMap => 'Mapa de estadísticas espaciales';
+
+  @override
+  String get projectStatsMapLayers => 'Capas del mapa';
+
+  @override
+  String get projectStatsViewFullScreen => 'Ver el mapa en pantalla completa';
+
+  @override
+  String get projectStatsNaturalEarthError =>
+      'No se pudo cargar el mapa sin conexión Natural Earth.';
+
+  @override
+  String get projectStatsNoValidCoordinates =>
+      'No hay coordenadas válidas para mapear.';
+
+  @override
+  String projectStatsMapPrepareError(String error) {
+    return 'No se pudo preparar el mapa: $error';
+  }
+
+  @override
+  String get projectStatsZoomIn => 'Acercar';
+
+  @override
+  String get projectStatsZoomOut => 'Alejar';
+
+  @override
+  String get projectStatsCenterMap => 'Centrar el mapa en las estadísticas';
+
+  @override
+  String projectStatsSiteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sitios',
+      one: '1 sitio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsExportTable => 'Exportar tabla';
+
+  @override
+  String get projectStatsColumnName => 'Nombre';
+
+  @override
+  String get projectStatsColumnLocality => 'Localidad';
+
+  @override
+  String get projectStatsColumnDecimalLatitude => 'Latitud decimal';
+
+  @override
+  String get projectStatsColumnDecimalLongitude => 'Longitud decimal';
+
+  @override
+  String get projectStatsColumnElevation => 'Elevación (m)';
+
+  @override
+  String get projectStatsColumnDatum => 'Datum';
+
+  @override
+  String get projectStatsColumnUncertainty => 'Incertidumbre (m)';
+
+  @override
+  String get projectStatsColumnGpsUnit => 'Unidad GPS';
+
+  @override
+  String get projectStatsColumnLatitude => 'Latitud';
+
+  @override
+  String get projectStatsColumnLongitude => 'Longitud';
+
+  @override
+  String get projectStatsColumnCount => 'Conteo';
+
+  @override
+  String get projectStatsColumnPercent => 'Porcentaje';
+
+  @override
+  String get projectStatsColumnCategory => 'Categoría';
+
+  @override
+  String get projectStatsViewRecords => 'Ver registros';
+
+  @override
+  String get projectStatsExportStatisticsTable =>
+      'Exportar tabla de estadísticas';
+
+  @override
+  String get projectStatsExportSpatialTable =>
+      'Exportar tabla de estadísticas espaciales';
+
+  @override
+  String projectStatsExportError(String error) {
+    return 'No se pudieron exportar las estadísticas: $error';
+  }
+
+  @override
+  String get projectStatsExportComplete => 'Exportación completada';
+
+  @override
+  String projectStatsShareError(String error) {
+    return 'No se pudieron compartir las estadísticas: $error';
+  }
+
+  @override
+  String get projectTissueMuseumPermanent => 'Colección permanente del museo';
+
+  @override
+  String get projectTissueMuseumLoan => 'Préstamo del museo';
+
+  @override
+  String get projectTissueIdOrBarcode => 'ID del tejido o código de barras';
+
+  @override
+  String get projectTissueFillRows => 'Filas, de izquierda a derecha';
+
+  @override
+  String get projectTissueFillColumns => 'Columnas, de arriba abajo';
+
+  @override
+  String get projectTissueFillSerpentine => 'Filas en serpentina';
+
+  @override
+  String get projectTissueEntryScan => 'Escaneo';
+
+  @override
+  String get projectTissueEntryWorkList => 'Lista de trabajo';
+
+  @override
+  String get projectTissueTitle => 'Curaduría de especímenes';
+
+  @override
+  String projectTissueFilledCount(int filled, int capacity) {
+    return '$filled / $capacity ocupadas';
+  }
+
+  @override
+  String get projectTissueNextCell => 'Siguiente celda';
+
+  @override
+  String get projectTissueFull => 'Llena';
+
+  @override
+  String get projectTissueNextBox => 'Siguiente caja';
+
+  @override
+  String projectTissueCellFilled(String cell) {
+    return '$cell · ocupada';
+  }
+
+  @override
+  String get projectTissueFilled => 'Ocupada';
+
+  @override
+  String get projectTissueNext => 'Siguiente';
+
+  @override
+  String get projectTissueTapEmptyCell =>
+      'Toque una celda vacía para ir a ella';
+
+  @override
+  String get projectTissueScanTubes => 'Escanear tubos';
+
+  @override
+  String get projectTissueCameraUnavailable =>
+      'El escaneo con la cámara no está disponible. Use el campo de escaneo.';
+
+  @override
+  String get projectTissueCameraError =>
+      'No se pudo usar la cámara. Vuelva a intentarlo o use el campo de escaneo.';
+
+  @override
+  String get projectTissueSessionLog => 'Registro de la sesión';
+
+  @override
+  String projectTissueSessionLogCount(int count) {
+    return 'Registro de la sesión ($count)';
+  }
+
+  @override
+  String get projectTissueSessionLogEmpty =>
+      'Los tubos revisados aparecen aquí.';
+
+  @override
+  String projectTissueSeveralMatches(String code) {
+    return 'Varias partes coinciden con $code';
+  }
+
+  @override
+  String projectTissueCount(String count) {
+    return 'Cantidad $count';
+  }
+
+  @override
+  String projectTissueAt(String location) {
+    return 'En $location';
+  }
+
+  @override
+  String get projectTissueFindTubes => 'Buscar tubos';
+
+  @override
+  String get projectTissueType => 'Tipo de tejido';
+
+  @override
+  String get projectTissuePreservation => 'Preservación';
+
+  @override
+  String get projectTissueUpdateField => 'Campo a actualizar';
+
+  @override
+  String get projectTissueField => 'Campo';
+
+  @override
+  String get projectTissueValue => 'Valor';
+
+  @override
+  String get projectTissueMuseumCode => 'Código del museo';
+
+  @override
+  String get projectTissueBoxSize => 'Tamaño de la caja';
+
+  @override
+  String get projectTissueNumbering => 'Numeración';
+
+  @override
+  String get projectTissueFillOrder => 'Orden de llenado';
+
+  @override
+  String get projectTissueBoxLabel => 'Etiqueta de la caja';
+
+  @override
+  String get projectTissueBoxHint => 'Caja';
+
+  @override
+  String get projectTissueBoxNumber => 'Número de caja';
+
+  @override
+  String get projectTissueOverwrite => 'Sobrescribir valores existentes';
+
+  @override
+  String get projectTissueOverwriteBody =>
+      'Reemplaza una ubicación guardada o un valor de campo distinto';
+
+  @override
+  String get projectTissueAny => 'Cualquiera';
+
+  @override
+  String get projectTissueScanTube => 'Escanear tubo';
+
+  @override
+  String get projectTissueScanHint => 'Escanee o escriba y presione Intro';
+
+  @override
+  String get projectTissueScanWithCamera => 'Escanear con la cámara';
+
+  @override
+  String get projectTissueUndo => 'Deshacer';
+
+  @override
+  String get projectTissueReady => 'Listo. Escanee el primer tubo.';
+
+  @override
+  String get projectTissueWorkListEmpty =>
+      'Ninguna parte sin ubicar coincide con los filtros de tipo de tejido y preservación.';
+
+  @override
+  String projectTissueRemaining(int count) {
+    return 'Siguiente · quedan $count';
+  }
+
+  @override
+  String get projectTissuePlace => 'Ubicar';
 }

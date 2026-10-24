@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -36,7 +37,7 @@ class DashboardState extends ConsumerState<Dashboard> {
     final useProjectRail = getScreenType(context) == ScreenType.desktop;
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Project Dashboard"),
+        title: Text(context.l10n.projectDashboard),
         automaticallyImplyLeading: !useProjectRail,
       ),
       drawer: useProjectRail ? null : const ProjectMenuDrawer(),

@@ -4,6 +4,8 @@ import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// First step: update or import, and which records.
 class BatchModeStep extends StatelessWidget {
@@ -28,38 +30,35 @@ class BatchModeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const NahpuStepHeading(
-          title: 'What do you want to do?',
-          message:
-              'Bring records in from a CSV, TSV, or Excel file. Columns can '
-              'use Darwin Core terms or your own names.',
+        NahpuStepHeading(
+          title: l10n.projectBatchModeTitle,
+          message: l10n.projectBatchModeBody,
         ),
         const SizedBox(height: NahpuSpacing.xl),
         BatchModeCard(
           icon: Icons.download_rounded,
-          title: BatchImportMode.create.label,
-          message:
-              'Add one record per row. Taxa, personnel, sites, and events '
-              'are linked when they are already in the project.',
+          title: BatchImportMode.create.localizedLabel(l10n),
+          message: l10n.projectBatchModeCreateBody,
           selected: mode == BatchImportMode.create,
           onTap: () => onModeChanged(BatchImportMode.create),
         ),
         const SizedBox(height: NahpuSpacing.lg),
         BatchModeCard(
           icon: Icons.edit_note_rounded,
-          title: BatchImportMode.update.label,
-          message:
-              'Match each row to a record by a key column, such as a catalog '
-              'number, and write the other columns. Blank cells are left '
-              'unchanged.',
+          title: BatchImportMode.update.localizedLabel(l10n),
+          message: l10n.projectBatchModeUpdateBody,
           selected: mode == BatchImportMode.update,
           onTap: () => onModeChanged(BatchImportMode.update),
         ),
         const SizedBox(height: NahpuSpacing.xxl),
-        Text('Records', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.projectBatchRecords,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: NahpuSpacing.md),
         Wrap(
           spacing: NahpuSpacing.md,
@@ -67,14 +66,14 @@ class BatchModeStep extends StatelessWidget {
           children: [
             for (final value in DataTableRecordType.values)
               ChoiceChip(
-                label: Text(value.label),
+                label: Text(value.localizedLabel(l10n)),
                 selected: !linked && value == type,
                 onSelected: (_) => onTypeChanged(value),
               ),
             if (mode == BatchImportMode.create)
               ChoiceChip(
                 avatar: const Icon(Icons.account_tree_outlined),
-                label: const Text('Linked records'),
+                label: Text(l10n.projectBatchLinkedRecords),
                 selected: linked,
                 onSelected: (_) => onLinkedSelected(),
               ),
@@ -83,9 +82,7 @@ class BatchModeStep extends StatelessWidget {
         if (linked) ...[
           const SizedBox(height: NahpuSpacing.md),
           Text(
-            'Each row can describe a site, its collecting event, a specimen, '
-            'and a part. Rows are grouped into sites and events, which you '
-            'can check before importing.',
+            l10n.projectBatchLinkedRecordsBody,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

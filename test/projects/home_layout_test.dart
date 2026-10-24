@@ -230,7 +230,7 @@ void main() {
     await tester.tap(find.byKey(_statsKey));
     await tester.pumpAndSettle();
 
-    expect(find.text('Database Statistics'), findsOneWidget);
+    expect(find.text('Database statistics'), findsOneWidget);
     expect(find.text('Total across all projects'), findsOneWidget);
     final perProject = find.byKey(
       const ValueKey('full-screen-record-stat-per-project'),

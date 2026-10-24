@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// A band of headline numbers shown above a statistics chart or table.
 ///
@@ -105,7 +106,7 @@ class StatisticTotalLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final value = total?.toString() ?? '—';
     return Semantics(
-      label: 'Total count: $value',
+      label: context.l10n.projectStatsTotalCount(value),
       child: ExcludeSemantics(
         child: Text(
           'N = $value',

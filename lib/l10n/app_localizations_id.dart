@@ -5437,4 +5437,2538 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get removeEventPersonnelBody =>
       'Yakin ingin menghapus personel yang dipilih dari peristiwa ini?';
+
+  @override
+  String get projectDeleteProject => 'Hapus proyek';
+
+  @override
+  String get projectDeleteProjectTitle => 'Hapus proyek?';
+
+  @override
+  String get projectDeleteProjectPrompt =>
+      'Anda akan menghapus proyek ini beserta datanya. Tindakan ini tidak dapat dibatalkan.';
+
+  @override
+  String get projectNoProject => 'Tidak ada proyek';
+
+  @override
+  String get projectOverview => 'Ringkasan proyek';
+
+  @override
+  String projectOverviewLoadError(Object error) {
+    return 'Gagal mengambil data dari basis data. Periksa apakah nama proyek ada. $error';
+  }
+
+  @override
+  String projectSaveFailed(String error) {
+    return 'Tidak dapat menyimpan proyek: $error';
+  }
+
+  @override
+  String get projectDetails => 'Detail proyek';
+
+  @override
+  String get projectNameLabel => 'Nama proyek*';
+
+  @override
+  String get projectNameHint => 'Masukkan nama proyek (wajib)';
+
+  @override
+  String get projectDescriptionLabel => 'Deskripsi proyek';
+
+  @override
+  String get projectDescriptionHint => 'Masukkan deskripsi singkat proyek';
+
+  @override
+  String get projectPrincipalInvestigator => 'Peneliti utama';
+
+  @override
+  String get projectPrincipalInvestigatorHint => 'Masukkan peneliti utama';
+
+  @override
+  String get projectAccession => 'Aksesi';
+
+  @override
+  String get projectAccessionHint => 'Masukkan aksesi institusi';
+
+  @override
+  String get projectPlaceAndTime => 'Tempat dan waktu';
+
+  @override
+  String get projectLocation => 'Lokasi';
+
+  @override
+  String get projectLocationHint => 'Masukkan lokasi umum proyek';
+
+  @override
+  String get projectTimeZoneNote =>
+      'NAHPU menyimpan tanggal dan waktu koleksi sesuai yang dimasukkan dalam waktu lokal lapangan. Zona waktu proyek mencatat konteks tersebut agar data yang dipertukarkan dapat ditafsirkan secara konsisten oleh sistem manajemen koleksi pihak ketiga dan alat lainnya.';
+
+  @override
+  String get projectDates => 'Tanggal proyek';
+
+  @override
+  String get projectStartDate => 'Tanggal mulai';
+
+  @override
+  String get projectEndDate => 'Tanggal selesai';
+
+  @override
+  String get projectChooseDate => 'Pilih tanggal';
+
+  @override
+  String projectClearField(String label) {
+    return 'Hapus $label';
+  }
+
+  @override
+  String get projectTimeZone => 'Zona waktu';
+
+  @override
+  String get projectChooseTimeZone => 'Pilih zona waktu';
+
+  @override
+  String get projectTimeZoneUtc => '(UTC) Waktu Universal Terkoordinasi';
+
+  @override
+  String get projectMainTaxonGroup => 'Kelompok takson utama';
+
+  @override
+  String get projectChooseTaxonGroup => 'Pilih kelompok takson';
+
+  @override
+  String projectTaxonSettingLoadError(String error) {
+    return 'Tidak dapat memuat pengaturan takson: $error';
+  }
+
+  @override
+  String get projectIdentity => 'Identitas';
+
+  @override
+  String get projectDescription => 'Deskripsi';
+
+  @override
+  String get projectSchedule => 'Jadwal';
+
+  @override
+  String get projectRecordMetadata => 'Metadata catatan';
+
+  @override
+  String get projectCreated => 'Dibuat';
+
+  @override
+  String get projectLastAccessed => 'Terakhir diakses';
+
+  @override
+  String get projectNotProvided => 'Tidak diisi';
+
+  @override
+  String get projectUuid => 'UUID';
+
+  @override
+  String get projectQrTooltip => 'Kode QR proyek. Ketuk untuk melihat penuh.';
+
+  @override
+  String get projectEditTools => 'Sunting alat';
+
+  @override
+  String get projectEditToolsTooltip => 'Pilih alat yang ditampilkan di sini';
+
+  @override
+  String get projectUtilities => 'Utilitas proyek';
+
+  @override
+  String get projectDashboard => 'Dasbor proyek';
+
+  @override
+  String get projectEditProject => 'Sunting proyek';
+
+  @override
+  String get projectPersonnelRoleCataloger => 'Katalogis';
+
+  @override
+  String get projectPersonnelRoleDeterminer => 'Hanya identifikator';
+
+  @override
+  String get projectPersonnelRolePreparator => 'Hanya preparator';
+
+  @override
+  String get projectPersonnelRoleNone => 'Tidak ada';
+
+  @override
+  String get projectPersonnelSelectExisting => 'Pilih yang ada';
+
+  @override
+  String get projectPersonnelSelectFromDatabase => 'Pilih dari basis data';
+
+  @override
+  String get projectPersonnelAddNew => 'Tambah baru';
+
+  @override
+  String get projectPersonnelAddNewPersonnel => 'Tambah personel baru';
+
+  @override
+  String get projectPersonnelImageNotFound => 'Gambar tidak ditemukan';
+
+  @override
+  String get projectPersonnelTakePhoto => 'Ambil foto';
+
+  @override
+  String get projectPersonnelSelectPhoto => 'Pilih foto';
+
+  @override
+  String get projectPersonnelEdit => 'Sunting personel';
+
+  @override
+  String get projectPersonnelManage => 'Kelola personel';
+
+  @override
+  String get projectPersonnelManageButton => 'Kelola';
+
+  @override
+  String get projectPersonnelNoneFound => 'Tidak ada personel.';
+
+  @override
+  String get projectPersonnelSelectToView =>
+      'Pilih personel untuk melihat detail';
+
+  @override
+  String get projectPersonnelSearch => 'Cari personel';
+
+  @override
+  String get projectPersonnelUnnamed => 'Personel tanpa nama';
+
+  @override
+  String get projectPersonnelAssigned =>
+      'Personel sedang ditugaskan ke sebuah proyek';
+
+  @override
+  String projectPersonnelDeleted(int deleted) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted personel dihapus.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectPersonnelDeletedPartly(int deleted, int protected) {
+    return '$deleted personel dihapus. $protected personel tidak dapat dihapus karena ditugaskan ke sebuah proyek.';
+  }
+
+  @override
+  String projectPersonnelNoMatch(String query) {
+    return 'Tidak ada personel yang cocok dengan “$query”.';
+  }
+
+  @override
+  String projectSelectedCount(int count) {
+    return '$count dipilih';
+  }
+
+  @override
+  String get projectPersonnelAdded => 'Ditambahkan';
+
+  @override
+  String projectPersonnelAddCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tambah $count personel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectPersonnelRemoveBlocked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count personel tidak dapat dihapus karena digunakan oleh catatan proyek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectPersonnelRole => 'Peran';
+
+  @override
+  String get projectPersonnelRoleHint => 'Masukkan peran';
+
+  @override
+  String get projectPersonnelAffiliation => 'Afiliasi';
+
+  @override
+  String get projectPersonnelAffiliationHint => 'Masukkan afiliasi';
+
+  @override
+  String get projectPersonnelOrcid => 'ORCID iD';
+
+  @override
+  String get projectPersonnelOrcidInvalid =>
+      'Masukkan ORCID iD yang valid dengan tanda hubung';
+
+  @override
+  String get projectPersonnelCurrentFieldNumber => 'Nomor lapangan saat ini';
+
+  @override
+  String get projectPersonnelInitials => 'Inisial';
+
+  @override
+  String get projectPersonnelInitialsLabel => 'Inisial*';
+
+  @override
+  String get projectPersonnelInitialsHint => 'mis. HH atau H-H';
+
+  @override
+  String get projectPersonnelEmail => 'Email';
+
+  @override
+  String get projectPersonnelEmailHint => 'Masukkan email';
+
+  @override
+  String get projectPersonnelPhone => 'Telepon';
+
+  @override
+  String get projectPersonnelPhoneHint => 'Masukkan telepon';
+
+  @override
+  String get projectPersonnelSpecimenCare => 'Penanganan spesimen';
+
+  @override
+  String get projectPersonnelSpecimenCareRole => 'Peran penanganan spesimen';
+
+  @override
+  String get projectPersonnelRegisterFieldNumber => 'Daftarkan nomor lapangan';
+
+  @override
+  String get projectPersonnelRegisterPersonalFieldNumber =>
+      'Daftarkan nomor lapangan pribadi';
+
+  @override
+  String get projectPersonnelRegisterFieldNumberNote =>
+      'Inisial dan nomor katalogis akan digunakan untuk membuat ID lapangan spesimen.';
+
+  @override
+  String get projectEnabled => 'Aktif';
+
+  @override
+  String get projectDisabled => 'Nonaktif';
+
+  @override
+  String get projectPersonnelProfile => 'Profil';
+
+  @override
+  String get projectPersonnelContact => 'Kontak';
+
+  @override
+  String get projectPersonnelNotes => 'Catatan';
+
+  @override
+  String get projectPersonnelNotesHint => 'Tulis catatan';
+
+  @override
+  String get projectPersonnelNameLabel => 'Nama*';
+
+  @override
+  String get projectPersonnelNameHint => 'Masukkan nama (wajib)';
+
+  @override
+  String get projectPersonnelCatalogerNumberLabel => 'Nomor katalogis*';
+
+  @override
+  String projectErrorDetail(String error) {
+    return 'Galat: $error';
+  }
+
+  @override
+  String get projectLoading => 'Memuat…';
+
+  @override
+  String get projectTaxonNew => 'Takson baru';
+
+  @override
+  String get projectTaxonEdit => 'Sunting takson';
+
+  @override
+  String get projectTaxonAdd => 'Tambah takson';
+
+  @override
+  String get projectTaxonClassification => 'Klasifikasi';
+
+  @override
+  String get projectTaxonRank => 'Peringkat';
+
+  @override
+  String get projectTaxonRankLabel => 'Peringkat takson';
+
+  @override
+  String get projectTaxonRankHint =>
+      'Pilih peringkat yang diwakili catatan ini';
+
+  @override
+  String get projectTaxonRankRequired =>
+      'Pilih peringkat dan masukkan namanya.';
+
+  @override
+  String projectTaxonEnterValue(String field) {
+    return 'Masukkan $field';
+  }
+
+  @override
+  String get projectTaxonKingdom => 'Kerajaan';
+
+  @override
+  String get projectTaxonPhylum => 'Filum';
+
+  @override
+  String get projectTaxonClass => 'Kelas';
+
+  @override
+  String get projectTaxonOrder => 'Ordo';
+
+  @override
+  String get projectTaxonFamily => 'Famili';
+
+  @override
+  String get projectTaxonGenus => 'Genus';
+
+  @override
+  String get projectTaxonSpecies => 'Spesies';
+
+  @override
+  String get projectTaxonSubspecies => 'Subspesies';
+
+  @override
+  String get projectTaxonSpecificEpithet => 'Epitet spesifik';
+
+  @override
+  String get projectTaxonSubspecificEpithet => 'Epitet subspesifik';
+
+  @override
+  String get projectTaxonAdditionalDetails => 'Detail tambahan';
+
+  @override
+  String get projectTaxonAuthors => 'Penulis';
+
+  @override
+  String get projectTaxonAuthorsHint => 'Masukkan penulis';
+
+  @override
+  String get projectTaxonCommonName => 'Nama umum';
+
+  @override
+  String get projectTaxonCommonNameHint => 'Masukkan nama umum';
+
+  @override
+  String get projectTaxonRedListLabel => 'Kategori Daftar Merah IUCN';
+
+  @override
+  String get projectTaxonRedListHint => 'mis. Genting, Rentan, dll.';
+
+  @override
+  String get projectTaxonRedListCategory => 'Kategori Daftar Merah';
+
+  @override
+  String get projectTaxonCitesStatus => 'Status CITES';
+
+  @override
+  String get projectTaxonCitesHint =>
+      'mis. Apendiks I, Apendiks II, Non-CITES, dll.';
+
+  @override
+  String get projectTaxonCountryStatusLabel => 'Status konservasi negara';
+
+  @override
+  String get projectTaxonCountryStatusHint => 'mis. Dilindungi, umum, dll.';
+
+  @override
+  String get projectTaxonCountryStatus => 'Status negara';
+
+  @override
+  String get projectTaxonSortingOrder => 'Urutan penyortiran';
+
+  @override
+  String get projectTaxonSortingOrderHint => 'mis. 1, 2, 3';
+
+  @override
+  String get projectTaxonNotesHint => 'Masukkan catatan';
+
+  @override
+  String get projectTaxonAllFields => 'Semua bidang';
+
+  @override
+  String get projectTaxonConservation => 'Konservasi';
+
+  @override
+  String get projectTaxonTotalRecords => 'Total catatan';
+
+  @override
+  String get projectTaxonCurrentProject => 'Proyek saat ini';
+
+  @override
+  String get projectTaxonAllProjects => 'Semua proyek';
+
+  @override
+  String projectTaxonRecordTotalsError(String error) {
+    return 'Tidak dapat memuat total catatan: $error';
+  }
+
+  @override
+  String get projectTaxonQrTooltip =>
+      'Kode QR takson. Ketuk untuk melihat penuh.';
+
+  @override
+  String get projectTaxonQrCode => 'Kode QR takson';
+
+  @override
+  String get projectTaxonQrDescription =>
+      'Pindai kode ini di NAHPU untuk mengimpor takson ini.';
+
+  @override
+  String get projectTaxonRegistry => 'Registri takson';
+
+  @override
+  String projectTaxonImported(int taxa, int families) {
+    return '$taxa takson diimpor dari $families famili.';
+  }
+
+  @override
+  String get projectTaxonEmpty =>
+      'Tidak ada takson.\nTambah atau impor takson untuk mulai mencatat tangkapan.';
+
+  @override
+  String get projectTaxonMetricOrders => 'ordo';
+
+  @override
+  String get projectTaxonMetricFamilies => 'famili';
+
+  @override
+  String get projectTaxonMetricSpecies => 'spesies terdaftar';
+
+  @override
+  String get projectTaxonMetricTaxa => 'takson';
+
+  @override
+  String get projectTaxonSpecimenRecords => 'Catatan spesimen';
+
+  @override
+  String get projectTaxonSearchSpecimens => 'Cari spesimen';
+
+  @override
+  String get projectTaxonNoSpecimens => 'Tidak ada spesimen';
+
+  @override
+  String projectTaxonSpecimensFound(int found, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total spesimen',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      found,
+      locale: localeName,
+      other: 'Ditemukan: $found dari $_temp0',
+    );
+    return '$_temp1';
+  }
+
+  @override
+  String projectTaxonSpecimenCount(int count) {
+    return 'Jumlah spesimen: $count';
+  }
+
+  @override
+  String get projectTaxonImportFromQr => 'Impor dari QR';
+
+  @override
+  String get projectTaxonSingle => 'Takson tunggal';
+
+  @override
+  String get projectTaxonMultiple => 'Banyak takson';
+
+  @override
+  String get projectTaxonScanQr => 'Pindai QR takson';
+
+  @override
+  String get projectTaxonScanMultiple => 'Pindai banyak takson';
+
+  @override
+  String get projectCameraDenied =>
+      'Akses kamera ditolak. Izinkan akses kamera di pengaturan perangkat, lalu coba lagi.';
+
+  @override
+  String get projectTaxonCameraUnavailable =>
+      'Pemindaian kamera tidak tersedia. Coba lagi atau gunakan impor berkas.';
+
+  @override
+  String get projectTaxonCameraError =>
+      'Tidak dapat menggunakan kamera. Coba lagi atau gunakan impor berkas.';
+
+  @override
+  String projectTaxonReadyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count takson siap',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectTaxonScanPrompt => 'Pindai kode QR takson NAHPU.';
+
+  @override
+  String get projectRetryCamera => 'Coba kamera lagi';
+
+  @override
+  String get projectTaxonManage => 'Kelola takson';
+
+  @override
+  String get projectTaxonNoneFound => 'Tidak ada takson';
+
+  @override
+  String get projectTaxonSelectToView => 'Pilih takson untuk melihat detail';
+
+  @override
+  String projectTaxonSearchIn(String category) {
+    return 'Cari $category';
+  }
+
+  @override
+  String projectTaxonSearchCategoryTooltip(String category) {
+    return 'Kategori pencarian: $category';
+  }
+
+  @override
+  String get projectTaxonSearchCategory => 'Kategori pencarian';
+
+  @override
+  String get projectTaxonInUse => 'Takson sedang digunakan oleh spesimen';
+
+  @override
+  String projectTaxonDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count takson dihapus.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectTaxonDeletedPartly(int deleted, int protected) {
+    return '$deleted takson dihapus. $protected takson tidak dapat dihapus karena digunakan oleh spesimen.';
+  }
+
+  @override
+  String projectTaxonNoMatch(String query) {
+    return 'Tidak ada takson yang cocok dengan “$query”.';
+  }
+
+  @override
+  String projectTaxonNoMatchIn(String query, String category) {
+    return 'Tidak ada takson yang cocok dengan “$query” di $category.';
+  }
+
+  @override
+  String get projectTaxonManual => 'Manual';
+
+  @override
+  String get projectImportSetupTab => 'Penyiapan';
+
+  @override
+  String get projectTaxonQrSource => 'QR takson NAHPU';
+
+  @override
+  String get projectMapColumns => 'Petakan kolom';
+
+  @override
+  String get projectParsingError => 'Galat penguraian';
+
+  @override
+  String get projectCheckColumns => 'Periksa kolom';
+
+  @override
+  String get projectHideAdvancedOptions => 'Sembunyikan opsi lanjutan';
+
+  @override
+  String get projectAdvancedOptions => 'Opsi lanjutan';
+
+  @override
+  String get projectTaxonReview => 'Tinjau takson';
+
+  @override
+  String get projectTaxonPreviewEmpty =>
+      'Pilih berkas atau pindai QR takson untuk pratinjau impor.';
+
+  @override
+  String projectTaxonReviewSummary(int registered, int duplicates) {
+    return '$registered sudah terdaftar · $duplicates duplikat';
+  }
+
+  @override
+  String get projectTaxonAlreadyRegistered => 'Sudah terdaftar';
+
+  @override
+  String get projectTaxonDuplicate => 'Duplikat';
+
+  @override
+  String projectImportSelectedCount(int count) {
+    return 'Impor $count yang dipilih';
+  }
+
+  @override
+  String get projectTaxonSelectSharedClass =>
+      'Pilih kelas yang sama untuk semua baris';
+
+  @override
+  String get projectTaxonClassForAllRows => 'Kelas untuk semua baris';
+
+  @override
+  String projectTaxonKingdomPhylum(String kingdom, String phylum) {
+    return 'Kerajaan: $kingdom · Filum: $phylum';
+  }
+
+  @override
+  String get projectParserExcel => 'Pengurai Excel';
+
+  @override
+  String get projectParserDelimited => 'Pengurai teks berpembatas';
+
+  @override
+  String get projectDelimiterNotApplicable => 'Tidak berlaku (berkas Excel)';
+
+  @override
+  String get projectDelimiterTab => 'Tab (\"\\t\")';
+
+  @override
+  String get projectDelimiterComma => 'Koma (\",\")';
+
+  @override
+  String get projectDelimiterSemicolon => 'Titik koma (\";\")';
+
+  @override
+  String get projectDelimiterCustomRaw => 'Kustom (teks mentah)';
+
+  @override
+  String get projectParsingDetails => 'Detail penguraian';
+
+  @override
+  String projectParserValue(String parser) {
+    return 'Pengurai: $parser';
+  }
+
+  @override
+  String projectDelimiterValue(String delimiter) {
+    return 'Pembatas: $delimiter';
+  }
+
+  @override
+  String get projectCustomDelimiterRequired =>
+      'Masukkan pembatas kustom untuk melanjutkan.';
+
+  @override
+  String get projectParser => 'Pengurai';
+
+  @override
+  String get projectParserAutoDetect => 'Deteksi otomatis';
+
+  @override
+  String get projectCustomDelimiter => 'Pembatas kustom';
+
+  @override
+  String get projectCustomDelimiterHint =>
+      'Masukkan teks mentah (contoh: | atau \\t)';
+
+  @override
+  String get projectRetryParse => 'Urai ulang';
+
+  @override
+  String get projectTaxonSupportedInputs => 'Masukan yang didukung:';
+
+  @override
+  String get projectTaxonSupportedFormats =>
+      'CSV (.csv), TSV (.tsv), Excel (.xlsx), QR takson NAHPU';
+
+  @override
+  String get projectReadingFile => 'Membaca berkas…';
+
+  @override
+  String get projectQrUnavailable =>
+      'Pemindaian QR tidak tersedia di platform ini.';
+
+  @override
+  String get projectClearImport => 'Hapus impor';
+
+  @override
+  String get projectWizardWelcome => 'Selamat datang';
+
+  @override
+  String get projectWizardMainTaxon => 'Takson utama';
+
+  @override
+  String get projectWizardReview => 'Tinjauan';
+
+  @override
+  String get projectWizardCreateOnce => 'Buat sekali untuk semua perangkat';
+
+  @override
+  String get projectWizardCreateOnceBody =>
+      'Buat proyek baru hanya di perangkat pertama. Gunakan QR/Impor JSON untuk memindahkan info proyek beserta identitasnya.';
+
+  @override
+  String get projectWizardCreateNew => 'Buat proyek baru';
+
+  @override
+  String get projectScanQr => 'Pindai QR proyek';
+
+  @override
+  String get projectWizardMainTaxonBody =>
+      'Pilih takson utama untuk menyesuaikan formulir spesimen dan bawaan NAHPU di perangkat ini. Sebuah proyek dapat berisi beberapa kelompok takson, dan Anda dapat mengubah takson utama nanti di Pengaturan.';
+
+  @override
+  String get projectWizardFieldIdsTitle => 'Siapkan ID lapangan';
+
+  @override
+  String projectWizardFieldIdsLoadError(String error) {
+    return 'Tidak dapat memuat pengaturan ID lapangan: $error';
+  }
+
+  @override
+  String get projectWizardFieldIdsBody =>
+      'Pilih cara ID lapangan spesimen dibuat. Anda dapat mengubahnya nanti di Pengaturan > Katalog > Spesimen.';
+
+  @override
+  String get projectWizardCatalogerRequired => 'Diperlukan katalogis terdaftar';
+
+  @override
+  String get projectWizardCatalogerRequiredBody =>
+      'Selanjutnya, pilih katalogis yang memenuhi syarat atau buat dengan inisial dan nomor lapangan pribadi saat ini.';
+
+  @override
+  String projectWizardPrefixHint(String example) {
+    return 'mis. $example';
+  }
+
+  @override
+  String get projectCurrentCatalogNumber => 'Nomor katalog saat ini';
+
+  @override
+  String get projectWizardNextNumberHint => 'Masukkan nomor berikutnya';
+
+  @override
+  String get projectWizardCurrentNumberRequired => 'Masukkan nomor saat ini';
+
+  @override
+  String get projectWizardAutoIncrementCatalog =>
+      'Tambah nomor katalog otomatis';
+
+  @override
+  String projectWizardPersonnelLoadError(String error) {
+    return 'Tidak dapat memuat personel: $error';
+  }
+
+  @override
+  String get projectWizardCreateCataloger => 'Buat katalogis';
+
+  @override
+  String get projectWizardChooseCataloger => 'Pilih katalogis';
+
+  @override
+  String get projectWizardNoCatalogerBody =>
+      'Tidak ada katalogis terdaftar. Buat sekarang; peran dan pendaftaran nomor lapangan pribadi diisi otomatis.';
+
+  @override
+  String get projectWizardCreateAnotherCatalogerBody =>
+      'Buat katalogis lain. Peran dan pendaftaran nomor lapangan pribadi diisi otomatis.';
+
+  @override
+  String get projectWizardChooseCatalogerBody =>
+      'Pilih katalogis yang inisial dan nomor lapangan saat ininya akan digunakan untuk ID lapangan personel.';
+
+  @override
+  String get projectWizardCatalogerLabel => 'Katalogis*';
+
+  @override
+  String get projectWizardCatalogerNameHint => 'Masukkan nama katalogis';
+
+  @override
+  String get projectWizardCurrentFieldNumberLabel => 'Nomor lapangan saat ini*';
+
+  @override
+  String get projectWizardCurrentFieldNumberHint =>
+      'Masukkan nomor lapangan pribadi berikutnya';
+
+  @override
+  String get projectWizardCatalogerRoleSet =>
+      'Peran penanganan spesimen: Katalogis';
+
+  @override
+  String get projectWizardFieldNumberEnabled =>
+      'Pendaftaran nomor lapangan pribadi aktif';
+
+  @override
+  String get projectWizardReviewImported => 'Tinjau proyek yang diimpor';
+
+  @override
+  String get projectWizardReviewProject => 'Tinjau proyek';
+
+  @override
+  String get projectWizardImportNote =>
+      'Pemindahan info proyek ini mempertahankan UUID sumber. Catatan, personel, takson, dan pengaturan perangkat tidak disertakan.';
+
+  @override
+  String get projectName => 'Nama proyek';
+
+  @override
+  String get projectFieldIdPrefix => 'Prefiks ID lapangan';
+
+  @override
+  String get projectFieldIdSuffix => 'Sufiks ID lapangan';
+
+  @override
+  String get projectWizardExistingCataloger => 'Katalogis yang ada dipilih';
+
+  @override
+  String get projectWizardNotConfigured => 'Belum diatur';
+
+  @override
+  String get projectWizardDeviceSetup => 'Penyiapan perangkat';
+
+  @override
+  String get projectWizardKeepCurrent => 'Pertahankan pengaturan saat ini';
+
+  @override
+  String get projectWizardFieldIdMode => 'Mode ID lapangan';
+
+  @override
+  String get projectWizardAutoIncrement => 'Tambah otomatis';
+
+  @override
+  String get projectOn => 'Aktif';
+
+  @override
+  String get projectOff => 'Nonaktif';
+
+  @override
+  String get projectWizardTaxonomyReadiness => 'Kesiapan taksonomi';
+
+  @override
+  String get projectWizardTaxaCountUnavailable =>
+      'Jumlah takson yang tersedia tidak dapat ditampilkan.';
+
+  @override
+  String projectWizardAvailableTaxa(int count) {
+    return 'Takson tersedia: $count';
+  }
+
+  @override
+  String get projectWizardNoTaxa => 'Tidak ada takson tersedia';
+
+  @override
+  String get projectWizardNoTaxaBody =>
+      'Tambah atau impor takson di Registri takson sebelum membuat catatan spesimen baru.';
+
+  @override
+  String get projectWizardSkip => 'Lewati';
+
+  @override
+  String get projectWizardCreating => 'Membuat…';
+
+  @override
+  String get projectWizardCatalogerNameRequired => 'Nama katalogis wajib diisi';
+
+  @override
+  String get projectWizardNameTooShort => 'Nama terlalu pendek';
+
+  @override
+  String get projectWizardInvalidCharacters => 'Karakter tidak valid';
+
+  @override
+  String get projectWizardInitialsRequired => 'Inisial wajib diisi';
+
+  @override
+  String get projectWizardInitialsTooShort => 'Inisial terlalu pendek';
+
+  @override
+  String get projectWizardFieldNumberRequired =>
+      'Nomor lapangan saat ini wajib diisi';
+
+  @override
+  String get projectWizardInvalidFieldNumber => 'Nomor lapangan tidak valid';
+
+  @override
+  String get projectInvalidQr => 'Kode QR proyek tidak valid.';
+
+  @override
+  String get projectNameRequired => 'Nama proyek wajib diisi';
+
+  @override
+  String get projectNameTooShort => 'Nama proyek terlalu pendek';
+
+  @override
+  String get projectNameTooLong => 'Nama proyek terlalu panjang';
+
+  @override
+  String get projectNameInvalid => 'Nama proyek tidak valid';
+
+  @override
+  String get projectNameExists => 'Nama proyek sudah ada';
+
+  @override
+  String get projectUuidExists =>
+      'Proyek dengan UUID ini sudah ada di perangkat ini.';
+
+  @override
+  String projectCreateFailed(String error) {
+    return 'Tidak dapat membuat proyek: $error';
+  }
+
+  @override
+  String get projectWizardChooseExisting => 'Pilih yang ada';
+
+  @override
+  String get projectWizardCreateNewCataloger => 'Buat baru';
+
+  @override
+  String projectUuidValue(String uuid) {
+    return 'UUID proyek: $uuid';
+  }
+
+  @override
+  String get projectImportInfoJson => 'Impor JSON info proyek';
+
+  @override
+  String get projectTransferProjectInfo => 'Info proyek';
+
+  @override
+  String get projectTransferTaxonomy => 'Taksonomi';
+
+  @override
+  String get projectTransferSites => 'Lokasi';
+
+  @override
+  String get projectTransferEvents => 'Kegiatan';
+
+  @override
+  String get projectTransferSpecimens => 'Spesimen';
+
+  @override
+  String get projectTransferNarratives => 'Narasi';
+
+  @override
+  String get projectTransferCustomFields => 'Bidang kustom';
+
+  @override
+  String get projectTransferMedia => 'Media';
+
+  @override
+  String get projectTransferKeepCurrent => 'Pertahankan yang ada';
+
+  @override
+  String get projectTransferUseImported => 'Gunakan yang diimpor';
+
+  @override
+  String get projectTransferImportAsNew => 'Impor sebagai baru';
+
+  @override
+  String get projectExporting => 'Mengekspor proyek';
+
+  @override
+  String get projectExportingHint =>
+      'Proyek dengan banyak foto dapat memakan waktu beberapa menit. Biarkan NAHPU tetap terbuka sampai selesai.';
+
+  @override
+  String get projectExportAnother => 'Ekspor lagi';
+
+  @override
+  String get projectExportCancelTitle => 'Batalkan ekspor?';
+
+  @override
+  String get projectExportCancelBody =>
+      'Ekspor masih berjalan. Keluar sekarang akan membatalkannya dan tidak ada berkas yang disimpan.';
+
+  @override
+  String get projectExportKeepExporting => 'Lanjutkan ekspor';
+
+  @override
+  String get projectExportCancel => 'Batalkan ekspor';
+
+  @override
+  String projectOpenFolderFailed(String error) {
+    return 'Tidak dapat membuka folder: $error';
+  }
+
+  @override
+  String projectSaveCopyFailed(String error) {
+    return 'Tidak dapat menyimpan salinan: $error';
+  }
+
+  @override
+  String get projectExportArchiveTitle => 'Arsip cadangan dan pemindahan';
+
+  @override
+  String get projectExportArchiveBody =>
+      'Gunakan arsip ini sebagai cadangan proyek, atau untuk memindahkan proyek ini ke perangkat lain dan menggabungkannya di sana.';
+
+  @override
+  String get projectExportLight => 'Ekspor ringan';
+
+  @override
+  String get projectExportLightBody =>
+      'Ekspor proyek tanpa berkas media untuk unggahan dengan internet terbatas. Gunakan TAR.GZ atau ZIP untuk cadangan proyek lengkap.';
+
+  @override
+  String get projectExportArchiveContents => 'Isi arsip';
+
+  @override
+  String get projectExportExcluded => 'Tidak disertakan';
+
+  @override
+  String get projectExportMediaSize => 'Ukuran media';
+
+  @override
+  String projectWarningCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count peringatan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectTransferFileAndSafety => 'Berkas dan keamanan';
+
+  @override
+  String get projectTransferReviewImport => 'Tinjau dan impor';
+
+  @override
+  String get projectTransferReviewMerge => 'Tinjau dan gabungkan';
+
+  @override
+  String get projectTransferResult => 'Hasil';
+
+  @override
+  String get projectTransferChooseFirst =>
+      'Pilih pemindahan proyek terlebih dahulu';
+
+  @override
+  String get projectTransferChooseFirstBody =>
+      'Kembali ke Berkas dan keamanan untuk memilih arsip.';
+
+  @override
+  String get projectTransferChooseTitle => 'Pilih pemindahan proyek NAHPU';
+
+  @override
+  String get projectTransferChooseBody =>
+      'Pemindahan proyek dapat berupa JSON.GZ, ZIP, atau TAR.GZ. JSON.GZ hanya berisi catatan. ZIP dan TAR.GZ menyertakan media.';
+
+  @override
+  String get projectTransferReadingArchive => 'Membaca arsip';
+
+  @override
+  String get projectTransferReadingArchiveHint =>
+      'Pemindahan yang menyertakan media dapat memakan waktu beberapa menit untuk dibongkar. Biarkan NAHPU tetap terbuka.';
+
+  @override
+  String get projectTransferChooseArchive => 'Pilih arsip';
+
+  @override
+  String get projectTransferChooseAnotherArchive => 'Pilih arsip lain';
+
+  @override
+  String get projectTransferBackupBeforeImport => 'Cadangkan sebelum mengimpor';
+
+  @override
+  String get projectTransferBackupBeforeMerge =>
+      'Cadangkan sebelum menggabungkan';
+
+  @override
+  String get projectTransferBackupBody =>
+      'Cadangan basis data memberi Anda titik pemulihan jika perubahan yang diimpor tidak sesuai harapan.';
+
+  @override
+  String get projectTransferBackupNow => 'Cadangkan sekarang';
+
+  @override
+  String get projectTransferBackupAckImport =>
+      'Saya mengerti bahwa saya perlu menyimpan cadangan sebelum mengimpor.';
+
+  @override
+  String get projectTransferBackupAckMerge =>
+      'Saya mengerti bahwa saya perlu menyimpan cadangan sebelum menggabungkan.';
+
+  @override
+  String get projectTransferNewIdentity => 'Identitas proyek baru';
+
+  @override
+  String projectTransferArchiveUuid(String uuid) {
+    return 'UUID arsip: $uuid';
+  }
+
+  @override
+  String get projectTransferDestinationName => 'Nama proyek tujuan';
+
+  @override
+  String get projectTransferDestinationNameHelper =>
+      'Menamai proyek baru di perangkat ini. Arsip tidak diubah.';
+
+  @override
+  String projectTransferNameConflict(String name) {
+    return 'Proyek bernama “$name” sudah ada. Pilih nama lain. Jika keduanya salinan proyek yang sama, batalkan dan gunakan Gabungkan proyek.';
+  }
+
+  @override
+  String get projectTransferAlreadyExists => 'Proyek ini sudah ada';
+
+  @override
+  String get projectTransferAlreadyExistsBody =>
+      'UUID yang sama menandakan proyek yang sama. Impor diblokir. Gabungkan arsip ini ke proyek yang ada.';
+
+  @override
+  String get projectTransferOpenMerge => 'Buka Gabungkan proyek';
+
+  @override
+  String get projectTransferUuidMismatch => 'UUID proyek tidak cocok';
+
+  @override
+  String projectTransferUuidMismatchBody(String archive, String active) {
+    return 'Arsip: $archive\nProyek aktif: $active';
+  }
+
+  @override
+  String get projectTransferForceMerge => 'Paksa gabung ke proyek aktif';
+
+  @override
+  String get projectTransferForceMergeBody =>
+      'Catatan proyek yang diimpor akan menggunakan UUID proyek aktif. Konflik tetap memerlukan pilihan yang ditampilkan nanti.';
+
+  @override
+  String projectTransferTypeToConfirm(String name) {
+    return 'Ketik “$name” untuk mengonfirmasi';
+  }
+
+  @override
+  String get projectCatalogNumberPrefix => 'Prefiks nomor katalog';
+
+  @override
+  String get projectCatalogNumberSuffix => 'Sufiks nomor katalog';
+
+  @override
+  String get projectTransferProjectInfoBody =>
+      'Nilai saat ini dipertahankan secara bawaan. Pilih nilai impor satu per satu jika ingin menggantinya.';
+
+  @override
+  String get projectTransferKeepAllCurrent => 'Pertahankan semua yang ada';
+
+  @override
+  String get projectTransferUseAllImported => 'Gunakan semua yang diimpor';
+
+  @override
+  String get projectTransferReviewMatches =>
+      'Tinjau kecocokan sebelum melanjutkan. “Pertahankan yang ada” memetakan dependensi yang diimpor ke catatan yang ada tanpa menggantinya.';
+
+  @override
+  String get projectTransferBulkTooltip =>
+      'Terapkan satu pilihan ke semua catatan yang cocok';
+
+  @override
+  String projectTransferActionForAll(String action) {
+    return '$action untuk semua';
+  }
+
+  @override
+  String get projectTransferBulkAction => 'Tindakan massal';
+
+  @override
+  String get projectTransferStatusNew => 'Baru';
+
+  @override
+  String get projectTransferStatusMatched => 'Cocok';
+
+  @override
+  String get projectTransferNeedsAttention => 'Perlu perhatian';
+
+  @override
+  String get projectTransferSkipped => 'Dilewati';
+
+  @override
+  String get projectTransferNoConflicts => 'Tidak ada konflik';
+
+  @override
+  String get projectTransferNoConflictsBody =>
+      'Semua catatan di bagian ini dapat diimpor sebagai baru.';
+
+  @override
+  String get projectTransferReviewBody =>
+      'Belum ada yang ditulis. Perubahan basis data akan disimpan bersamaan; satu kegagalan membatalkan semuanya.';
+
+  @override
+  String get projectTransferSourceProject => 'Proyek sumber';
+
+  @override
+  String get projectTransferDestination => 'Tujuan';
+
+  @override
+  String get projectTransferUuidHandling => 'Penanganan UUID';
+
+  @override
+  String projectTransferNewUuid(String uuid) {
+    return 'UUID proyek baru: $uuid';
+  }
+
+  @override
+  String get projectTransferForceMergeUuid => 'Paksa gabung ke UUID aktif';
+
+  @override
+  String get projectTransferMatchingUuid => 'UUID proyek cocok';
+
+  @override
+  String get projectTransferConflicts => 'Konflik';
+
+  @override
+  String get projectTransferMediaFiles => 'Berkas media';
+
+  @override
+  String get projectTransferResolveConflicts =>
+      'Selesaikan konflik sebelum menggabungkan';
+
+  @override
+  String projectTransferDuplicateIdentifiers(String sections) {
+    return 'Pengenal duplikat masih memerlukan tindakan di $sections.';
+  }
+
+  @override
+  String get projectTransferArchiveWarnings => 'Peringatan arsip';
+
+  @override
+  String get projectTransferImportUnfinished => 'Impor tidak selesai';
+
+  @override
+  String get projectTransferMergeUnfinished => 'Penggabungan tidak selesai';
+
+  @override
+  String get projectTransferImportRetry =>
+      'Kembali ke Tinjau dan impor lalu coba lagi.';
+
+  @override
+  String get projectTransferMergeRetry =>
+      'Kembali ke Tinjau dan gabungkan lalu coba lagi.';
+
+  @override
+  String get projectTransferImported => 'Proyek diimpor';
+
+  @override
+  String get projectTransferMerged => 'Data proyek digabungkan';
+
+  @override
+  String get projectTransferCountImported => 'Diimpor';
+
+  @override
+  String get projectTransferCountMerged => 'Digabungkan';
+
+  @override
+  String get projectTransferCountUpdated => 'Diperbarui';
+
+  @override
+  String get projectTransferSkippedOnConflict => 'Dilewati karena konflik';
+
+  @override
+  String get projectTransferMediaCopied => 'Media disalin';
+
+  @override
+  String get projectTransferWarnings => 'Peringatan';
+
+  @override
+  String get projectTransferConflict => 'Konflik';
+
+  @override
+  String get projectTransferCurrent => 'Saat ini';
+
+  @override
+  String get projectTransferConflictAction => 'Tindakan konflik';
+
+  @override
+  String get projectTransferChooseAction => 'Pilih tindakan';
+
+  @override
+  String get projectTransferChooseActionToContinue =>
+      'Pilih tindakan untuk melanjutkan';
+
+  @override
+  String get projectTransferNotSet => 'Belum diatur';
+
+  @override
+  String get projectTransferNoDetails => 'Tidak ada detail';
+
+  @override
+  String get projectBatchSpecimenParts => 'Bagian spesimen';
+
+  @override
+  String get projectBatchNarrative => 'Narasi';
+
+  @override
+  String get projectBatchModeUpdate => 'Perbarui catatan yang ada';
+
+  @override
+  String get projectBatchModeCreate => 'Impor catatan baru';
+
+  @override
+  String get projectBatchHeaderAuto => 'Otomatis';
+
+  @override
+  String get projectBatchDarwinCore => 'Darwin Core';
+
+  @override
+  String get projectBatchHeaderNames => 'Nama kolom';
+
+  @override
+  String get projectBatchKeySpecimenUuid => 'UUID spesimen';
+
+  @override
+  String get projectBatchKeyCatalogNumber => 'Nomor katalog';
+
+  @override
+  String get projectBatchKeyCatalogerFieldNumber =>
+      'Katalogis dan nomor lapangan';
+
+  @override
+  String get projectBatchKeyTissueId => 'ID jaringan';
+
+  @override
+  String get projectBatchKeyBarcodeId => 'ID kode batang';
+
+  @override
+  String get projectBatchKeySiteId => 'ID lokasi';
+
+  @override
+  String get projectBatchKeyEventId => 'ID kegiatan';
+
+  @override
+  String get projectBatchKeyNarrativeDate => 'Tanggal narasi';
+
+  @override
+  String get projectBatchStatusReady => 'Siap';
+
+  @override
+  String get projectBatchStatusMissingLink => 'Tautan hilang';
+
+  @override
+  String get projectBatchStatusNoMatch => 'Tidak cocok';
+
+  @override
+  String get projectBatchStatusAmbiguous => 'Beberapa kecocokan';
+
+  @override
+  String get projectBatchStatusExists => 'Sudah ada di proyek';
+
+  @override
+  String get projectBatchStatusDuplicateInFile => 'Berulang di berkas';
+
+  @override
+  String get projectBatchStatusInvalid => 'Nilai tidak valid';
+
+  @override
+  String get projectBatchUpdateRecords => 'Perbarui catatan';
+
+  @override
+  String get projectBatchImportRecords => 'Impor catatan';
+
+  @override
+  String get projectBatchStepMode => 'Mode';
+
+  @override
+  String get projectBatchStepFile => 'Berkas';
+
+  @override
+  String get projectBatchStepColumns => 'Kolom';
+
+  @override
+  String get projectBatchStepGroups => 'Grup';
+
+  @override
+  String get projectBatchUnsupportedFile =>
+      'Pilih berkas CSV, TSV, atau Excel.';
+
+  @override
+  String get projectBatchModeTitle => 'Apa yang ingin Anda lakukan?';
+
+  @override
+  String get projectBatchModeBody =>
+      'Masukkan catatan dari berkas CSV, TSV, atau Excel. Kolom dapat memakai istilah Darwin Core atau nama Anda sendiri.';
+
+  @override
+  String get projectBatchModeCreateBody =>
+      'Tambahkan satu catatan per baris. Takson, personel, lokasi, dan kegiatan ditautkan jika sudah ada di proyek.';
+
+  @override
+  String get projectBatchModeUpdateBody =>
+      'Cocokkan setiap baris dengan catatan melalui kolom kunci, seperti nomor katalog, lalu tulis kolom lainnya. Sel kosong tidak diubah.';
+
+  @override
+  String get projectBatchRecords => 'Catatan';
+
+  @override
+  String get projectBatchLinkedRecords => 'Catatan tertaut';
+
+  @override
+  String get projectBatchLinkedRecordsBody =>
+      'Setiap baris dapat menjelaskan lokasi, kegiatan koleksinya, spesimen, dan bagiannya. Baris dikelompokkan ke dalam lokasi dan kegiatan yang dapat Anda periksa sebelum mengimpor.';
+
+  @override
+  String get projectBatchChooseFile => 'Pilih berkas';
+
+  @override
+  String get projectBatchChooseFileBody =>
+      'Baris pertama harus berisi nama kolom. Setiap baris setelahnya adalah satu catatan.';
+
+  @override
+  String get projectBatchSheet => 'Lembar';
+
+  @override
+  String projectBatchTableSize(int rows, int columns) {
+    String _temp0 = intl.Intl.pluralLogic(
+      rows,
+      locale: localeName,
+      other: '$rows baris',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      columns,
+      locale: localeName,
+      other: '$columns kolom',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get projectBatchMatchColumns => 'Cocokkan kolom';
+
+  @override
+  String projectBatchMatchColumnsBody(int mapped, int total) {
+    return '$mapped dari $total kolom cocok dengan bidang. Ubah kecocokan apa pun, atau lewati kolom. Perubahan Anda diingat untuk berkas dengan kolom yang sama.';
+  }
+
+  @override
+  String get projectBatchKeyColumn => 'Kolom kunci';
+
+  @override
+  String projectBatchKeyColumnMissing(String keys) {
+    return 'Petakan kolom ke salah satu dari: $keys.';
+  }
+
+  @override
+  String get projectBatchKeyColumnBody =>
+      'Baris memperbarui catatan dengan nilai yang sama.';
+
+  @override
+  String get projectBatchMatchRecordsBy => 'Cocokkan catatan berdasarkan';
+
+  @override
+  String get projectBatchNoValues => 'Tidak ada nilai';
+
+  @override
+  String get projectBatchNahpuField => 'Bidang NAHPU';
+
+  @override
+  String get projectBatchSkipColumn => 'Lewati kolom';
+
+  @override
+  String projectBatchFieldInUse(String field) {
+    return '$field (sedang dipakai)';
+  }
+
+  @override
+  String get projectBatchNameMatch => 'Nama cocok';
+
+  @override
+  String projectBatchCloseMatch(int percent) {
+    return 'Hampir cocok $percent%';
+  }
+
+  @override
+  String get projectBatchSkippedByYou => 'Dilewati oleh Anda';
+
+  @override
+  String get projectBatchYourChoice => 'Pilihan Anda';
+
+  @override
+  String get projectBatchSearch => 'Cari';
+
+  @override
+  String projectBatchLoadRecordsFailed(String error) {
+    return 'Tidak dapat memuat catatan: $error';
+  }
+
+  @override
+  String get projectBatchNoMatchingRecords => 'Tidak ada catatan yang cocok.';
+
+  @override
+  String get projectBatchNoOtherGroup =>
+      'Tidak ada grup lain untuk digabungkan.';
+
+  @override
+  String get projectBatchMoveToNewGroup => 'Pindahkan ke grup baru';
+
+  @override
+  String get projectBatchCheckGroups => 'Periksa grup';
+
+  @override
+  String get projectBatchCheckGroupsBody =>
+      'Baris yang menjelaskan lokasi atau kegiatan yang sama dikelompokkan. Tautkan grup ke catatan yang ada di proyek, gabungkan grup yang merupakan tempat atau kunjungan yang sama, atau pisahkan baris.';
+
+  @override
+  String projectBatchSitesCount(int count) {
+    return 'Lokasi ($count)';
+  }
+
+  @override
+  String projectBatchEventsCount(int count) {
+    return 'Kegiatan ($count)';
+  }
+
+  @override
+  String projectBatchSpecimensCount(int count) {
+    return 'Spesimen ($count)';
+  }
+
+  @override
+  String get projectBatchNoSiteColumns =>
+      'Tidak ada kolom yang menjelaskan lokasi.';
+
+  @override
+  String get projectBatchNoEventColumns =>
+      'Tidak ada kolom yang menjelaskan kegiatan.';
+
+  @override
+  String get projectBatchNoSpecimenColumns =>
+      'Tidak ada kolom yang menjelaskan spesimen.';
+
+  @override
+  String get projectBatchNewSite => 'Lokasi baru';
+
+  @override
+  String projectBatchEventCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kegiatan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchSpecimenCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spesimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchPartCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bagian',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectBatchSetSiteId => 'Atur ID lokasi';
+
+  @override
+  String get projectBatchLinkSite => 'Tautkan ke lokasi yang ada';
+
+  @override
+  String get projectBatchMergeIntoSite => 'Gabungkan ke lokasi';
+
+  @override
+  String get projectBatchMoveRowsToSite => 'Pindahkan baris ke lokasi baru';
+
+  @override
+  String projectBatchRow(String row) {
+    return 'Baris $row';
+  }
+
+  @override
+  String projectBatchRows(String rows) {
+    return 'Baris $rows';
+  }
+
+  @override
+  String projectBatchRowsMore(int count, String rows) {
+    return 'Baris $rows dan $count lainnya';
+  }
+
+  @override
+  String get projectBatchNoSite => 'Tanpa lokasi';
+
+  @override
+  String get projectBatchNoEvent => 'Tanpa kegiatan';
+
+  @override
+  String projectBatchEventLabel(String event) {
+    return 'Kegiatan: $event';
+  }
+
+  @override
+  String get projectBatchSetIdSuffix => 'Atur sufiks ID';
+
+  @override
+  String get projectBatchLinkEvent => 'Tautkan ke kegiatan yang ada';
+
+  @override
+  String get projectBatchSetEventIdSuffix => 'Atur sufiks ID kegiatan';
+
+  @override
+  String get projectBatchMergeIntoEvent => 'Gabungkan ke kegiatan';
+
+  @override
+  String get projectBatchMoveRowsToEvent => 'Pindahkan baris ke kegiatan baru';
+
+  @override
+  String get projectBatchExcluded => 'Dikecualikan';
+
+  @override
+  String get projectBatchCheck => 'Periksa';
+
+  @override
+  String get projectBatchLinksToExisting => 'Tertaut ke yang ada';
+
+  @override
+  String get projectBatchChangeGroup => 'Ubah grup';
+
+  @override
+  String get projectBatchLinkExisting => 'Tautkan ke yang ada…';
+
+  @override
+  String get projectBatchCreateNew => 'Buat baru saja';
+
+  @override
+  String get projectBatchMergeInto => 'Gabungkan ke…';
+
+  @override
+  String get projectBatchSplitRows => 'Pisahkan baris…';
+
+  @override
+  String get projectBatchLinkedReviewBody =>
+      'Lokasi ditulis terlebih dahulu, lalu kegiatan di lokasi tersebut, kemudian spesimen dan bagiannya.';
+
+  @override
+  String projectBatchSitesSummary(int created, int linked) {
+    return 'Lokasi: $created baru, $linked tertaut';
+  }
+
+  @override
+  String projectBatchEventsSummary(int created, int linked) {
+    return 'Kegiatan: $created baru, $linked tertaut';
+  }
+
+  @override
+  String projectBatchSpecimensSummary(int count) {
+    return 'Spesimen: $count';
+  }
+
+  @override
+  String projectBatchPartsSummary(int count) {
+    return 'Bagian: $count';
+  }
+
+  @override
+  String projectBatchRowsSkipped(int count) {
+    return 'Baris dilewati: $count';
+  }
+
+  @override
+  String get projectBatchImportSpecimensMissingLinks =>
+      'Impor spesimen dengan tautan hilang';
+
+  @override
+  String get projectBatchImportSpecimensMissingLinksBody =>
+      'Takson atau orang dibiarkan kosong. Tambahkan ke proyek terlebih dahulu untuk menautkannya.';
+
+  @override
+  String projectBatchWritingRecords(int done, int total) {
+    return 'Menulis $done dari $total catatan';
+  }
+
+  @override
+  String projectBatchWritingRows(int done, int total) {
+    return 'Menulis $done dari $total baris';
+  }
+
+  @override
+  String get projectBatchNoProblems => 'Tidak ada masalah.';
+
+  @override
+  String projectBatchMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dan $count baris lainnya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectBatchSiteProblem(String site, String message) {
+    return 'Lokasi $site: $message';
+  }
+
+  @override
+  String projectBatchSpecimenSkipped(String status) {
+    return 'Spesimen dilewati: $status.';
+  }
+
+  @override
+  String get projectBatchExcludedRow => 'Dikecualikan.';
+
+  @override
+  String get projectBatchDoneWithErrors => 'Selesai, dengan galat';
+
+  @override
+  String projectBatchAddedSpecimensParts(int specimens, int parts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      specimens,
+      locale: localeName,
+      other: '$specimens spesimen',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      parts,
+      locale: localeName,
+      other: '$parts bagian',
+    );
+    return 'Menambahkan $_temp0 dan $_temp1.';
+  }
+
+  @override
+  String projectBatchRowsWithErrors(int count) {
+    return 'Baris dengan galat: $count';
+  }
+
+  @override
+  String get projectBatchOpenSpecimenTable => 'Buka tabel catatan spesimen';
+
+  @override
+  String projectBatchUpdatedRecords(int count, String records) {
+    return '$count $records diperbarui.';
+  }
+
+  @override
+  String projectBatchAddedRecords(int count, String records) {
+    return '$count $records ditambahkan.';
+  }
+
+  @override
+  String projectBatchUpdatedCount(int count) {
+    return 'Diperbarui: $count';
+  }
+
+  @override
+  String projectBatchAddedCount(int count) {
+    return 'Ditambahkan: $count';
+  }
+
+  @override
+  String projectBatchSkippedInReview(int count) {
+    return 'Dilewati saat tinjauan: $count';
+  }
+
+  @override
+  String projectBatchFailedCount(int count) {
+    return 'Gagal: $count';
+  }
+
+  @override
+  String projectBatchOpenTable(String records) {
+    return 'Buka tabel $records';
+  }
+
+  @override
+  String projectBatchReviewUpdate(int count, int total, String records) {
+    return 'Ini akan memperbarui $count dari $total $records. Baris bermasalah dilewati.';
+  }
+
+  @override
+  String projectBatchReviewAdd(int count, int total, String records) {
+    return 'Ini akan menambahkan $count dari $total $records. Baris bermasalah dilewati.';
+  }
+
+  @override
+  String get projectBatchImportRowsMissingLinks =>
+      'Impor baris dengan tautan hilang';
+
+  @override
+  String get projectBatchImportRowsMissingLinksBody =>
+      'Takson, orang, lokasi, atau kegiatan dibiarkan kosong. Tambahkan ke proyek terlebih dahulu untuk menautkannya.';
+
+  @override
+  String get projectStatsPartQuantity => 'Jumlah bagian';
+
+  @override
+  String get projectStatsQuantity => 'Jumlah';
+
+  @override
+  String get projectStatsSite => 'Lokasi';
+
+  @override
+  String get projectStatsDate => 'Tanggal';
+
+  @override
+  String get projectStatsMethod => 'Metode';
+
+  @override
+  String get projectStatsSex => 'Jenis kelamin';
+
+  @override
+  String get projectStatsLifeStage => 'Tahap hidup';
+
+  @override
+  String get projectStatsPartType => 'Jenis bagian';
+
+  @override
+  String get projectStatsTreatment => 'Perlakuan';
+
+  @override
+  String projectStatsTitle(String measure, String category) {
+    return '$measure menurut $category';
+  }
+
+  @override
+  String projectStatsTitleWithBreakdown(
+    String measure,
+    String category,
+    String breakdown,
+  ) {
+    return '$measure menurut $category dan $breakdown';
+  }
+
+  @override
+  String projectStatsTitleAtSite(String title, String site) {
+    return '$title di $site';
+  }
+
+  @override
+  String projectStatsTitleForSpecies(String title, String species) {
+    return '$title untuk $species';
+  }
+
+  @override
+  String get projectStatsCoordinatesBySpecies => 'Koordinat menurut spesies';
+
+  @override
+  String get projectStatsSpatialSpecimensTitle =>
+      'Jumlah spesimen menurut koordinat lokasi';
+
+  @override
+  String get projectStatsSpatialSpeciesTitle =>
+      'Jumlah spesies menurut koordinat lokasi';
+
+  @override
+  String get projectStatsSpatialFamiliesTitle =>
+      'Jumlah famili menurut koordinat lokasi';
+
+  @override
+  String get projectStatsSpatialSelectedSpeciesTitle =>
+      'Jumlah spesies terpilih menurut koordinat';
+
+  @override
+  String get projectStatsCountSpecimens => 'spesimen';
+
+  @override
+  String get projectStatsCountSpecies => 'spesies';
+
+  @override
+  String get projectStatsCountFamilies => 'famili';
+
+  @override
+  String get projectStatsClasses => 'Kelas';
+
+  @override
+  String get projectStatsOrders => 'Ordo';
+
+  @override
+  String get projectStatsFamilies => 'Famili';
+
+  @override
+  String get projectStatsGenera => 'Genus';
+
+  @override
+  String get projectStatsSpecimenMedia => 'Media spesimen';
+
+  @override
+  String get projectStatsSiteMedia => 'Media lokasi';
+
+  @override
+  String get projectStatsEventMedia => 'Media kegiatan';
+
+  @override
+  String get projectStatsNarrativeMedia => 'Media narasi';
+
+  @override
+  String get projectStatsRecordedSites => 'Lokasi tercatat';
+
+  @override
+  String get projectStatsSampledSites => 'Lokasi tersampel';
+
+  @override
+  String get projectStatsCaptureDays => 'Hari penangkapan';
+
+  @override
+  String get projectStatsProjectDays => 'Hari proyek';
+
+  @override
+  String get projectStatsRecordedElevation => 'Ketinggian tercatat';
+
+  @override
+  String get projectStatsSampledElevation => 'Ketinggian tersampel';
+
+  @override
+  String get projectStatsNotRecorded => 'Tidak tercatat';
+
+  @override
+  String get projectStatsRecordStatistics => 'Statistik catatan';
+
+  @override
+  String get projectStatsTopSpecies => 'Spesies paling banyak tercatat';
+
+  @override
+  String get projectStatsRecordCounts => 'Jumlah catatan';
+
+  @override
+  String get projectStatsShowRecordCounts => 'Tampilkan jumlah catatan';
+
+  @override
+  String get projectStatsShowTopSpecies =>
+      'Tampilkan spesies paling banyak tercatat';
+
+  @override
+  String get projectStatsExploreMore => 'Jelajahi statistik lainnya';
+
+  @override
+  String projectStatsRecordLoadError(String error) {
+    return 'Tidak dapat memuat statistik catatan: $error';
+  }
+
+  @override
+  String get projectStatsSummary => 'Ringkasan';
+
+  @override
+  String get projectStatsExplore => 'Jelajahi';
+
+  @override
+  String get projectStatsTotalAllProjects => 'Total semua proyek';
+
+  @override
+  String get projectStatsGroupBy => 'Kelompokkan menurut';
+
+  @override
+  String get projectStatsSelectSite => 'Pilih lokasi';
+
+  @override
+  String get projectStatsAllSites => 'Semua lokasi';
+
+  @override
+  String get projectStatsSelectSpecies => 'Pilih spesies';
+
+  @override
+  String get projectStatsAllSpecies => 'Semua spesies';
+
+  @override
+  String get projectStatsChart => 'Grafik';
+
+  @override
+  String get projectStatsTable => 'Tabel';
+
+  @override
+  String get projectStatsRecordSummary => 'Ringkasan catatan';
+
+  @override
+  String get projectStatsTaxonomicBreakdown => 'Rincian taksonomi';
+
+  @override
+  String get projectStatsMediaBreakdown => 'Rincian media';
+
+  @override
+  String get projectStatsPerProject => 'Per proyek';
+
+  @override
+  String get projectStatsNoProjects => 'Belum ada proyek.';
+
+  @override
+  String projectStatsProjectLoadError(String error) {
+    return 'Tidak dapat memuat statistik proyek: $error';
+  }
+
+  @override
+  String get projectStatsViewDetails => 'Lihat detail';
+
+  @override
+  String get projectStatsBreakDownBy => 'Rinci menurut';
+
+  @override
+  String projectStatsLoadError(String error) {
+    return 'Tidak dapat memuat statistik: $error';
+  }
+
+  @override
+  String get projectStatsSpecimensBySpecies => 'Spesimen menurut spesies';
+
+  @override
+  String get projectStatsSpecimensByFamily => 'Spesimen menurut famili';
+
+  @override
+  String get projectStatsSpecimensBySite => 'Spesimen menurut lokasi';
+
+  @override
+  String get projectStatsSpecimensByDate => 'Spesimen menurut tanggal';
+
+  @override
+  String get projectStatsSpecimensByMethod => 'Spesimen menurut metode';
+
+  @override
+  String get projectStatsSpecimensBySex => 'Spesimen menurut jenis kelamin';
+
+  @override
+  String get projectStatsPartQuantityByType => 'Jumlah bagian menurut jenis';
+
+  @override
+  String get projectStatsPartQuantityByTreatment =>
+      'Jumlah bagian menurut perlakuan';
+
+  @override
+  String get projectStatsCounts => 'Jumlah';
+
+  @override
+  String get projectStatsSpatial => 'Spasial';
+
+  @override
+  String get projectStatsNoData => 'Tidak ada data untuk ditampilkan';
+
+  @override
+  String projectStatsTapToView(String label) {
+    return '$label\nKetuk untuk melihat catatan';
+  }
+
+  @override
+  String get projectStatsShowBarChart => 'Tampilkan diagram batang';
+
+  @override
+  String get projectStatsShowPieChart => 'Tampilkan diagram lingkaran';
+
+  @override
+  String get projectStatsClearSelection => 'Hapus pilihan';
+
+  @override
+  String projectStatsChoicesLoadError(String error) {
+    return 'Tidak dapat memuat pilihan: $error';
+  }
+
+  @override
+  String get projectStatsNoMatchingChoices => 'Tidak ada pilihan yang cocok';
+
+  @override
+  String get projectStatsNoRecordsInGroup => 'Tidak ada catatan di grup ini.';
+
+  @override
+  String get projectStatsShow => 'Tampilkan';
+
+  @override
+  String projectStatsSpeciesCountsByCoordinates(String species) {
+    return 'Jumlah $species menurut koordinat';
+  }
+
+  @override
+  String get projectStatsMap => 'Peta';
+
+  @override
+  String projectStatsSpatialLoadError(String error) {
+    return 'Tidak dapat memuat statistik spasial: $error';
+  }
+
+  @override
+  String get projectStatsNoSpecimenCoords =>
+      'Tidak ada spesimen yang ditetapkan ke koordinat proyek.';
+
+  @override
+  String get projectStatsNoSpeciesCoords =>
+      'Tidak ada spesies yang terkait dengan koordinat proyek.';
+
+  @override
+  String get projectStatsNoFamilyCoords =>
+      'Tidak ada famili yang terkait dengan koordinat proyek.';
+
+  @override
+  String get projectStatsNoSelectedSpeciesCoords =>
+      'Tidak ada spesimen dari spesies terpilih yang ditetapkan ke koordinat proyek.';
+
+  @override
+  String projectStatsNoSpeciesCoordsFor(String species) {
+    return 'Tidak ada spesimen $species yang ditetapkan ke koordinat proyek.';
+  }
+
+  @override
+  String projectStatsCoordinateLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Koordinat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsMeanPerCoordinate(String counted) {
+    return 'Rata-rata $counted per koordinat';
+  }
+
+  @override
+  String get projectStatsTopCoordinate => 'Koordinat teratas';
+
+  @override
+  String projectStatsTopValue(String name) {
+    return 'Teratas: $name';
+  }
+
+  @override
+  String projectStatsCategoryCount(int count, String category) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kategori ($category)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsMeanPerCategory(String counted) {
+    return 'Rata-rata $counted per kategori';
+  }
+
+  @override
+  String get projectStatsTopCategory => 'Kategori teratas';
+
+  @override
+  String get projectStatsTopCategoryShare => 'Porsi kategori teratas';
+
+  @override
+  String projectStatsTotalCount(String value) {
+    return 'Jumlah total: $value';
+  }
+
+  @override
+  String get projectStatsElevation => 'Ketinggian';
+
+  @override
+  String get projectStatsSelectSpeciesPrompt =>
+      'Pilih spesies untuk melihat kelimpahan per koordinat.';
+
+  @override
+  String get projectStatsCollapseLegend => 'Ciutkan legenda peta';
+
+  @override
+  String get projectStatsExpandLegend => 'Bentangkan legenda peta';
+
+  @override
+  String get projectStatsLegend => 'Legenda';
+
+  @override
+  String get projectStatsLegendCircle =>
+      'Setiap lingkaran mewakili\nsatu koordinat';
+
+  @override
+  String get projectStatsLegendGrouped =>
+      'Lokasi dikelompokkan,\nperbesar untuk memisahkan';
+
+  @override
+  String projectStatsUnmappedRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count catatan tercantum di tabel tetapi tidak dapat dipetakan karena lintang atau bujur kosong atau tidak valid.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsSpatialMap => 'Peta statistik spasial';
+
+  @override
+  String get projectStatsMapLayers => 'Lapisan peta';
+
+  @override
+  String get projectStatsViewFullScreen => 'Lihat peta layar penuh';
+
+  @override
+  String get projectStatsNaturalEarthError =>
+      'Tidak dapat memuat peta luring Natural Earth.';
+
+  @override
+  String get projectStatsNoValidCoordinates =>
+      'Tidak ada koordinat valid untuk dipetakan.';
+
+  @override
+  String projectStatsMapPrepareError(String error) {
+    return 'Tidak dapat menyiapkan peta: $error';
+  }
+
+  @override
+  String get projectStatsZoomIn => 'Perbesar';
+
+  @override
+  String get projectStatsZoomOut => 'Perkecil';
+
+  @override
+  String get projectStatsCenterMap => 'Pusatkan peta pada statistik';
+
+  @override
+  String projectStatsSiteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lokasi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsExportTable => 'Ekspor tabel';
+
+  @override
+  String get projectStatsColumnName => 'Nama';
+
+  @override
+  String get projectStatsColumnLocality => 'Lokalitas';
+
+  @override
+  String get projectStatsColumnDecimalLatitude => 'Lintang desimal';
+
+  @override
+  String get projectStatsColumnDecimalLongitude => 'Bujur desimal';
+
+  @override
+  String get projectStatsColumnElevation => 'Ketinggian (m)';
+
+  @override
+  String get projectStatsColumnDatum => 'Datum';
+
+  @override
+  String get projectStatsColumnUncertainty => 'Ketidakpastian (m)';
+
+  @override
+  String get projectStatsColumnGpsUnit => 'Unit GPS';
+
+  @override
+  String get projectStatsColumnLatitude => 'Lintang';
+
+  @override
+  String get projectStatsColumnLongitude => 'Bujur';
+
+  @override
+  String get projectStatsColumnCount => 'Jumlah';
+
+  @override
+  String get projectStatsColumnPercent => 'Persen';
+
+  @override
+  String get projectStatsColumnCategory => 'Kategori';
+
+  @override
+  String get projectStatsViewRecords => 'Lihat catatan';
+
+  @override
+  String get projectStatsExportStatisticsTable => 'Ekspor tabel statistik';
+
+  @override
+  String get projectStatsExportSpatialTable => 'Ekspor tabel statistik spasial';
+
+  @override
+  String projectStatsExportError(String error) {
+    return 'Tidak dapat mengekspor statistik: $error';
+  }
+
+  @override
+  String get projectStatsExportComplete => 'Ekspor selesai';
+
+  @override
+  String projectStatsShareError(String error) {
+    return 'Tidak dapat membagikan statistik: $error';
+  }
+
+  @override
+  String get projectTissueMuseumPermanent => 'Koleksi tetap museum';
+
+  @override
+  String get projectTissueMuseumLoan => 'Pinjaman museum';
+
+  @override
+  String get projectTissueIdOrBarcode => 'ID jaringan atau kode batang';
+
+  @override
+  String get projectTissueFillRows => 'Baris, kiri ke kanan';
+
+  @override
+  String get projectTissueFillColumns => 'Kolom, atas ke bawah';
+
+  @override
+  String get projectTissueFillSerpentine => 'Baris berliku';
+
+  @override
+  String get projectTissueEntryScan => 'Pindai';
+
+  @override
+  String get projectTissueEntryWorkList => 'Daftar kerja';
+
+  @override
+  String get projectTissueTitle => 'Kurasi spesimen';
+
+  @override
+  String projectTissueFilledCount(int filled, int capacity) {
+    return '$filled / $capacity terisi';
+  }
+
+  @override
+  String get projectTissueNextCell => 'Sel berikutnya';
+
+  @override
+  String get projectTissueFull => 'Penuh';
+
+  @override
+  String get projectTissueNextBox => 'Kotak berikutnya';
+
+  @override
+  String projectTissueCellFilled(String cell) {
+    return '$cell · terisi';
+  }
+
+  @override
+  String get projectTissueFilled => 'Terisi';
+
+  @override
+  String get projectTissueNext => 'Berikutnya';
+
+  @override
+  String get projectTissueTapEmptyCell => 'Ketuk sel kosong untuk melompat';
+
+  @override
+  String get projectTissueScanTubes => 'Pindai tabung';
+
+  @override
+  String get projectTissueCameraUnavailable =>
+      'Pemindaian kamera tidak tersedia. Gunakan kolom pindai.';
+
+  @override
+  String get projectTissueCameraError =>
+      'Tidak dapat menggunakan kamera. Coba lagi atau gunakan kolom pindai.';
+
+  @override
+  String get projectTissueSessionLog => 'Log sesi';
+
+  @override
+  String projectTissueSessionLogCount(int count) {
+    return 'Log sesi ($count)';
+  }
+
+  @override
+  String get projectTissueSessionLogEmpty =>
+      'Tabung yang diperiksa muncul di sini.';
+
+  @override
+  String projectTissueSeveralMatches(String code) {
+    return 'Beberapa bagian cocok dengan $code';
+  }
+
+  @override
+  String projectTissueCount(String count) {
+    return 'Jumlah $count';
+  }
+
+  @override
+  String projectTissueAt(String location) {
+    return 'Di $location';
+  }
+
+  @override
+  String get projectTissueFindTubes => 'Cari tabung';
+
+  @override
+  String get projectTissueType => 'Jenis jaringan';
+
+  @override
+  String get projectTissuePreservation => 'Pengawetan';
+
+  @override
+  String get projectTissueUpdateField => 'Bidang yang diperbarui';
+
+  @override
+  String get projectTissueField => 'Bidang';
+
+  @override
+  String get projectTissueValue => 'Nilai';
+
+  @override
+  String get projectTissueMuseumCode => 'Kode museum';
+
+  @override
+  String get projectTissueBoxSize => 'Ukuran kotak';
+
+  @override
+  String get projectTissueNumbering => 'Penomoran';
+
+  @override
+  String get projectTissueFillOrder => 'Urutan pengisian';
+
+  @override
+  String get projectTissueBoxLabel => 'Label kotak';
+
+  @override
+  String get projectTissueBoxHint => 'Kotak';
+
+  @override
+  String get projectTissueBoxNumber => 'Nomor kotak';
+
+  @override
+  String get projectTissueOverwrite => 'Timpa nilai yang ada';
+
+  @override
+  String get projectTissueOverwriteBody =>
+      'Ganti lokasi tersimpan atau nilai bidang yang berbeda';
+
+  @override
+  String get projectTissueAny => 'Apa saja';
+
+  @override
+  String get projectTissueScanTube => 'Pindai tabung';
+
+  @override
+  String get projectTissueScanHint => 'Pindai atau ketik, lalu tekan Enter';
+
+  @override
+  String get projectTissueScanWithCamera => 'Pindai dengan kamera';
+
+  @override
+  String get projectTissueUndo => 'Urungkan';
+
+  @override
+  String get projectTissueReady => 'Siap. Pindai tabung pertama.';
+
+  @override
+  String get projectTissueWorkListEmpty =>
+      'Tidak ada bagian yang belum ditempatkan yang cocok dengan filter jenis jaringan dan pengawetan.';
+
+  @override
+  String projectTissueRemaining(int count) {
+    return 'Berikutnya · $count tersisa';
+  }
+
+  @override
+  String get projectTissuePlace => 'Tempatkan';
 }

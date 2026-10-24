@@ -6,6 +6,8 @@ import 'package:nahpu/services/data_table/data_table_link_service.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/import/batch/batch_linked_models.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 typedef BatchLinkOptions =
     Future<List<DataTableLinkOption>> Function(DataTableLink link);
@@ -39,27 +41,30 @@ class _BatchGroupsStepState extends State<BatchGroupsStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const NahpuStepHeading(
-          title: 'Check groups',
-          message:
-              'Rows that describe the same site or event are grouped. Link a '
-              'group to a record the project has, merge groups that are the '
-              'same place or visit, or split rows out.',
+        NahpuStepHeading(
+          title: context.l10n.projectBatchCheckGroups,
+          message: context.l10n.projectBatchCheckGroupsBody,
         ),
         const SizedBox(height: NahpuSpacing.xl),
         SegmentedButton<BatchGroupsView>(
           segments: [
             ButtonSegment(
               value: BatchGroupsView.sites,
-              label: Text('Sites (${plan.sites.length})'),
+              label: Text(
+                context.l10n.projectBatchSitesCount(plan.sites.length),
+              ),
             ),
             ButtonSegment(
               value: BatchGroupsView.events,
-              label: Text('Events (${plan.events.length})'),
+              label: Text(
+                context.l10n.projectBatchEventsCount(plan.events.length),
+              ),
             ),
             ButtonSegment(
               value: BatchGroupsView.specimens,
-              label: Text('Specimens (${plan.specimens.length})'),
+              label: Text(
+                context.l10n.projectBatchSpecimensCount(plan.specimens.length),
+              ),
             ),
           ],
           selected: {_view},
@@ -69,7 +74,7 @@ class _BatchGroupsStepState extends State<BatchGroupsStep> {
         const SizedBox(height: NahpuSpacing.xl),
         switch (_view) {
           BatchGroupsView.sites => BatchGroupList(
-            empty: 'No columns describe a site.',
+            empty: context.l10n.projectBatchNoSiteColumns,
             children: [
               for (final site in plan.sites)
                 BatchSiteGroupCard(
@@ -81,7 +86,7 @@ class _BatchGroupsStepState extends State<BatchGroupsStep> {
             ],
           ),
           BatchGroupsView.events => BatchGroupList(
-            empty: 'No columns describe an event.',
+            empty: context.l10n.projectBatchNoEventColumns,
             children: [
               for (final event in plan.events)
                 BatchEventGroupCard(
@@ -93,7 +98,7 @@ class _BatchGroupsStepState extends State<BatchGroupsStep> {
             ],
           ),
           BatchGroupsView.specimens => BatchGroupList(
-            empty: 'No columns describe a specimen.',
+            empty: context.l10n.projectBatchNoSpecimenColumns,
             children: [
               for (final specimen in plan.specimens)
                 BatchSpecimenCard(
@@ -157,7 +162,9 @@ class BatchSiteGroupCard extends StatelessWidget {
     final lat = site.coordinate['coordinate::decimalLatitude'];
     final lon = site.coordinate['coordinate::decimalLongitude'];
     return BatchGroupCard(
-      title: linked ? site.existingLabel! : site.siteName ?? 'New site',
+      title: linked
+          ? site.existingLabel!
+          : site.siteName ?? context.l10n.projectBatchNewSite,
       linked: linked,
       inactive: !plan.isActive(site.rows),
       details: [
@@ -167,8 +174,8 @@ class BatchSiteGroupCard extends StatelessWidget {
           site.values['geography::country'],
         ].whereType<String>().join(', '),
         if (lat != null && lon != null) '$lat, $lon',
-        '${_rowsLabel(plan, site.rows)} · '
-            '${plan.eventsAt(site.id).length} events',
+        '${_rowsLabel(context.l10n, plan, site.rows)} · '
+            '${context.l10n.projectBatchEventCount(plan.eventsAt(site.id).length)}',
       ],
       warnings: [...site.problems, ...site.conflicts],
       actions: [
@@ -180,7 +187,7 @@ class BatchSiteGroupCard extends StatelessWidget {
         BatchGroupMenuAction.merge,
         if (site.rows.length > 1) BatchGroupMenuAction.split,
       ],
-      renameLabel: 'Set site ID',
+      renameLabel: context.l10n.projectBatchSetSiteId,
       onAction: (action) => _act(context, action),
     );
   }
@@ -191,7 +198,7 @@ class BatchSiteGroupCard extends StatelessWidget {
         final option = await showDialog<DataTableLinkOption>(
           context: context,
           builder: (_) => BatchLinkExistingDialog(
-            title: 'Link to an existing site',
+            title: context.l10n.projectBatchLinkSite,
             options: linkOptions(DataTableLink.site),
           ),
         );
@@ -204,8 +211,8 @@ class BatchSiteGroupCard extends StatelessWidget {
         final name = await showDialog<String>(
           context: context,
           builder: (_) => BatchRenameGroupDialog(
-            title: 'Set site ID',
-            label: 'Site ID',
+            title: context.l10n.projectBatchSetSiteId,
+            label: context.l10n.projectBatchKeySiteId,
             initialValue: site.siteName ?? '',
           ),
         );
@@ -214,11 +221,15 @@ class BatchSiteGroupCard extends StatelessWidget {
         final into = await showDialog<String>(
           context: context,
           builder: (_) => BatchMergeGroupDialog(
-            title: 'Merge into site',
+            title: context.l10n.projectBatchMergeIntoSite,
             groups: [
               for (final other in plan.sites)
                 if (other.id != site.id)
-                  (other.id, other.label, _rowsLabel(plan, other.rows)),
+                  (
+                    other.id,
+                    other.label,
+                    _rowsLabel(context.l10n, plan, other.rows),
+                  ),
             ],
           ),
         );
@@ -227,9 +238,10 @@ class BatchSiteGroupCard extends StatelessWidget {
         final rows = await showDialog<Set<int>>(
           context: context,
           builder: (_) => BatchSplitGroupDialog(
-            title: 'Move rows to a new site',
+            title: context.l10n.projectBatchMoveRowsToSite,
             rows: [
-              for (final row in site.rows) (row, 'Row ${plan.rowNumbers[row]}'),
+              for (final row in site.rows)
+                (row, context.l10n.projectBatchRow('${plan.rowNumbers[row]}')),
             ],
           ),
         );
@@ -264,7 +276,7 @@ class BatchEventGroupCard extends StatelessWidget {
       title: linked
           ? event.existingLabel!
           : [
-              site?.label ?? 'No site',
+              site?.label ?? context.l10n.projectBatchNoSite,
               if (event.startDate.isNotEmpty) event.startDate,
               ?suffix,
             ].join(' · '),
@@ -272,7 +284,8 @@ class BatchEventGroupCard extends StatelessWidget {
       inactive: !plan.isActive(event.rows),
       details: [
         if (event.method.isNotEmpty) event.method,
-        '${_rowsLabel(plan, event.rows)} · $specimens specimens',
+        '${_rowsLabel(context.l10n, plan, event.rows)} · '
+            '${context.l10n.projectBatchSpecimenCount(specimens)}',
       ],
       warnings: [...event.problems, ...event.conflicts],
       actions: [
@@ -284,7 +297,7 @@ class BatchEventGroupCard extends StatelessWidget {
         BatchGroupMenuAction.merge,
         if (event.rows.length > 1) BatchGroupMenuAction.split,
       ],
-      renameLabel: 'Set ID suffix',
+      renameLabel: context.l10n.projectBatchSetIdSuffix,
       onAction: (action) => _act(context, action),
     );
   }
@@ -295,7 +308,7 @@ class BatchEventGroupCard extends StatelessWidget {
         final option = await showDialog<DataTableLinkOption>(
           context: context,
           builder: (_) => BatchLinkExistingDialog(
-            title: 'Link to an existing event',
+            title: context.l10n.projectBatchLinkEvent,
             options: linkOptions(DataTableLink.event),
           ),
         );
@@ -308,8 +321,8 @@ class BatchEventGroupCard extends StatelessWidget {
         final suffix = await showDialog<String>(
           context: context,
           builder: (_) => BatchRenameGroupDialog(
-            title: 'Set event ID suffix',
-            label: 'Suffix',
+            title: context.l10n.projectBatchSetEventIdSuffix,
+            label: context.l10n.recordsSpecimenSuffix,
             initialValue: event.idSuffix ?? '',
           ),
         );
@@ -318,17 +331,18 @@ class BatchEventGroupCard extends StatelessWidget {
         final into = await showDialog<String>(
           context: context,
           builder: (_) => BatchMergeGroupDialog(
-            title: 'Merge into event',
+            title: context.l10n.projectBatchMergeIntoEvent,
             groups: [
               for (final other in plan.events)
                 if (other.id != event.id)
                   (
                     other.id,
                     [
-                      plan.site(other.siteGroupId)?.label ?? 'No site',
+                      plan.site(other.siteGroupId)?.label ??
+                          context.l10n.projectBatchNoSite,
                       if (other.startDate.isNotEmpty) other.startDate,
                     ].join(' · '),
-                    _rowsLabel(plan, other.rows),
+                    _rowsLabel(context.l10n, plan, other.rows),
                   ),
             ],
           ),
@@ -338,10 +352,10 @@ class BatchEventGroupCard extends StatelessWidget {
         final rows = await showDialog<Set<int>>(
           context: context,
           builder: (_) => BatchSplitGroupDialog(
-            title: 'Move rows to a new event',
+            title: context.l10n.projectBatchMoveRowsToEvent,
             rows: [
               for (final row in event.rows)
-                (row, 'Row ${plan.rowNumbers[row]}'),
+                (row, context.l10n.projectBatchRow('${plan.rowNumbers[row]}')),
             ],
           ),
         );
@@ -378,7 +392,8 @@ class BatchSpecimenCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_rowsLabel(plan, specimen.rows)} · ${status.label}',
+                  '${_rowsLabel(context.l10n, plan, specimen.rows)} · '
+                  '${status.localizedLabel(context.l10n)}',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     color: status.isImportable ? null : colors.error,
                   ),
@@ -387,9 +402,11 @@ class BatchSpecimenCard extends StatelessWidget {
                 Text(
                   [
                     event == null
-                        ? 'No event'
-                        : 'Event: ${event.existingLabel ?? event.startDate}',
-                    '${specimen.parts.length} parts',
+                        ? context.l10n.projectBatchNoEvent
+                        : context.l10n.projectBatchEventLabel(
+                            event.existingLabel ?? event.startDate,
+                          ),
+                    context.l10n.projectBatchPartCount(specimen.parts.length),
                   ].join(' · '),
                 ),
                 for (final message in [
@@ -451,13 +468,14 @@ class BatchGroupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final l10n = context.l10n;
     final (chip, chipColor) = inactive
-        ? ('Excluded', colors.outline)
+        ? (l10n.projectBatchExcluded, colors.outline)
         : warnings.isNotEmpty
-        ? ('Check', colors.error)
+        ? (l10n.projectBatchCheck, colors.error)
         : linked
-        ? ('Links to existing', colors.primary)
-        : ('New', colors.tertiary);
+        ? (l10n.projectBatchLinksToExisting, colors.primary)
+        : (l10n.projectTransferStatusNew, colors.tertiary);
     return NahpuPanel(
       padding: const EdgeInsets.all(NahpuSpacing.lg),
       child: Row(
@@ -494,18 +512,18 @@ class BatchGroupCard extends StatelessWidget {
             ),
           ),
           PopupMenuButton<BatchGroupMenuAction>(
-            tooltip: 'Change group',
+            tooltip: l10n.projectBatchChangeGroup,
             onSelected: onAction,
             itemBuilder: (context) => [
               for (final action in actions)
                 PopupMenuItem(
                   value: action,
                   child: Text(switch (action) {
-                    BatchGroupMenuAction.link => 'Link to existing…',
-                    BatchGroupMenuAction.create => 'Create new instead',
+                    BatchGroupMenuAction.link => l10n.projectBatchLinkExisting,
+                    BatchGroupMenuAction.create => l10n.projectBatchCreateNew,
                     BatchGroupMenuAction.rename => '$renameLabel…',
-                    BatchGroupMenuAction.merge => 'Merge into…',
-                    BatchGroupMenuAction.split => 'Split rows…',
+                    BatchGroupMenuAction.merge => l10n.projectBatchMergeInto,
+                    BatchGroupMenuAction.split => l10n.projectBatchSplitRows,
                   }),
                 ),
             ],
@@ -517,11 +535,11 @@ class BatchGroupCard extends StatelessWidget {
 }
 
 /// "Rows 2, 3, 7" in file row numbers, shortened past a few.
-String _rowsLabel(BatchLinkedPlan plan, List<int> rows) {
+String _rowsLabel(AppLocalizations l10n, BatchLinkedPlan plan, List<int> rows) {
   final numbers = [for (final row in rows) plan.rowNumbers[row]];
-  if (numbers.length == 1) return 'Row ${numbers.single}';
+  if (numbers.length == 1) return l10n.projectBatchRow('${numbers.single}');
   final shown = numbers.take(4).join(', ');
   return numbers.length > 4
-      ? 'Rows $shown and ${numbers.length - 4} more'
-      : 'Rows $shown';
+      ? l10n.projectBatchRowsMore(numbers.length - 4, shown)
+      : l10n.projectBatchRows(shown);
 }

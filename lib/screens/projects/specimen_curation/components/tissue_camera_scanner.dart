@@ -6,6 +6,7 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Scans tubes with the camera until the user is done. Each code goes to
 /// [onCode]; the same code held in view is sent once.
@@ -58,11 +59,11 @@ class _TissueCameraScannerState extends State<TissueCameraScanner>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan tubes'),
+        title: Text(context.l10n.projectTissueScanTubes),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+            child: Text(context.l10n.commonDone),
           ),
         ],
       ),
@@ -82,10 +83,8 @@ class _TissueCameraScannerState extends State<TissueCameraScanner>
                       message:
                           error.errorCode ==
                               MobileScannerErrorCode.permissionDenied
-                          ? 'Camera access is denied. Allow camera access in '
-                                'device settings, then retry.'
-                          : 'Camera scanning is unavailable. Use the scan '
-                                'field instead.',
+                          ? context.l10n.projectCameraDenied
+                          : context.l10n.projectTissueCameraUnavailable,
                       onRetry: () => unawaited(_setCameraRunning(true)),
                     ),
                   ),
@@ -168,10 +167,7 @@ class _TissueCameraScannerState extends State<TissueCameraScanner>
 
   void _showCameraError() {
     if (mounted && !_isClosing) {
-      setState(
-        () => _cameraError =
-            'Unable to use the camera. Retry or use the scan field.',
-      );
+      setState(() => _cameraError = context.l10n.projectTissueCameraError);
     }
   }
 }
@@ -198,7 +194,10 @@ class TissueCameraError extends StatelessWidget {
             children: [
               Text(message, textAlign: TextAlign.center),
               const SizedBox(height: NahpuSpacing.lg),
-              TextButton(onPressed: onRetry, child: const Text('Retry camera')),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.projectRetryCamera),
+              ),
             ],
           ),
         ),

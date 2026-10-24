@@ -13,6 +13,8 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/validation.dart';
 import 'package:flutter/services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const List<String> personnelRoleList = [
   'Cataloger',
@@ -82,7 +84,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             FormSection(
-              title: 'Profile',
+              title: context.l10n.projectPersonnelProfile,
               child: Column(
                 children: [
                   PersonnelAvatar(ctr: widget.ctr),
@@ -101,9 +103,9 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                   ),
                   TextFormField(
                     controller: widget.ctr.affiliationCtr,
-                    decoration: const InputDecoration(
-                      labelText: 'Affiliation',
-                      hintText: 'Enter affiliation',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectPersonnelAffiliation,
+                      hintText: context.l10n.projectPersonnelAffiliationHint,
                     ),
                     onChanged: (_) {
                       if (widget.isEditing) _validateEditing();
@@ -112,7 +114,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                   TextFormField(
                     controller: widget.ctr.orcidCtr,
                     decoration: InputDecoration(
-                      labelText: 'ORCID iD',
+                      labelText: context.l10n.projectPersonnelOrcid,
                       hintText: '0000-0000-0000-0000',
                       errorText: _orcidError,
                     ),
@@ -125,20 +127,22 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
               ),
             ),
             FormSection(
-              title: 'Specimen care',
+              title: context.l10n.projectPersonnelSpecimenCare,
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
                     initialValue: widget.ctr.roleCtr,
-                    decoration: const InputDecoration(
-                      labelText: 'Specimen care role',
-                      hintText: 'Enter role',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectPersonnelSpecimenCareRole,
+                      hintText: context.l10n.projectPersonnelRoleHint,
                     ),
                     items: personnelRoleList
                         .map(
                           (role) => DropdownMenuItem(
                             value: role,
-                            child: CommonDropdownText(text: role),
+                            child: CommonDropdownText(
+                              text: personnelRoleLabel(context.l10n, role),
+                            ),
                           ),
                         )
                         .toList(),
@@ -156,9 +160,13 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                       color: Colors.transparent,
                       child: SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Register personal field number'),
+                        title: Text(
+                          context
+                              .l10n
+                              .projectPersonnelRegisterPersonalFieldNumber,
+                        ),
                         subtitle: Text(
-                          'Initials and cataloger number will be used to generate specimen field ID.',
+                          context.l10n.projectPersonnelRegisterFieldNumberNote,
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                         value: widget.ctr.isRegisterField,
@@ -212,14 +220,14 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
             ),
             if (_isShowMore)
               FormSection(
-                title: 'Contact',
+                title: context.l10n.projectPersonnelContact,
                 child: Column(
                   children: [
                     TextFormField(
                       controller: widget.ctr.emailCtr,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter email',
+                        labelText: context.l10n.projectPersonnelEmail,
+                        hintText: context.l10n.projectPersonnelEmailHint,
                         errorText: ref
                             .watch(personnelFormValidatorProvider)
                             .when(
@@ -245,9 +253,9 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
                     ),
                     TextFormField(
                       controller: widget.ctr.phoneCtr,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone',
-                        hintText: 'Enter phone',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.projectPersonnelPhone,
+                        hintText: context.l10n.projectPersonnelPhoneHint,
                       ),
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -260,12 +268,12 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
               ),
             if (_isShowMore)
               FormSection(
-                title: 'Notes',
+                title: context.l10n.projectPersonnelNotes,
                 child: TextField(
                   controller: widget.ctr.noteCtr,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    hintText: 'Write notes',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.projectPersonnelNotes,
+                    hintText: context.l10n.projectPersonnelNotesHint,
                   ),
                   minLines: 3,
                   maxLines: 5,
@@ -312,7 +320,7 @@ class PersonnelFormPageState extends ConsumerState<PersonnelFormPage> {
   String? get _orcidError {
     final value = widget.ctr.orcidCtr.text;
     if (value.isEmpty || isValidOrcid(value)) return null;
-    return 'Enter a valid hyphenated ORCID iD';
+    return context.l10n.projectPersonnelOrcidInvalid;
   }
 
   Future<void> _updatePersonnel() async {
@@ -389,8 +397,8 @@ class PersonnelNameField extends ConsumerWidget {
     return TextFormField(
       controller: ctr.nameCtr,
       decoration: InputDecoration(
-        labelText: 'Name*',
-        hintText: 'Enter a name (required)',
+        labelText: context.l10n.projectPersonnelNameLabel,
+        hintText: context.l10n.projectPersonnelNameHint,
         errorText: ref
             .watch(personnelFormValidatorProvider)
             .when(
@@ -420,8 +428,8 @@ class PersonnelInitialField extends ConsumerWidget {
       controller: ctr.initialCtr,
       maxLength: 8,
       decoration: InputDecoration(
-        labelText: 'Initials*',
-        hintText: 'e.g. HH or H-H',
+        labelText: context.l10n.projectPersonnelInitialsLabel,
+        hintText: context.l10n.projectPersonnelInitialsHint,
         errorText: ref
             .watch(personnelFormValidatorProvider)
             .when(
@@ -452,7 +460,7 @@ class CatalogerNumberField extends ConsumerWidget {
       enabled: ctr.roleCtr == 'Cataloger',
       controller: ctr.collectorNumCtr,
       decoration: InputDecoration(
-        labelText: 'Cataloger number*',
+        labelText: context.l10n.projectPersonnelCatalogerNumberLabel,
         hintText: '1234',
         errorText: ref
             .watch(personnelFormValidatorProvider)

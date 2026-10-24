@@ -15,6 +15,8 @@ import 'package:nahpu/services/providers/statistics.dart';
 import 'package:nahpu/services/sites/coordinate_format.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const int topStatisticCount = 5;
 const int _pieChartCategoryThreshold = 5;
@@ -23,8 +25,8 @@ const int _pieChartCategoryThreshold = 5;
 /// at the same line no matter which chart they show.
 const double _summaryChartHeight = 360;
 
-String _formatProjectDays(int? totalDays) =>
-    totalDays?.toString() ?? 'Not recorded';
+String _formatProjectDays(AppLocalizations l10n, int? totalDays) =>
+    totalDays?.toString() ?? l10n.projectStatsNotRecorded;
 
 class StatisticViewer extends ConsumerStatefulWidget {
   const StatisticViewer({super.key});
@@ -44,7 +46,7 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
     final isTopSpecies = _view == _RecordPanelView.topSpecies;
 
     return FormCard(
-      title: 'Record Statistics',
+      title: context.l10n.projectStatsRecordStatistics,
       infoTopic: InfoTopic.recordStatistics,
       mainAxisAlignment: MainAxisAlignment.start,
       child: DashboardPanelBody(
@@ -57,7 +59,9 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
               children: [
                 Expanded(
                   child: Text(
-                    isTopSpecies ? 'Top recorded species' : 'Record counts',
+                    isTopSpecies
+                        ? context.l10n.projectStatsTopSpecies
+                        : context.l10n.projectStatsRecordCounts,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -67,14 +71,14 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
                 ),
                 Semantics(
                   label: isTopSpecies
-                      ? 'Show record counts'
-                      : 'Show top recorded species',
+                      ? context.l10n.projectStatsShowRecordCounts
+                      : context.l10n.projectStatsShowTopSpecies,
                   child: IconButton(
                     key: const ValueKey('record-statistics-view-toggle'),
                     visualDensity: VisualDensity.compact,
                     tooltip: isTopSpecies
-                        ? 'Show record counts'
-                        : 'Show top recorded species',
+                        ? context.l10n.projectStatsShowRecordCounts
+                        : context.l10n.projectStatsShowTopSpecies,
                     icon: Icon(
                       isTopSpecies
                           ? Icons.grid_view_rounded
@@ -110,7 +114,7 @@ class _StatisticViewerState extends ConsumerState<StatisticViewer> {
               ),
             ),
           ),
-          child: const Text('Explore more stats'),
+          child: Text(context.l10n.projectStatsExploreMore),
         ),
       ),
     );
@@ -181,11 +185,11 @@ class _RecordCountMetrics extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Unable to load record statistics: $error'),
+                Text(context.l10n.projectStatsRecordLoadError('$error')),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => ref.invalidate(provider),
-                  child: const Text('Retry'),
+                  child: Text(context.l10n.commonRetry),
                 ),
               ],
             ),
@@ -263,7 +267,7 @@ class _RecordStatisticsSummary extends StatelessWidget {
                     ),
                     (
                       RecordMetricKind.projectDays,
-                      _formatProjectDays(totals.totalDays),
+                      _formatProjectDays(context.l10n, totals.totalDays),
                     ),
                   ],
                 ),
@@ -343,7 +347,7 @@ class _RecordStatisticTile extends StatelessWidget {
 
     return Semantics(
       container: true,
-      label: '${kind.label}: $value',
+      label: '${kind.localizedLabel(context.l10n)}: $value',
       child: Container(
         key: kind.dashboardKey,
         width: double.infinity,
@@ -374,7 +378,7 @@ class _RecordStatisticTile extends StatelessWidget {
               countText,
             const SizedBox(height: NahpuSpacing.xxs),
             Text(
-              kind.label,
+              kind.localizedLabel(context.l10n),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -525,7 +529,9 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.allProjects ? 'Database Statistics' : 'Record Statistics',
+          widget.allProjects
+              ? context.l10n.drawerDatabaseStatistics
+              : context.l10n.projectStatsRecordStatistics,
         ),
       ),
       body: SafeArea(
@@ -543,16 +549,16 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                 child: SegmentedButton<_StatisticView>(
                   key: const ValueKey('statistics-view-selector'),
                   showSelectedIcon: false,
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: _StatisticView.summary,
-                      icon: Icon(Icons.dashboard_outlined),
-                      label: Text('Summary'),
+                      icon: const Icon(Icons.dashboard_outlined),
+                      label: Text(context.l10n.projectStatsSummary),
                     ),
                     ButtonSegment(
                       value: _StatisticView.explore,
-                      icon: Icon(Icons.analytics_outlined),
-                      label: Text('Explore'),
+                      icon: const Icon(Icons.analytics_outlined),
+                      label: Text(context.l10n.projectStatsExplore),
                     ),
                   ],
                   selected: {_view},
@@ -583,7 +589,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             child: _FullScreenRecordStatisticsSummary(
                               value: totals,
                               title: widget.allProjects
-                                  ? 'Total across all projects'
+                                  ? context.l10n.projectStatsTotalAllProjects
                                   : null,
                               onRetry: () => ref.invalidate(
                                 recordStatisticTotalsProvider(projectUuid),
@@ -627,7 +633,9 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   for (final measure in StatisticMeasure.values)
                                     ButtonSegment(
                                       value: measure,
-                                      label: Text(measure.label),
+                                      label: Text(
+                                        measure.localizedLabel(context.l10n),
+                                      ),
                                     ),
                                 ],
                                 selected: {_measure},
@@ -642,12 +650,13 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   key: const ValueKey(
                                     'statistics-group-control',
                                   ),
-                                  label: 'Group by',
+                                  label: context.l10n.projectStatsGroupBy,
                                   values: _measure.groups(
                                     hasLifeStage: hasLifeStage,
                                   ),
                                   selected: _group,
-                                  valueLabel: (value) => value.label,
+                                  valueLabel: (value) =>
+                                      value.localizedLabel(context.l10n),
                                   onSelected: (value) {
                                     setState(() {
                                       _group = value;
@@ -660,10 +669,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                     key: const ValueKey(
                                       'statistics-taxon-rank-control',
                                     ),
-                                    label: 'Taxon rank',
+                                    label: context.l10n.projectTaxonRankLabel,
                                     values: StatisticTaxonRank.groupable,
                                     selected: _rank,
-                                    valueLabel: (value) => value.label,
+                                    valueLabel: (value) =>
+                                        value.localizedLabel(context.l10n),
                                     onSelected: (value) {
                                       setState(() => _rank = value);
                                     },
@@ -684,9 +694,10 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   SearchableStatisticFilterPicker(
                                     options: ref.watch(siteOptions),
                                     selected: _siteFilter,
-                                    label: 'Site',
-                                    title: 'Select a site',
-                                    placeholder: 'All sites',
+                                    label: context.l10n.projectStatsSite,
+                                    title: context.l10n.projectStatsSelectSite,
+                                    placeholder:
+                                        context.l10n.projectStatsAllSites,
                                     onChanged: (value) {
                                       setState(() => _siteFilter = value);
                                     },
@@ -696,9 +707,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                   SearchableStatisticFilterPicker(
                                     options: ref.watch(speciesOptions),
                                     selected: _speciesFilter,
-                                    label: 'Species',
-                                    title: 'Select a species',
-                                    placeholder: 'All species',
+                                    label: context.l10n.projectTaxonSpecies,
+                                    title:
+                                        context.l10n.projectStatsSelectSpecies,
+                                    placeholder:
+                                        context.l10n.projectStatsAllSpecies,
                                     onChanged: (value) {
                                       setState(() => _speciesFilter = value);
                                     },
@@ -732,7 +745,8 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  request.title(
+                                                  request.localizedTitle(
+                                                    context.l10n,
                                                     siteLabel: _usesSiteFilter
                                                         ? _siteFilter?.label
                                                         : null,
@@ -757,20 +771,28 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                           ),
                                           SegmentedButton<_DetailMode>(
                                             showSelectedIcon: false,
-                                            segments: const [
+                                            segments: [
                                               ButtonSegment(
                                                 value: _DetailMode.chart,
-                                                icon: Icon(
+                                                icon: const Icon(
                                                   Icons.bar_chart_rounded,
                                                 ),
-                                                label: Text('Chart'),
+                                                label: Text(
+                                                  context
+                                                      .l10n
+                                                      .projectStatsChart,
+                                                ),
                                               ),
                                               ButtonSegment(
                                                 value: _DetailMode.table,
-                                                icon: Icon(
+                                                icon: const Icon(
                                                   Icons.table_rows_outlined,
                                                 ),
-                                                label: Text('Table'),
+                                                label: Text(
+                                                  context
+                                                      .l10n
+                                                      .projectStatsTable,
+                                                ),
                                               ),
                                             ],
                                             selected: {_detailMode},
@@ -854,13 +876,20 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                     return StatisticDataTable(
                                                       rows: tableRows,
                                                       onSelect: select,
-                                                      categoryLabel:
-                                                          request.categoryLabel,
-                                                      seriesLabel:
-                                                          request.seriesLabel,
+                                                      categoryLabel: request
+                                                          .localizedCategoryLabel(
+                                                            context.l10n,
+                                                          ),
+                                                      seriesLabel: request
+                                                          .breakdown
+                                                          ?.localizedLabel(
+                                                            context.l10n,
+                                                          ),
                                                       countLabel: request
                                                           .measure
-                                                          .countLabel,
+                                                          .localizedCountLabel(
+                                                            context.l10n,
+                                                          ),
                                                       onExport:
                                                           tableRows.isEmpty
                                                           ? null
@@ -873,12 +902,22 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                                                   ),
                                                               rows: tableRows,
                                                               categoryLabel: request
-                                                                  .categoryLabel,
+                                                                  .localizedCategoryLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
                                                               seriesLabel: request
-                                                                  .seriesLabel,
+                                                                  .breakdown
+                                                                  ?.localizedLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
                                                               countLabel: request
                                                                   .measure
-                                                                  .countLabel,
+                                                                  .localizedCountLabel(
+                                                                    context
+                                                                        .l10n,
+                                                                  ),
                                                             ),
                                                     );
                                                   },
@@ -1000,9 +1039,12 @@ class _FullScreenRecordStatisticsSummary extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Unable to load record statistics: $error'),
+              Text(context.l10n.projectStatsRecordLoadError('$error')),
               const SizedBox(height: NahpuSpacing.md),
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
+              TextButton(
+                onPressed: onRetry,
+                child: Text(context.l10n.commonRetry),
+              ),
             ],
           ),
         ),
@@ -1024,7 +1066,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
       children: [
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-record-summary'),
-          title: 'Record summary',
+          title: context.l10n.projectStatsRecordSummary,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.specimens.fullScreenKey,
@@ -1065,7 +1107,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
             _SummaryMetric(
               key: RecordMetricKind.projectDays.fullScreenKey,
               kind: RecordMetricKind.projectDays,
-              value: _formatProjectDays(totals.totalDays),
+              value: _formatProjectDays(context.l10n, totals.totalDays),
             ),
             _SummaryMetric(
               key: RecordMetricKind.recordedElevation.fullScreenKey,
@@ -1090,7 +1132,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
         const SizedBox(height: NahpuSpacing.md),
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-taxonomy'),
-          title: 'Taxonomic breakdown',
+          title: context.l10n.projectStatsTaxonomicBreakdown,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.classes.fullScreenKey,
@@ -1122,7 +1164,7 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
         const SizedBox(height: NahpuSpacing.md),
         _SummaryGroup(
           key: const ValueKey('full-screen-record-stat-media-breakdown'),
-          title: 'Media breakdown',
+          title: context.l10n.projectStatsMediaBreakdown,
           children: [
             _SummaryMetric(
               key: RecordMetricKind.media.fullScreenKey,
@@ -1287,7 +1329,7 @@ class _SummaryMetric extends StatelessWidget {
         : colorScheme.onSurfaceVariant;
     return Semantics(
       container: true,
-      label: '${kind.label}: $value',
+      label: '${kind.localizedLabel(context.l10n)}: $value',
       child: Container(
         constraints: const BoxConstraints(minHeight: 68),
         padding: const EdgeInsets.symmetric(
@@ -1325,7 +1367,7 @@ class _SummaryMetric extends StatelessWidget {
                   ),
                   const SizedBox(height: NahpuSpacing.xxs),
                   Text(
-                    kind.label,
+                    kind.localizedLabel(context.l10n),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall,
@@ -1374,25 +1416,31 @@ class _ProjectBreakdownTable extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Per project', style: textTheme.titleSmall),
+          Text(
+            context.l10n.projectStatsPerProject,
+            style: textTheme.titleSmall,
+          ),
           const SizedBox(height: NahpuSpacing.sm),
           ref
               .watch(projectRecordTotalsProvider)
               .when(
                 data: (projects) => projects.isEmpty
-                    ? const Text('No projects yet.')
+                    ? Text(context.l10n.projectStatsNoProjects)
                     : PaginatedDataTable(
                         rowsPerPage: _rowsPerPage,
                         showEmptyRows: false,
                         columns: [
-                          const DataColumn(label: Text('Project')),
+                          DataColumn(
+                            label: Text(context.l10n.labelTableProject),
+                          ),
                           for (final metric in _metrics)
                             DataColumn(
-                              label: Text(metric.label),
+                              label: Text(metric.localizedLabel(context.l10n)),
                               numeric: true,
                             ),
                         ],
                         source: _ProjectBreakdownDataSource(
+                          l10n: context.l10n,
                           projects: projects,
                           metrics: _metrics,
                         ),
@@ -1404,12 +1452,12 @@ class _ProjectBreakdownTable extends ConsumerWidget {
                 error: (error, stackTrace) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Unable to load project statistics: $error'),
+                    Text(context.l10n.projectStatsProjectLoadError('$error')),
                     const SizedBox(height: NahpuSpacing.md),
                     TextButton(
                       onPressed: () =>
                           ref.invalidate(projectRecordTotalsProvider),
-                      child: const Text('Retry'),
+                      child: Text(context.l10n.commonRetry),
                     ),
                   ],
                 ),
@@ -1422,8 +1470,13 @@ class _ProjectBreakdownTable extends ConsumerWidget {
 
 /// One row per project for [_ProjectBreakdownTable].
 class _ProjectBreakdownDataSource extends DataTableSource {
-  _ProjectBreakdownDataSource({required this.projects, required this.metrics});
+  _ProjectBreakdownDataSource({
+    required this.l10n,
+    required this.projects,
+    required this.metrics,
+  });
 
+  final AppLocalizations l10n;
   final List<ProjectRecordTotals> projects;
   final List<RecordMetricKind> metrics;
 
@@ -1436,7 +1489,7 @@ class _ProjectBreakdownDataSource extends DataTableSource {
       cells: [
         DataCell(Text(project.projectName)),
         for (final metric in metrics)
-          DataCell(Text(_value(metric, project.totals))),
+          DataCell(Text(_value(l10n, metric, project.totals))),
       ],
     );
   }
@@ -1450,20 +1503,23 @@ class _ProjectBreakdownDataSource extends DataTableSource {
   @override
   int get selectedRowCount => 0;
 
-  String _value(RecordMetricKind metric, RecordStatisticTotals totals) =>
-      switch (metric) {
-        RecordMetricKind.specimens => totals.specimenCount.toString(),
-        RecordMetricKind.specimenParts => totals.specimenPartCount.toString(),
-        RecordMetricKind.species => totals.speciesCount.toString(),
-        RecordMetricKind.families => totals.familyCount.toString(),
-        RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),
-        RecordMetricKind.events => totals.eventCount.toString(),
-        RecordMetricKind.narratives => totals.narrativeCount.toString(),
-        RecordMetricKind.media => totals.mediaCount.toString(),
-        RecordMetricKind.captureDays => totals.totalCaptureDays.toString(),
-        RecordMetricKind.projectDays => _formatProjectDays(totals.totalDays),
-        _ => '',
-      };
+  String _value(
+    AppLocalizations l10n,
+    RecordMetricKind metric,
+    RecordStatisticTotals totals,
+  ) => switch (metric) {
+    RecordMetricKind.specimens => totals.specimenCount.toString(),
+    RecordMetricKind.specimenParts => totals.specimenPartCount.toString(),
+    RecordMetricKind.species => totals.speciesCount.toString(),
+    RecordMetricKind.families => totals.familyCount.toString(),
+    RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),
+    RecordMetricKind.events => totals.eventCount.toString(),
+    RecordMetricKind.narratives => totals.narrativeCount.toString(),
+    RecordMetricKind.media => totals.mediaCount.toString(),
+    RecordMetricKind.captureDays => totals.totalCaptureDays.toString(),
+    RecordMetricKind.projectDays => _formatProjectDays(l10n, totals.totalDays),
+    _ => '',
+  };
 }
 
 class _StatisticSummary extends StatelessWidget {
@@ -1490,7 +1546,7 @@ class _StatisticSummary extends StatelessWidget {
           spacing: 16,
           runSpacing: 16,
           children: [
-            for (final definition in _summaryDefinitions)
+            for (final definition in _summaryDefinitions(context.l10n))
               SizedBox(
                 width: cardWidth,
                 child: _StatisticSummaryCard(
@@ -1562,7 +1618,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
                 ),
                 TextButton(
                   onPressed: onExplore,
-                  child: const Text('View details'),
+                  child: Text(context.l10n.projectStatsViewDetails),
                 ),
               ],
             ),
@@ -1623,30 +1679,34 @@ class _ExploreMetricStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = StatisticDataSummary.fromData(rows);
-    final categoryLabel = request.categoryLabel.toLowerCase();
+    final l10n = context.l10n;
+    final categoryLabel = request.localizedCategoryLabel(l10n).toLowerCase();
     final top = summary.topLabel;
     return StatisticMetricStrip(
       key: const ValueKey('explore-statistics-metrics'),
       tiles: [
         StatisticMetricTile(
           value: '${summary.categoryCount}',
-          label: summary.categoryCount == 1
-              ? 'Category ($categoryLabel)'
-              : 'Categories ($categoryLabel)',
+          label: l10n.projectStatsCategoryCount(
+            summary.categoryCount,
+            categoryLabel,
+          ),
         ),
         StatisticMetricTile(
           value: summary.average.toStringAsFixed(1),
-          label:
-              'Mean ${request.measure.countLabel.toLowerCase()} '
-              'per category',
+          label: l10n.projectStatsMeanPerCategory(
+            request.measure.localizedCountLabel(l10n).toLowerCase(),
+          ),
         ),
         StatisticMetricTile(
           value: top == null ? '—' : '${summary.topCount}',
-          label: top == null ? 'Top category' : 'Top: $top',
+          label: top == null
+              ? l10n.projectStatsTopCategory
+              : l10n.projectStatsTopValue(top),
         ),
         StatisticMetricTile(
           value: top == null ? '—' : '${summary.topShare.toStringAsFixed(1)}%',
-          label: 'Top category share',
+          label: l10n.projectStatsTopCategoryShare,
         ),
       ],
     );
@@ -1673,7 +1733,7 @@ class _DetailSectionSwitch extends StatelessWidget {
           ButtonSegment(
             value: section,
             icon: Icon(section.icon),
-            label: Text(section.label),
+            label: Text(section.localizedLabel(context.l10n)),
           ),
       ],
       selected: {selected},
@@ -1699,14 +1759,14 @@ class _BreakdownControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StatisticDropdownField<_BreakdownChoice>(
-      label: 'Break down by',
+      label: context.l10n.projectStatsBreakDownBy,
       values: [
         _BreakdownChoice.none,
         if (hasSex) _BreakdownChoice.sex,
         if (hasLifeStage) _BreakdownChoice.lifeStage,
       ],
       selected: _BreakdownChoice.of(selected),
-      valueLabel: (value) => value.label,
+      valueLabel: (value) => value.localizedLabel(context.l10n),
       onSelected: (value) => onSelected(value.breakdown),
     );
   }
@@ -1714,14 +1774,16 @@ class _BreakdownControl extends StatelessWidget {
 
 /// [StatisticBreakdown] choices plus None, so the dropdown never holds null.
 enum _BreakdownChoice {
-  none('None', null),
-  sex('Sex', StatisticBreakdown.sex),
-  lifeStage('Life stage', StatisticBreakdown.lifeStage);
+  none(null),
+  sex(StatisticBreakdown.sex),
+  lifeStage(StatisticBreakdown.lifeStage);
 
-  const _BreakdownChoice(this.label, this.breakdown);
+  const _BreakdownChoice(this.breakdown);
 
-  final String label;
   final StatisticBreakdown? breakdown;
+
+  String localizedLabel(AppLocalizations l10n) =>
+      breakdown?.localizedLabel(l10n) ?? l10n.projectPersonnelRoleNone;
 
   static _BreakdownChoice of(StatisticBreakdown? breakdown) =>
       values.firstWhere((choice) => choice.breakdown == breakdown);
@@ -1747,12 +1809,12 @@ class _StatisticAsyncContent extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Unable to load statistics: $error'),
+            Text(context.l10n.projectStatsLoadError('$error')),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: Text(context.l10n.commonRetry),
             ),
           ],
         ),
@@ -1768,16 +1830,16 @@ class _SummaryDefinition {
   final StatisticSelection selection;
 }
 
-const _summaryDefinitions = [
+List<_SummaryDefinition> _summaryDefinitions(AppLocalizations l10n) => [
   _SummaryDefinition(
-    title: 'Specimens by species',
+    title: l10n.projectStatsSpecimensBySpecies,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.species,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by family',
+    title: l10n.projectStatsSpecimensByFamily,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.taxonRank,
@@ -1785,42 +1847,42 @@ const _summaryDefinitions = [
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by site',
+    title: l10n.projectStatsSpecimensBySite,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.site,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by date',
+    title: l10n.projectStatsSpecimensByDate,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.date,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by method',
+    title: l10n.projectStatsSpecimensByMethod,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.method,
     ),
   ),
   _SummaryDefinition(
-    title: 'Specimens by sex',
+    title: l10n.projectStatsSpecimensBySex,
     selection: StatisticSelection(
       measure: StatisticMeasure.specimens,
       group: StatisticGroup.sex,
     ),
   ),
   _SummaryDefinition(
-    title: 'Part quantity by type',
+    title: l10n.projectStatsPartQuantityByType,
     selection: StatisticSelection(
       measure: StatisticMeasure.partQuantity,
       group: StatisticGroup.partType,
     ),
   ),
   _SummaryDefinition(
-    title: 'Part quantity by treatment',
+    title: l10n.projectStatsPartQuantityByTreatment,
     selection: StatisticSelection(
       measure: StatisticMeasure.partQuantity,
       group: StatisticGroup.partTreatment,
@@ -1838,13 +1900,17 @@ enum _StatisticView { summary, explore }
 
 /// Which statistics the Explore view is showing.
 enum _DetailSection {
-  counts('Counts', Icons.format_list_numbered_rounded),
-  spatial('Spatial', Icons.public_outlined);
+  counts(Icons.format_list_numbered_rounded),
+  spatial(Icons.public_outlined);
 
-  const _DetailSection(this.label, this.icon);
+  const _DetailSection(this.icon);
 
-  final String label;
   final IconData icon;
+
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    counts => l10n.projectStatsCounts,
+    spatial => l10n.projectStatsSpatial,
+  };
 }
 
 enum _DetailMode { chart, table }

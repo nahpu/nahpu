@@ -3,6 +3,8 @@ import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// Takes scanned codes, or shows the work list. Keyboard-wedge scanners
 /// type into the field and end with Enter; the camera button opens a
@@ -73,12 +75,18 @@ class _TissueScanCardState extends State<TissueScanCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (widget.onEntryModeChanged == null)
-              Text('Scan tube', style: theme.textTheme.titleSmall)
+              Text(
+                context.l10n.projectTissueScanTube,
+                style: theme.textTheme.titleSmall,
+              )
             else
               SegmentedButton<TissueEntryMode>(
                 segments: [
                   for (final mode in TissueEntryMode.values)
-                    ButtonSegment(value: mode, label: Text(mode.label)),
+                    ButtonSegment(
+                      value: mode,
+                      label: Text(mode.localizedLabel(context.l10n)),
+                    ),
                 ],
                 selected: {widget.entryMode},
                 showSelectedIcon: false,
@@ -100,10 +108,12 @@ class _TissueScanCardState extends State<TissueScanCard> {
                       autofocus: widget.autofocus,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
-                        labelText: widget.identifyBy.label,
+                        labelText: widget.identifyBy.localizedLabel(
+                          context.l10n,
+                        ),
                         hintText: switch (widget.identifyBy) {
                           TissueIdentifyBy.tissueId =>
-                            'Scan or type, then press Enter',
+                            context.l10n.projectTissueScanHint,
                           TissueIdentifyBy.fieldId => 'ABC123 liver etoh',
                         },
                         prefixIcon: const Icon(Icons.qr_code_scanner),
@@ -117,7 +127,7 @@ class _TissueScanCardState extends State<TissueScanCard> {
                   if (widget.onOpenCamera != null) ...[
                     const SizedBox(width: NahpuSpacing.md),
                     IconButton.outlined(
-                      tooltip: 'Scan with camera',
+                      tooltip: context.l10n.projectTissueScanWithCamera,
                       onPressed: widget.onOpenCamera,
                       icon: const Icon(Icons.photo_camera_outlined),
                     ),
@@ -138,7 +148,7 @@ class _TissueScanCardState extends State<TissueScanCard> {
                 TextButton.icon(
                   onPressed: widget.canUndo ? widget.onUndo : null,
                   icon: const Icon(Icons.undo),
-                  label: const Text('Undo'),
+                  label: Text(context.l10n.projectTissueUndo),
                 ),
               ],
             ),
@@ -187,7 +197,7 @@ class TissueScanFeedback extends StatelessWidget {
           const SizedBox(width: NahpuSpacing.sm),
           Expanded(
             child: Text(
-              outcome?.message ?? 'Ready. Scan the first tube.',
+              outcome?.message ?? context.l10n.projectTissueReady,
               key: const ValueKey('tissue-scan-feedback'),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

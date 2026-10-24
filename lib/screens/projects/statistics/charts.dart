@@ -4,6 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const _chartTopPadding = 24.0;
 
@@ -59,7 +61,7 @@ class StatisticBarChart extends StatelessWidget {
     if (data.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data to display')),
+        child: Center(child: Text(context.l10n.projectStatsNoData)),
       );
     }
 
@@ -184,7 +186,7 @@ class StatisticBarChart extends StatelessWidget {
         leftTitles: AxisTitles(
           axisNameSize: 18,
           axisNameWidget: Text(
-            measure.countLabel,
+            measure.localizedCountLabel(context.l10n),
             style: Theme.of(context).textTheme.labelSmall,
           ),
           sideTitles: SideTitles(
@@ -227,7 +229,7 @@ class StatisticBarChart extends StatelessWidget {
                   child: Tooltip(
                     message: select == null
                         ? category.label
-                        : '${category.label}\nTap to view records',
+                        : context.l10n.projectStatsTapToView(category.label),
                     child: _StatisticTapTarget(
                       onTap: select == null
                           ? null
@@ -414,7 +416,7 @@ class StatisticPieChart extends StatelessWidget {
     if (data.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data to display')),
+        child: Center(child: Text(context.l10n.projectStatsNoData)),
       );
     }
     final total = data.fold<int>(0, (sum, datum) => sum + datum.count);
@@ -582,7 +584,7 @@ class StatisticRankedBarList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const Center(child: Text('No data to display'));
+      return Center(child: Text(context.l10n.projectStatsNoData));
     }
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -609,7 +611,7 @@ class StatisticRankedBarList extends StatelessWidget {
           child: Tooltip(
             message: onSelect == null
                 ? datum.label
-                : '${datum.label}\nTap to view records',
+                : context.l10n.projectStatsTapToView(datum.label),
             child: _StatisticTapTarget(
               onTap: onSelect == null
                   ? null
@@ -749,13 +751,13 @@ class _StatisticChartSwitcherState extends State<StatisticChartSwitcher> {
             alignment: Alignment.centerRight,
             child: Semantics(
               label: _view == _StatisticChartView.pie
-                  ? 'Show bar chart'
-                  : 'Show pie chart',
+                  ? context.l10n.projectStatsShowBarChart
+                  : context.l10n.projectStatsShowPieChart,
               child: IconButton(
                 key: widget.toggleKey,
                 tooltip: _view == _StatisticChartView.pie
-                    ? 'Show bar chart'
-                    : 'Show pie chart',
+                    ? context.l10n.projectStatsShowBarChart
+                    : context.l10n.projectStatsShowPieChart,
                 icon: Icon(
                   _view == _StatisticChartView.pie
                       ? Icons.bar_chart_rounded

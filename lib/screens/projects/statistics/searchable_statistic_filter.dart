@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Shared look for the statistics option fields, so dropdown menus and
 /// search pickers line up at one height with the same rounded outline.
@@ -76,7 +77,7 @@ class SearchableStatisticFilterPicker extends StatelessWidget {
                 ),
                 if (selected != null)
                   IconButton(
-                    tooltip: 'Clear selection',
+                    tooltip: context.l10n.projectStatsClearSelection,
                     onPressed: () => onChanged(null),
                     icon: const Icon(Icons.clear_rounded),
                   ),
@@ -95,7 +96,7 @@ class SearchableStatisticFilterPicker extends StatelessWidget {
                       icon: const Icon(Icons.search_rounded),
                     )
                   : IconButton(
-                      tooltip: 'Clear selection',
+                      tooltip: context.l10n.projectStatsClearSelection,
                       onPressed: () => onChanged(null),
                       icon: const Icon(Icons.clear_rounded),
                     ),
@@ -103,9 +104,11 @@ class SearchableStatisticFilterPicker extends StatelessWidget {
       loading: () => const LinearProgressIndicator(),
       error: (error, stackTrace) => Row(
         children: [
-          Expanded(child: Text('Unable to load choices: $error')),
+          Expanded(
+            child: Text(context.l10n.projectStatsChoicesLoadError('$error')),
+          ),
           IconButton(
-            tooltip: 'Retry',
+            tooltip: context.l10n.commonRetry,
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded),
           ),
@@ -224,12 +227,12 @@ class _SearchableStatisticFilterSheetState
               const SizedBox(height: 12),
               SearchBar(
                 controller: _searchController,
-                hintText: 'Search',
+                hintText: context.l10n.projectBatchSearch,
                 leading: const Icon(Icons.search_rounded),
                 trailing: [
                   if (_query.isNotEmpty)
                     IconButton(
-                      tooltip: 'Clear search',
+                      tooltip: context.l10n.documentSelectionClearSearch,
                       icon: const Icon(Icons.clear_rounded),
                       onPressed: () {
                         _searchController.clear();
@@ -242,7 +245,9 @@ class _SearchableStatisticFilterSheetState
               const SizedBox(height: 8),
               Expanded(
                 child: filtered.isEmpty
-                    ? const Center(child: Text('No matching choices'))
+                    ? Center(
+                        child: Text(context.l10n.projectStatsNoMatchingChoices),
+                      )
                     : ListView.builder(
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {

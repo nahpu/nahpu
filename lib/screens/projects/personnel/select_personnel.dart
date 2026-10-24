@@ -12,6 +12,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class SelectPersonnel extends ConsumerStatefulWidget {
   const SelectPersonnel({super.key, required this.addedPersonnel});
@@ -46,7 +48,9 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
         .when(
           data: (personnel) {
             if (personnel.isEmpty) {
-              return const Center(child: Text('No personnel'));
+              return Center(
+                child: Text(context.l10n.projectPersonnelNoneFound),
+              );
             }
             final filteredPersonnel = _query.isEmpty
                 ? personnel
@@ -70,8 +74,8 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
                 isWide: isWide,
               ),
               detailsPane: focusedPersonnel == null
-                  ? const EmptyDetailsPrompt(
-                      message: 'Select personnel to view details',
+                  ? EmptyDetailsPrompt(
+                      message: context.l10n.projectPersonnelSelectToView,
                     )
                   : PersonnelDetails(
                       personnel: focusedPersonnel,
@@ -108,11 +112,11 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
           child: CommonSearchBar(
             controller: _searchController,
             focusNode: _focus,
-            hintText: 'Search personnel',
+            hintText: context.l10n.projectPersonnelSearch,
             trailing: [
               if (_query.isNotEmpty)
                 IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: context.l10n.documentSelectionClearSearch,
                   onPressed: _clearSearch,
                   icon: const Icon(Icons.clear_rounded),
                 ),
@@ -128,7 +132,7 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
                 onPressed: _selectedPersonnelUuids.isEmpty
                     ? null
                     : () => setState(_selectedPersonnelUuids.clear),
-                child: const Text('Clear'),
+                child: Text(context.l10n.commonClear),
               ),
               TextButton(
                 onPressed: eligiblePersonnel.isEmpty || allVisibleSelected
@@ -142,11 +146,13 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
                             );
                         });
                       },
-                child: const Text('Select all'),
+                child: Text(context.l10n.commonSelectAll),
               ),
               Expanded(
                 child: Text(
-                  '${_selectedPersonnelUuids.length} selected',
+                  context.l10n.projectSelectedCount(
+                    _selectedPersonnelUuids.length,
+                  ),
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelMedium,
@@ -178,14 +184,20 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
                           onChanged: (selected) =>
                               _changeSelection(person.uuid, selected, isAdded),
                         ),
-                        title: Text(person.name ?? 'Unnamed personnel'),
+                        title: Text(
+                          person.name ?? context.l10n.projectPersonnelUnnamed,
+                        ),
                         subtitle: _hasValue(person.affiliation)
                             ? Text(person.affiliation!)
                             : _hasValue(person.role)
-                            ? Text(person.role!)
+                            ? Text(
+                                personnelRoleLabel(context.l10n, person.role!),
+                              )
                             : null,
                         trailing: isAdded
-                            ? const Chip(label: Text('Added'))
+                            ? Chip(
+                                label: Text(context.l10n.projectPersonnelAdded),
+                              )
                             : null,
                       );
                     },
@@ -201,11 +213,13 @@ class SelectPersonnelState extends ConsumerState<SelectPersonnel> {
             runSpacing: NahpuSpacing.md,
             children: [
               SecondaryButton(
-                text: 'Cancel',
+                text: context.l10n.commonCancel,
                 onPressed: () => Navigator.of(context).pop(),
               ),
               PrimaryButton(
-                label: 'Add ${_selectedPersonnelUuids.length} personnel',
+                label: context.l10n.projectPersonnelAddCount(
+                  _selectedPersonnelUuids.length,
+                ),
                 icon: Icons.add,
                 onPressed: _selectedPersonnelUuids.isEmpty || _isAdding
                     ? null
@@ -312,7 +326,7 @@ class _NoPersonnelMatches extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
         child: Text(
-          'No personnel match “$query”.',
+          context.l10n.projectPersonnelNoMatch(query),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge,
         ),

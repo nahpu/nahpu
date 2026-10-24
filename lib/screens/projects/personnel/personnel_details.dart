@@ -3,6 +3,8 @@ import 'package:nahpu/screens/projects/personnel/avatars.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class PersonnelDetails extends StatefulWidget {
   const PersonnelDetails({
@@ -45,38 +47,53 @@ class _PersonnelDetailsState extends State<PersonnelDetails> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final personnel = widget.personnel;
     final profile = <Widget>[
       if (_hasValue(personnel.initial))
-        _PersonnelDetailRow(label: 'Initials', value: personnel.initial!),
+        _PersonnelDetailRow(
+          label: l10n.projectPersonnelInitials,
+          value: personnel.initial!,
+        ),
       if (_hasValue(personnel.affiliation))
         _PersonnelDetailRow(
-          label: 'Affiliation',
+          label: l10n.projectPersonnelAffiliation,
           value: personnel.affiliation!,
         ),
       if (_hasValue(personnel.orcid))
-        _PersonnelDetailRow(label: 'ORCID iD', value: personnel.orcid!),
+        _PersonnelDetailRow(
+          label: l10n.projectPersonnelOrcid,
+          value: personnel.orcid!,
+        ),
     ];
     final contact = <Widget>[
       if (_hasValue(personnel.email))
-        _PersonnelDetailRow(label: 'Email', value: personnel.email!),
+        _PersonnelDetailRow(
+          label: l10n.projectPersonnelEmail,
+          value: personnel.email!,
+        ),
       if (_hasValue(personnel.phone))
-        _PersonnelDetailRow(label: 'Phone', value: personnel.phone!),
+        _PersonnelDetailRow(
+          label: l10n.projectPersonnelPhone,
+          value: personnel.phone!,
+        ),
     ];
     final specimenCare = <Widget>[
       if (_hasValue(personnel.role))
         _PersonnelDetailRow(
-          label: 'Specimen care role',
-          value: personnel.role!,
+          label: l10n.projectPersonnelSpecimenCareRole,
+          value: personnelRoleLabel(l10n, personnel.role!),
         ),
       if (personnel.role == 'Cataloger') ...[
         _PersonnelDetailRow(
-          label: 'Register field number',
-          value: personnel.isRegisterField ? 'Enabled' : 'Disabled',
+          label: l10n.projectPersonnelRegisterFieldNumber,
+          value: personnel.isRegisterField
+              ? l10n.projectEnabled
+              : l10n.projectDisabled,
         ),
         if (personnel.isRegisterField && personnel.currentFieldNumber != null)
           _PersonnelDetailRow(
-            label: 'Current field number',
+            label: l10n.projectPersonnelCurrentFieldNumber,
             value: personnel.currentFieldNumber.toString(),
           ),
       ],
@@ -96,22 +113,28 @@ class _PersonnelDetailsState extends State<PersonnelDetails> {
                 Text(
                   _hasValue(personnel.name)
                       ? personnel.name!
-                      : 'Unnamed personnel',
+                      : l10n.projectPersonnelUnnamed,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 if (profile.isNotEmpty)
-                  _PersonnelDetailSection(title: 'Profile', rows: profile),
+                  _PersonnelDetailSection(
+                    title: l10n.projectPersonnelProfile,
+                    rows: profile,
+                  ),
                 if (contact.isNotEmpty)
-                  _PersonnelDetailSection(title: 'Contact', rows: contact),
+                  _PersonnelDetailSection(
+                    title: l10n.projectPersonnelContact,
+                    rows: contact,
+                  ),
                 if (specimenCare.isNotEmpty)
                   _PersonnelDetailSection(
-                    title: 'Specimen care',
+                    title: l10n.projectPersonnelSpecimenCare,
                     rows: specimenCare,
                   ),
                 if (_hasValue(personnel.notes))
                   _PersonnelDetailSection(
-                    title: 'Notes',
+                    title: l10n.projectPersonnelNotes,
                     rows: [Text(personnel.notes!)],
                   ),
               ],
@@ -124,7 +147,7 @@ class _PersonnelDetailsState extends State<PersonnelDetails> {
           child: Align(
             alignment: Alignment.centerRight,
             child: PrimaryButton(
-              label: 'Edit personnel',
+              label: l10n.projectPersonnelEdit,
               icon: Icons.edit_outlined,
               onPressed: widget.onEdit,
             ),

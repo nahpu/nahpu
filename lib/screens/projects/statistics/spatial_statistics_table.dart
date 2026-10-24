@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/statistics/spatial.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SpatialStatisticsTable extends StatefulWidget {
   const SpatialStatisticsTable({
@@ -40,7 +41,7 @@ class _SpatialStatisticsTableState extends State<SpatialStatisticsTable> {
           header: const SizedBox.shrink(),
           actions: [
             IconButton(
-              tooltip: 'Export table',
+              tooltip: context.l10n.projectStatsExportTable,
               onPressed: widget.onExport,
               icon: const Icon(Icons.file_upload_outlined),
             ),
@@ -56,33 +57,41 @@ class _SpatialStatisticsTableState extends State<SpatialStatisticsTable> {
             hasCounts: hasCounts,
             total: total,
           ),
-          columns: hasCounts ? _metricColumns : _coordinateColumns,
+          columns: hasCounts
+              ? _metricColumns(context.l10n)
+              : _coordinateColumns(context.l10n),
         ),
       ),
     );
   }
 }
 
-const _coordinateColumns = [
-  DataColumn(label: Text('Name')),
-  DataColumn(label: Text('Locality')),
-  DataColumn(label: Text('Decimal Latitude'), numeric: true),
-  DataColumn(label: Text('Decimal Longitude'), numeric: true),
-  DataColumn(label: Text('Elevation (m)'), numeric: true),
-  DataColumn(label: Text('Datum')),
-  DataColumn(label: Text('Uncertainty (m)'), numeric: true),
-  DataColumn(label: Text('GPS Unit')),
-  DataColumn(label: Text('Notes')),
+List<DataColumn> _coordinateColumns(AppLocalizations l10n) => [
+  DataColumn(label: Text(l10n.projectStatsColumnName)),
+  DataColumn(label: Text(l10n.projectStatsColumnLocality)),
+  DataColumn(
+    label: Text(l10n.projectStatsColumnDecimalLatitude),
+    numeric: true,
+  ),
+  DataColumn(
+    label: Text(l10n.projectStatsColumnDecimalLongitude),
+    numeric: true,
+  ),
+  DataColumn(label: Text(l10n.projectStatsColumnElevation), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnDatum)),
+  DataColumn(label: Text(l10n.projectStatsColumnUncertainty), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnGpsUnit)),
+  DataColumn(label: Text(l10n.projectPersonnelNotes)),
 ];
 
-const _metricColumns = [
-  DataColumn(label: Text('Name')),
-  DataColumn(label: Text('Locality')),
-  DataColumn(label: Text('Latitude'), numeric: true),
-  DataColumn(label: Text('Longitude'), numeric: true),
-  DataColumn(label: Text('Elevation (m)'), numeric: true),
-  DataColumn(label: Text('Count'), numeric: true),
-  DataColumn(label: Text('Percent'), numeric: true),
+List<DataColumn> _metricColumns(AppLocalizations l10n) => [
+  DataColumn(label: Text(l10n.projectStatsColumnName)),
+  DataColumn(label: Text(l10n.projectStatsColumnLocality)),
+  DataColumn(label: Text(l10n.projectStatsColumnLatitude), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnLongitude), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnElevation), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnCount), numeric: true),
+  DataColumn(label: Text(l10n.projectStatsColumnPercent), numeric: true),
 ];
 
 class _SpatialStatisticsDataSource extends DataTableSource {

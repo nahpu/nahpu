@@ -158,7 +158,7 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create a Cataloger'), findsOneWidget);
+    expect(find.text('Create a cataloger'), findsOneWidget);
     expect(find.text('Specimen care role: Cataloger'), findsOneWidget);
     expect(
       find.text('Personal field-number registration enabled'),
@@ -202,7 +202,7 @@ void main() {
     await tester.tap(find.text('Create new'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create a Cataloger'), findsOneWidget);
+    expect(find.text('Create a cataloger'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Name*'), findsOneWidget);
     expect(find.widgetWithText(TextFormField, 'Initials*'), findsOneWidget);
     expect(

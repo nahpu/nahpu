@@ -5,6 +5,8 @@ import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_targets.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// Third step: check and change which field each column fills.
 class BatchColumnsStep extends StatelessWidget {
@@ -42,17 +44,20 @@ class BatchColumnsStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: 'Match columns',
-          message:
-              '$mapped of ${matches.length} columns match a field. Change any '
-              'match, or skip a column. Your changes are remembered for '
-              'files with the same columns.',
+          title: context.l10n.projectBatchMatchColumns,
+          message: context.l10n.projectBatchMatchColumnsBody(
+            mapped,
+            matches.length,
+          ),
         ),
         const SizedBox(height: NahpuSpacing.xl),
         SegmentedButton<BatchImportHeaderMode>(
           segments: [
             for (final value in BatchImportHeaderMode.values)
-              ButtonSegment(value: value, label: Text(value.label)),
+              ButtonSegment(
+                value: value,
+                label: Text(value.localizedLabel(context.l10n)),
+              ),
           ],
           selected: {headerMode},
           onSelectionChanged: (selection) =>
@@ -112,13 +117,19 @@ class BatchKeyPicker extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Key column', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.projectBatchKeyColumn,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: NahpuSpacing.xs),
           Text(
             available.isEmpty
-                ? 'Map a column to one of: '
-                      '${BatchImportKey.forType(type).map((k) => k.label).join(', ')}.'
-                : 'Rows update the record with the same value.',
+                ? context.l10n.projectBatchKeyColumnMissing(
+                    BatchImportKey.forType(
+                      type,
+                    ).map((k) => k.localizedLabel(context.l10n)).join(', '),
+                  )
+                : context.l10n.projectBatchKeyColumnBody,
           ),
           if (available.isNotEmpty) ...[
             const SizedBox(height: NahpuSpacing.lg),
@@ -126,10 +137,15 @@ class BatchKeyPicker extends StatelessWidget {
               initialValue: available.contains(selectedKey)
                   ? selectedKey
                   : null,
-              decoration: const InputDecoration(labelText: 'Match records by'),
+              decoration: InputDecoration(
+                labelText: context.l10n.projectBatchMatchRecordsBy,
+              ),
               items: [
                 for (final key in available)
-                  DropdownMenuItem(value: key, child: Text(key.label)),
+                  DropdownMenuItem(
+                    value: key,
+                    child: Text(key.localizedLabel(context.l10n)),
+                  ),
               ],
               onChanged: onChanged,
             ),
@@ -170,7 +186,9 @@ class BatchColumnRow extends StatelessWidget {
         Text(match.header, style: theme.textTheme.titleSmall),
         const SizedBox(height: NahpuSpacing.xxs),
         Text(
-          samples.isEmpty ? 'No values' : samples.join(' · '),
+          samples.isEmpty
+              ? context.l10n.projectBatchNoValues
+              : samples.join(' · '),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -238,9 +256,14 @@ class BatchFieldDropdown extends StatelessWidget {
       key: ValueKey(value),
       initialValue: value ?? _skip,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'NAHPU field'),
+      decoration: InputDecoration(
+        labelText: context.l10n.projectBatchNahpuField,
+      ),
       items: [
-        const DropdownMenuItem(value: _skip, child: Text('Skip column')),
+        DropdownMenuItem(
+          value: _skip,
+          child: Text(context.l10n.projectBatchSkipColumn),
+        ),
         for (final entry in groups.entries) ...[
           DropdownMenuItem(
             value: '#${entry.key}',
@@ -260,7 +283,7 @@ class BatchFieldDropdown extends StatelessWidget {
                 padding: const EdgeInsets.only(left: NahpuSpacing.lg),
                 child: Text(
                   usedKeys.contains(target.key)
-                      ? '${target.label} (in use)'
+                      ? context.l10n.projectBatchFieldInUse(target.label)
                       : target.label,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -269,7 +292,7 @@ class BatchFieldDropdown extends StatelessWidget {
         ],
       ],
       selectedItemBuilder: (context) => [
-        const Text('Skip column'),
+        Text(context.l10n.projectBatchSkipColumn),
         for (final entry in groups.entries) ...[
           Text(entry.key),
           for (final target in entry.value)
@@ -292,27 +315,29 @@ class BatchMatchChip extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final (label, icon, color) = switch (match.origin) {
       BatchMatchOrigin.darwinCore => (
-        'Darwin Core',
+        context.l10n.projectBatchDarwinCore,
         Icons.verified_outlined,
         colors.primary,
       ),
       BatchMatchOrigin.exactName => (
-        'Name match',
+        context.l10n.projectBatchNameMatch,
         Icons.check_circle_outline_rounded,
         colors.primary,
       ),
       BatchMatchOrigin.fuzzyName => (
-        'Close match ${(match.score * 100).round()}%',
+        context.l10n.projectBatchCloseMatch((match.score * 100).round()),
         Icons.auto_fix_high_outlined,
         colors.tertiary,
       ),
       BatchMatchOrigin.saved || BatchMatchOrigin.user => (
-        match.fieldKey == null ? 'Skipped by you' : 'Your choice',
+        match.fieldKey == null
+            ? context.l10n.projectBatchSkippedByYou
+            : context.l10n.projectBatchYourChoice,
         Icons.person_outline_rounded,
         colors.secondary,
       ),
       BatchMatchOrigin.none => (
-        'No match',
+        context.l10n.projectBatchStatusNoMatch,
         Icons.help_outline_rounded,
         colors.outline,
       ),

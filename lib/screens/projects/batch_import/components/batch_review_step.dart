@@ -3,6 +3,8 @@ import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// Fourth step: what will be written, and the rows that won't be.
 class BatchReviewStep extends StatefulWidget {
@@ -40,7 +42,8 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
     final importable = review
         .importable(includeMissingLinks: widget.includeMissingLinks)
         .length;
-    final verb = review.mode == BatchImportMode.update ? 'update' : 'add';
+    final l10n = context.l10n;
+    final records = review.type.localizedLabel(l10n).toLowerCase();
     final problems = [
       for (final row in review.rows)
         if (row.messages.isNotEmpty &&
@@ -57,11 +60,18 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: 'Review',
-          message:
-              'This will $verb $importable of ${review.rows.length} '
-              '${review.type.label.toLowerCase()}. Rows with problems are '
-              'skipped.',
+          title: l10n.projectWizardReview,
+          message: review.mode == BatchImportMode.update
+              ? l10n.projectBatchReviewUpdate(
+                  importable,
+                  review.rows.length,
+                  records,
+                )
+              : l10n.projectBatchReviewAdd(
+                  importable,
+                  review.rows.length,
+                  records,
+                ),
         ),
         const SizedBox(height: NahpuSpacing.xl),
         Wrap(
@@ -81,7 +91,9 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
                       ? colors.tertiary
                       : colors.error,
                 ),
-                label: Text('${entry.key.label}: ${entry.value}'),
+                label: Text(
+                  '${entry.key.localizedLabel(l10n)}: ${entry.value}',
+                ),
                 selected: _filter == entry.key,
                 onSelected: (selected) =>
                     setState(() => _filter = selected ? entry.key : null),
@@ -92,11 +104,8 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
           const SizedBox(height: NahpuSpacing.lg),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Import rows with missing links'),
-            subtitle: const Text(
-              'The taxon, person, site, or event stays empty. Add it to the '
-              'project first to link it.',
-            ),
+            title: Text(l10n.projectBatchImportRowsMissingLinks),
+            subtitle: Text(l10n.projectBatchImportRowsMissingLinksBody),
             value: widget.includeMissingLinks,
             onChanged: progress == null
                 ? widget.onIncludeMissingLinksChanged
@@ -109,7 +118,7 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
             value: progress.$2 == 0 ? null : progress.$1 / progress.$2,
           ),
           const SizedBox(height: NahpuSpacing.sm),
-          Text('Writing ${progress.$1} of ${progress.$2} rows'),
+          Text(l10n.projectBatchWritingRows(progress.$1, progress.$2)),
         ],
         if (error != null) ...[
           const SizedBox(height: NahpuSpacing.lg),
@@ -117,7 +126,7 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
         ],
         const SizedBox(height: NahpuSpacing.xl),
         if (problems.isEmpty)
-          const NahpuPanel(child: Text('No problems found.'))
+          NahpuPanel(child: Text(l10n.projectBatchNoProblems))
         else
           NahpuPanel(
             padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.md),
@@ -130,7 +139,7 @@ class _BatchReviewStepState extends State<BatchReviewStep> {
                   Padding(
                     padding: const EdgeInsets.all(NahpuSpacing.lg),
                     child: Text(
-                      'And ${problems.length - _shownRows} more rows.',
+                      l10n.projectBatchMoreRows(problems.length - _shownRows),
                     ),
                   ),
               ],
@@ -157,7 +166,10 @@ class BatchRowProblemTile extends StatelessWidget {
             : Icons.block_rounded,
         color: row.status.isImportable ? colors.tertiary : colors.error,
       ),
-      title: Text('Row ${row.rowNumber} · ${row.status.label}'),
+      title: Text(
+        '${context.l10n.projectBatchRow('${row.rowNumber}')} · '
+        '${row.status.localizedLabel(context.l10n)}',
+      ),
       subtitle: Text(row.messages.join('\n')),
     );
   }

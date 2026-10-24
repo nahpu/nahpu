@@ -4,6 +4,7 @@ import 'package:nahpu/screens/projects/personnel/personnel_form.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class NewPersonnel extends ConsumerWidget {
   const NewPersonnel({super.key});
@@ -25,7 +26,7 @@ class EditPersonnelForm extends ConsumerWidget {
     PersonnelFormCtrModel ctr = _getController(personnelData);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit personnel'),
+        title: Text(context.l10n.projectPersonnelEdit),
         automaticallyImplyLeading: false,
       ),
       body: Center(

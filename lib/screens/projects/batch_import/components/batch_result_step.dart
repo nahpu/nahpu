@@ -3,6 +3,8 @@ import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// Last step: what was written.
 class BatchResultStep extends StatelessWidget {
@@ -18,14 +20,19 @@ class BatchResultStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final verb = result.mode == BatchImportMode.update ? 'Updated' : 'Added';
-    final records = result.type.label.toLowerCase();
+    final l10n = context.l10n;
+    final updated = result.mode == BatchImportMode.update;
+    final records = result.type.localizedLabel(l10n).toLowerCase();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: result.errors.isEmpty ? 'Done' : 'Done, with errors',
-          message: '$verb ${result.written} $records.',
+          title: result.errors.isEmpty
+              ? l10n.commonDone
+              : l10n.projectBatchDoneWithErrors,
+          message: updated
+              ? l10n.projectBatchUpdatedRecords(result.written, records)
+              : l10n.projectBatchAddedRecords(result.written, records),
         ),
         const SizedBox(height: NahpuSpacing.xl),
         NahpuPanel(
@@ -35,17 +42,19 @@ class BatchResultStep extends StatelessWidget {
               BatchResultLine(
                 icon: Icons.check_circle_outline_rounded,
                 color: colors.primary,
-                text: '$verb: ${result.written}',
+                text: updated
+                    ? l10n.projectBatchUpdatedCount(result.written)
+                    : l10n.projectBatchAddedCount(result.written),
               ),
               BatchResultLine(
                 icon: Icons.skip_next_outlined,
                 color: colors.outline,
-                text: 'Skipped in review: ${result.skipped}',
+                text: l10n.projectBatchSkippedInReview(result.skipped),
               ),
               BatchResultLine(
                 icon: Icons.error_outline_rounded,
                 color: colors.error,
-                text: 'Failed: ${result.errors.length}',
+                text: l10n.projectBatchFailedCount(result.errors.length),
               ),
             ],
           ),
@@ -61,7 +70,7 @@ class BatchResultStep extends StatelessWidget {
                 for (final entry in result.errors.entries)
                   ListTile(
                     dense: true,
-                    title: Text('Row ${entry.key}'),
+                    title: Text(l10n.projectBatchRow('${entry.key}')),
                     subtitle: Text(entry.value),
                   ),
               ],
@@ -74,7 +83,7 @@ class BatchResultStep extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: onOpenTable,
             icon: const Icon(Icons.table_chart_outlined),
-            label: Text('Open ${result.type.label.toLowerCase()} table'),
+            label: Text(l10n.projectBatchOpenTable(records)),
           ),
         ),
       ],

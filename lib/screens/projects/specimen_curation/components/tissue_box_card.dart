@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// The tissue box being filled: its name, fill count, next cell, and grid.
 class TissueBoxCard extends StatelessWidget {
@@ -45,7 +46,10 @@ class TissueBoxCard extends StatelessWidget {
                     children: [
                       Text(boxName, style: theme.textTheme.titleMedium),
                       Text(
-                        '${occupied.length} / $capacity filled',
+                        context.l10n.projectTissueFilledCount(
+                          occupied.length,
+                          capacity,
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -57,13 +61,15 @@ class TissueBoxCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Next cell',
+                      context.l10n.projectTissueNextCell,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
-                      next == null ? 'Full' : layout.cellLabel(next!),
+                      next == null
+                          ? context.l10n.projectTissueFull
+                          : layout.cellLabel(next!),
                       key: const ValueKey('tissue-next-cell'),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.primary,
@@ -99,7 +105,7 @@ class TissueBoxCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onNextBox,
                   icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Next box'),
+                  label: Text(context.l10n.projectTissueNextBox),
                 ),
               ],
             ),
@@ -217,7 +223,9 @@ class TissueBoxCell extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(NahpuSpacing.xxs),
       child: Tooltip(
-        message: isFilled && tissue == null ? '$label · filled' : tooltip,
+        message: isFilled && tissue == null
+            ? context.l10n.projectTissueCellFilled(label)
+            : tooltip,
         child: Semantics(
           button: !isFilled,
           selected: isNext,
@@ -296,18 +304,18 @@ class TissueBoxLegend extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         TissueBoxLegendItem(
-          label: 'Filled',
+          label: context.l10n.projectTissueFilled,
           color: colorScheme.primaryContainer,
           borderColor: colorScheme.primary.withValues(alpha: 0.4),
         ),
         TissueBoxLegendItem(
-          label: 'Next',
+          label: context.l10n.projectTissueNext,
           color: colorScheme.surfaceContainerHighest,
           borderColor: colorScheme.primary,
           borderWidth: NahpuStroke.regular,
         ),
         Text(
-          'Tap an empty cell to jump',
+          context.l10n.projectTissueTapEmptyCell,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),

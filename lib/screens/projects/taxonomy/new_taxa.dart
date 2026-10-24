@@ -11,6 +11,8 @@ import 'package:nahpu/services/types/controllers.dart';
 import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class NewTaxon extends StatelessWidget {
   const NewTaxon({super.key});
@@ -20,7 +22,7 @@ class NewTaxon extends StatelessWidget {
     final TaxonRegistryCtrModel ctr = TaxonRegistryCtrModel.empty();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Taxon'),
+        title: Text(context.l10n.projectTaxonNew),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -42,7 +44,7 @@ class EditTaxon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Taxon'),
+        title: Text(context.l10n.projectTaxonEdit),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -85,26 +87,29 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return ScrollableConstrainedLayout(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           FormSection(
-            title: 'Classification',
+            title: l10n.projectTaxonClassification,
             child: Column(
               children: [
                 DropdownButtonFormField<TaxonRank>(
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Taxon rank',
-                    hintText: 'Select the rank represented by this record',
+                  decoration: InputDecoration(
+                    labelText: l10n.projectTaxonRankLabel,
+                    hintText: l10n.projectTaxonRankHint,
                   ),
                   initialValue: _rank,
                   items: TaxonRank.values
                       .map(
                         (rank) => DropdownMenuItem(
                           value: rank,
-                          child: CommonDropdownText(text: rank.label),
+                          child: CommonDropdownText(
+                            text: rank.localizedLabel(l10n),
+                          ),
                         ),
                       )
                       .toList(),
@@ -116,61 +121,61 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                 ),
                 _RankTextField(
                   controller: widget.ctr.kingdomCtr,
-                  label: 'Kingdom',
+                  label: l10n.projectTaxonKingdom,
                 ),
                 _RankTextField(
                   controller: widget.ctr.phylumCtr,
-                  label: 'Phylum',
+                  label: l10n.projectTaxonPhylum,
                 ),
                 if (_shows(TaxonRank.taxonClass))
                   _RankTextField(
                     controller: widget.ctr.taxonClassCtr,
-                    label: 'Class',
+                    label: l10n.projectTaxonClass,
                   ),
                 if (_shows(TaxonRank.order))
                   _RankTextField(
                     controller: widget.ctr.taxonOrderCtr,
-                    label: 'Order',
+                    label: l10n.projectTaxonOrder,
                   ),
                 if (_shows(TaxonRank.family))
                   _RankTextField(
                     controller: widget.ctr.taxonFamilyCtr,
-                    label: 'Family',
+                    label: l10n.projectTaxonFamily,
                   ),
                 if (_shows(TaxonRank.genus))
                   _RankTextField(
                     controller: widget.ctr.genusCtr,
-                    label: 'Genus',
+                    label: l10n.projectTaxonGenus,
                   ),
                 if (_shows(TaxonRank.species))
                   _RankTextField(
                     controller: widget.ctr.specificEpithetCtr,
-                    label: 'Specific epithet',
+                    label: l10n.projectTaxonSpecificEpithet,
                     lowercase: true,
                   ),
                 if (_shows(TaxonRank.subspecies))
                   _RankTextField(
                     controller: widget.ctr.subspecificEpithetCtr,
-                    label: 'Subspecific epithet',
+                    label: l10n.projectTaxonSubspecificEpithet,
                     lowercase: true,
                   ),
               ],
             ),
           ),
           FormSection(
-            title: 'Additional details',
+            title: l10n.projectTaxonAdditionalDetails,
             child: Column(
               children: [
                 CommonTextField(
                   controller: widget.ctr.authorCtr,
-                  labelText: 'Authors',
-                  hintText: 'Enter authors',
+                  labelText: l10n.projectTaxonAuthors,
+                  hintText: l10n.projectTaxonAuthorsHint,
                   isLastField: false,
                 ),
                 CommonTextField(
                   controller: widget.ctr.commonNameCtr,
-                  labelText: 'Common name',
-                  hintText: 'Enter a common name',
+                  labelText: l10n.projectTaxonCommonName,
+                  hintText: l10n.projectTaxonCommonNameHint,
                   isLastField: false,
                   onChanged: (String? value) {
                     if (value != null) {
@@ -187,8 +192,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                       widget.ctr.redListCategoryCtr.text.isNotEmpty,
                   child: CommonTextField(
                     controller: widget.ctr.redListCategoryCtr,
-                    labelText: 'IUCN RedList Category',
-                    hintText: 'e.g. Endangered, Vulnerable, etc.',
+                    labelText: l10n.projectTaxonRedListLabel,
+                    hintText: l10n.projectTaxonRedListHint,
                     isLastField: false,
                     onChanged: (String? value) {
                       if (value != null) {
@@ -204,8 +209,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                   visible: _isShowMore || widget.ctr.citesCtr.text.isNotEmpty,
                   child: CommonTextField(
                     controller: widget.ctr.citesCtr,
-                    labelText: 'CITES Status',
-                    hintText: 'e.g. Appendix I, Appendix II, Non-CITES, etc.',
+                    labelText: l10n.projectTaxonCitesStatus,
+                    hintText: l10n.projectTaxonCitesHint,
                     isLastField: false,
                     onChanged: (String? value) {
                       if (value != null) {
@@ -223,8 +228,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                       widget.ctr.countryStatusCtr.text.isNotEmpty,
                   child: CommonTextField(
                     controller: widget.ctr.countryStatusCtr,
-                    labelText: 'Country conservation status',
-                    hintText: 'e.g. Protected, common, etc.',
+                    labelText: l10n.projectTaxonCountryStatusLabel,
+                    hintText: l10n.projectTaxonCountryStatusHint,
                     isLastField: false,
                   ),
                 ),
@@ -233,8 +238,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                       _isShowMore || widget.ctr.sortingOrderCtr.text.isNotEmpty,
                   child: CommonNumField(
                     controller: widget.ctr.sortingOrderCtr,
-                    labelText: 'Sorting order',
-                    hintText: 'e.g. 1, 2, 3',
+                    labelText: l10n.projectTaxonSortingOrder,
+                    hintText: l10n.projectTaxonSortingOrderHint,
                     isLastField: false,
                   ),
                 ),
@@ -242,8 +247,8 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                   visible: _isShowMore || widget.ctr.noteCtr.text.isNotEmpty,
                   child: CommonTextField(
                     controller: widget.ctr.noteCtr,
-                    labelText: 'Notes',
-                    hintText: 'Enter notes',
+                    labelText: l10n.projectPersonnelNotes,
+                    hintText: l10n.projectTaxonNotesHint,
                     maxLines: 3,
                     isLastField: false,
                   ),
@@ -254,7 +259,9 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
                       _isShowMore = !_isShowMore;
                     });
                   },
-                  child: Text(_isShowMore ? 'Show less' : 'Show more'),
+                  child: Text(
+                    _isShowMore ? l10n.sharedShowLess : l10n.sharedShowMore,
+                  ),
                 ),
               ],
             ),
@@ -277,7 +284,7 @@ class TaxonRegistryFormState extends ConsumerState<TaxonRegistryForm> {
   Future<void> _submit() async {
     if (!_isValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a rank and enter its name.')),
+        SnackBar(content: Text(context.l10n.projectTaxonRankRequired)),
       );
       return;
     }
@@ -372,7 +379,7 @@ class _RankTextField extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        hintText: 'Enter ${label.toLowerCase()}',
+        hintText: context.l10n.projectTaxonEnterValue(label.toLowerCase()),
       ),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z .'-]+")),
