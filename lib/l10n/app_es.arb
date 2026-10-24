@@ -1069,6 +1069,10 @@
   "sharedPageOf": "Página {current} de {total}",
   "sharedSearch": "Buscar",
   "sharedPageNumber": "Número de página",
+  "sharedGo": "Ir",
+  "sharedOr": "o",
+  "sharedSearchRecords": "Buscar registros",
+  "sharedPageOutOfRange": "Introduce una página del 1 al {total}",
 
   "textReplaceErrorEmptyPattern": "El texto a buscar no puede estar vacío.",
   "textReplaceErrorInvalidRegex": "Expresión regular no válida: {detail}",

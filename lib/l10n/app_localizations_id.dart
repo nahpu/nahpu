@@ -4014,6 +4014,20 @@ class AppLocalizationsId extends AppLocalizations {
   String get sharedPageNumber => 'Nomor halaman';
 
   @override
+  String get sharedGo => 'Buka';
+
+  @override
+  String get sharedOr => 'atau';
+
+  @override
+  String get sharedSearchRecords => 'Cari catatan';
+
+  @override
+  String sharedPageOutOfRange(int total) {
+    return 'Masukkan halaman 1 sampai $total';
+  }
+
+  @override
   String get textReplaceErrorEmptyPattern =>
       'Teks yang dicari tidak boleh kosong.';
 

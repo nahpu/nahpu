@@ -1069,6 +1069,10 @@
   "sharedPageOf": "Página {current} de {total}",
   "sharedSearch": "Pesquisar",
   "sharedPageNumber": "Número da página",
+  "sharedGo": "Ir",
+  "sharedOr": "ou",
+  "sharedSearchRecords": "Pesquisar registros",
+  "sharedPageOutOfRange": "Digite uma página de 1 a {total}",
 
   "textReplaceErrorEmptyPattern": "O texto a localizar não pode estar vazio.",
   "textReplaceErrorInvalidRegex": "Expressão regular inválida: {detail}",

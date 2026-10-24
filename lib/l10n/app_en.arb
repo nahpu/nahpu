@@ -1449,6 +1449,11 @@
   "@sharedPageOf": {"placeholders": {"current": {"type": "int", "example": "2"}, "total": {"type": "int", "example": "10"}}},
   "sharedSearch": "Search",
   "sharedPageNumber": "Page number",
+  "sharedGo": "Go",
+  "sharedOr": "or",
+  "sharedSearchRecords": "Search records",
+  "sharedPageOutOfRange": "Enter a page from 1 to {total}",
+  "@sharedPageOutOfRange": {"placeholders": {"total": {"type": "int", "example": "10"}}},
 
   "textReplaceErrorEmptyPattern": "Find text cannot be empty.",
   "@textReplaceErrorEmptyPattern": {},

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/projects/components/menu_drawer.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/providers/narrative.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -384,15 +385,14 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
                 : context.l10n.sharedGoToPageOrSearch,
             child: TextButton(
               onPressed: () {
-                showModalBottomSheet(
+                showAdaptiveSheetDialog<void>(
                   context: context,
-                  builder: (context) => NavSheet(
+                  maxWidth: NahpuContentWidth.dialog,
+                  builder: (context, isSheet) => NavSheet(
                     pageNav: widget.pageNav,
                     onSearch: widget.onSearch,
+                    isSheet: isSheet,
                   ),
-                  isScrollControlled: true,
-                  useSafeArea: true,
-                  showDragHandle: true,
                 );
               },
               child: const Icon(Icons.circle_outlined),
@@ -533,108 +533,170 @@ class PageInfo extends StatelessWidget {
 }
 
 class NavSheet extends ConsumerStatefulWidget {
-  const NavSheet({super.key, required this.pageNav, this.onSearch});
+  const NavSheet({
+    super.key,
+    required this.pageNav,
+    this.onSearch,
+    this.isSheet = true,
+  });
 
   final PageNavigation pageNav;
 
-  /// Closes the sheet and opens the screen's search form. The search button
+  /// Closes the sheet and opens the screen's search form. The search section
   /// is hidden when this is null.
   final VoidCallback? onSearch;
+
+  /// Whether the content shows in a bottom sheet, which is dismissed with its
+  /// drag handle, rather than a dialog with a close button.
+  final bool isSheet;
 
   @override
   NavSheetState createState() => NavSheetState();
 }
 
 class NavSheetState extends ConsumerState<NavSheet> {
+  final TextEditingController _pageController = TextEditingController();
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final onSearch = widget.onSearch;
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          NahpuSpacing.xl,
-          0,
-          NahpuSpacing.xl,
-          MediaQuery.viewInsetsOf(context).bottom + NahpuSpacing.xxl,
-        ),
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: NahpuContentWidth.dialog,
+    final pageNav = widget.pageNav;
+    return AdaptiveSheetDialogBody(
+      title: onSearch == null
+          ? l10n.sharedGoToPage
+          : l10n.sharedGoToPageOrSearch,
+      description: l10n.sharedPageOf(pageNav.currentPage, pageNav.pageCounts),
+      showCloseButton: !widget.isSheet,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: GoToPageField(
+                  controller: _pageController,
+                  errorText: _errorText,
+                  onChanged: (_) {
+                    if (_errorText != null) setState(() => _errorText = null);
+                  },
+                  onSubmitted: (_) => _goToPage(),
+                ),
+              ),
+              const SizedBox(width: NahpuSpacing.md),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, NahpuControlSize.touchTarget),
+                ),
+                onPressed: _goToPage,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(l10n.sharedGo),
+              ),
+            ],
+          ),
+          if (onSearch != null) ...[
+            const SizedBox(height: NahpuSpacing.lg),
+            const _OrDivider(),
+            const SizedBox(height: NahpuSpacing.lg),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(
+                  NahpuControlSize.touchTarget,
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                onSearch();
+              },
+              icon: const Icon(Icons.search_rounded),
+              label: Text(l10n.sharedSearchRecords),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: PageInfo(pageNav: widget.pageNav),
-                ),
-                const SizedBox(height: NahpuSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GoToPageField(
-                        onSubmitted: (String value) {
-                          final pageNumber = int.tryParse(value);
-                          if (pageNumber == null ||
-                              !widget.pageNav.pageController.hasClients) {
-                            return;
-                          }
-                          widget.pageNav.jumpToPage(pageNumber - 1);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                    if (onSearch != null) ...[
-                      const SizedBox(width: NahpuSpacing.md),
-                      IconButton.filledTonal(
-                        tooltip: context.l10n.sharedSearch,
-                        constraints: const BoxConstraints.tightFor(
-                          width: NahpuControlSize.touchTarget,
-                          height: NahpuControlSize.touchTarget,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onSearch();
-                        },
-                        icon: const Icon(Icons.search_rounded),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _goToPage() {
+    final pageNav = widget.pageNav;
+    final pageNumber = int.tryParse(_pageController.text.trim());
+    if (pageNumber == null ||
+        pageNumber < 1 ||
+        pageNumber > pageNav.pageCounts) {
+      setState(() {
+        _errorText = context.l10n.sharedPageOutOfRange(pageNav.pageCounts);
+      });
+      return;
+    }
+    if (!pageNav.pageController.hasClients) return;
+    pageNav.jumpToPage(pageNumber - 1);
+    Navigator.pop(context);
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
+          child: Text(
+            context.l10n.sharedOr,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
-      ),
+        const Expanded(child: Divider()),
+      ],
     );
   }
 }
 
 class GoToPageField extends StatelessWidget {
-  const GoToPageField({super.key, required this.onSubmitted});
+  const GoToPageField({
+    super.key,
+    required this.onSubmitted,
+    this.controller,
+    this.errorText,
+    this.onChanged,
+  });
 
   final void Function(String) onSubmitted;
+  final TextEditingController? controller;
+  final String? errorText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      textAlign: TextAlign.center,
+      controller: controller,
+      autofocus: true,
       decoration: InputDecoration(
         border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.lg)),
+          borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
         ),
-        label: Center(
-          child: Text(context.l10n.sharedGoToPage, textAlign: TextAlign.center),
-        ),
-        hintText: context.l10n.sharedPageNumber,
+        labelText: context.l10n.sharedPageNumber,
+        errorText: errorText,
         isDense: true,
-        floatingLabelAlignment: FloatingLabelAlignment.center,
       ),
-      keyboardType: const TextInputType.numberWithOptions(signed: true),
+      keyboardType: TextInputType.number,
       textInputAction: TextInputAction.go,
+      onChanged: onChanged,
       onSubmitted: onSubmitted,
     );
   }

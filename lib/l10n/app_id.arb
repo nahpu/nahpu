@@ -1069,6 +1069,10 @@
   "sharedPageOf": "Halaman {current} dari {total}",
   "sharedSearch": "Cari",
   "sharedPageNumber": "Nomor halaman",
+  "sharedGo": "Buka",
+  "sharedOr": "atau",
+  "sharedSearchRecords": "Cari catatan",
+  "sharedPageOutOfRange": "Masukkan halaman 1 sampai {total}",
 
   "textReplaceErrorEmptyPattern": "Teks yang dicari tidak boleh kosong.",
   "textReplaceErrorInvalidRegex": "Ekspresi reguler tidak valid: {detail}",

@@ -4053,6 +4053,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedPageNumber => 'Page number';
 
   @override
+  String get sharedGo => 'Go';
+
+  @override
+  String get sharedOr => 'or';
+
+  @override
+  String get sharedSearchRecords => 'Search records';
+
+  @override
+  String sharedPageOutOfRange(int total) {
+    return 'Enter a page from 1 to $total';
+  }
+
+  @override
   String get textReplaceErrorEmptyPattern => 'Find text cannot be empty.';
 
   @override

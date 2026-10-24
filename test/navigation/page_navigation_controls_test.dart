@@ -63,6 +63,56 @@ void main() {
     navigation.dispose();
   });
 
+  testWidgets('go button jumps to the entered page', (tester) async {
+    final navigation = PageNavigation.init()..clampToCount(pageCount);
+    final reportedPages = <int>[];
+    await tester.pumpWidget(
+      _NavigationHarness(
+        navigation: navigation,
+        pageCount: pageCount,
+        onPageChanged: reportedPages.add,
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.circle_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '42');
+    await tester.tap(find.text('Go'));
+    await tester.pumpAndSettle();
+
+    expect(navigation.pageController.page, 41);
+    expect(reportedPages, [41]);
+    expect(find.byType(NavSheet), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    navigation.dispose();
+  });
+
+  testWidgets('go to page rejects an out-of-range page', (tester) async {
+    final navigation = PageNavigation.init()..clampToCount(pageCount);
+    final reportedPages = <int>[];
+    await tester.pumpWidget(
+      _NavigationHarness(
+        navigation: navigation,
+        pageCount: pageCount,
+        onPageChanged: reportedPages.add,
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.circle_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '999');
+    await tester.tap(find.text('Go'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a page from 1 to $pageCount'), findsOneWidget);
+    expect(find.byType(NavSheet), findsOneWidget);
+    expect(reportedPages, isEmpty);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    navigation.dispose();
+  });
+
   testWidgets('go to page sheet search button closes it and opens search', (
     tester,
   ) async {
@@ -82,7 +132,7 @@ void main() {
     expect(find.byType(NavSheet), findsOneWidget);
     expect(find.byType(GoToPageField), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Search'));
+    await tester.tap(find.text('Search records'));
     await tester.pumpAndSettle();
 
     expect(searchCount, 1);
@@ -108,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(GoToPageField), findsOneWidget);
-    expect(find.byTooltip('Search'), findsNothing);
+    expect(find.text('Search records'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
     navigation.dispose();

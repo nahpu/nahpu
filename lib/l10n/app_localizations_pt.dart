@@ -4087,6 +4087,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedPageNumber => 'Número da página';
 
   @override
+  String get sharedGo => 'Ir';
+
+  @override
+  String get sharedOr => 'ou';
+
+  @override
+  String get sharedSearchRecords => 'Pesquisar registros';
+
+  @override
+  String sharedPageOutOfRange(int total) {
+    return 'Digite uma página de 1 a $total';
+  }
+
+  @override
   String get textReplaceErrorEmptyPattern =>
       'O texto a localizar não pode estar vazio.';
 

@@ -6440,6 +6440,30 @@ abstract class AppLocalizations {
   /// **'Page number'**
   String get sharedPageNumber;
 
+  /// No description provided for @sharedGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Go'**
+  String get sharedGo;
+
+  /// No description provided for @sharedOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get sharedOr;
+
+  /// No description provided for @sharedSearchRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Search records'**
+  String get sharedSearchRecords;
+
+  /// No description provided for @sharedPageOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a page from 1 to {total}'**
+  String sharedPageOutOfRange(int total);
+
   /// No description provided for @textReplaceErrorEmptyPattern.
   ///
   /// In en, this message translates to:
