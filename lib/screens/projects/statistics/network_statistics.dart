@@ -227,6 +227,10 @@ class NetworkWorkspace extends ConsumerStatefulWidget {
 }
 
 class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
+  /// Keeps the canvas, with its zoom and pan, when the details panel opens
+  /// or closes and the canvas moves to a new place in the tree.
+  final _canvasKey = GlobalKey();
+
   /// Last network drawn, kept on screen while a new page loads.
   NetworkLayoutResult? _last;
   int _fitCount = 0;
@@ -308,6 +312,7 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
       body = Center(child: Text(l10n.projectStatsNetworkEmpty));
     } else {
       body = NetworkCanvas(
+        key: _canvasKey,
         layout: layout,
         selected: view.selected,
         fitSignal: (

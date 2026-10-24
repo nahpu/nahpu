@@ -42,6 +42,30 @@ void main() {
     expect(container.read(view).isExpanded(myotis.key), isFalse);
   });
 
+  testWidgets('the tapped record stays put while the network grows', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final canvasState = tester.state(find.byType(NetworkCanvas));
+    final before = container.read(networkLayoutProvider('project-a')).value!;
+    final myotis = before.nodes.firstWhere(
+      (node) => node.label == 'Myotis lucifugus',
+    );
+    final onScreen = _screenPosition(tester, myotis.center);
+
+    await _tapNode(tester, myotis);
+
+    final after = container.read(networkLayoutProvider('project-a')).value!;
+    expect(after.nodes.length, greaterThan(before.nodes.length));
+    expect(
+      tester.state(find.byType(NetworkCanvas)),
+      same(canvasState),
+      reason: 'opening the details panel keeps the canvas and its view',
+    );
+    final moved = _screenPosition(tester, after.nodeFor(myotis.key)!.center);
+    expect((moved - onScreen).distance, lessThan(1));
+  });
+
   testWidgets('the layered layout draws one column per record type', (
     tester,
   ) async {
@@ -141,11 +165,16 @@ Future<void> _settle(WidgetTester tester) async {
 
 /// Taps [node] through the canvas, mapping network space to the screen.
 Future<void> _tapNode(WidgetTester tester, NetworkLayoutNode node) async {
+  await tester.tapAt(_screenPosition(tester, node.center));
+  await _settle(tester);
+}
+
+/// Maps a point in network space to the screen through the canvas's pan and
+/// zoom.
+Offset _screenPosition(WidgetTester tester, Offset point) {
   final paint = find.descendant(
     of: find.byType(NetworkCanvas),
     matching: find.byType(CustomPaint),
   );
-  final box = tester.renderObject<RenderBox>(paint.last);
-  await tester.tapAt(box.localToGlobal(node.center));
-  await _settle(tester);
+  return tester.renderObject<RenderBox>(paint.last).localToGlobal(point);
 }
