@@ -710,6 +710,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             const SizedBox(height: NahpuSpacing.xl),
                             Card(
                               clipBehavior: Clip.antiAlias,
+                              shape: _plotCardShape,
                               child: SizedBox(
                                 key: const ValueKey(
                                   'explore-statistics-content',
@@ -1537,6 +1538,7 @@ class _StatisticSummaryCard extends ConsumerWidget {
     );
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: _plotCardShape,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
@@ -1827,6 +1829,11 @@ const _summaryDefinitions = [
 ];
 
 /// Top-level view of the full-screen record statistics page.
+/// Borderless shape for statistics plot cards.
+const _plotCardShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
+);
+
 enum _StatisticView { summary, explore }
 
 /// Which statistics the Explore view is showing.
