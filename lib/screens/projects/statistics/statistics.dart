@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
+import 'package:nahpu/screens/projects/statistics/network_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistic_records.dart';
 import 'package:nahpu/screens/projects/statistics/statistic_filter_panel.dart';
@@ -608,7 +609,17 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             onExplore: _exploreSelection,
                           ),
                         ] else ...[
-                          if (_detailSection == _DetailSection.spatial)
+                          if (_detailSection == _DetailSection.network)
+                            NetworkStatisticsPanel(
+                              projectUuid: projectUuid,
+                              projectName: projectName,
+                              height: _exploreStatisticsCardHeight,
+                              sectionSwitch: _DetailSectionSwitch(
+                                selected: _detailSection,
+                                onSelected: _selectDetailSection,
+                              ),
+                            )
+                          else if (_detailSection == _DetailSection.spatial)
                             SpatialStatisticsPanel(
                               projectUuid: projectUuid,
                               projectName: projectName,
@@ -1900,7 +1911,8 @@ enum _StatisticView { summary, explore }
 /// Which statistics the Explore view is showing.
 enum _DetailSection {
   counts(Icons.format_list_numbered_rounded),
-  spatial(Icons.public_outlined);
+  spatial(Icons.public_outlined),
+  network(Icons.hub_outlined);
 
   const _DetailSection(this.icon);
 
@@ -1909,6 +1921,7 @@ enum _DetailSection {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     counts => l10n.projectStatsCounts,
     spatial => l10n.projectStatsSpatial,
+    network => l10n.projectStatsNetwork,
   };
 }
 

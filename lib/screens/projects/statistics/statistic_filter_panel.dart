@@ -5,18 +5,21 @@ import 'package:nahpu/styles/design_tokens.dart';
 /// Tinted panel that holds the Explore selectors above the result card.
 ///
 /// The top line pairs the [section] switch with an optional [selector]; the
-/// [fields] wrap below it in equal columns.
+/// [fields] wrap below it in equal columns, and [footer] spans the full width
+/// under them.
 class StatisticFilterPanel extends StatelessWidget {
   const StatisticFilterPanel({
     super.key,
     required this.section,
     this.selector,
     this.fields = const [],
+    this.footer,
   });
 
   final Widget section;
   final Widget? selector;
   final List<Widget> fields;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +50,10 @@ class StatisticFilterPanel extends StatelessWidget {
             // wider than the panel padding to read as the same space.
             const SizedBox(height: NahpuSpacing.xl),
             _StatisticFieldRow(children: fields),
+          ],
+          if (footer != null) ...[
+            const SizedBox(height: NahpuSpacing.xl),
+            footer!,
           ],
         ],
       ),

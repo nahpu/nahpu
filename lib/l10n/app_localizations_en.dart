@@ -7633,6 +7633,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsSpatial => 'Spatial';
 
   @override
+  String get projectStatsNetwork => 'Network';
+
+  @override
+  String get projectStatsNetworkTitle => 'Records linked through specimens';
+
+  @override
+  String get projectStatsNetworkHint =>
+      'Tap a record to show what links to it.';
+
+  @override
+  String get projectStatsNetworkRadial => 'Radial';
+
+  @override
+  String get projectStatsNetworkLayered => 'Layered';
+
+  @override
+  String get projectStatsNetworkStartFrom => 'Start from';
+
+  @override
+  String get projectStatsNetworkColumns => 'Columns';
+
+  @override
+  String get projectStatsNetworkFit => 'Fit to view';
+
+  @override
+  String get projectStatsNetworkReset => 'Reset';
+
+  @override
+  String get projectStatsNetworkFullScreen => 'View network full screen';
+
+  @override
+  String projectStatsNetworkLoadError(String error) {
+    return 'Unable to load the network: $error';
+  }
+
+  @override
+  String get projectStatsNetworkEmpty => 'No specimens to link yet.';
+
+  @override
+  String projectStatsNetworkMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String projectStatsNetworkSpecimens(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specimens',
+      one: '1 specimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count shared specimens',
+      one: '1 shared specimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records',
+      one: '1 record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsNetworkShowLinks => 'Show links';
+
+  @override
+  String get projectStatsNetworkHideLinks => 'Hide links';
+
+  @override
+  String get projectStatsNetworkShowMore => 'Show more';
+
+  @override
+  String get projectStatsNetworkSites => 'Sites';
+
+  @override
+  String get projectStatsNetworkEvents => 'Events';
+
+  @override
+  String get projectStatsNetworkSpecimenType => 'Specimens';
+
+  @override
+  String get projectStatsNetworkTaxa => 'Species';
+
+  @override
+  String get projectStatsNetworkCollectors => 'Collectors';
+
+  @override
+  String get projectStatsNetworkMedia => 'Media';
+
+  @override
+  String get projectStatsNetworkLegend => 'Record types';
+
+  @override
   String get projectStatsNoData => 'No data to display';
 
   @override

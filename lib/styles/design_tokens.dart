@@ -136,4 +136,7 @@ abstract final class NahpuContentWidth {
 
   /// Section list beside the settings page on wide screens.
   static const double settingsList = 380;
+
+  /// Details beside a statistics plot, such as the selected network node.
+  static const double statisticsDetails = 280;
 }

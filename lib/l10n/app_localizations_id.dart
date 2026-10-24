@@ -7553,6 +7553,112 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsSpatial => 'Spasial';
 
   @override
+  String get projectStatsNetwork => 'Jaringan';
+
+  @override
+  String get projectStatsNetworkTitle =>
+      'Catatan yang terhubung melalui spesimen';
+
+  @override
+  String get projectStatsNetworkHint =>
+      'Ketuk catatan untuk melihat apa yang terhubung dengannya.';
+
+  @override
+  String get projectStatsNetworkRadial => 'Radial';
+
+  @override
+  String get projectStatsNetworkLayered => 'Berlapis';
+
+  @override
+  String get projectStatsNetworkStartFrom => 'Mulai dari';
+
+  @override
+  String get projectStatsNetworkColumns => 'Kolom';
+
+  @override
+  String get projectStatsNetworkFit => 'Sesuaikan tampilan';
+
+  @override
+  String get projectStatsNetworkReset => 'Atur ulang';
+
+  @override
+  String get projectStatsNetworkFullScreen => 'Lihat jaringan layar penuh';
+
+  @override
+  String projectStatsNetworkLoadError(String error) {
+    return 'Tidak dapat memuat jaringan: $error';
+  }
+
+  @override
+  String get projectStatsNetworkEmpty =>
+      'Belum ada spesimen untuk dihubungkan.';
+
+  @override
+  String projectStatsNetworkMore(int count) {
+    return '+$count lainnya';
+  }
+
+  @override
+  String projectStatsNetworkSpecimens(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spesimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spesimen bersama',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count catatan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsNetworkShowLinks => 'Tampilkan tautan';
+
+  @override
+  String get projectStatsNetworkHideLinks => 'Sembunyikan tautan';
+
+  @override
+  String get projectStatsNetworkShowMore => 'Tampilkan lebih banyak';
+
+  @override
+  String get projectStatsNetworkSites => 'Lokasi';
+
+  @override
+  String get projectStatsNetworkEvents => 'Peristiwa';
+
+  @override
+  String get projectStatsNetworkSpecimenType => 'Spesimen';
+
+  @override
+  String get projectStatsNetworkTaxa => 'Spesies';
+
+  @override
+  String get projectStatsNetworkCollectors => 'Kolektor';
+
+  @override
+  String get projectStatsNetworkMedia => 'Media';
+
+  @override
+  String get projectStatsNetworkLegend => 'Jenis catatan';
+
+  @override
   String get projectStatsNoData => 'Tidak ada data untuk ditampilkan';
 
   @override

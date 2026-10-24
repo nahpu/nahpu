@@ -12,6 +12,7 @@ import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/types/network_statistics.dart';
 import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
@@ -472,6 +473,25 @@ extension StatisticRequestLocalizedLabel on StatisticRequest {
         ? title
         : l10n.projectStatsTitleAtSite(title, siteLabel);
   }
+}
+
+extension NetworkNodeTypeLocalizedLabel on NetworkNodeType {
+  /// Plural name of the record type, as on a network column or hub.
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    NetworkNodeType.site => l10n.projectStatsNetworkSites,
+    NetworkNodeType.event => l10n.projectStatsNetworkEvents,
+    NetworkNodeType.specimen => l10n.projectStatsNetworkSpecimenType,
+    NetworkNodeType.taxon => l10n.projectStatsNetworkTaxa,
+    NetworkNodeType.collector => l10n.projectStatsNetworkCollectors,
+    NetworkNodeType.media => l10n.projectStatsNetworkMedia,
+  };
+}
+
+extension NetworkLayoutLocalizedLabel on NetworkLayout {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    NetworkLayout.radial => l10n.projectStatsNetworkRadial,
+    NetworkLayout.layered => l10n.projectStatsNetworkLayered,
+  };
 }
 
 extension SpatialStatisticKindLocalizedLabel on SpatialStatisticKind {

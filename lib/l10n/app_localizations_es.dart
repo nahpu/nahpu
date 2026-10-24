@@ -7755,6 +7755,114 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsSpatial => 'Espacial';
 
   @override
+  String get projectStatsNetwork => 'Red';
+
+  @override
+  String get projectStatsNetworkTitle => 'Registros vinculados por especímenes';
+
+  @override
+  String get projectStatsNetworkHint =>
+      'Toca un registro para ver qué se vincula con él.';
+
+  @override
+  String get projectStatsNetworkRadial => 'Radial';
+
+  @override
+  String get projectStatsNetworkLayered => 'Por capas';
+
+  @override
+  String get projectStatsNetworkStartFrom => 'Empezar desde';
+
+  @override
+  String get projectStatsNetworkColumns => 'Columnas';
+
+  @override
+  String get projectStatsNetworkFit => 'Ajustar a la vista';
+
+  @override
+  String get projectStatsNetworkReset => 'Restablecer';
+
+  @override
+  String get projectStatsNetworkFullScreen => 'Ver la red en pantalla completa';
+
+  @override
+  String projectStatsNetworkLoadError(String error) {
+    return 'No se pudo cargar la red: $error';
+  }
+
+  @override
+  String get projectStatsNetworkEmpty =>
+      'Aún no hay especímenes para vincular.';
+
+  @override
+  String projectStatsNetworkMore(int count) {
+    return '+$count más';
+  }
+
+  @override
+  String projectStatsNetworkSpecimens(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especímenes',
+      one: '1 espécimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkShared(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especímenes compartidos',
+      one: '1 espécimen compartido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectStatsNetworkRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count registros',
+      one: '1 registro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get projectStatsNetworkShowLinks => 'Mostrar vínculos';
+
+  @override
+  String get projectStatsNetworkHideLinks => 'Ocultar vínculos';
+
+  @override
+  String get projectStatsNetworkShowMore => 'Mostrar más';
+
+  @override
+  String get projectStatsNetworkSites => 'Sitios';
+
+  @override
+  String get projectStatsNetworkEvents => 'Eventos';
+
+  @override
+  String get projectStatsNetworkSpecimenType => 'Especímenes';
+
+  @override
+  String get projectStatsNetworkTaxa => 'Especies';
+
+  @override
+  String get projectStatsNetworkCollectors => 'Colectores';
+
+  @override
+  String get projectStatsNetworkMedia => 'Multimedia';
+
+  @override
+  String get projectStatsNetworkLegend => 'Tipos de registro';
+
+  @override
   String get projectStatsNoData => 'No hay datos para mostrar';
 
   @override

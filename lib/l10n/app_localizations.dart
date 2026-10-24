@@ -12170,6 +12170,162 @@ abstract class AppLocalizations {
   /// **'Spatial'**
   String get projectStatsSpatial;
 
+  /// No description provided for @projectStatsNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get projectStatsNetwork;
+
+  /// No description provided for @projectStatsNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Records linked through specimens'**
+  String get projectStatsNetworkTitle;
+
+  /// No description provided for @projectStatsNetworkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a record to show what links to it.'**
+  String get projectStatsNetworkHint;
+
+  /// No description provided for @projectStatsNetworkRadial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get projectStatsNetworkRadial;
+
+  /// No description provided for @projectStatsNetworkLayered.
+  ///
+  /// In en, this message translates to:
+  /// **'Layered'**
+  String get projectStatsNetworkLayered;
+
+  /// No description provided for @projectStatsNetworkStartFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from'**
+  String get projectStatsNetworkStartFrom;
+
+  /// No description provided for @projectStatsNetworkColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get projectStatsNetworkColumns;
+
+  /// No description provided for @projectStatsNetworkFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit to view'**
+  String get projectStatsNetworkFit;
+
+  /// No description provided for @projectStatsNetworkReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get projectStatsNetworkReset;
+
+  /// No description provided for @projectStatsNetworkFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'View network full screen'**
+  String get projectStatsNetworkFullScreen;
+
+  /// No description provided for @projectStatsNetworkLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the network: {error}'**
+  String projectStatsNetworkLoadError(String error);
+
+  /// No description provided for @projectStatsNetworkEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens to link yet.'**
+  String get projectStatsNetworkEmpty;
+
+  /// No description provided for @projectStatsNetworkMore.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String projectStatsNetworkMore(int count);
+
+  /// No description provided for @projectStatsNetworkSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 specimen} other{{count} specimens}}'**
+  String projectStatsNetworkSpecimens(int count);
+
+  /// No description provided for @projectStatsNetworkShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 shared specimen} other{{count} shared specimens}}'**
+  String projectStatsNetworkShared(int count);
+
+  /// No description provided for @projectStatsNetworkRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 record} other{{count} records}}'**
+  String projectStatsNetworkRecords(int count);
+
+  /// No description provided for @projectStatsNetworkShowLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Show links'**
+  String get projectStatsNetworkShowLinks;
+
+  /// No description provided for @projectStatsNetworkHideLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide links'**
+  String get projectStatsNetworkHideLinks;
+
+  /// No description provided for @projectStatsNetworkShowMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get projectStatsNetworkShowMore;
+
+  /// No description provided for @projectStatsNetworkSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get projectStatsNetworkSites;
+
+  /// No description provided for @projectStatsNetworkEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get projectStatsNetworkEvents;
+
+  /// No description provided for @projectStatsNetworkSpecimenType.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens'**
+  String get projectStatsNetworkSpecimenType;
+
+  /// No description provided for @projectStatsNetworkTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get projectStatsNetworkTaxa;
+
+  /// No description provided for @projectStatsNetworkCollectors.
+  ///
+  /// In en, this message translates to:
+  /// **'Collectors'**
+  String get projectStatsNetworkCollectors;
+
+  /// No description provided for @projectStatsNetworkMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get projectStatsNetworkMedia;
+
+  /// No description provided for @projectStatsNetworkLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Record types'**
+  String get projectStatsNetworkLegend;
+
   /// No description provided for @projectStatsNoData.
   ///
   /// In en, this message translates to:

@@ -33,6 +33,32 @@ class NahpuTheme {
     tertiary: _mossShadow,
   );
 
+  /// Colors for the record types of the statistics network, one per type in
+  /// declaration order: site, event, specimen, taxon, collector, media.
+  /// Distinct hues tuned for the surface of each theme.
+  static List<Color> networkTypeColors(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark
+      ? _networkTypeColorsDark
+      : _networkTypeColorsLight;
+
+  static const _networkTypeColorsLight = [
+    Color(0xFF1B9E77),
+    Color(0xFFD95F02),
+    Color(0xFF7570B3),
+    Color(0xFFE7298A),
+    Color(0xFF66A61E),
+    Color(0xFFA6761D),
+  ];
+
+  static const _networkTypeColorsDark = [
+    Color(0xFF66C2A5),
+    Color(0xFFFC8D62),
+    Color(0xFF8DA0CB),
+    Color(0xFFE78AC3),
+    Color(0xFFA6D854),
+    Color(0xFFE5C494),
+  ];
+
   /// Text color for edits that are waiting to be saved, such as the data
   /// table's "2 unsaved changes". Readable on the surface in both themes,
   /// where [ColorScheme.tertiary] is too dark on the dark surface.
