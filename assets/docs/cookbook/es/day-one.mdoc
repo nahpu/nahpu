@@ -9,6 +9,15 @@ Esta guía presenta NAHPU y ofrece un lugar para practicar antes de usarlo en el
 
 ## Conceptos principales
 
+{% recordmap label="Cómo se relacionan los registros de NAHPU: un proyecto contiene sitios, eventos y especímenes; el personal y los taxones se comparten entre proyectos." hint="Seleccione un registro para ver lo que contiene." %}
+{% recordnode id="project" title="Proyecto" summary="Un conjunto de trabajo" detail="Agrupa una expedición, un programa de monitoreo o un trabajo de laboratorio. La mayoría de las pantallas y exportaciones usan el proyecto activo." /%}
+{% recordnode id="site" title="Sitio" summary="Un lugar para volver" detail="Un lugar que puede volver a visitar, como un campamento o una línea de trampas. Contiene la geografía, el hábitat y una o más coordenadas." /%}
+{% recordnode id="event" title="Evento" summary="Trabajo en un sitio" detail="Trabajo en un sitio durante un periodo definido: métodos, esfuerzo, participantes y condiciones. Un sitio puede tener varios eventos." /%}
+{% recordnode id="specimen" title="Espécimen" summary="Vinculado a un evento" detail="Se vincula a un evento, que aporta su sitio y el contexto de muestreo. Lleva el Field ID de su etiqueta y un UUID interno. Varios especímenes pueden compartir un evento." /%}
+{% recordnode id="personnel" title="Personal" summary="Compartido" detail="Las personas se guardan en la base de datos y se comparten entre proyectos. Editar una persona cambia todos los proyectos que la usan." /%}
+{% recordnode id="taxa" title="Taxones" summary="Compartido" detail="El registro de taxones se comparte entre proyectos. Para corregir una identificación, cambie el espécimen, no el taxón compartido." /%}
+{% /recordmap %}
+
 ### Proyectos y registros compartidos
 
 Un proyecto reúne un trabajo, como una expedición, un programa de seguimiento o especímenes preparados en laboratorio. Defina sus límites según la gestión y los informes necesarios. La mayoría de las pantallas y exportaciones cotidianas trabaja con el proyecto activo.
@@ -62,6 +71,8 @@ Use Narratives para notas de contexto, Associated Data para enlaces y archivos n
 Identidad, transferencia de proyecto, configuración y copias del banco contienen información diferente. Use transferencia para registros y archivos multimedia disponibles, configuración para ajustes reutilizables y copia del banco para un punto de recuperación de la instalación. Las tablas y PDF sirven para revisión o informes; no son copias de proyecto.
 
 ## Practique el uso de NAHPU
+
+{% fieldtrail label="Sendero de práctica con un punto para cada paso de práctica." hint="Seleccione un punto para ir a su paso. Los pasos visitados quedan marcados." progress="{visited} de {total} pasos visitados" /%}
 
 {% steps %}
 

@@ -9,6 +9,15 @@ Este guia apresenta o NAHPU e oferece um lugar para praticar antes de usá-lo no
 
 ## Conceitos principais
 
+{% recordmap label="Como os registros do NAHPU se relacionam: um projeto contém locais, eventos e espécimes; pessoal e táxons são compartilhados entre projetos." hint="Selecione um registro para ver o que ele contém." %}
+{% recordnode id="project" title="Projeto" summary="Um conjunto de trabalho" detail="Agrupa uma expedição, um programa de monitoramento ou um trabalho de laboratório. A maioria das telas e exportações usa o projeto ativo." /%}
+{% recordnode id="site" title="Local" summary="Um lugar para revisitar" detail="Um lugar que você pode visitar novamente, como um acampamento ou uma linha de armadilhas. Contém a geografia, o habitat e uma ou mais coordenadas." /%}
+{% recordnode id="event" title="Evento" summary="Trabalho em um local" detail="Trabalho em um local durante um período definido: métodos, esforço, participantes e condições. Um local pode ter vários eventos." /%}
+{% recordnode id="specimen" title="Espécime" summary="Ligado a um evento" detail="Liga-se a um evento, que fornece o local e o contexto de amostragem. Leva o Field ID da etiqueta e um UUID interno. Vários espécimes podem compartilhar um evento." /%}
+{% recordnode id="personnel" title="Pessoal" summary="Compartilhado" detail="As pessoas ficam no banco de dados e são compartilhadas entre projetos. Editar uma pessoa altera todos os projetos que a usam." /%}
+{% recordnode id="taxa" title="Táxons" summary="Compartilhado" detail="O registro de táxons é compartilhado entre projetos. Para corrigir uma identificação, altere o espécime, não o táxon compartilhado." /%}
+{% /recordmap %}
+
 ### Projetos e registros compartilhados
 
 Um projeto reúne um trabalho, como uma expedição, um programa de monitoramento ou espécimes preparados em laboratório. Defina os limites conforme a gestão e os relatórios necessários. A maioria das telas e exportações cotidianas trabalha com o projeto ativo.
@@ -62,6 +71,8 @@ Use Narratives para notas de contexto, Associated Data para links e arquivos nã
 Identidade, transferência de projeto, configurações e backups do banco contêm informações diferentes. Use transferência para registros e mídia disponível, configurações para ajustes reutilizáveis e backup do banco para um ponto de recuperação da instalação. Tabelas e PDFs servem para revisão ou relatórios; não são backups de projeto.
 
 ## Pratique o uso do NAHPU
+
+{% fieldtrail label="Trilha de prática com um ponto para cada etapa de prática." hint="Selecione um ponto para ir até a etapa. As etapas visitadas ficam marcadas." progress="{visited} de {total} etapas visitadas" /%}
 
 {% steps %}
 

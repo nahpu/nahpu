@@ -9,6 +9,15 @@ This guide introduces NAHPU and provides a place to practice before using it for
 
 ## Key concepts
 
+{% recordmap label="How NAHPU records relate: a project holds sites, events, and specimens; personnel and taxa are shared across projects." hint="Select a record to read what it holds." %}
+{% recordnode id="project" title="Project" summary="One body of work" detail="Groups an expedition, a monitoring program, or laboratory work. Most screens and exports use the active project." /%}
+{% recordnode id="site" title="Site" summary="A place to revisit" detail="A place you can visit again, such as a camp or trap line. It holds the geography, habitat, and one or more coordinates." /%}
+{% recordnode id="event" title="Event" summary="Work at a site" detail="Work at one site during a defined period: methods, effort, participants, and conditions. A site can have several events." /%}
+{% recordnode id="specimen" title="Specimen" summary="Linked to an event" detail="Links to one event, which supplies its site and sampling context. It carries the Field ID from its label and an internal UUID. Several specimens can share one event." /%}
+{% recordnode id="personnel" title="Personnel" summary="Shared" detail="People are stored in the database and shared across projects. Editing a person changes every project that uses that person." /%}
+{% recordnode id="taxa" title="Taxa" summary="Shared" detail="The taxon registry is shared across projects. To correct one identification, change the specimen, not the shared taxon." /%}
+{% /recordmap %}
+
 ### Projects and shared records
 
 A project groups one body of work, such as an expedition, a monitoring program, or specimens prepared in a laboratory. Choose project boundaries to suit how you will manage and report the data. Most day-to-day screens and exports work with the active project.
@@ -62,6 +71,8 @@ Use Narratives for contextual notes, Associated Data for links and non-media fil
 Project identity, project transfer, user configurations, and database backups carry different information. Use project transfer for records and available media, user configurations for reusable settings, and a database backup for an installation recovery point. Tabular exports and PDFs serve review or reporting; they are not project backups.
 
 ## Practice using NAHPU
+
+{% fieldtrail label="Practice trail with one waypoint for each practice step." hint="Select a waypoint to jump to its step. Visited steps are checked." progress="{visited} of {total} steps visited" /%}
 
 {% steps %}
 

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaml/yaml.dart';
+import 'package:nahpu/services/docs/day_one_figures.dart';
 import 'package:nahpu/services/localization/app_language.dart';
 
 export 'package:nahpu/services/localization/app_language.dart';
@@ -114,6 +115,7 @@ class DocumentationRepository {
   final DocumentationAssetPathsLoader? _assetPathsLoader;
   final Map<String, Future<MarkdownDocument>> _documentCache = {};
   final Map<DocsLanguage, Future<Cookbook>> _cookbookCache = {};
+  Future<DayOneFigures>? _dayOneFigures;
 
   Future<MarkdownDocument> loadInfo(
     InfoTopic topic,
@@ -205,6 +207,13 @@ class DocumentationRepository {
       for (final name in names)
         if (name.trim().isNotEmpty) name.trim(),
     ];
+  }
+
+  /// Loads where the Day One figures place their tap targets.
+  Future<DayOneFigures> loadDayOneFigures() {
+    return _dayOneFigures ??= _assetBundle
+        .loadString(DayOneFigureAssets.geometry)
+        .then(DayOneFigures.fromJson);
   }
 
   Future<Cookbook> _loadCookbookWithFallback(DocsLanguage language) async {

@@ -152,6 +152,7 @@ flutter:
     - assets/docs/info/pt/
     - assets/docs/info/es/
     - assets/docs/info/id/
+    - assets/docs/illustrations/
     - assets/docs/cookbook/en/
     - assets/docs/cookbook/en/prepare/
     - assets/docs/cookbook/en/collect/

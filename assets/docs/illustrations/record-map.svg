@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" aria-hidden="true">
+  <!-- Artwork only: labels and tap targets come from the page, placed with figures.json. -->
+  <rect class="art-project" x="16" y="16" width="236" height="308" rx="18" fill="#f3f6f4" stroke="#718e78" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <rect class="art-shared" x="268" y="108" width="124" height="204" rx="16" fill="#f4f7f8" stroke="#a9bcc2" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <path class="art-leader" d="M252 152H274M252 268H274" fill="none" stroke="#8199a2" stroke-width="1.5" stroke-dasharray="3 4"/>
+  <path class="art-arrow" d="M134 138V160M134 226V248" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round"/>
+  <path class="art-arrow-head" d="M128 156L134 164L140 156M128 244L134 252L140 244" fill="none" stroke="#405847" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect class="art-place" x="44" y="80" width="180" height="56" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
+  <rect class="art-place" x="44" y="168" width="180" height="56" rx="12" fill="#e2e9e3" stroke="#405847" stroke-width="1.5"/>
+  <rect class="art-record" x="44" y="256" width="180" height="56" rx="12" fill="#e8f1d2" stroke="#688a2c" stroke-width="1.5"/>
+  <rect class="art-shared-node" x="276" y="124" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
+  <rect class="art-shared-node" x="276" y="240" width="108" height="56" rx="12" fill="#e4ecee" stroke="#637c86" stroke-width="1.5"/>
+</svg>

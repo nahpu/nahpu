@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" aria-hidden="true">
+  <!-- Artwork only: waypoint buttons come from the page, placed with figures.json. -->
+  <circle class="art-sun" cx="72" cy="44" r="18" fill="#b5d177"/>
+  <path class="art-mountain" d="M520 120L580 30L626 90L648 62L680 110V120Z" fill="#cdd9dd"/>
+  <path class="art-hill" d="M0 200V168C80 150 160 182 250 170C340 158 420 186 520 166C590 152 640 170 680 162V200Z" fill="#c5d3c8"/>
+  <path class="art-tree" d="M236 176L248 148L260 176ZM404 182L418 150L432 182ZM96 182L106 160L116 182Z" fill="#718e78"/>
+  <path class="art-trail" d="M20 150H50C90 150 90 80 130 80C170 80 170 130 210 130C250 130 250 60 290 60C330 60 330 140 370 140C410 140 410 70 450 70C490 70 490 130 530 130C575 130 575 70 620 70H660" fill="none" stroke="#d3e4a9" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="art-trail-line" d="M20 150H50C90 150 90 80 130 80C170 80 170 130 210 130C250 130 250 60 290 60C330 60 330 140 370 140C410 140 410 70 450 70C490 70 490 130 530 130C575 130 575 70 620 70H660" fill="none" stroke="#688a2c" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="2 7"/>
+</svg>
