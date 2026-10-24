@@ -12,6 +12,7 @@ import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/providers/taxa.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ManageTaxa extends StatelessWidget {
   const ManageTaxa({super.key});
@@ -206,7 +207,15 @@ class _ManageTaxaListState extends ConsumerState<ManageTaxaList> {
             padding: const EdgeInsets.all(NahpuSpacing.xl),
             child: DeleteItemsButton(
               selectedItems: _selectedTaxonIds.toList(),
-              itemName: _selectedTaxonIds.length == 1 ? 'taxon' : 'taxa',
+              customIconButtonText: context.l10n.deleteTaxaCount(
+                _selectedTaxonIds.length,
+              ),
+              customDialogHeader: context.l10n.deleteTaxaTitle(
+                _selectedTaxonIds.length,
+              ),
+              customDialogText: context.l10n.deleteTaxaBody(
+                _selectedTaxonIds.length,
+              ),
               onPressedFunction: _deleteTaxa,
             ),
           ),

@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 
@@ -77,6 +78,7 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -84,11 +86,11 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Export project info',
+            l10n.sharedExportProjectInfo,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
-          const Text('Export this project information as JSON.'),
+          Text(l10n.sharedExportProjectInfoDescription),
           const SizedBox(height: 16),
           GenericFileSettingsCard<_ProjectExportFormat>(
             exportCtr: _exportCtr,
@@ -158,8 +160,8 @@ class _ProjectExportDialogState extends State<ProjectExportDialog> {
             // Only a folder the user chose is worth naming; the fallback is
             // a path they cannot act on.
             _selectedDir != null
-                ? 'Exported to ${output.path}'
-                : 'Export complete',
+                ? context.l10n.sharedExportedTo(output.path)
+                : context.l10n.sharedExportComplete,
           ),
         ),
       );

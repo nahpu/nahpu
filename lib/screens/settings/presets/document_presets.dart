@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/document_settings_pane.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
@@ -629,7 +630,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 
   Future<void> _exportPresetsToFile() => _exportLayouts();
@@ -672,7 +673,10 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           linkedTemplateNames: [
             for (final template in templates) template.name,
           ],
-          imageNote: PresetTransferService.imageNote(templates),
+          imageNote: presetImageNote(
+            context.l10n,
+            PresetTransferService.imageTemplateCount(templates),
+          ),
           encode: ({required includeLinkedTemplates}) async =>
               const PresetTransferService().encodeLayouts(
                 layouts,
@@ -708,7 +712,7 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(result.message)));
+      ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1051,7 +1055,7 @@ class _PresetNameFieldState extends State<_PresetNameField> {
   bool get _canUpdate =>
       (_isNameDirty || _isDescriptionDirty) &&
       _error == null &&
-      descriptionLengthError(_descriptionController.text) == null &&
+      !isDescriptionTooLong(_descriptionController.text) &&
       !_updating;
 
   Future<void> _update() async {

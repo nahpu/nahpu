@@ -12,6 +12,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum PersonnelMenuAction { edit, delete }
 
@@ -135,19 +136,21 @@ class PersonnelListState extends ConsumerState<PersonnelList> {
                       ? const AddPersonnelButton()
                       : DeleteItemsButton(
                           selectedItems: _selectedPersonnel,
-                          itemName: "personnel",
                           onPressedFunction: () async {
                             await _deletePersonnel();
                             setState(() {
                               _selectedPersonnel.clear();
                             });
                           },
-                          customIconButtonText:
-                              'Remove ${_selectedPersonnel.length} personnel from project',
-                          customDialogHeader: 'Remove personnel',
+                          customIconButtonText: context.l10n
+                              .removeProjectPersonnelCount(
+                                _selectedPersonnel.length,
+                              ),
+                          customDialogHeader:
+                              context.l10n.removeProjectPersonnelTitle,
                           customDialogText:
-                              'Are you sure you want to remove the selected personnel from the project?',
-                          customDialogButtonText: 'Remove',
+                              context.l10n.removeProjectPersonnelBody,
+                          customDialogButtonText: context.l10n.commonRemove,
                         ),
                 ],
               );

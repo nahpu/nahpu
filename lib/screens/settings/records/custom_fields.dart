@@ -19,6 +19,7 @@ import 'package:nahpu/services/custom_fields/custom_field_order.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
@@ -82,7 +83,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
         title: Text(l10n.recordsCustomFieldTitle),
         actions: [
           PresetAppBarActions(
-            itemName: 'custom field',
+            itemKind: PresetItemKind.customField,
             onCreate: _create,
             onScanQr: _scanQr,
             onImport: _importFile,
@@ -615,7 +616,7 @@ class _LocationChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         spacing: NahpuSpacing.sm,
         children: [
-          Text(placement.label),
+          Text(placement.localizedLabel(context.l10n)),
           if (count > 0)
             Badge.count(
               count: count,
@@ -690,8 +691,12 @@ class _FieldListColumn extends StatelessWidget {
             child: definitions.isEmpty
                 ? PresetEmptyState(
                     message: hasArchived
-                        ? l10n.recordsCustomFieldAllArchived(placement.label)
-                        : l10n.recordsCustomFieldEmpty(placement.label),
+                        ? l10n.recordsCustomFieldAllArchived(
+                            placement.localizedLabel(l10n),
+                          )
+                        : l10n.recordsCustomFieldEmpty(
+                            placement.localizedLabel(l10n),
+                          ),
                     secondaryLabel: l10n.recordsCustomFieldAdd,
                     secondaryIcon: Icons.add_circle_outline_rounded,
                     onSecondary: onCreate,
@@ -893,7 +898,9 @@ class _FieldEditColumn extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.recordsCustomFieldShownIn(formPlacement.label),
+              l10n.recordsCustomFieldShownIn(
+                formPlacement.localizedLabel(l10n),
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -1058,5 +1065,5 @@ String _catalogLabel(
   final catalog = definition.applicableCatalog;
   return catalog == null
       ? l10n.recordsCustomFieldAllCatalogs
-      : l10n.recordsCustomFieldCatalogOnly(catalogFmtDisplayName(catalog));
+      : l10n.recordsCustomFieldCatalogOnly(catalog.localizedLabel(l10n));
 }

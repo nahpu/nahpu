@@ -13,15 +13,19 @@ class ControlledVocabularySetting extends ConsumerWidget {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
-    this.pluralName,
+    required this.pluralName,
     this.showCard = true,
   });
 
   final String title;
   final String typePrefKey;
   final String fmtPrefKey;
+
+  /// Localized singular noun for one value, as it reads mid-sentence.
   final String typeName;
-  final String? pluralName;
+
+  /// Localized plural noun for the values, as it reads mid-sentence.
+  final String pluralName;
 
   /// Set false where the caller already supplies the card and the heading, so
   /// the field does not draw a second card inside the first.

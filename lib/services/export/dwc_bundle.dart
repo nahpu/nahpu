@@ -180,13 +180,16 @@ class DwcBundleWriter extends AppServices {
   static const List<ExportPhaseStep> bundlePhases = [
     ExportPhaseStep(
       phase: ExportPhase.collecting,
-      label: 'Collect records',
+      label: ExportStepLabel.collectRecords,
       weight: 2,
     ),
-    ExportPhaseStep(phase: ExportPhase.verifying, label: 'Check records'),
+    ExportPhaseStep(
+      phase: ExportPhase.verifying,
+      label: ExportStepLabel.checkRecords,
+    ),
     ExportPhaseStep(
       phase: ExportPhase.compressing,
-      label: 'Write and compress package',
+      label: ExportStepLabel.writeAndCompressPackage,
       weight: 4,
     ),
   ];

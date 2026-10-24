@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
@@ -29,20 +30,22 @@ class _SiteSelectionState extends State<SiteSelection> {
               title: l10n.recordsSiteTypes,
               typePrefKey: siteTypePrefKey,
               fmtPrefKey: siteTypeFmtPrefKey,
-              typeName: 'site type',
+              typeName: l10n.formsVocabSiteType,
+              pluralName: l10n.formsVocabSiteTypePlural,
             ),
             ControlledVocabularySetting(
               title: l10n.recordsSiteHabitatTypes,
               typePrefKey: habitatTypePrefKey,
               fmtPrefKey: habitatTypeFmtPrefKey,
-              typeName: 'habitat type',
+              typeName: l10n.formsVocabHabitatType,
+              pluralName: l10n.formsVocabHabitatTypePlural,
             ),
             ControlledVocabularySetting(
               title: l10n.recordsSiteDatums,
               typePrefKey: datumPrefKey,
               fmtPrefKey: datumFmtPrefKey,
-              typeName: 'datum',
-              pluralName: 'datums',
+              typeName: l10n.formsVocabDatum,
+              pluralName: l10n.formsVocabDatumPlural,
             ),
           ],
         ),
@@ -68,7 +71,9 @@ class SiteGeographyFieldSettings extends ConsumerWidget {
                   for (final field in siteGeographyFields)
                     CheckboxListTile(
                       value: selected.contains(field),
-                      title: Text(siteGeographyFieldLabels[field]!),
+                      title: Text(
+                        siteGeographyFieldLocalizedLabel(context.l10n, field),
+                      ),
                       controlAffinity: ListTileControlAffinity.leading,
                       onChanged: (visible) async {
                         final next = selected.toSet();

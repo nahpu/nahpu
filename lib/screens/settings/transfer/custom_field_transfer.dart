@@ -4,6 +4,7 @@ import 'package:nahpu/screens/shared/dialogs/qr_code_dialog.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/nahpu_icons.dart';
@@ -166,7 +167,7 @@ class _CustomFieldExportSelectionState
                     ),
                     subtitle: Text(
                       [
-                        definition.placement.label,
+                        definition.placement.localizedLabel(l10n),
                         definition.fieldScope == FieldScope.global
                             ? l10n.transferScopeGlobal
                             : l10n.transferScopeCurrentProject,

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/events.dart';
@@ -93,19 +94,22 @@ class _CollEventSelectionState extends State<CollEventSelection> {
               title: l10n.recordsCollEventPrimaryActivities,
               typePrefKey: collActivityPrefKey,
               fmtPrefKey: collActivityFmtPrefKey,
-              typeName: 'primary activity',
+              typeName: l10n.formsVocabPrimaryActivity,
+              pluralName: l10n.formsVocabPrimaryActivityPlural,
             ),
             ControlledVocabularySetting(
               title: l10n.recordsCollEventCollectionMethods,
               typePrefKey: collMethodPrefKey,
               fmtPrefKey: collMethodFmtPrefKey,
-              typeName: 'collection method',
+              typeName: l10n.formsVocabCollectionMethod,
+              pluralName: l10n.formsVocabCollectionMethodPlural,
             ),
             ControlledVocabularySetting(
               title: l10n.recordsCollEventPersonnelRoles,
               typePrefKey: collRolePrefKey,
               fmtPrefKey: collRoleFmtPrefKey,
-              typeName: 'personnel role',
+              typeName: l10n.formsVocabPersonnelRole,
+              pluralName: l10n.formsVocabPersonnelRolePlural,
             ),
             const EnvironmentalDataFieldSettings(),
           ],
@@ -211,7 +215,9 @@ class _EnvironmentalDataFieldTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return CheckboxListTile(
       value: selected,
-      title: Text(environmentalDataFieldLabelWithUnit(field)),
+      title: Text(
+        environmentalDataFieldLocalizedLabelWithUnit(context.l10n, field),
+      ),
       controlAffinity: ListTileControlAffinity.leading,
       onChanged: onChanged,
     );

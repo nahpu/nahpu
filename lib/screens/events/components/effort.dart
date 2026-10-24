@@ -15,6 +15,7 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum EffortPopUpMenuItems { edit, delete }
 
@@ -138,9 +139,15 @@ class CollEffortListState extends ConsumerState<CollEffortList> {
                       ? AddEffortButton(collEventId: widget.collEventId)
                       : DeleteItemsButton(
                           selectedItems: _selectedCollEfforts,
-                          itemName: _selectedCollEfforts.length == 1
-                              ? 'effort'
-                              : 'efforts',
+                          customIconButtonText: context.l10n.deleteEffortsCount(
+                            _selectedCollEfforts.length,
+                          ),
+                          customDialogHeader: context.l10n.deleteEffortsTitle(
+                            _selectedCollEfforts.length,
+                          ),
+                          customDialogText: context.l10n.deleteEffortsBody(
+                            _selectedCollEfforts.length,
+                          ),
                           onPressedFunction: () async {
                             await _deleteCollEfforts();
                             setState(() {

@@ -12,6 +12,8 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -41,7 +43,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
   ExportJobProgress? _jobProgress;
   ExportOutcome? _outcome;
   String? _runError;
-  String? _failedStepLabel;
+  ExportStepLabel? _failedStepLabel;
   int? _outputBytes;
   Duration? _runDuration;
 
@@ -149,7 +151,7 @@ class _ExportProjectScreenState extends ConsumerState<ExportProjectScreen> {
                 ? ExportFailurePanel(
                     outcome: _outcome!,
                     errorMessage: _runError,
-                    failedStepLabel: _failedStepLabel,
+                    failedStepLabel: _failedStepLabel?.text(context.l10n),
                     onRetry: _save,
                   )
                 : _SummaryCard(

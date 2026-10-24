@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/project_tools.dart';
 
@@ -27,15 +28,15 @@ class ProjectToolSettings extends ConsumerWidget {
         sections: [
           for (final category in ProjectToolCategory.values)
             CommonSettingSection(
-              title: category.label,
+              title: category.localizedLabel(l10n),
               isDivided: true,
               children: [
                 for (final tool in ProjectTool.values)
                   if (tool.category == category)
                     CommonSettingTile(
                       icon: tool.icon,
-                      title: tool.label,
-                      label: tool.description,
+                      title: tool.localizedLabel(l10n),
+                      label: tool.localizedDescription(l10n),
                       trailing: Switch(
                         value: enabled.contains(tool),
                         onChanged: (value) => notifier.setEnabled(tool, value),

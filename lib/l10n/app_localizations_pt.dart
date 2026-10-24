@@ -3134,4 +3134,2430 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get commonSave => 'Salvar';
+
+  @override
+  String get commonYes => 'Sim';
+
+  @override
+  String get commonNo => 'Não';
+
+  @override
+  String get formsChooseOne => 'Escolha uma opção';
+
+  @override
+  String formsErrorDetail(String error) {
+    return 'Erro: $error';
+  }
+
+  @override
+  String formsAddValue(String type) {
+    return 'Adicionar $type';
+  }
+
+  @override
+  String formsEnterValue(String type) {
+    return 'Insira $type';
+  }
+
+  @override
+  String get formsMatchDatabase => 'Corresponder ao banco de dados';
+
+  @override
+  String formsMatchDatabaseTitle(String plural) {
+    return 'Corresponder $plural ao banco de dados?';
+  }
+
+  @override
+  String get formsMatchAppendMissing => 'Adicionar ausentes';
+
+  @override
+  String get formsMatchOverrideAll => 'Substituir tudo';
+
+  @override
+  String get formsMatchHelp =>
+      'Use esta opção ao receber registros de alguém cujos vocabulários controlados você não tem.';
+
+  @override
+  String formsMatchAppendDescription(String plural) {
+    return 'Adicione os valores encontrados no banco de dados sem alterar seus $plural existentes.';
+  }
+
+  @override
+  String formsMatchOverrideDescription(String plural) {
+    return 'Substitua todos os $plural configurados pelos valores encontrados atualmente no banco de dados.';
+  }
+
+  @override
+  String get formsVocabSiteType => 'tipo de local';
+
+  @override
+  String get formsVocabSiteTypePlural => 'tipos de local';
+
+  @override
+  String get formsVocabHabitatType => 'tipo de hábitat';
+
+  @override
+  String get formsVocabHabitatTypePlural => 'tipos de hábitat';
+
+  @override
+  String get formsVocabDatum => 'datum';
+
+  @override
+  String get formsVocabDatumPlural => 'datums';
+
+  @override
+  String get formsVocabPrimaryActivity => 'atividade principal';
+
+  @override
+  String get formsVocabPrimaryActivityPlural => 'atividades principais';
+
+  @override
+  String get formsVocabCollectionMethod => 'método de coleta';
+
+  @override
+  String get formsVocabCollectionMethodPlural => 'métodos de coleta';
+
+  @override
+  String get formsVocabPersonnelRole => 'função da equipe';
+
+  @override
+  String get formsVocabPersonnelRolePlural => 'funções da equipe';
+
+  @override
+  String get formsVocabIdentificationMethod => 'método de identificação';
+
+  @override
+  String get formsVocabIdentificationMethodPlural => 'métodos de identificação';
+
+  @override
+  String get formsVocabLifeStage => 'estágio de vida';
+
+  @override
+  String get formsVocabLifeStagePlural => 'estágios de vida';
+
+  @override
+  String get formsVocabSpecimenType => 'tipo de espécime';
+
+  @override
+  String get formsVocabSpecimenTypePlural => 'tipos de espécime';
+
+  @override
+  String get formsVocabTreatment => 'tratamento';
+
+  @override
+  String get formsVocabTreatmentPlural => 'tratamentos';
+
+  @override
+  String get formsVocabCondition => 'condição';
+
+  @override
+  String get formsVocabConditionPlural => 'condições';
+
+  @override
+  String get formsVocabParasiteCategory => 'categoria';
+
+  @override
+  String get formsVocabParasiteCategoryPlural => 'categorias';
+
+  @override
+  String get formsVocabDetectionMethod => 'método de detecção';
+
+  @override
+  String get formsVocabDetectionMethodPlural => 'métodos de detecção';
+
+  @override
+  String get formsVocabPreparationMethod => 'método de preparação';
+
+  @override
+  String get formsVocabPreparationMethodPlural => 'métodos de preparação';
+
+  @override
+  String get formsVocabAnatomicalLocation => 'localização anatômica';
+
+  @override
+  String get formsVocabAnatomicalLocationPlural => 'localizações anatômicas';
+
+  @override
+  String get formsVocabStorageValue => 'valor de armazenamento';
+
+  @override
+  String get formsVocabStorageValuePlural => 'valores de armazenamento';
+
+  @override
+  String get formsNextId => 'Próximo ID';
+
+  @override
+  String get formsNextNumber => 'Próximo número';
+
+  @override
+  String get formsNumberedIdNoPreview =>
+      'Defina um próximo número para numerar automaticamente · Os zeros à esquerda são mantidos';
+
+  @override
+  String formsNumberedIdPreview(String label, String preview) {
+    return '$label: $preview · Os zeros à esquerda são mantidos';
+  }
+
+  @override
+  String get formsBundledDocuments => 'Documentos';
+
+  @override
+  String get formsBundledTabularRecords => 'Registros tabulares';
+
+  @override
+  String get formsBundledTemplates => 'Modelos';
+
+  @override
+  String formsBundledAdded(String description) {
+    return 'Adicionado · $description';
+  }
+
+  @override
+  String get formsDescriptionOptional => 'Descrição (opcional)';
+
+  @override
+  String formsDescriptionTooLong(int max) {
+    return 'Use $max caracteres ou menos.';
+  }
+
+  @override
+  String get formsShowInfo => 'Mostrar informações';
+
+  @override
+  String get formsInfo => 'Informações';
+
+  @override
+  String formsDeleteConfirmPrompt(String text) {
+    return 'Digite `$text` para habilitar a exclusão';
+  }
+
+  @override
+  String get formsDeleteConfirmHint => 'Insira o texto de confirmação';
+
+  @override
+  String get formsSearchAll => 'Tudo';
+
+  @override
+  String get formsSearchFieldNumber => 'Número de campo';
+
+  @override
+  String get formsSearchCataloger => 'Catalogador';
+
+  @override
+  String get formsSearchPreparator => 'Preparador';
+
+  @override
+  String get formsSearchCollector => 'Coletor';
+
+  @override
+  String get formsSearchCondition => 'Condição';
+
+  @override
+  String get formsSearchPrepDate => 'Data de preparação';
+
+  @override
+  String get formsSearchPrepTime => 'Hora de preparação';
+
+  @override
+  String get formsSearchTaxa => 'Táxons';
+
+  @override
+  String get formsSearchPrepType => 'Tipo de preparação';
+
+  @override
+  String get formsSiteId => 'ID do local';
+
+  @override
+  String get formsSiteIdHint => 'Insira um local';
+
+  @override
+  String get formsSiteName => 'Nome do local';
+
+  @override
+  String get formsPresetDuplicate => 'Duplicar';
+
+  @override
+  String get formsPresetName => 'Nome da predefinição';
+
+  @override
+  String get formsPresetUpdateHelper =>
+      'Selecione Atualizar para salvar o nome e a descrição';
+
+  @override
+  String get formsPresetUpdate => 'Atualizar';
+
+  @override
+  String formsCustomFieldLoadError(String error) {
+    return 'Não foi possível carregar os campos personalizados: $error';
+  }
+
+  @override
+  String get formsCustomFieldManage => 'Gerenciar campos personalizados';
+
+  @override
+  String get formsEnterNumber => 'Insira um número';
+
+  @override
+  String get formsCustomFieldUnset => 'Não definido';
+
+  @override
+  String formsCustomFieldArchivedOption(String label) {
+    return '$label (arquivado)';
+  }
+
+  @override
+  String sharedPresetCreateTooltip(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Criar novo modelo',
+      'customField': 'Criar novo campo personalizado',
+      'other': 'Criar nova predefinição',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedPresetOptions(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Opções do modelo',
+      'customField': 'Opções do campo personalizado',
+      'other': 'Opções da predefinição',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedPresetCreateNew => 'Criar novo';
+
+  @override
+  String get sharedPresetScanQr => 'Ler QR';
+
+  @override
+  String sharedPresetExportSelected(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Exportar este modelo',
+      'customField': 'Exportar este campo personalizado',
+      'other': 'Exportar esta predefinição',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedPresetExportAll(String kind) {
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Exportar todos os modelos',
+      'customField': 'Exportar todos os campos personalizados',
+      'other': 'Exportar todas as predefinições',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedLoadDefaults => 'Carregar padrões';
+
+  @override
+  String get sharedShowMore => 'Mostrar mais';
+
+  @override
+  String get sharedShowLess => 'Mostrar menos';
+
+  @override
+  String get sharedShare => 'Compartilhar';
+
+  @override
+  String get sharedUpdate => 'Atualizar';
+
+  @override
+  String get sharedAdd => 'Adicionar';
+
+  @override
+  String get sharedExportAs => 'Exportar como…';
+
+  @override
+  String get sharedFind => 'Localizar';
+
+  @override
+  String sharedDeleteSelectedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count itens',
+      one: 'Excluir 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedDeleteSelectedTitle => 'Excluir itens selecionados';
+
+  @override
+  String get sharedDeleteSelectedBody =>
+      'Tem certeza de que deseja excluir os itens selecionados?';
+
+  @override
+  String get sharedTryAgain => 'Tentar novamente';
+
+  @override
+  String sharedExportTimeLeft(String duration) {
+    return 'faltam cerca de $duration';
+  }
+
+  @override
+  String get sharedExportCancelling => 'Cancelando…';
+
+  @override
+  String sharedExportFilesOfTotal(int completed, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total arquivos',
+      one: '1 arquivo',
+    );
+    return '$completed de $_temp0';
+  }
+
+  @override
+  String sharedExportFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '1 arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedExportBytesOfTotal(String processed, String total) {
+    return '$processed de $total';
+  }
+
+  @override
+  String sharedExportElapsed(String duration) {
+    return '$duration decorridos';
+  }
+
+  @override
+  String sharedExportUnitsOfTotal(int completed, int total) {
+    return '$completed de $total';
+  }
+
+  @override
+  String get sharedExportCancelledBody =>
+      'Nenhum arquivo foi salvo. Nada foi alterado neste dispositivo.';
+
+  @override
+  String sharedExportStoppedAt(String step) {
+    return 'Interrompido durante: $step';
+  }
+
+  @override
+  String get sharedExportDidNotFinish => 'A exportação não terminou.';
+
+  @override
+  String get sharedExportCancelled => 'Exportação cancelada';
+
+  @override
+  String get sharedExportFailed => 'Falha na exportação';
+
+  @override
+  String get sharedExportComplete => 'Exportação concluída';
+
+  @override
+  String get sharedSaved => 'Salvo';
+
+  @override
+  String get sharedHideSaveLocation => 'Ocultar local de salvamento';
+
+  @override
+  String get sharedExportTemporaryNote =>
+      'Compartilhe este arquivo agora para mantê-lo. O NAHPU o remove quando você exportar novamente.';
+
+  @override
+  String get sharedExportAppStorageNote =>
+      'Salvo no armazenamento do app NAHPU. Escolha uma pasta da próxima vez para salvar diretamente nela.';
+
+  @override
+  String sharedExportFinishedIn(String duration) {
+    return 'Concluído em $duration';
+  }
+
+  @override
+  String sharedExportSizeIn(String size, String duration) {
+    return '$size em $duration';
+  }
+
+  @override
+  String get sharedOpenDirectory => 'Abrir diretório';
+
+  @override
+  String get sharedSaveToDevice => 'Salvar no dispositivo';
+
+  @override
+  String sharedSaveCopyTooLarge(String limit) {
+    return 'Grande demais para salvar pelo app Arquivos, que tem limite de $limit. Escolha uma pasta antes de exportar para gravar arquivos desse tamanho diretamente no seu dispositivo.';
+  }
+
+  @override
+  String get sharedQrExportImage => 'Exportar código QR como imagem';
+
+  @override
+  String get sharedQrImageTooLarge =>
+      'Estes dados são grandes demais para uma imagem de código QR.';
+
+  @override
+  String get sharedLoadDefaultsDescription =>
+      'Escolha as predefinições incluídas a adicionar. As predefinições que você já tem não são alteradas.';
+
+  @override
+  String get sharedLoadDefaultsNone =>
+      'Não há predefinições padrão deste tipo.';
+
+  @override
+  String get sharedLoadDefaultsGenericTitle => 'Padrões';
+
+  @override
+  String get sharedLoadDefaultsGenericMessage =>
+      'Predefinições adequadas a qualquer formato de catálogo.';
+
+  @override
+  String sharedLoadDefaultsForFormat(String format) {
+    return 'Para $format';
+  }
+
+  @override
+  String get sharedLoadDefaultsForFormatMessage =>
+      'Predefinições opcionais criadas para este formato de catálogo.';
+
+  @override
+  String get sharedLoadDefaultsLayoutsNote =>
+      'Os layouts trazem os modelos com que são impressos.';
+
+  @override
+  String get sharedLoadSelected => 'Carregar selecionados';
+
+  @override
+  String sharedLoadDefaultsLoadError(String error) {
+    return 'Não foi possível carregar as predefinições incluídas: $error';
+  }
+
+  @override
+  String sharedLoadDefaultsFailed(String error) {
+    return 'Falha ao carregar as predefinições padrão: $error';
+  }
+
+  @override
+  String get sharedIncludeLinkedTemplates => 'Incluir modelos vinculados';
+
+  @override
+  String sharedLinkedTemplateList(int count, String names) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modelos: $names',
+      one: '1 modelo: $names',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedExportedTo(String path) {
+    return 'Exportado para $path';
+  }
+
+  @override
+  String sharedExportFailedError(String error) {
+    return 'Falha na exportação: $error';
+  }
+
+  @override
+  String get sharedExportProjectInfo => 'Exportar informações do projeto';
+
+  @override
+  String get sharedExportProjectInfoDescription =>
+      'Exporte as informações deste projeto como JSON.';
+
+  @override
+  String get sharedSortOrder => 'Ordem';
+
+  @override
+  String get sharedSortAscending => 'Crescente';
+
+  @override
+  String get sharedSortDescending => 'Decrescente';
+
+  @override
+  String get sharedSortId => 'ID';
+
+  @override
+  String get sharedSortRecordOrder => 'Ordem dos registros';
+
+  @override
+  String get sharedSortSiteId => 'ID do local';
+
+  @override
+  String get sharedSortStateProvince => 'Estado/província';
+
+  @override
+  String get sharedSortPreciseLocality => 'Localidade precisa';
+
+  @override
+  String get sharedSortEventId => 'ID do evento';
+
+  @override
+  String get sharedSortStartDate => 'Data de início';
+
+  @override
+  String get sharedSortFieldId => 'ID de campo';
+
+  @override
+  String get sharedSortCataloger => 'Catalogador';
+
+  @override
+  String get sharedSortSpecies => 'Espécie';
+
+  @override
+  String get sharedSortDate => 'Data';
+
+  @override
+  String get sharedSortWriter => 'Autor';
+
+  @override
+  String sharedImportRecordType(String type) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Importar local',
+      'event': 'Importar evento',
+      'other': 'Importar espécime',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedCreateNewRecordType(String type) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Criar novo local',
+      'event': 'Criar novo evento',
+      'other': 'Criar novo espécime',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedUpdateExistingRecordType(String type) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Atualizar um local existente',
+      'event': 'Atualizar um evento existente',
+      'other': 'Atualizar um espécime existente',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedExportRecordType(String type) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Exportar local',
+      'event': 'Exportar evento',
+      'other': 'Exportar espécime',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedExportRecordJson(String type) {
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Exporte este registro de local como JSON.',
+      'event': 'Exporte este registro de evento como JSON.',
+      'other': 'Exporte este registro de espécime como JSON.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String sharedExportRecordMedia(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Este registro inclui $count arquivos de mídia vinculados, que serão incluídos no arquivo compactado.',
+      one:
+          'Este registro inclui 1 arquivo de mídia vinculado, que será incluído no arquivo compactado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedReusesSavedLocality(String locality) {
+    return 'Reutiliza uma localidade salva: $locality';
+  }
+
+  @override
+  String get sharedContinue => 'Continuar';
+
+  @override
+  String get sharedBack => 'Voltar';
+
+  @override
+  String get sharedChooseEventSite => 'Escolher local do evento';
+
+  @override
+  String get sharedChooseEventSiteDescription =>
+      'Este evento inclui um local vinculado. Escolha um local existente ou crie o local incluído como um novo local.';
+
+  @override
+  String get sharedCreateEmbeddedSite => 'Criar local incluído';
+
+  @override
+  String get sharedCreateEmbeddedEvent => 'Criar evento incluído';
+
+  @override
+  String get sharedCreateEmbeddedTaxonomy => 'Criar taxonomia incluída';
+
+  @override
+  String get sharedChooseSpecimenEvent => 'Escolher evento do espécime';
+
+  @override
+  String get sharedChooseSpecimenTaxonomy => 'Escolher taxonomia do espécime';
+
+  @override
+  String sharedCoordinateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count coordenadas',
+      one: '1 coordenada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedPersonCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pessoas',
+      one: '1 pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedEffortCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count esforços',
+      one: '1 esforço',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String sharedPersonnelAssignmentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count atribuições de pessoal',
+      one: '1 atribuição de pessoal',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedEnvironmentalData => 'dados ambientais';
+
+  @override
+  String sharedMediaFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos de mídia',
+      one: '1 arquivo de mídia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sharedNoAssociatedRecords => 'Nenhum registro associado';
+
+  @override
+  String sharedSiteLabel(String id) {
+    return 'Local $id';
+  }
+
+  @override
+  String sharedEventLabel(String id) {
+    return 'Evento $id';
+  }
+
+  @override
+  String sharedSpecimenLabel(String id) {
+    return 'Espécime $id';
+  }
+
+  @override
+  String sharedTaxonLabel(String id) {
+    return 'Táxon $id';
+  }
+
+  @override
+  String get sharedRecordLabel => 'Registro';
+
+  @override
+  String sharedSpecimenImportSummary(
+    int partCount,
+    int associatedCount,
+    int mediaCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      partCount,
+      locale: localeName,
+      other: '$partCount partes',
+      one: '1 parte',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      associatedCount,
+      locale: localeName,
+      other: '$associatedCount registros associados',
+      one: '1 registro associado',
+    );
+    String _temp2 = intl.Intl.pluralLogic(
+      mediaCount,
+      locale: localeName,
+      other: '$mediaCount arquivos de mídia',
+      one: '1 arquivo de mídia',
+    );
+    return 'Inclui $_temp0, $_temp1 e $_temp2.';
+  }
+
+  @override
+  String get sharedSiteQrCode => 'Código QR do local';
+
+  @override
+  String get sharedEventQrCode => 'Código QR do evento';
+
+  @override
+  String get sharedSpecimenImported => 'Espécime importado com sucesso.';
+
+  @override
+  String get sharedSiteImported => 'Local importado com sucesso.';
+
+  @override
+  String get sharedEventImported => 'Evento importado com sucesso.';
+
+  @override
+  String get sharedQrNoData => 'O código QR não contém dados.';
+
+  @override
+  String get sharedRecordQrTooLargeBody =>
+      'Este registro contém dados demais para um código QR. Exporte-o como JSON para transferir o registro completo.';
+
+  @override
+  String get sharedRecordQrDescription =>
+      'Leia este código em outro dispositivo com o NAHPU para importar o registro.';
+
+  @override
+  String sharedRecordExchangeFailed(String error) {
+    return 'Falha ao importar ou exportar o registro: $error';
+  }
+
+  @override
+  String get sharedFileName => 'Nome do arquivo';
+
+  @override
+  String sharedSomethingWentWrong(String error) {
+    return 'Algo deu errado: $error';
+  }
+
+  @override
+  String get sharedSelectFile => 'Selecionar arquivo';
+
+  @override
+  String get sharedSupportedFormats => 'Formatos compatíveis';
+
+  @override
+  String sharedSupportedFormatsList(String label, String formats) {
+    return '$label:\n$formats';
+  }
+
+  @override
+  String get sharedAppendDate => 'Acrescentar a data atual';
+
+  @override
+  String get sharedAppendDateDescription =>
+      'Adiciona -yyyy-mm-dd ao nome do arquivo';
+
+  @override
+  String get sharedSaveTo => 'Salvar em';
+
+  @override
+  String get sharedSelectDirectory => 'Selecionar diretório';
+
+  @override
+  String get sharedClearDirectory => 'Limpar diretório';
+
+  @override
+  String get sharedNoFolderChosen =>
+      'Nenhuma pasta escolhida. A exportação vai para o armazenamento do app NAHPU — procure uma pasta para salvá-la onde preferir.';
+
+  @override
+  String get sharedShareAfterExport => 'Compartilhar após exportar';
+
+  @override
+  String get sharedTemporaryExportNote =>
+      'O NAHPU mantém o arquivo só até a próxima exportação. Compartilhe-o para salvar uma cópia em Arquivos, enviá-lo a outro app ou colocá-lo em uma pasta na nuvem.';
+
+  @override
+  String get sharedEntireDatabaseContents =>
+      'Conteúdo completo do banco de dados';
+
+  @override
+  String get sharedBackupSizeBeforeCompression =>
+      'Tamanho do backup antes da compactação';
+
+  @override
+  String sharedWizardStepChip(int number, String label) {
+    return '$number. $label';
+  }
+
+  @override
+  String get sharedNavDashboard => 'Painel';
+
+  @override
+  String get sharedNavSites => 'Locais';
+
+  @override
+  String get sharedNavEvents => 'Eventos';
+
+  @override
+  String get sharedNavSpecimens => 'Espécimes';
+
+  @override
+  String get sharedNavNarrative => 'Narrativa';
+
+  @override
+  String get sharedNavCollapse => 'Recolher';
+
+  @override
+  String get sharedNavExpand => 'Expandir';
+
+  @override
+  String get sharedNavCollapseNavigation => 'Recolher navegação';
+
+  @override
+  String get sharedNavExpandNavigation => 'Expandir navegação';
+
+  @override
+  String get sharedNavCollapseRail => 'Recolher barra de navegação';
+
+  @override
+  String get sharedNavExpandRail => 'Expandir barra de navegação';
+
+  @override
+  String get sharedNavMenu => 'Menu';
+
+  @override
+  String get sharedNavCloseMenu => 'Fechar menu';
+
+  @override
+  String get sharedNavCloseProjectMenu => 'Fechar menu do projeto';
+
+  @override
+  String get sharedNavOpenProjectMenu => 'Abrir menu do projeto';
+
+  @override
+  String get sharedNavCloseProject => 'Fechar projeto';
+
+  @override
+  String get sharedGoToPage => 'Ir para a página';
+
+  @override
+  String get sharedGoToPageOrSearch => 'Ir para a página ou pesquisar';
+
+  @override
+  String sharedPageOf(int current, int total) {
+    return 'Página $current de $total';
+  }
+
+  @override
+  String get sharedSearch => 'Pesquisar';
+
+  @override
+  String get sharedPageNumber => 'Número da página';
+
+  @override
+  String get textReplaceErrorEmptyPattern =>
+      'O texto a localizar não pode estar vazio.';
+
+  @override
+  String textReplaceErrorInvalidRegex(String detail) {
+    return 'Expressão regular inválida: $detail';
+  }
+
+  @override
+  String get textReplaceAdd => 'Adicionar substituição';
+
+  @override
+  String get textReplaceTitle => 'Substituir texto';
+
+  @override
+  String get textReplaceSubtitle =>
+      'Aplicadas em ordem após a formatação do valor.';
+
+  @override
+  String get textReplaceDialogTitle => 'Localizar e substituir';
+
+  @override
+  String get textReplaceMatch => 'Correspondência';
+
+  @override
+  String get textReplaceMatchExact => 'Exata';
+
+  @override
+  String get textReplaceMatchRegex => 'Regex';
+
+  @override
+  String get textReplaceFind => 'Localizar';
+
+  @override
+  String get textReplaceWith => 'Substituir por';
+
+  @override
+  String get textReplaceIgnoreCase => 'Ignorar maiúsculas';
+
+  @override
+  String get textReplaceMoveUp => 'Mover substituição para cima';
+
+  @override
+  String get textReplaceMoveDown => 'Mover substituição para baixo';
+
+  @override
+  String get textReplaceRemove => 'Remover substituição';
+
+  @override
+  String get textReplaceRegexHelp =>
+      'Use \$0 para a correspondência completa, \$1…\$n para os grupos e \$\$ para \$.';
+
+  @override
+  String get documentFontSampleA =>
+      'O durião é o rei das frutas, e o mangostão é a rainha. Ao que parece, nunca é uma boa ideia comê-los ao mesmo tempo. Eu definitivamente não deveria ter comido 12 duriões e uma dúzia de mangostões de uma só vez no campo.';
+
+  @override
+  String get documentFontSampleB =>
+      'Só existe um lugar no norte de Sumatra onde orangotangos, rinocerontes, elefantes e tigres compartilham o mesmo hábitat natural. Adivinhe o nome do parque nacional?';
+
+  @override
+  String get documentFontSampleC =>
+      'Sentindo-se criativo ou inspirado? Envie ao mantenedor suas ideias, um fato interessante sobre biodiversidade, uma piada de campo ou um conto que valha a pena ler, ou publique em github.com/nahpu/nahpu/issues, e ele pode aparecer bem aqui. A escolha de uma fonte não deveria ser decidida por uma raposa marrom que pula sobre um cão preguiçoso.';
+
+  @override
+  String get documentFontBold => 'Negrito';
+
+  @override
+  String get documentFontItalic => 'Itálico';
+
+  @override
+  String get fieldEditorLabel => 'Rótulo';
+
+  @override
+  String get fieldEditorType => 'Tipo';
+
+  @override
+  String get fieldEditorCatalogApplicability => 'Aplicabilidade do catálogo';
+
+  @override
+  String fieldEditorCurrentCatalogOnly(String catalog) {
+    return 'Somente o catálogo atual ($catalog)';
+  }
+
+  @override
+  String get fieldEditorOptions => 'Opções';
+
+  @override
+  String get fieldEditorOptionsHelper => 'Digite uma opção por linha.';
+
+  @override
+  String get fieldEditorMapToDwc => 'Mapear para Darwin Core';
+
+  @override
+  String fieldEditorDwcOfficialTerms(String version) {
+    return 'Termos oficiais $version';
+  }
+
+  @override
+  String get fieldEditorDwcTarget => 'Destino DWC';
+
+  @override
+  String get fieldEditorDwcMappingMode => 'Modo de mapeamento';
+
+  @override
+  String get fieldEditorDwcDirect => 'Campo direto';
+
+  @override
+  String get fieldEditorDwcAssertion => 'Medição / fato repetível';
+
+  @override
+  String get fieldEditorDwcField => 'Campo DWC';
+
+  @override
+  String get fieldEditorDwcAllowConflict =>
+      'Entendo que haverá valores duplicados';
+
+  @override
+  String get fieldEditorDwcAllowConflictNote =>
+      'Valores escalares conflitantes serão unidos com “ | ”.';
+
+  @override
+  String get fieldEditorEditTitle => 'Editar campo personalizado';
+
+  @override
+  String fieldEditorAddTitle(String section) {
+    return 'Adicionar campo personalizado a $section';
+  }
+
+  @override
+  String get documentFileSettings => 'Configurações do arquivo';
+
+  @override
+  String get documentFileFormat => 'Formato do arquivo';
+
+  @override
+  String get documentFileBundleFormat => 'Formato do pacote';
+
+  @override
+  String get documentFileDwcDpZipNote =>
+      'ZIP é oferecido por compatibilidade. TAR.GZ é a opção DwC-DP orientada a padrões.';
+
+  @override
+  String get documentFileFormatCsv => 'Separado por vírgulas (.csv)';
+
+  @override
+  String get documentFileFormatTsv => 'Separado por tabulações (.tsv)';
+
+  @override
+  String get documentFileFormatExcel => 'Excel (.xlsx)';
+
+  @override
+  String get documentFileFormatJson => 'JSON (.json)';
+
+  @override
+  String documentPreviewPdfError(String error) {
+    return 'Erro ao gerar o PDF:\n$error';
+  }
+
+  @override
+  String get documentPreviewUnavailable => 'Nenhuma visualização disponível.';
+
+  @override
+  String get documentPreviewNotGenerated =>
+      'A visualização ainda não foi gerada.';
+
+  @override
+  String get documentPreviewNoLayout => 'Nenhum layout carregado.';
+
+  @override
+  String get documentPreviewUpdate => 'Atualizar visualização';
+
+  @override
+  String get documentPreviewGenerate => 'Gerar visualização';
+
+  @override
+  String get documentPreviewOptionsChanged =>
+      'As opções de visualização mudaram';
+
+  @override
+  String documentPreviewPageOf(int current, int total) {
+    return 'Página $current de $total';
+  }
+
+  @override
+  String get documentColumnsDefaults => 'Padrões';
+
+  @override
+  String documentColumnsSelectedCount(int selected, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$selected de $total colunas selecionadas',
+      one: '$selected de 1 coluna selecionada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documentPartFilterTitle => 'Filtrar partes de espécimes';
+
+  @override
+  String get documentPartFilterNote =>
+      'Os filtros mudam apenas a lista. As partes selecionadas continuam incluídas na exportação até que você altere a seleção.';
+
+  @override
+  String get documentPartFilterTypes => 'Tipos de parte';
+
+  @override
+  String get documentPartFilterTypesHint =>
+      'Deixe todas desmarcadas para incluir todos os tipos.';
+
+  @override
+  String get documentPartFilterNumberRange => 'Intervalo de números';
+
+  @override
+  String get documentPartFilterFieldNumber => 'Número de campo';
+
+  @override
+  String get documentPartFilterProjectNumber => 'Número do projeto';
+
+  @override
+  String get documentPartFilterFrom => 'De';
+
+  @override
+  String get documentPartFilterTo => 'Até';
+
+  @override
+  String get documentPartFilterRangeHint =>
+      'Inclui ambos os extremos. Deixe um dos extremos em branco para não ter limite.';
+
+  @override
+  String get documentPartFilterReset => 'Redefinir filtros';
+
+  @override
+  String get documentPartFilterInvalidNumber =>
+      'Digite um número inteiro não negativo.';
+
+  @override
+  String get documentPartFilterFromAfterTo =>
+      '“De” deve ser menor ou igual a “Até”.';
+
+  @override
+  String documentPartsLoadError(String error) {
+    return 'Não foi possível carregar as partes: $error';
+  }
+
+  @override
+  String get documentPartsSearch => 'Pesquisar partes ou números de espécimes';
+
+  @override
+  String get documentPartFilterActive => 'Filtrar partes de espécimes (ativo)';
+
+  @override
+  String documentPartsSummary(int shown, int total, int selected) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total partes',
+      one: '1 parte',
+    );
+    return 'Exibindo $shown de $_temp0 · Selecionadas: $selected';
+  }
+
+  @override
+  String documentPartsSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total partes',
+      one: '1 parte',
+    );
+    return 'Exibindo $shown de $_temp0 · Selecionadas: $selected ($hidden ocultas)';
+  }
+
+  @override
+  String get documentPartsEmpty => 'Nenhuma parte de espécime encontrada';
+
+  @override
+  String documentPartFallbackTitle(String id) {
+    return 'Parte $id';
+  }
+
+  @override
+  String documentPartFieldNumber(String number) {
+    return 'N.º de campo $number';
+  }
+
+  @override
+  String documentPartProjectNumber(String number) {
+    return 'N.º do projeto $number';
+  }
+
+  @override
+  String documentPartCatalog(String number) {
+    return 'Catálogo $number';
+  }
+
+  @override
+  String documentPartSpecimenFallback(String uuid) {
+    return 'Espécime $uuid';
+  }
+
+  @override
+  String get documentSelectionClearAll => 'Limpar tudo';
+
+  @override
+  String get documentSpecimenSearch =>
+      'Pesquisar n.º de campo, coletor, espécie...';
+
+  @override
+  String documentSpecimenCollectedRange(String start, String end) {
+    return 'Coleta: $start - $end';
+  }
+
+  @override
+  String get documentSpecimenCollectionDate => 'Data de coleta';
+
+  @override
+  String documentSpecimenPreparedRange(String start, String end) {
+    return 'Prep.: $start - $end';
+  }
+
+  @override
+  String get documentSpecimenPrepDate => 'Data de preparação';
+
+  @override
+  String documentSelectionSelectedOf(int selected, int total) {
+    return 'Selecionados: $selected de $total';
+  }
+
+  @override
+  String get documentSpecimenSelectTitle => 'Selecionar espécimes';
+
+  @override
+  String get documentSelectSitePreview => 'Selecionar local para visualização';
+
+  @override
+  String get documentSelectSitesPreview =>
+      'Selecionar locais para visualização';
+
+  @override
+  String get documentSelectSites => 'Selecionar locais';
+
+  @override
+  String get documentSelectEventPreview =>
+      'Selecionar evento para visualização';
+
+  @override
+  String get documentSelectEventsPreview =>
+      'Selecionar eventos para visualização';
+
+  @override
+  String get documentSelectEvents => 'Selecionar eventos';
+
+  @override
+  String get documentSelectNarrativePreview =>
+      'Selecionar narrativa para visualização';
+
+  @override
+  String get documentSelectNarrativesPreview =>
+      'Selecionar narrativas para visualização';
+
+  @override
+  String get documentSelectNarratives => 'Selecionar narrativas';
+
+  @override
+  String get documentSiteSearch => 'Pesquisar ID do local, localidade...';
+
+  @override
+  String get documentSelectionClearSearch => 'Limpar pesquisa';
+
+  @override
+  String get documentSitesEmpty => 'Nenhum local encontrado';
+
+  @override
+  String get documentSiteUnnamed => 'Local sem nome';
+
+  @override
+  String get documentSiteNoLocality => 'Sem detalhes de localidade';
+
+  @override
+  String documentSelectionLoadError(String error) {
+    return 'Erro: $error';
+  }
+
+  @override
+  String get documentEventSearch => 'Pesquisar ID do evento, método...';
+
+  @override
+  String get documentEventsEmpty => 'Nenhum evento encontrado';
+
+  @override
+  String documentEventFallbackTitle(String id) {
+    return 'ID do evento: $id';
+  }
+
+  @override
+  String get documentEventNoMethod => 'Sem método';
+
+  @override
+  String get documentSelectionNoDate => 'Sem data';
+
+  @override
+  String get documentNarrativeSearch => 'Pesquisar data, conteúdo...';
+
+  @override
+  String get documentNarrativesEmpty => 'Nenhuma narrativa encontrada';
+
+  @override
+  String get documentNarrativeNoText => 'Sem texto';
+
+  @override
+  String get documentRecordsSpecimens => 'Espécimes';
+
+  @override
+  String get documentRecordsSites => 'Locais';
+
+  @override
+  String get documentRecordsEvents => 'Eventos de coleta';
+
+  @override
+  String get documentRecordsNarratives => 'Narrativas';
+
+  @override
+  String get documentRecordsGeneric => 'Registros';
+
+  @override
+  String documentSelectedCount(int selected, int total) {
+    return '$selected de $total selecionados';
+  }
+
+  @override
+  String get documentPageSizeLetter => 'Carta EUA (8,5 x 11 pol.)';
+
+  @override
+  String get documentPageSizeLegal => 'Ofício EUA';
+
+  @override
+  String get documentPageSizeCustom => 'Personalizado';
+
+  @override
+  String get documentOrientationPortrait => 'Retrato';
+
+  @override
+  String get documentOrientationLandscape => 'Paisagem';
+
+  @override
+  String get documentOverrideBlocks => 'Substituir os blocos do modelo';
+
+  @override
+  String get documentTemplateBlocks => 'Blocos do modelo';
+
+  @override
+  String get documentAddBlock => 'Adicionar bloco';
+
+  @override
+  String get documentMultiBlockMode => 'Modo de vários blocos';
+
+  @override
+  String get documentMultiBlockContinuous => 'Contínuo (bloco a bloco)';
+
+  @override
+  String get documentMultiBlockAlternate => 'Alternado (registro a registro)';
+
+  @override
+  String documentBlockNumber(int number) {
+    return 'Bloco n.º $number';
+  }
+
+  @override
+  String get documentShowLess => 'Mostrar menos';
+
+  @override
+  String get documentShowMore => 'Mostrar mais';
+
+  @override
+  String get documentDeleteBlock => 'Excluir bloco';
+
+  @override
+  String get documentBlockTemplate => 'Modelo';
+
+  @override
+  String get documentTemplateMissing => 'Este modelo não existe mais';
+
+  @override
+  String documentMissingItem(String name) {
+    return 'Ausente: $name';
+  }
+
+  @override
+  String get documentEditTemplate => 'Editar modelo';
+
+  @override
+  String get documentBlockCopies => 'Cópias';
+
+  @override
+  String get documentBlockRows => 'Linhas';
+
+  @override
+  String get documentBlockCols => 'Col.';
+
+  @override
+  String get documentAutoFillPage => 'Preencher página automaticamente';
+
+  @override
+  String get documentTemplatePadding => 'Margens do modelo (mm)';
+
+  @override
+  String get documentPaddingTop => 'Superior';
+
+  @override
+  String get documentPaddingLeft => 'Esquerda';
+
+  @override
+  String get documentPaddingRight => 'Direita';
+
+  @override
+  String get documentPaddingBottom => 'Inferior';
+
+  @override
+  String get documentPageBreakAfter => 'Quebra de página depois';
+
+  @override
+  String get documentPageBreakAfterHint =>
+      'Inserir quebra de página depois deste bloco';
+
+  @override
+  String get documentCurrentProjectSelection => 'Seleção do projeto atual';
+
+  @override
+  String get documentActiveProjectDocument => '1 documento (projeto ativo)';
+
+  @override
+  String get documentSelectionSpecimens => 'Seleção de espécimes';
+
+  @override
+  String get documentSelectionSpecimenParts => 'Seleção de partes de espécimes';
+
+  @override
+  String get documentSelectionSites => 'Seleção de locais';
+
+  @override
+  String get documentSelectionEvents => 'Seleção de eventos de coleta';
+
+  @override
+  String get documentSelectionNarratives => 'Seleção de narrativas';
+
+  @override
+  String get documentSortDirection => 'Direção';
+
+  @override
+  String get documentSortAscending => 'Crescente';
+
+  @override
+  String get documentSortDescending => 'Decrescente';
+
+  @override
+  String get documentSortFieldsLoadError =>
+      'Não foi possível carregar os campos de ordenação';
+
+  @override
+  String get documentSortOriginalOrder => 'Ordem original';
+
+  @override
+  String get documentSortOrderBy => 'Ordenar por';
+
+  @override
+  String get documentSortOrderRecordsBy => 'Ordenar registros por';
+
+  @override
+  String get documentSortClosePicker =>
+      'Fechar o seletor de campo de ordenação';
+
+  @override
+  String documentSortFieldUnavailable(String table) {
+    return '$table · Indisponível para este modelo';
+  }
+
+  @override
+  String documentFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count campos',
+      one: '1 campo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documentLayoutTitle => 'Layout do documento';
+
+  @override
+  String get documentLayoutProfile => 'Perfil de layout';
+
+  @override
+  String get documentLayoutProfileHelper =>
+      'As configurações de página e os blocos do modelo são definidos pelo perfil.';
+
+  @override
+  String get documentManagePresets => 'Gerenciar predefinições';
+
+  @override
+  String get documentPageSetup => 'Configuração da página';
+
+  @override
+  String get documentPageSize => 'Tamanho da página';
+
+  @override
+  String get documentPageWidthMm => 'Largura (mm)';
+
+  @override
+  String get documentPageHeightMm => 'Altura (mm)';
+
+  @override
+  String get documentOrientation => 'Orientação';
+
+  @override
+  String get documentPagePadding => 'Margens da página (mm)';
+
+  @override
+  String get documentSelectSpecimenParts => 'Selecionar partes de espécimes';
+
+  @override
+  String get labelCatalogFormatOrnithology => 'Ornitologia';
+
+  @override
+  String get labelCatalogFormatMammalogy => 'Mastozoologia';
+
+  @override
+  String get labelCatalogFormatHerpetology => 'Herpetologia';
+
+  @override
+  String get labelCatalogFormatInvertebrateZoology =>
+      'Zoologia de invertebrados';
+
+  @override
+  String get labelCatalogFormatIchthyology => 'Ictiologia';
+
+  @override
+  String get labelSpecimenRecordTypeAllTaxa => 'Todos os táxons';
+
+  @override
+  String get labelSpecimenRecordTypeBirds => 'Aves';
+
+  @override
+  String get labelSpecimenRecordTypeMammals => 'Mamíferos';
+
+  @override
+  String get labelSpecimenRecordTypeHerpetofauna => 'Herpetofauna';
+
+  @override
+  String get labelSpecimenRecordTypeInvertebrates => 'Invertebrados';
+
+  @override
+  String get labelSpecimenRecordTypeFishes => 'Peixes';
+
+  @override
+  String get labelProjectToolCategoryUtilities => 'Utilitários';
+
+  @override
+  String get labelProjectToolCategoryProject => 'Projeto';
+
+  @override
+  String get labelProjectToolCategoryRecords => 'Registros';
+
+  @override
+  String get labelProjectToolCategoryDatabase => 'Banco de dados';
+
+  @override
+  String get labelProjectToolCategoryConfiguration => 'Configuração';
+
+  @override
+  String get labelProjectToolDataTable => 'Tabela de dados';
+
+  @override
+  String get labelProjectToolDataTableDescription =>
+      'Navegue, ordene e pesquise os registros do projeto';
+
+  @override
+  String get labelProjectToolTemplates => 'Modelos';
+
+  @override
+  String get labelProjectToolTemplatesDescription =>
+      'Crie e edite modelos de documentos';
+
+  @override
+  String get labelProjectToolMergeProject => 'Mesclar projeto';
+
+  @override
+  String get labelProjectToolMergeProjectDescription =>
+      'Mescle outro projeto neste';
+
+  @override
+  String get labelProjectToolExportProject => 'Exportar projeto';
+
+  @override
+  String get labelProjectToolExportProjectDescription =>
+      'Exporte este projeto para transferência';
+
+  @override
+  String get labelProjectToolBatchImport => 'Importação em lote';
+
+  @override
+  String get labelProjectToolBatchImportDescription =>
+      'Importe ou atualize registros de uma planilha';
+
+  @override
+  String get labelProjectToolCuration => 'Curadoria';
+
+  @override
+  String get labelProjectToolCurationDescription =>
+      'Curadoria de espécimes: escaneie tecidos em caixas de armazenamento';
+
+  @override
+  String get labelProjectToolBundleRecords => 'Empacotar registros';
+
+  @override
+  String get labelProjectToolBundleRecordsDescription =>
+      'Empacote os registros com suas mídias';
+
+  @override
+  String get labelProjectToolExportRecords => 'Exportar registros';
+
+  @override
+  String get labelProjectToolExportRecordsDescription =>
+      'Exporte registros como dados tabulares';
+
+  @override
+  String get labelProjectToolExportDocuments => 'Exportar documentos';
+
+  @override
+  String get labelProjectToolExportDocumentsDescription =>
+      'Exporte registros como documentos';
+
+  @override
+  String get labelProjectToolBackupDatabaseDescription =>
+      'Faça backup do banco de dados do aplicativo';
+
+  @override
+  String get labelProjectToolSettingsDescription =>
+      'Abra as configurações do aplicativo';
+
+  @override
+  String get labelProjectToolExportConfigs => 'Exportar configurações';
+
+  @override
+  String get labelProjectToolImportConfigs => 'Importar configurações';
+
+  @override
+  String get labelBasemapNone => 'Nenhum';
+
+  @override
+  String get labelBasemapNoneDescription => 'Sem camada base geográfica';
+
+  @override
+  String get labelBasemapAutomatic => 'Automático';
+
+  @override
+  String get labelBasemapAutomaticDescription =>
+      'Positron no modo claro e Escuro no modo escuro';
+
+  @override
+  String get labelBasemapNaturalEarthOffline => 'Natural Earth (offline)';
+
+  @override
+  String get labelBasemapNaturalEarthOfflineDescription =>
+      'Limites de países incluídos que funcionam sem acesso à internet';
+
+  @override
+  String get labelBasemapPositronDescription =>
+      'Mapa claro, minimalista e de baixo contraste';
+
+  @override
+  String get labelBasemapBrightDescription => 'Mapa detalhado com cores vivas';
+
+  @override
+  String get labelBasemapLibertyDescription =>
+      'Mapa detalhado com cores equilibradas';
+
+  @override
+  String get labelBasemapDark => 'Escuro';
+
+  @override
+  String get labelBasemapDarkDescription =>
+      'Mapa escuro para ambientes com pouca luz';
+
+  @override
+  String get labelMapLayerKindRasterTiles => 'Blocos raster';
+
+  @override
+  String get labelMapLayerKindVectorTiles => 'Blocos vetoriais';
+
+  @override
+  String get labelMapLayerKindElevationModel => 'Modelo de elevação';
+
+  @override
+  String get labelFieldSectionSpecimenAttributes => 'Atributos do espécime';
+
+  @override
+  String get labelFieldSectionSiteAttributes => 'Atributos do local';
+
+  @override
+  String get labelFieldSectionEnvironmentalData => 'Dados ambientais';
+
+  @override
+  String get labelFieldSectionSpecimenPart => 'Parte do espécime';
+
+  @override
+  String get labelFieldSectionParasite => 'Parasita';
+
+  @override
+  String get labelSiteGeographyCountry => 'País';
+
+  @override
+  String get labelSiteGeographyIslandGroup => 'Grupo de ilhas';
+
+  @override
+  String get labelSiteGeographyStateProvince => 'Estado/Província';
+
+  @override
+  String get labelSiteGeographyCounty => 'Condado/Paróquia/Distrito';
+
+  @override
+  String get labelSiteGeographyMunicipality => 'Município/Cidade/Vila';
+
+  @override
+  String get labelEnvironmentalLowestDayTemp => 'Temperatura mínima diurna';
+
+  @override
+  String get labelEnvironmentalHighestDayTemp => 'Temperatura máxima diurna';
+
+  @override
+  String get labelEnvironmentalLowestNightTemp => 'Temperatura mínima noturna';
+
+  @override
+  String get labelEnvironmentalHighestNightTemp => 'Temperatura máxima noturna';
+
+  @override
+  String get labelEnvironmentalAverageHumidity => 'Umidade média';
+
+  @override
+  String get labelEnvironmentalDewPoint => 'Ponto de orvalho';
+
+  @override
+  String get labelEnvironmentalCloudCover => 'Cobertura de nuvens';
+
+  @override
+  String get labelEnvironmentalRainfall => 'Precipitação';
+
+  @override
+  String get labelEnvironmentalAmbientTemperature => 'Temperatura ambiente';
+
+  @override
+  String get labelEnvironmentalAmbientHumidity => 'Umidade ambiente';
+
+  @override
+  String get labelEnvironmentalWaterTemperature => 'Temperatura da água';
+
+  @override
+  String get labelEnvironmentalDissolvedOxygen => 'Oxigênio dissolvido';
+
+  @override
+  String get labelEnvironmentalDissolvedOxygenSaturation =>
+      'Saturação de oxigênio dissolvido';
+
+  @override
+  String get labelEnvironmentalConductivity => 'Condutividade';
+
+  @override
+  String get labelEnvironmentalFlowVelocity => 'Velocidade do fluxo';
+
+  @override
+  String get labelEnvironmentalSunrise => 'Nascer do sol';
+
+  @override
+  String get labelEnvironmentalSunset => 'Pôr do sol';
+
+  @override
+  String get labelEnvironmentalMoonPhase => 'Fase da lua';
+
+  @override
+  String get labelEnvironmentalNotes => 'Notas';
+
+  @override
+  String labelEnvironmentalWithUnit(String label, String unit) {
+    return '$label ($unit)';
+  }
+
+  @override
+  String get labelTableProject => 'Projeto';
+
+  @override
+  String get labelTableGeography => 'Geografia';
+
+  @override
+  String get labelTableSite => 'Local';
+
+  @override
+  String get labelTableSiteAttribute => 'Atributo do local';
+
+  @override
+  String get labelTableFossilSite => 'Local fóssil';
+
+  @override
+  String get labelTableCoordinate => 'Coordenada';
+
+  @override
+  String get labelTableCollEvent => 'Evento de coleta';
+
+  @override
+  String get labelTableEnvironment => 'Ambiente';
+
+  @override
+  String get labelTableCollPersonnel => 'Equipe de coleta';
+
+  @override
+  String get labelTableCollEffort => 'Esforço de coleta';
+
+  @override
+  String get labelTableNarrative => 'Narrativa';
+
+  @override
+  String get labelTableMedia => 'Mídia';
+
+  @override
+  String get labelTableNarrativeMedia => 'Mídia da narrativa';
+
+  @override
+  String get labelTableSiteMedia => 'Mídia do local';
+
+  @override
+  String get labelTableEventMedia => 'Mídia do evento';
+
+  @override
+  String get labelTableSpecimenMedia => 'Mídia do espécime';
+
+  @override
+  String get labelTableAssociatedData => 'Dados associados';
+
+  @override
+  String get labelTableSpecimenAssociatedData => 'Dados associados do espécime';
+
+  @override
+  String get labelTableSiteAssociatedData => 'Dados associados do local';
+
+  @override
+  String get labelTableEventAssociatedData => 'Dados associados do evento';
+
+  @override
+  String get labelTablePersonnelList => 'Lista da equipe';
+
+  @override
+  String get labelTablePersonnel => 'Equipe';
+
+  @override
+  String get labelTableTaxonomy => 'Taxonomia';
+
+  @override
+  String get labelTableSpecimen => 'Espécime';
+
+  @override
+  String get labelTableMammalAttribute => 'Atributo de mamífero';
+
+  @override
+  String get labelTableBirdAttribute => 'Atributo de ave';
+
+  @override
+  String get labelTableHerpAttribute => 'Atributo herpetológico';
+
+  @override
+  String get labelTableInvertebrateAttribute => 'Atributo de invertebrado';
+
+  @override
+  String get labelTableFishAttribute => 'Atributo de peixe';
+
+  @override
+  String get labelTableFossilAttribute => 'Atributo fóssil';
+
+  @override
+  String get labelTableParasiteDetection => 'Detecção de parasitas';
+
+  @override
+  String get labelTableParasite => 'Parasita';
+
+  @override
+  String get labelTableSpecimenPart => 'Parte do espécime';
+
+  @override
+  String get labelTableSpecimenIndividual => 'Indivíduo do espécime';
+
+  @override
+  String get labelTableSpecimenPartIndividual =>
+      'Indivíduo da parte do espécime';
+
+  @override
+  String get labelTableParasiteIndividual => 'Indivíduo parasita';
+
+  @override
+  String get labelTableCustomFieldDefinition =>
+      'Definição de campo personalizado';
+
+  @override
+  String get labelTableCustomFieldValue => 'Valor de campo personalizado';
+
+  @override
+  String fileExplorerFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos',
+      one: '1 arquivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fileExplorerImageCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count imagens',
+      one: '1 imagem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fileExplorerAudioCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos de áudio',
+      one: '1 arquivo de áudio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fileExplorerVideoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vídeos',
+      one: '1 vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String fileExplorerOtherCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arquivos de outro tipo',
+      one: '1 arquivo de outro tipo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileExplorerLockDatabase => 'Banco de dados do aplicativo';
+
+  @override
+  String get fileExplorerLockDatabaseSidecar =>
+      'Arquivo de trabalho do banco de dados';
+
+  @override
+  String get fileExplorerLockBackup => 'Backup do banco de dados';
+
+  @override
+  String get fileExplorerLockUserConfig =>
+      'Fontes e camadas de mapa personalizadas';
+
+  @override
+  String get fileExplorerLockTemplateMedia => 'Mídia global de modelos';
+
+  @override
+  String get fileExplorerLockMediaRecord => 'Vinculado a um registro de mídia';
+
+  @override
+  String get fileExplorerLockPersonnelPhoto =>
+      'Vinculado a uma foto de pessoal';
+
+  @override
+  String get fileExplorerLockAssociatedData => 'Vinculado a dados associados';
+
+  @override
+  String get fileExplorerLockUnresolvedReference =>
+      'Um registro aponta para cá, mas não pôde ser lido';
+
+  @override
+  String get fileExplorerLockRecentlyModified =>
+      'Alterado agora mesmo; talvez ainda esteja sendo copiado';
+
+  @override
+  String get fileExplorerLockUnmanagedLocation =>
+      'Não está em uma pasta gerenciada pelo NAHPU';
+
+  @override
+  String get fileExplorerLockUnknownProject =>
+      'Pasta de um projeto que não está no banco de dados';
+
+  @override
+  String fileExplorerPruneBlockedUnresolved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Não foi possível ler $count registros de dados associados, então alguns arquivos não podem ser verificados. A remoção de arquivos fica desativada até que isso seja resolvido.',
+      one:
+          'Não foi possível ler 1 registro de dados associados, então alguns arquivos não podem ser verificados. A remoção de arquivos fica desativada até que isso seja resolvido.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fileExplorerPruneBlockedEmptyIndex =>
+      'O banco de dados não informa nenhum arquivo vinculado, o que normalmente significa que ainda está sendo aberto. Reabra esta tela antes de remover qualquer coisa.';
+
+  @override
+  String get progressPrepareBackup => 'Preparar backup';
+
+  @override
+  String get progressCopyMediaAndFiles => 'Copiar mídia e arquivos';
+
+  @override
+  String get progressCompressArchive => 'Compactar arquivo';
+
+  @override
+  String get progressExtractArchive => 'Extrair arquivo compactado';
+
+  @override
+  String get progressRestoreMediaAndFiles => 'Restaurar mídia e arquivos';
+
+  @override
+  String get progressBackUpCurrentData => 'Fazer backup dos dados atuais';
+
+  @override
+  String get progressReplaceDatabase => 'Substituir banco de dados';
+
+  @override
+  String get progressWriteRecords => 'Gravar registros';
+
+  @override
+  String get progressCopyMedia => 'Copiar mídia';
+
+  @override
+  String get progressCheckContents => 'Verificar conteúdo';
+
+  @override
+  String get progressCollectRecords => 'Reunir registros';
+
+  @override
+  String get progressCheckRecords => 'Verificar registros';
+
+  @override
+  String get progressWriteAndCompressPackage => 'Gravar e compactar pacote';
+
+  @override
+  String get progressProcessMedia => 'Processar mídia';
+
+  @override
+  String serviceMessagePresetsAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count predefinições adicionadas',
+      one: '1 predefinição adicionada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get serviceMessageNoDefaultPresets =>
+      'Não há predefinições padrão deste tipo';
+
+  @override
+  String get serviceMessageDefaultPresetsLoaded =>
+      'As predefinições padrão já estão carregadas';
+
+  @override
+  String serviceMessagePresetsAndTemplatesImported(
+    int count,
+    int templateCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count predefinições',
+      one: '1 predefinição',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      templateCount,
+      locale: localeName,
+      other: '$templateCount modelos',
+      one: '1 modelo',
+    );
+    return 'Importados: $_temp0 e $_temp1';
+  }
+
+  @override
+  String serviceMessagePresetImageNote(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count modelos usam imagens, que são referenciadas pelo nome em vez de armazenadas no arquivo. Em outra instalação, essas imagens precisam ser adicionadas novamente.',
+      one:
+          '1 modelo usa imagens, que são referenciadas pelo nome em vez de armazenadas no arquivo. Em outra instalação, essas imagens precisam ser adicionadas novamente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deletePersonnelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count pessoas',
+      one: 'Excluir 1 pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deletePersonnelTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir pessoas',
+      one: 'Excluir pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deletePersonnelBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem certeza de que deseja excluir as pessoas selecionadas?',
+      one: 'Tem certeza de que deseja excluir a pessoa selecionada?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteTaxaCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count táxons',
+      one: 'Excluir 1 táxon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteTaxaTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir táxons',
+      one: 'Excluir táxon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteTaxaBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem certeza de que deseja excluir os táxons selecionados?',
+      one: 'Tem certeza de que deseja excluir o táxon selecionado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCoordinatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count coordenadas',
+      one: 'Excluir 1 coordenada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCoordinatesTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir coordenadas',
+      one: 'Excluir coordenada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteCoordinatesBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem certeza de que deseja excluir as coordenadas selecionadas?',
+      one: 'Tem certeza de que deseja excluir a coordenada selecionada?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteEffortsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count esforços',
+      one: 'Excluir 1 esforço',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteEffortsTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir esforços',
+      one: 'Excluir esforço',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteEffortsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem certeza de que deseja excluir os esforços selecionados?',
+      one: 'Tem certeza de que deseja excluir o esforço selecionado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteParasitesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count parasitas',
+      one: 'Excluir 1 parasita',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteParasitesTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir parasitas',
+      one: 'Excluir parasita',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteParasitesBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tem certeza de que deseja excluir os parasitas selecionados?',
+      one: 'Tem certeza de que deseja excluir o parasita selecionado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteSpecimenPartsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir $count partes do espécimen',
+      one: 'Excluir 1 parte do espécimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteSpecimenPartsTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Excluir partes do espécimen',
+      one: 'Excluir parte do espécimen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteSpecimenPartsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Tem certeza de que deseja excluir as partes do espécimen selecionadas?',
+      one:
+          'Tem certeza de que deseja excluir a parte do espécimen selecionada?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String deleteAssociatedDataCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count entradas de dados associados',
+      one: 'Remover 1 entrada de dados associados',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteAssociatedDataTitle => 'Remover dados associados';
+
+  @override
+  String get deleteAssociatedDataBody =>
+      'Remover os dados associados selecionados deste registro? Os dados compartilhados com outros registros serão preservados.';
+
+  @override
+  String removeProjectPersonnelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count pessoas do projeto',
+      one: 'Remover 1 pessoa do projeto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removeProjectPersonnelTitle => 'Remover pessoal';
+
+  @override
+  String get removeProjectPersonnelBody =>
+      'Tem certeza de que deseja remover do projeto as pessoas selecionadas?';
+
+  @override
+  String removeEventPersonnelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count pessoas do evento',
+      one: 'Remover 1 pessoa do evento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removeEventPersonnelTitle => 'Remover pessoal do evento';
+
+  @override
+  String get removeEventPersonnelBody =>
+      'Tem certeza de que deseja remover deste evento as pessoas selecionadas?';
 }

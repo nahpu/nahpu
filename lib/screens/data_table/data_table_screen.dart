@@ -22,6 +22,8 @@ import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/services/data_table/data_table_export.dart';
 import 'package:nahpu/services/data_table/data_table_find_replace.dart';
 import 'package:nahpu/services/database/app_exit.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/data_table/data_table_grid_controller.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
@@ -332,7 +334,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       final taxa =
           _type == DataTableRecordType.specimenRecords &&
               _specimenType != SpecimenRecordType.allTaxa
-          ? _specimenType.dataTableLabel.toLowerCase()
+          ? _specimenType.localizedLabel(context.l10n).toLowerCase()
           : null;
       final records = _type.label.toLowerCase();
       return DataTableMessage(

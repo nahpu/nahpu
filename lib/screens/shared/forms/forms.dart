@@ -293,7 +293,7 @@ class InfoButton extends StatelessWidget {
             ? _showModalSheet(context)
             : _showInfoDialog(context);
       },
-      tooltip: 'Show information',
+      tooltip: context.l10n.formsShowInfo,
       padding: EdgeInsets.zero,
       icon: Icon(
         Icons.info_outline_rounded,
@@ -308,7 +308,7 @@ class InfoButton extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Info'),
+          title: Text(context.l10n.formsInfo),
           constraints: BoxConstraints(
             maxWidth: 600,
             maxHeight: MediaQuery.sizeOf(context).height * 0.7,
@@ -323,7 +323,7 @@ class InfoButton extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Close'),
+              child: Text(context.l10n.commonClose),
             ),
           ],
         );
@@ -364,7 +364,10 @@ class _InfoBottomSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Info', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.formsInfo,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             Divider(
               thickness: NahpuStroke.thin,
               color: Theme.of(context).colorScheme.onSurface.withAlpha(24),
@@ -520,6 +523,7 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
       title: Text(widget.title),
       content: Column(
@@ -529,7 +533,7 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
           if (widget.requiredConfirmationText != null) ...[
             const SizedBox(height: 16),
             Text(
-              'Type `${widget.requiredConfirmationText}` to enable delete',
+              l10n.formsDeleteConfirmPrompt(widget.requiredConfirmationText!),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -538,10 +542,10 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
               autofocus: true,
               onChanged: (_) => setState(() {}),
               enabled: !_isDeleting,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
                 isDense: true,
-                hintText: 'Enter confirmation text',
+                hintText: l10n.formsDeleteConfirmHint,
               ),
             ),
           ],
@@ -554,7 +558,7 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
               : () {
                   Navigator.of(context).pop();
                 },
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         TextButton(
           style: TextButton.styleFrom(
@@ -575,7 +579,7 @@ class _DeleteAlertsState extends ConsumerState<DeleteAlerts> {
                   }
                 }
               : null,
-          child: const Text('Delete'),
+          child: Text(l10n.commonDelete),
         ),
       ],
     );

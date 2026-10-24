@@ -235,8 +235,7 @@ class _TemplateSettingsFormState extends State<TemplateSettingsForm> {
             FilledButton(
               onPressed:
                   _nameError == null &&
-                      descriptionLengthError(_descriptionController.text) ==
-                          null
+                      !isDescriptionTooLong(_descriptionController.text)
                   ? _apply
                   : null,
               child: const Text('Apply'),

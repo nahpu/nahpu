@@ -9,6 +9,8 @@ import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/settings/user_config_transfer_service.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -416,7 +418,7 @@ class _CustomFieldDefinitionPicker extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(definition.name),
                 subtitle: Text(
-                  '${definition.placement.label} • '
+                  '${definition.placement.localizedLabel(context.l10n)} • '
                   '${definition.fieldScope.name}',
                 ),
                 value: selectedIds.contains(definition.id),

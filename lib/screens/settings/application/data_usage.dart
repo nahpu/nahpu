@@ -11,6 +11,7 @@ import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -742,7 +743,7 @@ class _PrunePanelState extends ConsumerState<_PrunePanel> {
                     const SizedBox(width: NahpuSpacing.md),
                     Expanded(
                       child: Text(
-                        tree.pruneBlockedReason!,
+                        tree.pruneBlockedReason!.message(l10n),
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: colors.error),

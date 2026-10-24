@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -440,11 +441,13 @@ class TextCaseFmtDropDown extends StatelessWidget {
             isExpanded: true,
             initialValue: fmt,
             decoration: InputDecoration(labelText: label),
-            items: textCaseFmtMap.entries
+            items: TextCaseFmt.values
                 .map(
                   (e) => DropdownMenuItem<TextCaseFmt>(
-                    value: e.key,
-                    child: CommonDropdownText(text: e.value),
+                    value: e,
+                    child: CommonDropdownText(
+                      text: e.localizedLabel(context.l10n),
+                    ),
                   ),
                 )
                 .toList(),

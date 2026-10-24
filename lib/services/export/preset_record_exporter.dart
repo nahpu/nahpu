@@ -804,7 +804,7 @@ List<String> validateExportPreset(ExportPresetModel preset) {
         mapping.replacementRules[index],
       );
       if (error != null) {
-        errors.add('Replacement rule ${index + 1}: $error');
+        errors.add('Replacement rule ${index + 1}: ${error.message}');
       }
     }
     if (mappingRequiresHeaderOverride(preset.headerFormat, mapping)) {

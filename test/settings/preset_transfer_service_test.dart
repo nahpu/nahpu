@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/app_language.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -144,7 +147,10 @@ void main() {
       ['Cover', 'Site_1', 'Events'],
     );
     expect(layouts.current, 'Booklet_1');
-    expect(result.message, 'Imported 1 preset and 2 templates');
+    expect(
+      result.message(localizationsFor(AppLanguage.english)),
+      'Imported 1 preset and 2 templates',
+    );
   });
 }
 

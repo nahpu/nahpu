@@ -498,19 +498,15 @@ class AppFileTreeScanner {
   }
 
   /// Refuses to offer pruning when the index cannot be trusted.
-  String? _pruneBlockedReason(NahpuDirectoryNode rootNode) {
+  PruneBlockedReason? _pruneBlockedReason(NahpuDirectoryNode rootNode) {
     if (index.unresolvedReferenceCount > 0) {
-      final n = index.unresolvedReferenceCount;
-      return '$n associated data ${n == 1 ? 'record' : 'records'} could not be '
-          'read, so some files cannot be checked. Removing files is disabled '
-          'until that is resolved.';
+      return PruneBlockedByUnresolvedReferences(index.unresolvedReferenceCount);
     }
     // An index with no references at all is indistinguishable from a failed or
     // mid-migration read. If there are managed files on disk but nothing in the
     // database claims any of them, assume the read is wrong, not the disk.
     if (!index.hasAnyReferenceRows && rootNode.danglingCount > 0) {
-      return 'The database reports no linked files at all, which usually means '
-          'it is still opening. Reopen this screen before removing anything.';
+      return const PruneBlockedByEmptyIndex();
     }
     return null;
   }
@@ -638,12 +634,10 @@ class AppFileTreeScanner {
     // Every directory shows its real name on disk. A project folder is named
     // with a v4 UUID, so the project it belongs to goes on the second line
     // rather than replacing the name the user would see in a file browser.
-    final fileLabel = '$files ${files == 1 ? 'file' : 'files'}';
-
     return NahpuDirectoryNode(
       path: absolutePath,
       name: segments.isEmpty ? nahpuAppDir : segments.last,
-      subtitle: projectName == null ? fileLabel : '$fileLabel · $projectName',
+      projectName: projectName,
       sizeBytes: size,
       children: children,
       fileCount: files,

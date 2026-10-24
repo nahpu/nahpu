@@ -38,7 +38,7 @@ enum NahpuFileStatus {
 /// Why a file cannot be removed.
 ///
 /// Each value names the owner the user would recognize, not the rule that
-/// matched, because the value is surfaced verbatim in the row tooltip.
+/// matched, because the screens label it in the row tooltip.
 enum NahpuLockReason {
   database,
   databaseSidecar,
@@ -64,26 +64,6 @@ enum NahpuLockReason {
   /// A project folder with no matching project row. Cannot be distinguished
   /// from a database restored to an older backup, so it is never bulk-pruned.
   unknownProject,
-}
-
-extension NahpuLockReasonLabel on NahpuLockReason {
-  /// Short phrase for the lock tooltip, phrased as what owns the file.
-  String get label => switch (this) {
-    NahpuLockReason.database => 'Application database',
-    NahpuLockReason.databaseSidecar => 'Database working file',
-    NahpuLockReason.backup => 'Database backup',
-    NahpuLockReason.userConfig => 'Custom fonts and map layers',
-    NahpuLockReason.templateMedia => 'Global template media',
-    NahpuLockReason.mediaRecord => 'Linked to a media record',
-    NahpuLockReason.personnelPhoto => 'Linked to a personnel photo',
-    NahpuLockReason.associatedData => 'Linked to associated data',
-    NahpuLockReason.unresolvedReference =>
-      'A record points here but could not be read',
-    NahpuLockReason.recentlyModified =>
-      'Changed just now, may still be copying',
-    NahpuLockReason.unmanagedLocation => 'Not in a folder NAHPU manages',
-    NahpuLockReason.unknownProject => 'Folder of a project not in the database',
-  };
 }
 
 /// A node in the application-directory tree.
@@ -119,7 +99,7 @@ class NahpuDirectoryNode extends NahpuTreeNode {
     required this.deletableBytes,
     required this.isEntirelyDangling,
     required this.isStructural,
-    this.subtitle,
+    this.projectName,
   });
 
   final List<NahpuTreeNode> children;
@@ -143,8 +123,9 @@ class NahpuDirectoryNode extends NahpuTreeNode {
   /// making the user remove an abandoned project folder file by file.
   final bool isEntirelyDangling;
 
-  /// Secondary line: the file count, and the project name for a project folder.
-  final String? subtitle;
+  /// The name of the project a project folder belongs to, shown on the
+  /// secondary line beside [fileCount]. Null for every other folder.
+  final String? projectName;
 
   /// True for a folder NAHPU creates and re-creates on demand.
   ///
@@ -233,12 +214,32 @@ class AppFileTree {
 
   /// Set when the scan succeeded but pruning must not be offered — an
   /// unreadable reference row, or an index too empty to trust. Prune is
-  /// disabled and this explains why.
-  final String? pruneBlockedReason;
+  /// disabled and the screen explains why.
+  final PruneBlockedReason? pruneBlockedReason;
 
   bool get hasDangling => danglingCount > 0;
 
   bool get canPrune => pruneBlockedReason == null && danglingCount > 0;
+}
+
+/// Why pruning is withheld for a scan.
+sealed class PruneBlockedReason {
+  const PruneBlockedReason();
+}
+
+/// Some associated data rows could not be resolved, so some files cannot be
+/// checked.
+class PruneBlockedByUnresolvedReferences extends PruneBlockedReason {
+  const PruneBlockedByUnresolvedReferences(this.count);
+
+  /// The number of records that could not be read.
+  final int count;
+}
+
+/// The database reports no linked files at all, which usually means it is
+/// still opening.
+class PruneBlockedByEmptyIndex extends PruneBlockedReason {
+  const PruneBlockedByEmptyIndex();
 }
 
 /// Outcome of a prune, reported back to the user.

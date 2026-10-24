@@ -26,7 +26,7 @@ NahpuFileNode buildFile(
 NahpuDirectoryNode buildDir(
   String name,
   List<NahpuTreeNode> children, {
-  String? subtitle,
+  String? projectName,
   bool isStructural = false,
 }) {
   final files = children.whereType<NahpuFileNode>();
@@ -35,7 +35,7 @@ NahpuDirectoryNode buildDir(
   return NahpuDirectoryNode(
     path: '/root/$name',
     name: name,
-    subtitle: subtitle ?? '${files.length} files',
+    projectName: projectName,
     sizeBytes: children.fold(0, (sum, e) => sum + e.sizeBytes),
     children: children,
     fileCount: files.length,

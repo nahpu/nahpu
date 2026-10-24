@@ -14,6 +14,8 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/file_format.dart';
@@ -65,7 +67,7 @@ class _BatchMediaExportScreenState
   ExportJobProgress? _jobProgress;
   ExportOutcome? _outcome;
   String? _runError;
-  String? _failedStepLabel;
+  ExportStepLabel? _failedStepLabel;
   List<MediaBatchWarning> _failureWarnings = const [];
   Duration? _runDuration;
 
@@ -172,7 +174,7 @@ class _BatchMediaExportScreenState
                     ExportFailurePanel(
                       outcome: _outcome!,
                       errorMessage: _runError,
-                      failedStepLabel: _failedStepLabel,
+                      failedStepLabel: _failedStepLabel?.text(context.l10n),
                       onRetry: _canExport ? _save : null,
                     ),
                     const SizedBox(height: NahpuSpacing.xl),

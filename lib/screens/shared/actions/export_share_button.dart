@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ExportShareButton extends StatelessWidget {
   ExportShareButton({
@@ -37,7 +38,7 @@ class ExportShareButton extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!hasExported) {
       return ProgressButton(
-        label: 'Export',
+        label: context.l10n.commonExport,
         icon: Icons.file_upload_outlined,
         isRunning: isRunning,
         onPressed: onExport,

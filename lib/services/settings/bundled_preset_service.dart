@@ -73,15 +73,6 @@ class BundledPresetLoadResult {
 
   /// Presets left alone because one with the same name is already saved.
   final int skippedCount;
-
-  String get message {
-    if (added.isNotEmpty) {
-      return 'Added ${added.length} preset${added.length == 1 ? '' : 's'}';
-    }
-    return skippedCount == 0
-        ? 'No default presets of this type'
-        : 'Default presets are already loaded';
-  }
 }
 
 /// Discovers and loads the presets bundled under [configsDir].

@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/db_writer.dart';
+import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -72,10 +73,10 @@ void main() {
     // Writing a full archive can take minutes, so it needs its own labelled
     // stage rather than hiding inside "Replace database".
     final labels = DbWriter.restorePhases.map((step) => step.label).toList();
-    expect(labels, contains('Back up current data'));
+    expect(labels, contains(ExportStepLabel.backUpCurrentData));
     expect(
-      labels.indexOf('Back up current data'),
-      lessThan(labels.indexOf('Replace database')),
+      labels.indexOf(ExportStepLabel.backUpCurrentData),
+      lessThan(labels.indexOf(ExportStepLabel.replaceDatabase)),
     );
   });
 

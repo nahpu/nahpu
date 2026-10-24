@@ -8,6 +8,8 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/project_shell.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -487,7 +489,7 @@ class TaxonGroupFields extends ConsumerWidget {
                         children: [
                           Flexible(
                             child: CommonDropdownText(
-                              text: catalogFmtDisplayName(format),
+                              text: format.localizedLabel(context.l10n),
                             ),
                           ),
                           if (isCatalogFmtBeta(format)) ...[

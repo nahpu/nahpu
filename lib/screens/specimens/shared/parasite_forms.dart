@@ -28,6 +28,7 @@ import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ParasiteForms extends StatelessWidget {
   const ParasiteForms({super.key, required this.specimenUuid});
@@ -156,9 +157,15 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
               _isSelecting
                   ? DeleteItemsButton(
                       selectedItems: _selected.toList(),
-                      itemName: _selected.length == 1
-                          ? 'parasite'
-                          : 'parasites',
+                      customIconButtonText: context.l10n.deleteParasitesCount(
+                        _selected.length,
+                      ),
+                      customDialogHeader: context.l10n.deleteParasitesTitle(
+                        _selected.length,
+                      ),
+                      customDialogText: context.l10n.deleteParasitesBody(
+                        _selected.length,
+                      ),
                       onPressedFunction: _deleteSelected,
                     )
                   : _AddParasiteButton(specimenUuid: widget.specimenUuid),

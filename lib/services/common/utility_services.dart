@@ -286,14 +286,6 @@ bool isListContains(List<String> list, String value) {
 
 enum TextCaseFmt { anyCase, sentenceCase, titleCase, upperCase, lowerCase }
 
-Map<TextCaseFmt, String> textCaseFmtMap = {
-  TextCaseFmt.anyCase: 'Any Case',
-  TextCaseFmt.sentenceCase: 'Sentence Case',
-  TextCaseFmt.titleCase: 'Title Case',
-  TextCaseFmt.upperCase: 'Upper Case',
-  TextCaseFmt.lowerCase: 'Lower Case',
-};
-
 extension StringExtension on String {
   String toSentenceCase() {
     try {

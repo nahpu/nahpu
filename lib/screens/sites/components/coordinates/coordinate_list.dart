@@ -210,7 +210,17 @@ class CoordinateListState extends ConsumerState<CoordinateList> {
                       ? AddCoordinateButton(siteId: widget.sideId)
                       : DeleteItemsButton(
                           selectedItems: _selectedCoordinates,
-                          itemName: 'coordinates',
+                          customIconButtonText: context.l10n
+                              .deleteCoordinatesCount(
+                                _selectedCoordinates.length,
+                              ),
+                          customDialogHeader: context.l10n
+                              .deleteCoordinatesTitle(
+                                _selectedCoordinates.length,
+                              ),
+                          customDialogText: context.l10n.deleteCoordinatesBody(
+                            _selectedCoordinates.length,
+                          ),
                           onPressedFunction: () async {
                             await _deleteCoodinates();
                             setState(() {

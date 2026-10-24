@@ -5,6 +5,7 @@ import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/file/file_settings.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/dwc_bundle.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -25,7 +26,7 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
     this.selectedDir,
     this.onSelectDir,
     this.onClearDir,
-    this.formatFieldLabel = 'File format',
+    this.formatFieldLabel,
     this.enabled = true,
     ExportDestinationMode? destinationMode,
   }) : destinationMode = destinationMode ?? platformExportDestination;
@@ -46,23 +47,30 @@ class GenericFileSettingsCard<T> extends StatelessWidget {
   final VoidCallback? onSelectDir;
   final VoidCallback? onClearDir;
 
-  final String formatFieldLabel;
+  /// Defaults to the localized "File format".
+  final String? formatFieldLabel;
   final bool enabled;
   final ExportDestinationMode destinationMode;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.documentFileSettings,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: NahpuSpacing.xl),
           DropdownButtonFormField<T>(
             key: ValueKey(format),
             initialValue: format,
             isExpanded: true,
-            decoration: InputDecoration(labelText: formatFieldLabel),
+            decoration: InputDecoration(
+              labelText: formatFieldLabel ?? l10n.documentFileFormat,
+            ),
             items: [
               for (final value in formats)
                 DropdownMenuItem(
@@ -139,7 +147,7 @@ class FileSettingsCard extends StatelessWidget {
       selectedDir: selectedDir,
       format: exportCtr.exportFmtCtr,
       formats: ExportFmt.values,
-      formatLabel: (value) => exportFormats[value.index],
+      formatLabel: (value) => _exportFormatLabel(value, context.l10n),
       extensionForFormat: (value) => switch (value) {
         ExportFmt.excel => 'xlsx',
         _ => value.name,
@@ -181,15 +189,21 @@ class BundleFileSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return NahpuPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('File Settings', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.documentFileSettings,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: NahpuSpacing.xl),
           DropdownButtonFormField<DwcBundleFormat>(
             initialValue: format,
-            decoration: const InputDecoration(labelText: 'Bundle format'),
+            decoration: InputDecoration(
+              labelText: l10n.documentFileBundleFormat,
+            ),
             items: DwcBundleFormat.values
                 .map(
                   (value) =>
@@ -206,7 +220,9 @@ class BundleFileSettingsCard extends StatelessWidget {
           DropdownButtonFormField<BundleArchiveFormat>(
             key: ValueKey('${format.name}-${archiveFormat.name}'),
             initialValue: archiveFormat,
-            decoration: const InputDecoration(labelText: 'Archive format'),
+            decoration: InputDecoration(
+              labelText: l10n.settingsSelectionArchiveFormat,
+            ),
             items: format.allowedArchives
                 .map(
                   (value) =>
@@ -223,7 +239,7 @@ class BundleFileSettingsCard extends StatelessWidget {
               archiveFormat == BundleArchiveFormat.zip) ...[
             const SizedBox(height: 8),
             Text(
-              'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.',
+              l10n.documentFileDwcDpZipNote,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -245,3 +261,11 @@ class BundleFileSettingsCard extends StatelessWidget {
     );
   }
 }
+
+String _exportFormatLabel(ExportFmt format, AppLocalizations l10n) =>
+    switch (format) {
+      ExportFmt.csv => l10n.documentFileFormatCsv,
+      ExportFmt.tsv => l10n.documentFileFormatTsv,
+      ExportFmt.excel => l10n.documentFileFormatExcel,
+      ExportFmt.json => l10n.documentFileFormatJson,
+    };

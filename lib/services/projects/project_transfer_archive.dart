@@ -37,10 +37,13 @@ class ProjectTransferArchiveService extends AppServices {
   ) {
     if (format == ProjectTransferArchiveFormat.jsonGzip) {
       return const [
-        ExportPhaseStep(phase: ExportPhase.preparing, label: 'Write records'),
+        ExportPhaseStep(
+          phase: ExportPhase.preparing,
+          label: ExportStepLabel.writeRecords,
+        ),
         ExportPhaseStep(
           phase: ExportPhase.compressing,
-          label: 'Compress archive',
+          label: ExportStepLabel.compressArchive,
         ),
       ];
     }
@@ -49,16 +52,16 @@ class ProjectTransferArchiveService extends AppServices {
     return [
       const ExportPhaseStep(
         phase: ExportPhase.preparing,
-        label: 'Write records',
+        label: ExportStepLabel.writeRecords,
       ),
       ExportPhaseStep(
         phase: ExportPhase.copyingFiles,
-        label: 'Copy media',
+        label: ExportStepLabel.copyMedia,
         weight: hasSizes ? mediaBytes : 1,
       ),
       ExportPhaseStep(
         phase: ExportPhase.compressing,
-        label: 'Compress archive',
+        label: ExportStepLabel.compressArchive,
         weight: hasSizes ? mediaBytes : 1,
       ),
     ];
@@ -66,8 +69,14 @@ class ProjectTransferArchiveService extends AppServices {
 
   /// Describes the stages of reading a project archive back in.
   static const List<ExportPhaseStep> importPhases = [
-    ExportPhaseStep(phase: ExportPhase.extracting, label: 'Extract archive'),
-    ExportPhaseStep(phase: ExportPhase.verifying, label: 'Check contents'),
+    ExportPhaseStep(
+      phase: ExportPhase.extracting,
+      label: ExportStepLabel.extractArchive,
+    ),
+    ExportPhaseStep(
+      phase: ExportPhase.verifying,
+      label: ExportStepLabel.checkContents,
+    ),
   ];
 
   /// Writes the transfer archive, reporting to [progress] as each stage runs.

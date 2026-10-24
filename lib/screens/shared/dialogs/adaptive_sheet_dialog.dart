@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// Builds the content of [showAdaptiveSheetDialog]. [isSheet] is true when the
@@ -125,7 +126,7 @@ class AdaptiveSheetDialogBody extends StatelessWidget {
                   ),
                   if (showCloseButton)
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: context.l10n.commonClose,
                       icon: const Icon(Icons.close),
                       onPressed: isCloseEnabled
                           ? () => Navigator.of(context).pop()
@@ -188,7 +189,7 @@ class _AdaptiveConfirmation extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         if (confirmIcon == null)
           FilledButton(

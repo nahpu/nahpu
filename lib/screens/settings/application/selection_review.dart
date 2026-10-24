@@ -7,6 +7,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
@@ -53,15 +54,19 @@ class SelectionReviewResult {
 class SelectionGroup {
   const SelectionGroup({
     required this.label,
-    required this.detail,
+    this.projectName,
+    this.kindCounts = const {},
     required this.fileCount,
     required this.sizeBytes,
   });
 
   final String label;
 
-  /// Secondary line: the project name, and the mix of file kinds.
-  final String detail;
+  /// The project a project folder belongs to, shown on the secondary line.
+  final String? projectName;
+
+  /// The mix of file kinds, most common first, shown on the secondary line.
+  final Map<MediaKind, int> kindCounts;
   final int fileCount;
   final int sizeBytes;
 }
@@ -79,16 +84,17 @@ List<SelectionGroup> summarizeSelection({
   final sizes = <String, int>{};
   final counts = <String, int>{};
   final kinds = <String, Map<MediaKind, int>>{};
-  final subtitles = <String, String>{};
+  final projectNames = <String, String>{};
 
   final nodesByPath = <String, NahpuFileNode>{};
-  final directoryLabels = <String, String>{};
+  final directoryProjects = <String, String>{};
   void index(NahpuTreeNode node) {
     switch (node) {
       case NahpuFileNode():
         nodesByPath[node.path] = node;
       case NahpuDirectoryNode():
-        directoryLabels[node.path] = node.subtitle ?? '';
+        final projectName = node.projectName;
+        if (projectName != null) directoryProjects[node.path] = projectName;
         node.children.forEach(index);
     }
   }
@@ -110,30 +116,20 @@ List<SelectionGroup> summarizeSelection({
     kinds.putIfAbsent(key, () => <MediaKind, int>{});
     kinds[key]![kind] = (kinds[key]![kind] ?? 0) + 1;
 
-    if (key != '.' && !subtitles.containsKey(key)) {
-      final label = directoryLabels[path.join(root, key)] ?? '';
-      // The scanner writes "12 files · Project Name"; only the name is wanted.
-      final parts = label.split(' · ');
-      if (parts.length > 1) subtitles[key] = parts.sublist(1).join(' · ');
+    if (key != '.' && !projectNames.containsKey(key)) {
+      final name = directoryProjects[path.join(root, key)];
+      if (name != null && name.isNotEmpty) projectNames[key] = name;
     }
   }
 
   final groups = counts.keys.map((key) {
-    final detail = <String>[];
-    final name = subtitles[key];
-    if (name != null && name.isNotEmpty) detail.add(name);
     final kindCounts = kinds[key] ?? const <MediaKind, int>{};
     final ordered = kindCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    detail.addAll(
-      ordered.map(
-        (entry) =>
-            '${entry.value} ${matchMediaKindLabel(entry.key).toLowerCase()}',
-      ),
-    );
     return SelectionGroup(
       label: key == '.' ? applicationFolderLabel : key,
-      detail: detail.join(' · '),
+      projectName: projectNames[key],
+      kindCounts: Map.fromEntries(ordered),
       fileCount: counts[key]!,
       sizeBytes: sizes[key]!,
     );
@@ -454,6 +450,7 @@ class _GroupRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final detail = _detail(context.l10n);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
       child: Row(
@@ -469,9 +466,9 @@ class _GroupRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                if (group.detail.isNotEmpty)
+                if (detail.isNotEmpty)
                   Text(
-                    group.detail,
+                    detail,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -496,5 +493,14 @@ class _GroupRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Secondary line: the project name, and the mix of file kinds.
+  String _detail(AppLocalizations l10n) {
+    return [
+      ?group.projectName,
+      for (final entry in group.kindCounts.entries)
+        entry.key.countLabel(l10n, entry.value),
+    ].join(' · ');
   }
 }

@@ -493,7 +493,8 @@ void main() {
 
         // The folder is named with a v4 UUID on disk, so that is what shows.
         expect(projectDir.name, projectUuid);
-        expect(projectDir.subtitle, '1 file · Test Project');
+        expect(projectDir.fileCount, 1);
+        expect(projectDir.projectName, 'Test Project');
       },
     );
   });
@@ -757,7 +758,10 @@ void main() {
 
       final tree = await scan();
 
-      expect(tree.pruneBlockedReason, isNotNull);
+      expect(
+        tree.pruneBlockedReason,
+        isA<PruneBlockedByUnresolvedReferences>(),
+      );
       expect(tree.canPrune, isFalse);
     });
 
@@ -770,7 +774,7 @@ void main() {
       // No media, personnel, or associated data rows exist at all, which is
       // indistinguishable from a failed read.
       expect(tree.canPrune, isFalse);
-      expect(tree.pruneBlockedReason, isNotNull);
+      expect(tree.pruneBlockedReason, isA<PruneBlockedByEmptyIndex>());
     });
   });
 }

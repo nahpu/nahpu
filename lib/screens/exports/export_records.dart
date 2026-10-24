@@ -13,6 +13,8 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/controllers.dart';
@@ -457,7 +459,7 @@ class PresetPreviewPane extends StatelessWidget {
                     children: [
                       Chip(
                         label: Text(
-                          'Record: ${recordTypeToString(preset.recordType)}',
+                          'Record: ${preset.recordType.localizedLabel(context.l10n)}',
                         ),
                         avatar: const Icon(
                           Icons.description_outlined,

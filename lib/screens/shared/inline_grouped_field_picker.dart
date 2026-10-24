@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// A searchable grouped field picker that expands inside its current surface.
 class InlineGroupedFieldPicker extends StatefulWidget {
@@ -42,11 +43,14 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final value = widget.value?.trim();
     final displayValue = value == null || value.isEmpty
         ? null
         : _displayName(value);
-    final tableName = value == null || value.isEmpty ? null : _tableName(value);
+    final tableName = value == null || value.isEmpty
+        ? null
+        : _tableName(value, l10n);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -62,7 +66,9 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
             }),
             child: InputDecorator(
               decoration: widget.decoration.copyWith(
-                hintText: displayValue == null ? 'Choose a field' : null,
+                hintText: displayValue == null
+                    ? l10n.exportFieldsChooseField
+                    : null,
                 floatingLabelBehavior: FloatingLabelBehavior.always,
                 suffixIcon: Icon(
                   _expanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
@@ -106,9 +112,9 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
                     child: TextField(
                       controller: _searchController,
                       autofocus: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Search fields or tables',
-                        prefixIcon: Icon(Icons.search),
+                      decoration: InputDecoration(
+                        labelText: l10n.exportFieldsSearchFields,
+                        prefixIcon: const Icon(Icons.search),
                       ),
                     ),
                   ),
@@ -125,7 +131,9 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
 
   Widget _fieldList(BuildContext context) {
     final groups = _filteredGroups();
-    if (groups.isEmpty) return const Center(child: Text('No matching fields.'));
+    if (groups.isEmpty) {
+      return Center(child: Text(context.l10n.exportFieldsNoMatchingFields));
+    }
     return ListView(
       children: [
         for (final entry in groups.entries) ...[
@@ -173,9 +181,11 @@ class _InlineGroupedFieldPickerState extends State<InlineGroupedFieldPicker> {
     return result;
   }
 
-  String _tableName(String value) {
+  String _tableName(String value, AppLocalizations l10n) {
     final separator = value.indexOf('::');
-    return separator == -1 ? 'Other fields' : value.substring(0, separator);
+    return separator == -1
+        ? l10n.exportFieldsOtherFields
+        : value.substring(0, separator);
   }
 
   String _displayName(String value) {

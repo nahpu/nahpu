@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/actions/export_action_bar.dart';
@@ -214,7 +216,7 @@ class _ExportDocumentsViewState extends ConsumerState<ExportDocumentsView>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 
   /// Closing the result also drops the directory, so one tap lands back on the

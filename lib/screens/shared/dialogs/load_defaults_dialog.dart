@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/bundled_preset_checklist.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -66,6 +68,7 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final statuses = ref.watch(allBundledPresetStatusProvider);
     return SingleChildScrollView(
@@ -83,13 +86,13 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
             children: [
               Expanded(
                 child: Text(
-                  'Load defaults',
+                  l10n.sharedLoadDefaults,
                   style: theme.textTheme.headlineSmall,
                 ),
               ),
               if (widget.showCloseButton)
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: _loading
                       ? null
@@ -99,8 +102,7 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
           ),
           const SizedBox(height: NahpuSpacing.xs),
           Text(
-            'Choose the bundled presets to add. Presets you already have are '
-            'left unchanged.',
+            l10n.sharedLoadDefaultsDescription,
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: NahpuSpacing.lg),
@@ -111,7 +113,7 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
                   if (widget.kinds.contains(status.preset.kind)) status,
               ];
               if (offered.isEmpty) {
-                return const Text('No default presets of this type.');
+                return Text(l10n.sharedLoadDefaultsNone);
               }
               final generic = [
                 for (final status in offered)
@@ -131,10 +133,12 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
                 children: [
                   if (generic.isNotEmpty)
                     BundledPresetChecklist(
-                      title: formats.isEmpty ? null : 'Defaults',
+                      title: formats.isEmpty
+                          ? null
+                          : l10n.sharedLoadDefaultsGenericTitle,
                       message: formats.isEmpty
                           ? null
-                          : 'Presets that suit any catalog format.',
+                          : l10n.sharedLoadDefaultsGenericMessage,
                       statuses: generic,
                       isChecked: _isChecked,
                       onChanged: _setChoice,
@@ -143,9 +147,10 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
                     if (index > 0 || generic.isNotEmpty)
                       const SizedBox(height: NahpuSpacing.lg),
                     BundledPresetChecklist(
-                      title: 'For ${catalogFmtDisplayName(catalogFmt)}',
-                      message:
-                          'Optional presets written for this catalog format.',
+                      title: l10n.sharedLoadDefaultsForFormat(
+                        catalogFmt.localizedLabel(l10n),
+                      ),
+                      message: l10n.sharedLoadDefaultsForFormatMessage,
                       statuses: [
                         for (final status in offered)
                           if (status.preset.catalogFmt == catalogFmt) status,
@@ -157,7 +162,7 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
                   if (widget.kinds.contains(BundledPresetKind.document)) ...[
                     const SizedBox(height: NahpuSpacing.md),
                     Text(
-                      'Layouts bring the templates they print with.',
+                      l10n.sharedLoadDefaultsLayoutsNote,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -171,14 +176,15 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
                           ? null
                           : () => _loadSelected(selected),
                       icon: const Icon(Icons.restore_outlined),
-                      label: const Text('Load selected'),
+                      label: Text(l10n.sharedLoadSelected),
                     ),
                   ),
                 ],
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Text('Unable to load bundled presets: $error'),
+            error: (error, _) =>
+                Text(l10n.sharedLoadDefaultsLoadError(error.toString())),
           ),
         ],
       ),
@@ -197,6 +203,7 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
   Future<void> _loadSelected(List<BundledPreset> presets) async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     setState(() => _loading = true);
     try {
       final result = await ref
@@ -207,7 +214,9 @@ class _LoadDefaultsDialogState extends ConsumerState<LoadDefaultsDialog> {
       navigator.pop(result);
     } on Object catch (error) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to load default presets: $error')),
+        SnackBar(
+          content: Text(l10n.sharedLoadDefaultsFailed(error.toString())),
+        ),
       );
       if (mounted) setState(() => _loading = false);
     }

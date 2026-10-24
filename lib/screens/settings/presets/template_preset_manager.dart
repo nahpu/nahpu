@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/screens/templates/components/dialogs/missing_font_dialog.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/services/templates/template_preset_management_service.dart';
 import 'package:nahpu/services/templates/template_service.dart';
@@ -69,7 +70,7 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         _TemplateListHeader(
           onQueryChanged: (value) => setState(() => _query = value),
           actions: PresetAppBarActions(
-            itemName: 'template',
+            itemKind: PresetItemKind.template,
             onCreate: () async {
               await widget.onOpenTemplateEditor();
               await _load();
@@ -161,7 +162,10 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
             ? templates.single.name
             : context.l10n.presetsTemplateCount(templates.length),
         defaultFileStem: PresetTransferService.safeFileStem(fileName),
-        imageNote: PresetTransferService.imageNote(templates),
+        imageNote: presetImageNote(
+          context.l10n,
+          PresetTransferService.imageTemplateCount(templates),
+        ),
         encode: ({required includeLinkedTemplates}) async =>
             _transfer.encode(templates),
       ),

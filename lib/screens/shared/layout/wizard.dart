@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// The standard NAHPU wizard chrome: one step rail, one set of step chips, one
@@ -194,7 +195,9 @@ class _StepChips extends StatelessWidget {
         return ChoiceChip(
           key: state._stepChipKeys[index],
           selected: index == state.widget.currentStep,
-          label: Text('${index + 1}. ${steps[index]}'),
+          label: Text(
+            context.l10n.sharedWizardStepChip(index + 1, steps[index]),
+          ),
           onSelected: enabled
               ? (_) {
                   state.widget.onStepSelected(index);
@@ -273,6 +276,7 @@ class NahpuWizardActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final secondaryLabel = this.secondaryLabel;
     final onSecondary = this.onSecondary;
     return Material(
@@ -292,7 +296,7 @@ class NahpuWizardActionBar extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: isRunning ? null : onBack,
                   icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Back'),
+                  label: Text(l10n.sharedBack),
                 ),
               const Spacer(),
               if (secondaryLabel != null && onSecondary != null) ...[
@@ -303,7 +307,7 @@ class NahpuWizardActionBar extends StatelessWidget {
                 const SizedBox(width: NahpuSpacing.md),
               ],
               if (step == lastStep)
-                FilledButton(onPressed: onClose, child: const Text('Done'))
+                FilledButton(onPressed: onClose, child: Text(l10n.commonDone))
               else
                 FilledButton.icon(
                   onPressed: canContinue ? onContinue : null,
@@ -318,7 +322,9 @@ class NahpuWizardActionBar extends StatelessWidget {
                               : Icons.arrow_forward_rounded,
                         ),
                   label: Text(
-                    step == lastStep - 1 ? finalActionLabel : 'Continue',
+                    step == lastStep - 1
+                        ? finalActionLabel
+                        : l10n.sharedContinue,
                   ),
                 ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/specimens/numbered_id.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -11,7 +12,7 @@ class NumberedIdFields extends StatefulWidget {
     super.key,
     required this.store,
     required this.useHorizontalLayout,
-    this.previewLabel = 'Next ID',
+    this.previewLabel,
     this.prefixHint = 'M',
     this.numberHint = '0001',
     this.suffixHint = '-T',
@@ -20,8 +21,9 @@ class NumberedIdFields extends StatefulWidget {
   final NumberedIdStore store;
   final bool useHorizontalLayout;
 
-  /// Names the preview, such as `Next tissue ID`.
-  final String previewLabel;
+  /// Names the preview, such as `Next tissue ID`. Defaults to a localized
+  /// `Next ID`.
+  final String? previewLabel;
   final String prefixHint;
   final String numberHint;
   final String suffixHint;
@@ -53,6 +55,7 @@ class _NumberedIdFieldsState extends State<NumberedIdFields> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final preview = NumberedIdFormat(
       prefix: _prefixCtr.text,
       number: _numberCtr.text,
@@ -70,7 +73,7 @@ class _NumberedIdFieldsState extends State<NumberedIdFields> {
               key: const ValueKey('numbered-id-prefix'),
               controller: _prefixCtr,
               decoration: InputDecoration(
-                labelText: 'Prefix',
+                labelText: l10n.recordsSpecimenPrefix,
                 hintText: widget.prefixHint,
               ),
               onChanged: (value) async {
@@ -84,7 +87,7 @@ class _NumberedIdFieldsState extends State<NumberedIdFields> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: 'Next number',
+                labelText: l10n.formsNextNumber,
                 hintText: widget.numberHint,
               ),
               onChanged: (value) async {
@@ -96,7 +99,7 @@ class _NumberedIdFieldsState extends State<NumberedIdFields> {
               key: const ValueKey('numbered-id-suffix'),
               controller: _suffixCtr,
               decoration: InputDecoration(
-                labelText: 'Suffix',
+                labelText: l10n.recordsSpecimenSuffix,
                 hintText: widget.suffixHint,
               ),
               onChanged: (value) async {
@@ -110,8 +113,11 @@ class _NumberedIdFieldsState extends State<NumberedIdFields> {
         CommonPadding(
           child: Text(
             preview == null
-                ? 'Set a next number to auto-number · Leading zeros are kept'
-                : '${widget.previewLabel}: $preview · Leading zeros are kept',
+                ? l10n.formsNumberedIdNoPreview
+                : l10n.formsNumberedIdPreview(
+                    widget.previewLabel ?? l10n.formsNextId,
+                    preview,
+                  ),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

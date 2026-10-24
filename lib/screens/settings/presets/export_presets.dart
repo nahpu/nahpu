@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/actions/preset_actions.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/screens/settings/onboarding/setup_wizard.dart';
@@ -271,7 +273,7 @@ class ExportPresetsScreenState extends ConsumerState<ExportPresetsScreen>
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(result.message)));
+    ).showSnackBar(SnackBar(content: Text(result.message(context.l10n))));
   }
 }
 
@@ -356,7 +358,7 @@ class _PresetListColumnState extends ConsumerState<PresetListColumn> {
                                     preset.description.trim(),
                                   l10n.presetsMappingSummary(
                                     preset.mappings.length,
-                                    recordTypeToString(preset.recordType),
+                                    preset.recordType.localizedLabel(l10n),
                                   ),
                                 ].join('\n'),
                                 maxLines: 3,

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
 import 'package:nahpu/services/types/file_format.dart';
@@ -355,9 +356,10 @@ class _DirectoryRow extends StatelessWidget {
   }
 
   String _subtitle(AppLocalizations l10n) {
-    // The scanner already puts the file count, and the project name for a
-    // project folder, on this line.
-    final parts = <String>[node.subtitle ?? ''];
+    final parts = <String>[
+      l10n.fileExplorerFileCount(node.fileCount),
+      ?node.projectName,
+    ];
     if (node.danglingCount > 0) {
       parts.add(l10n.settingsFileTreeUnlinkedCount(node.danglingCount));
     }
@@ -569,7 +571,9 @@ class _LockBadge extends StatelessWidget {
     // Same width as the checkbox that replaces it, so a row does not shift
     // sideways when selection mode turns on.
     return Tooltip(
-      message: node.lockReason?.label ?? context.l10n.settingsFileTreeKept,
+      message:
+          node.lockReason?.label(context.l10n) ??
+          context.l10n.settingsFileTreeKept,
       child: SizedBox(
         width: NahpuControlSize.touchTarget,
         child: Icon(

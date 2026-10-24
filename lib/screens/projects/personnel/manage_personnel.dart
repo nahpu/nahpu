@@ -12,6 +12,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ManagePersonnel extends StatelessWidget {
   const ManagePersonnel({super.key});
@@ -199,7 +200,15 @@ class _ManagePersonnelListState extends ConsumerState<ManagePersonnelList> {
             padding: const EdgeInsets.all(NahpuSpacing.xl),
             child: DeleteItemsButton(
               selectedItems: _selectedPersonnelUuids.toList(),
-              itemName: 'personnel',
+              customIconButtonText: context.l10n.deletePersonnelCount(
+                _selectedPersonnelUuids.length,
+              ),
+              customDialogHeader: context.l10n.deletePersonnelTitle(
+                _selectedPersonnelUuids.length,
+              ),
+              customDialogText: context.l10n.deletePersonnelBody(
+                _selectedPersonnelUuids.length,
+              ),
               onPressedFunction: _deletePersonnel,
             ),
           ),

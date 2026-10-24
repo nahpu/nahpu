@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/providers/sites.dart';
@@ -40,7 +41,7 @@ class SiteNameDisplay extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Site name',
+                        context.l10n.formsSiteName,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

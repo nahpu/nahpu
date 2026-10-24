@@ -1195,7 +1195,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
           element.replacementRules[index],
         );
         if (error != null) {
-          return 'Text replacement ${index + 1} in "${element.text}" is invalid: $error';
+          return 'Text replacement ${index + 1} in "${element.text}" is invalid: ${error.message}';
         }
       }
     }
@@ -1840,7 +1840,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 return null;
               },
               onFieldSubmitted: (_) {
-                if (descriptionLengthError(_descCtrl.text) != null) return;
+                if (isDescriptionTooLong(_descCtrl.text)) return;
                 if (_formKey.currentState?.validate() ?? false) {
                   Navigator.pop(
                     context,
@@ -1911,7 +1911,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: descriptionLengthError(_descCtrl.text) != null
+          onPressed: isDescriptionTooLong(_descCtrl.text)
               ? null
               : () {
                   if (_formKey.currentState?.validate() ?? false) {

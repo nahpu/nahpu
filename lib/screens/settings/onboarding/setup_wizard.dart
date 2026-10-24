@@ -9,6 +9,8 @@ import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/bundled_preset_checklist.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/screens/shared/layout/wizard.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/localization/l10n.dart';
@@ -334,7 +336,7 @@ class _CatalogFormatTile extends StatelessWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Flexible(child: Text(catalogFmtDisplayName(catalogFmt))),
+            Flexible(child: Text(catalogFmt.localizedLabel(context.l10n))),
             if (isCatalogFmtBeta(catalogFmt)) ...[
               const SizedBox(width: NahpuSpacing.md),
               const BetaBadge(),
@@ -465,20 +467,22 @@ class _SitesStep extends StatelessWidget {
           title: l10n.setupSiteTypes,
           typePrefKey: siteTypePrefKey,
           fmtPrefKey: siteTypeFmtPrefKey,
-          typeName: 'site type',
+          typeName: l10n.formsVocabSiteType,
+          pluralName: l10n.formsVocabSiteTypePlural,
         ),
         _Vocabulary(
           title: l10n.setupHabitatTypes,
           typePrefKey: habitatTypePrefKey,
           fmtPrefKey: habitatTypeFmtPrefKey,
-          typeName: 'habitat type',
+          typeName: l10n.formsVocabHabitatType,
+          pluralName: l10n.formsVocabHabitatTypePlural,
         ),
         _Vocabulary(
           title: l10n.setupDatums,
           typePrefKey: datumPrefKey,
           fmtPrefKey: datumFmtPrefKey,
-          typeName: 'datum',
-          pluralName: 'datums',
+          typeName: l10n.formsVocabDatum,
+          pluralName: l10n.formsVocabDatumPlural,
         ),
       ],
     );
@@ -499,19 +503,22 @@ class _EventsStep extends StatelessWidget {
           title: l10n.setupPrimaryActivities,
           typePrefKey: collActivityPrefKey,
           fmtPrefKey: collActivityFmtPrefKey,
-          typeName: 'primary activity',
+          typeName: l10n.formsVocabPrimaryActivity,
+          pluralName: l10n.formsVocabPrimaryActivityPlural,
         ),
         _Vocabulary(
           title: l10n.setupCollectionMethods,
           typePrefKey: collMethodPrefKey,
           fmtPrefKey: collMethodFmtPrefKey,
-          typeName: 'collection method',
+          typeName: l10n.formsVocabCollectionMethod,
+          pluralName: l10n.formsVocabCollectionMethodPlural,
         ),
         _Vocabulary(
           title: l10n.setupPersonnelRoles,
           typePrefKey: collRolePrefKey,
           fmtPrefKey: collRoleFmtPrefKey,
-          typeName: 'personnel role',
+          typeName: l10n.formsVocabPersonnelRole,
+          pluralName: l10n.formsVocabPersonnelRolePlural,
         ),
       ],
     );
@@ -532,31 +539,36 @@ class _SpecimensStep extends StatelessWidget {
           title: l10n.setupIdentificationMethods,
           typePrefKey: idMethodPrefKey,
           fmtPrefKey: idMethodFmtPrefKey,
-          typeName: 'identification method',
+          typeName: l10n.formsVocabIdentificationMethod,
+          pluralName: l10n.formsVocabIdentificationMethodPlural,
         ),
         _Vocabulary(
           title: l10n.setupLifeStages,
           typePrefKey: lifeStagePrefKey,
           fmtPrefKey: lifeStageFmtPrefKey,
-          typeName: 'life stage',
+          typeName: l10n.formsVocabLifeStage,
+          pluralName: l10n.formsVocabLifeStagePlural,
         ),
         _Vocabulary(
           title: l10n.setupSpecimenTypes,
           typePrefKey: specimenTypePrefKey,
           fmtPrefKey: specimenTypeFmtPrefKey,
-          typeName: 'specimen type',
+          typeName: l10n.formsVocabSpecimenType,
+          pluralName: l10n.formsVocabSpecimenTypePlural,
         ),
         _Vocabulary(
           title: l10n.setupTreatments,
           typePrefKey: treatmentPrefKey,
           fmtPrefKey: treatmentFmtPrefKey,
-          typeName: 'treatment',
+          typeName: l10n.formsVocabTreatment,
+          pluralName: l10n.formsVocabTreatmentPlural,
         ),
         _Vocabulary(
           title: l10n.setupConditions,
           typePrefKey: conditionPrefKey,
           fmtPrefKey: conditionFmtPrefKey,
-          typeName: 'condition',
+          typeName: l10n.formsVocabCondition,
+          pluralName: l10n.formsVocabConditionPlural,
         ),
       ],
     );
@@ -613,39 +625,43 @@ class _ParasiteStep extends StatelessWidget {
                 title: l10n.setupParasiteCategories,
                 typePrefKey: parasiteCategoryPrefKey,
                 fmtPrefKey: parasiteCategoryFmtPrefKey,
-                typeName: 'category',
-                pluralName: 'categories',
+                typeName: l10n.formsVocabParasiteCategory,
+                pluralName: l10n.formsVocabParasiteCategoryPlural,
               ),
               _Vocabulary(
                 title: l10n.setupDetectionMethods,
                 typePrefKey: parasiteDetectionMethodPrefKey,
                 fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
-                typeName: 'detection method',
+                typeName: l10n.formsVocabDetectionMethod,
+                pluralName: l10n.formsVocabDetectionMethodPlural,
               ),
               _Vocabulary(
                 title: l10n.setupPreparationMethods,
                 typePrefKey: parasitePreparationMethodPrefKey,
                 fmtPrefKey: parasitePreparationMethodFmtPrefKey,
-                typeName: 'preparation method',
+                typeName: l10n.formsVocabPreparationMethod,
+                pluralName: l10n.formsVocabPreparationMethodPlural,
               ),
               _Vocabulary(
                 title: l10n.setupAnatomicalLocations,
                 typePrefKey: parasiteAnatomicalLocationPrefKey,
                 fmtPrefKey: parasiteAnatomicalLocationFmtPrefKey,
-                typeName: 'anatomical location',
+                typeName: l10n.formsVocabAnatomicalLocation,
+                pluralName: l10n.formsVocabAnatomicalLocationPlural,
               ),
               _Vocabulary(
                 title: l10n.setupStorage,
                 typePrefKey: parasiteStoragePrefKey,
                 fmtPrefKey: parasiteStorageFmtPrefKey,
-                typeName: 'storage value',
-                pluralName: 'storage values',
+                typeName: l10n.formsVocabStorageValue,
+                pluralName: l10n.formsVocabStorageValuePlural,
               ),
               _Vocabulary(
                 title: l10n.setupTreatments,
                 typePrefKey: parasiteTreatmentPrefKey,
                 fmtPrefKey: parasiteTreatmentFmtPrefKey,
-                typeName: 'treatment',
+                typeName: l10n.formsVocabTreatment,
+                pluralName: l10n.formsVocabTreatmentPlural,
               ),
             ],
           ),
@@ -685,7 +701,7 @@ class _FinishStep extends ConsumerWidget {
                 label: l10n.setupCatalogFormat,
                 value: catalogFmt == null
                     ? l10n.setupNotSet
-                    : catalogFmtDisplayName(catalogFmt),
+                    : catalogFmt.localizedLabel(l10n),
               ),
               _SummaryRow(
                 label: l10n.setupFieldId,
@@ -828,7 +844,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
                       const SizedBox(height: NahpuSpacing.lg),
                       BundledPresetChecklist(
                         title: l10n.setupPresetsForFormat(
-                          catalogFmtDisplayName(catalogFmt),
+                          catalogFmt.localizedLabel(l10n),
                         ),
                         message: l10n.setupPresetsForFormatMessage,
                         statuses: specific,
@@ -877,7 +893,7 @@ class _ExportPresetsStepState extends ConsumerState<_ExportPresetsStep> {
           .loadSelected(presets);
       ref.invalidate(bundledPresetStatusProvider);
       ref.invalidate(allBundledPresetStatusProvider);
-      messenger.showSnackBar(SnackBar(content: Text(result.message)));
+      messenger.showSnackBar(SnackBar(content: Text(result.message(l10n))));
     } on Object catch (error) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.setupAddPresetsError(error.toString()))),
@@ -984,14 +1000,14 @@ class _Vocabulary {
     required this.typePrefKey,
     required this.fmtPrefKey,
     required this.typeName,
-    this.pluralName,
+    required this.pluralName,
   });
 
   final String title;
   final String typePrefKey;
   final String fmtPrefKey;
   final String typeName;
-  final String? pluralName;
+  final String pluralName;
 }
 
 class _VocabularyStep extends StatelessWidget {

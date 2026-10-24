@@ -4,6 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class ExportProgressPanel extends StatefulWidget {
@@ -51,6 +53,7 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final progress = widget.progress;
     final fraction = progress.overallFraction;
@@ -84,12 +87,14 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
             ],
           ),
           const SizedBox(height: NahpuSpacing.lg),
-          Text(_statusLine(), style: theme.textTheme.bodyMedium),
+          Text(_statusLine(l10n), style: theme.textTheme.bodyMedium),
           if (progress.estimatedRemaining != null)
             Padding(
               padding: const EdgeInsets.only(top: NahpuSpacing.xs),
               child: Text(
-                'about ${formatExportDuration(progress.estimatedRemaining!)} left',
+                l10n.sharedExportTimeLeft(
+                  formatExportDuration(progress.estimatedRemaining!),
+                ),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -122,7 +127,11 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: widget.isCancelling ? null : widget.onCancel,
-                child: Text(widget.isCancelling ? 'Cancelling…' : 'Cancel'),
+                child: Text(
+                  widget.isCancelling
+                      ? l10n.sharedExportCancelling
+                      : l10n.commonCancel,
+                ),
               ),
             ),
           ],
@@ -131,23 +140,29 @@ class _ExportProgressPanelState extends State<ExportProgressPanel> {
     );
   }
 
-  String _statusLine() {
+  String _statusLine(AppLocalizations l10n) {
     final detail = widget.progress.detail;
     final parts = <String>[];
     if (detail.totalUnits > 0) {
-      parts.add('${detail.completedUnits} of ${detail.totalUnits} files');
+      parts.add(
+        l10n.sharedExportFilesOfTotal(detail.completedUnits, detail.totalUnits),
+      );
     } else if (detail.completedUnits > 0) {
-      parts.add('${detail.completedUnits} files');
+      parts.add(l10n.sharedExportFileCount(detail.completedUnits));
     }
     if (detail.totalBytes > 0) {
       parts.add(
-        '${formatByteSize(detail.bytesProcessed)} '
-        'of ${formatByteSize(detail.totalBytes)}',
+        l10n.sharedExportBytesOfTotal(
+          formatByteSize(detail.bytesProcessed),
+          formatByteSize(detail.totalBytes),
+        ),
       );
     } else if (detail.bytesProcessed > 0) {
       parts.add(formatByteSize(detail.bytesProcessed));
     }
-    parts.add('${formatExportDuration(_stopwatch.elapsed)} elapsed');
+    parts.add(
+      l10n.sharedExportElapsed(formatExportDuration(_stopwatch.elapsed)),
+    );
     return parts.join(' · ');
   }
 }
@@ -166,20 +181,25 @@ class ExportPhaseStepper extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
             child: _ExportPhaseTile(
-              label: progress.steps[index].label,
+              label: progress.steps[index].label.text(context.l10n),
               isComplete: progress.isComplete(index),
               isActive: progress.isActive(index),
-              trailing: progress.isActive(index) ? _trailing() : null,
+              trailing: progress.isActive(index)
+                  ? _trailing(context.l10n)
+                  : null,
             ),
           ),
       ],
     );
   }
 
-  String? _trailing() {
+  String? _trailing(AppLocalizations l10n) {
     final detail = progress.detail;
     if (detail.totalUnits > 0) {
-      return '${detail.completedUnits} of ${detail.totalUnits}';
+      return l10n.sharedExportUnitsOfTotal(
+        detail.completedUnits,
+        detail.totalUnits,
+      );
     }
     if (detail.completedUnits > 0) return '${detail.completedUnits}';
     return null;
@@ -273,6 +293,7 @@ class ExportFailurePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return NahpuPanel(
       child: Column(
@@ -287,12 +308,12 @@ class ExportFailurePanel extends StatelessWidget {
               ),
               const SizedBox(width: NahpuSpacing.lg),
               Expanded(
-                child: Text(_title(), style: theme.textTheme.titleLarge),
+                child: Text(_title(l10n), style: theme.textTheme.titleLarge),
               ),
             ],
           ),
           const SizedBox(height: NahpuSpacing.xl),
-          ..._body(theme),
+          ..._body(theme, l10n),
           if (onRetry != null) ...[
             const SizedBox(height: NahpuSpacing.xl),
             Align(
@@ -300,7 +321,7 @@ class ExportFailurePanel extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                label: Text(l10n.sharedTryAgain),
               ),
             ),
           ],
@@ -309,13 +330,10 @@ class ExportFailurePanel extends StatelessWidget {
     );
   }
 
-  List<Widget> _body(ThemeData theme) {
+  List<Widget> _body(ThemeData theme, AppLocalizations l10n) {
     if (outcome == ExportOutcome.cancelled) {
       return [
-        Text(
-          'No file was saved. Nothing on this device was changed.',
-          style: theme.textTheme.bodyMedium,
-        ),
+        Text(l10n.sharedExportCancelledBody, style: theme.textTheme.bodyMedium),
       ];
     }
     return [
@@ -323,16 +341,17 @@ class ExportFailurePanel extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
           child: Text(
-            'Stopped while working on: $failedStepLabel',
+            l10n.sharedExportStoppedAt(failedStepLabel!),
             style: theme.textTheme.bodyMedium,
           ),
         ),
-      ErrorText(error: errorMessage ?? 'The export did not finish.'),
+      ErrorText(error: errorMessage ?? l10n.sharedExportDidNotFinish),
     ];
   }
 
-  String _title() =>
-      outcome == ExportOutcome.cancelled ? 'Export cancelled' : 'Export failed';
+  String _title(AppLocalizations l10n) => outcome == ExportOutcome.cancelled
+      ? l10n.sharedExportCancelled
+      : l10n.sharedExportFailed;
 
   IconData _icon() => outcome == ExportOutcome.cancelled
       ? Icons.cancel_outlined

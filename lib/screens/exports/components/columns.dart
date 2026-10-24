@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class ColumnSelectionList extends StatefulWidget {
   const ColumnSelectionList({
@@ -82,7 +83,7 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                   child: ExpansionTile(
                     shape: const Border(),
                     title: Text(
-                      databaseTableDisplayTitle(table),
+                      databaseTableLocalizedTitle(context.l10n, table),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     initiallyExpanded: true,

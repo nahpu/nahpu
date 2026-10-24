@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
@@ -84,8 +85,8 @@ class _BaseLayerSection extends ConsumerWidget {
       children: [
         for (final style in SpatialBasemapStyle.values)
           CommonSettingTile(
-            title: style.label,
-            label: style.description,
+            title: style.localizedLabel(context.l10n),
+            label: style.localizedDescription(context.l10n),
             icon: _baseLayerIcon(style),
             trailing: selected.value == style
                 ? const Icon(Icons.check_rounded)
@@ -192,8 +193,10 @@ class _CustomLayerTile extends StatelessWidget {
     return CommonSettingTile(
       title: layer.name,
       label: supported
-          ? layer.kind.label
-          : l10n.settingsMapKindUnavailableOnLinux(layer.kind.label),
+          ? layer.kind.localizedLabel(l10n)
+          : l10n.settingsMapKindUnavailableOnLinux(
+              layer.kind.localizedLabel(l10n),
+            ),
       icon: _layerIcon(layer.kind),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -248,7 +251,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
             Text(layer.name, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              layer.kind.label,
+              layer.kind.localizedLabel(l10n),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const Divider(),

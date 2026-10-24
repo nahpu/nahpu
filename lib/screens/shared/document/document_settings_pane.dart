@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/src/rust/api/config.dart' as rust_config;
 import 'package:nahpu/services/templates/document_layout_service.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
@@ -83,7 +85,7 @@ class DocumentSettingsPane extends StatelessWidget {
               const FileFormatIcon(path: 'assets/icons/pdf.svg'),
               if (!showSpecimenSelection && onSelectSpecimens != null) ...[
                 _RecordSelectionSummary(
-                  label: _getRecordTypeLabel(),
+                  label: _getRecordTypeLabel(context.l10n),
                   selectedCount: selectedCount,
                   totalCount: totalCount,
                   onSelect: onSelectSpecimens,
@@ -119,18 +121,18 @@ class DocumentSettingsPane extends StatelessWidget {
     );
   }
 
-  String _getRecordTypeLabel() {
+  String _getRecordTypeLabel(AppLocalizations l10n) {
     switch (recordType) {
       case RecordType.specimenRecord:
-        return 'Specimens';
+        return l10n.documentRecordsSpecimens;
       case RecordType.site:
-        return 'Sites';
+        return l10n.documentRecordsSites;
       case RecordType.collEvent:
-        return 'Collecting Events';
+        return l10n.documentRecordsEvents;
       case RecordType.narrative:
-        return 'Narratives';
+        return l10n.documentRecordsNarratives;
       default:
-        return 'Records';
+        return l10n.documentRecordsGeneric;
     }
   }
 }
@@ -160,7 +162,7 @@ class _RecordSelectionSummary extends StatelessWidget {
                 Text(label, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 4),
                 Text(
-                  '$selectedCount of $totalCount selected',
+                  context.l10n.documentSelectedCount(selectedCount, totalCount),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -169,7 +171,7 @@ class _RecordSelectionSummary extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onSelect,
             icon: const Icon(Icons.table_rows_outlined),
-            label: const Text('Select'),
+            label: Text(context.l10n.commonSelect),
           ),
         ],
       ),
@@ -198,7 +200,10 @@ class _FileSettingsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('File settings', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.documentFileSettings,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           FileNameField(
             controller: exportCtr.fileNameCtr,
@@ -279,7 +284,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
   static const double _wideFieldWidth = 240;
   static const double _blockTemplateFieldWidth = 220;
 
-  static const Map<String, String> _pageSizeLabels = {
+  /// Page size keys, which are saved in the layout, with their UI labels.
+  static Map<String, String> _pageSizeLabels(AppLocalizations l10n) => {
     'A0': 'A0 (841 x 1188 mm)',
     'A1': 'A1 (594 x 841 mm)',
     'A2': 'A2 (420 x 594 mm)',
@@ -289,19 +295,21 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
     'A6': 'A6 (105 x 148 mm)',
     'A7': 'A7 (74 x 105 mm)',
     'A8': 'A8 (52 x 74 mm)',
-    'Letter': 'US Letter (8.5 x 11 in)',
-    'Legal': 'US Legal',
-    'Custom': 'Custom',
+    'Letter': l10n.documentPageSizeLetter,
+    'Legal': l10n.documentPageSizeLegal,
+    'Custom': l10n.documentPageSizeCustom,
   };
 
-  static const Map<String, String> _pageOrientationLabels = {
-    'portrait': 'Portrait',
-    'landscape': 'Landscape',
+  /// Orientation keys, which are saved in the layout, with their UI labels.
+  static Map<String, String> _pageOrientationLabels(AppLocalizations l10n) => {
+    'portrait': l10n.documentOrientationPortrait,
+    'landscape': l10n.documentOrientationLandscape,
   };
 
   @override
   Widget build(BuildContext context) {
     const isContinuous = false;
+    final l10n = context.l10n;
 
     return NahpuPanel(
       child: Column(
@@ -324,8 +332,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
               layout: widget.layout,
               showMore: _showMorePageSetup,
               wideFieldWidth: _wideFieldWidth,
-              pageSizeLabels: _pageSizeLabels,
-              pageOrientationLabels: _pageOrientationLabels,
+              pageSizeLabels: _pageSizeLabels(l10n),
+              pageOrientationLabels: _pageOrientationLabels(l10n),
               onToggleShowMore: _togglePageSetup,
               onLayoutChanged: widget.onLayoutChanged,
               parseMmOrCurrent: _parseMmOrCurrent,
@@ -335,7 +343,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
             Row(
               children: [
                 Text(
-                  'Override template blocks',
+                  l10n.documentOverrideBlocks,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const Spacer(),
@@ -359,13 +367,13 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Template blocks',
+                    l10n.documentTemplateBlocks,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   TextButton.icon(
                     onPressed: _addBlock,
                     icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('Add Block'),
+                    label: Text(l10n.documentAddBlock),
                   ),
                 ],
               ),
@@ -378,23 +386,23 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                   ),
                   initialValue: widget.layout.multiBlockMode,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Multiple blocks mode',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.documentMultiBlockMode,
+                    border: const OutlineInputBorder(),
                     isDense: true,
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'Continuous',
                       child: Text(
-                        'Continuous (Block-by-block)',
+                        l10n.documentMultiBlockContinuous,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     DropdownMenuItem(
                       value: 'Alternate',
                       child: Text(
-                        'Alternate (Record-by-record)',
+                        l10n.documentMultiBlockAlternate,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -440,7 +448,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Block #${idx + 1}',
+                                l10n.documentBlockNumber(idx + 1),
                                 style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
@@ -459,7 +467,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           : Icons.expand_more,
                                     ),
                                     label: Text(
-                                      isExpanded ? 'Show less' : 'Show more',
+                                      isExpanded
+                                          ? l10n.documentShowLess
+                                          : l10n.documentShowMore,
                                     ),
                                   ),
                                   if (widget.layout.blocks.length > 1)
@@ -469,7 +479,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                         Icons.delete_sweep_outlined,
                                         color: Colors.red,
                                       ),
-                                      tooltip: 'Delete Block',
+                                      tooltip: l10n.documentDeleteBlock,
                                     ),
                                 ],
                               ),
@@ -490,12 +500,12 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   initialValue: selectedTemplateName,
                                   isExpanded: true,
                                   decoration: InputDecoration(
-                                    labelText: 'Template',
-                                    border: OutlineInputBorder(),
+                                    labelText: l10n.documentBlockTemplate,
+                                    border: const OutlineInputBorder(),
                                     isDense: true,
                                     errorText: templateExists
                                         ? null
-                                        : 'This template no longer exists',
+                                        : l10n.documentTemplateMissing,
                                   ),
                                   selectedItemBuilder: (context) =>
                                       templateNames
@@ -504,7 +514,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               templateExists ||
                                                       name != block.templateName
                                                   ? name
-                                                  : 'Missing: $name',
+                                                  : l10n.documentMissingItem(
+                                                      name,
+                                                    ),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           )
@@ -517,7 +529,9 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                             templateExists ||
                                                     name != block.templateName
                                                 ? name
-                                                : 'Missing: $name',
+                                                : l10n.documentMissingItem(
+                                                    name,
+                                                  ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -541,11 +555,11 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           selectedTemplateName,
                                         ),
                                   icon: const Icon(Icons.edit_outlined),
-                                  tooltip: 'Edit template',
+                                  tooltip: l10n.documentEditTemplate,
                                 ),
                               const SizedBox(width: 8),
                               NumberField(
-                                label: 'Copies',
+                                label: l10n.documentBlockCopies,
                                 initialValue: '${block.templateCount}',
                                 onChanged: (value) {
                                   _updateBlock(
@@ -587,7 +601,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                 if (!isContinuous) ...[
                                   if (!_isAutoFillEnabled(block))
                                     NumberField(
-                                      label: 'Rows',
+                                      label: l10n.documentBlockRows,
                                       initialValue: '${block.fixedRows}',
                                       onChanged: (value) {
                                         _updateBlock(
@@ -602,7 +616,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                       },
                                     ),
                                   NumberField(
-                                    label: 'Cols',
+                                    label: l10n.documentBlockCols,
                                     initialValue: '${block.cols}',
                                     onChanged: (value) {
                                       _updateBlock(
@@ -627,7 +641,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           }
                                         },
                                       ),
-                                      const Text('Auto-fill page'),
+                                      Text(l10n.documentAutoFillPage),
                                     ],
                                   ),
                                 ],
@@ -635,7 +649,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Template padding (mm)',
+                              l10n.documentTemplatePadding,
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 8),
@@ -645,7 +659,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 NumberField(
-                                  label: 'Top',
+                                  label: l10n.documentPaddingTop,
                                   initialValue: block.templatePadTopMm
                                       .toStringAsFixed(1),
                                   onChanged: (value) {
@@ -661,7 +675,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   },
                                 ),
                                 NumberField(
-                                  label: 'Left',
+                                  label: l10n.documentPaddingLeft,
                                   initialValue: block.templatePadLeftMm
                                       .toStringAsFixed(1),
                                   onChanged: (value) {
@@ -677,7 +691,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   },
                                 ),
                                 NumberField(
-                                  label: 'Right',
+                                  label: l10n.documentPaddingRight,
                                   initialValue: block.templatePadRightMm
                                       .toStringAsFixed(1),
                                   onChanged: (value) {
@@ -693,7 +707,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   },
                                 ),
                                 NumberField(
-                                  label: 'Bottom',
+                                  label: l10n.documentPaddingBottom,
                                   initialValue: block.templatePadBottomMm
                                       .toStringAsFixed(1),
                                   onChanged: (value) {
@@ -719,7 +733,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Page break after',
+                                  l10n.documentPageBreakAfter,
                                   style: Theme.of(context).textTheme.titleSmall,
                                 ),
                                 const SizedBox(height: 4),
@@ -736,9 +750,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                         }
                                       },
                                     ),
-                                    const Text(
-                                      'Insert page break after this block',
-                                    ),
+                                    Text(l10n.documentPageBreakAfterHint),
                                   ],
                                 ),
                               ],
@@ -776,15 +788,15 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  'Current Project Selection',
+                                                  l10n.documentCurrentProjectSelection,
                                                   style: Theme.of(
                                                     context,
                                                   ).textTheme.titleSmall,
                                                 ),
                                                 const SizedBox(height: 4),
-                                                const Text(
-                                                  '1 document (active project)',
-                                                  style: TextStyle(
+                                                Text(
+                                                  l10n.documentActiveProjectDocument,
+                                                  style: const TextStyle(
                                                     fontStyle: FontStyle.italic,
                                                   ),
                                                 ),
@@ -802,7 +814,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               .value
                                               ?.length ??
                                           0;
-                                      label = 'Specimens';
+                                      label = l10n.documentSelectionSpecimens;
                                     } else if (recordType ==
                                         RecordType.specimenParts) {
                                       totalCount =
@@ -811,7 +823,8 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               .value
                                               ?.length ??
                                           0;
-                                      label = 'Specimen Parts';
+                                      label =
+                                          l10n.documentSelectionSpecimenParts;
                                     } else if (recordType == RecordType.site) {
                                       totalCount =
                                           ref
@@ -819,7 +832,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               .value
                                               ?.length ??
                                           0;
-                                      label = 'Sites';
+                                      label = l10n.documentSelectionSites;
                                     } else if (recordType ==
                                         RecordType.collEvent) {
                                       totalCount =
@@ -828,7 +841,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               .value
                                               ?.length ??
                                           0;
-                                      label = 'Collecting Events';
+                                      label = l10n.documentSelectionEvents;
                                     } else if (recordType ==
                                         RecordType.narrative) {
                                       totalCount =
@@ -837,7 +850,7 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                               .value
                                               ?.length ??
                                           0;
-                                      label = 'Narratives';
+                                      label = l10n.documentSelectionNarratives;
                                     }
                                     return Row(
                                       children: [
@@ -847,14 +860,17 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                '$label Selection',
+                                                label,
                                                 style: Theme.of(
                                                   context,
                                                 ).textTheme.titleSmall,
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                '${selectedIds.length} of $totalCount selected',
+                                                l10n.documentSelectedCount(
+                                                  selectedIds.length,
+                                                  totalCount,
+                                                ),
                                                 style: Theme.of(
                                                   context,
                                                 ).textTheme.bodyMedium,
@@ -990,6 +1006,7 @@ class _BlockOrderControls extends ConsumerWidget {
           recordType,
         );
         final selectedField = block.sortField?.trim() ?? '';
+        final l10n = context.l10n;
         return Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -1020,19 +1037,19 @@ class _BlockOrderControls extends ConsumerWidget {
                 ),
                 initialValue: block.sortDirection,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Direction',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.documentSortDirection,
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: rust_config.DocumentSortDirection.ascending,
-                    child: Text('Ascending'),
+                    child: Text(l10n.documentSortAscending),
                   ),
                   DropdownMenuItem(
                     value: rust_config.DocumentSortDirection.descending,
-                    child: Text('Descending'),
+                    child: Text(l10n.documentSortDescending),
                   ),
                 ],
                 onChanged: selectedField.isEmpty
@@ -1052,7 +1069,7 @@ class _BlockOrderControls extends ConsumerWidget {
         height: 24,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      error: (_, _) => const Text('Unable to load ordering fields'),
+      error: (_, _) => Text(context.l10n.documentSortFieldsLoadError),
     );
   }
 }
@@ -1071,19 +1088,20 @@ class _OrderFieldPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final hasSelection = value.isNotEmpty;
     final isMissing =
         hasSelection && !groups.values.any((fields) => fields.contains(value));
     final fieldTitle = hasSelection
         ? specimenColumnDisplayTitle(value)
-        : 'Original order';
+        : l10n.documentSortOriginalOrder;
     final tableTitle = hasSelection
-        ? databaseTableDisplayTitle(_orderFieldTableName(value))
+        ? databaseTableLocalizedTitle(context.l10n, _orderFieldTableName(value))
         : null;
 
     return Semantics(
       button: true,
-      label: 'Order by',
+      label: l10n.documentSortOrderBy,
       child: InkWell(
         borderRadius: BorderRadius.circular(4),
         onTap: () async {
@@ -1096,19 +1114,19 @@ class _OrderFieldPicker extends StatelessWidget {
           onChanged(selected);
         },
         child: InputDecorator(
-          decoration: const InputDecoration(
-            labelText: 'Order by',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.documentSortOrderBy,
+            border: const OutlineInputBorder(),
             isDense: true,
             floatingLabelBehavior: FloatingLabelBehavior.always,
-            suffixIcon: Icon(Icons.arrow_drop_down),
+            suffixIcon: const Icon(Icons.arrow_drop_down),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isMissing ? 'Missing: $fieldTitle' : fieldTitle,
+                isMissing ? l10n.documentMissingItem(fieldTitle) : fieldTitle,
                 overflow: TextOverflow.ellipsis,
               ),
               if (tableTitle != null)
@@ -1225,6 +1243,7 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
           (fields) => fields.contains(widget.selectedValue),
         );
     final showMissingField = selectedIsMissing && _missingFieldMatches(query);
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1235,12 +1254,12 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
             children: [
               Expanded(
                 child: Text(
-                  'Order records by',
+                  l10n.documentSortOrderRecordsBy,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               IconButton(
-                tooltip: 'Close order field picker',
+                tooltip: l10n.documentSortClosePicker,
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),
               ),
@@ -1252,9 +1271,9 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
           child: TextField(
             controller: _searchController,
             autofocus: widget.autofocusSearch,
-            decoration: const InputDecoration(
-              labelText: 'Search fields or tables',
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              labelText: l10n.exportFieldsSearchFields,
+              prefixIcon: const Icon(Icons.search),
             ),
           ),
         ),
@@ -1264,7 +1283,7 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
             children: [
               ListTile(
                 leading: const Icon(Icons.format_line_spacing),
-                title: const Text('Original order'),
+                title: Text(l10n.documentSortOriginalOrder),
                 selected: widget.selectedValue.isEmpty,
                 trailing: widget.selectedValue.isEmpty
                     ? const Icon(Icons.check)
@@ -1278,19 +1297,26 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   title: Text(
-                    'Missing: ${specimenColumnDisplayTitle(widget.selectedValue)}',
+                    l10n.documentMissingItem(
+                      specimenColumnDisplayTitle(widget.selectedValue),
+                    ),
                   ),
                   subtitle: Text(
-                    '${databaseTableDisplayTitle(_orderFieldTableName(widget.selectedValue))} · Not available for this template',
+                    l10n.documentSortFieldUnavailable(
+                      databaseTableLocalizedTitle(
+                        l10n,
+                        _orderFieldTableName(widget.selectedValue),
+                      ),
+                    ),
                   ),
                   selected: true,
                   trailing: const Icon(Icons.check),
                   onTap: () => Navigator.pop(context, widget.selectedValue),
                 ),
               if (groups.isEmpty && !showMissingField)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('No matching fields.')),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(child: Text(l10n.exportFieldsNoMatchingFields)),
                 )
               else
                 for (final entry in groups.entries)
@@ -1299,12 +1325,10 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
                     initiallyExpanded:
                         query.isNotEmpty || entry.key == selectedTable,
                     title: Text(
-                      databaseTableDisplayTitle(entry.key),
+                      databaseTableLocalizedTitle(context.l10n, entry.key),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    subtitle: Text(
-                      '${entry.value.length} ${entry.value.length == 1 ? 'field' : 'fields'}',
-                    ),
+                    subtitle: Text(l10n.documentFieldCount(entry.value.length)),
                     children: [
                       for (final field in entry.value)
                         ListTile(
@@ -1329,8 +1353,14 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
   Map<String, List<String>> _filteredAndSortedGroups(String query) {
     final entries = widget.groups.entries.toList()
       ..sort((left, right) {
-        final leftTitle = databaseTableDisplayTitle(left.key).toLowerCase();
-        final rightTitle = databaseTableDisplayTitle(right.key).toLowerCase();
+        final leftTitle = databaseTableLocalizedTitle(
+          context.l10n,
+          left.key,
+        ).toLowerCase();
+        final rightTitle = databaseTableLocalizedTitle(
+          context.l10n,
+          right.key,
+        ).toLowerCase();
         final labelComparison = leftTitle.compareTo(rightTitle);
         return labelComparison != 0
             ? labelComparison
@@ -1352,7 +1382,10 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
     final tableMatches =
         query.isEmpty ||
         table.toLowerCase().contains(query) ||
-        databaseTableDisplayTitle(table).toLowerCase().contains(query);
+        databaseTableLocalizedTitle(
+          context.l10n,
+          table,
+        ).toLowerCase().contains(query);
     final matches = tableMatches
         ? List<String>.from(fields)
         : fields
@@ -1381,7 +1414,8 @@ class _OrderFieldPickerContentState extends State<_OrderFieldPickerContent> {
         specimenColumnDisplayTitle(
           widget.selectedValue,
         ).toLowerCase().contains(query) ||
-        databaseTableDisplayTitle(
+        databaseTableLocalizedTitle(
+          context.l10n,
           _orderFieldTableName(widget.selectedValue),
         ).toLowerCase().contains(query);
   }
@@ -1409,10 +1443,14 @@ class _LayoutProfileControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Document Layout', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.documentLayoutTitle,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
@@ -1420,10 +1458,9 @@ class _LayoutProfileControls extends StatelessWidget {
             key: ValueKey('setup-$selectedSetupName'),
             initialValue: selectedSetupName,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Layout profile',
-              helperText:
-                  'Page settings and template blocks are set by the profile.',
+            decoration: InputDecoration(
+              labelText: l10n.documentLayoutProfile,
+              helperText: l10n.documentLayoutProfileHelper,
             ),
             selectedItemBuilder: (context) =>
                 setupNames.map((n) => _setupDropdownText(context, n)).toList(),
@@ -1445,7 +1482,7 @@ class _LayoutProfileControls extends StatelessWidget {
             child: TextButton.icon(
               onPressed: onManagePresets,
               icon: const Icon(Icons.settings_outlined, size: 16),
-              label: const Text('Manage presets'),
+              label: Text(l10n.documentManagePresets),
             ),
           ),
         ],
@@ -1496,17 +1533,23 @@ class _PageSetupControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Page Setup', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.documentPageSetup,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             TextButton.icon(
               onPressed: onToggleShowMore,
               icon: Icon(showMore ? Icons.expand_less : Icons.expand_more),
-              label: Text(showMore ? 'Show less' : 'Show more'),
+              label: Text(
+                showMore ? l10n.documentShowLess : l10n.documentShowMore,
+              ),
             ),
           ],
         ),
@@ -1522,9 +1565,9 @@ class _PageSetupControls extends StatelessWidget {
                 key: ValueKey('page-size-${layout.pageSizeKey}'),
                 initialValue: layout.pageSizeKey,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Page size',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.documentPageSize,
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
                 items: pageSizeLabels.entries
@@ -1541,13 +1584,13 @@ class _PageSetupControls extends StatelessWidget {
             if (showMore) ...[
               if (layout.pageSizeKey == 'Custom') ...[
                 NumberField(
-                  label: 'Width mm',
+                  label: l10n.documentPageWidthMm,
                   initialValue: (layout.customPageWidthMm ?? 210.0)
                       .toStringAsFixed(1),
                   onChanged: _setCustomPageWidth,
                 ),
                 NumberField(
-                  label: 'Height mm',
+                  label: l10n.documentPageHeightMm,
                   initialValue: (layout.customPageHeightMm ?? 297.0)
                       .toStringAsFixed(1),
                   onChanged: _setCustomPageHeight,
@@ -1559,9 +1602,9 @@ class _PageSetupControls extends StatelessWidget {
                   key: ValueKey('orientation-${layout.pageOrientation}'),
                   initialValue: layout.pageOrientation,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Orientation',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.documentOrientation,
+                    border: const OutlineInputBorder(),
                     isDense: true,
                   ),
                   items: pageOrientationLabels.entries
@@ -1581,7 +1624,7 @@ class _PageSetupControls extends StatelessWidget {
         if (showMore) ...[
           const SizedBox(height: 12),
           Text(
-            'Page padding (mm)',
+            l10n.documentPagePadding,
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
@@ -1590,22 +1633,22 @@ class _PageSetupControls extends StatelessWidget {
             runSpacing: 10,
             children: [
               NumberField(
-                label: 'Top',
+                label: l10n.documentPaddingTop,
                 initialValue: layout.pagePadTopMm.toStringAsFixed(1),
                 onChanged: _setPagePadTop,
               ),
               NumberField(
-                label: 'Left',
+                label: l10n.documentPaddingLeft,
                 initialValue: layout.pagePadLeftMm.toStringAsFixed(1),
                 onChanged: _setPagePadLeft,
               ),
               NumberField(
-                label: 'Right',
+                label: l10n.documentPaddingRight,
                 initialValue: layout.pagePadRightMm.toStringAsFixed(1),
                 onChanged: _setPagePadRight,
               ),
               NumberField(
-                label: 'Bottom',
+                label: l10n.documentPaddingBottom,
                 initialValue: layout.pagePadBottomMm.toStringAsFixed(1),
                 onChanged: _setPagePadBottom,
               ),
@@ -1700,7 +1743,7 @@ class RecordNavigationButton extends ConsumerWidget {
     return OutlinedButton.icon(
       onPressed: () => _openSelection(context),
       icon: const Icon(Icons.table_rows_outlined),
-      label: const Text('Select'),
+      label: Text(context.l10n.commonSelect),
     );
   }
 
@@ -1790,7 +1833,7 @@ class _BlockSpecimenPartSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select specimen parts')),
+      appBar: AppBar(title: Text(context.l10n.documentSelectSpecimenParts)),
       body: SafeArea(
         child: SpecimenPartSelectionView(
           selectedIds: _selectedIds,
@@ -1835,7 +1878,7 @@ class _BlockSpecimenSelectionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Select specimens')),
+      appBar: AppBar(title: Text(context.l10n.documentSpecimenSelectTitle)),
       body: SafeArea(
         child: SpecimenSelectionView(
           selectedUuidList: _selectedIds,
@@ -1881,7 +1924,7 @@ class _BlockSpecimenSelectionScreenState
             heightFactor: 0.9,
             child: Scaffold(
               appBar: AppBar(
-                title: const Text('Table columns'),
+                title: Text(context.l10n.presetsTableColumns),
                 automaticallyImplyLeading: false,
               ),
               body: SpecimenTableColumnSelector(
@@ -1896,7 +1939,7 @@ class _BlockSpecimenSelectionScreenState
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('Table columns'),
+            title: Text(context.l10n.presetsTableColumns),
             content: SizedBox(
               width: 420,
               height: 420,

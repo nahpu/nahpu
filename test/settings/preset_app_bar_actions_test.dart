@@ -91,7 +91,7 @@ void main() {
           appBar: AppBar(
             actions: [
               PresetAppBarActions(
-                itemName: 'template',
+                itemKind: PresetItemKind.template,
                 onCreate: () {},
                 onScanQr: () {},
                 onImport: () {},

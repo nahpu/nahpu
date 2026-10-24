@@ -14,6 +14,8 @@ import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/settings/transfer/app_settings_import.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/project_tools.dart';
@@ -67,8 +69,8 @@ class ToolDock extends ConsumerWidget {
                           : const ToolDockDivider(),
                     ToolDockLauncher(
                       icon: tool.icon,
-                      label: tool.label,
-                      tooltip: tool.description,
+                      label: tool.localizedLabel(context.l10n),
+                      tooltip: tool.localizedDescription(context.l10n),
                       onPressed: () => openProjectTool(context, ref, tool),
                     ),
                   ],

@@ -5,16 +5,17 @@ import 'package:nahpu/screens/shared/inline_grouped_field_picker.dart';
 import 'package:nahpu/screens/shared/text_replacement_rules_editor.dart';
 import 'package:nahpu/screens/templates/template_model.dart'
     show isEncodedFieldKey;
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/providers/database.dart';
-import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/text_replacement_labels.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -514,7 +515,7 @@ class _AvailableFieldsSectionState
                 final fields = groups[table]!;
                 return ExpansionTile(
                   title: Text(
-                    databaseTableDisplayTitle(table),
+                    databaseTableLocalizedTitle(context.l10n, table),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -2043,7 +2044,7 @@ class _MappingCustomizerFormState
         _localMapping.replacementRules[index],
       );
       if (error != null) {
-        return l10n.exportFieldsErrorReplacement(index + 1, error);
+        return l10n.exportFieldsErrorReplacement(index + 1, error.label(l10n));
       }
     }
     if (_mappingKind == 'nested') {

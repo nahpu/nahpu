@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/collevents.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -356,7 +358,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-rainfall'),
                   controller: _environmentCtr.rainfallInMmCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'rainfallInMm',
                   ),
                   hintText: 'Enter rainfall',
@@ -382,7 +385,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-ambient-temperature'),
                   controller: _environmentCtr.ambientTemperatureCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'ambientTemperature',
                   ),
                   hintText: 'Enter ambient temperature',
@@ -404,7 +408,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   controller: _environmentCtr.ambientHumidityCtr,
                   key: const ValueKey('environment-ambient-humidity'),
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'ambientHumidity',
                   ),
                   hintText: 'Enter relative humidity',
@@ -441,7 +446,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-water-temperature'),
                   controller: _environmentCtr.waterTemperatureCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'waterTemperature',
                   ),
                   hintText: 'Enter water temperature',
@@ -488,7 +494,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-dissolved-oxygen'),
                   controller: _environmentCtr.dissolvedOxygenCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'dissolvedOxygen',
                   ),
                   hintText: 'Enter dissolved oxygen',
@@ -509,7 +516,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-dissolved-oxygen-percent'),
                   controller: _environmentCtr.dissolvedOxygenPercentCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'dissolvedOxygenPercent',
                   ),
                   hintText: 'Enter dissolved oxygen saturation',
@@ -538,7 +546,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-conductivity'),
                   controller: _environmentCtr.conductivityCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'conductivity',
                   ),
                   hintText: 'Enter conductivity',
@@ -559,7 +568,8 @@ class EnvironmentDataFormState extends ConsumerState<EnvironmentDataForm> {
                 CommonNumField(
                   key: const ValueKey('environment-flow-velocity'),
                   controller: _environmentCtr.flowVelocityCtr,
-                  labelText: environmentalDataFieldLabelWithUnit(
+                  labelText: environmentalDataFieldLocalizedLabelWithUnit(
+                    context.l10n,
                     'flowVelocity',
                   ),
                   hintText: 'Enter flow velocity',

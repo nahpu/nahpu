@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/record_exchange/record_exchange_service.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/geography.dart';
@@ -24,14 +25,21 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
   int? initialTargetId,
   String? matchedLocality,
 }) {
+  final l10n = context.l10n;
   final isSite = payload.type == RecordExchangeType.site;
   final selectedRecords = isSite
       ? sites
-            .map((site) => _ImportTargetOption(site.id, _recordLabel(site)))
+            .map(
+              (site) => _ImportTargetOption(site.id, _recordLabel(site, l10n)),
+            )
             .toList()
       : events
-            .map((event) => _ImportTargetOption(event.id, _recordLabel(event)))
+            .map(
+              (event) =>
+                  _ImportTargetOption(event.id, _recordLabel(event, l10n)),
+            )
             .toList();
+  final typeName = payload.type.name;
   var selected =
       initialTargetId != null &&
           selectedRecords.any((record) => record.id == initialTargetId)
@@ -43,7 +51,7 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         return AlertDialog(
-          title: Text('Import ${isSite ? 'site' : 'event'}'),
+          title: Text(l10n.sharedImportRecordType(typeName)),
           content: SizedBox(
             width: 420,
             child: SingleChildScrollView(
@@ -55,11 +63,11 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(_summary(payload)),
+                  Text(_summary(payload, l10n)),
                   if (matchedLocality != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Reuses a saved locality: $matchedLocality',
+                      l10n.sharedReusesSavedLocality(matchedLocality),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -73,9 +81,7 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
                       children: [
                         RadioListTile<int?>(
                           value: null,
-                          title: Text(
-                            'Create new ${isSite ? 'site' : 'event'}',
-                          ),
+                          title: Text(l10n.sharedCreateNewRecordType(typeName)),
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (selectedRecords.isNotEmpty) ...[
@@ -83,7 +89,7 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              'Update an existing ${isSite ? 'site' : 'event'}',
+                              l10n.sharedUpdateExistingRecordType(typeName),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ),
@@ -105,13 +111,13 @@ Future<RecordImportTargetChoice?> showRecordImportTargetDialog({
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(
                 context,
               ).pop(RecordImportTargetChoice(targetId: selected)),
-              child: const Text('Continue'),
+              child: Text(context.l10n.sharedContinue),
             ),
           ],
         );
@@ -136,17 +142,14 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Choose event site'),
+        title: Text(context.l10n.sharedChooseEventSite),
         content: SizedBox(
           width: 420,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'This event includes a linked site. Choose an existing site '
-                  'or create the embedded site as a new site.',
-                ),
+                Text(context.l10n.sharedChooseEventSiteDescription),
                 const SizedBox(height: 12),
                 RadioGroup<int>(
                   groupValue: selected,
@@ -155,7 +158,7 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
                     children: [
                       RadioListTile<int>(
                         value: -1,
-                        title: const Text('Create embedded site'),
+                        title: Text(context.l10n.sharedCreateEmbeddedSite),
                         contentPadding: EdgeInsets.zero,
                       ),
                       if (sites.isNotEmpty) ...[
@@ -163,7 +166,7 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
                         ...sites.map(
                           (site) => RadioListTile<int>(
                             value: site.id,
-                            title: Text(_recordLabel(site)),
+                            title: Text(_recordLabel(site, context.l10n)),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -178,7 +181,7 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(
@@ -186,7 +189,7 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
                   ? const LinkedSiteChoice(createEmbeddedSite: true)
                   : LinkedSiteChoice(siteId: selected),
             ),
-            child: const Text('Continue'),
+            child: Text(context.l10n.sharedContinue),
           ),
         ],
       ),
@@ -194,46 +197,24 @@ Future<LinkedSiteChoice?> showLinkedSiteDialog({
   );
 }
 
-String _summary(RecordExchangePayload payload) {
-  final parts = <String>[];
-  if (payload.coordinateCount > 0) {
-    parts.add(
-      '${payload.coordinateCount} '
-      '${payload.coordinateCount == 1 ? 'coordinate' : 'coordinates'}',
-    );
-  }
-  if (payload.personnelCount > 0) {
-    parts.add(
-      '${payload.personnelCount} '
-      '${payload.personnelCount == 1 ? 'person' : 'people'}',
-    );
-  }
-  if (payload.effortCount > 0) {
-    parts.add(
-      '${payload.effortCount} '
-      '${payload.effortCount == 1 ? 'effort' : 'efforts'}',
-    );
-  }
-  if (payload.assignmentCount > 0) {
-    parts.add(
-      '${payload.assignmentCount} personnel '
-      '${payload.assignmentCount == 1 ? 'assignment' : 'assignments'}',
-    );
-  }
-  if (payload.type == RecordExchangeType.event &&
-      (payload.data['environment'] != null ||
-          payload.data['weather'] != null)) {
-    parts.add('environmental data');
-  }
-  if (payload.mediaCount > 0) {
-    parts.add(
-      '${payload.mediaCount} '
-      '${payload.mediaCount == 1 ? 'media file' : 'media files'}',
-    );
-  }
-  return parts.isEmpty
-      ? 'No associated records'
-      : 'Includes ${parts.join(', ')}.';
+/// What the payload brings along, as separate items joined by a middle dot
+/// so no sentence is assembled from translated fragments.
+String _summary(RecordExchangePayload payload, AppLocalizations l10n) {
+  final parts = <String>[
+    if (payload.coordinateCount > 0)
+      l10n.sharedCoordinateCount(payload.coordinateCount),
+    if (payload.personnelCount > 0)
+      l10n.sharedPersonCount(payload.personnelCount),
+    if (payload.effortCount > 0) l10n.sharedEffortCount(payload.effortCount),
+    if (payload.assignmentCount > 0)
+      l10n.sharedPersonnelAssignmentCount(payload.assignmentCount),
+    if (payload.type == RecordExchangeType.event &&
+        (payload.data['environment'] != null ||
+            payload.data['weather'] != null))
+      l10n.sharedEnvironmentalData,
+    if (payload.mediaCount > 0) l10n.sharedMediaFileCount(payload.mediaCount),
+  ];
+  return parts.isEmpty ? l10n.sharedNoAssociatedRecords : parts.join(' · ');
 }
 
 class _ImportTargetOption {
@@ -243,17 +224,19 @@ class _ImportTargetOption {
   final String label;
 }
 
-String _recordLabel(Object record) {
+String _recordLabel(Object record, AppLocalizations l10n) {
   if (record is SiteData) {
     return record.siteID?.trim().isNotEmpty == true
         ? record.siteID!
-        : 'Site ${record.id}';
+        : l10n.sharedSiteLabel('${record.id}');
   }
   if (record is CollEventData) {
     final suffix = record.idSuffix?.trim();
-    return suffix?.isNotEmpty == true ? 'Event $suffix' : 'Event ${record.id}';
+    return l10n.sharedEventLabel(
+      suffix?.isNotEmpty == true ? suffix! : '${record.id}',
+    );
   }
-  return 'Record';
+  return l10n.sharedRecordLabel;
 }
 
 typedef RecordExportSaveCallback =
@@ -341,6 +324,7 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final formats = _hasMedia
         ? const [_RecordExportFormat.zip, _RecordExportFormat.tarGzip]
         : const [_RecordExportFormat.json];
@@ -351,11 +335,11 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Export ${widget.payload.type.label}',
+            l10n.sharedExportRecordType(widget.payload.type.name),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
-          Text(_exportDescription()),
+          Text(_exportDescription(l10n)),
           const SizedBox(height: 16),
           GenericFileSettingsCard<_RecordExportFormat>(
             exportCtr: _exportCtr,
@@ -363,7 +347,10 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
             format: _format,
             formats: formats,
             formatLabel: _formatLabel,
-            formatFieldLabel: _hasMedia ? 'Archive format' : 'File format',
+            // Null keeps the card's own "File format" label.
+            formatFieldLabel: _hasMedia
+                ? l10n.settingsSelectionArchiveFormat
+                : null,
             extensionForFormat: (format) => switch (format) {
               _RecordExportFormat.json => 'json',
               _RecordExportFormat.zip => 'zip',
@@ -406,14 +393,11 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
     _RecordExportFormat.tarGzip => 'TAR.GZ (.tar.gz)',
   };
 
-  String _exportDescription() {
+  String _exportDescription(AppLocalizations l10n) {
     if (!_hasMedia) {
-      return 'Export this ${widget.payload.type.label} record as JSON.';
+      return l10n.sharedExportRecordJson(widget.payload.type.name);
     }
-    return 'This ${widget.payload.type.label} includes '
-        '${widget.payload.mediaCount} linked media '
-        'file${widget.payload.mediaCount == 1 ? '' : 's'} that will be '
-        'included in the archive.';
+    return l10n.sharedExportRecordMedia(widget.payload.mediaCount);
   }
 
   void _resetExport() {
@@ -453,8 +437,8 @@ class _RecordExportDialogState extends State<RecordExportDialog> {
             // Only a folder the user chose is worth naming; the fallback is
             // a path they cannot act on.
             _selectedDir != null
-                ? 'Exported to ${file.path}'
-                : 'Export complete',
+                ? context.l10n.sharedExportedTo(file.path)
+                : context.l10n.sharedExportComplete,
           ),
         ),
       );
@@ -532,7 +516,9 @@ Future<SpecimenImportTargetChoice?> showSpecimenImportTargetDialog({
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Import specimen'),
+        title: Text(
+          context.l10n.sharedImportRecordType(RecordExchangeType.specimen.name),
+        ),
         content: SizedBox(
           width: 440,
           child: SingleChildScrollView(
@@ -542,9 +528,11 @@ Future<SpecimenImportTargetChoice?> showSpecimenImportTargetDialog({
                 Text(payload.displayName),
                 const SizedBox(height: 8),
                 Text(
-                  'Includes ${payload.partCount} part(s), '
-                  '${payload.associatedDataCount} associated record(s), and '
-                  '${payload.mediaCount} media file(s).',
+                  context.l10n.sharedSpecimenImportSummary(
+                    payload.partCount,
+                    payload.associatedDataCount,
+                    payload.mediaCount,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 RadioGroup<String?>(
@@ -552,21 +540,29 @@ Future<SpecimenImportTargetChoice?> showSpecimenImportTargetDialog({
                   onChanged: (value) => setState(() => selected = value),
                   child: Column(
                     children: [
-                      const RadioListTile<String?>(
+                      RadioListTile<String?>(
                         value: null,
-                        title: Text('Create new specimen'),
+                        title: Text(
+                          context.l10n.sharedCreateNewRecordType(
+                            RecordExchangeType.specimen.name,
+                          ),
+                        ),
                         contentPadding: EdgeInsets.zero,
                       ),
                       if (specimens.isNotEmpty) ...[
                         const Divider(),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Update an existing specimen'),
+                          child: Text(
+                            context.l10n.sharedUpdateExistingRecordType(
+                              RecordExchangeType.specimen.name,
+                            ),
+                          ),
                         ),
                         ...specimens.map(
                           (specimen) => RadioListTile<String?>(
                             value: specimen.uuid,
-                            title: Text(_specimenLabel(specimen)),
+                            title: Text(_specimenLabel(specimen, context.l10n)),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
@@ -581,13 +577,13 @@ Future<SpecimenImportTargetChoice?> showSpecimenImportTargetDialog({
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(
               context,
             ).pop(SpecimenImportTargetChoice(targetUuid: selected)),
-            child: const Text('Continue'),
+            child: Text(context.l10n.sharedContinue),
           ),
         ],
       ),
@@ -661,7 +657,7 @@ Future<int?> _chooseSpecimenEvent({
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Choose specimen event'),
+        title: Text(context.l10n.sharedChooseSpecimenEvent),
         content: SizedBox(
           width: 420,
           child: SingleChildScrollView(
@@ -670,15 +666,15 @@ Future<int?> _chooseSpecimenEvent({
               onChanged: (value) => setState(() => selected = value!),
               child: Column(
                 children: [
-                  const RadioListTile<int>(
+                  RadioListTile<int>(
                     value: -1,
-                    title: Text('Create embedded event'),
+                    title: Text(context.l10n.sharedCreateEmbeddedEvent),
                     contentPadding: EdgeInsets.zero,
                   ),
                   ...events.map(
                     (event) => RadioListTile<int>(
                       value: event.id,
-                      title: Text(_recordLabel(event)),
+                      title: Text(_recordLabel(event, context.l10n)),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -690,11 +686,11 @@ Future<int?> _chooseSpecimenEvent({
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(selected),
-            child: const Text('Continue'),
+            child: Text(context.l10n.sharedContinue),
           ),
         ],
       ),
@@ -711,7 +707,7 @@ Future<int?> _chooseSpecimenTaxonomy({
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Choose specimen taxonomy'),
+        title: Text(context.l10n.sharedChooseSpecimenTaxonomy),
         content: SizedBox(
           width: 420,
           child: SingleChildScrollView(
@@ -720,15 +716,15 @@ Future<int?> _chooseSpecimenTaxonomy({
               onChanged: (value) => setState(() => selected = value!),
               child: Column(
                 children: [
-                  const RadioListTile<int>(
+                  RadioListTile<int>(
                     value: -1,
-                    title: Text('Create embedded taxonomy'),
+                    title: Text(context.l10n.sharedCreateEmbeddedTaxonomy),
                     contentPadding: EdgeInsets.zero,
                   ),
                   ...taxa.map(
                     (taxon) => RadioListTile<int>(
                       value: taxon.id,
-                      title: Text(_taxonLabel(taxon)),
+                      title: Text(_taxonLabel(taxon, context.l10n)),
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
@@ -740,11 +736,11 @@ Future<int?> _chooseSpecimenTaxonomy({
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(selected),
-            child: const Text('Continue'),
+            child: Text(context.l10n.sharedContinue),
           ),
         ],
       ),
@@ -752,14 +748,14 @@ Future<int?> _chooseSpecimenTaxonomy({
   );
 }
 
-String _specimenLabel(SpecimenData specimen) {
+String _specimenLabel(SpecimenData specimen, AppLocalizations l10n) {
   final field = specimen.fieldNumber;
-  return field == null ? specimen.uuid : 'Specimen $field';
+  return field == null ? specimen.uuid : l10n.sharedSpecimenLabel('$field');
 }
 
-String _taxonLabel(TaxonomyData taxon) {
+String _taxonLabel(TaxonomyData taxon, AppLocalizations l10n) {
   final genus = taxon.genus?.trim() ?? '';
   final epithet = taxon.specificEpithet?.trim() ?? '';
   final name = '$genus $epithet'.trim();
-  return name.isEmpty ? 'Taxon ${taxon.id}' : name;
+  return name.isEmpty ? l10n.sharedTaxonLabel('${taxon.id}') : name;
 }

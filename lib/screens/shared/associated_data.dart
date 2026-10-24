@@ -21,6 +21,7 @@ import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 const double associatedDataCompactBreakpoint = 600;
 
@@ -130,17 +131,11 @@ class _AssociatedDataListState extends ConsumerState<AssociatedDataList> {
                 if (_isSelecting)
                   DeleteItemsButton(
                     selectedItems: _selected.toList(),
-                    itemName: _selected.length == 1
-                        ? 'associated data entry'
-                        : 'associated data entries',
-                    customIconButtonText:
-                        'Remove ${_selected.length} associated data '
-                        '${_selected.length == 1 ? 'entry' : 'entries'}',
-                    customDialogHeader: 'Remove associated data',
-                    customDialogText:
-                        'Remove the selected associated data from this record? '
-                        'Data shared with other records will be preserved.',
-                    customDialogButtonText: 'Remove',
+                    customIconButtonText: context.l10n
+                        .deleteAssociatedDataCount(_selected.length),
+                    customDialogHeader: context.l10n.deleteAssociatedDataTitle,
+                    customDialogText: context.l10n.deleteAssociatedDataBody,
+                    customDialogButtonText: context.l10n.commonRemove,
                     onPressedFunction: _removeSelected,
                   )
                 else

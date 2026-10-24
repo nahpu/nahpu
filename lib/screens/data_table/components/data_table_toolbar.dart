@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -362,12 +364,12 @@ class SpecimenTypeMenu extends StatelessWidget {
                 ? const Icon(Icons.check, size: NahpuControlSize.iconMedium)
                 : null,
             onPressed: () => onChanged(value),
-            child: Text(value.dataTableLabel),
+            child: Text(value.localizedLabel(context.l10n)),
           ),
       ],
       builder: (context, controller, _) => DataTableMenuButton(
         icon: icon(specimenType),
-        label: specimenType.dataTableLabel,
+        label: specimenType.localizedLabel(context.l10n),
         controller: controller,
       ),
     );

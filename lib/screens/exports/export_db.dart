@@ -14,6 +14,8 @@ import 'package:nahpu/services/export/export_progress.dart';
 import 'package:nahpu/services/export/export_task.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/service_labels.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -44,7 +46,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
   ExportJobProgress? _jobProgress;
   ExportOutcome? _outcome;
   String? _runError;
-  String? _failedStepLabel;
+  ExportStepLabel? _failedStepLabel;
   int? _outputBytes;
   Duration? _runDuration;
 
@@ -150,7 +152,7 @@ class ExportDbFormState extends ConsumerState<ExportDbForm> {
                 ? ExportFailurePanel(
                     outcome: _outcome!,
                     errorMessage: _runError,
-                    failedStepLabel: _failedStepLabel,
+                    failedStepLabel: _failedStepLabel?.text(context.l10n),
                     onRetry: _writeDb,
                   )
                 : DbBackupSummaryPanel(summary: _summary, error: _summaryError);

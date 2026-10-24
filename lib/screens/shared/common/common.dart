@@ -124,7 +124,7 @@ class CommonAlertDialog extends StatelessWidget {
             cancelFunction();
             Navigator.pop(context);
           },
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         TextButton(
           onPressed: () {
@@ -133,7 +133,7 @@ class CommonAlertDialog extends StatelessWidget {
               Navigator.pop(context);
             }
           },
-          child: const Text('OK'),
+          child: Text(context.l10n.commonOk),
         ),
       ],
     );
@@ -176,20 +176,21 @@ class SelectItemsInterface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Visibility(
           visible: isSelecting,
           child: TextButton(
             onPressed: onClearPressed,
-            child: const Text('Clear'),
+            child: Text(l10n.commonClear),
           ),
         ),
         Visibility(
           visible: isSelecting,
           child: TextButton(
             onPressed: onSelectAllPressed,
-            child: const Text('Select all'),
+            child: Text(l10n.commonSelectAll),
           ),
         ),
         const Spacer(),
@@ -197,7 +198,7 @@ class SelectItemsInterface extends StatelessWidget {
         if (isSelecting && selectionAction != null) selectionAction!,
         TextButton(
           onPressed: onSelectPressed,
-          child: Text(isSelecting ? 'Done' : 'Select'),
+          child: Text(isSelecting ? l10n.commonDone : l10n.commonSelect),
         ),
       ],
     );

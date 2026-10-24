@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/data_table_screen.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -161,7 +162,7 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
                   for (final type in SpecimenRecordType.values)
                     DropdownMenuItem(
                       value: type,
-                      child: Text(type.dataTableLabel),
+                      child: Text(type.localizedLabel(l10n)),
                     ),
                 ],
                 onChanged: (value) {

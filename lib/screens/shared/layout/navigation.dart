@@ -7,6 +7,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -25,6 +26,7 @@ class ProjectBottomNavbar extends ConsumerStatefulWidget {
 class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isPhone = getScreenType(context) == ScreenType.phone;
     int selectedIndex = ref.watch(projectNavbarIndexProvider);
     return NavigationBar(
@@ -34,32 +36,32 @@ class ProjectBottomNavbarState extends ConsumerState<ProjectBottomNavbar> {
       indicatorColor: Theme.of(context).colorScheme.primaryContainer,
       elevation: NahpuElevation.none,
       selectedIndex: selectedIndex,
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          selectedIcon: Icon(Icons.dashboard_rounded),
-          icon: Icon(Icons.dashboard_outlined),
-          label: 'Dashboard',
+          selectedIcon: const Icon(Icons.dashboard_rounded),
+          icon: const Icon(Icons.dashboard_outlined),
+          label: l10n.sharedNavDashboard,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.place_rounded),
-          icon: Icon(Icons.place_outlined),
-          label: 'Sites',
+          selectedIcon: const Icon(Icons.place_rounded),
+          icon: const Icon(Icons.place_outlined),
+          label: l10n.sharedNavSites,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.calendar_month_rounded),
-          icon: Icon(Icons.calendar_month_outlined),
-          label: 'Events',
-          tooltip: 'Events',
+          selectedIcon: const Icon(Icons.calendar_month_rounded),
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: l10n.sharedNavEvents,
+          tooltip: l10n.sharedNavEvents,
         ),
         NavigationDestination(
-          selectedIcon: SpecimenIcons(isSelected: true),
-          icon: SpecimenIcons(isSelected: false),
-          label: 'Specimens',
+          selectedIcon: const SpecimenIcons(isSelected: true),
+          icon: const SpecimenIcons(isSelected: false),
+          label: l10n.sharedNavSpecimens,
         ),
         NavigationDestination(
-          selectedIcon: Icon(Icons.book_rounded),
-          icon: Icon(Icons.book_outlined),
-          label: 'Narrative',
+          selectedIcon: const Icon(Icons.book_rounded),
+          icon: const Icon(Icons.book_outlined),
+          label: l10n.sharedNavNarrative,
         ),
       ],
       onDestinationSelected: (int index) {
@@ -91,6 +93,7 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final selectedIndex = ref.watch(projectNavbarIndexProvider);
     final isExtended =
         _isExtendedByUser ??
@@ -134,13 +137,15 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
             children: [
               _RailActionButton(
                 icon: toggleIcon,
-                collapsedLabel: isExtended ? 'Collapse' : 'Expand',
+                collapsedLabel: isExtended
+                    ? l10n.sharedNavCollapse
+                    : l10n.sharedNavExpand,
                 expandedLabel: isExtended
-                    ? 'Collapse navigation'
-                    : 'Expand navigation',
+                    ? l10n.sharedNavCollapseNavigation
+                    : l10n.sharedNavExpandNavigation,
                 tooltip: isExtended
-                    ? 'Collapse navigation rail'
-                    : 'Expand navigation rail',
+                    ? l10n.sharedNavCollapseRail
+                    : l10n.sharedNavExpandRail,
                 foregroundColor: standardForeground,
                 isExtended: isExtended,
                 onPressed: () {
@@ -153,11 +158,13 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
                   icon: widget.isMenuOpen
                       ? Icons.menu_open_rounded
                       : Icons.menu_rounded,
-                  collapsedLabel: 'Menu',
-                  expandedLabel: widget.isMenuOpen ? 'Close menu' : 'Menu',
+                  collapsedLabel: l10n.sharedNavMenu,
+                  expandedLabel: widget.isMenuOpen
+                      ? l10n.sharedNavCloseMenu
+                      : l10n.sharedNavMenu,
                   tooltip: widget.isMenuOpen
-                      ? 'Close project menu'
-                      : 'Open project menu',
+                      ? l10n.sharedNavCloseProjectMenu
+                      : l10n.sharedNavOpenProjectMenu,
                   foregroundColor: standardForeground,
                   isExtended: isExtended,
                   onPressed: () =>
@@ -166,31 +173,31 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
               ),
             ],
           ),
-          destinations: const [
+          destinations: [
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.dashboard_rounded),
-              icon: Icon(Icons.dashboard_outlined),
-              label: Text('Dashboard'),
+              selectedIcon: const Icon(Icons.dashboard_rounded),
+              icon: const Icon(Icons.dashboard_outlined),
+              label: Text(l10n.sharedNavDashboard),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.place_rounded),
-              icon: Icon(Icons.place_outlined),
-              label: Text('Sites'),
+              selectedIcon: const Icon(Icons.place_rounded),
+              icon: const Icon(Icons.place_outlined),
+              label: Text(l10n.sharedNavSites),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.calendar_month_rounded),
-              icon: Icon(Icons.calendar_month_outlined),
-              label: Text('Events'),
+              selectedIcon: const Icon(Icons.calendar_month_rounded),
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: Text(l10n.sharedNavEvents),
             ),
             NavigationRailDestination(
-              selectedIcon: SpecimenIcons(isSelected: true),
-              icon: SpecimenIcons(isSelected: false),
-              label: Text('Specimens'),
+              selectedIcon: const SpecimenIcons(isSelected: true),
+              icon: const SpecimenIcons(isSelected: false),
+              label: Text(l10n.sharedNavSpecimens),
             ),
             NavigationRailDestination(
-              selectedIcon: Icon(Icons.book_rounded),
-              icon: Icon(Icons.book_outlined),
-              label: Text('Narrative'),
+              selectedIcon: const Icon(Icons.book_rounded),
+              icon: const Icon(Icons.book_outlined),
+              label: Text(l10n.sharedNavNarrative),
             ),
           ],
           onDestinationSelected: (index) =>
@@ -200,9 +207,9 @@ class _ProjectNavigationRailState extends ConsumerState<ProjectNavigationRail> {
             padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
             child: _RailActionButton(
               icon: Icons.exit_to_app_rounded,
-              collapsedLabel: 'Close',
-              expandedLabel: 'Close project',
-              tooltip: 'Close project',
+              collapsedLabel: l10n.commonClose,
+              expandedLabel: l10n.sharedNavCloseProject,
+              tooltip: l10n.sharedNavCloseProject,
               foregroundColor: standardForeground,
               isExtended: isExtended,
               onPressed: () =>
@@ -373,8 +380,8 @@ class PageNavButtonState extends ConsumerState<PageNavButton> {
           ),
           Tooltip(
             message: widget.onSearch == null
-                ? 'Go to page'
-                : 'Go to page or search',
+                ? context.l10n.sharedGoToPage
+                : context.l10n.sharedGoToPageOrSearch,
             child: TextButton(
               onPressed: () {
                 showModalBottomSheet(
@@ -519,7 +526,7 @@ class PageInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'Page ${pageNav.currentPage} of ${pageNav.pageCounts}',
+      context.l10n.sharedPageOf(pageNav.currentPage, pageNav.pageCounts),
       style: Theme.of(context).textTheme.labelLarge,
     );
   }
@@ -583,7 +590,7 @@ class NavSheetState extends ConsumerState<NavSheet> {
                     if (onSearch != null) ...[
                       const SizedBox(width: NahpuSpacing.md),
                       IconButton.filledTonal(
-                        tooltip: 'Search',
+                        tooltip: context.l10n.sharedSearch,
                         constraints: const BoxConstraints.tightFor(
                           width: NahpuControlSize.touchTarget,
                           height: NahpuControlSize.touchTarget,
@@ -615,12 +622,14 @@ class GoToPageField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       textAlign: TextAlign.center,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.lg)),
         ),
-        label: Center(child: Text('Go to page', textAlign: TextAlign.center)),
-        hintText: 'Page number',
+        label: Center(
+          child: Text(context.l10n.sharedGoToPage, textAlign: TextAlign.center),
+        ),
+        hintText: context.l10n.sharedPageNumber,
         isDense: true,
         floatingLabelAlignment: FloatingLabelAlignment.center,
       ),

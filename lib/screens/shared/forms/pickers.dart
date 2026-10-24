@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 // Begin date picker customization
 const Size _calendarPortraitDialogSizeM2 = Size(330.0, 518.0);
@@ -26,8 +27,6 @@ const double _kMaxHelpPortraitTextScaleFactor = 1.6;
 const double _kMaxHelpLandscapeTextScaleFactor = 1.4;
 const double _fontSizeToScale = 14.0;
 
-const String _defaultClearText = 'Clear';
-
 enum DialogReturnType { confirm, cancel, clear }
 
 class CustomDatePickerDialog extends DatePickerDialog {
@@ -41,7 +40,7 @@ class CustomDatePickerDialog extends DatePickerDialog {
     super.selectableDayPredicate,
     super.cancelText,
     super.confirmText,
-    this.clearText = _defaultClearText,
+    this.clearText,
     super.helpText,
     super.initialCalendarMode = DatePickerMode.day,
     super.errorFormatText,
@@ -231,7 +230,7 @@ class _CustomDatePickerDialogState extends State<CustomDatePickerDialog>
                       datePickerTheme.cancelButtonStyle ??
                       defaults.cancelButtonStyle,
                   onPressed: _handleClear,
-                  child: Text(widget.clearText ?? _defaultClearText),
+                  child: Text(widget.clearText ?? context.l10n.commonClear),
                 ),
                 Spacer(),
                 TextButton(
@@ -3075,7 +3074,7 @@ class CustomTimePickerDialog extends TimePickerDialog {
     required super.initialTime,
     super.cancelText,
     super.confirmText,
-    this.clearText = _defaultClearText,
+    this.clearText,
     super.helpText,
     super.errorInvalidText,
     super.hourLabelText,
@@ -3375,7 +3374,7 @@ class _CustomTimePickerDialogState extends State<CustomTimePickerDialog>
                           pickerTheme.cancelButtonStyle ??
                           defaultTheme.cancelButtonStyle,
                       onPressed: _handleClear,
-                      child: Text(widget.clearText ?? _defaultClearText),
+                      child: Text(widget.clearText ?? context.l10n.commonClear),
                     ),
                     Spacer(),
                     TextButton(

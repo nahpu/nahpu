@@ -16,6 +16,25 @@ enum ExportPhase {
   finalizing,
 }
 
+/// The wording of a stage in the stepper, phrased for the flow that declares
+/// it. Screens turn it into text in the UI language.
+enum ExportStepLabel {
+  prepareBackup,
+  copyMediaAndFiles,
+  compressArchive,
+  extractArchive,
+  restoreMediaAndFiles,
+  backUpCurrentData,
+  replaceDatabase,
+  writeRecords,
+  copyMedia,
+  checkContents,
+  collectRecords,
+  checkRecords,
+  writeAndCompressPackage,
+  processMedia,
+}
+
 /// One stage of a job, with the share of the total work it represents.
 @immutable
 class ExportPhaseStep {
@@ -28,7 +47,7 @@ class ExportPhaseStep {
   final ExportPhase phase;
 
   /// Wording shown in the stepper, phrased for the flow that declared it.
-  final String label;
+  final ExportStepLabel label;
 
   /// Relative share of the whole job. Weights are normalized, not percentages.
   ///

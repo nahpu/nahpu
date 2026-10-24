@@ -13,6 +13,8 @@ import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
@@ -664,7 +666,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           _ReviewRow(
             label: 'Main taxon',
             value: _taxonConfigured && _catalogFmtDraft != null
-                ? catalogFmtDisplayName(_catalogFmtDraft!)
+                ? _catalogFmtDraft!.localizedLabel(context.l10n)
                 : 'Keep current setting',
           ),
           _ReviewRow(

@@ -1,6 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+
+/// The kind of item a preset screen manages, which names its menu entries.
+enum PresetItemKind { preset, template, customField }
 
 /// App-bar actions shared by document, template, and tabular preset screens.
 ///
@@ -17,7 +21,7 @@ class PresetAppBarActions extends StatelessWidget {
     this.onScanQr,
     this.onExportSelected,
     this.onLoadDefaults,
-    this.itemName = 'preset',
+    this.itemKind = PresetItemKind.preset,
   });
 
   final VoidCallback onCreate;
@@ -33,66 +37,68 @@ class PresetAppBarActions extends StatelessWidget {
 
   /// Adds the bundled default presets, when the screen offers them.
   final VoidCallback? onLoadDefaults;
-  final String itemName;
+  final PresetItemKind itemKind;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           onPressed: onCreate,
           icon: const Icon(Icons.add_circle_outline_rounded),
-          tooltip: 'Create new $itemName',
+          tooltip: l10n.sharedPresetCreateTooltip(itemKind.name),
         ),
         AdaptiveMenuButton<_PresetMenuAction>(
-          tooltip:
-              '${itemName[0].toUpperCase()}${itemName.substring(1)} options',
-          itemBuilder: _items,
+          tooltip: l10n.sharedPresetOptions(itemKind.name),
+          itemBuilder: () => _items(l10n),
           onSelected: _onSelected,
         ),
       ],
     );
   }
 
-  List<AdaptiveMenuItem<_PresetMenuAction>> _items() => [
-    const AdaptiveMenuItem(
+  List<AdaptiveMenuItem<_PresetMenuAction>> _items(AppLocalizations l10n) => [
+    AdaptiveMenuItem(
       value: _PresetMenuAction.create,
       icon: Icons.add_circle_outline_rounded,
-      label: 'Create new',
+      label: l10n.sharedPresetCreateNew,
     ),
     if (onScanQr != null)
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _PresetMenuAction.scanQr,
         icon: Icons.qr_code_scanner_outlined,
-        label: 'Scan QR',
+        label: l10n.sharedPresetScanQr,
         hasDividerBefore: true,
       ),
     AdaptiveMenuItem(
       value: _PresetMenuAction.import,
       icon: Icons.file_download_outlined,
-      label: 'Import',
+      label: l10n.commonImport,
       hasDividerBefore: onScanQr == null,
     ),
     if (onExportSelected != null)
       AdaptiveMenuItem(
         value: _PresetMenuAction.exportSelected,
         icon: Icons.file_upload_outlined,
-        label: 'Export this $itemName',
+        label: l10n.sharedPresetExportSelected(itemKind.name),
         hasDividerBefore: true,
       ),
     AdaptiveMenuItem(
       value: _PresetMenuAction.exportAll,
       icon: Icons.drive_folder_upload_outlined,
       // Only distinguish the scopes when both are offered.
-      label: onExportSelected == null ? 'Export' : 'Export all ${itemName}s',
+      label: onExportSelected == null
+          ? l10n.commonExport
+          : l10n.sharedPresetExportAll(itemKind.name),
       hasDividerBefore: onExportSelected == null,
     ),
     if (onLoadDefaults != null)
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _PresetMenuAction.loadDefaults,
         icon: Icons.restore_outlined,
-        label: 'Load defaults',
+        label: l10n.sharedLoadDefaults,
         hasDividerBefore: true,
       ),
   ];
@@ -170,7 +176,7 @@ class PresetEmptyState extends StatelessWidget {
                   FilledButton.tonalIcon(
                     onPressed: onLoadDefaults,
                     icon: const Icon(Icons.restore_outlined),
-                    label: const Text('Load defaults'),
+                    label: Text(context.l10n.sharedLoadDefaults),
                   ),
                 if (onSecondary != null && secondaryLabel != null)
                   OutlinedButton.icon(

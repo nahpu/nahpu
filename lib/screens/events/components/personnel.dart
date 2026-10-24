@@ -13,6 +13,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class EventPersonnel extends ConsumerStatefulWidget {
   const EventPersonnel({super.key, required this.eventID});
@@ -113,20 +114,22 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                                 ? AddPersonnelButton(onPressed: _addPersonnel)
                                 : DeleteItemsButton(
                                     selectedItems: _selectedCollPers,
-                                    itemName: 'personnel',
                                     onPressedFunction: () async {
                                       await _deletePersonnel();
                                       setState(() {
                                         _selectedCollPers.clear();
                                       });
                                     },
-                                    customIconButtonText:
-                                        'Remove ${_selectedCollPers.length} personnel from event',
+                                    customIconButtonText: context.l10n
+                                        .removeEventPersonnelCount(
+                                          _selectedCollPers.length,
+                                        ),
                                     customDialogHeader:
-                                        'Remove event personnel',
+                                        context.l10n.removeEventPersonnelTitle,
                                     customDialogText:
-                                        'Are you sure you want to remove the selected personnel from this event?',
-                                    customDialogButtonText: 'Remove',
+                                        context.l10n.removeEventPersonnelBody,
+                                    customDialogButtonText:
+                                        context.l10n.commonRemove,
                                   ),
                           ],
                         );

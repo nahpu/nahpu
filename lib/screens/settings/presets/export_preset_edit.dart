@@ -8,9 +8,9 @@ import 'package:nahpu/screens/shared/forms/description_field.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/forms/preset_identity_fields.dart';
 import 'package:nahpu/screens/shared/forms/preset_name_dialog.dart';
-import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/export.dart';
 
@@ -244,7 +244,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
   bool get _canUpdate =>
       (_isNameDirty || _isDescriptionDirty) &&
       _nameValidationError == null &&
-      descriptionLengthError(_descriptionController.text) == null &&
+      !isDescriptionTooLong(_descriptionController.text) &&
       !_isUpdating;
 
   /// Validates the typed name, or null when it can be committed.
@@ -269,7 +269,7 @@ class _ExportPresetEditFormState extends ConsumerState<ExportPresetEditForm> {
     final target = _nameController.text.trim();
     final error =
         _nameValidationError ??
-        descriptionLengthError(_descriptionController.text);
+        descriptionLengthError(context.l10n, _descriptionController.text);
     if (error != null) {
       setState(() => _updateError = error);
       return;
@@ -502,7 +502,7 @@ class _PresetSettingsCard extends StatelessWidget {
                     .map(
                       (type) => DropdownMenuItem(
                         value: type,
-                        child: Text(recordTypeToString(type)),
+                        child: Text(type.localizedLabel(l10n)),
                       ),
                     )
                     .toList(growable: false),
@@ -522,7 +522,7 @@ class _PresetSettingsCard extends StatelessWidget {
                       .map(
                         (type) => DropdownMenuItem(
                           value: type,
-                          child: Text(type.dataTableLabel),
+                          child: Text(type.localizedLabel(l10n)),
                         ),
                       )
                       .toList(growable: false),

@@ -1,14 +1,21 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/types/export.dart';
 
-/// Returns an error when [text] is longer than [kDescriptionMaxLength].
+/// Whether [text] is longer than [kDescriptionMaxLength].
 ///
 /// Counts user-perceived characters after trimming, the way the field counter
 /// does, so a description the counter shows as fitting is accepted.
-String? descriptionLengthError(String text) {
-  if (text.trim().characters.length <= kDescriptionMaxLength) return null;
-  return 'Use $kDescriptionMaxLength characters or fewer.';
+bool isDescriptionTooLong(String text) {
+  return text.trim().characters.length > kDescriptionMaxLength;
+}
+
+/// Returns a localized error when [text] is longer than
+/// [kDescriptionMaxLength], or null when it fits.
+String? descriptionLengthError(AppLocalizations l10n, String text) {
+  if (!isDescriptionTooLong(text)) return null;
+  return l10n.formsDescriptionTooLong(kDescriptionMaxLength);
 }
 
 /// Optional short description input for presets and templates.
@@ -42,8 +49,8 @@ class DescriptionField extends StatelessWidget {
         maxLengthEnforcement: MaxLengthEnforcement.none,
         textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
-          labelText: 'Description (optional)',
-          errorText: descriptionLengthError(value.text),
+          labelText: context.l10n.formsDescriptionOptional,
+          errorText: descriptionLengthError(context.l10n, value.text),
           isDense: isDense,
           border: border,
         ),

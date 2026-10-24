@@ -32,6 +32,7 @@ import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class PartDataForm extends ConsumerStatefulWidget {
   const PartDataForm({
@@ -288,8 +289,12 @@ class PartListState extends ConsumerState<PartList> {
                       ? AddPartButton(specimenUuid: widget.specimenUuid)
                       : DeleteItemsButton(
                           selectedItems: _selectedparts,
-                          itemName:
-                              'specimen ${_selectedparts.length == 1 ? 'part' : 'parts'}',
+                          customIconButtonText: context.l10n
+                              .deleteSpecimenPartsCount(_selectedparts.length),
+                          customDialogHeader: context.l10n
+                              .deleteSpecimenPartsTitle(_selectedparts.length),
+                          customDialogText: context.l10n
+                              .deleteSpecimenPartsBody(_selectedparts.length),
                           onPressedFunction: () async {
                             await _deleteParts();
                             setState(() {

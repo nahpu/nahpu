@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/export/specimen_part_filter.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 Future<SpecimenPartFilter?> showSpecimenPartFilterDialog({
@@ -82,6 +83,7 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -93,20 +95,17 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Filter specimen parts',
+                l10n.documentPartFilterTitle,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: NahpuSpacing.md),
-              const Text(
-                'Filters change the list only. Selected parts remain included '
-                'in the export until you change the selection.',
-              ),
+              Text(l10n.documentPartFilterNote),
               const SizedBox(height: NahpuSpacing.xl),
               Text(
-                'Part types',
+                l10n.documentPartFilterTypes,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              const Text('Leave all unchecked to include every type.'),
+              Text(l10n.documentPartFilterTypesHint),
               for (final option in widget.typeOptions)
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
@@ -126,15 +125,17 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
                 key: ValueKey(_numberType),
                 initialValue: _numberType,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Number range'),
-                items: const [
+                decoration: InputDecoration(
+                  labelText: l10n.documentPartFilterNumberRange,
+                ),
+                items: [
                   DropdownMenuItem(
                     value: SpecimenPartNumberType.fieldNumber,
-                    child: Text('Field number'),
+                    child: Text(l10n.documentPartFilterFieldNumber),
                   ),
                   DropdownMenuItem(
                     value: SpecimenPartNumberType.projectNumber,
-                    child: Text('Project number'),
+                    child: Text(l10n.documentPartFilterProjectNumber),
                   ),
                 ],
                 onChanged: (value) {
@@ -146,27 +147,34 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
                 controller: _fromController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'From'),
-                validator: SpecimenPartFilter.validateNumber,
+                decoration: InputDecoration(
+                  labelText: l10n.documentPartFilterFrom,
+                ),
+                validator: (value) => _rangeErrorLabel(
+                  SpecimenPartFilter.validateNumber(value),
+                  l10n,
+                ),
               ),
               const SizedBox(height: NahpuSpacing.lg),
               TextFormField(
                 controller: _toController,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: 'To'),
-                validator: (value) =>
-                    SpecimenPartFilter.validateNumber(value) ??
-                    SpecimenPartFilter.validateRange(
-                      _fromController.text,
-                      value ?? '',
-                    ),
+                decoration: InputDecoration(
+                  labelText: l10n.documentPartFilterTo,
+                ),
+                validator: (value) => _rangeErrorLabel(
+                  SpecimenPartFilter.validateNumber(value) ??
+                      SpecimenPartFilter.validateRange(
+                        _fromController.text,
+                        value ?? '',
+                      ),
+                  l10n,
+                ),
                 onFieldSubmitted: (_) => _apply(),
               ),
               const SizedBox(height: NahpuSpacing.md),
-              const Text(
-                'Includes both endpoints. Leave either end blank for no limit.',
-              ),
+              Text(l10n.documentPartFilterRangeHint),
               const SizedBox(height: NahpuSpacing.xl),
               Wrap(
                 alignment: WrapAlignment.end,
@@ -175,13 +183,16 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
                 children: [
                   TextButton(
                     onPressed: _reset,
-                    child: const Text('Reset filters'),
+                    child: Text(l10n.documentPartFilterReset),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(l10n.commonCancel),
                   ),
-                  FilledButton(onPressed: _apply, child: const Text('Apply')),
+                  FilledButton(
+                    onPressed: _apply,
+                    child: Text(l10n.commonApply),
+                  ),
                 ],
               ),
             ],
@@ -213,4 +224,13 @@ class _SpecimenPartFilterFormState extends State<SpecimenPartFilterForm> {
       ),
     );
   }
+}
+
+String? _rangeErrorLabel(SpecimenPartRangeError? error, AppLocalizations l10n) {
+  return switch (error) {
+    null => null,
+    SpecimenPartRangeError.invalidNumber =>
+      l10n.documentPartFilterInvalidNumber,
+    SpecimenPartRangeError.fromAfterTo => l10n.documentPartFilterFromAfterTo,
+  };
 }
