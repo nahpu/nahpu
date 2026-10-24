@@ -243,6 +243,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Language support is in beta. Some screens are still in English, and translations may be machine drafts.';
 
   @override
+  String get settingsLanguageHelpTranslate => 'Help translate NAHPU';
+
+  @override
   String get settingsRegionalFormat => 'Regional format';
 
   @override

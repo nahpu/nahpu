@@ -528,6 +528,12 @@ abstract class AppLocalizations {
   /// **'Language support is in beta. Some screens are still in English, and translations may be machine drafts.'**
   String get settingsLanguageBetaNote;
 
+  /// Link under the language list that opens the translation guide on the NAHPU website.
+  ///
+  /// In en, this message translates to:
+  /// **'Help translate NAHPU'**
+  String get settingsLanguageHelpTranslate;
+
   /// No description provided for @settingsRegionalFormat.
   ///
   /// In en, this message translates to:

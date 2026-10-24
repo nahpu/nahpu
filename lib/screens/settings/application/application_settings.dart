@@ -11,6 +11,11 @@ import 'package:nahpu/services/localization/regional_format.dart';
 import 'package:nahpu/services/providers/localization.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+/// The contributor guide for translating the app and its documentation.
+const String nahpuTranslationGuideUrl =
+    'https://nahpu.app/en/contributing/translation/';
 
 class ApplicationSettings extends ConsumerWidget {
   const ApplicationSettings({
@@ -167,11 +172,6 @@ class LanguageSettings extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.settingsLanguage)),
       body: CommonSettingList(
         sections: [
-          _SettingNote(
-            key: const ValueKey('language-beta-note'),
-            badge: const BetaBadge(),
-            text: l10n.settingsLanguageBetaNote,
-          ),
           CommonSettingSection(
             title: l10n.settingsLanguage,
             isDivided: true,
@@ -198,6 +198,18 @@ class LanguageSettings extends ConsumerWidget {
                 ),
             ],
           ),
+          _SettingNote(
+            key: const ValueKey('language-beta-note'),
+            padding: const EdgeInsets.only(top: NahpuSpacing.lg),
+            badge: const BetaBadge(),
+            text: l10n.settingsLanguageBetaNote,
+            action: TextButton.icon(
+              key: const ValueKey('language-help-translate'),
+              icon: const Icon(Icons.open_in_new_rounded),
+              label: Text(l10n.settingsLanguageHelpTranslate),
+              onPressed: _openTranslationGuide,
+            ),
+          ),
         ],
       ),
     );
@@ -206,6 +218,13 @@ class LanguageSettings extends ConsumerWidget {
   void _select(BuildContext context, WidgetRef ref, AppLanguage? language) {
     ref.read(appLanguageSettingProvider.notifier).set(language);
     Navigator.maybePop(context);
+  }
+
+  Future<void> _openTranslationGuide() async {
+    await launchUrl(
+      Uri.parse(nahpuTranslationGuideUrl),
+      mode: LaunchMode.externalApplication,
+    );
   }
 }
 
@@ -272,18 +291,28 @@ class RegionalFormatSettings extends ConsumerWidget {
   }
 }
 
-/// A short explanation above a settings list.
+/// A short explanation above or below a settings list.
 class _SettingNote extends StatelessWidget {
-  const _SettingNote({super.key, required this.text, this.badge});
+  const _SettingNote({
+    super.key,
+    required this.text,
+    this.badge,
+    this.action,
+    this.padding = const EdgeInsets.only(bottom: NahpuSpacing.lg),
+  });
 
   final String text;
   final Widget? badge;
+
+  /// A control under the text, such as a link to more information.
+  final Widget? action;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
+      padding: padding,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -292,11 +321,20 @@ class _SettingNote extends StatelessWidget {
             const SizedBox(width: NahpuSpacing.md),
           ],
           Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (action case final action?) ...[
+                  const SizedBox(height: NahpuSpacing.sm),
+                  action,
+                ],
+              ],
             ),
           ),
         ],

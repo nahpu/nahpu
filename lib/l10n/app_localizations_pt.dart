@@ -245,6 +245,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'O suporte a idiomas está em beta. Algumas telas ainda estão em inglês, e as traduções podem ser rascunhos automáticos.';
 
   @override
+  String get settingsLanguageHelpTranslate => 'Ajude a traduzir o NAHPU';
+
+  @override
   String get settingsRegionalFormat => 'Formato regional';
 
   @override

@@ -77,6 +77,7 @@
   "settingsLanguageSystem": "Bawaan sistem",
   "settingsLanguageSystemLabel": "Mengikuti bahasa perangkat ({language})",
   "settingsLanguageBetaNote": "Dukungan bahasa masih beta. Beberapa layar masih berbahasa Inggris, dan terjemahan mungkin masih berupa draf mesin.",
+  "settingsLanguageHelpTranslate": "Bantu terjemahkan NAHPU",
   "settingsRegionalFormat": "Format regional",
   "settingsRegionalFormatMatchLanguage": "Sesuai bahasa",
   "settingsRegionalFormatNote": "Hanya mengubah cara tanggal dan angka ditampilkan. Catatan yang tersimpan dan hasil ekspor tetap memakai format standar.",

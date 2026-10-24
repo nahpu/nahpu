@@ -97,9 +97,6 @@ class _SpatialStatisticsPanelState
         const SizedBox(height: NahpuSpacing.xl),
         Card(
           clipBehavior: Clip.antiAlias,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(NahpuRadius.md)),
-          ),
           child: SizedBox(
             key: const ValueKey('spatial-statistics-content'),
             height: widget.height,

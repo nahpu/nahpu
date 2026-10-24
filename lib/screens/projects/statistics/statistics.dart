@@ -723,7 +723,6 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                             const SizedBox(height: NahpuSpacing.xl),
                             Card(
                               clipBehavior: Clip.antiAlias,
-                              shape: _plotCardShape,
                               child: SizedBox(
                                 key: const ValueKey(
                                   'explore-statistics-content',

@@ -244,6 +244,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Dukungan bahasa masih beta. Beberapa layar masih berbahasa Inggris, dan terjemahan mungkin masih berupa draf mesin.';
 
   @override
+  String get settingsLanguageHelpTranslate => 'Bantu terjemahkan NAHPU';
+
+  @override
   String get settingsRegionalFormat => 'Format regional';
 
   @override

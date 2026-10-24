@@ -20,9 +20,12 @@ class SpatialPointCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // The circle is see-through, so the count carries its own halo to stay
+    // legible over any basemap, light or dark.
     final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
       color: colorScheme.onSurface,
       fontWeight: FontWeight.w600,
+      shadows: mapLabelHalo(colorScheme),
     );
     return SizedBox.square(
       dimension: diameter,
@@ -70,7 +73,9 @@ class SpatialClusterBubble extends StatelessWidget {
     super.key,
     required this.diameter,
     required this.countLabel,
-    required this.coordinateCount,
+    this.coordinateCount,
+    this.color,
+    this.foregroundColor,
   });
 
   /// Smallest bubble that also shows how many sites it groups.
@@ -78,24 +83,32 @@ class SpatialClusterBubble extends StatelessWidget {
 
   final double diameter;
   final String countLabel;
-  final int coordinateCount;
+
+  /// Sites in the group, shown under the count on large bubbles. Null leaves
+  /// that line out, for bubbles whose count already is the site count.
+  final int? coordinateCount;
+
+  /// Bubble fill, the primary color by default.
+  final Color? color;
+
+  /// Text color over [color], the on-primary color by default.
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final fill = color ?? colorScheme.primary;
+    final foreground = foregroundColor ?? colorScheme.onPrimary;
     return SizedBox.square(
       dimension: diameter,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: colorScheme.primary.withValues(alpha: 0.88),
+          color: fill.withValues(alpha: 0.88),
           border: Border.all(color: colorScheme.surface, width: 2),
           boxShadow: [
-            BoxShadow(
-              color: colorScheme.primary.withValues(alpha: 0.35),
-              spreadRadius: 3,
-            ),
+            BoxShadow(color: fill.withValues(alpha: 0.35), spreadRadius: 3),
           ],
         ),
         // Labels scale down inside the square inscribed in the circle, so
@@ -112,15 +125,16 @@ class SpatialClusterBubble extends StatelessWidget {
                     Text(
                       countLabel,
                       style: textTheme.labelMedium?.copyWith(
-                        color: colorScheme.onPrimary,
+                        color: foreground,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (diameter >= _sitesLabelDiameter)
+                    if (coordinateCount != null &&
+                        diameter >= _sitesLabelDiameter)
                       Text(
-                        context.l10n.projectStatsSiteCount(coordinateCount),
+                        context.l10n.projectStatsSiteCount(coordinateCount!),
                         style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onPrimary,
+                          color: foreground,
                         ),
                       ),
                   ],
@@ -132,6 +146,21 @@ class SpatialClusterBubble extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A surface-colored outline for text drawn straight on a map, so it reads
+/// over light and dark basemaps alike.
+List<Shadow> mapLabelHalo(ColorScheme colorScheme) {
+  final color = colorScheme.surface;
+  return [
+    for (final offset in const [
+      Offset(-1, -1),
+      Offset(1, -1),
+      Offset(-1, 1),
+      Offset(1, 1),
+    ])
+      Shadow(color: color, offset: offset, blurRadius: 1.5),
+  ];
 }
 
 /// Side of the square inscribed in a circle of [diameter], less its 2px

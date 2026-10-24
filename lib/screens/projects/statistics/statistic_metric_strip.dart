@@ -13,31 +13,24 @@ class StatisticMetricStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(NahpuSpacing.md),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(NahpuRadius.md),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const spacing = NahpuSpacing.md;
-          final columns = constraints.maxWidth >= NahpuBreakpoints.compact
-              ? tiles.length
-              : 2;
-          final width =
-              (constraints.maxWidth - spacing * (columns - 1)) / columns;
-          return Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: [
-              for (final tile in tiles) SizedBox(width: width, child: tile),
-            ],
-          );
-        },
-      ),
+    // No inset of its own, so the tiles line up with the plot title and the
+    // chart or map below.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = NahpuSpacing.md;
+        final columns = constraints.maxWidth >= NahpuBreakpoints.compact
+            ? tiles.length
+            : 2;
+        final width =
+            (constraints.maxWidth - spacing * (columns - 1)) / columns;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final tile in tiles) SizedBox(width: width, child: tile),
+          ],
+        );
+      },
     );
   }
 }

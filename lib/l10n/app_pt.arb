@@ -77,6 +77,7 @@
   "settingsLanguageSystem": "Padrão do sistema",
   "settingsLanguageSystemLabel": "Segue o idioma do dispositivo ({language})",
   "settingsLanguageBetaNote": "O suporte a idiomas está em beta. Algumas telas ainda estão em inglês, e as traduções podem ser rascunhos automáticos.",
+  "settingsLanguageHelpTranslate": "Ajude a traduzir o NAHPU",
   "settingsRegionalFormat": "Formato regional",
   "settingsRegionalFormatMatchLanguage": "Igual ao idioma",
   "settingsRegionalFormatNote": "Altera apenas como datas e números são exibidos. Registros salvos e exportações mantêm os formatos padrão.",

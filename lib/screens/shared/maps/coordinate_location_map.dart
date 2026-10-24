@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_map/flutter_map.dart' as flutter_map;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' as maplibre;
+import 'package:nahpu/screens/shared/maps/coordinate_map_markers.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/screens/shared/maps/flutter_map_basemap.dart';
@@ -12,6 +14,7 @@ import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
 import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
 import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
 import 'package:nahpu/screens/projects/statistics/offline_user_map_layers.dart';
+import 'package:nahpu/screens/projects/statistics/spatial_statistics_marker_visuals.dart';
 import 'package:nahpu/services/sites/coordinate_map_point.dart';
 import 'package:nahpu/services/sites/natural_earth.dart';
 import 'package:nahpu/services/common/io_services.dart';
@@ -19,8 +22,8 @@ import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
+import 'package:nahpu/services/statistics/spatial_marker_clusters.dart';
 import 'package:nahpu/services/types/map_layers.dart';
-import 'package:nahpu/styles/themes.dart';
 
 /// A shared, read-only coordinate map. Selecting a marker reports the
 /// corresponding coordinate to the owner; it never creates or edits points.
@@ -33,6 +36,7 @@ class CoordinateLocationMap extends ConsumerWidget {
     this.selectedPointIds,
     this.focusRequest = 0,
     this.controlsTopOffset = 8,
+    this.groupsOverlaps = false,
   });
 
   final List<CoordinateMapPoint> points;
@@ -41,6 +45,10 @@ class CoordinateLocationMap extends ConsumerWidget {
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final double controlsTopOffset;
+
+  /// Whether markers that overlap on screen draw as one numbered bubble that
+  /// splits apart as the map zooms in.
+  final bool groupsOverlaps;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,6 +77,7 @@ class CoordinateLocationMap extends ConsumerWidget {
             focusRequest: focusRequest,
             onPointSelected: onPointSelected,
             controlsTopOffset: controlsTopOffset,
+            groupsOverlaps: groupsOverlaps,
             baseLayer: baseLayer,
             isFallback: mapLibreIsExpected,
           );
@@ -105,6 +114,7 @@ class CoordinateLocationMap extends ConsumerWidget {
           basemap: baseLayer,
           style: snapshot.data!,
           controlsTopOffset: controlsTopOffset,
+          groupsOverlaps: groupsOverlaps,
         );
       },
     );
@@ -123,6 +133,7 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
     required this.focusRequest,
     required this.onPointSelected,
     required this.controlsTopOffset,
+    required this.groupsOverlaps,
     required this.baseLayer,
     required this.isFallback,
   });
@@ -134,6 +145,7 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final double controlsTopOffset;
+  final bool groupsOverlaps;
   final SpatialBasemapStyle baseLayer;
 
   /// Whether this map is standing in for a MapLibre map that failed to load,
@@ -204,21 +216,12 @@ class _NaturalEarthCoordinateMapState
                 isFallback: widget.isFallback,
               ),
               const OfflineUserMapLayers(),
-              flutter_map.MarkerLayer(
-                markers: [
-                  for (final point in widget.points)
-                    flutter_map.Marker(
-                      point: _latLng(point),
-                      width: 34,
-                      height: 34,
-                      child: _MapMarker(
-                        selected: widget.selectedPointIds.contains(point.id),
-                        focused: point.id == widget.selectedPointId,
-                        label: point.name,
-                        onTap: () => widget.onPointSelected(point.id),
-                      ),
-                    ),
-                ],
+              _FlutterMapCoordinateMarkers(
+                points: widget.points,
+                selectedPointIds: widget.selectedPointIds,
+                focusedPointId: widget.selectedPointId,
+                groupsOverlaps: widget.groupsOverlaps,
+                onPointSelected: widget.onPointSelected,
               ),
               flutter_map.Scalebar(
                 alignment: Alignment.bottomRight,
@@ -226,6 +229,7 @@ class _NaturalEarthCoordinateMapState
                 textStyle: TextStyle(
                   color: colorScheme.onSurface,
                   fontSize: 12,
+                  shadows: mapLabelHalo(colorScheme),
                 ),
                 lineColor: colorScheme.onSurface,
               ),
@@ -312,6 +316,7 @@ class _MapLibreCoordinateMap extends ConsumerStatefulWidget {
     required this.basemap,
     required this.style,
     required this.controlsTopOffset,
+    required this.groupsOverlaps,
   });
 
   final List<CoordinateMapPoint> points;
@@ -322,6 +327,7 @@ class _MapLibreCoordinateMap extends ConsumerStatefulWidget {
   final SpatialBasemapStyle basemap;
   final String style;
   final double controlsTopOffset;
+  final bool groupsOverlaps;
 
   @override
   ConsumerState<_MapLibreCoordinateMap> createState() =>
@@ -332,7 +338,7 @@ class _MapLibreCoordinateMapState
     extends ConsumerState<_MapLibreCoordinateMap> {
   maplibre.MapController? _controller;
   final _readiness = MapLibreCameraReadiness();
-  CoordinateMapPoint? _tooltipPoint;
+  _CoordinateMapTooltip? _tooltip;
 
   /// Built once per state so rebuilds do not re-apply the initial options.
   late final maplibre.MapOptions _options = _buildOptions();
@@ -342,24 +348,14 @@ class _MapLibreCoordinateMapState
   @override
   void didUpdateWidget(covariant _MapLibreCoordinateMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_tooltipPoint != null) {
-      final updatedPoint = widget.points
-          .where((point) => point.id == _tooltipPoint!.id)
-          .firstOrNull;
-      if (updatedPoint == null) {
-        _tooltipPoint = null;
-      } else {
-        _tooltipPoint = updatedPoint;
-      }
+    final ids = {for (final point in widget.points) point.id};
+    if (_tooltip != null && !_tooltip!.pointIds.every(ids.contains)) {
+      _tooltip = null;
     }
-    if (_isReady) {
-      unawaited(
-        _updateCoordinates(
-          focus:
-              widget.selectedPointId != oldWidget.selectedPointId ||
-              widget.focusRequest != oldWidget.focusRequest,
-        ),
-      );
+    if (_isReady &&
+        (widget.selectedPointId != oldWidget.selectedPointId ||
+            widget.focusRequest != oldWidget.focusRequest)) {
+      unawaited(_focusSelected());
     }
   }
 
@@ -390,16 +386,20 @@ class _MapLibreCoordinateMapState
             },
             onEvent: _handleEvent,
             children: [
+              _MapLibreCoordinateMarkers(
+                points: widget.points,
+                selectedPointIds: widget.selectedPointIds,
+                focusedPointId: widget.selectedPointId,
+                groupsOverlaps: widget.groupsOverlaps,
+              ),
               Positioned.fill(
                 child: MapLibreGestureSurface(onTapUp: _handleMapTap),
               ),
-              if (_tooltipPoint != null)
+              if (_tooltip case final tooltip?)
                 MapTooltipLayer(
-                  point: maplibre.Geographic(
-                    lon: _tooltipPoint!.longitude!,
-                    lat: _tooltipPoint!.latitude!,
-                  ),
-                  title: _tooltipPoint!.name,
+                  point: tooltip.point,
+                  title: tooltip.title,
+                  details: tooltip.details,
                 ),
               if (widget.basemap != SpatialBasemapStyle.none)
                 Positioned(
@@ -482,20 +482,6 @@ class _MapLibreCoordinateMapState
     );
   }
 
-  Future<void> _updateCoordinates({required bool focus}) async {
-    final style = _controller?.style;
-    if (!_isReady || style == null) return;
-    await style.updateGeoJsonSource(
-      id: SpatialMapStyleService.coordinateSourceId,
-      data: SpatialMapStyleService.coordinateFeatureCollection(
-        points: widget.points,
-        selectedPointIds: widget.selectedPointIds,
-        focusedPointId: widget.selectedPointId,
-      ),
-    );
-    if (focus && _isReady) await _focusSelected();
-  }
-
   Future<void> _changeZoom(double amount) async {
     _clearTooltip();
     final controller = _controller;
@@ -538,34 +524,105 @@ class _MapLibreCoordinateMapState
     final controller = _controller;
     if (!_isReady || controller == null) return;
     final camera = controller.getCamera();
-    final point = closestMapPoint<CoordinateMapPoint>(
-      tapPosition: details.localPosition,
+    // Hit-test the same groups the overlay draws, so a tap lands on what the
+    // user sees.
+    final clusters = clusterCoordinatePoints(
       points: widget.points,
-      screenPosition: (point) => mapLibreViewportScreenLocation(
-        camera: camera,
-        viewportSize: details.viewportSize,
-        point: maplibre.Geographic(lon: point.longitude!, lat: point.latitude!),
-      ),
-      hitRadius: (_) => mapMarkerHitRadius(7),
+      focusedPointId: widget.selectedPointId,
+      groupsOverlaps: widget.groupsOverlaps,
+      screenPosition: (point) {
+        final offset = mapLibreViewportScreenLocation(
+          camera: camera,
+          viewportSize: details.viewportSize,
+          point: _geographic(point),
+        );
+        return math.Point(offset.dx, offset.dy);
+      },
     );
-    if (point == null || !mounted) {
+    final cluster = closestMapPoint<MarkerCluster<CoordinateMapPoint>>(
+      tapPosition: details.localPosition,
+      points: clusters,
+      screenPosition: (cluster) => Offset(cluster.center.x, cluster.center.y),
+      hitRadius: (cluster) => mapMarkerHitRadius(
+        coordinateClusterDiameter(
+              cluster,
+              selectedPointIds: widget.selectedPointIds,
+              focusedPointId: widget.selectedPointId,
+            ) /
+            2,
+      ),
+    );
+    if (cluster == null || !mounted) {
       _clearTooltip();
       return;
     }
-    widget.onPointSelected(point.id);
+    if (cluster.isSingle) {
+      final point = cluster.members.single;
+      widget.onPointSelected(point.id);
+      setState(() {
+        _tooltip = _CoordinateMapTooltip(
+          point: _geographic(point),
+          title: point.name,
+          pointIds: [point.id],
+        );
+      });
+      return;
+    }
+    if (camera.zoom < _maxZoom - 0.5) {
+      _clearTooltip();
+      unawaited(_zoomToCluster(cluster.members));
+      return;
+    }
+    final center = coordinateClusterCenter(cluster.members);
     setState(() {
-      _tooltipPoint = point;
+      _tooltip = _CoordinateMapTooltip(
+        point: maplibre.Geographic(lon: center.longitude, lat: center.latitude),
+        title: coordinateClusterTitle(context, cluster),
+        details: coordinateClusterDetails(cluster, canZoomIn: false),
+        pointIds: [for (final point in cluster.members) point.id],
+      );
     });
   }
 
+  /// Zooms in on a grouped bubble so its coordinates split apart.
+  Future<void> _zoomToCluster(List<CoordinateMapPoint> members) async {
+    final controller = _controller;
+    if (!_isReady || controller == null) return;
+    final zoom = controller.getCamera().zoom;
+    final bounds = maplibre.LngLatBounds.fromPoints([
+      for (final point in members) _geographic(point),
+    ]);
+    final isPoint =
+        (bounds.longitudeEast - bounds.longitudeWest).abs() < 1e-6 &&
+        (bounds.latitudeNorth - bounds.latitudeSouth).abs() < 1e-6;
+    // Fitting shared or near-identical coordinates could zoom out, so those
+    // step in two levels around their center instead.
+    if (isPoint) {
+      final center = coordinateClusterCenter(members);
+      await controller.animateCamera(
+        center: maplibre.Geographic(
+          lon: center.longitude,
+          lat: center.latitude,
+        ),
+        zoom: (zoom + 2).clamp(1, _maxZoom).toDouble(),
+        nativeDuration: const Duration(milliseconds: 250),
+      );
+      return;
+    }
+    await controller.fitBounds(
+      bounds: bounds,
+      padding: const EdgeInsets.all(64),
+      webMaxZoom: _maxZoom,
+    );
+  }
+
   void _clearTooltip() {
-    if (!mounted || _tooltipPoint == null) return;
-    setState(() => _tooltipPoint = null);
+    if (!mounted || _tooltip == null) return;
+    setState(() => _tooltip = null);
   }
 
   Future<void> _initializeMap() async {
     if (!_readiness.claimInitialCamera()) return;
-    await _updateCoordinates(focus: false);
     if (_readiness.takePendingReset()) {
       await _resetCamera();
       return;
@@ -587,6 +644,254 @@ class _MapLibreCoordinateMapState
 
 LatLng _latLng(CoordinateMapPoint point) =>
     LatLng(point.latitude!, point.longitude!);
+
+maplibre.Geographic _geographic(CoordinateMapPoint point) =>
+    maplibre.Geographic(lon: point.longitude!, lat: point.latitude!);
+
+const double _maxZoom = 16;
+
+/// What the MapLibre tooltip shows, and which coordinates it describes.
+class _CoordinateMapTooltip {
+  const _CoordinateMapTooltip({
+    required this.point,
+    required this.title,
+    required this.pointIds,
+    this.details = const [],
+  });
+
+  final maplibre.Geographic point;
+  final String title;
+  final List<String> details;
+  final List<int> pointIds;
+}
+
+/// Coordinate markers inside a `flutter_map` map, drawn with the same visuals
+/// as [_MapLibreCoordinateMarkers].
+class _FlutterMapCoordinateMarkers extends StatelessWidget {
+  const _FlutterMapCoordinateMarkers({
+    required this.points,
+    required this.selectedPointIds,
+    required this.focusedPointId,
+    required this.groupsOverlaps,
+    required this.onPointSelected,
+  });
+
+  final List<CoordinateMapPoint> points;
+  final Set<int> selectedPointIds;
+  final int? focusedPointId;
+  final bool groupsOverlaps;
+  final ValueChanged<int> onPointSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = flutter_map.MapCamera.of(context);
+    final clusters = clusterCoordinatePoints(
+      points: points,
+      focusedPointId: focusedPointId,
+      groupsOverlaps: groupsOverlaps,
+      screenPosition: (point) {
+        final offset = camera.latLngToScreenOffset(_latLng(point));
+        return math.Point(offset.dx, offset.dy);
+      },
+    );
+    final canZoomIn = camera.zoom < (camera.maxZoom ?? _maxZoom) - 0.5;
+    return flutter_map.MarkerLayer(
+      markers: [
+        for (final cluster in coordinateMarkerPaintOrder(
+          clusters,
+          selectedPointIds: selectedPointIds,
+          focusedPointId: focusedPointId,
+        ))
+          _marker(camera, cluster, canZoomIn: canZoomIn),
+      ],
+    );
+  }
+
+  flutter_map.Marker _marker(
+    flutter_map.MapCamera camera,
+    MarkerCluster<CoordinateMapPoint> cluster, {
+    required bool canZoomIn,
+  }) {
+    // Small dots still get a finger-sized target.
+    final size = math.max(
+      coordinateClusterDiameter(
+        cluster,
+        selectedPointIds: selectedPointIds,
+        focusedPointId: focusedPointId,
+      ),
+      _minimumTapTarget,
+    );
+    return flutter_map.Marker(
+      point: cluster.isSingle
+          ? _latLng(cluster.members.single)
+          : camera.screenOffsetToLatLng(
+              Offset(cluster.center.x, cluster.center.y),
+            ),
+      width: size,
+      height: size,
+      child: _FlutterMapCoordinateMarker(
+        cluster: cluster,
+        selectedPointIds: selectedPointIds,
+        focusedPointId: focusedPointId,
+        canZoomIn: canZoomIn,
+        onPointSelected: onPointSelected,
+      ),
+    );
+  }
+
+  static const _minimumTapTarget = 28.0;
+}
+
+/// One dot or grouped bubble of [_FlutterMapCoordinateMarkers], with its tap
+/// and tooltip handling.
+class _FlutterMapCoordinateMarker extends StatelessWidget {
+  const _FlutterMapCoordinateMarker({
+    required this.cluster,
+    required this.selectedPointIds,
+    required this.focusedPointId,
+    required this.canZoomIn,
+    required this.onPointSelected,
+  });
+
+  final MarkerCluster<CoordinateMapPoint> cluster;
+  final Set<int> selectedPointIds;
+  final int? focusedPointId;
+  final bool canZoomIn;
+  final ValueChanged<int> onPointSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = cluster.isSingle
+        ? cluster.members.single.name
+        : [
+            coordinateClusterTitle(context, cluster),
+            ...coordinateClusterDetails(cluster, canZoomIn: canZoomIn),
+          ].join('\n');
+    final isTappable = cluster.isSingle || canZoomIn;
+    return Semantics(
+      button: isTappable,
+      label: label,
+      child: Tooltip(
+        message: label,
+        triggerMode: TooltipTriggerMode.tap,
+        waitDuration: Duration.zero,
+        showDuration: const Duration(seconds: 4),
+        child: MouseRegion(
+          cursor: isTappable
+              ? SystemMouseCursors.click
+              : SystemMouseCursors.basic,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: isTappable ? () => _onTap(context) : null,
+            child: Center(
+              child: CoordinateMarkerVisual(
+                cluster: cluster,
+                selectedPointIds: selectedPointIds,
+                focusedPointId: focusedPointId,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onTap(BuildContext context) {
+    if (cluster.isSingle) {
+      onPointSelected(cluster.members.single.id);
+      return;
+    }
+    final controller = flutter_map.MapController.of(context);
+    final camera = flutter_map.MapCamera.of(context);
+    final maxZoom = camera.maxZoom ?? _maxZoom;
+    // Coordinates that share a point would fit at any zoom, so step in at
+    // least one level each tap.
+    controller.fitCamera(
+      flutter_map.CameraFit.coordinates(
+        coordinates: [for (final point in cluster.members) _latLng(point)],
+        padding: const EdgeInsets.all(64),
+        maxZoom: maxZoom,
+        minZoom: math.min(camera.zoom + 1, maxZoom),
+      ),
+    );
+  }
+}
+
+/// Coordinate markers drawn by Flutter over the MapLibre map, so they match
+/// the `flutter_map` markers and can group as the zoom changes.
+///
+/// Points are projected from the camera and this widget's own size, as
+/// [MapTooltipLayer] does, because the controller's cached size can lag.
+/// Taps are handled by the map's gesture surface.
+class _MapLibreCoordinateMarkers extends StatelessWidget {
+  const _MapLibreCoordinateMarkers({
+    required this.points,
+    required this.selectedPointIds,
+    required this.focusedPointId,
+    required this.groupsOverlaps,
+  });
+
+  final List<CoordinateMapPoint> points;
+  final Set<int> selectedPointIds;
+  final int? focusedPointId;
+  final bool groupsOverlaps;
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = maplibre.MapCamera.maybeOf(context);
+    if (camera == null || points.isEmpty) return const SizedBox.shrink();
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final viewport = constraints.biggest;
+            final clusters = clusterCoordinatePoints(
+              points: points,
+              focusedPointId: focusedPointId,
+              groupsOverlaps: groupsOverlaps,
+              screenPosition: (point) {
+                final offset = mapLibreViewportScreenLocation(
+                  camera: camera,
+                  viewportSize: viewport,
+                  point: _geographic(point),
+                );
+                return math.Point(offset.dx, offset.dy);
+              },
+            );
+            return Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                for (final cluster in coordinateMarkerPaintOrder(
+                  clusters,
+                  selectedPointIds: selectedPointIds,
+                  focusedPointId: focusedPointId,
+                ))
+                  _centered(cluster),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _centered(MarkerCluster<CoordinateMapPoint> cluster) {
+    final diameter = coordinateClusterDiameter(
+      cluster,
+      selectedPointIds: selectedPointIds,
+      focusedPointId: focusedPointId,
+    );
+    return Positioned(
+      left: cluster.center.x - diameter / 2,
+      top: cluster.center.y - diameter / 2,
+      child: CoordinateMarkerVisual(
+        cluster: cluster,
+        selectedPointIds: selectedPointIds,
+        focusedPointId: focusedPointId,
+      ),
+    );
+  }
+}
 
 class _MapControls extends StatelessWidget {
   const _MapControls({
@@ -625,48 +930,6 @@ class _MapControls extends StatelessWidget {
           icon: const Icon(Icons.center_focus_strong_outlined),
         ),
       ],
-    ),
-  );
-}
-
-class _MapMarker extends StatelessWidget {
-  const _MapMarker({
-    required this.selected,
-    required this.focused,
-    required this.label,
-    required this.onTap,
-  });
-
-  final bool selected;
-  final bool focused;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: label,
-    child: Tooltip(
-      message: label,
-      triggerMode: TooltipTriggerMode.tap,
-      waitDuration: Duration.zero,
-      showDuration: const Duration(seconds: 4),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Icon(
-          Icons.location_on,
-          size: focused
-              ? 34
-              : selected
-              ? 28
-              : 26,
-          color: focused
-              ? NahpuTheme.focusedMapMarker(Theme.of(context).colorScheme)
-              : selected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
     ),
   );
 }

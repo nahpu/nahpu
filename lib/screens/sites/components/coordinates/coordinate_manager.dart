@@ -904,6 +904,7 @@ class _CoordinateMapPane extends StatelessWidget {
               focusRequest: focusRequest,
               onPointSelected: onCoordinateSelected,
               controlsTopOffset: controlsTopOffset,
+              groupsOverlaps: true,
             ),
           ),
         ],

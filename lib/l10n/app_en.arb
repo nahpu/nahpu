@@ -92,6 +92,8 @@
     "placeholders": {"language": {"type": "String", "example": "English"}}
   },
   "settingsLanguageBetaNote": "Language support is in beta. Some screens are still in English, and translations may be machine drafts.",
+  "settingsLanguageHelpTranslate": "Help translate NAHPU",
+  "@settingsLanguageHelpTranslate": {"description": "Link under the language list that opens the translation guide on the NAHPU website."},
   "settingsRegionalFormat": "Regional format",
   "settingsRegionalFormatMatchLanguage": "Match language",
   "settingsRegionalFormatNote": "Changes only how dates and numbers are shown. Saved records and exports keep standard formats.",

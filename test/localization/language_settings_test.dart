@@ -60,7 +60,22 @@ void main() {
     final prefs = await prefsWith({});
     await tester.pumpWidget(app(prefs, const LanguageSettings()));
 
-    expect(find.byKey(const ValueKey('language-beta-note')), findsOneWidget);
+    final note = find.byKey(const ValueKey('language-beta-note'));
+    expect(note, findsOneWidget);
+    expect(
+      tester.getTopLeft(note).dy,
+      greaterThan(
+        tester.getTopLeft(find.byKey(const ValueKey('language-id'))).dy,
+      ),
+      reason: 'the beta note sits below the language list',
+    );
+    expect(
+      find.descendant(
+        of: note,
+        matching: find.byKey(const ValueKey('language-help-translate')),
+      ),
+      findsOneWidget,
+    );
     for (final code in ['pt', 'es', 'id']) {
       expect(
         find.descendant(
