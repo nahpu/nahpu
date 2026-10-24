@@ -5,21 +5,12 @@ import 'package:path/path.dart' as p;
 
 /// Guards the macOS sandbox entitlements the map cannot work without.
 ///
-/// macOS has no native MapLibre plugin. `maplibre_webview` renders MapLibre GL
-/// JS inside a web view and drives it over a WebSocket served from a loopback
-/// `HttpServer`, so the app has to bind a listening socket. Under the App
-/// Sandbox that requires `com.apple.security.network.server`, and loopback is
-/// not exempt.
-///
-/// Nothing reports the failure. The bind throws, the platform view and every
-/// child widget collapse to `SizedBox.shrink()`, and the map is simply absent
-/// -- no crash, no log, no error state. That shipped once already: the key was
-/// in DebugProfile but never added to Release, so the map rendered in
-/// development and vanished in TestFlight. These tests fail instead.
-///
-/// `Info.plist` pairs that entitlement with `NSAllowsLocalNetworking`, which
-/// declares the loopback connection. App Review's automated check rejected a
-/// build that had the server entitlement without the declaration.
+/// The macOS map is drawn by `flutter_map`, which fetches OpenFreeMap styles
+/// and vector tiles over the network. Under the App Sandbox that requires
+/// `com.apple.security.network.client`. A missing key fails silently: the
+/// online basemap never loads and only the bundled Natural Earth map shows.
+/// A key present in DebugProfile but not in Release once shipped a map that
+/// worked in development and broke in TestFlight. These tests fail instead.
 final releaseEntitlementsPath = p.join(
   'macos',
   'Runner',
@@ -30,15 +21,11 @@ final debugProfileEntitlementsPath = p.join(
   'Runner',
   'DebugProfile.entitlements',
 );
-final infoPlistPath = p.join('macos', 'Runner', 'Info.plist');
 
 /// Entitlement -> what in the map path stops working without it.
 const mapEntitlements = <String, String>{
-  'com.apple.security.network.server':
-      'maplibre_webview binds a loopback HttpServer to reach its web view',
   'com.apple.security.network.client':
-      'the OpenFreeMap style request and the maplibre-gl.js tags the web view '
-      'loads',
+      'the OpenFreeMap style and vector tile requests',
 };
 
 void main() {
@@ -55,10 +42,9 @@ void main() {
         missing,
         isEmpty,
         reason:
-            'The macOS map runs in a web view (maplibre_webview), not a native '
-            'plugin. Without these keys in $releaseEntitlementsPath the App '
-            'Sandbox blocks it and release builds show an empty map area with '
-            'no error:\n${missing.join('\n')}',
+            'Without these keys in $releaseEntitlementsPath the App Sandbox '
+            'blocks the online basemap and release builds fall back to the '
+            'offline map with no error:\n${missing.join('\n')}',
       );
     });
 
@@ -82,31 +68,6 @@ void main() {
             'network entitlement present only in the first is the exact shape '
             'of a bug that works on the developer machine and is invisible in '
             'TestFlight:\n${onlyInDebug.join('\n')}',
-      );
-    });
-
-    test('Info.plist declares the local networking the map server needs', () {
-      final file = File(infoPlistPath);
-      expect(file.existsSync(), isTrue, reason: '$infoPlistPath is missing');
-
-      final transportSecurity = RegExp(
-        r'<key>NSAppTransportSecurity</key>\s*<dict>(.*?)</dict>',
-        dotAll: true,
-      ).firstMatch(file.readAsStringSync())?.group(1);
-      final allowsLocalNetworking =
-          transportSecurity != null &&
-          RegExp(
-            r'<key>NSAllowsLocalNetworking</key>\s*<true\s*/>',
-          ).hasMatch(transportSecurity);
-
-      expect(
-        allowsLocalNetworking,
-        isTrue,
-        reason:
-            '$infoPlistPath must set NSAppTransportSecurity > '
-            'NSAllowsLocalNetworking to true. It declares the loopback '
-            'WebSocket that com.apple.security.network.server exists for; App '
-            'Review flagged the entitlement as unused without it.',
       );
     });
   });

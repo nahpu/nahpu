@@ -589,8 +589,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsMapImportCustomLayer => 'Importar camada personalizada';
 
   @override
-  String settingsMapKindUnavailableOnLinux(String kind) {
-    return '$kind · indisponível no Linux';
+  String settingsMapKindUnavailableOnDesktop(String kind) {
+    return '$kind · indisponível no desktop';
   }
 
   @override
@@ -600,12 +600,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settingsMapShowLayer => 'Mostrar camada';
 
   @override
-  String get settingsMapLayerUnavailableOnLinux =>
-      'Esta camada está indisponível no Linux';
+  String get settingsMapLayerUnavailableOnDesktop =>
+      'Esta camada está indisponível no desktop';
 
   @override
-  String get settingsMapLayerTypeUnavailableOnLinux =>
-      'Este tipo de camada está indisponível no Linux.';
+  String get settingsMapLayerTypeUnavailableOnDesktop =>
+      'Este tipo de camada está indisponível no desktop.';
 
   @override
   String get settingsMapOpacity => 'Opacidade';
@@ -638,8 +638,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settingsMapSupportedFormatsLinux =>
-      'No Linux, aceita GeoJSON, Shapefiles WGS84 compactados em ZIP e PMTiles raster.';
+  String get settingsMapSupportedFormatsDesktop =>
+      'No desktop, aceita GeoJSON, Shapefiles WGS84 compactados em ZIP e PMTiles raster.';
 
   @override
   String get settingsMapSupportedFormats =>

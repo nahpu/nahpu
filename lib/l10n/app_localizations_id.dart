@@ -583,8 +583,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsMapImportCustomLayer => 'Impor lapisan khusus';
 
   @override
-  String settingsMapKindUnavailableOnLinux(String kind) {
-    return '$kind · tidak tersedia di Linux';
+  String settingsMapKindUnavailableOnDesktop(String kind) {
+    return '$kind · tidak tersedia di desktop';
   }
 
   @override
@@ -594,12 +594,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsMapShowLayer => 'Tampilkan lapisan';
 
   @override
-  String get settingsMapLayerUnavailableOnLinux =>
-      'Lapisan ini tidak tersedia di Linux';
+  String get settingsMapLayerUnavailableOnDesktop =>
+      'Lapisan ini tidak tersedia di desktop';
 
   @override
-  String get settingsMapLayerTypeUnavailableOnLinux =>
-      'Jenis lapisan ini tidak tersedia di Linux.';
+  String get settingsMapLayerTypeUnavailableOnDesktop =>
+      'Jenis lapisan ini tidak tersedia di desktop.';
 
   @override
   String get settingsMapOpacity => 'Opasitas';
@@ -632,8 +632,8 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get settingsMapSupportedFormatsLinux =>
-      'Di Linux mendukung GeoJSON, Shapefile WGS84 dalam ZIP, dan PMTiles raster.';
+  String get settingsMapSupportedFormatsDesktop =>
+      'Di desktop mendukung GeoJSON, Shapefile WGS84 dalam ZIP, dan PMTiles raster.';
 
   @override
   String get settingsMapSupportedFormats =>

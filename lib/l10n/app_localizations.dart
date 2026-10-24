@@ -1092,11 +1092,11 @@ abstract class AppLocalizations {
   /// **'Import custom layer'**
   String get settingsMapImportCustomLayer;
 
-  /// No description provided for @settingsMapKindUnavailableOnLinux.
+  /// No description provided for @settingsMapKindUnavailableOnDesktop.
   ///
   /// In en, this message translates to:
-  /// **'{kind} · unavailable on Linux'**
-  String settingsMapKindUnavailableOnLinux(String kind);
+  /// **'{kind} · unavailable on desktop'**
+  String settingsMapKindUnavailableOnDesktop(String kind);
 
   /// No description provided for @settingsMapConfigureLayer.
   ///
@@ -1110,17 +1110,17 @@ abstract class AppLocalizations {
   /// **'Show layer'**
   String get settingsMapShowLayer;
 
-  /// No description provided for @settingsMapLayerUnavailableOnLinux.
+  /// No description provided for @settingsMapLayerUnavailableOnDesktop.
   ///
   /// In en, this message translates to:
-  /// **'This layer is unavailable on Linux'**
-  String get settingsMapLayerUnavailableOnLinux;
+  /// **'This layer is unavailable on desktop'**
+  String get settingsMapLayerUnavailableOnDesktop;
 
-  /// No description provided for @settingsMapLayerTypeUnavailableOnLinux.
+  /// No description provided for @settingsMapLayerTypeUnavailableOnDesktop.
   ///
   /// In en, this message translates to:
-  /// **'This layer type is unavailable on Linux.'**
-  String get settingsMapLayerTypeUnavailableOnLinux;
+  /// **'This layer type is unavailable on desktop.'**
+  String get settingsMapLayerTypeUnavailableOnDesktop;
 
   /// No description provided for @settingsMapOpacity.
   ///
@@ -1176,11 +1176,11 @@ abstract class AppLocalizations {
   /// **'Delete {name} and its stored map data?'**
   String settingsMapDeleteLayerBody(String name);
 
-  /// No description provided for @settingsMapSupportedFormatsLinux.
+  /// No description provided for @settingsMapSupportedFormatsDesktop.
   ///
   /// In en, this message translates to:
-  /// **'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on Linux.'**
-  String get settingsMapSupportedFormatsLinux;
+  /// **'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on desktop.'**
+  String get settingsMapSupportedFormatsDesktop;
 
   /// No description provided for @settingsMapSupportedFormats.
   ///

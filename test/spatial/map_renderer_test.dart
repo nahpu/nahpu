@@ -43,12 +43,8 @@ void main() {
     expect(renderer(), expectedStart);
   });
 
-  test('only a web view backend can reach the fallback', () {
-    // The watchdog is armed only where MapLibre runs in a web view, and that
-    // is always a platform where MapLibre is the expected renderer. Linux has
-    // neither, so it can never be latched away from Natural Earth.
-    if (mapLibreRunsInWebView) expect(mapLibreIsExpected, isTrue);
-
+  test('desktop can never be latched away from the flutter_map renderer', () {
+    // Desktop has no native MapLibre, so flutter_map is its only renderer.
     if (!mapLibreIsExpected) {
       notifier().markMapLibreUnavailable();
       expect(renderer(), MapRenderer.naturalEarth);

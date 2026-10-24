@@ -1,7 +1,7 @@
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
 
-/// Loads OpenFreeMap styles for `flutter_map`, the only renderer on Linux.
+/// Loads OpenFreeMap styles for `flutter_map`, the only renderer on desktop.
 ///
 /// MapLibre reads these styles itself; `vector_map_tiles` needs them parsed
 /// into a theme, tile sources, and sprites first.

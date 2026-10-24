@@ -73,9 +73,6 @@ dependencies:
   pmtiles: ^1.2.0
   latlong2: ^0.9.1
   maplibre: ^0.3.5
-  maplibre_webview: ^0.3.5
-  # AGP 9 support is pending the next stable flutter_inappwebview release.
-  flutter_inappwebview: 6.2.0-beta.3
   video_player: ^2.13.0
   fvp: ^0.37.3
   record: ^7.1.1
@@ -98,13 +95,6 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   msix: ^3.18.0
-
-# flutter_inappwebview 6.2 adds a Linux plugin that needs WPE WebKit, which
-# Ubuntu does not package. NAHPU never uses a web view on Linux, so a Dart-only
-# stand-in keeps that native dependency out of the Linux build.
-dependency_overrides:
-  flutter_inappwebview_linux:
-    path: third_party/flutter_inappwebview_linux_stub
 
 flutter_launcher_icons:
   ios: true

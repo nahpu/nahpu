@@ -585,8 +585,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapImportCustomLayer => 'Import custom layer';
 
   @override
-  String settingsMapKindUnavailableOnLinux(String kind) {
-    return '$kind · unavailable on Linux';
+  String settingsMapKindUnavailableOnDesktop(String kind) {
+    return '$kind · unavailable on desktop';
   }
 
   @override
@@ -596,12 +596,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapShowLayer => 'Show layer';
 
   @override
-  String get settingsMapLayerUnavailableOnLinux =>
-      'This layer is unavailable on Linux';
+  String get settingsMapLayerUnavailableOnDesktop =>
+      'This layer is unavailable on desktop';
 
   @override
-  String get settingsMapLayerTypeUnavailableOnLinux =>
-      'This layer type is unavailable on Linux.';
+  String get settingsMapLayerTypeUnavailableOnDesktop =>
+      'This layer type is unavailable on desktop.';
 
   @override
   String get settingsMapOpacity => 'Opacity';
@@ -634,8 +634,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsMapSupportedFormatsLinux =>
-      'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on Linux.';
+  String get settingsMapSupportedFormatsDesktop =>
+      'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on desktop.';
 
   @override
   String get settingsMapSupportedFormats =>

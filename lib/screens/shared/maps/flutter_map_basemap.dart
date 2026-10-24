@@ -10,7 +10,7 @@ import 'package:vector_map_tiles/vector_map_tiles.dart' as vmt;
 
 /// The base layer of a `flutter_map` map, placed first in its children.
 ///
-/// Where `flutter_map` is the only renderer (Linux), online styles are drawn
+/// Where `flutter_map` is the only renderer (desktop), online styles are drawn
 /// from OpenFreeMap vector tiles. While a style loads, when it fails, and
 /// where this map stands in for a failed MapLibre map, it draws the bundled
 /// Natural Earth countries instead.

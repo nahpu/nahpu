@@ -6,12 +6,12 @@ import 'package:nahpu/styles/design_tokens.dart';
 /// Attribution for the bundled basemap, plus why it is standing in for the
 /// detailed one and how to go back.
 ///
-/// Shown where MapLibre is the normal renderer, and on Linux when an online
+/// Shown where MapLibre is the normal renderer, and on desktop when an online
 /// OpenFreeMap style could not be loaded.
 class OfflineBasemapNotice extends ConsumerWidget {
   const OfflineBasemapNotice({super.key, this.onRetry});
 
-  /// What the retry button does. Defaults to trying MapLibre again; Linux
+  /// What the retry button does. Defaults to trying MapLibre again; desktop
   /// passes a reload of the OpenFreeMap style it draws with `flutter_map`.
   final VoidCallback? onRetry;
 

@@ -7,7 +7,7 @@ const double _mapLibreTileSize = 512;
 
 /// Projects a geographic point using the map camera and the Flutter viewport.
 ///
-/// MapLibre's WebView controller keeps its own cached CSS size. That size can
+/// MapLibre's controller keeps its own cached viewport size. That size can
 /// lag behind Flutter during a route transition, so tooltip geometry must use
 /// the size of the widget receiving the tap instead.
 Offset mapLibreViewportScreenLocation({

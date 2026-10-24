@@ -44,9 +44,9 @@ extension SpatialBasemapStyleDetails on SpatialBasemapStyle {
   };
 
   /// Whether `flutter_map` can draw this style, which is the only renderer on
-  /// Linux. OpenFreeMap styles are drawn as vector tiles by
+  /// desktop. OpenFreeMap styles are drawn as vector tiles by
   /// `vector_map_tiles`; a style it cannot render faithfully belongs here as
-  /// `false` so Linux hides it instead of offering a choice that does nothing.
+  /// `false` so desktop hides it instead of offering a choice that does nothing.
   bool get rendersOnFlutterMap => switch (this) {
     SpatialBasemapStyle.none ||
     SpatialBasemapStyle.automatic ||

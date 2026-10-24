@@ -198,7 +198,7 @@ class _CustomLayerTile extends StatelessWidget {
       title: layer.name,
       label: supported
           ? layer.kind.localizedLabel(l10n)
-          : l10n.settingsMapKindUnavailableOnLinux(
+          : l10n.settingsMapKindUnavailableOnDesktop(
               layer.kind.localizedLabel(l10n),
             ),
       icon: _layerIcon(layer.kind),
@@ -213,7 +213,7 @@ class _CustomLayerTile extends StatelessWidget {
           Tooltip(
             message: supported
                 ? l10n.settingsMapShowLayer
-                : l10n.settingsMapLayerUnavailableOnLinux,
+                : l10n.settingsMapLayerUnavailableOnDesktop,
             child: Checkbox(
               value: layer.enabled,
               onChanged: supported
@@ -262,7 +262,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
             if (!supported) ...[
               const SizedBox(height: 8),
               Text(
-                l10n.settingsMapLayerTypeUnavailableOnLinux,
+                l10n.settingsMapLayerTypeUnavailableOnDesktop,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -400,5 +400,5 @@ IconData _layerIcon(UserMapLayerKind kind) => switch (kind) {
 };
 
 String _supportedFormatsMessage(AppLocalizations l10n) => !mapLibreIsExpected
-    ? l10n.settingsMapSupportedFormatsLinux
+    ? l10n.settingsMapSupportedFormatsDesktop
     : l10n.settingsMapSupportedFormats;
