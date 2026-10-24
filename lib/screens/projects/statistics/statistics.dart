@@ -1343,6 +1343,8 @@ class _SummaryMetric extends StatelessWidget {
 class _ProjectBreakdownTable extends ConsumerWidget {
   const _ProjectBreakdownTable();
 
+  static const _rowsPerPage = 4;
+
   static const _metrics = [
     RecordMetricKind.specimens,
     RecordMetricKind.specimenParts,
@@ -1378,29 +1380,20 @@ class _ProjectBreakdownTable extends ConsumerWidget {
               .when(
                 data: (projects) => projects.isEmpty
                     ? const Text('No projects yet.')
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columns: [
-                            const DataColumn(label: Text('Project')),
-                            for (final metric in _metrics)
-                              DataColumn(
-                                label: Text(metric.label),
-                                numeric: true,
-                              ),
-                          ],
-                          rows: [
-                            for (final project in projects)
-                              DataRow(
-                                cells: [
-                                  DataCell(Text(project.projectName)),
-                                  for (final metric in _metrics)
-                                    DataCell(
-                                      Text(_value(metric, project.totals)),
-                                    ),
-                                ],
-                              ),
-                          ],
+                    : PaginatedDataTable(
+                        rowsPerPage: _rowsPerPage,
+                        showEmptyRows: false,
+                        columns: [
+                          const DataColumn(label: Text('Project')),
+                          for (final metric in _metrics)
+                            DataColumn(
+                              label: Text(metric.label),
+                              numeric: true,
+                            ),
+                        ],
+                        source: _ProjectBreakdownDataSource(
+                          projects: projects,
+                          metrics: _metrics,
                         ),
                       ),
                 loading: () => const Padding(
@@ -1424,6 +1417,37 @@ class _ProjectBreakdownTable extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// One row per project for [_ProjectBreakdownTable].
+class _ProjectBreakdownDataSource extends DataTableSource {
+  _ProjectBreakdownDataSource({required this.projects, required this.metrics});
+
+  final List<ProjectRecordTotals> projects;
+  final List<RecordMetricKind> metrics;
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= projects.length) return null;
+    final project = projects[index];
+    return DataRow.byIndex(
+      index: index,
+      cells: [
+        DataCell(Text(project.projectName)),
+        for (final metric in metrics)
+          DataCell(Text(_value(metric, project.totals))),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => projects.length;
+
+  @override
+  int get selectedRowCount => 0;
 
   String _value(RecordMetricKind metric, RecordStatisticTotals totals) =>
       switch (metric) {

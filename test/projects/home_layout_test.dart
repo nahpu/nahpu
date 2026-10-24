@@ -187,6 +187,41 @@ void main() {
     });
   }
 
+  testWidgets('database statistics pages the per-project table by four', (
+    tester,
+  ) async {
+    await pumpHome(tester, size: const Size(1200, 1600), projects: 6);
+
+    await tester.tap(find.byKey(_statsKey));
+    await tester.pumpAndSettle();
+
+    final perProject = find.byKey(
+      const ValueKey('full-screen-record-stat-per-project'),
+    );
+    Finder inTable(String name) =>
+        find.descendant(of: perProject, matching: find.text(name));
+    for (var index = 0; index < 4; index++) {
+      expect(inTable('Project $index'), findsOneWidget);
+    }
+    expect(inTable('Project 4'), findsNothing);
+
+    final nextPage = find.descendant(
+      of: perProject,
+      matching: find.byTooltip('Next page'),
+    );
+    await tester.ensureVisible(nextPage);
+    await tester.tap(nextPage);
+    await tester.pumpAndSettle();
+    expect(inTable('Project 0'), findsNothing);
+    expect(inTable('Project 4'), findsOneWidget);
+    expect(inTable('Project 5'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // Close the statistics streams so drift's close timers run in the test.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(Duration.zero);
+  });
+
   testWidgets('home opens database statistics across every project', (
     tester,
   ) async {
