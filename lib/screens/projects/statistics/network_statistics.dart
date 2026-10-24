@@ -80,7 +80,11 @@ class NetworkStatisticsFullScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${context.l10n.projectStatsNetwork} · $projectName'),
+        title: Text(
+          '${context.l10n.projectStatsNetwork} · $projectName',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: SafeArea(
         child: Padding(

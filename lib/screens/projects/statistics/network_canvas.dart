@@ -285,12 +285,19 @@ class _NetworkPainter extends CustomPainter {
       color: colorScheme.onSurfaceVariant,
     );
     for (final column in layout.columns) {
-      final painter = text.layout(
-        '${labels.typeLabel(column.type)} (${column.totalRecords})',
+      // One line above the bars; the type name gives way to the count.
+      final count = text.layout('(${_compact(column.totalRecords)})', style);
+      final name = text.layout(
+        labels.typeLabel(column.type),
         style,
-        column.width,
+        maxWidth: column.width - count.width - NahpuSpacing.xs,
       );
-      painter.paint(canvas, Offset(column.left, NahpuSpacing.lg));
+      const top = NahpuSpacing.lg;
+      name.paint(canvas, Offset(column.left, top));
+      count.paint(
+        canvas,
+        Offset(column.left + name.width + NahpuSpacing.xs, top),
+      );
     }
   }
 
@@ -438,11 +445,15 @@ class _NetworkPainter extends CustomPainter {
       fontWeight: FontWeight.w600,
     );
     if (radius * scale >= 9 && node.kind != NetworkNodeKind.hub) {
-      final count = text.layout(_compact(node.count), countStyle, radius * 2);
-      count.paint(
-        canvas,
-        node.center - Offset(count.width / 2, count.height / 2),
-      );
+      // Drawn whole or not at all: a clipped count would misread.
+      final count = text.layout(_compact(node.count), countStyle);
+      if (count.width <= radius * 2 - NahpuSpacing.xs &&
+          count.height <= radius * 2) {
+        count.paint(
+          canvas,
+          node.center - Offset(count.width / 2, count.height / 2),
+        );
+      }
     }
 
     final name = switch (node.kind) {
@@ -454,16 +465,35 @@ class _NetworkPainter extends CustomPainter {
       color: colorScheme.onSurface,
     );
     if (node.kind == NetworkNodeKind.hub) {
-      final hub = text.layout(
-        '$name\n${_compact(node.count)}',
-        textTheme.labelLarge!.copyWith(color: colorScheme.onSurface),
-        radius * 2,
+      // Name and total on their own lines, so a long name never pushes the
+      // total out of the circle.
+      final style = textTheme.labelLarge!.copyWith(
+        color: colorScheme.onSurface,
+      );
+      final title = text.layout(
+        name,
+        style,
+        maxWidth: radius * 2 - NahpuSpacing.md,
         align: TextAlign.center,
       );
-      hub.paint(canvas, node.center - Offset(hub.width / 2, hub.height / 2));
+      final total = text.layout(_compact(node.count), style);
+      final top = node.center.dy - (title.height + total.height) / 2;
+      title.paint(canvas, Offset(node.center.dx - title.width / 2, top));
+      total.paint(
+        canvas,
+        Offset(node.center.dx - total.width / 2, top + title.height),
+      );
       return;
     }
-    final label = text.layout(name, nameStyle, 120, align: TextAlign.center);
+    // No wider than the gap between neighbors on a ring, so labels side by
+    // side don't run into each other.
+    final label = text.layout(
+      name,
+      nameStyle,
+      maxWidth: RadialNetworkLayout.minArc,
+      maxLines: 2,
+      align: TextAlign.center,
+    );
     label.paint(
       canvas,
       Offset(node.center.dx - label.width / 2, node.bounds.bottom + 2),
@@ -504,20 +534,32 @@ class _NetworkPainter extends CustomPainter {
           ? colorScheme.onSurface
           : _onColor(color),
     );
-    final label = text.layout(
-      '$name · ${_compact(node.count)}',
-      style,
-      node.bounds.width - NahpuSpacing.md * 2,
-    );
-    if (label.height > node.bounds.height) return;
-    label.paint(
+    // The count sits at the right edge and is always shown; the name takes
+    // what is left, on as many lines as the bar fits, ending in an ellipsis.
+    final inner = node.bounds.deflate(NahpuSpacing.md);
+    final count = text.layout(_compact(node.count), style);
+    final centerY = node.bounds.center.dy;
+    count.paint(
       canvas,
-      Offset(
-        node.bounds.left + NahpuSpacing.md,
-        node.bounds.center.dy - label.height / 2,
-      ),
+      Offset(inner.right - count.width, centerY - count.height / 2),
     );
+    final nameWidth = inner.width - count.width - NahpuSpacing.md;
+    final lines = math.min(
+      _maxBarLines,
+      (node.bounds.height - NahpuSpacing.xs * 2) ~/ count.height,
+    );
+    if (nameWidth < NahpuControlSize.iconSmall || lines < 1) return;
+    final label = text.layout(
+      name,
+      style,
+      maxWidth: nameWidth,
+      maxLines: lines,
+    );
+    label.paint(canvas, Offset(inner.left, centerY - label.height / 2));
   }
+
+  /// Most lines a bar label wraps to before it ends in an ellipsis.
+  static const _maxBarLines = 2;
 
   static Color _onColor(Color background) =>
       background.computeLuminance() > 0.4 ? Colors.black : Colors.white;
@@ -542,15 +584,19 @@ class _NetworkPainter extends CustomPainter {
 class _TextCache {
   static const _maxEntries = 4000;
 
-  final _entries = <(String, TextStyle, double, TextAlign), TextPainter>{};
+  final _entries = <(String, TextStyle, double, int, TextAlign), TextPainter>{};
 
+  /// Lays [text] out on at most [maxLines] lines no wider than [maxWidth],
+  /// ending in an ellipsis when it doesn't fit. Without a [maxWidth] the text
+  /// takes its natural width on one line.
   TextPainter layout(
     String text,
-    TextStyle style,
-    double maxWidth, {
+    TextStyle style, {
+    double maxWidth = double.infinity,
+    int maxLines = 1,
     TextAlign align = TextAlign.start,
   }) {
-    final key = (text, style, maxWidth, align);
+    final key = (text, style, maxWidth, maxLines, align);
     final cached = _entries[key];
     if (cached != null) return cached;
     if (_entries.length >= _maxEntries) clear();
@@ -558,7 +604,7 @@ class _TextCache {
       text: TextSpan(text: text, style: style),
       textAlign: align,
       textDirection: TextDirection.ltr,
-      maxLines: 2,
+      maxLines: maxLines,
       ellipsis: '…',
     )..layout(maxWidth: math.max(0, maxWidth));
     return _entries[key] = painter;
