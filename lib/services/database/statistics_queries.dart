@@ -126,8 +126,8 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
 
   static const _methodLabel = '''
     CASE
-      WHEN trim(coalesce(collEffort.method, '')) = '' THEN 'No method'
-      ELSE trim(collEffort.method)
+      WHEN trim(coalesce(collMethod.method, '')) = '' THEN 'No method'
+      ELSE trim(collMethod.method)
     END
   ''';
 
@@ -733,7 +733,7 @@ $projectDates
           ON specimenCoordinate.id = specimen.coordinateID
         LEFT JOIN site
           ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
-        LEFT JOIN collEffort ON collEffort.id = specimen.collMethodID
+        LEFT JOIN collMethod ON collMethod.id = specimen.collMethodID
         LEFT JOIN normalized_attributes
           ON normalized_attributes.specimenUuid = specimen.uuid
   ''';
@@ -761,7 +761,7 @@ $projectDates
     db.collEvent,
     db.coordinate,
     db.site,
-    db.collEffort,
+    db.collMethod,
     ..._attributeTables,
   };
 

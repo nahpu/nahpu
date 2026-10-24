@@ -3777,11 +3777,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String sharedEffortCount(int count) {
+  String sharedCollMethodCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count upaya',
+      other: '$count metode koleksi',
     );
     return '$_temp0';
   }
@@ -4937,7 +4937,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get labelTableCollPersonnel => 'Personel koleksi';
 
   @override
-  String get labelTableCollEffort => 'Upaya koleksi';
+  String get labelTableCollMethod => 'Metode koleksi';
 
   @override
   String get labelTableNarrative => 'Narasi';
@@ -5308,31 +5308,31 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String deleteEffortsCount(int count) {
+  String deleteCollMethodsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Hapus $count upaya',
+      other: 'Hapus $count metode koleksi',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsTitle(int count) {
+  String deleteCollMethodsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Hapus upaya',
+      other: 'Hapus metode koleksi',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsBody(int count) {
+  String deleteCollMethodsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Yakin ingin menghapus upaya yang dipilih?',
+      other: 'Yakin ingin menghapus metode koleksi yang dipilih?',
     );
     return '$_temp0';
   }

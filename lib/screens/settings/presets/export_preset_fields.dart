@@ -211,7 +211,7 @@ class _ExportPresetFieldsScreenState
   void _addNested() {
     const preferredNamespaces = [
       'coordinate',
-      'collEffort',
+      'collMethod',
       'collPersonnel',
       'specimenPart',
     ];
@@ -604,7 +604,7 @@ Map<String, List<String>> _availableFieldGroups(
         'siteAttribute',
         'environment',
         'coordinate',
-        'collEffort',
+        'collMethod',
         'collPersonnel',
       };
       break;
@@ -616,7 +616,7 @@ Map<String, List<String>> _availableFieldGroups(
         'personnel',
         'project',
         'collEvent',
-        'collEffort',
+        'collMethod',
         'collPersonnel',
         'site',
         'geography',

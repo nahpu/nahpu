@@ -33,7 +33,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'siteAttribute',
         'environment',
         'coordinate',
-        'collEffort',
+        'collMethod',
         'collPersonnel',
       };
       break;
@@ -45,7 +45,7 @@ Map<String, List<String>> availableTemplateFieldGroups(
         'personnel',
         'project',
         'collEvent',
-        'collEffort',
+        'collMethod',
         'site',
         'geography',
         'siteAttribute',

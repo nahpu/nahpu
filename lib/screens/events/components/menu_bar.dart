@@ -193,7 +193,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
         context: context,
         title: 'Delete collecting event?',
         deletePrompt:
-            'You will also delete collecting effort'
+            'You will also delete collection methods'
             ', collecting personnel, environmental data, and media in this event.',
         onDelete: () async {
           try {
@@ -236,7 +236,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       title: 'Delete all collecting events?',
       deletePrompt:
           'Deleting all collecting events will also delete all associated'
-          ' collecting effort, collecting personnel, '
+          ' collection methods, collecting personnel, '
           'environmental data, and media from the database.',
       onDelete: () async {
         try {

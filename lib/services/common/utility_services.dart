@@ -24,7 +24,7 @@ class UtilityServices extends AppServices {
       case datumPrefKey:
         return await CoordinateQuery(dbAccess).getDistinctDatums();
       case collMethodPrefKey:
-        return await CollEffortQuery(dbAccess).getDistinctMethods();
+        return await CollMethodQuery(dbAccess).getDistinctMethods();
       case collRolePrefKey:
         return await CollPersonnelQuery(dbAccess).getDistinctRoles();
       case specimenTypePrefKey:
@@ -138,7 +138,7 @@ class UtilityServices extends AppServices {
       case datumPrefKey:
         return 'coordinate::datum';
       case collMethodPrefKey:
-        return 'collEffort::method';
+        return 'collMethod::method';
       case collRolePrefKey:
         return 'collPersonnel::role';
       case specimenTypePrefKey:

@@ -220,7 +220,7 @@ String databaseTableLocalizedTitle(AppLocalizations l10n, String tableName) {
     'collEvent' => l10n.labelTableCollEvent,
     'environment' => l10n.labelTableEnvironment,
     'collPersonnel' => l10n.labelTableCollPersonnel,
-    'collEffort' => l10n.labelTableCollEffort,
+    'collMethod' => l10n.labelTableCollMethod,
     'narrative' => l10n.labelTableNarrative,
     'media' => l10n.labelTableMedia,
     'narrativeMedia' => l10n.labelTableNarrativeMedia,

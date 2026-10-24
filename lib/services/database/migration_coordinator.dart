@@ -31,6 +31,7 @@ class _MigrationCoordinator {
       20: (m) => _Version21Migration(db).upgrade(m),
       21: (m) => _Version22Migration(db).upgrade(m),
       22: (m) => _Version23Migration(db).upgrade(m),
+      23: (m) => _Version24Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -42,6 +43,62 @@ class _MigrationCoordinator {
       }
       await step(migrator);
       currentVersion++;
+    }
+  }
+}
+
+class _Version24Migration {
+  const _Version24Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    final methodCount = await _rowCount(await _methodTable());
+    // `legacy_alter_table` stays off, so SQLite also rewrites the
+    // `specimen.collMethodID` foreign key to the renamed table.
+    await db._renameCollMethodTable();
+    await _validate(methodCount);
+  }
+
+  /// Returns the collection method table present before the rename.
+  ///
+  /// Drift does not run `onUpgrade` in a transaction, so an interrupted
+  /// attempt can leave the table renamed while the schema version stays at
+  /// v23.
+  Future<String> _methodTable() async {
+    if (await db._tableExists('collEffort')) {
+      return 'collEffort';
+    }
+    await db._requireTable('collMethod');
+    return 'collMethod';
+  }
+
+  Future<int> _rowCount(String table) async {
+    final row = await db
+        .customSelect(
+          'SELECT COUNT(*) AS count FROM $table',
+          readsFrom: const {},
+        )
+        .getSingle();
+    return row.read<int>('count');
+  }
+
+  Future<void> _validate(int expectedMethods) async {
+    await db._requireTable('collMethod');
+    if (await db._tableExists('collEffort')) {
+      throw StateError('Database migration retained the collEffort table.');
+    }
+    if (await _rowCount('collMethod') != expectedMethods) {
+      throw StateError('Database migration lost collection method records.');
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
     }
   }
 }
@@ -1500,6 +1557,7 @@ class _LegacyMigration {
 
   Future<void> upgradeToV11(Migrator migrator, int from) async {
     await db._renameSpecimenAttributeTables(from);
+    await db._renameCollMethodTable();
 
     final steps = <int, _MigrationStep>{
       1: (m) => m.addColumn(db.specimen, db.specimen.taxonGroup),

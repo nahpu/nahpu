@@ -18,6 +18,17 @@ void main() {
     );
   });
 
+  test('canonicalizes pre-v24 collection method keys', () {
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('collEffort::method'),
+      'collMethod::method',
+    );
+    expect(
+      canonicalizeSpecimenAttributeExpression(r'${collEffort::count}'),
+      r'${collMethod::count}',
+    );
+  });
+
   test('canonicalizes placeholders when loading a legacy template', () {
     final text = CustomTextElement.fromJson({
       'id': 'legacy',

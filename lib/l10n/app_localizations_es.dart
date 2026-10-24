@@ -3857,12 +3857,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String sharedEffortCount(int count) {
+  String sharedCollMethodCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count esfuerzos',
-      one: '1 esfuerzo',
+      other: '$count métodos de colecta',
+      one: '1 método de colecta',
     );
     return '$_temp0';
   }
@@ -5043,7 +5043,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelTableCollPersonnel => 'Personal de colecta';
 
   @override
-  String get labelTableCollEffort => 'Esfuerzo de colecta';
+  String get labelTableCollMethod => 'Método de colecta';
 
   @override
   String get labelTableNarrative => 'Narrativa';
@@ -5443,34 +5443,36 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String deleteEffortsCount(int count) {
+  String deleteCollMethodsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Eliminar $count esfuerzos',
-      one: 'Eliminar 1 esfuerzo',
+      other: 'Eliminar $count métodos de colecta',
+      one: 'Eliminar 1 método de colecta',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsTitle(int count) {
+  String deleteCollMethodsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Eliminar esfuerzos',
-      one: 'Eliminar esfuerzo',
+      other: 'Eliminar métodos de colecta',
+      one: 'Eliminar método de colecta',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsBody(int count) {
+  String deleteCollMethodsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Está seguro de que desea eliminar los esfuerzos seleccionados?',
-      one: '¿Está seguro de que desea eliminar el esfuerzo seleccionado?',
+      other:
+          '¿Está seguro de que desea eliminar los métodos de colecta seleccionados?',
+      one:
+          '¿Está seguro de que desea eliminar el método de colecta seleccionado?',
     );
     return '$_temp0';
   }

@@ -101,7 +101,7 @@ class DocumentWriter {
 
   /// Writes collecting event document records as a PDF using [layout].
   ///
-  /// Each selected event in [picked] is expanded with related site, effort, and
+  /// Each selected event in [picked] is expanded with related site, collection methods, and
   /// personnel values before rendering.
   Future<File> writeEvents({
     required List<CollEventData> picked,

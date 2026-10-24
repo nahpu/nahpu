@@ -12,7 +12,7 @@ Este guia apresenta o NAHPU e oferece um lugar para praticar antes de usá-lo no
 {% recordmap label="Como os registros do NAHPU se relacionam: um projeto contém locais, eventos e espécimes; pessoal e táxons são compartilhados entre projetos." hint="Selecione um registro para ver o que ele contém." %}
 {% recordnode id="project" title="Projeto" summary="Um conjunto de trabalho" detail="Agrupa uma expedição, um programa de monitoramento ou um trabalho de laboratório. A maioria das telas e exportações usa o projeto ativo." /%}
 {% recordnode id="site" title="Local" summary="Um lugar para revisitar" detail="Um lugar que você pode visitar novamente, como um acampamento ou uma linha de armadilhas. Contém a geografia, o habitat e uma ou mais coordenadas." /%}
-{% recordnode id="event" title="Evento" summary="Trabalho em um local" detail="Trabalho em um local durante um período definido: métodos, esforço, participantes e condições. Um local pode ter vários eventos." /%}
+{% recordnode id="event" title="Evento" summary="Trabalho em um local" detail="Trabalho em um local durante um período definido: atividade, métodos de coleta, participantes e condições. Um local pode ter vários eventos." /%}
 {% recordnode id="specimen" title="Espécime" summary="Ligado a um evento" detail="Liga-se a um evento, que fornece o local e o contexto de amostragem. Leva o Field ID da etiqueta e um UUID interno. Vários espécimes podem compartilhar um evento." /%}
 {% recordnode id="personnel" title="Pessoal" summary="Compartilhado" detail="As pessoas ficam no banco de dados e são compartilhadas entre projetos. Editar uma pessoa altera todos os projetos que a usam." /%}
 {% recordnode id="taxa" title="Táxons" summary="Compartilhado" detail="O registro de táxons é compartilhado entre projetos. Para corrigir uma identificação, altere o espécime, não o táxon compartilhado." /%}
@@ -26,7 +26,7 @@ Pessoas e nomes de táxons são armazenados no banco e podem ser associados a v�
 
 ### Locais, eventos de coleta e espécimes
 
-Um local descreve um lugar que pode ser visitado novamente. Um evento descreve o trabalho ali durante um período definido, incluindo métodos, esforço, participantes e condições ambientais. Um espécime se vincula a um evento, que fornece local e contexto da amostragem. Vários espécimes podem compartilhar um evento, e um local pode ter vários eventos.
+Um local descreve um lugar que pode ser visitado novamente. Um evento descreve o trabalho ali durante um período definido, incluindo atividade, métodos de coleta, participantes e condições ambientais. Um espécime se vincula a um evento, que fornece local e contexto da amostragem. Vários espécimes podem compartilhar um evento, e um local pode ter vários eventos.
 
 Por exemplo, use um local para uma linha de armadilhas e eventos separados para sessões em datas diferentes. Um projeto de laboratório pode usar a mesma estrutura para documentar onde e quando o material foi obtido. Mantenha o contexto original da coleta separado das datas de preparação.
 
@@ -94,7 +94,7 @@ Identidade, transferência de projeto, configurações e backups do banco contê
 
 5. **Adicione um evento de prática**
 
-    Abra Events e selecione `+`. Escolha o local e as datas e horários de exemplo de início e término. Adicione um sufixo ao Event ID quando necessário para distinguir sessões no mesmo local e dia. Registre atividade, esforço, participantes e condições medidas. Informe dados astronômicos a partir de observações ou de uma fonte documentada. Duplicar um evento copia sua configuração, mas deixa os dados ambientais vazios. Consulte [Eventos de coleta](https://nahpu.app/pt/usages/events/).
+    Abra Events e selecione `+`. Escolha o local e as datas e horários de exemplo de início e término. Adicione um sufixo ao Event ID quando necessário para distinguir sessões no mesmo local e dia. Registre atividade, métodos de coleta, participantes e condições medidas. Informe dados astronômicos a partir de observações ou de uma fonte documentada. Duplicar um evento copia sua configuração, mas deixa os dados ambientais vazios. Consulte [Eventos de coleta](https://nahpu.app/pt/usages/events/).
 
 6. **Crie um registro de espécime de exemplo**
 

@@ -4,6 +4,7 @@ const Map<String, String> specimenAttributeTableAliases = {
   'avianMeasurement': 'birdAttribute',
   'herpMeasurement': 'herpAttribute',
   'weather': 'environment',
+  'collEffort': 'collMethod',
 };
 
 const Map<String, String> specimenAttributeFieldAliases = {

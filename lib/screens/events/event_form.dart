@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/database/database.dart' show CollEventData;
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/screens/events/components/activities.dart';
-import 'package:nahpu/screens/events/components/effort.dart';
+import 'package:nahpu/screens/events/components/coll_method.dart';
 import 'package:nahpu/screens/events/components/general_info.dart';
 import 'package:nahpu/screens/events/components/media.dart';
 import 'package:nahpu/screens/events/components/tab_bar.dart';
@@ -68,7 +68,7 @@ class CollEventFormState extends ConsumerState<CollEventForm> {
               useHorizontalLayout: useHorizontalLayout,
               height: bottomCollEventHeight,
               children: [
-                CollEffort(collEventId: widget.collEvent.id),
+                CollMethodSection(collEventId: widget.collEvent.id),
                 CollEventTabBar(
                   eventID: widget.collEvent.id,
                   useHorizontalLayout: useHorizontalLayout,

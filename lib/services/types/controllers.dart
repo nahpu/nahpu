@@ -1957,8 +1957,8 @@ class CoordinateCtrModel {
   }
 }
 
-class CollEffortCtrModel {
-  CollEffortCtrModel({
+class CollMethodCtrModel {
+  CollMethodCtrModel({
     required this.methodCtr,
     required this.brandCtr,
     required this.countCtr,
@@ -1972,7 +1972,7 @@ class CollEffortCtrModel {
   TextEditingController sizeCtr;
   TextEditingController noteCtr;
 
-  factory CollEffortCtrModel.empty() => CollEffortCtrModel(
+  factory CollMethodCtrModel.empty() => CollMethodCtrModel(
     methodCtr: null,
     brandCtr: TextEditingController(),
     countCtr: TextEditingController(),
@@ -1980,8 +1980,8 @@ class CollEffortCtrModel {
     noteCtr: TextEditingController(),
   );
 
-  factory CollEffortCtrModel.fromData(CollEffortData data) =>
-      CollEffortCtrModel(
+  factory CollMethodCtrModel.fromData(CollMethodData data) =>
+      CollMethodCtrModel(
         methodCtr: data.method,
         brandCtr: TextEditingController(text: data.brand ?? ''),
         countCtr: TextEditingController(text: data.count.toString()),

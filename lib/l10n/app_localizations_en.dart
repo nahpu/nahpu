@@ -3811,12 +3811,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String sharedEffortCount(int count) {
+  String sharedCollMethodCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count efforts',
-      one: '1 effort',
+      other: '$count collection methods',
+      one: '1 collection method',
     );
     return '$_temp0';
   }
@@ -4973,7 +4973,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelTableCollPersonnel => 'Coll Personnel';
 
   @override
-  String get labelTableCollEffort => 'Coll Effort';
+  String get labelTableCollMethod => 'Coll Method';
 
   @override
   String get labelTableNarrative => 'Narrative';
@@ -5365,34 +5365,34 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String deleteEffortsCount(int count) {
+  String deleteCollMethodsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Delete $count efforts',
-      one: 'Delete 1 effort',
+      other: 'Delete $count collection methods',
+      one: 'Delete 1 collection method',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsTitle(int count) {
+  String deleteCollMethodsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Delete efforts',
-      one: 'Delete effort',
+      other: 'Delete collection methods',
+      one: 'Delete collection method',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsBody(int count) {
+  String deleteCollMethodsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Are you sure you want to delete the selected efforts?',
-      one: 'Are you sure you want to delete the selected effort?',
+      other: 'Are you sure you want to delete the selected collection methods?',
+      one: 'Are you sure you want to delete the selected collection method?',
     );
     return '$_temp0';
   }

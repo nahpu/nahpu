@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:nahpu/services/specimens/specimen_attribute_names.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
-const int projectTransferVersion = 10;
+const int projectTransferVersion = 11;
 const Set<int> supportedProjectTransferVersions = {
   1,
   2,
@@ -15,6 +15,7 @@ const Set<int> supportedProjectTransferVersions = {
   8,
   9,
   10,
+  11,
 };
 const String projectTransferMarker = 'project';
 const String projectTransferManifestName = 'nahpu-project.json';
@@ -402,6 +403,7 @@ class ProjectTransferPayload {
   /// resolving.
   static const Map<String, String> _transferCollectionAliases = {
     'arthropodAttribute': 'invertebrateAttribute',
+    'collEffort': 'collMethod',
   };
 
   static Map<String, dynamic> _normalizeSpecimen(Map<String, dynamic> source) {

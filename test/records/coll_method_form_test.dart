@@ -3,14 +3,14 @@ import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:nahpu/screens/events/components/effort.dart';
+import 'package:nahpu/screens/events/components/coll_method.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 void main() {
-  testWidgets('add effort form uses effort and tool detail sections', (
+  testWidgets('add collection method form uses method and detail sections', (
     tester,
   ) async {
     final database = Database.forTesting(
@@ -26,33 +26,36 @@ void main() {
             (ref, prefKey) async => const ['Sweep net'],
           ),
         ],
-        child: const MaterialApp(home: NewCollEffort(collEventId: 1)),
+        child: const MaterialApp(home: NewCollMethod(collEventId: 1)),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Add Effort'), findsOneWidget);
+    expect(find.text('Add Collection Method'), findsOneWidget);
     expect(find.byType(FormSection), findsNWidgets(2));
     expect(
       tester
           .widgetList<FormSection>(find.byType(FormSection))
           .map((section) => section.title),
-      containsAll(<String>['Effort', 'Method details']),
+      containsAll(<String>['Collection method', 'Method details']),
     );
 
-    final effortSection = tester.widget<FormSection>(
+    final methodSection = tester.widget<FormSection>(
       find.ancestor(
-        of: find.byType(CollectionMethods),
+        of: find.byType(CollMethodDropdown),
         matching: find.byType(FormSection),
       ),
     );
-    expect(effortSection.title, 'Effort');
+    expect(methodSection.title, 'Collection method');
     expect(find.text('Method'), findsOneWidget);
 
     final countSections = tester.widgetList<FormSection>(
       find.ancestor(of: find.text('Count'), matching: find.byType(FormSection)),
     );
-    expect(countSections.map((section) => section.title), contains('Effort'));
+    expect(
+      countSections.map((section) => section.title),
+      contains('Collection method'),
+    );
 
     final countField = tester.widget<TextField>(
       find.byWidgetPredicate(

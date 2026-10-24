@@ -178,9 +178,9 @@ void main() {
       db.collEvent,
     )..where((row) => row.projectUuid.equals('project-a'))).getSingle();
     final method = await db
-        .into(db.collEffort)
+        .into(db.collMethod)
         .insert(
-          CollEffortCompanion(
+          CollMethodCompanion(
             eventID: Value(event.id),
             method: const Value('Mist net'),
           ),

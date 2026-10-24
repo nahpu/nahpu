@@ -105,7 +105,7 @@ class CollEventRecordWriter extends AppServices {
     String endDate = data.endDate ?? '';
     String startTime = data.startTime ?? '';
     String endTime = data.endTime ?? '';
-    String effort = await _getEffort(data.id);
+    String collMethods = await _getCollMethods(data.id);
     String person = await _getAllPersonnel(data.id);
     final environment = await _getEnvironment(data.id);
 
@@ -116,7 +116,7 @@ class CollEventRecordWriter extends AppServices {
       endDate,
       startTime,
       endTime,
-      effort,
+      collMethods,
       person,
       ...environment,
     ];
@@ -163,11 +163,13 @@ class CollEventRecordWriter extends AppServices {
     return siteDetails;
   }
 
-  Future<String> _getEffort(int id) async {
-    List<CollEffortData> effort = await CollEventServices(
+  Future<String> _getCollMethods(int id) async {
+    List<CollMethodData> collMethods = await CollEventServices(
       ref: ref,
-    ).getAllCollEffort(id);
-    return effort.map((e) => '"${e.method}";${e.count}').join(writerSeparator);
+    ).getAllCollMethod(id);
+    return collMethods
+        .map((e) => '"${e.method}";${e.count}')
+        .join(writerSeparator);
   }
 
   Future<String> _getAllPersonnel(int id) async {

@@ -12,7 +12,7 @@ Esta guía presenta NAHPU y ofrece un lugar para practicar antes de usarlo en el
 {% recordmap label="Cómo se relacionan los registros de NAHPU: un proyecto contiene sitios, eventos y especímenes; el personal y los taxones se comparten entre proyectos." hint="Seleccione un registro para ver lo que contiene." %}
 {% recordnode id="project" title="Proyecto" summary="Un conjunto de trabajo" detail="Agrupa una expedición, un programa de monitoreo o un trabajo de laboratorio. La mayoría de las pantallas y exportaciones usan el proyecto activo." /%}
 {% recordnode id="site" title="Sitio" summary="Un lugar para volver" detail="Un lugar que puede volver a visitar, como un campamento o una línea de trampas. Contiene la geografía, el hábitat y una o más coordenadas." /%}
-{% recordnode id="event" title="Evento" summary="Trabajo en un sitio" detail="Trabajo en un sitio durante un periodo definido: métodos, esfuerzo, participantes y condiciones. Un sitio puede tener varios eventos." /%}
+{% recordnode id="event" title="Evento" summary="Trabajo en un sitio" detail="Trabajo en un sitio durante un periodo definido: actividad, métodos de colecta, participantes y condiciones. Un sitio puede tener varios eventos." /%}
 {% recordnode id="specimen" title="Espécimen" summary="Vinculado a un evento" detail="Se vincula a un evento, que aporta su sitio y el contexto de muestreo. Lleva el Field ID de su etiqueta y un UUID interno. Varios especímenes pueden compartir un evento." /%}
 {% recordnode id="personnel" title="Personal" summary="Compartido" detail="Las personas se guardan en la base de datos y se comparten entre proyectos. Editar una persona cambia todos los proyectos que la usan." /%}
 {% recordnode id="taxa" title="Taxones" summary="Compartido" detail="El registro de taxones se comparte entre proyectos. Para corregir una identificación, cambie el espécimen, no el taxón compartido." /%}
@@ -26,7 +26,7 @@ Las personas y los nombres de taxones se almacenan en el banco y pueden asociars
 
 ### Sitios, eventos de recolección y especímenes
 
-Un sitio describe un lugar que puede visitarse de nuevo. Un evento describe el trabajo allí durante un período definido, incluidos métodos, esfuerzo, participantes y condiciones ambientales. Un espécimen se vincula a un evento, que proporciona sitio y contexto del muestreo. Varios especímenes pueden compartir un evento, y un sitio puede tener varios eventos.
+Un sitio describe un lugar que puede visitarse de nuevo. Un evento describe el trabajo allí durante un período definido, incluidos actividad, métodos de colecta, participantes y condiciones ambientales. Un espécimen se vincula a un evento, que proporciona sitio y contexto del muestreo. Varios especímenes pueden compartir un evento, y un sitio puede tener varios eventos.
 
 Por ejemplo, use un sitio para una línea de trampas y eventos separados para sesiones en fechas diferentes. Un proyecto de laboratorio puede usar la misma estructura para documentar dónde y cuándo se obtuvo el material. Mantenga el contexto original de recolección separado de las fechas de preparación.
 
@@ -94,7 +94,7 @@ Identidad, transferencia de proyecto, configuración y copias del banco contiene
 
 5. **Añada un evento de práctica**
 
-    Abra Events y seleccione `+`. Elija el sitio y las fechas y horas de ejemplo de inicio y fin. Añada un sufijo al Event ID cuando sea necesario para distinguir sesiones en el mismo sitio y día. Registre actividad, esfuerzo, participantes y condiciones medidas. Introduzca datos astronómicos desde observaciones o una fuente documentada. Duplicar un evento copia su configuración, pero deja vacíos los datos ambientales. Consulte [Eventos de recolección](https://nahpu.app/es/usages/events/).
+    Abra Events y seleccione `+`. Elija el sitio y las fechas y horas de ejemplo de inicio y fin. Añada un sufijo al Event ID cuando sea necesario para distinguir sesiones en el mismo sitio y día. Registre actividad, métodos de colecta, participantes y condiciones medidas. Introduzca datos astronómicos desde observaciones o una fuente documentada. Duplicar un evento copia su configuración, pero deja vacíos los datos ambientales. Consulte [Eventos de recolección](https://nahpu.app/es/usages/events/).
 
 6. **Cree un registro de espécimen de ejemplo**
 

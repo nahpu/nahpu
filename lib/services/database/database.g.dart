@@ -8079,11 +8079,11 @@ class CollPersonnelCompanion extends UpdateCompanion<CollPersonnelData> {
   }
 }
 
-class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
+class CollMethod extends Table with TableInfo<CollMethod, CollMethodData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  CollEffort(this.attachedDatabase, [this._alias]);
+  CollMethod(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
     'id',
@@ -8164,10 +8164,10 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'collEffort';
+  static const String $name = 'collMethod';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CollEffortData> instance, {
+    Insertable<CollMethodData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -8217,9 +8217,9 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CollEffortData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CollMethodData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CollEffortData(
+    return CollMethodData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -8252,8 +8252,8 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   }
 
   @override
-  CollEffort createAlias(String alias) {
-    return CollEffort(attachedDatabase, alias);
+  CollMethod createAlias(String alias) {
+    return CollMethod(attachedDatabase, alias);
   }
 
   @override
@@ -8264,7 +8264,7 @@ class CollEffort extends Table with TableInfo<CollEffort, CollEffortData> {
   bool get dontWriteConstraints => true;
 }
 
-class CollEffortData extends DataClass implements Insertable<CollEffortData> {
+class CollMethodData extends DataClass implements Insertable<CollMethodData> {
   final int id;
   final int? eventID;
   final String? method;
@@ -8274,7 +8274,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
   final int? count;
   final String? size;
   final String? notes;
-  const CollEffortData({
+  const CollMethodData({
     required this.id,
     this.eventID,
     this.method,
@@ -8308,8 +8308,8 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     return map;
   }
 
-  CollEffortCompanion toCompanion(bool nullToAbsent) {
-    return CollEffortCompanion(
+  CollMethodCompanion toCompanion(bool nullToAbsent) {
+    return CollMethodCompanion(
       id: Value(id),
       eventID: eventID == null && nullToAbsent
           ? const Value.absent()
@@ -8330,12 +8330,12 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     );
   }
 
-  factory CollEffortData.fromJson(
+  factory CollMethodData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CollEffortData(
+    return CollMethodData(
       id: serializer.fromJson<int>(json['id']),
       eventID: serializer.fromJson<int?>(json['eventID']),
       method: serializer.fromJson<String?>(json['method']),
@@ -8359,7 +8359,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     };
   }
 
-  CollEffortData copyWith({
+  CollMethodData copyWith({
     int? id,
     Value<int?> eventID = const Value.absent(),
     Value<String?> method = const Value.absent(),
@@ -8367,7 +8367,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     Value<int?> count = const Value.absent(),
     Value<String?> size = const Value.absent(),
     Value<String?> notes = const Value.absent(),
-  }) => CollEffortData(
+  }) => CollMethodData(
     id: id ?? this.id,
     eventID: eventID.present ? eventID.value : this.eventID,
     method: method.present ? method.value : this.method,
@@ -8376,8 +8376,8 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
     size: size.present ? size.value : this.size,
     notes: notes.present ? notes.value : this.notes,
   );
-  CollEffortData copyWithCompanion(CollEffortCompanion data) {
-    return CollEffortData(
+  CollMethodData copyWithCompanion(CollMethodCompanion data) {
+    return CollMethodData(
       id: data.id.present ? data.id.value : this.id,
       eventID: data.eventID.present ? data.eventID.value : this.eventID,
       method: data.method.present ? data.method.value : this.method,
@@ -8390,7 +8390,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
 
   @override
   String toString() {
-    return (StringBuffer('CollEffortData(')
+    return (StringBuffer('CollMethodData(')
           ..write('id: $id, ')
           ..write('eventID: $eventID, ')
           ..write('method: $method, ')
@@ -8408,7 +8408,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CollEffortData &&
+      (other is CollMethodData &&
           other.id == this.id &&
           other.eventID == this.eventID &&
           other.method == this.method &&
@@ -8418,7 +8418,7 @@ class CollEffortData extends DataClass implements Insertable<CollEffortData> {
           other.notes == this.notes);
 }
 
-class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
+class CollMethodCompanion extends UpdateCompanion<CollMethodData> {
   final Value<int> id;
   final Value<int?> eventID;
   final Value<String?> method;
@@ -8426,7 +8426,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
   final Value<int?> count;
   final Value<String?> size;
   final Value<String?> notes;
-  const CollEffortCompanion({
+  const CollMethodCompanion({
     this.id = const Value.absent(),
     this.eventID = const Value.absent(),
     this.method = const Value.absent(),
@@ -8435,7 +8435,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     this.size = const Value.absent(),
     this.notes = const Value.absent(),
   });
-  CollEffortCompanion.insert({
+  CollMethodCompanion.insert({
     this.id = const Value.absent(),
     this.eventID = const Value.absent(),
     this.method = const Value.absent(),
@@ -8444,7 +8444,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     this.size = const Value.absent(),
     this.notes = const Value.absent(),
   });
-  static Insertable<CollEffortData> custom({
+  static Insertable<CollMethodData> custom({
     Expression<int>? id,
     Expression<int>? eventID,
     Expression<String>? method,
@@ -8464,7 +8464,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     });
   }
 
-  CollEffortCompanion copyWith({
+  CollMethodCompanion copyWith({
     Value<int>? id,
     Value<int?>? eventID,
     Value<String?>? method,
@@ -8473,7 +8473,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
     Value<String?>? size,
     Value<String?>? notes,
   }) {
-    return CollEffortCompanion(
+    return CollMethodCompanion(
       id: id ?? this.id,
       eventID: eventID ?? this.eventID,
       method: method ?? this.method,
@@ -8513,7 +8513,7 @@ class CollEffortCompanion extends UpdateCompanion<CollEffortData> {
 
   @override
   String toString() {
-    return (StringBuffer('CollEffortCompanion(')
+    return (StringBuffer('CollMethodCompanion(')
           ..write('id: $id, ')
           ..write('eventID: $eventID, ')
           ..write('method: $method, ')
@@ -11509,7 +11509,7 @@ class Specimen extends Table with TableInfo<Specimen, SpecimenData> {
     'FOREIGN KEY(projectUuid)REFERENCES project(uuid)',
     'FOREIGN KEY(catalogerID)REFERENCES personnel(uuid)',
     'FOREIGN KEY(collPersonnelID)REFERENCES collPersonnel(id)',
-    'FOREIGN KEY(collMethodID)REFERENCES collEffort(id)',
+    'FOREIGN KEY(collMethodID)REFERENCES collMethod(id)',
     'FOREIGN KEY(speciesID)REFERENCES taxonomy(id)',
     'FOREIGN KEY(collEventID)REFERENCES collEvent(id)',
   ];
@@ -27030,7 +27030,7 @@ abstract class _$Database extends GeneratedDatabase {
   late final CollEvent collEvent = CollEvent(this);
   late final Environment environment = Environment(this);
   late final CollPersonnel collPersonnel = CollPersonnel(this);
-  late final CollEffort collEffort = CollEffort(this);
+  late final CollMethod collMethod = CollMethod(this);
   late final Narrative narrative = Narrative(this);
   late final NarrativeMedia narrativeMedia = NarrativeMedia(this);
   late final SiteMedia siteMedia = SiteMedia(this);
@@ -27195,7 +27195,7 @@ abstract class _$Database extends GeneratedDatabase {
     collEvent,
     environment,
     collPersonnel,
-    collEffort,
+    collMethod,
     narrative,
     narrativeMedia,
     siteMedia,
@@ -27875,20 +27875,19 @@ class $ProjectTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (associatedDataRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       ProjectData,
                       Project,
-                      AssociatedDataData
+                      AssociatedDataData,
+                      AssociatedData
                     >(
                       currentTable: table,
                       referencedTable: $ProjectReferences
                           ._associatedDataRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $ProjectReferences(db, table, p0).associatedDataRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.projectUuid == item.uuid,
-                          ),
+                      currentColumn: 'uuid',
+                      referencedColumn: 'projectUuid',
                       typedResults: items,
                     ),
                 ];
@@ -28567,10 +28566,11 @@ class $PersonnelTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (parasiteRefs)
-                    await $_getPrefetchedData<
+                    await $_getPrefetchedDataByColumns<
                       PersonnelData,
                       Personnel,
-                      ParasiteData
+                      ParasiteData,
+                      Parasite
                     >(
                       currentTable: table,
                       referencedTable: $PersonnelReferences._parasiteRefsTable(
@@ -28578,10 +28578,8 @@ class $PersonnelTableManager
                       ),
                       managerFromTypedResult: (p0) =>
                           $PersonnelReferences(db, table, p0).parasiteRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.identifierID == item.uuid,
-                          ),
+                      currentColumn: 'uuid',
+                      referencedColumn: 'identifierID',
                       typedResults: items,
                     ),
                 ];
@@ -29017,15 +29015,18 @@ class $MediaTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (narrativeRefs)
-                    await $_getPrefetchedData<MediaData, Media, NarrativeData>(
+                    await $_getPrefetchedDataByColumns<
+                      MediaData,
+                      Media,
+                      NarrativeData,
+                      Narrative
+                    >(
                       currentTable: table,
                       referencedTable: $MediaReferences._narrativeRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $MediaReferences(db, table, p0).narrativeRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.mediaID == item.primaryId,
-                          ),
+                      currentColumn: 'primaryId',
+                      referencedColumn: 'mediaID',
                       typedResults: items,
                     ),
                 ];
@@ -29364,13 +29365,18 @@ class $SiteTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (collEventRefs)
-                    await $_getPrefetchedData<SiteData, Site, CollEventData>(
+                    await $_getPrefetchedDataByColumns<
+                      SiteData,
+                      Site,
+                      CollEventData,
+                      CollEvent
+                    >(
                       currentTable: table,
                       referencedTable: $SiteReferences._collEventRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $SiteReferences(db, table, p0).collEventRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.siteID == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'siteID',
                       typedResults: items,
                     ),
                 ];
@@ -31609,8 +31615,8 @@ typedef $CollPersonnelProcessedTableManager =
       CollPersonnelData,
       PrefetchHooks Function()
     >;
-typedef $CollEffortCreateCompanionBuilder =
-    CollEffortCompanion Function({
+typedef $CollMethodCreateCompanionBuilder =
+    CollMethodCompanion Function({
       Value<int> id,
       Value<int?> eventID,
       Value<String?> method,
@@ -31619,8 +31625,8 @@ typedef $CollEffortCreateCompanionBuilder =
       Value<String?> size,
       Value<String?> notes,
     });
-typedef $CollEffortUpdateCompanionBuilder =
-    CollEffortCompanion Function({
+typedef $CollMethodUpdateCompanionBuilder =
+    CollMethodCompanion Function({
       Value<int> id,
       Value<int?> eventID,
       Value<String?> method,
@@ -31630,8 +31636,8 @@ typedef $CollEffortUpdateCompanionBuilder =
       Value<String?> notes,
     });
 
-class $CollEffortFilterComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortFilterComposer({
+class $CollMethodFilterComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31674,8 +31680,8 @@ class $CollEffortFilterComposer extends Composer<_$Database, CollEffort> {
   );
 }
 
-class $CollEffortOrderingComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortOrderingComposer({
+class $CollMethodOrderingComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31718,8 +31724,8 @@ class $CollEffortOrderingComposer extends Composer<_$Database, CollEffort> {
   );
 }
 
-class $CollEffortAnnotationComposer extends Composer<_$Database, CollEffort> {
-  $CollEffortAnnotationComposer({
+class $CollMethodAnnotationComposer extends Composer<_$Database, CollMethod> {
+  $CollMethodAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -31748,35 +31754,35 @@ class $CollEffortAnnotationComposer extends Composer<_$Database, CollEffort> {
       $composableBuilder(column: $table.notes, builder: (column) => column);
 }
 
-class $CollEffortTableManager
+class $CollMethodTableManager
     extends
         RootTableManager<
           _$Database,
-          CollEffort,
-          CollEffortData,
-          $CollEffortFilterComposer,
-          $CollEffortOrderingComposer,
-          $CollEffortAnnotationComposer,
-          $CollEffortCreateCompanionBuilder,
-          $CollEffortUpdateCompanionBuilder,
+          CollMethod,
+          CollMethodData,
+          $CollMethodFilterComposer,
+          $CollMethodOrderingComposer,
+          $CollMethodAnnotationComposer,
+          $CollMethodCreateCompanionBuilder,
+          $CollMethodUpdateCompanionBuilder,
           (
-            CollEffortData,
-            BaseReferences<_$Database, CollEffort, CollEffortData>,
+            CollMethodData,
+            BaseReferences<_$Database, CollMethod, CollMethodData>,
           ),
-          CollEffortData,
+          CollMethodData,
           PrefetchHooks Function()
         > {
-  $CollEffortTableManager(_$Database db, CollEffort table)
+  $CollMethodTableManager(_$Database db, CollMethod table)
     : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $CollEffortFilterComposer($db: db, $table: table),
+              $CollMethodFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $CollEffortOrderingComposer($db: db, $table: table),
+              $CollMethodOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $CollEffortAnnotationComposer($db: db, $table: table),
+              $CollMethodAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -31786,7 +31792,7 @@ class $CollEffortTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> size = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-              }) => CollEffortCompanion(
+              }) => CollMethodCompanion(
                 id: id,
                 eventID: eventID,
                 method: method,
@@ -31804,7 +31810,7 @@ class $CollEffortTableManager
                 Value<int?> count = const Value.absent(),
                 Value<String?> size = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-              }) => CollEffortCompanion.insert(
+              }) => CollMethodCompanion.insert(
                 id: id,
                 eventID: eventID,
                 method: method,
@@ -31816,8 +31822,8 @@ class $CollEffortTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<CollEffort, CollEffortData>(table),
-                  BaseReferences<_$Database, CollEffort, CollEffortData>(
+                  e.readTable<CollMethod, CollMethodData>(table),
+                  BaseReferences<_$Database, CollMethod, CollMethodData>(
                     db,
                     table,
                     e,
@@ -31830,18 +31836,18 @@ class $CollEffortTableManager
       );
 }
 
-typedef $CollEffortProcessedTableManager =
+typedef $CollMethodProcessedTableManager =
     ProcessedTableManager<
       _$Database,
-      CollEffort,
-      CollEffortData,
-      $CollEffortFilterComposer,
-      $CollEffortOrderingComposer,
-      $CollEffortAnnotationComposer,
-      $CollEffortCreateCompanionBuilder,
-      $CollEffortUpdateCompanionBuilder,
-      (CollEffortData, BaseReferences<_$Database, CollEffort, CollEffortData>),
-      CollEffortData,
+      CollMethod,
+      CollMethodData,
+      $CollMethodFilterComposer,
+      $CollMethodOrderingComposer,
+      $CollMethodAnnotationComposer,
+      $CollMethodCreateCompanionBuilder,
+      $CollMethodUpdateCompanionBuilder,
+      (CollMethodData, BaseReferences<_$Database, CollMethod, CollMethodData>),
+      CollMethodData,
       PrefetchHooks Function()
     >;
 typedef $NarrativeCreateCompanionBuilder =
@@ -41168,8 +41174,8 @@ class $DatabaseManager {
       $EnvironmentTableManager(_db, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db, _db.collPersonnel);
-  $CollEffortTableManager get collEffort =>
-      $CollEffortTableManager(_db, _db.collEffort);
+  $CollMethodTableManager get collMethod =>
+      $CollMethodTableManager(_db, _db.collMethod);
   $NarrativeTableManager get narrative =>
       $NarrativeTableManager(_db, _db.narrative);
   $NarrativeMediaTableManager get narrativeMedia =>

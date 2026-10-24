@@ -394,13 +394,13 @@ class MethodField extends ConsumerWidget {
       ),
       items: specimenCtr.collEventIDCtr != null
           ? ref
-                .watch(collEffortByEventProvider(specimenCtr.collEventIDCtr!))
+                .watch(collMethodByEventProvider(specimenCtr.collEventIDCtr!))
                 .when(
                   data: (data) {
-                    return data.map((effort) {
+                    return data.map((method) {
                       return DropdownMenuItem(
-                        value: effort.id,
-                        child: CommonDropdownText(text: effort.method ?? ''),
+                        value: method.id,
+                        child: CommonDropdownText(text: method.method ?? ''),
                       );
                     }).toList();
                   },

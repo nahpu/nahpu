@@ -15,7 +15,7 @@ mixin _$SpecimenQueryMixin on DatabaseAccessor<Database> {
   CollEvent get collEvent => attachedDatabase.collEvent;
   Environment get environment => attachedDatabase.environment;
   CollPersonnel get collPersonnel => attachedDatabase.collPersonnel;
-  CollEffort get collEffort => attachedDatabase.collEffort;
+  CollMethod get collMethod => attachedDatabase.collMethod;
   Narrative get narrative => attachedDatabase.narrative;
   NarrativeMedia get narrativeMedia => attachedDatabase.narrativeMedia;
   SiteMedia get siteMedia => attachedDatabase.siteMedia;
@@ -78,8 +78,8 @@ class SpecimenQueryManager {
       $EnvironmentTableManager(_db.attachedDatabase, _db.environment);
   $CollPersonnelTableManager get collPersonnel =>
       $CollPersonnelTableManager(_db.attachedDatabase, _db.collPersonnel);
-  $CollEffortTableManager get collEffort =>
-      $CollEffortTableManager(_db.attachedDatabase, _db.collEffort);
+  $CollMethodTableManager get collMethod =>
+      $CollMethodTableManager(_db.attachedDatabase, _db.collMethod);
   $NarrativeTableManager get narrative =>
       $NarrativeTableManager(_db.attachedDatabase, _db.narrative);
   $NarrativeMediaTableManager get narrativeMedia =>

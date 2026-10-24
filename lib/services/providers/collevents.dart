@@ -56,11 +56,11 @@ final collEventIDprovider = FutureProvider.family
       return collEventID;
     });
 
-final collEffortByEventProvider = FutureProvider.family
-    .autoDispose<List<CollEffortData>, int>(
-      (ref, collEventId) => CollEffortQuery(
+final collMethodByEventProvider = FutureProvider.family
+    .autoDispose<List<CollMethodData>, int>(
+      (ref, collEventId) => CollMethodQuery(
         ref.read(databaseProvider),
-      ).getCollEffortByEventId(collEventId),
+      ).getCollMethodByEventId(collEventId),
     );
 
 final collPersonnelProvider = FutureProvider.family

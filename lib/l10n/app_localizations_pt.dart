@@ -3843,12 +3843,12 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String sharedEffortCount(int count) {
+  String sharedCollMethodCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count esforços',
-      one: '1 esforço',
+      other: '$count métodos de coleta',
+      one: '1 método de coleta',
     );
     return '$_temp0';
   }
@@ -5024,7 +5024,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get labelTableCollPersonnel => 'Equipe de coleta';
 
   @override
-  String get labelTableCollEffort => 'Esforço de coleta';
+  String get labelTableCollMethod => 'Método de coleta';
 
   @override
   String get labelTableNarrative => 'Narrativa';
@@ -5421,34 +5421,35 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String deleteEffortsCount(int count) {
+  String deleteCollMethodsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Excluir $count esforços',
-      one: 'Excluir 1 esforço',
+      other: 'Excluir $count métodos de coleta',
+      one: 'Excluir 1 método de coleta',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsTitle(int count) {
+  String deleteCollMethodsTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Excluir esforços',
-      one: 'Excluir esforço',
+      other: 'Excluir métodos de coleta',
+      one: 'Excluir método de coleta',
     );
     return '$_temp0';
   }
 
   @override
-  String deleteEffortsBody(int count) {
+  String deleteCollMethodsBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tem certeza de que deseja excluir os esforços selecionados?',
-      one: 'Tem certeza de que deseja excluir o esforço selecionado?',
+      other:
+          'Tem certeza de que deseja excluir os métodos de coleta selecionados?',
+      one: 'Tem certeza de que deseja excluir o método de coleta selecionado?',
     );
     return '$_temp0';
   }

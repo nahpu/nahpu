@@ -6094,11 +6094,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 person} other{{count} people}}'**
   String sharedPersonCount(int count);
 
-  /// Collecting effort entries of an event.
+  /// Collection method entries of an event.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 effort} other{{count} efforts}}'**
-  String sharedEffortCount(int count);
+  /// **'{count, plural, =1{1 collection method} other{{count} collection methods}}'**
+  String sharedCollMethodCount(int count);
 
   /// No description provided for @sharedPersonnelAssignmentCount.
   ///
@@ -8068,8 +8068,8 @@ abstract class AppLocalizations {
   /// Database table name shown in field pickers.
   ///
   /// In en, this message translates to:
-  /// **'Coll Effort'**
-  String get labelTableCollEffort;
+  /// **'Coll Method'**
+  String get labelTableCollMethod;
 
   /// Database table name shown in field pickers.
   ///
@@ -8524,23 +8524,23 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Are you sure you want to delete the selected coordinate?} other{Are you sure you want to delete the selected coordinates?}}'**
   String deleteCoordinatesBody(int count);
 
-  /// No description provided for @deleteEffortsCount.
+  /// No description provided for @deleteCollMethodsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete 1 effort} other{Delete {count} efforts}}'**
-  String deleteEffortsCount(int count);
+  /// **'{count, plural, =1{Delete 1 collection method} other{Delete {count} collection methods}}'**
+  String deleteCollMethodsCount(int count);
 
-  /// No description provided for @deleteEffortsTitle.
+  /// No description provided for @deleteCollMethodsTitle.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Delete effort} other{Delete efforts}}'**
-  String deleteEffortsTitle(int count);
+  /// **'{count, plural, =1{Delete collection method} other{Delete collection methods}}'**
+  String deleteCollMethodsTitle(int count);
 
-  /// No description provided for @deleteEffortsBody.
+  /// No description provided for @deleteCollMethodsBody.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Are you sure you want to delete the selected effort?} other{Are you sure you want to delete the selected efforts?}}'**
-  String deleteEffortsBody(int count);
+  /// **'{count, plural, =1{Are you sure you want to delete the selected collection method?} other{Are you sure you want to delete the selected collection methods?}}'**
+  String deleteCollMethodsBody(int count);
 
   /// No description provided for @deleteParasitesCount.
   ///

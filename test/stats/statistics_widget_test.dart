@@ -1767,9 +1767,9 @@ Future<void> _pumpRecordStatisticsPanel(
         ..where((event) => event.id.equals(projectEvents[2].id)))
       .write(CollEventCompanion(siteID: Value(projectSites.first.id)));
   final method = await database
-      .into(database.collEffort)
+      .into(database.collMethod)
       .insert(
-        CollEffortCompanion(
+        CollMethodCompanion(
           eventID: Value(projectEvents.first.id),
           method: const Value('Mist net'),
         ),
@@ -1829,9 +1829,9 @@ Future<void> _pumpRecordStatisticsPanel(
     ]) {
       additionalMethods.add(
         await database
-            .into(database.collEffort)
+            .into(database.collMethod)
             .insert(
-              CollEffortCompanion(
+              CollMethodCompanion(
                 eventID: Value(projectEvents.first.id),
                 method: Value(methodName),
               ),

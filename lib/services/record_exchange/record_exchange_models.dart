@@ -79,7 +79,7 @@ class RecordExchangePayload {
 
   int get coordinateCount => mapList(data['coordinates']).length;
 
-  int get effortCount => mapList(data['effort']).length;
+  int get collMethodCount => mapList(data['effort']).length;
 
   int get assignmentCount => mapList(data['personnelAssignments']).length;
 

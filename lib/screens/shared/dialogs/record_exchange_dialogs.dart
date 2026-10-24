@@ -205,7 +205,8 @@ String _summary(RecordExchangePayload payload, AppLocalizations l10n) {
       l10n.sharedCoordinateCount(payload.coordinateCount),
     if (payload.personnelCount > 0)
       l10n.sharedPersonCount(payload.personnelCount),
-    if (payload.effortCount > 0) l10n.sharedEffortCount(payload.effortCount),
+    if (payload.collMethodCount > 0)
+      l10n.sharedCollMethodCount(payload.collMethodCount),
     if (payload.assignmentCount > 0)
       l10n.sharedPersonnelAssignmentCount(payload.assignmentCount),
     if (payload.type == RecordExchangeType.event &&

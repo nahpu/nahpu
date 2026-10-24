@@ -237,7 +237,7 @@ class EditableEnvironmentData {
 
 /// Icon vocabulary for collecting methods.
 ///
-/// This exists only to pick an SVG for an effort row. Methods themselves stay
+/// This exists only to pick an SVG for a collection method row. Methods themselves stay
 /// free text, so [CollMethodIcon.fromMethod] matches case-insensitively on
 /// substrings rather than on exact values.
 enum CollMethodIcon {

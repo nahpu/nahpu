@@ -26,7 +26,7 @@ part 'migration_coordinator.dart';
 /// It is a good practice to test the migration steps on a test database before
 /// updating the production database.
 /// Learn more at https://drift.simonbinder.eu/docs/migrations/tests/
-const int kSchemaVersion = 23;
+const int kSchemaVersion = 24;
 
 @DriftDatabase(include: {'tables.drift'})
 class Database extends _$Database {
@@ -60,6 +60,12 @@ class Database extends _$Database {
         await customStatement('PRAGMA foreign_keys = ON');
       },
     );
+  }
+
+  /// Renames the v3–v23 `collEffort` table so legacy steps that reference
+  /// [collMethod] find it under its current name.
+  Future<void> _renameCollMethodTable() async {
+    await _renameTableIfPresent('collEffort', 'collMethod');
   }
 
   Future<void> _renameSpecimenAttributeTables(int from) async {
@@ -315,7 +321,7 @@ class Database extends _$Database {
     await m.create(specimenMedia);
 
     await m.renameColumn(collEvent, 'eventID', collEvent.idSuffix);
-    await m.renameColumn(collEffort, 'type', collEffort.method);
+    await m.renameColumn(collMethod, 'type', collMethod.method);
 
     await m.deleteTable('fileMetadata');
     await m.deleteTable('personnelPhoto');

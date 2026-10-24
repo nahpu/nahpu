@@ -101,7 +101,7 @@ void main() {
   testWidgets('a new event clears method and personnel', (tester) async {
     await withService(tester, (service) async {
       await db.customStatement(
-        'INSERT INTO collEffort (id, eventID) VALUES (7, 1)',
+        'INSERT INTO collMethod (id, eventID) VALUES (7, 1)',
       );
       await db.customStatement(
         'INSERT INTO collPersonnel (id, eventID) VALUES (8, 1)',

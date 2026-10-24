@@ -21,7 +21,7 @@ enum InfoTopic {
   siteCoordinates('site-coordinates'),
   eventOverview('event-overview'),
   eventActivity('event-activity'),
-  eventEffort('event-effort'),
+  eventMethods('event-methods'),
   eventPersonnel('event-personnel'),
   eventWeather('event-weather'),
   specimenGeneralRecord('specimen-general-record'),

@@ -181,6 +181,9 @@ void main() {
             'weather': [
               {'eventID': 9, 'averageHumidity': 80.0},
             ],
+            'collEffort': [
+              {'id': 4, 'eventID': 9, 'method': 'Pitfall trap', 'count': 20},
+            ],
             'mammalAttribute': [
               {'specimenUuid': 'mammal', 'age': 1},
             ],
@@ -207,6 +210,8 @@ void main() {
       expect(attribute['habitatCondition'], 'Intact');
       expect(attribute['habitatDescription'], 'Lowland rainforest');
       expect(decoded.rows('environment').single['averageHumidity'], 80.0);
+      expect(decoded.rows('collMethod').single['method'], 'Pitfall trap');
+      expect(decoded.records, isNot(contains('collEffort')));
       expect(decoded.rows('mammalAttribute').single['lifeStage'], 'Subadult');
       expect(decoded.rows('herpAttribute').single['lifeStage'], 'Metamorph');
       final invertebrate = decoded.rows('invertebrateAttribute').single;
