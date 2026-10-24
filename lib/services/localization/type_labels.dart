@@ -1,5 +1,12 @@
 import 'package:nahpu/l10n/app_localizations.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/data_table/data_table_models.dart';
+import 'package:nahpu/services/import/batch/batch_import_models.dart';
+import 'package:nahpu/services/projects/project_transfer_models.dart';
+import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/events.dart';
@@ -7,7 +14,9 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/statistics.dart';
 
 /// Localized display labels for service enums and keyed field names.
 ///
@@ -250,5 +259,273 @@ String databaseTableLocalizedTitle(AppLocalizations l10n, String tableName) {
     'customFieldDefinition' => l10n.labelTableCustomFieldDefinition,
     'customFieldValue' => l10n.labelTableCustomFieldValue,
     _ => databaseTableDisplayTitle(tableName),
+  };
+}
+
+/// Personnel roles stay in English in the database; this is the shown label.
+String personnelRoleLabel(AppLocalizations l10n, String role) => switch (role) {
+  'Cataloger' => l10n.projectPersonnelRoleCataloger,
+  'Determiner only' => l10n.projectPersonnelRoleDeterminer,
+  'Preparator only' => l10n.projectPersonnelRolePreparator,
+  'None' => l10n.projectPersonnelRoleNone,
+  _ => role,
+};
+
+extension TaxonRankLocalizedLabel on TaxonRank {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TaxonRank.taxonClass => l10n.projectTaxonClass,
+    TaxonRank.order => l10n.projectTaxonOrder,
+    TaxonRank.family => l10n.projectTaxonFamily,
+    TaxonRank.genus => l10n.projectTaxonGenus,
+    TaxonRank.species => l10n.projectTaxonSpecies,
+    TaxonRank.subspecies => l10n.projectTaxonSubspecies,
+  };
+}
+
+extension TaxonSearchCategoryLocalizedLabel on TaxonSearchCategory {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TaxonSearchCategory.allFields => l10n.projectTaxonAllFields,
+    TaxonSearchCategory.taxonRank => l10n.projectTaxonRankLabel,
+    TaxonSearchCategory.kingdom => l10n.projectTaxonKingdom,
+    TaxonSearchCategory.phylum => l10n.projectTaxonPhylum,
+    TaxonSearchCategory.taxonClass => l10n.projectTaxonClass,
+    TaxonSearchCategory.order => l10n.projectTaxonOrder,
+    TaxonSearchCategory.family => l10n.projectTaxonFamily,
+    TaxonSearchCategory.genus => l10n.projectTaxonGenus,
+    TaxonSearchCategory.species => l10n.projectTaxonSpecies,
+    TaxonSearchCategory.subspecies => l10n.projectTaxonSubspecies,
+    TaxonSearchCategory.authors => l10n.projectTaxonAuthors,
+    TaxonSearchCategory.commonName => l10n.projectTaxonCommonName,
+    TaxonSearchCategory.redListCategory => l10n.projectTaxonRedListCategory,
+    TaxonSearchCategory.citesStatus => l10n.projectTaxonCitesStatus,
+    TaxonSearchCategory.countryStatus => l10n.projectTaxonCountryStatus,
+    TaxonSearchCategory.sortingOrder => l10n.projectTaxonSortingOrder,
+    TaxonSearchCategory.notes => l10n.projectPersonnelNotes,
+  };
+}
+
+extension ProjectTransferSectionLocalizedLabel on ProjectTransferSection {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    ProjectTransferSection.projectInfo => l10n.projectTransferProjectInfo,
+    ProjectTransferSection.personnel => l10n.settingsNavPersonnel,
+    ProjectTransferSection.taxonomy => l10n.projectTransferTaxonomy,
+    ProjectTransferSection.sites => l10n.projectTransferSites,
+    ProjectTransferSection.events => l10n.projectTransferEvents,
+    ProjectTransferSection.specimens => l10n.projectTransferSpecimens,
+    ProjectTransferSection.narratives => l10n.projectTransferNarratives,
+  };
+}
+
+extension ProjectTransferConflictActionLocalizedLabel
+    on ProjectTransferConflictAction {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    ProjectTransferConflictAction.keepCurrent =>
+      l10n.projectTransferKeepCurrent,
+    ProjectTransferConflictAction.useImported =>
+      l10n.projectTransferUseImported,
+    ProjectTransferConflictAction.importAsNew =>
+      l10n.projectTransferImportAsNew,
+    ProjectTransferConflictAction.skip => l10n.projectWizardSkip,
+  };
+}
+
+/// The record counts in a project transfer summary are keyed in English.
+String projectTransferSummaryLabel(AppLocalizations l10n, String key) =>
+    switch (key) {
+      'Personnel' => l10n.settingsNavPersonnel,
+      'Taxonomy' => l10n.projectTransferTaxonomy,
+      'Sites' => l10n.projectTransferSites,
+      'Events' => l10n.projectTransferEvents,
+      'Specimens' => l10n.projectTransferSpecimens,
+      'Narratives' => l10n.projectTransferNarratives,
+      'Custom fields' => l10n.projectTransferCustomFields,
+      'Media' => l10n.projectTransferMedia,
+      _ => key,
+    };
+
+extension DataTableRecordTypeLocalizedLabel on DataTableRecordType {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    DataTableRecordType.specimenRecords => l10n.projectTaxonSpecimenRecords,
+    DataTableRecordType.specimenParts => l10n.projectBatchSpecimenParts,
+    DataTableRecordType.sites => l10n.projectTransferSites,
+    DataTableRecordType.events => l10n.projectTransferEvents,
+    DataTableRecordType.narrative => l10n.projectBatchNarrative,
+  };
+}
+
+extension BatchImportModeLocalizedLabel on BatchImportMode {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    BatchImportMode.update => l10n.projectBatchModeUpdate,
+    BatchImportMode.create => l10n.projectBatchModeCreate,
+  };
+}
+
+extension BatchImportHeaderModeLocalizedLabel on BatchImportHeaderMode {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    BatchImportHeaderMode.auto => l10n.projectBatchHeaderAuto,
+    BatchImportHeaderMode.darwinCore => l10n.projectBatchDarwinCore,
+    BatchImportHeaderMode.names => l10n.projectBatchHeaderNames,
+  };
+}
+
+extension BatchImportKeyLocalizedLabel on BatchImportKey {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    BatchImportKey.specimenUuid => l10n.projectBatchKeySpecimenUuid,
+    BatchImportKey.catalogNumber => l10n.projectBatchKeyCatalogNumber,
+    BatchImportKey.catalogerFieldNumber =>
+      l10n.projectBatchKeyCatalogerFieldNumber,
+    BatchImportKey.tissueId => l10n.projectBatchKeyTissueId,
+    BatchImportKey.barcodeId => l10n.projectBatchKeyBarcodeId,
+    BatchImportKey.siteId => l10n.projectBatchKeySiteId,
+    BatchImportKey.eventId => l10n.projectBatchKeyEventId,
+    BatchImportKey.narrativeDate => l10n.projectBatchKeyNarrativeDate,
+  };
+}
+
+extension BatchRowStatusLocalizedLabel on BatchRowStatus {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    BatchRowStatus.ready => l10n.projectBatchStatusReady,
+    BatchRowStatus.missingLink => l10n.projectBatchStatusMissingLink,
+    BatchRowStatus.noMatch => l10n.projectBatchStatusNoMatch,
+    BatchRowStatus.ambiguous => l10n.projectBatchStatusAmbiguous,
+    BatchRowStatus.exists => l10n.projectBatchStatusExists,
+    BatchRowStatus.duplicateInFile => l10n.projectBatchStatusDuplicateInFile,
+    BatchRowStatus.invalid => l10n.projectBatchStatusInvalid,
+  };
+}
+
+extension StatisticMeasureLocalizedLabel on StatisticMeasure {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    StatisticMeasure.specimens => l10n.projectTransferSpecimens,
+    StatisticMeasure.species => l10n.projectTaxonSpecies,
+    StatisticMeasure.partQuantity => l10n.projectStatsPartQuantity,
+  };
+
+  String localizedCountLabel(AppLocalizations l10n) => switch (this) {
+    StatisticMeasure.specimens => l10n.projectTransferSpecimens,
+    StatisticMeasure.species => l10n.projectTaxonSpecies,
+    StatisticMeasure.partQuantity => l10n.projectStatsQuantity,
+  };
+}
+
+extension StatisticGroupLocalizedLabel on StatisticGroup {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    StatisticGroup.species => l10n.projectTaxonSpecies,
+    StatisticGroup.taxonRank => l10n.projectTaxonRankLabel,
+    StatisticGroup.site => l10n.projectStatsSite,
+    StatisticGroup.date => l10n.projectStatsDate,
+    StatisticGroup.method => l10n.projectStatsMethod,
+    StatisticGroup.sex => l10n.projectStatsSex,
+    StatisticGroup.lifeStage => l10n.projectStatsLifeStage,
+    StatisticGroup.partType => l10n.projectStatsPartType,
+    StatisticGroup.partTreatment => l10n.projectStatsTreatment,
+  };
+}
+
+extension StatisticTaxonRankLocalizedLabel on StatisticTaxonRank {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    StatisticTaxonRank.taxonClass => l10n.projectTaxonClass,
+    StatisticTaxonRank.order => l10n.projectTaxonOrder,
+    StatisticTaxonRank.family => l10n.projectTaxonFamily,
+    StatisticTaxonRank.genus => l10n.projectTaxonGenus,
+    StatisticTaxonRank.species => l10n.projectTaxonSpecies,
+  };
+}
+
+extension StatisticBreakdownLocalizedLabel on StatisticBreakdown {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    StatisticBreakdown.sex => l10n.projectStatsSex,
+    StatisticBreakdown.lifeStage => l10n.projectStatsLifeStage,
+  };
+}
+
+extension StatisticRequestLocalizedLabel on StatisticRequest {
+  /// The shown name of the grouped column, such as Family or Site.
+  String localizedCategoryLabel(AppLocalizations l10n) =>
+      group == StatisticGroup.taxonRank
+      ? resolvedRank.localizedLabel(l10n)
+      : group.localizedLabel(l10n);
+
+  String localizedTitle(
+    AppLocalizations l10n, {
+    String? siteLabel,
+    String? speciesLabel,
+  }) {
+    final category = localizedCategoryLabel(l10n).toLowerCase();
+    if (measure == StatisticMeasure.partQuantity) {
+      final title = l10n.projectStatsTitle(
+        measure.localizedLabel(l10n),
+        category,
+      );
+      return speciesLabel == null
+          ? title
+          : l10n.projectStatsTitleForSpecies(title, speciesLabel);
+    }
+    final title = breakdown == null
+        ? l10n.projectStatsTitle(measure.localizedLabel(l10n), category)
+        : l10n.projectStatsTitleWithBreakdown(
+            measure.localizedLabel(l10n),
+            category,
+            breakdown!.localizedLabel(l10n).toLowerCase(),
+          );
+    return siteLabel == null
+        ? title
+        : l10n.projectStatsTitleAtSite(title, siteLabel);
+  }
+}
+
+extension SpatialStatisticKindLocalizedLabel on SpatialStatisticKind {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    SpatialStatisticKind.specimens => l10n.projectTransferSpecimens,
+    SpatialStatisticKind.species => l10n.projectTaxonSpecies,
+    SpatialStatisticKind.family => l10n.projectTaxonFamily,
+    SpatialStatisticKind.coordinatesBySpecies =>
+      l10n.projectStatsCoordinatesBySpecies,
+  };
+
+  String localizedTitle(AppLocalizations l10n) => switch (this) {
+    SpatialStatisticKind.specimens => l10n.projectStatsSpatialSpecimensTitle,
+    SpatialStatisticKind.species => l10n.projectStatsSpatialSpeciesTitle,
+    SpatialStatisticKind.family => l10n.projectStatsSpatialFamiliesTitle,
+    SpatialStatisticKind.coordinatesBySpecies =>
+      l10n.projectStatsSpatialSelectedSpeciesTitle,
+  };
+
+  /// Lowercase name of what each count is, as in "12 specimens".
+  String localizedCountLabel(AppLocalizations l10n) => switch (this) {
+    SpatialStatisticKind.specimens ||
+    SpatialStatisticKind.coordinatesBySpecies =>
+      l10n.projectStatsCountSpecimens,
+    SpatialStatisticKind.species => l10n.projectStatsCountSpecies,
+    SpatialStatisticKind.family => l10n.projectStatsCountFamilies,
+  };
+}
+
+extension TissueCheckFieldLocalizedLabel on TissueCheckField {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueCheckField.museumPermanent => l10n.projectTissueMuseumPermanent,
+    TissueCheckField.museumLoan => l10n.projectTissueMuseumLoan,
+  };
+}
+
+extension TissueIdentifyByLocalizedLabel on TissueIdentifyBy {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueIdentifyBy.tissueId => l10n.projectTissueIdOrBarcode,
+    TissueIdentifyBy.fieldId => l10n.recordsSpecimenFieldId,
+  };
+}
+
+extension TissueFillOrderLocalizedLabel on TissueFillOrder {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueFillOrder.rowMajor => l10n.projectTissueFillRows,
+    TissueFillOrder.columnMajor => l10n.projectTissueFillColumns,
+    TissueFillOrder.serpentine => l10n.projectTissueFillSerpentine,
+  };
+}
+
+extension TissueEntryModeLocalizedLabel on TissueEntryMode {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueEntryMode.scan => l10n.projectTissueEntryScan,
+    TissueEntryMode.workList => l10n.projectTissueEntryWorkList,
   };
 }

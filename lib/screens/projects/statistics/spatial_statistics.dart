@@ -11,6 +11,8 @@ import 'package:nahpu/services/sites/coordinate_format.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class SpatialStatisticsPanel extends ConsumerStatefulWidget {
   const SpatialStatisticsPanel({
@@ -67,10 +69,10 @@ class _SpatialStatisticsPanelState
           fields: [
             StatisticDropdownField<SpatialStatisticKind>(
               key: const ValueKey('spatial-statistics-kind-control'),
-              label: 'Show',
+              label: context.l10n.projectStatsShow,
               values: SpatialStatisticKind.values,
               selected: _selectedKind,
-              valueLabel: (kind) => kind.label,
+              valueLabel: (kind) => kind.localizedLabel(context.l10n),
               onSelected: (kind) => setState(() => _selectedKind = kind),
             ),
             if (_selectedKind.needsSpecies)
@@ -79,9 +81,9 @@ class _SpatialStatisticsPanelState
                   spatialSpeciesFilterOptionsProvider(widget.projectUuid),
                 ),
                 selected: _selectedSpecies,
-                label: 'Species',
-                title: 'Select a species',
-                placeholder: 'Select a species',
+                label: context.l10n.projectTaxonSpecies,
+                title: context.l10n.projectStatsSelectSpecies,
+                placeholder: context.l10n.projectStatsSelectSpecies,
                 onChanged: (value) {
                   setState(() => _selectedSpecies = value);
                 },
@@ -106,22 +108,25 @@ class _SpatialStatisticsPanelState
                     builder: (context, constraints) {
                       final title = Text(
                         _selectedKind.needsSpecies && _selectedSpecies != null
-                            ? '${_selectedSpecies!.label} counts by coordinates'
-                            : _selectedKind.title,
+                            ? context.l10n
+                                  .projectStatsSpeciesCountsByCoordinates(
+                                    _selectedSpecies!.label,
+                                  )
+                            : _selectedKind.localizedTitle(context.l10n),
                         style: Theme.of(context).textTheme.titleMedium,
                       );
                       final selector = SegmentedButton<_SpatialStatisticMode>(
                         showSelectedIcon: false,
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: _SpatialStatisticMode.map,
-                            icon: Icon(Icons.map_outlined),
-                            label: Text('Map'),
+                            icon: const Icon(Icons.map_outlined),
+                            label: Text(context.l10n.projectStatsMap),
                           ),
                           ButtonSegment(
                             value: _SpatialStatisticMode.table,
-                            icon: Icon(Icons.table_rows_outlined),
-                            label: Text('Table'),
+                            icon: const Icon(Icons.table_rows_outlined),
+                            label: Text(context.l10n.projectStatsTable),
                           ),
                         ],
                         selected: {_mode},
@@ -171,7 +176,9 @@ class _SpatialStatisticsPanelState
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Unable to load spatial statistics: $error',
+                                    context.l10n.projectStatsSpatialLoadError(
+                                      '$error',
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   TextButton.icon(
@@ -179,7 +186,7 @@ class _SpatialStatisticsPanelState
                                       spatialStatisticDataProvider(request),
                                     ),
                                     icon: const Icon(Icons.refresh_rounded),
-                                    label: const Text('Retry'),
+                                    label: Text(context.l10n.commonRetry),
                                   ),
                                 ],
                               ),
@@ -221,15 +228,15 @@ class _SpatialStatisticsPanelState
   }
 
   String get _emptyMessage => switch (_selectedKind) {
-    SpatialStatisticKind.specimens =>
-      'No specimens are assigned to project coordinates.',
-    SpatialStatisticKind.species =>
-      'No species are associated with project coordinates.',
-    SpatialStatisticKind.family =>
-      'No families are associated with project coordinates.',
+    SpatialStatisticKind.specimens => context.l10n.projectStatsNoSpecimenCoords,
+    SpatialStatisticKind.species => context.l10n.projectStatsNoSpeciesCoords,
+    SpatialStatisticKind.family => context.l10n.projectStatsNoFamilyCoords,
     SpatialStatisticKind.coordinatesBySpecies =>
-      'No specimens of ${_selectedSpecies?.label ?? 'the selected species'} '
-          'are assigned to project coordinates.',
+      _selectedSpecies == null
+          ? context.l10n.projectStatsNoSelectedSpeciesCoords
+          : context.l10n.projectStatsNoSpeciesCoordsFor(
+              _selectedSpecies!.label,
+            ),
   };
 
   String get _defaultFileName {
@@ -269,25 +276,34 @@ class SpatialMetricStrip extends StatelessWidget {
     final tiles = [
       _SpatialMetricTile(
         value: '${summary.coordinateCount}',
-        label: summary.coordinateCount == 1 ? 'Coordinate' : 'Coordinates',
+        label: context.l10n.projectStatsCoordinateLabel(
+          summary.coordinateCount,
+        ),
       ),
       // Species and families repeat across coordinates, so their sum is not
       // a project total; show the mean per coordinate instead.
       if (kind.countsSpecimens)
         _SpatialMetricTile(
           value: '${summary.total}',
-          label: kind.countLabel.toSentenceCase(),
+          label: kind.localizedCountLabel(context.l10n).toSentenceCase(),
         )
       else
         _SpatialMetricTile(
           value: summary.average.toStringAsFixed(1),
-          label: 'Mean ${kind.countLabel} per coordinate',
+          label: context.l10n.projectStatsMeanPerCoordinate(
+            kind.localizedCountLabel(context.l10n),
+          ),
         ),
       _SpatialMetricTile(
         value: top == null ? '—' : '${top.count}',
-        label: top == null ? 'Top coordinate' : 'Top: ${top.displayName}',
+        label: top == null
+            ? context.l10n.projectStatsTopCoordinate
+            : context.l10n.projectStatsTopValue(top.displayName),
       ),
-      _SpatialMetricTile(value: _elevationText, label: 'Elevation'),
+      _SpatialMetricTile(
+        value: _elevationText,
+        label: context.l10n.projectStatsElevation,
+      ),
     ];
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -381,7 +397,7 @@ class _SpatialSpeciesPrompt extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: Text(
-      'Select a species to view coordinate abundance.',
+      context.l10n.projectStatsSelectSpeciesPrompt,
       style: Theme.of(context).textTheme.bodyLarge,
       textAlign: TextAlign.center,
     ),

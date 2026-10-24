@@ -5,6 +5,7 @@ import 'package:nahpu/screens/projects/personnel/new_personnel.dart';
 import 'package:nahpu/screens/projects/personnel/select_personnel.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum PersonnelSelection { selectPersonnel, newPersonnel }
 
@@ -20,7 +21,7 @@ class AddPersonnelState extends ConsumerState<AddPersonnel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add personnel'),
+        title: Text(context.l10n.recordsSpecimenAddPersonnel),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -68,12 +69,18 @@ class AddWithOptionsState extends ConsumerState<AddWithOptions> {
                   ButtonSegment(
                     value: PersonnelSelection.selectPersonnel,
                     label: Text(
-                      isCompact ? 'Select existing' : 'Select from database',
+                      isCompact
+                          ? context.l10n.projectPersonnelSelectExisting
+                          : context.l10n.projectPersonnelSelectFromDatabase,
                     ),
                   ),
                   ButtonSegment(
                     value: PersonnelSelection.newPersonnel,
-                    label: Text(isCompact ? 'Add new' : 'Add new personnel'),
+                    label: Text(
+                      isCompact
+                          ? context.l10n.projectPersonnelAddNew
+                          : context.l10n.projectPersonnelAddNewPersonnel,
+                    ),
                   ),
                 ],
                 showSelectedIcon: false,

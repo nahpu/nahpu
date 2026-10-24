@@ -6,6 +6,7 @@ import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ProjectOverview extends ConsumerWidget {
   const ProjectOverview({
@@ -22,7 +23,7 @@ class ProjectOverview extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Project Overview',
+      title: context.l10n.projectOverview,
       infoTopic: InfoTopic.projectOverview,
       isPrimary: true,
       isExpanded: useHorizontalLayout,
@@ -74,13 +75,9 @@ class ProjectOverview extends ConsumerWidget {
 
   Widget showAlert(BuildContext context, String error) {
     return AlertDialog(
-      title: const Text('ERROR!'),
+      title: Text(context.l10n.commonError),
       content: Column(
-        children: [
-          Text(
-            'Failed fetching data from the database. Check if the project name exists. $error',
-          ),
-        ],
+        children: [Text(context.l10n.projectOverviewLoadError(error))],
       ),
     );
   }

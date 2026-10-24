@@ -13,6 +13,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SpecimenListPage extends ConsumerStatefulWidget {
   const SpecimenListPage({super.key});
@@ -47,7 +48,9 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
         .watch(specimenEntryProvider)
         .when(
           data: (specimenData) => Scaffold(
-            appBar: AppBar(title: const Text('Specimen Records')),
+            appBar: AppBar(
+              title: Text(context.l10n.projectTaxonSpecimenRecords),
+            ),
             body: SafeArea(
               child: ScrollableConstrainedLayout(
                 child: Column(
@@ -56,7 +59,7 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
                     CommonSearchBar(
                       controller: _searchController,
                       focusNode: _focus,
-                      hintText: 'Search specimens',
+                      hintText: context.l10n.projectTaxonSearchSpecimens,
                       trailing: [
                         _searchController.text.isNotEmpty
                             ? IconButton(
@@ -108,7 +111,7 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
                     ),
                     const SizedBox(height: 8),
                     specimenData.isEmpty
-                        ? const Text('No specimens found')
+                        ? Text(context.l10n.projectTaxonNoSpecimens)
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
@@ -133,25 +136,18 @@ class SpecimenListPageState extends ConsumerState<SpecimenListPage> {
             ),
           ),
           loading: () => const CommonProgressIndicator(),
-          error: (error, stack) => Text('Error: $error'),
+          error: (error, stack) =>
+              Text(context.l10n.projectErrorDetail('$error')),
         );
   }
 
   String specimenCount(List<SpecimenData> data) {
     if (_isSearching) {
-      int length = _filteredSpecimenData.length;
-      String specimenCount = data.length > 1
-          ? '${data.length} specimens'
-          : '${data.length} specimen';
-      if (length == 0) {
-        return 'No specimens found';
-      } else if (length == 1) {
-        return 'Found: 1 of $specimenCount';
-      } else {
-        return 'Found: $length of $specimenCount';
-      }
+      final length = _filteredSpecimenData.length;
+      if (length == 0) return context.l10n.projectTaxonNoSpecimens;
+      return context.l10n.projectTaxonSpecimensFound(length, data.length);
     } else {
-      return 'Specimen counts: ${data.length}';
+      return context.l10n.projectTaxonSpecimenCount(data.length);
     }
   }
 }
@@ -264,7 +260,7 @@ class SpecimenListSubtitle extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleSmall,
           );
         } else {
-          return const Text('Loading...');
+          return Text(context.l10n.projectLoading);
         }
       },
       future: _getTaxonData(data?.speciesID, ref),

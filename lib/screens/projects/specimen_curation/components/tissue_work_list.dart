@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Unplaced parts in field ID order, for boxing tubes without a scanner.
 /// Place puts the current part in the next cell; Skip moves past it.
@@ -42,7 +43,7 @@ class TissueWorkListPanel extends StatelessWidget {
     }
     if (records.isEmpty) {
       return Text(
-        'No unplaced parts match the tissue type and preservation filters.',
+        context.l10n.projectTissueWorkListEmpty,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
@@ -57,7 +58,7 @@ class TissueWorkListPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Next · ${records.length} remaining',
+          context.l10n.projectTissueRemaining(records.length),
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -82,7 +83,7 @@ class TissueWorkListPanel extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: isBusy ? null : onPlace,
                 icon: const Icon(Icons.move_to_inbox_outlined),
-                label: const Text('Place'),
+                label: Text(context.l10n.projectTissuePlace),
               ),
             ),
             const SizedBox(width: NahpuSpacing.md),
@@ -90,7 +91,7 @@ class TissueWorkListPanel extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: isBusy || records.length < 2 ? null : onSkip,
                 icon: const Icon(Icons.skip_next_outlined),
-                label: const Text('Skip'),
+                label: Text(context.l10n.projectWizardSkip),
               ),
             ),
           ],

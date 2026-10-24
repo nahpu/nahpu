@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Shared descriptors for the record statistics shown on the project dashboard
 /// and on the full-screen statistics summary.
@@ -67,6 +68,28 @@ enum RecordMetricKind {
   /// media counts slice one total by category and read as one set the same
   /// way, so they stay iconless too.
   final IconData? icon;
+
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    specimens => l10n.projectTransferSpecimens,
+    classes => l10n.projectStatsClasses,
+    orders => l10n.projectStatsOrders,
+    families => l10n.projectStatsFamilies,
+    genera => l10n.projectStatsGenera,
+    species => l10n.projectTaxonSpecies,
+    media => l10n.projectTransferMediaFiles,
+    specimenMedia => l10n.projectStatsSpecimenMedia,
+    siteMedia => l10n.projectStatsSiteMedia,
+    eventMedia => l10n.projectStatsEventMedia,
+    narrativeMedia => l10n.projectStatsNarrativeMedia,
+    recordedSites => l10n.projectStatsRecordedSites,
+    sampledSites => l10n.projectStatsSampledSites,
+    events => l10n.projectTransferEvents,
+    narratives => l10n.projectTransferNarratives,
+    captureDays => l10n.projectStatsCaptureDays,
+    projectDays => l10n.projectStatsProjectDays,
+    recordedElevation => l10n.projectStatsRecordedElevation,
+    sampledElevation => l10n.projectStatsSampledElevation,
+  };
 
   /// Whether this metric is rendered with its [icon].
   bool get hasIcon => icon != null;

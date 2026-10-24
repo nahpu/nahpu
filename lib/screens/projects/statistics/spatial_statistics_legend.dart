@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class SpatialStatisticsLegend extends StatefulWidget {
   const SpatialStatisticsLegend({
@@ -71,8 +73,8 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
                 IconButton(
                   key: const ValueKey('spatial-statistics-legend-toggle'),
                   tooltip: _isExpanded
-                      ? 'Collapse map legend'
-                      : 'Expand map legend',
+                      ? context.l10n.projectStatsCollapseLegend
+                      : context.l10n.projectStatsExpandLegend,
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints.tightFor(
@@ -88,8 +90,10 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     widget.kind.hasCounts
-                        ? widget.kind.countLabel.toSentenceCase()
-                        : 'Legend',
+                        ? widget.kind
+                              .localizedCountLabel(context.l10n)
+                              .toSentenceCase()
+                        : context.l10n.projectStatsLegend,
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ),
@@ -111,7 +115,7 @@ class _SpatialStatisticsLegendState extends State<SpatialStatisticsLegend> {
                   )
               else
                 Text(
-                  'Each circle represents\none coordinate',
+                  context.l10n.projectStatsLegendCircle,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               if (widget.groupsOverlaps)
@@ -157,7 +161,7 @@ class _GroupedLegendSample extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'Grouped sites,\nzoom in to split',
+            context.l10n.projectStatsLegendGrouped,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

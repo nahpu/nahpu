@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_link_service.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Picks an existing site or event for a group to link to.
 class BatchLinkExistingDialog extends StatefulWidget {
@@ -32,9 +33,9 @@ class _BatchLinkExistingDialogState extends State<BatchLinkExistingDialog> {
           children: [
             TextField(
               autofocus: true,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_rounded),
-                hintText: 'Search',
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search_rounded),
+                hintText: context.l10n.projectBatchSearch,
               ),
               onChanged: (value) =>
                   setState(() => _query = value.trim().toLowerCase()),
@@ -45,7 +46,11 @@ class _BatchLinkExistingDialogState extends State<BatchLinkExistingDialog> {
                 future: widget.options,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return Text('Couldn\'t load records: ${snapshot.error}');
+                    return Text(
+                      context.l10n.projectBatchLoadRecordsFailed(
+                        '${snapshot.error}',
+                      ),
+                    );
                   }
                   final options = snapshot.data;
                   if (options == null) {
@@ -60,7 +65,9 @@ class _BatchLinkExistingDialogState extends State<BatchLinkExistingDialog> {
                         option,
                   ];
                   if (shown.isEmpty) {
-                    return const Center(child: Text('No matching records.'));
+                    return Center(
+                      child: Text(context.l10n.projectBatchNoMatchingRecords),
+                    );
                   }
                   return ListView.builder(
                     itemCount: shown.length,
@@ -85,7 +92,7 @@ class _BatchLinkExistingDialogState extends State<BatchLinkExistingDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
       ],
     );
@@ -134,11 +141,11 @@ class _BatchRenameGroupDialogState extends State<BatchRenameGroupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );
@@ -165,7 +172,7 @@ class BatchMergeGroupDialog extends StatelessWidget {
       content: SizedBox(
         width: NahpuContentWidth.dialog,
         child: groups.isEmpty
-            ? const Text('There is no other group to merge with.')
+            ? Text(context.l10n.projectBatchNoOtherGroup)
             : ListView(
                 shrinkWrap: true,
                 children: [
@@ -181,7 +188,7 @@ class BatchMergeGroupDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
       ],
     );
@@ -237,13 +244,13 @@ class _BatchSplitGroupDialogState extends State<BatchSplitGroupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: valid
               ? () => Navigator.of(context).pop(Set<int>.of(_selected))
               : null,
-          child: const Text('Move to new group'),
+          child: Text(context.l10n.projectBatchMoveToNewGroup),
         ),
       ],
     );

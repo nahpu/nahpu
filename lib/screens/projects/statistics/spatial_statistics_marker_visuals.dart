@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// One coordinate's circle, with its count inside when the count fits.
 ///
@@ -117,7 +118,7 @@ class SpatialClusterBubble extends StatelessWidget {
                     ),
                     if (diameter >= _sitesLabelDiameter)
                       Text(
-                        '$coordinateCount sites',
+                        context.l10n.projectStatsSiteCount(coordinateCount),
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onPrimary,
                         ),

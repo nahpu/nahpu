@@ -122,7 +122,7 @@ void taxonQrFlowTests() => group('QR import', () {
       expect(find.text('0 taxa ready'), findsOneWidget);
       await emit(tester, _qr('Bunomys'));
       await emit(tester, _qr('Bunomys'));
-      expect(find.text('1 taxa ready'), findsOneWidget);
+      expect(find.text('1 taxon ready'), findsOneWidget);
       await emit(tester, _qr(' RATTUS '));
       expect(find.text('Duplicate: RATTUS'), findsOneWidget);
       await emit(tester, _qr('Crocidura'));

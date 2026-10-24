@@ -27,15 +27,21 @@ import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 enum _CreateProjectStep {
-  welcome('Welcome'),
-  projectInformation('Project information'),
-  mainTaxon('Main taxon'),
-  fieldId('Field ID'),
-  cataloger('Cataloger'),
-  review('Review');
+  welcome,
+  projectInformation,
+  mainTaxon,
+  fieldId,
+  cataloger,
+  review;
 
-  const _CreateProjectStep(this.label);
-  final String label;
+  String label(AppLocalizations l10n) => switch (this) {
+    welcome => l10n.projectWizardWelcome,
+    projectInformation => l10n.homeProjectInformation,
+    mainTaxon => l10n.projectWizardMainTaxon,
+    fieldId => l10n.recordsSpecimenFieldId,
+    cataloger => l10n.projectPersonnelRoleCataloger,
+    review => l10n.projectWizardReview,
+  };
 }
 
 class CreateProjectForm extends ConsumerStatefulWidget {
@@ -105,7 +111,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     return FalseWillPop(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Create project'),
+          title: Text(context.l10n.drawerCreateProject),
           automaticallyImplyLeading: false,
         ),
         body: SafeArea(
@@ -180,7 +186,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                   child: Text('${index + 1}'),
                 ),
                 title: Text(
-                  step.label,
+                  step.label(context.l10n),
                   style: selected
                       ? const TextStyle(fontWeight: FontWeight.w600)
                       : null,
@@ -207,7 +213,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
         final step = _steps[index];
         return ChoiceChip(
           selected: step == _step,
-          label: Text('${index + 1}. ${step.label}'),
+          label: Text('${index + 1}. ${step.label(context.l10n)}'),
           onSelected: null,
         );
       },
@@ -243,19 +249,16 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
 
   Widget _welcome() {
     return FormSection(
-      title: 'Create once for all devices',
+      title: context.l10n.projectWizardCreateOnce,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Create a new project only for the first device. '
-            'Use QR/Import JSON to transfer project info and its identity.',
-          ),
+          Text(context.l10n.projectWizardCreateOnceBody),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: _startNewProject,
             icon: const Icon(Icons.create_outlined),
-            label: const Text('Create new project'),
+            label: Text(context.l10n.projectWizardCreateNew),
           ),
           const SizedBox(height: 8),
           ImportJsonButton(onPressed: _importJson),
@@ -264,7 +267,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             OutlinedButton.icon(
               onPressed: _openScanner,
               icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan project QR'),
+              label: Text(context.l10n.projectScanQr),
             ),
           ],
         ],
@@ -282,15 +285,11 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
 
   Widget _mainTaxon() {
     return FormSection(
-      title: 'Main taxon',
+      title: context.l10n.projectWizardMainTaxon,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Choose the main taxon to tailor NAHPU’s specimen forms and '
-            'defaults on this device. A project can contain multiple taxon '
-            'groups, and you can change the main taxon later in Settings.',
-          ),
+          Text(context.l10n.projectWizardMainTaxonBody),
           const SizedBox(height: 16),
           TaxonGroupFields(
             value: _catalogFmtDraft,
@@ -305,31 +304,29 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     final storedMode = ref.watch(fieldIdModeNotifierProvider);
     final storedAutoIncrement = ref.watch(projectFieldIdAutoIncrementProvider);
     return FormSection(
-      title: 'Set up field IDs',
+      title: context.l10n.projectWizardFieldIdsTitle,
       child: storedMode.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Text('Could not load field ID settings: $error'),
+        error: (error, _) =>
+            Text(context.l10n.projectWizardFieldIdsLoadError('$error')),
         data: (currentMode) {
           final selectedMode = _fieldIdModeDraft ?? currentMode;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Choose how specimen field IDs are generated. You can change '
-                'this later in Settings > Catalogs > Specimens.',
-              ),
+              Text(context.l10n.projectWizardFieldIdsBody),
               const SizedBox(height: 12),
               SegmentedButton<FieldIdMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: FieldIdMode.personnel,
-                    label: Text('Personnel'),
-                    icon: Icon(Icons.person_outline),
+                    label: Text(context.l10n.settingsNavPersonnel),
+                    icon: const Icon(Icons.person_outline),
                   ),
                   ButtonSegment(
                     value: FieldIdMode.project,
-                    label: Text('Project'),
-                    icon: Icon(Icons.tag_outlined),
+                    label: Text(context.l10n.labelTableProject),
+                    icon: const Icon(Icons.tag_outlined),
                   ),
                 ],
                 selected: {selectedMode},
@@ -340,13 +337,12 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
               ),
               const SizedBox(height: 16),
               if (selectedMode == FieldIdMode.personnel)
-                const ListTile(
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.info_outline),
-                  title: Text('A registered Cataloger is required'),
+                  leading: const Icon(Icons.info_outline),
+                  title: Text(context.l10n.projectWizardCatalogerRequired),
                   subtitle: Text(
-                    'Next, choose an eligible Cataloger or create one with '
-                    'initials and a current personal field number.',
+                    context.l10n.projectWizardCatalogerRequiredBody,
                   ),
                 )
               else
@@ -364,9 +360,9 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
       children: [
         TextField(
           controller: _projectCtr.catalogNumberPrefixCtr,
-          decoration: const InputDecoration(
-            labelText: 'Prefix',
-            hintText: 'e.g. NAHPU-',
+          decoration: InputDecoration(
+            labelText: context.l10n.recordsSpecimenPrefix,
+            hintText: context.l10n.projectWizardPrefixHint('NAHPU-'),
           ),
           onChanged: (_) => setState(() {}),
         ),
@@ -375,25 +371,29 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
-            labelText: 'Current catalog number',
-            hintText: 'Enter the next number',
-            errorText: _projectNumberRequired ? 'Enter a current number' : null,
+            labelText: context.l10n.projectCurrentCatalogNumber,
+            hintText: context.l10n.projectWizardNextNumberHint,
+            errorText: _projectNumberRequired
+                ? context.l10n.projectWizardCurrentNumberRequired
+                : null,
           ),
           onChanged: (_) => setState(() {}),
         ),
         TextField(
           controller: _projectCtr.catalogNumberSuffixCtr,
-          decoration: const InputDecoration(
-            labelText: 'Suffix',
-            hintText: 'e.g. -M',
+          decoration: InputDecoration(
+            labelText: context.l10n.recordsSpecimenSuffix,
+            hintText: context.l10n.projectWizardPrefixHint('-M'),
           ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 8),
         Text(
-          'Preview: ${_projectCtr.catalogNumberPrefixCtr.text}'
-          '${_projectCtr.currentCatalogNumberCtr.text}'
-          '${_projectCtr.catalogNumberSuffixCtr.text}',
+          context.l10n.recordsSpecimenFieldIdPreview(
+            '${_projectCtr.catalogNumberPrefixCtr.text}'
+            '${_projectCtr.currentCatalogNumberCtr.text}'
+            '${_projectCtr.catalogNumberSuffixCtr.text}',
+          ),
         ),
         const SizedBox(height: 8),
         storedAutoIncrement.when(
@@ -403,7 +403,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             color: Colors.transparent,
             child: SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Auto-increment catalog number'),
+              title: Text(context.l10n.projectWizardAutoIncrementCatalog),
               value: _autoIncrementDraft ?? stored,
               onChanged: (value) => setState(() {
                 _autoIncrementDraft = value;
@@ -422,22 +422,18 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
         .when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => FormSection(
-            title: 'Cataloger',
-            child: Text('Could not load personnel: $error'),
+            title: context.l10n.projectPersonnelRoleCataloger,
+            child: Text(context.l10n.projectWizardPersonnelLoadError('$error')),
           ),
           data: (personnel) {
             final eligible = personnel.where(_isEligibleCataloger).toList();
             if (eligible.isEmpty) {
               return FormSection(
-                title: 'Create a Cataloger',
+                title: context.l10n.projectWizardCreateCataloger,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'No registered Cataloger is available. Create one now; '
-                      'the role and personal field-number registration are '
-                      'filled automatically.',
-                    ),
+                    Text(context.l10n.projectWizardNoCatalogerBody),
                     const SizedBox(height: 12),
                     _newCatalogerFields(),
                   ],
@@ -446,8 +442,8 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             }
             return FormSection(
               title: _createNewCataloger
-                  ? 'Create a Cataloger'
-                  : 'Choose a Cataloger',
+                  ? context.l10n.projectWizardCreateCataloger
+                  : context.l10n.projectWizardChooseCataloger,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -457,23 +453,17 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                   ),
                   const SizedBox(height: 16),
                   if (_createNewCataloger) ...[
-                    const Text(
-                      'Create another Cataloger. The role and personal '
-                      'field-number registration are filled automatically.',
-                    ),
+                    Text(context.l10n.projectWizardCreateAnotherCatalogerBody),
                     const SizedBox(height: 12),
                     _newCatalogerFields(),
                   ] else ...[
-                    const Text(
-                      'Choose the Cataloger whose initials and current field '
-                      'number will be used for personnel field IDs.',
-                    ),
+                    Text(context.l10n.projectWizardChooseCatalogerBody),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedCatalogerUuid,
-                      decoration: const InputDecoration(
-                        labelText: 'Cataloger*',
-                        hintText: 'Choose a Cataloger',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.projectWizardCatalogerLabel,
+                        hintText: context.l10n.projectWizardChooseCataloger,
                       ),
                       items: eligible
                           .map(
@@ -481,7 +471,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                               value: person.uuid,
                               child: CommonDropdownText(
                                 text:
-                                    '${person.name ?? 'Unnamed'} '
+                                    '${person.name ?? context.l10n.projectPersonnelUnnamed} '
                                     '(${person.initial ?? ''}'
                                     '${person.currentFieldNumber ?? ''})',
                               ),
@@ -506,8 +496,8 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
         TextFormField(
           controller: _catalogerCtr.nameCtr,
           decoration: InputDecoration(
-            labelText: 'Name*',
-            hintText: 'Enter the Cataloger name',
+            labelText: context.l10n.projectPersonnelNameLabel,
+            hintText: context.l10n.projectWizardCatalogerNameHint,
             errorText: _catalogerValidationAttempted
                 ? _catalogerNameError
                 : null,
@@ -519,8 +509,8 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           maxLength: 5,
           inputFormatters: [LengthLimitingTextInputFormatter(5)],
           decoration: InputDecoration(
-            labelText: 'Initials*',
-            hintText: 'e.g. HH or H-H',
+            labelText: context.l10n.projectPersonnelInitialsLabel,
+            hintText: context.l10n.projectPersonnelInitialsHint,
             errorText: _catalogerValidationAttempted
                 ? _catalogerInitialError
                 : null,
@@ -541,19 +531,19 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
-            labelText: 'Current field number*',
-            hintText: 'Enter the next personal field number',
+            labelText: context.l10n.projectWizardCurrentFieldNumberLabel,
+            hintText: context.l10n.projectWizardCurrentFieldNumberHint,
             errorText: _catalogerValidationAttempted
                 ? _catalogerNumberError
                 : null,
           ),
           onChanged: (_) => setState(() {}),
         ),
-        const ListTile(
+        ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.check_circle_outline),
-          title: Text('Specimen care role: Cataloger'),
-          subtitle: Text('Personal field-number registration enabled'),
+          leading: const Icon(Icons.check_circle_outline),
+          title: Text(context.l10n.projectWizardCatalogerRoleSet),
+          subtitle: Text(context.l10n.projectWizardFieldNumberEnabled),
         ),
       ],
     );
@@ -569,64 +559,69 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   }
 
   Widget _review() {
+    final l10n = context.l10n;
     final imported = _importedProject != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FormSection(
-          title: imported ? 'Review imported project' : 'Review project',
+          title: imported
+              ? l10n.projectWizardReviewImported
+              : l10n.projectWizardReviewProject,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (imported)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    'This project-info transfer preserves the source UUID. '
-                    'Records, personnel, taxa, and device settings are not '
-                    'included.',
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(l10n.projectWizardImportNote),
                 ),
-              _ReviewRow(label: 'Project UUID', value: _projectUuid),
               _ReviewRow(
-                label: 'Project name',
+                label: l10n.recordsCustomFieldProjectUuid,
+                value: _projectUuid,
+              ),
+              _ReviewRow(
+                label: l10n.projectName,
                 value: _projectCtr.projectNameCtr.text,
               ),
               _ReviewRow(
-                label: 'Description',
+                label: l10n.projectDescription,
                 value: _projectCtr.descriptionCtr.text,
               ),
               _ReviewRow(
-                label: 'Principal investigator',
+                label: l10n.projectPrincipalInvestigator,
                 value: _projectCtr.pICtr.text,
               ),
               _ReviewRow(
-                label: 'Accession',
+                label: l10n.projectAccession,
                 value: _projectCtr.accessionCtr.text,
               ),
               _ReviewRow(
-                label: 'Location',
+                label: l10n.projectLocation,
                 value: _projectCtr.locationCtr.text,
               ),
               _ReviewRow(
-                label: 'Time zone',
+                label: l10n.projectTimeZone,
                 value: _projectCtr.timeZoneCtr.text,
               ),
               _ReviewRow(
-                label: 'Start date',
+                label: l10n.projectStartDate,
                 value: _projectCtr.startDateCtr.text,
               ),
-              _ReviewRow(label: 'End date', value: _projectCtr.endDateCtr.text),
               _ReviewRow(
-                label: 'Field ID prefix',
+                label: l10n.projectEndDate,
+                value: _projectCtr.endDateCtr.text,
+              ),
+              _ReviewRow(
+                label: l10n.projectFieldIdPrefix,
                 value: _projectCtr.catalogNumberPrefixCtr.text,
               ),
               _ReviewRow(
-                label: 'Current catalog number',
+                label: l10n.projectCurrentCatalogNumber,
                 value: _projectCtr.currentCatalogNumberCtr.text,
               ),
               _ReviewRow(
-                label: 'Field ID suffix',
+                label: l10n.projectFieldIdSuffix,
                 value: _projectCtr.catalogNumberSuffixCtr.text,
               ),
             ],
@@ -653,35 +648,43 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   }
 
   Widget _setupReview() {
+    final l10n = context.l10n;
     final cataloger = _selectedCatalogerUuid != null
-        ? 'Existing Cataloger selected'
+        ? l10n.projectWizardExistingCataloger
         : _fieldIdConfigured && _fieldIdModeDraft == FieldIdMode.personnel
         ? _catalogerCtr.nameCtr.text
-        : 'Not configured';
+        : l10n.projectWizardNotConfigured;
     return FormSection(
-      title: 'Device setup',
+      title: l10n.projectWizardDeviceSetup,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _ReviewRow(
-            label: 'Main taxon',
+            label: l10n.projectWizardMainTaxon,
             value: _taxonConfigured && _catalogFmtDraft != null
-                ? _catalogFmtDraft!.localizedLabel(context.l10n)
-                : 'Keep current setting',
+                ? _catalogFmtDraft!.localizedLabel(l10n)
+                : l10n.projectWizardKeepCurrent,
           ),
           _ReviewRow(
-            label: 'Field ID mode',
+            label: l10n.projectWizardFieldIdMode,
             value: _fieldIdConfigured && _fieldIdModeDraft != null
-                ? _fieldIdModeDraft!.name
-                : 'Keep current setting',
+                ? _fieldIdModeDraft == FieldIdMode.personnel
+                      ? l10n.settingsNavPersonnel
+                      : l10n.labelTableProject
+                : l10n.projectWizardKeepCurrent,
           ),
           if (_fieldIdConfigured && _fieldIdModeDraft == FieldIdMode.project)
             _ReviewRow(
-              label: 'Auto-increment',
-              value: (_autoIncrementDraft ?? false) ? 'On' : 'Off',
+              label: l10n.projectWizardAutoIncrement,
+              value: (_autoIncrementDraft ?? false)
+                  ? l10n.projectOn
+                  : l10n.projectOff,
             ),
           if (_fieldIdConfigured && _fieldIdModeDraft == FieldIdMode.personnel)
-            _ReviewRow(label: 'Cataloger', value: cataloger),
+            _ReviewRow(
+              label: l10n.projectPersonnelRoleCataloger,
+              value: cataloger,
+            ),
         ],
       ),
     );
@@ -689,26 +692,24 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
 
   Widget _taxonomyReadiness() {
     return FormSection(
-      title: 'Taxonomy readiness',
+      title: context.l10n.projectWizardTaxonomyReadiness,
       child: ref
           .watch(taxonRegistryProvider)
           .when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, _) => const Text('Available taxa count is unavailable.'),
+            error: (_, _) =>
+                Text(context.l10n.projectWizardTaxaCountUnavailable),
             data: (taxa) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Available taxa: ${taxa.length}'),
+                Text(context.l10n.projectWizardAvailableTaxa(taxa.length)),
                 if (taxa.isEmpty) ...[
                   const SizedBox(height: 8),
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.info_outline),
-                    title: Text('No taxa are available'),
-                    subtitle: Text(
-                      'Add or import taxa in the Taxon Registry before creating '
-                      'a new specimen record.',
-                    ),
+                    leading: const Icon(Icons.info_outline),
+                    title: Text(context.l10n.projectWizardNoTaxa),
+                    subtitle: Text(context.l10n.projectWizardNoTaxaBody),
                   ),
                 ],
               ],
@@ -734,18 +735,18 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                 OutlinedButton.icon(
                   onPressed: _saving ? null : _back,
                   icon: const Icon(Icons.arrow_back),
-                  label: const Text('Back'),
+                  label: Text(context.l10n.sharedBack),
                 )
               else
                 TextButton(
                   onPressed: _saving ? null : () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
               const Spacer(),
               if (skippable)
                 TextButton(
                   onPressed: _saving ? null : _skip,
-                  child: const Text('Skip'),
+                  child: Text(context.l10n.projectWizardSkip),
                 ),
               if (_step != _CreateProjectStep.welcome) ...[
                 const SizedBox(width: 8),
@@ -763,10 +764,10 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
                         ),
                   label: Text(
                     _saving
-                        ? 'Creating…'
+                        ? context.l10n.projectWizardCreating
                         : _step == _CreateProjectStep.review
-                        ? 'Create project'
-                        : 'Continue',
+                        ? context.l10n.drawerCreateProject
+                        : context.l10n.sharedContinue,
                   ),
                 ),
               ],
@@ -786,24 +787,28 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
 
   String? get _catalogerNameError {
     final value = _catalogerCtr.nameCtr.text.trim();
-    if (value.isEmpty) return 'Cataloger name is required';
-    if (value.length < 3) return 'Name is too short';
-    if (!value.isValidName) return 'Invalid characters';
+    if (value.isEmpty) return context.l10n.projectWizardCatalogerNameRequired;
+    if (value.length < 3) return context.l10n.projectWizardNameTooShort;
+    if (!value.isValidName) return context.l10n.projectWizardInvalidCharacters;
     return null;
   }
 
   String? get _catalogerInitialError {
     final value = _catalogerCtr.initialCtr.text.trim();
-    if (value.isEmpty) return 'Initials are required';
-    if (value.length < 2) return 'Initials are too short';
-    if (!value.isValidInitial) return 'Invalid characters';
+    if (value.isEmpty) return context.l10n.projectWizardInitialsRequired;
+    if (value.length < 2) return context.l10n.projectWizardInitialsTooShort;
+    if (!value.isValidInitial) {
+      return context.l10n.projectWizardInvalidCharacters;
+    }
     return null;
   }
 
   String? get _catalogerNumberError {
     final value = _catalogerCtr.collectorNumCtr.text;
-    if (value.isEmpty) return 'Current field number is required';
-    if (!value.isValidCollNum) return 'Invalid field number';
+    if (value.isEmpty) return context.l10n.projectWizardFieldNumberRequired;
+    if (!value.isValidCollNum) {
+      return context.l10n.projectWizardInvalidFieldNumber;
+    }
     return null;
   }
 
@@ -874,7 +879,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
       if (capture.barcodes.isEmpty ||
           capture.barcodes.first.format != BarcodeFormat.qrCode ||
           capture.barcodes.first.rawValue == null) {
-        throw const FormatException('Invalid project QR code.');
+        throw FormatException(context.l10n.projectInvalidQr);
       }
       final data = ProjectExchangeService.decode(
         capture.barcodes.first.rawValue!,
@@ -902,20 +907,21 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     final generation = ++_nameValidationGeneration;
     final name = _projectCtr.projectNameCtr.text.trim();
     String? error;
+    final l10n = context.l10n;
     if (name.isEmpty) {
-      error = 'Project name is required';
+      error = l10n.projectNameRequired;
     } else if (name.length < 3) {
-      error = 'Project name is too short';
+      error = l10n.projectNameTooShort;
     } else if (name.length > 25) {
-      error = 'Project name is too long';
+      error = l10n.projectNameTooLong;
     } else if (!name.isValidProjectName) {
-      error = 'Project name is invalid';
+      error = l10n.projectNameInvalid;
     } else {
       final names = await ProjectServices(ref: ref).getAllProjectNames();
       if (names.any(
         (existing) => existing.toLowerCase() == name.toLowerCase(),
       )) {
-        error = 'Project name already exists';
+        error = l10n.projectNameExists;
       }
     }
     if (!mounted || generation != _nameValidationGeneration) return;
@@ -1024,6 +1030,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
   }
 
   Future<void> _createProject() async {
+    final l10n = context.l10n;
     await _validateProjectName();
     if (!_projectNameValid) return;
     setState(() {
@@ -1040,9 +1047,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
     try {
       final services = ProjectServices(ref: ref);
       if (await services.projectUuidExists(_projectUuid)) {
-        throw const FormatException(
-          'A project with this UUID already exists on this device.',
-        );
+        throw FormatException(l10n.projectUuidExists);
       }
       if (_taxonConfigured && _catalogFmtDraft != null) {
         await ref
@@ -1116,7 +1121,7 @@ class _CreateProjectFormState extends ConsumerState<CreateProjectForm> {
             .set(currentAutoIncrement);
       }
       if (!mounted) return;
-      setState(() => _error = 'Could not create project: $error');
+      setState(() => _error = l10n.projectCreateFailed('$error'));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -1178,16 +1183,16 @@ class _CatalogerSourceChoice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton<bool>(
-      segments: const [
+      segments: [
         ButtonSegment(
           value: false,
-          label: Text('Choose existing'),
-          icon: Icon(Icons.person_search_outlined),
+          label: Text(context.l10n.projectWizardChooseExisting),
+          icon: const Icon(Icons.person_search_outlined),
         ),
         ButtonSegment(
           value: true,
-          label: Text('Create new'),
-          icon: Icon(Icons.person_add_alt_outlined),
+          label: Text(context.l10n.projectWizardCreateNewCataloger),
+          icon: const Icon(Icons.person_add_alt_outlined),
         ),
       ],
       selected: {createNew},
@@ -1227,7 +1232,7 @@ class UuidText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('Project UUID: $uuid');
+    return Text(context.l10n.projectUuidValue(uuid));
   }
 }
 
@@ -1248,7 +1253,7 @@ class QrCaptureButton extends StatelessWidget {
         );
       },
       icon: const Icon(Icons.qr_code_scanner),
-      label: const Text('Scan project QR'),
+      label: Text(context.l10n.projectScanQr),
     );
   }
 }
@@ -1263,7 +1268,7 @@ class ImportJsonButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onPressed,
       icon: const Icon(Icons.file_download_outlined),
-      label: const Text('Import project-info JSON'),
+      label: Text(context.l10n.projectImportInfoJson),
     );
   }
 }

@@ -19,6 +19,8 @@ import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_marker_visuals.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class MapLibreSpatialStatisticsMap extends ConsumerWidget {
   const MapLibreSpatialStatisticsMap({
@@ -62,7 +64,9 @@ class MapLibreSpatialStatisticsMap extends ConsumerWidget {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _MapLibreMessage(
-            message: 'Unable to prepare the map: ${snapshot.error}',
+            message: context.l10n.projectStatsMapPrepareError(
+              '${snapshot.error}',
+            ),
           );
         }
         if (!snapshot.hasData) {
@@ -215,9 +219,9 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
           if (_watchdog.isWaiting)
             const Positioned.fill(child: _MapLibreLoading())
           else if (widget.rows.isEmpty)
-            const Positioned.fill(
+            Positioned.fill(
               child: _MapLibreMessage(
-                message: 'No valid coordinates are available to map.',
+                message: context.l10n.projectStatsNoValidCoordinates,
               ),
             ),
           if (widget.rows.isNotEmpty)
@@ -372,7 +376,7 @@ class _MapLibreMapState extends ConsumerState<_MapLibreMap> {
           point: _geographic(row),
           title: row.displayName,
           details: [
-            '${row.count ?? 0} ${widget.kind.countLabel} '
+            '${row.count ?? 0} ${widget.kind.localizedCountLabel(context.l10n)} '
                 '(${spatialStatisticPercent(row, widget.total).toStringAsFixed(1)}%)',
           ],
           coordinateIds: [row.coordinateId],
@@ -590,17 +594,17 @@ class _MapLibreControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _MapLibreControlButton(
-          tooltip: 'Zoom in',
+          tooltip: context.l10n.projectStatsZoomIn,
           icon: Icons.add,
           onPressed: onZoomIn,
         ),
         _MapLibreControlButton(
-          tooltip: 'Zoom out',
+          tooltip: context.l10n.projectStatsZoomOut,
           icon: Icons.remove,
           onPressed: onZoomOut,
         ),
         _MapLibreControlButton(
-          tooltip: 'Center map on statistics',
+          tooltip: context.l10n.projectStatsCenterMap,
           icon: Icons.center_focus_strong_outlined,
           onPressed: onReset,
         ),

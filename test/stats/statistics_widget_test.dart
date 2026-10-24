@@ -89,7 +89,7 @@ void main() {
       showMetrics: true,
     );
 
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Record counts'), findsOneWidget);
     expect(find.text('Top recorded species'), findsNothing);
     expect(find.byType(StatisticBarChart), findsNothing);
@@ -222,14 +222,15 @@ void main() {
 
     await tester.tap(find.byTooltip('Show information'));
     await tester.pumpAndSettle();
-    expect(find.text('Record statistics'), findsOneWidget);
+    // The help title matches the card title behind the dialog.
+    expect(find.text('Record statistics'), findsNWidgets(2));
     expect(find.text('EN'), findsOneWidget);
 
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Specimens by species'), findsWidgets);
   });
 
@@ -245,7 +246,7 @@ void main() {
     await tester.tap(find.text('Explore more stats'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Record Statistics'), findsOneWidget);
+    expect(find.text('Record statistics'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
     expect(find.text('Explore'), findsOneWidget);
     expect(find.text('Top five'), findsNothing);

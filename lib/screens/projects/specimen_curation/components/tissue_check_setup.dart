@@ -3,6 +3,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// Which field a check writes, the value it writes, and the box layout.
 class TissueCheckSetupCard extends StatefulWidget {
@@ -63,12 +65,18 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Find tubes', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              context.l10n.projectTissueFindTubes,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: NahpuSpacing.lg),
             SegmentedButton<TissueIdentifyBy>(
               segments: [
                 for (final by in TissueIdentifyBy.values)
-                  ButtonSegment(value: by, label: Text(by.label)),
+                  ButtonSegment(
+                    value: by,
+                    label: Text(by.localizedLabel(context.l10n)),
+                  ),
               ],
               selected: {settings.identifyBy},
               showSelectedIcon: false,
@@ -80,7 +88,7 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
             TissueSetupPair(
               first: TissueFilterDropdown(
                 key: const ValueKey('tissue-type-filter'),
-                label: 'Tissue type',
+                label: context.l10n.projectTissueType,
                 value: settings.partType,
                 options: widget.partTypes,
                 onChanged: (type) =>
@@ -88,7 +96,7 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               ),
               second: TissueFilterDropdown(
                 key: const ValueKey('tissue-preservation-filter'),
-                label: 'Preservation',
+                label: context.l10n.projectTissuePreservation,
                 value: settings.preservation,
                 options: widget.treatments,
                 onChanged: (treatment) => widget.onChanged(
@@ -97,7 +105,10 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               ),
             ),
             const SizedBox(height: NahpuSpacing.xxl),
-            Text('Update field', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              context.l10n.projectTissueUpdateField,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: NahpuSpacing.lg),
             Row(
               children: [
@@ -106,12 +117,14 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                   child: DropdownButtonFormField<TissueCheckField>(
                     initialValue: settings.field,
                     isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Field'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectTissueField,
+                    ),
                     items: [
                       for (final field in TissueCheckField.values)
                         DropdownMenuItem(
                           value: field,
-                          child: Text(field.label),
+                          child: Text(field.localizedLabel(context.l10n)),
                         ),
                     ],
                     onChanged: (field) {
@@ -127,9 +140,9 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                   child: TextField(
                     key: const ValueKey('tissue-check-value'),
                     controller: _valueCtr,
-                    decoration: const InputDecoration(
-                      labelText: 'Value',
-                      hintText: 'Museum code',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectTissueValue,
+                      hintText: context.l10n.projectTissueMuseumCode,
                     ),
                     onChanged: (value) => widget.onChanged(
                       widget.settings.copyWith(value: value),
@@ -139,7 +152,10 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               ],
             ),
             const SizedBox(height: NahpuSpacing.xl),
-            Text('Box size', style: Theme.of(context).textTheme.labelMedium),
+            Text(
+              context.l10n.projectTissueBoxSize,
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
             const SizedBox(height: NahpuSpacing.sm),
             SegmentedButton<TissueBoxSize>(
               segments: [
@@ -163,7 +179,9 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               first: DropdownButtonFormField<TissueCellNumbering>(
                 initialValue: layout.numbering,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Numbering'),
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueNumbering,
+                ),
                 items: [
                   for (final numbering in TissueCellNumbering.values)
                     DropdownMenuItem(
@@ -187,10 +205,15 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               second: DropdownButtonFormField<TissueFillOrder>(
                 initialValue: layout.fillOrder,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Fill order'),
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueFillOrder,
+                ),
                 items: [
                   for (final order in TissueFillOrder.values)
-                    DropdownMenuItem(value: order, child: Text(order.label)),
+                    DropdownMenuItem(
+                      value: order,
+                      child: Text(order.localizedLabel(context.l10n)),
+                    ),
                 ],
                 onChanged: (order) {
                   if (order == null) return;
@@ -213,9 +236,9 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                   flex: 3,
                   child: TextField(
                     controller: _boxLabelCtr,
-                    decoration: const InputDecoration(
-                      labelText: 'Box label',
-                      hintText: 'Box',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectTissueBoxLabel,
+                      hintText: context.l10n.projectTissueBoxHint,
                     ),
                     onChanged: (label) => widget.onChanged(
                       widget.settings.copyWith(boxLabel: label),
@@ -227,7 +250,9 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                   flex: 2,
                   child: TextField(
                     controller: _boxNumberCtr,
-                    decoration: const InputDecoration(labelText: 'Box number'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.projectTissueBoxNumber,
+                    ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     onChanged: (text) {
@@ -245,10 +270,8 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
             const SizedBox(height: NahpuSpacing.md),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Overwrite existing values'),
-              subtitle: const Text(
-                'Replace a stored location or a different field value',
-              ),
+              title: Text(context.l10n.projectTissueOverwrite),
+              subtitle: Text(context.l10n.projectTissueOverwriteBody),
               value: settings.overwrite,
               onChanged: (overwrite) =>
                   widget.onChanged(settings.copyWith(overwrite: overwrite)),
@@ -320,7 +343,10 @@ class TissueFilterDropdown extends StatelessWidget {
       isExpanded: true,
       decoration: InputDecoration(labelText: label),
       items: [
-        const DropdownMenuItem<String?>(value: null, child: Text('Any')),
+        DropdownMenuItem<String?>(
+          value: null,
+          child: Text(context.l10n.projectTissueAny),
+        ),
         for (final option in values)
           DropdownMenuItem<String?>(value: option, child: Text(option)),
       ],

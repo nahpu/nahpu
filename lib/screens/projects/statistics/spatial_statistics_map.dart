@@ -16,6 +16,7 @@ import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 final Future<List<NaturalEarthPolygon>> _naturalEarthPolygons =
     loadNaturalEarthPolygons();
@@ -47,9 +48,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
       children: [
         if (omittedCount > 0) ...[
           Text(
-            '$omittedCount ${omittedCount == 1 ? 'record is' : 'records are'} '
-            'listed in the table but cannot be mapped because latitude or '
-            'longitude is missing or invalid.',
+            context.l10n.projectStatsUnmappedRecords(omittedCount),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
@@ -82,7 +81,7 @@ class _SpatialStatisticsMapState extends State<SpatialStatisticsMap> {
       context,
       MaterialPageRoute(
         builder: (context) => FullScreenMapPage(
-          title: 'Spatial statistics map',
+          title: context.l10n.projectStatsSpatialMap,
           child: _SpatialMapViewport(
             kind: widget.kind,
             rows: rows,
@@ -117,7 +116,7 @@ class _SpatialMapViewport extends ConsumerWidget {
     final showsBaseLayer = baseLayer != SpatialBasemapStyle.none;
     final actions = [
       _SpatialMapAction(
-        tooltip: 'Map layers',
+        tooltip: context.l10n.projectStatsMapLayers,
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const MapLayerSettings()),
@@ -126,7 +125,7 @@ class _SpatialMapViewport extends ConsumerWidget {
       ),
       if (onViewFullScreen != null)
         _SpatialMapAction(
-          tooltip: 'View map full screen',
+          tooltip: context.l10n.projectStatsViewFullScreen,
           onPressed: onViewFullScreen!,
           icon: Icons.fullscreen,
         ),
@@ -143,10 +142,9 @@ class _SpatialMapViewport extends ConsumerWidget {
                       : Future.value(const []),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return const _MapMessage(
+                      return _MapMessage(
                         icon: Icons.public_off_outlined,
-                        message:
-                            'Unable to load the offline Natural Earth map.',
+                        message: context.l10n.projectStatsNaturalEarthError,
                       );
                     }
                     if (!snapshot.hasData) {
@@ -324,10 +322,10 @@ class _NaturalEarthMap extends StatelessWidget {
                   : const NaturalEarthAttribution(),
             ),
           if (rows.isEmpty)
-            const Positioned.fill(
+            Positioned.fill(
               child: _MapMessage(
                 icon: Icons.location_off_outlined,
-                message: 'No valid coordinates are available to map.',
+                message: context.l10n.projectStatsNoValidCoordinates,
               ),
             ),
           if (rows.isNotEmpty)

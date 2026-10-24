@@ -18,6 +18,7 @@ import 'package:nahpu/services/import/batch/batch_import_targets.dart';
 import 'package:nahpu/services/import/batch/batch_linked_models.dart';
 import 'package:nahpu/services/import/batch/batch_linked_service.dart';
 import 'package:nahpu/services/providers/batch_import.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Full-screen wizard that updates or creates project records from a CSV,
 /// TSV, or Excel file. A linked import also groups each row's site and
@@ -56,7 +57,7 @@ class _BatchImportPageState extends ConsumerState<BatchImportPage> {
   Widget build(BuildContext context) {
     final step = _step;
     return Scaffold(
-      appBar: AppBar(title: const Text('Batch import')),
+      appBar: AppBar(title: Text(context.l10n.labelProjectToolBatchImport)),
       body: SafeArea(
         child: Column(
           children: [
@@ -143,8 +144,8 @@ class _BatchImportPageState extends ConsumerState<BatchImportPage> {
               isRunning: _isBusy,
               canContinue: _canContinue,
               finalActionLabel: _mode == BatchImportMode.update
-                  ? 'Update records'
-                  : 'Import records',
+                  ? context.l10n.projectBatchUpdateRecords
+                  : context.l10n.projectBatchImportRecords,
               finalActionIcon: _mode == BatchImportMode.update
                   ? Icons.edit_note_rounded
                   : Icons.download_rounded,
@@ -159,12 +160,12 @@ class _BatchImportPageState extends ConsumerState<BatchImportPage> {
   }
 
   List<String> get _steps => [
-    'Mode',
-    'File',
-    'Columns',
-    if (_linked) 'Groups',
-    'Review',
-    'Result',
+    context.l10n.projectBatchStepMode,
+    context.l10n.projectBatchStepFile,
+    context.l10n.projectBatchStepColumns,
+    if (_linked) context.l10n.projectBatchStepGroups,
+    context.l10n.projectWizardReview,
+    context.l10n.projectTransferResult,
   ];
 
   /// -1 when the import has no groups step.
@@ -269,7 +270,7 @@ class _BatchImportPageState extends ConsumerState<BatchImportPage> {
     final file = await ref.read(batchImportFilePickerProvider)();
     if (file == null || !mounted) return;
     if (!BatchImportReader.supportsPath(file.path)) {
-      setState(() => _error = 'Choose a CSV, TSV, or Excel file.');
+      setState(() => _error = context.l10n.projectBatchUnsupportedFile);
       return;
     }
     await _readFile(file);

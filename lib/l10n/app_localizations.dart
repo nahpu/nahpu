@@ -8607,6 +8607,4192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to remove the selected personnel from this event?'**
   String get removeEventPersonnelBody;
+
+  /// No description provided for @projectDeleteProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete project'**
+  String get projectDeleteProject;
+
+  /// No description provided for @projectDeleteProjectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete project?'**
+  String get projectDeleteProjectTitle;
+
+  /// No description provided for @projectDeleteProjectPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete this project and its related data. This cannot be undone.'**
+  String get projectDeleteProjectPrompt;
+
+  /// No description provided for @projectNoProject.
+  ///
+  /// In en, this message translates to:
+  /// **'No project'**
+  String get projectNoProject;
+
+  /// No description provided for @projectOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Project overview'**
+  String get projectOverview;
+
+  /// No description provided for @projectOverviewLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed fetching data from the database. Check if the project name exists. {error}'**
+  String projectOverviewLoadError(Object error);
+
+  /// No description provided for @projectSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save project: {error}'**
+  String projectSaveFailed(String error);
+
+  /// No description provided for @projectDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Project details'**
+  String get projectDetails;
+
+  /// The asterisk marks a required field.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name*'**
+  String get projectNameLabel;
+
+  /// No description provided for @projectNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the project name (required)'**
+  String get projectNameHint;
+
+  /// No description provided for @projectDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Project description'**
+  String get projectDescriptionLabel;
+
+  /// No description provided for @projectDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a short project description'**
+  String get projectDescriptionHint;
+
+  /// No description provided for @projectPrincipalInvestigator.
+  ///
+  /// In en, this message translates to:
+  /// **'Principal investigator'**
+  String get projectPrincipalInvestigator;
+
+  /// No description provided for @projectPrincipalInvestigatorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the principal investigator'**
+  String get projectPrincipalInvestigatorHint;
+
+  /// Institutional accession number for the project's material.
+  ///
+  /// In en, this message translates to:
+  /// **'Accession'**
+  String get projectAccession;
+
+  /// No description provided for @projectAccessionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an institutional accession'**
+  String get projectAccessionHint;
+
+  /// No description provided for @projectPlaceAndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Place and time'**
+  String get projectPlaceAndTime;
+
+  /// No description provided for @projectLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get projectLocation;
+
+  /// No description provided for @projectLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the general project location'**
+  String get projectLocationHint;
+
+  /// No description provided for @projectTimeZoneNote.
+  ///
+  /// In en, this message translates to:
+  /// **'NAHPU stores collection dates and times as entered in local field time. The project time zone records that context so exchanged data can be interpreted consistently by third-party collection management systems and other tools.'**
+  String get projectTimeZoneNote;
+
+  /// No description provided for @projectDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Project dates'**
+  String get projectDates;
+
+  /// No description provided for @projectStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get projectStartDate;
+
+  /// No description provided for @projectEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get projectEndDate;
+
+  /// No description provided for @projectChooseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get projectChooseDate;
+
+  /// No description provided for @projectClearField.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {label}'**
+  String projectClearField(String label);
+
+  /// No description provided for @projectTimeZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Time zone'**
+  String get projectTimeZone;
+
+  /// No description provided for @projectChooseTimeZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time zone'**
+  String get projectChooseTimeZone;
+
+  /// No description provided for @projectTimeZoneUtc.
+  ///
+  /// In en, this message translates to:
+  /// **'(UTC) Coordinated Universal Time'**
+  String get projectTimeZoneUtc;
+
+  /// No description provided for @projectMainTaxonGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Main taxon group'**
+  String get projectMainTaxonGroup;
+
+  /// No description provided for @projectChooseTaxonGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a taxon group'**
+  String get projectChooseTaxonGroup;
+
+  /// No description provided for @projectTaxonSettingLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load taxon setting: {error}'**
+  String projectTaxonSettingLoadError(String error);
+
+  /// No description provided for @projectIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get projectIdentity;
+
+  /// No description provided for @projectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get projectDescription;
+
+  /// No description provided for @projectSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get projectSchedule;
+
+  /// No description provided for @projectRecordMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Record metadata'**
+  String get projectRecordMetadata;
+
+  /// No description provided for @projectCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get projectCreated;
+
+  /// No description provided for @projectLastAccessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last accessed'**
+  String get projectLastAccessed;
+
+  /// No description provided for @projectNotProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'Not provided'**
+  String get projectNotProvided;
+
+  /// No description provided for @projectUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'UUID'**
+  String get projectUuid;
+
+  /// No description provided for @projectQrTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Project QR code. Tap to view full.'**
+  String get projectQrTooltip;
+
+  /// No description provided for @projectEditTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit tools'**
+  String get projectEditTools;
+
+  /// No description provided for @projectEditToolsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the tools shown here'**
+  String get projectEditToolsTooltip;
+
+  /// No description provided for @projectUtilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Project utilities'**
+  String get projectUtilities;
+
+  /// No description provided for @projectDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Project dashboard'**
+  String get projectDashboard;
+
+  /// No description provided for @projectEditProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit project'**
+  String get projectEditProject;
+
+  /// No description provided for @projectPersonnelRoleCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Cataloger'**
+  String get projectPersonnelRoleCataloger;
+
+  /// No description provided for @projectPersonnelRoleDeterminer.
+  ///
+  /// In en, this message translates to:
+  /// **'Determiner only'**
+  String get projectPersonnelRoleDeterminer;
+
+  /// No description provided for @projectPersonnelRolePreparator.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparator only'**
+  String get projectPersonnelRolePreparator;
+
+  /// No description provided for @projectPersonnelRoleNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get projectPersonnelRoleNone;
+
+  /// No description provided for @projectPersonnelSelectExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Select existing'**
+  String get projectPersonnelSelectExisting;
+
+  /// No description provided for @projectPersonnelSelectFromDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Select from database'**
+  String get projectPersonnelSelectFromDatabase;
+
+  /// No description provided for @projectPersonnelAddNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new'**
+  String get projectPersonnelAddNew;
+
+  /// No description provided for @projectPersonnelAddNewPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add new personnel'**
+  String get projectPersonnelAddNewPersonnel;
+
+  /// No description provided for @projectPersonnelImageNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Image not found'**
+  String get projectPersonnelImageNotFound;
+
+  /// No description provided for @projectPersonnelTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get projectPersonnelTakePhoto;
+
+  /// No description provided for @projectPersonnelSelectPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Select photo'**
+  String get projectPersonnelSelectPhoto;
+
+  /// No description provided for @projectPersonnelEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit personnel'**
+  String get projectPersonnelEdit;
+
+  /// No description provided for @projectPersonnelManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage personnel'**
+  String get projectPersonnelManage;
+
+  /// No description provided for @projectPersonnelManageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get projectPersonnelManageButton;
+
+  /// No description provided for @projectPersonnelNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No personnel found.'**
+  String get projectPersonnelNoneFound;
+
+  /// No description provided for @projectPersonnelSelectToView.
+  ///
+  /// In en, this message translates to:
+  /// **'Select personnel to view details'**
+  String get projectPersonnelSelectToView;
+
+  /// No description provided for @projectPersonnelSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search personnel'**
+  String get projectPersonnelSearch;
+
+  /// No description provided for @projectPersonnelUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed personnel'**
+  String get projectPersonnelUnnamed;
+
+  /// No description provided for @projectPersonnelAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Personnel is currently assigned to a project'**
+  String get projectPersonnelAssigned;
+
+  /// No description provided for @projectPersonnelDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{deleted, plural, =1{1 personnel deleted.} other{{deleted} personnel deleted.}}'**
+  String projectPersonnelDeleted(int deleted);
+
+  /// No description provided for @projectPersonnelDeletedPartly.
+  ///
+  /// In en, this message translates to:
+  /// **'{deleted} personnel deleted. {protected} personnel could not be deleted because they are assigned to a project.'**
+  String projectPersonnelDeletedPartly(int deleted, int protected);
+
+  /// No description provided for @projectPersonnelNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No personnel match “{query}”.'**
+  String projectPersonnelNoMatch(String query);
+
+  /// No description provided for @projectSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String projectSelectedCount(int count);
+
+  /// Chip on personnel already in the project.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get projectPersonnelAdded;
+
+  /// No description provided for @projectPersonnelAddCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Add 1 personnel} other{Add {count} personnel}}'**
+  String projectPersonnelAddCount(int count);
+
+  /// No description provided for @projectPersonnelRemoveBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 personnel could not be removed because they are used by project records.} other{{count} personnel could not be removed because they are used by project records.}}'**
+  String projectPersonnelRemoveBlocked(int count);
+
+  /// No description provided for @projectPersonnelRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get projectPersonnelRole;
+
+  /// No description provided for @projectPersonnelRoleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter role'**
+  String get projectPersonnelRoleHint;
+
+  /// No description provided for @projectPersonnelAffiliation.
+  ///
+  /// In en, this message translates to:
+  /// **'Affiliation'**
+  String get projectPersonnelAffiliation;
+
+  /// No description provided for @projectPersonnelAffiliationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter affiliation'**
+  String get projectPersonnelAffiliationHint;
+
+  /// No description provided for @projectPersonnelOrcid.
+  ///
+  /// In en, this message translates to:
+  /// **'ORCID iD'**
+  String get projectPersonnelOrcid;
+
+  /// No description provided for @projectPersonnelOrcidInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid hyphenated ORCID iD'**
+  String get projectPersonnelOrcidInvalid;
+
+  /// No description provided for @projectPersonnelCurrentFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Current field number'**
+  String get projectPersonnelCurrentFieldNumber;
+
+  /// No description provided for @projectPersonnelInitials.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials'**
+  String get projectPersonnelInitials;
+
+  /// No description provided for @projectPersonnelInitialsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials*'**
+  String get projectPersonnelInitialsLabel;
+
+  /// No description provided for @projectPersonnelInitialsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. HH or H-H'**
+  String get projectPersonnelInitialsHint;
+
+  /// No description provided for @projectPersonnelEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get projectPersonnelEmail;
+
+  /// No description provided for @projectPersonnelEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email'**
+  String get projectPersonnelEmailHint;
+
+  /// No description provided for @projectPersonnelPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get projectPersonnelPhone;
+
+  /// No description provided for @projectPersonnelPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter phone'**
+  String get projectPersonnelPhoneHint;
+
+  /// No description provided for @projectPersonnelSpecimenCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen care'**
+  String get projectPersonnelSpecimenCare;
+
+  /// No description provided for @projectPersonnelSpecimenCareRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen care role'**
+  String get projectPersonnelSpecimenCareRole;
+
+  /// No description provided for @projectPersonnelRegisterFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Register field number'**
+  String get projectPersonnelRegisterFieldNumber;
+
+  /// No description provided for @projectPersonnelRegisterPersonalFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Register personal field number'**
+  String get projectPersonnelRegisterPersonalFieldNumber;
+
+  /// No description provided for @projectPersonnelRegisterFieldNumberNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials and cataloger number will be used to generate specimen field ID.'**
+  String get projectPersonnelRegisterFieldNumberNote;
+
+  /// No description provided for @projectEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get projectEnabled;
+
+  /// No description provided for @projectDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get projectDisabled;
+
+  /// No description provided for @projectPersonnelProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get projectPersonnelProfile;
+
+  /// No description provided for @projectPersonnelContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get projectPersonnelContact;
+
+  /// No description provided for @projectPersonnelNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get projectPersonnelNotes;
+
+  /// No description provided for @projectPersonnelNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write notes'**
+  String get projectPersonnelNotesHint;
+
+  /// No description provided for @projectPersonnelNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name*'**
+  String get projectPersonnelNameLabel;
+
+  /// No description provided for @projectPersonnelNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name (required)'**
+  String get projectPersonnelNameHint;
+
+  /// No description provided for @projectPersonnelCatalogerNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cataloger number*'**
+  String get projectPersonnelCatalogerNumberLabel;
+
+  /// No description provided for @projectErrorDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String projectErrorDetail(String error);
+
+  /// No description provided for @projectLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get projectLoading;
+
+  /// No description provided for @projectTaxonNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New taxon'**
+  String get projectTaxonNew;
+
+  /// No description provided for @projectTaxonEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit taxon'**
+  String get projectTaxonEdit;
+
+  /// No description provided for @projectTaxonAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add taxon'**
+  String get projectTaxonAdd;
+
+  /// No description provided for @projectTaxonClassification.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get projectTaxonClassification;
+
+  /// No description provided for @projectTaxonRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank'**
+  String get projectTaxonRank;
+
+  /// No description provided for @projectTaxonRankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon rank'**
+  String get projectTaxonRankLabel;
+
+  /// No description provided for @projectTaxonRankHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the rank represented by this record'**
+  String get projectTaxonRankHint;
+
+  /// No description provided for @projectTaxonRankRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a rank and enter its name.'**
+  String get projectTaxonRankRequired;
+
+  /// Hint for a classification field; the field name is lowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter {field}'**
+  String projectTaxonEnterValue(String field);
+
+  /// No description provided for @projectTaxonKingdom.
+  ///
+  /// In en, this message translates to:
+  /// **'Kingdom'**
+  String get projectTaxonKingdom;
+
+  /// No description provided for @projectTaxonPhylum.
+  ///
+  /// In en, this message translates to:
+  /// **'Phylum'**
+  String get projectTaxonPhylum;
+
+  /// No description provided for @projectTaxonClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get projectTaxonClass;
+
+  /// No description provided for @projectTaxonOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get projectTaxonOrder;
+
+  /// No description provided for @projectTaxonFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get projectTaxonFamily;
+
+  /// No description provided for @projectTaxonGenus.
+  ///
+  /// In en, this message translates to:
+  /// **'Genus'**
+  String get projectTaxonGenus;
+
+  /// No description provided for @projectTaxonSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get projectTaxonSpecies;
+
+  /// No description provided for @projectTaxonSubspecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Subspecies'**
+  String get projectTaxonSubspecies;
+
+  /// No description provided for @projectTaxonSpecificEpithet.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific epithet'**
+  String get projectTaxonSpecificEpithet;
+
+  /// No description provided for @projectTaxonSubspecificEpithet.
+  ///
+  /// In en, this message translates to:
+  /// **'Subspecific epithet'**
+  String get projectTaxonSubspecificEpithet;
+
+  /// No description provided for @projectTaxonAdditionalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional details'**
+  String get projectTaxonAdditionalDetails;
+
+  /// No description provided for @projectTaxonAuthors.
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get projectTaxonAuthors;
+
+  /// No description provided for @projectTaxonAuthorsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter authors'**
+  String get projectTaxonAuthorsHint;
+
+  /// No description provided for @projectTaxonCommonName.
+  ///
+  /// In en, this message translates to:
+  /// **'Common name'**
+  String get projectTaxonCommonName;
+
+  /// No description provided for @projectTaxonCommonNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a common name'**
+  String get projectTaxonCommonNameHint;
+
+  /// No description provided for @projectTaxonRedListLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'IUCN Red List category'**
+  String get projectTaxonRedListLabel;
+
+  /// No description provided for @projectTaxonRedListHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Endangered, Vulnerable, etc.'**
+  String get projectTaxonRedListHint;
+
+  /// No description provided for @projectTaxonRedListCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Red List category'**
+  String get projectTaxonRedListCategory;
+
+  /// No description provided for @projectTaxonCitesStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'CITES status'**
+  String get projectTaxonCitesStatus;
+
+  /// No description provided for @projectTaxonCitesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Appendix I, Appendix II, Non-CITES, etc.'**
+  String get projectTaxonCitesHint;
+
+  /// No description provided for @projectTaxonCountryStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country conservation status'**
+  String get projectTaxonCountryStatusLabel;
+
+  /// No description provided for @projectTaxonCountryStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Protected, common, etc.'**
+  String get projectTaxonCountryStatusHint;
+
+  /// No description provided for @projectTaxonCountryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Country status'**
+  String get projectTaxonCountryStatus;
+
+  /// No description provided for @projectTaxonSortingOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting order'**
+  String get projectTaxonSortingOrder;
+
+  /// No description provided for @projectTaxonSortingOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 1, 2, 3'**
+  String get projectTaxonSortingOrderHint;
+
+  /// No description provided for @projectTaxonNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter notes'**
+  String get projectTaxonNotesHint;
+
+  /// No description provided for @projectTaxonAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields'**
+  String get projectTaxonAllFields;
+
+  /// No description provided for @projectTaxonConservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Conservation'**
+  String get projectTaxonConservation;
+
+  /// No description provided for @projectTaxonTotalRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Total records'**
+  String get projectTaxonTotalRecords;
+
+  /// No description provided for @projectTaxonCurrentProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Current project'**
+  String get projectTaxonCurrentProject;
+
+  /// No description provided for @projectTaxonAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'All projects'**
+  String get projectTaxonAllProjects;
+
+  /// No description provided for @projectTaxonRecordTotalsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load record totals: {error}'**
+  String projectTaxonRecordTotalsError(String error);
+
+  /// No description provided for @projectTaxonQrTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon QR code. Tap to view full.'**
+  String get projectTaxonQrTooltip;
+
+  /// No description provided for @projectTaxonQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon QR code'**
+  String get projectTaxonQrCode;
+
+  /// No description provided for @projectTaxonQrDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan this code in NAHPU to import this taxon.'**
+  String get projectTaxonQrDescription;
+
+  /// No description provided for @projectTaxonRegistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon registry'**
+  String get projectTaxonRegistry;
+
+  /// No description provided for @projectTaxonImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {taxa} taxa across {families} families.'**
+  String projectTaxonImported(int taxa, int families);
+
+  /// No description provided for @projectTaxonEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No taxon found.\nAdd or import taxa to start recording captures.'**
+  String get projectTaxonEmpty;
+
+  /// No description provided for @projectTaxonMetricOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'orders'**
+  String get projectTaxonMetricOrders;
+
+  /// No description provided for @projectTaxonMetricFamilies.
+  ///
+  /// In en, this message translates to:
+  /// **'families'**
+  String get projectTaxonMetricFamilies;
+
+  /// No description provided for @projectTaxonMetricSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'species registered'**
+  String get projectTaxonMetricSpecies;
+
+  /// No description provided for @projectTaxonMetricTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'taxa'**
+  String get projectTaxonMetricTaxa;
+
+  /// No description provided for @projectTaxonSpecimenRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen records'**
+  String get projectTaxonSpecimenRecords;
+
+  /// No description provided for @projectTaxonSearchSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'Search specimens'**
+  String get projectTaxonSearchSpecimens;
+
+  /// No description provided for @projectTaxonNoSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens found'**
+  String get projectTaxonNoSpecimens;
+
+  /// No description provided for @projectTaxonSpecimensFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{found, plural, =1{Found: 1 of {total, plural, =1{1 specimen} other{{total} specimens}}} other{Found: {found} of {total, plural, =1{1 specimen} other{{total} specimens}}}}'**
+  String projectTaxonSpecimensFound(int found, int total);
+
+  /// No description provided for @projectTaxonSpecimenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen count: {count}'**
+  String projectTaxonSpecimenCount(int count);
+
+  /// No description provided for @projectTaxonImportFromQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from QR'**
+  String get projectTaxonImportFromQr;
+
+  /// No description provided for @projectTaxonSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single taxon'**
+  String get projectTaxonSingle;
+
+  /// No description provided for @projectTaxonMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple taxa'**
+  String get projectTaxonMultiple;
+
+  /// No description provided for @projectTaxonScanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan taxon QR'**
+  String get projectTaxonScanQr;
+
+  /// No description provided for @projectTaxonScanMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan multiple taxa'**
+  String get projectTaxonScanMultiple;
+
+  /// No description provided for @projectCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is denied. Allow camera access in device settings, then retry.'**
+  String get projectCameraDenied;
+
+  /// No description provided for @projectTaxonCameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera scanning is unavailable. Retry or use file import.'**
+  String get projectTaxonCameraUnavailable;
+
+  /// No description provided for @projectTaxonCameraError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to use the camera. Retry or use file import.'**
+  String get projectTaxonCameraError;
+
+  /// No description provided for @projectTaxonReadyCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 taxon ready} other{{count} taxa ready}}'**
+  String projectTaxonReadyCount(int count);
+
+  /// No description provided for @projectTaxonScanPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a NAHPU taxon QR code.'**
+  String get projectTaxonScanPrompt;
+
+  /// No description provided for @projectRetryCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry camera'**
+  String get projectRetryCamera;
+
+  /// No description provided for @projectTaxonManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage taxa'**
+  String get projectTaxonManage;
+
+  /// No description provided for @projectTaxonNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No taxa found'**
+  String get projectTaxonNoneFound;
+
+  /// No description provided for @projectTaxonSelectToView.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a taxon to view details'**
+  String get projectTaxonSelectToView;
+
+  /// Search hint; the category is lowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Search {category}'**
+  String projectTaxonSearchIn(String category);
+
+  /// No description provided for @projectTaxonSearchCategoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search category: {category}'**
+  String projectTaxonSearchCategoryTooltip(String category);
+
+  /// No description provided for @projectTaxonSearchCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Search category'**
+  String get projectTaxonSearchCategory;
+
+  /// No description provided for @projectTaxonInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon is currently used by a specimen'**
+  String get projectTaxonInUse;
+
+  /// No description provided for @projectTaxonDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 taxon deleted.} other{{count} taxa deleted.}}'**
+  String projectTaxonDeleted(int count);
+
+  /// No description provided for @projectTaxonDeletedPartly.
+  ///
+  /// In en, this message translates to:
+  /// **'{deleted} taxa deleted. {protected} taxa could not be deleted because they are used by specimens.'**
+  String projectTaxonDeletedPartly(int deleted, int protected);
+
+  /// No description provided for @projectTaxonNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No taxa match “{query}”.'**
+  String projectTaxonNoMatch(String query);
+
+  /// No description provided for @projectTaxonNoMatchIn.
+  ///
+  /// In en, this message translates to:
+  /// **'No taxa match “{query}” in {category}.'**
+  String projectTaxonNoMatchIn(String query, String category);
+
+  /// No description provided for @projectTaxonManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get projectTaxonManual;
+
+  /// No description provided for @projectImportSetupTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get projectImportSetupTab;
+
+  /// No description provided for @projectTaxonQrSource.
+  ///
+  /// In en, this message translates to:
+  /// **'NAHPU taxon QR'**
+  String get projectTaxonQrSource;
+
+  /// No description provided for @projectMapColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Map columns'**
+  String get projectMapColumns;
+
+  /// No description provided for @projectParsingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsing error'**
+  String get projectParsingError;
+
+  /// No description provided for @projectCheckColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Check columns'**
+  String get projectCheckColumns;
+
+  /// No description provided for @projectHideAdvancedOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide advanced options'**
+  String get projectHideAdvancedOptions;
+
+  /// No description provided for @projectAdvancedOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced options'**
+  String get projectAdvancedOptions;
+
+  /// No description provided for @projectTaxonReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review taxa'**
+  String get projectTaxonReview;
+
+  /// No description provided for @projectTaxonPreviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a file or scan a taxon QR to preview imports.'**
+  String get projectTaxonPreviewEmpty;
+
+  /// No description provided for @projectTaxonReviewSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{registered} already registered · {duplicates} duplicate'**
+  String projectTaxonReviewSummary(int registered, int duplicates);
+
+  /// No description provided for @projectTaxonAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Already registered'**
+  String get projectTaxonAlreadyRegistered;
+
+  /// No description provided for @projectTaxonDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get projectTaxonDuplicate;
+
+  /// No description provided for @projectImportSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Import {count} selected'**
+  String projectImportSelectedCount(int count);
+
+  /// No description provided for @projectTaxonSelectSharedClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the class shared by all rows'**
+  String get projectTaxonSelectSharedClass;
+
+  /// No description provided for @projectTaxonClassForAllRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Class for all rows'**
+  String get projectTaxonClassForAllRows;
+
+  /// No description provided for @projectTaxonKingdomPhylum.
+  ///
+  /// In en, this message translates to:
+  /// **'Kingdom: {kingdom} · Phylum: {phylum}'**
+  String projectTaxonKingdomPhylum(String kingdom, String phylum);
+
+  /// No description provided for @projectParserExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel parser'**
+  String get projectParserExcel;
+
+  /// No description provided for @projectParserDelimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Delimited text parser'**
+  String get projectParserDelimited;
+
+  /// No description provided for @projectDelimiterNotApplicable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not applicable (Excel file)'**
+  String get projectDelimiterNotApplicable;
+
+  /// No description provided for @projectDelimiterTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Tab (\"\\t\")'**
+  String get projectDelimiterTab;
+
+  /// No description provided for @projectDelimiterComma.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma (\",\")'**
+  String get projectDelimiterComma;
+
+  /// No description provided for @projectDelimiterSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'Semicolon (\";\")'**
+  String get projectDelimiterSemicolon;
+
+  /// No description provided for @projectDelimiterCustomRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom (raw text)'**
+  String get projectDelimiterCustomRaw;
+
+  /// No description provided for @projectParsingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsing details'**
+  String get projectParsingDetails;
+
+  /// No description provided for @projectParserValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser: {parser}'**
+  String projectParserValue(String parser);
+
+  /// No description provided for @projectDelimiterValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Delimiter: {delimiter}'**
+  String projectDelimiterValue(String delimiter);
+
+  /// No description provided for @projectCustomDelimiterRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a custom delimiter to continue.'**
+  String get projectCustomDelimiterRequired;
+
+  /// No description provided for @projectParser.
+  ///
+  /// In en, this message translates to:
+  /// **'Parser'**
+  String get projectParser;
+
+  /// No description provided for @projectParserAutoDetect.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto detect'**
+  String get projectParserAutoDetect;
+
+  /// No description provided for @projectCustomDelimiter.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom delimiter'**
+  String get projectCustomDelimiter;
+
+  /// No description provided for @projectCustomDelimiterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter raw text (example: | or \\t)'**
+  String get projectCustomDelimiterHint;
+
+  /// No description provided for @projectRetryParse.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry parse'**
+  String get projectRetryParse;
+
+  /// No description provided for @projectTaxonSupportedInputs.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported inputs:'**
+  String get projectTaxonSupportedInputs;
+
+  /// No description provided for @projectTaxonSupportedFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV (.csv), TSV (.tsv), Excel (.xlsx), NAHPU taxon QR'**
+  String get projectTaxonSupportedFormats;
+
+  /// No description provided for @projectReadingFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading file…'**
+  String get projectReadingFile;
+
+  /// No description provided for @projectQrUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'QR scanning is unavailable on this platform.'**
+  String get projectQrUnavailable;
+
+  /// No description provided for @projectClearImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear import'**
+  String get projectClearImport;
+
+  /// No description provided for @projectWizardWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get projectWizardWelcome;
+
+  /// No description provided for @projectWizardMainTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Main taxon'**
+  String get projectWizardMainTaxon;
+
+  /// No description provided for @projectWizardReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get projectWizardReview;
+
+  /// No description provided for @projectWizardCreateOnce.
+  ///
+  /// In en, this message translates to:
+  /// **'Create once for all devices'**
+  String get projectWizardCreateOnce;
+
+  /// No description provided for @projectWizardCreateOnceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new project only for the first device. Use QR/Import JSON to transfer project info and its identity.'**
+  String get projectWizardCreateOnceBody;
+
+  /// No description provided for @projectWizardCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new project'**
+  String get projectWizardCreateNew;
+
+  /// No description provided for @projectScanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan project QR'**
+  String get projectScanQr;
+
+  /// No description provided for @projectWizardMainTaxonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the main taxon to tailor NAHPU’s specimen forms and defaults on this device. A project can contain multiple taxon groups, and you can change the main taxon later in Settings.'**
+  String get projectWizardMainTaxonBody;
+
+  /// No description provided for @projectWizardFieldIdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up field IDs'**
+  String get projectWizardFieldIdsTitle;
+
+  /// No description provided for @projectWizardFieldIdsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load field ID settings: {error}'**
+  String projectWizardFieldIdsLoadError(String error);
+
+  /// No description provided for @projectWizardFieldIdsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how specimen field IDs are generated. You can change this later in Settings > Catalogs > Specimens.'**
+  String get projectWizardFieldIdsBody;
+
+  /// No description provided for @projectWizardCatalogerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'A registered cataloger is required'**
+  String get projectWizardCatalogerRequired;
+
+  /// No description provided for @projectWizardCatalogerRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Next, choose an eligible cataloger or create one with initials and a current personal field number.'**
+  String get projectWizardCatalogerRequiredBody;
+
+  /// No description provided for @projectWizardPrefixHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. {example}'**
+  String projectWizardPrefixHint(String example);
+
+  /// No description provided for @projectCurrentCatalogNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Current catalog number'**
+  String get projectCurrentCatalogNumber;
+
+  /// No description provided for @projectWizardNextNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the next number'**
+  String get projectWizardNextNumberHint;
+
+  /// No description provided for @projectWizardCurrentNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a current number'**
+  String get projectWizardCurrentNumberRequired;
+
+  /// No description provided for @projectWizardAutoIncrementCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-increment catalog number'**
+  String get projectWizardAutoIncrementCatalog;
+
+  /// No description provided for @projectWizardPersonnelLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load personnel: {error}'**
+  String projectWizardPersonnelLoadError(String error);
+
+  /// No description provided for @projectWizardCreateCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a cataloger'**
+  String get projectWizardCreateCataloger;
+
+  /// No description provided for @projectWizardChooseCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a cataloger'**
+  String get projectWizardChooseCataloger;
+
+  /// No description provided for @projectWizardNoCatalogerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No registered cataloger is available. Create one now; the role and personal field-number registration are filled automatically.'**
+  String get projectWizardNoCatalogerBody;
+
+  /// No description provided for @projectWizardCreateAnotherCatalogerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create another cataloger. The role and personal field-number registration are filled automatically.'**
+  String get projectWizardCreateAnotherCatalogerBody;
+
+  /// No description provided for @projectWizardChooseCatalogerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the cataloger whose initials and current field number will be used for personnel field IDs.'**
+  String get projectWizardChooseCatalogerBody;
+
+  /// No description provided for @projectWizardCatalogerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cataloger*'**
+  String get projectWizardCatalogerLabel;
+
+  /// No description provided for @projectWizardCatalogerNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the cataloger name'**
+  String get projectWizardCatalogerNameHint;
+
+  /// No description provided for @projectWizardCurrentFieldNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current field number*'**
+  String get projectWizardCurrentFieldNumberLabel;
+
+  /// No description provided for @projectWizardCurrentFieldNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the next personal field number'**
+  String get projectWizardCurrentFieldNumberHint;
+
+  /// No description provided for @projectWizardCatalogerRoleSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen care role: Cataloger'**
+  String get projectWizardCatalogerRoleSet;
+
+  /// No description provided for @projectWizardFieldNumberEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal field-number registration enabled'**
+  String get projectWizardFieldNumberEnabled;
+
+  /// No description provided for @projectWizardReviewImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Review imported project'**
+  String get projectWizardReviewImported;
+
+  /// No description provided for @projectWizardReviewProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Review project'**
+  String get projectWizardReviewProject;
+
+  /// No description provided for @projectWizardImportNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This project-info transfer preserves the source UUID. Records, personnel, taxa, and device settings are not included.'**
+  String get projectWizardImportNote;
+
+  /// No description provided for @projectName.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name'**
+  String get projectName;
+
+  /// No description provided for @projectFieldIdPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID prefix'**
+  String get projectFieldIdPrefix;
+
+  /// No description provided for @projectFieldIdSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID suffix'**
+  String get projectFieldIdSuffix;
+
+  /// No description provided for @projectWizardExistingCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing cataloger selected'**
+  String get projectWizardExistingCataloger;
+
+  /// No description provided for @projectWizardNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get projectWizardNotConfigured;
+
+  /// No description provided for @projectWizardDeviceSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Device setup'**
+  String get projectWizardDeviceSetup;
+
+  /// No description provided for @projectWizardKeepCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current setting'**
+  String get projectWizardKeepCurrent;
+
+  /// No description provided for @projectWizardFieldIdMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID mode'**
+  String get projectWizardFieldIdMode;
+
+  /// No description provided for @projectWizardAutoIncrement.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-increment'**
+  String get projectWizardAutoIncrement;
+
+  /// No description provided for @projectOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get projectOn;
+
+  /// No description provided for @projectOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get projectOff;
+
+  /// No description provided for @projectWizardTaxonomyReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomy readiness'**
+  String get projectWizardTaxonomyReadiness;
+
+  /// No description provided for @projectWizardTaxaCountUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Available taxa count is unavailable.'**
+  String get projectWizardTaxaCountUnavailable;
+
+  /// No description provided for @projectWizardAvailableTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Available taxa: {count}'**
+  String projectWizardAvailableTaxa(int count);
+
+  /// No description provided for @projectWizardNoTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'No taxa are available'**
+  String get projectWizardNoTaxa;
+
+  /// No description provided for @projectWizardNoTaxaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or import taxa in the Taxon Registry before creating a new specimen record.'**
+  String get projectWizardNoTaxaBody;
+
+  /// No description provided for @projectWizardSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get projectWizardSkip;
+
+  /// No description provided for @projectWizardCreating.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating…'**
+  String get projectWizardCreating;
+
+  /// No description provided for @projectWizardCatalogerNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Cataloger name is required'**
+  String get projectWizardCatalogerNameRequired;
+
+  /// No description provided for @projectWizardNameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is too short'**
+  String get projectWizardNameTooShort;
+
+  /// No description provided for @projectWizardInvalidCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid characters'**
+  String get projectWizardInvalidCharacters;
+
+  /// No description provided for @projectWizardInitialsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials are required'**
+  String get projectWizardInitialsRequired;
+
+  /// No description provided for @projectWizardInitialsTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Initials are too short'**
+  String get projectWizardInitialsTooShort;
+
+  /// No description provided for @projectWizardFieldNumberRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Current field number is required'**
+  String get projectWizardFieldNumberRequired;
+
+  /// No description provided for @projectWizardInvalidFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid field number'**
+  String get projectWizardInvalidFieldNumber;
+
+  /// No description provided for @projectInvalidQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid project QR code.'**
+  String get projectInvalidQr;
+
+  /// No description provided for @projectNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name is required'**
+  String get projectNameRequired;
+
+  /// No description provided for @projectNameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name is too short'**
+  String get projectNameTooShort;
+
+  /// No description provided for @projectNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name is too long'**
+  String get projectNameTooLong;
+
+  /// No description provided for @projectNameInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name is invalid'**
+  String get projectNameInvalid;
+
+  /// No description provided for @projectNameExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Project name already exists'**
+  String get projectNameExists;
+
+  /// No description provided for @projectUuidExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A project with this UUID already exists on this device.'**
+  String get projectUuidExists;
+
+  /// No description provided for @projectCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create project: {error}'**
+  String projectCreateFailed(String error);
+
+  /// No description provided for @projectWizardChooseExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose existing'**
+  String get projectWizardChooseExisting;
+
+  /// No description provided for @projectWizardCreateNewCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new'**
+  String get projectWizardCreateNewCataloger;
+
+  /// No description provided for @projectUuidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Project UUID: {uuid}'**
+  String projectUuidValue(String uuid);
+
+  /// No description provided for @projectImportInfoJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Import project-info JSON'**
+  String get projectImportInfoJson;
+
+  /// No description provided for @projectTransferProjectInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Project info'**
+  String get projectTransferProjectInfo;
+
+  /// No description provided for @projectTransferTaxonomy.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomy'**
+  String get projectTransferTaxonomy;
+
+  /// No description provided for @projectTransferSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get projectTransferSites;
+
+  /// No description provided for @projectTransferEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get projectTransferEvents;
+
+  /// No description provided for @projectTransferSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens'**
+  String get projectTransferSpecimens;
+
+  /// No description provided for @projectTransferNarratives.
+  ///
+  /// In en, this message translates to:
+  /// **'Narratives'**
+  String get projectTransferNarratives;
+
+  /// No description provided for @projectTransferCustomFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get projectTransferCustomFields;
+
+  /// No description provided for @projectTransferMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get projectTransferMedia;
+
+  /// No description provided for @projectTransferKeepCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current'**
+  String get projectTransferKeepCurrent;
+
+  /// No description provided for @projectTransferUseImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Use imported'**
+  String get projectTransferUseImported;
+
+  /// No description provided for @projectTransferImportAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Import as new'**
+  String get projectTransferImportAsNew;
+
+  /// No description provided for @projectExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting project'**
+  String get projectExporting;
+
+  /// No description provided for @projectExportingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects with many photos can take several minutes. Keep NAHPU open until this finishes.'**
+  String get projectExportingHint;
+
+  /// No description provided for @projectExportAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Export another'**
+  String get projectExportAnother;
+
+  /// No description provided for @projectExportCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the export?'**
+  String get projectExportCancelTitle;
+
+  /// No description provided for @projectExportCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The export is still running. Leaving now cancels it and no file will be saved.'**
+  String get projectExportCancelBody;
+
+  /// No description provided for @projectExportKeepExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep exporting'**
+  String get projectExportKeepExporting;
+
+  /// No description provided for @projectExportCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel export'**
+  String get projectExportCancel;
+
+  /// No description provided for @projectOpenFolderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open the folder: {error}'**
+  String projectOpenFolderFailed(String error);
+
+  /// No description provided for @projectSaveCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save a copy: {error}'**
+  String projectSaveCopyFailed(String error);
+
+  /// No description provided for @projectExportArchiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup and transfer archive'**
+  String get projectExportArchiveTitle;
+
+  /// No description provided for @projectExportArchiveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this archive as a project backup, or to transfer this project to another device and merge it there.'**
+  String get projectExportArchiveBody;
+
+  /// No description provided for @projectExportLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light export'**
+  String get projectExportLight;
+
+  /// No description provided for @projectExportLightBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Export the project without media files for limited-internet uploads. Use TAR.GZ or ZIP for a full project backup.'**
+  String get projectExportLightBody;
+
+  /// No description provided for @projectExportArchiveContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive contents'**
+  String get projectExportArchiveContents;
+
+  /// No description provided for @projectExportExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded'**
+  String get projectExportExcluded;
+
+  /// No description provided for @projectExportMediaSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Media size'**
+  String get projectExportMediaSize;
+
+  /// No description provided for @projectWarningCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 warning} other{{count} warnings}}'**
+  String projectWarningCount(int count);
+
+  /// No description provided for @projectTransferFileAndSafety.
+  ///
+  /// In en, this message translates to:
+  /// **'File and safety'**
+  String get projectTransferFileAndSafety;
+
+  /// No description provided for @projectTransferReviewImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and import'**
+  String get projectTransferReviewImport;
+
+  /// No description provided for @projectTransferReviewMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and merge'**
+  String get projectTransferReviewMerge;
+
+  /// No description provided for @projectTransferResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get projectTransferResult;
+
+  /// No description provided for @projectTransferChooseFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a project transfer first'**
+  String get projectTransferChooseFirst;
+
+  /// No description provided for @projectTransferChooseFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to File and safety to select an archive.'**
+  String get projectTransferChooseFirstBody;
+
+  /// No description provided for @projectTransferChooseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a NAHPU project transfer'**
+  String get projectTransferChooseTitle;
+
+  /// No description provided for @projectTransferChooseBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ contains records only. ZIP and TAR.GZ include media.'**
+  String get projectTransferChooseBody;
+
+  /// No description provided for @projectTransferReadingArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading archive'**
+  String get projectTransferReadingArchive;
+
+  /// No description provided for @projectTransferReadingArchiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers that include media can take several minutes to unpack. Keep NAHPU open.'**
+  String get projectTransferReadingArchiveHint;
+
+  /// No description provided for @projectTransferChooseArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose archive'**
+  String get projectTransferChooseArchive;
+
+  /// No description provided for @projectTransferChooseAnotherArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another archive'**
+  String get projectTransferChooseAnotherArchive;
+
+  /// No description provided for @projectTransferBackupBeforeImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up before importing'**
+  String get projectTransferBackupBeforeImport;
+
+  /// No description provided for @projectTransferBackupBeforeMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up before merging'**
+  String get projectTransferBackupBeforeMerge;
+
+  /// No description provided for @projectTransferBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A database backup gives you a recovery point if imported changes are not what you expected.'**
+  String get projectTransferBackupBody;
+
+  /// No description provided for @projectTransferBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get projectTransferBackupNow;
+
+  /// No description provided for @projectTransferBackupAckImport.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that I should keep a backup before importing.'**
+  String get projectTransferBackupAckImport;
+
+  /// No description provided for @projectTransferBackupAckMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that I should keep a backup before merging.'**
+  String get projectTransferBackupAckMerge;
+
+  /// No description provided for @projectTransferNewIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'New project identity'**
+  String get projectTransferNewIdentity;
+
+  /// No description provided for @projectTransferArchiveUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive UUID: {uuid}'**
+  String projectTransferArchiveUuid(String uuid);
+
+  /// No description provided for @projectTransferDestinationName.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination project name'**
+  String get projectTransferDestinationName;
+
+  /// No description provided for @projectTransferDestinationNameHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Names the new project on this device. The archive is not changed.'**
+  String get projectTransferDestinationNameHelper;
+
+  /// No description provided for @projectTransferNameConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'A project named “{name}” already exists. Choose another name. If these are copies of the same project, cancel and use Merge project instead.'**
+  String projectTransferNameConflict(String name);
+
+  /// No description provided for @projectTransferAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This project already exists'**
+  String get projectTransferAlreadyExists;
+
+  /// No description provided for @projectTransferAlreadyExistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching UUIDs identify the same project. Import is blocked. Merge this archive into the existing project instead.'**
+  String get projectTransferAlreadyExistsBody;
+
+  /// No description provided for @projectTransferOpenMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Merge project'**
+  String get projectTransferOpenMerge;
+
+  /// No description provided for @projectTransferUuidMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Project UUID does not match'**
+  String get projectTransferUuidMismatch;
+
+  /// No description provided for @projectTransferUuidMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive: {archive}\nActive project: {active}'**
+  String projectTransferUuidMismatchBody(String archive, String active);
+
+  /// No description provided for @projectTransferForceMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Force merge into the active project'**
+  String get projectTransferForceMerge;
+
+  /// No description provided for @projectTransferForceMergeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported project-scoped records will use the active project UUID. Conflicts still require the choices shown later.'**
+  String get projectTransferForceMergeBody;
+
+  /// No description provided for @projectTransferTypeToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Type “{name}” to confirm'**
+  String projectTransferTypeToConfirm(String name);
+
+  /// No description provided for @projectCatalogNumberPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog number prefix'**
+  String get projectCatalogNumberPrefix;
+
+  /// No description provided for @projectCatalogNumberSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog number suffix'**
+  String get projectCatalogNumberSuffix;
+
+  /// No description provided for @projectTransferProjectInfoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Current values are kept by default. Select individual imported values when you want to replace them.'**
+  String get projectTransferProjectInfoBody;
+
+  /// No description provided for @projectTransferKeepAllCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all current'**
+  String get projectTransferKeepAllCurrent;
+
+  /// No description provided for @projectTransferUseAllImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Use all imported'**
+  String get projectTransferUseAllImported;
+
+  /// No description provided for @projectTransferReviewMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Review matches before continuing. “Keep current” maps imported dependencies to the existing record without replacing it.'**
+  String get projectTransferReviewMatches;
+
+  /// No description provided for @projectTransferBulkTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply one choice to all matched records'**
+  String get projectTransferBulkTooltip;
+
+  /// No description provided for @projectTransferActionForAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{action} for all'**
+  String projectTransferActionForAll(String action);
+
+  /// No description provided for @projectTransferBulkAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk action'**
+  String get projectTransferBulkAction;
+
+  /// No description provided for @projectTransferStatusNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get projectTransferStatusNew;
+
+  /// No description provided for @projectTransferStatusMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'Matched'**
+  String get projectTransferStatusMatched;
+
+  /// No description provided for @projectTransferNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get projectTransferNeedsAttention;
+
+  /// No description provided for @projectTransferSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get projectTransferSkipped;
+
+  /// No description provided for @projectTransferNoConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'No conflicts'**
+  String get projectTransferNoConflicts;
+
+  /// No description provided for @projectTransferNoConflictsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All records in this section can be imported as new.'**
+  String get projectTransferNoConflictsBody;
+
+  /// No description provided for @projectTransferReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been written yet. The database changes will be committed together; a failure rolls them all back.'**
+  String get projectTransferReviewBody;
+
+  /// No description provided for @projectTransferSourceProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Source project'**
+  String get projectTransferSourceProject;
+
+  /// No description provided for @projectTransferDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get projectTransferDestination;
+
+  /// No description provided for @projectTransferUuidHandling.
+  ///
+  /// In en, this message translates to:
+  /// **'UUID handling'**
+  String get projectTransferUuidHandling;
+
+  /// No description provided for @projectTransferNewUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'New project UUID: {uuid}'**
+  String projectTransferNewUuid(String uuid);
+
+  /// No description provided for @projectTransferForceMergeUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Force merge into active UUID'**
+  String get projectTransferForceMergeUuid;
+
+  /// No description provided for @projectTransferMatchingUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching project UUID'**
+  String get projectTransferMatchingUuid;
+
+  /// No description provided for @projectTransferConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts'**
+  String get projectTransferConflicts;
+
+  /// No description provided for @projectTransferMediaFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Media files'**
+  String get projectTransferMediaFiles;
+
+  /// No description provided for @projectTransferResolveConflicts.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve conflicts before merging'**
+  String get projectTransferResolveConflicts;
+
+  /// No description provided for @projectTransferDuplicateIdentifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate identifiers still need an action in {sections}.'**
+  String projectTransferDuplicateIdentifiers(String sections);
+
+  /// No description provided for @projectTransferArchiveWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive warnings'**
+  String get projectTransferArchiveWarnings;
+
+  /// No description provided for @projectTransferImportUnfinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Import did not finish'**
+  String get projectTransferImportUnfinished;
+
+  /// No description provided for @projectTransferMergeUnfinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge did not finish'**
+  String get projectTransferMergeUnfinished;
+
+  /// No description provided for @projectTransferImportRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to Review and import and try again.'**
+  String get projectTransferImportRetry;
+
+  /// No description provided for @projectTransferMergeRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Return to Review and merge and try again.'**
+  String get projectTransferMergeRetry;
+
+  /// No description provided for @projectTransferImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Project imported'**
+  String get projectTransferImported;
+
+  /// No description provided for @projectTransferMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Project data merged'**
+  String get projectTransferMerged;
+
+  /// No description provided for @projectTransferCountImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported'**
+  String get projectTransferCountImported;
+
+  /// No description provided for @projectTransferCountMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged'**
+  String get projectTransferCountMerged;
+
+  /// No description provided for @projectTransferCountUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated'**
+  String get projectTransferCountUpdated;
+
+  /// No description provided for @projectTransferSkippedOnConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped on conflict'**
+  String get projectTransferSkippedOnConflict;
+
+  /// No description provided for @projectTransferMediaCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Media copied'**
+  String get projectTransferMediaCopied;
+
+  /// No description provided for @projectTransferWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warnings'**
+  String get projectTransferWarnings;
+
+  /// No description provided for @projectTransferConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict'**
+  String get projectTransferConflict;
+
+  /// No description provided for @projectTransferCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get projectTransferCurrent;
+
+  /// No description provided for @projectTransferConflictAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict action'**
+  String get projectTransferConflictAction;
+
+  /// No description provided for @projectTransferChooseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an action'**
+  String get projectTransferChooseAction;
+
+  /// No description provided for @projectTransferChooseActionToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an action to continue'**
+  String get projectTransferChooseActionToContinue;
+
+  /// No description provided for @projectTransferNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get projectTransferNotSet;
+
+  /// No description provided for @projectTransferNoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No details'**
+  String get projectTransferNoDetails;
+
+  /// No description provided for @projectBatchSpecimenParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen parts'**
+  String get projectBatchSpecimenParts;
+
+  /// No description provided for @projectBatchNarrative.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative'**
+  String get projectBatchNarrative;
+
+  /// No description provided for @projectBatchModeUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update existing records'**
+  String get projectBatchModeUpdate;
+
+  /// No description provided for @projectBatchModeCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Import new records'**
+  String get projectBatchModeCreate;
+
+  /// No description provided for @projectBatchHeaderAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get projectBatchHeaderAuto;
+
+  /// No description provided for @projectBatchDarwinCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Darwin Core'**
+  String get projectBatchDarwinCore;
+
+  /// No description provided for @projectBatchHeaderNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Column names'**
+  String get projectBatchHeaderNames;
+
+  /// No description provided for @projectBatchKeySpecimenUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen UUID'**
+  String get projectBatchKeySpecimenUuid;
+
+  /// No description provided for @projectBatchKeyCatalogNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog number'**
+  String get projectBatchKeyCatalogNumber;
+
+  /// No description provided for @projectBatchKeyCatalogerFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Cataloger and field number'**
+  String get projectBatchKeyCatalogerFieldNumber;
+
+  /// No description provided for @projectBatchKeyTissueId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue ID'**
+  String get projectBatchKeyTissueId;
+
+  /// No description provided for @projectBatchKeyBarcodeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode ID'**
+  String get projectBatchKeyBarcodeId;
+
+  /// No description provided for @projectBatchKeySiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'Site ID'**
+  String get projectBatchKeySiteId;
+
+  /// No description provided for @projectBatchKeyEventId.
+  ///
+  /// In en, this message translates to:
+  /// **'Event ID'**
+  String get projectBatchKeyEventId;
+
+  /// No description provided for @projectBatchKeyNarrativeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative date'**
+  String get projectBatchKeyNarrativeDate;
+
+  /// No description provided for @projectBatchStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get projectBatchStatusReady;
+
+  /// No description provided for @projectBatchStatusMissingLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing link'**
+  String get projectBatchStatusMissingLink;
+
+  /// No description provided for @projectBatchStatusNoMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No match'**
+  String get projectBatchStatusNoMatch;
+
+  /// No description provided for @projectBatchStatusAmbiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'Several matches'**
+  String get projectBatchStatusAmbiguous;
+
+  /// No description provided for @projectBatchStatusExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in project'**
+  String get projectBatchStatusExists;
+
+  /// No description provided for @projectBatchStatusDuplicateInFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeated in file'**
+  String get projectBatchStatusDuplicateInFile;
+
+  /// No description provided for @projectBatchStatusInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid values'**
+  String get projectBatchStatusInvalid;
+
+  /// No description provided for @projectBatchUpdateRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Update records'**
+  String get projectBatchUpdateRecords;
+
+  /// No description provided for @projectBatchImportRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Import records'**
+  String get projectBatchImportRecords;
+
+  /// No description provided for @projectBatchStepMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get projectBatchStepMode;
+
+  /// No description provided for @projectBatchStepFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get projectBatchStepFile;
+
+  /// No description provided for @projectBatchStepColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get projectBatchStepColumns;
+
+  /// No description provided for @projectBatchStepGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get projectBatchStepGroups;
+
+  /// No description provided for @projectBatchUnsupportedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a CSV, TSV, or Excel file.'**
+  String get projectBatchUnsupportedFile;
+
+  /// No description provided for @projectBatchModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to do?'**
+  String get projectBatchModeTitle;
+
+  /// No description provided for @projectBatchModeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring records in from a CSV, TSV, or Excel file. Columns can use Darwin Core terms or your own names.'**
+  String get projectBatchModeBody;
+
+  /// No description provided for @projectBatchModeCreateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one record per row. Taxa, personnel, sites, and events are linked when they are already in the project.'**
+  String get projectBatchModeCreateBody;
+
+  /// No description provided for @projectBatchModeUpdateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Match each row to a record by a key column, such as a catalog number, and write the other columns. Blank cells are left unchanged.'**
+  String get projectBatchModeUpdateBody;
+
+  /// No description provided for @projectBatchRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get projectBatchRecords;
+
+  /// No description provided for @projectBatchLinkedRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked records'**
+  String get projectBatchLinkedRecords;
+
+  /// No description provided for @projectBatchLinkedRecordsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each row can describe a site, its collecting event, a specimen, and a part. Rows are grouped into sites and events, which you can check before importing.'**
+  String get projectBatchLinkedRecordsBody;
+
+  /// No description provided for @projectBatchChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get projectBatchChooseFile;
+
+  /// No description provided for @projectBatchChooseFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The first row must hold the column names. Each row after it is one record.'**
+  String get projectBatchChooseFileBody;
+
+  /// No description provided for @projectBatchSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sheet'**
+  String get projectBatchSheet;
+
+  /// No description provided for @projectBatchTableSize.
+  ///
+  /// In en, this message translates to:
+  /// **'{rows, plural, =1{1 row} other{{rows} rows}} · {columns, plural, =1{1 column} other{{columns} columns}}'**
+  String projectBatchTableSize(int rows, int columns);
+
+  /// No description provided for @projectBatchMatchColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Match columns'**
+  String get projectBatchMatchColumns;
+
+  /// No description provided for @projectBatchMatchColumnsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{mapped} of {total} columns match a field. Change any match, or skip a column. Your changes are remembered for files with the same columns.'**
+  String projectBatchMatchColumnsBody(int mapped, int total);
+
+  /// No description provided for @projectBatchKeyColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Key column'**
+  String get projectBatchKeyColumn;
+
+  /// No description provided for @projectBatchKeyColumnMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Map a column to one of: {keys}.'**
+  String projectBatchKeyColumnMissing(String keys);
+
+  /// No description provided for @projectBatchKeyColumnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows update the record with the same value.'**
+  String get projectBatchKeyColumnBody;
+
+  /// No description provided for @projectBatchMatchRecordsBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Match records by'**
+  String get projectBatchMatchRecordsBy;
+
+  /// No description provided for @projectBatchNoValues.
+  ///
+  /// In en, this message translates to:
+  /// **'No values'**
+  String get projectBatchNoValues;
+
+  /// No description provided for @projectBatchNahpuField.
+  ///
+  /// In en, this message translates to:
+  /// **'NAHPU field'**
+  String get projectBatchNahpuField;
+
+  /// No description provided for @projectBatchSkipColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip column'**
+  String get projectBatchSkipColumn;
+
+  /// No description provided for @projectBatchFieldInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} (in use)'**
+  String projectBatchFieldInUse(String field);
+
+  /// No description provided for @projectBatchNameMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Name match'**
+  String get projectBatchNameMatch;
+
+  /// No description provided for @projectBatchCloseMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Close match {percent}%'**
+  String projectBatchCloseMatch(int percent);
+
+  /// No description provided for @projectBatchSkippedByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped by you'**
+  String get projectBatchSkippedByYou;
+
+  /// No description provided for @projectBatchYourChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your choice'**
+  String get projectBatchYourChoice;
+
+  /// No description provided for @projectBatchSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get projectBatchSearch;
+
+  /// No description provided for @projectBatchLoadRecordsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load records: {error}'**
+  String projectBatchLoadRecordsFailed(String error);
+
+  /// No description provided for @projectBatchNoMatchingRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching records.'**
+  String get projectBatchNoMatchingRecords;
+
+  /// No description provided for @projectBatchNoOtherGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no other group to merge with.'**
+  String get projectBatchNoOtherGroup;
+
+  /// No description provided for @projectBatchMoveToNewGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to new group'**
+  String get projectBatchMoveToNewGroup;
+
+  /// No description provided for @projectBatchCheckGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Check groups'**
+  String get projectBatchCheckGroups;
+
+  /// No description provided for @projectBatchCheckGroupsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows that describe the same site or event are grouped. Link a group to a record the project has, merge groups that are the same place or visit, or split rows out.'**
+  String get projectBatchCheckGroupsBody;
+
+  /// No description provided for @projectBatchSitesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites ({count})'**
+  String projectBatchSitesCount(int count);
+
+  /// No description provided for @projectBatchEventsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Events ({count})'**
+  String projectBatchEventsCount(int count);
+
+  /// No description provided for @projectBatchSpecimensCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens ({count})'**
+  String projectBatchSpecimensCount(int count);
+
+  /// No description provided for @projectBatchNoSiteColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'No columns describe a site.'**
+  String get projectBatchNoSiteColumns;
+
+  /// No description provided for @projectBatchNoEventColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'No columns describe an event.'**
+  String get projectBatchNoEventColumns;
+
+  /// No description provided for @projectBatchNoSpecimenColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'No columns describe a specimen.'**
+  String get projectBatchNoSpecimenColumns;
+
+  /// No description provided for @projectBatchNewSite.
+  ///
+  /// In en, this message translates to:
+  /// **'New site'**
+  String get projectBatchNewSite;
+
+  /// No description provided for @projectBatchEventCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 event} other{{count} events}}'**
+  String projectBatchEventCount(int count);
+
+  /// No description provided for @projectBatchSpecimenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 specimen} other{{count} specimens}}'**
+  String projectBatchSpecimenCount(int count);
+
+  /// No description provided for @projectBatchPartCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 part} other{{count} parts}}'**
+  String projectBatchPartCount(int count);
+
+  /// No description provided for @projectBatchSetSiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'Set site ID'**
+  String get projectBatchSetSiteId;
+
+  /// No description provided for @projectBatchLinkSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to an existing site'**
+  String get projectBatchLinkSite;
+
+  /// No description provided for @projectBatchMergeIntoSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into site'**
+  String get projectBatchMergeIntoSite;
+
+  /// No description provided for @projectBatchMoveRowsToSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Move rows to a new site'**
+  String get projectBatchMoveRowsToSite;
+
+  /// No description provided for @projectBatchRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {row}'**
+  String projectBatchRow(String row);
+
+  /// No description provided for @projectBatchRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows {rows}'**
+  String projectBatchRows(String rows);
+
+  /// No description provided for @projectBatchRowsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows {rows} and {count} more'**
+  String projectBatchRowsMore(int count, String rows);
+
+  /// No description provided for @projectBatchNoSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get projectBatchNoSite;
+
+  /// No description provided for @projectBatchNoEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'No event'**
+  String get projectBatchNoEvent;
+
+  /// No description provided for @projectBatchEventLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Event: {event}'**
+  String projectBatchEventLabel(String event);
+
+  /// No description provided for @projectBatchSetIdSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'Set ID suffix'**
+  String get projectBatchSetIdSuffix;
+
+  /// No description provided for @projectBatchLinkEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to an existing event'**
+  String get projectBatchLinkEvent;
+
+  /// No description provided for @projectBatchSetEventIdSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'Set event ID suffix'**
+  String get projectBatchSetEventIdSuffix;
+
+  /// No description provided for @projectBatchMergeIntoEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into event'**
+  String get projectBatchMergeIntoEvent;
+
+  /// No description provided for @projectBatchMoveRowsToEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Move rows to a new event'**
+  String get projectBatchMoveRowsToEvent;
+
+  /// No description provided for @projectBatchExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded'**
+  String get projectBatchExcluded;
+
+  /// No description provided for @projectBatchCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get projectBatchCheck;
+
+  /// No description provided for @projectBatchLinksToExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Links to existing'**
+  String get projectBatchLinksToExisting;
+
+  /// No description provided for @projectBatchChangeGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Change group'**
+  String get projectBatchChangeGroup;
+
+  /// No description provided for @projectBatchLinkExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to existing…'**
+  String get projectBatchLinkExisting;
+
+  /// No description provided for @projectBatchCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new instead'**
+  String get projectBatchCreateNew;
+
+  /// No description provided for @projectBatchMergeInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into…'**
+  String get projectBatchMergeInto;
+
+  /// No description provided for @projectBatchSplitRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Split rows…'**
+  String get projectBatchSplitRows;
+
+  /// No description provided for @projectBatchLinkedReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites are written first, then events at them, then specimens and their parts.'**
+  String get projectBatchLinkedReviewBody;
+
+  /// No description provided for @projectBatchSitesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites: {created} new, {linked} linked'**
+  String projectBatchSitesSummary(int created, int linked);
+
+  /// No description provided for @projectBatchEventsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Events: {created} new, {linked} linked'**
+  String projectBatchEventsSummary(int created, int linked);
+
+  /// No description provided for @projectBatchSpecimensSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens: {count}'**
+  String projectBatchSpecimensSummary(int count);
+
+  /// No description provided for @projectBatchPartsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts: {count}'**
+  String projectBatchPartsSummary(int count);
+
+  /// No description provided for @projectBatchRowsSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows skipped: {count}'**
+  String projectBatchRowsSkipped(int count);
+
+  /// No description provided for @projectBatchImportSpecimensMissingLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Import specimens with missing links'**
+  String get projectBatchImportSpecimensMissingLinks;
+
+  /// No description provided for @projectBatchImportSpecimensMissingLinksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The taxon or person stays empty. Add it to the project first to link it.'**
+  String get projectBatchImportSpecimensMissingLinksBody;
+
+  /// No description provided for @projectBatchWritingRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing {done} of {total} records'**
+  String projectBatchWritingRecords(int done, int total);
+
+  /// No description provided for @projectBatchWritingRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing {done} of {total} rows'**
+  String projectBatchWritingRows(int done, int total);
+
+  /// No description provided for @projectBatchNoProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'No problems found.'**
+  String get projectBatchNoProblems;
+
+  /// No description provided for @projectBatchMoreRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{And 1 more row.} other{And {count} more rows.}}'**
+  String projectBatchMoreRows(int count);
+
+  /// No description provided for @projectBatchSiteProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Site {site}: {message}'**
+  String projectBatchSiteProblem(String site, String message);
+
+  /// No description provided for @projectBatchSpecimenSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen skipped: {status}.'**
+  String projectBatchSpecimenSkipped(String status);
+
+  /// No description provided for @projectBatchExcludedRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded.'**
+  String get projectBatchExcludedRow;
+
+  /// No description provided for @projectBatchDoneWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Done, with errors'**
+  String get projectBatchDoneWithErrors;
+
+  /// No description provided for @projectBatchAddedSpecimensParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {specimens, plural, =1{1 specimen} other{{specimens} specimens}} and {parts, plural, =1{1 part} other{{parts} parts}}.'**
+  String projectBatchAddedSpecimensParts(int specimens, int parts);
+
+  /// No description provided for @projectBatchRowsWithErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows with errors: {count}'**
+  String projectBatchRowsWithErrors(int count);
+
+  /// No description provided for @projectBatchOpenSpecimenTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Open specimen records table'**
+  String get projectBatchOpenSpecimenTable;
+
+  /// No description provided for @projectBatchUpdatedRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {count} {records}.'**
+  String projectBatchUpdatedRecords(int count, String records);
+
+  /// No description provided for @projectBatchAddedRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {count} {records}.'**
+  String projectBatchAddedRecords(int count, String records);
+
+  /// No description provided for @projectBatchUpdatedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated: {count}'**
+  String projectBatchUpdatedCount(int count);
+
+  /// No description provided for @projectBatchAddedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Added: {count}'**
+  String projectBatchAddedCount(int count);
+
+  /// No description provided for @projectBatchSkippedInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped in review: {count}'**
+  String projectBatchSkippedInReview(int count);
+
+  /// No description provided for @projectBatchFailedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {count}'**
+  String projectBatchFailedCount(int count);
+
+  /// No description provided for @projectBatchOpenTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {records} table'**
+  String projectBatchOpenTable(String records);
+
+  /// No description provided for @projectBatchReviewUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'This will update {count} of {total} {records}. Rows with problems are skipped.'**
+  String projectBatchReviewUpdate(int count, int total, String records);
+
+  /// No description provided for @projectBatchReviewAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'This will add {count} of {total} {records}. Rows with problems are skipped.'**
+  String projectBatchReviewAdd(int count, int total, String records);
+
+  /// No description provided for @projectBatchImportRowsMissingLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'Import rows with missing links'**
+  String get projectBatchImportRowsMissingLinks;
+
+  /// No description provided for @projectBatchImportRowsMissingLinksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The taxon, person, site, or event stays empty. Add it to the project first to link it.'**
+  String get projectBatchImportRowsMissingLinksBody;
+
+  /// No description provided for @projectStatsPartQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Part quantity'**
+  String get projectStatsPartQuantity;
+
+  /// No description provided for @projectStatsQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get projectStatsQuantity;
+
+  /// No description provided for @projectStatsSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get projectStatsSite;
+
+  /// No description provided for @projectStatsDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get projectStatsDate;
+
+  /// No description provided for @projectStatsMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get projectStatsMethod;
+
+  /// No description provided for @projectStatsSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get projectStatsSex;
+
+  /// No description provided for @projectStatsLifeStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Life stage'**
+  String get projectStatsLifeStage;
+
+  /// No description provided for @projectStatsPartType.
+  ///
+  /// In en, this message translates to:
+  /// **'Part type'**
+  String get projectStatsPartType;
+
+  /// No description provided for @projectStatsTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment'**
+  String get projectStatsTreatment;
+
+  /// Chart title. The category is lowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'{measure} by {category}'**
+  String projectStatsTitle(String measure, String category);
+
+  /// No description provided for @projectStatsTitleWithBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{measure} by {category} and {breakdown}'**
+  String projectStatsTitleWithBreakdown(
+    String measure,
+    String category,
+    String breakdown,
+  );
+
+  /// No description provided for @projectStatsTitleAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} at {site}'**
+  String projectStatsTitleAtSite(String title, String site);
+
+  /// No description provided for @projectStatsTitleForSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} for {species}'**
+  String projectStatsTitleForSpecies(String title, String species);
+
+  /// No description provided for @projectStatsCoordinatesBySpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates by species'**
+  String get projectStatsCoordinatesBySpecies;
+
+  /// No description provided for @projectStatsSpatialSpecimensTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen counts by site coordinates'**
+  String get projectStatsSpatialSpecimensTitle;
+
+  /// No description provided for @projectStatsSpatialSpeciesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Species counts by site coordinates'**
+  String get projectStatsSpatialSpeciesTitle;
+
+  /// No description provided for @projectStatsSpatialFamiliesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family counts by site coordinates'**
+  String get projectStatsSpatialFamiliesTitle;
+
+  /// No description provided for @projectStatsSpatialSelectedSpeciesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected species counts by coordinates'**
+  String get projectStatsSpatialSelectedSpeciesTitle;
+
+  /// No description provided for @projectStatsCountSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'specimens'**
+  String get projectStatsCountSpecimens;
+
+  /// No description provided for @projectStatsCountSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'species'**
+  String get projectStatsCountSpecies;
+
+  /// No description provided for @projectStatsCountFamilies.
+  ///
+  /// In en, this message translates to:
+  /// **'families'**
+  String get projectStatsCountFamilies;
+
+  /// No description provided for @projectStatsClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get projectStatsClasses;
+
+  /// No description provided for @projectStatsOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get projectStatsOrders;
+
+  /// No description provided for @projectStatsFamilies.
+  ///
+  /// In en, this message translates to:
+  /// **'Families'**
+  String get projectStatsFamilies;
+
+  /// No description provided for @projectStatsGenera.
+  ///
+  /// In en, this message translates to:
+  /// **'Genera'**
+  String get projectStatsGenera;
+
+  /// No description provided for @projectStatsSpecimenMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen media'**
+  String get projectStatsSpecimenMedia;
+
+  /// No description provided for @projectStatsSiteMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Site media'**
+  String get projectStatsSiteMedia;
+
+  /// No description provided for @projectStatsEventMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Event media'**
+  String get projectStatsEventMedia;
+
+  /// No description provided for @projectStatsNarrativeMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative media'**
+  String get projectStatsNarrativeMedia;
+
+  /// No description provided for @projectStatsRecordedSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded sites'**
+  String get projectStatsRecordedSites;
+
+  /// No description provided for @projectStatsSampledSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampled sites'**
+  String get projectStatsSampledSites;
+
+  /// No description provided for @projectStatsCaptureDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture days'**
+  String get projectStatsCaptureDays;
+
+  /// No description provided for @projectStatsProjectDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Project days'**
+  String get projectStatsProjectDays;
+
+  /// No description provided for @projectStatsRecordedElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded elevation'**
+  String get projectStatsRecordedElevation;
+
+  /// No description provided for @projectStatsSampledElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampled elevation'**
+  String get projectStatsSampledElevation;
+
+  /// No description provided for @projectStatsNotRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get projectStatsNotRecorded;
+
+  /// No description provided for @projectStatsRecordStatistics.
+  ///
+  /// In en, this message translates to:
+  /// **'Record statistics'**
+  String get projectStatsRecordStatistics;
+
+  /// No description provided for @projectStatsTopSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Top recorded species'**
+  String get projectStatsTopSpecies;
+
+  /// No description provided for @projectStatsRecordCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Record counts'**
+  String get projectStatsRecordCounts;
+
+  /// No description provided for @projectStatsShowRecordCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show record counts'**
+  String get projectStatsShowRecordCounts;
+
+  /// No description provided for @projectStatsShowTopSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Show top recorded species'**
+  String get projectStatsShowTopSpecies;
+
+  /// No description provided for @projectStatsExploreMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore more stats'**
+  String get projectStatsExploreMore;
+
+  /// No description provided for @projectStatsRecordLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load record statistics: {error}'**
+  String projectStatsRecordLoadError(String error);
+
+  /// No description provided for @projectStatsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get projectStatsSummary;
+
+  /// No description provided for @projectStatsExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get projectStatsExplore;
+
+  /// No description provided for @projectStatsTotalAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Total across all projects'**
+  String get projectStatsTotalAllProjects;
+
+  /// No description provided for @projectStatsGroupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get projectStatsGroupBy;
+
+  /// No description provided for @projectStatsSelectSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a site'**
+  String get projectStatsSelectSite;
+
+  /// No description provided for @projectStatsAllSites.
+  ///
+  /// In en, this message translates to:
+  /// **'All sites'**
+  String get projectStatsAllSites;
+
+  /// No description provided for @projectStatsSelectSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a species'**
+  String get projectStatsSelectSpecies;
+
+  /// No description provided for @projectStatsAllSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'All species'**
+  String get projectStatsAllSpecies;
+
+  /// No description provided for @projectStatsChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart'**
+  String get projectStatsChart;
+
+  /// No description provided for @projectStatsTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get projectStatsTable;
+
+  /// No description provided for @projectStatsRecordSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Record summary'**
+  String get projectStatsRecordSummary;
+
+  /// No description provided for @projectStatsTaxonomicBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxonomic breakdown'**
+  String get projectStatsTaxonomicBreakdown;
+
+  /// No description provided for @projectStatsMediaBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Media breakdown'**
+  String get projectStatsMediaBreakdown;
+
+  /// No description provided for @projectStatsPerProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Per project'**
+  String get projectStatsPerProject;
+
+  /// No description provided for @projectStatsNoProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects yet.'**
+  String get projectStatsNoProjects;
+
+  /// No description provided for @projectStatsProjectLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load project statistics: {error}'**
+  String projectStatsProjectLoadError(String error);
+
+  /// No description provided for @projectStatsViewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View details'**
+  String get projectStatsViewDetails;
+
+  /// No description provided for @projectStatsBreakDownBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Break down by'**
+  String get projectStatsBreakDownBy;
+
+  /// No description provided for @projectStatsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load statistics: {error}'**
+  String projectStatsLoadError(String error);
+
+  /// No description provided for @projectStatsSpecimensBySpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by species'**
+  String get projectStatsSpecimensBySpecies;
+
+  /// No description provided for @projectStatsSpecimensByFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by family'**
+  String get projectStatsSpecimensByFamily;
+
+  /// No description provided for @projectStatsSpecimensBySite.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by site'**
+  String get projectStatsSpecimensBySite;
+
+  /// No description provided for @projectStatsSpecimensByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by date'**
+  String get projectStatsSpecimensByDate;
+
+  /// No description provided for @projectStatsSpecimensByMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by method'**
+  String get projectStatsSpecimensByMethod;
+
+  /// No description provided for @projectStatsSpecimensBySex.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimens by sex'**
+  String get projectStatsSpecimensBySex;
+
+  /// No description provided for @projectStatsPartQuantityByType.
+  ///
+  /// In en, this message translates to:
+  /// **'Part quantity by type'**
+  String get projectStatsPartQuantityByType;
+
+  /// No description provided for @projectStatsPartQuantityByTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Part quantity by treatment'**
+  String get projectStatsPartQuantityByTreatment;
+
+  /// No description provided for @projectStatsCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts'**
+  String get projectStatsCounts;
+
+  /// No description provided for @projectStatsSpatial.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial'**
+  String get projectStatsSpatial;
+
+  /// No description provided for @projectStatsNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data to display'**
+  String get projectStatsNoData;
+
+  /// No description provided for @projectStatsTapToView.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}\nTap to view records'**
+  String projectStatsTapToView(String label);
+
+  /// No description provided for @projectStatsShowBarChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Show bar chart'**
+  String get projectStatsShowBarChart;
+
+  /// No description provided for @projectStatsShowPieChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Show pie chart'**
+  String get projectStatsShowPieChart;
+
+  /// No description provided for @projectStatsClearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get projectStatsClearSelection;
+
+  /// No description provided for @projectStatsChoicesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load choices: {error}'**
+  String projectStatsChoicesLoadError(String error);
+
+  /// No description provided for @projectStatsNoMatchingChoices.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching choices'**
+  String get projectStatsNoMatchingChoices;
+
+  /// No description provided for @projectStatsNoRecordsInGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'No records in this group.'**
+  String get projectStatsNoRecordsInGroup;
+
+  /// No description provided for @projectStatsShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get projectStatsShow;
+
+  /// No description provided for @projectStatsSpeciesCountsByCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'{species} counts by coordinates'**
+  String projectStatsSpeciesCountsByCoordinates(String species);
+
+  /// No description provided for @projectStatsMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get projectStatsMap;
+
+  /// No description provided for @projectStatsSpatialLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load spatial statistics: {error}'**
+  String projectStatsSpatialLoadError(String error);
+
+  /// No description provided for @projectStatsNoSpecimenCoords.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens are assigned to project coordinates.'**
+  String get projectStatsNoSpecimenCoords;
+
+  /// No description provided for @projectStatsNoSpeciesCoords.
+  ///
+  /// In en, this message translates to:
+  /// **'No species are associated with project coordinates.'**
+  String get projectStatsNoSpeciesCoords;
+
+  /// No description provided for @projectStatsNoFamilyCoords.
+  ///
+  /// In en, this message translates to:
+  /// **'No families are associated with project coordinates.'**
+  String get projectStatsNoFamilyCoords;
+
+  /// No description provided for @projectStatsNoSelectedSpeciesCoords.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens of the selected species are assigned to project coordinates.'**
+  String get projectStatsNoSelectedSpeciesCoords;
+
+  /// No description provided for @projectStatsNoSpeciesCoordsFor.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens of {species} are assigned to project coordinates.'**
+  String projectStatsNoSpeciesCoordsFor(String species);
+
+  /// No description provided for @projectStatsCoordinateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Coordinate} other{Coordinates}}'**
+  String projectStatsCoordinateLabel(int count);
+
+  /// No description provided for @projectStatsMeanPerCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean {counted} per coordinate'**
+  String projectStatsMeanPerCoordinate(String counted);
+
+  /// No description provided for @projectStatsTopCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Top coordinate'**
+  String get projectStatsTopCoordinate;
+
+  /// No description provided for @projectStatsTopValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Top: {name}'**
+  String projectStatsTopValue(String name);
+
+  /// No description provided for @projectStatsElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation'**
+  String get projectStatsElevation;
+
+  /// No description provided for @projectStatsSelectSpeciesPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a species to view coordinate abundance.'**
+  String get projectStatsSelectSpeciesPrompt;
+
+  /// No description provided for @projectStatsCollapseLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse map legend'**
+  String get projectStatsCollapseLegend;
+
+  /// No description provided for @projectStatsExpandLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand map legend'**
+  String get projectStatsExpandLegend;
+
+  /// No description provided for @projectStatsLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get projectStatsLegend;
+
+  /// No description provided for @projectStatsLegendCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each circle represents\none coordinate'**
+  String get projectStatsLegendCircle;
+
+  /// No description provided for @projectStatsLegendGrouped.
+  ///
+  /// In en, this message translates to:
+  /// **'Grouped sites,\nzoom in to split'**
+  String get projectStatsLegendGrouped;
+
+  /// No description provided for @projectStatsUnmappedRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 record is listed in the table but cannot be mapped because latitude or longitude is missing or invalid.} other{{count} records are listed in the table but cannot be mapped because latitude or longitude is missing or invalid.}}'**
+  String projectStatsUnmappedRecords(int count);
+
+  /// No description provided for @projectStatsSpatialMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Spatial statistics map'**
+  String get projectStatsSpatialMap;
+
+  /// No description provided for @projectStatsMapLayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Map layers'**
+  String get projectStatsMapLayers;
+
+  /// No description provided for @projectStatsViewFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'View map full screen'**
+  String get projectStatsViewFullScreen;
+
+  /// No description provided for @projectStatsNaturalEarthError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load the offline Natural Earth map.'**
+  String get projectStatsNaturalEarthError;
+
+  /// No description provided for @projectStatsNoValidCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid coordinates are available to map.'**
+  String get projectStatsNoValidCoordinates;
+
+  /// No description provided for @projectStatsMapPrepareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to prepare the map: {error}'**
+  String projectStatsMapPrepareError(String error);
+
+  /// No description provided for @projectStatsZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get projectStatsZoomIn;
+
+  /// No description provided for @projectStatsZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get projectStatsZoomOut;
+
+  /// No description provided for @projectStatsCenterMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Center map on statistics'**
+  String get projectStatsCenterMap;
+
+  /// No description provided for @projectStatsSiteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 site} other{{count} sites}}'**
+  String projectStatsSiteCount(int count);
+
+  /// No description provided for @projectStatsExportTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Export table'**
+  String get projectStatsExportTable;
+
+  /// No description provided for @projectStatsColumnName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get projectStatsColumnName;
+
+  /// No description provided for @projectStatsColumnLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'Locality'**
+  String get projectStatsColumnLocality;
+
+  /// No description provided for @projectStatsColumnDecimalLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal latitude'**
+  String get projectStatsColumnDecimalLatitude;
+
+  /// No description provided for @projectStatsColumnDecimalLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal longitude'**
+  String get projectStatsColumnDecimalLongitude;
+
+  /// No description provided for @projectStatsColumnElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Elevation (m)'**
+  String get projectStatsColumnElevation;
+
+  /// No description provided for @projectStatsColumnDatum.
+  ///
+  /// In en, this message translates to:
+  /// **'Datum'**
+  String get projectStatsColumnDatum;
+
+  /// No description provided for @projectStatsColumnUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty (m)'**
+  String get projectStatsColumnUncertainty;
+
+  /// No description provided for @projectStatsColumnGpsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS unit'**
+  String get projectStatsColumnGpsUnit;
+
+  /// No description provided for @projectStatsColumnLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude'**
+  String get projectStatsColumnLatitude;
+
+  /// No description provided for @projectStatsColumnLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude'**
+  String get projectStatsColumnLongitude;
+
+  /// No description provided for @projectStatsColumnCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get projectStatsColumnCount;
+
+  /// No description provided for @projectStatsColumnPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Percent'**
+  String get projectStatsColumnPercent;
+
+  /// No description provided for @projectStatsColumnCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get projectStatsColumnCategory;
+
+  /// No description provided for @projectStatsViewRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'View records'**
+  String get projectStatsViewRecords;
+
+  /// No description provided for @projectStatsExportStatisticsTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Export statistics table'**
+  String get projectStatsExportStatisticsTable;
+
+  /// No description provided for @projectStatsExportSpatialTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Export spatial statistics table'**
+  String get projectStatsExportSpatialTable;
+
+  /// No description provided for @projectStatsExportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to export statistics: {error}'**
+  String projectStatsExportError(String error);
+
+  /// No description provided for @projectStatsExportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Export complete'**
+  String get projectStatsExportComplete;
+
+  /// No description provided for @projectStatsShareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to share statistics: {error}'**
+  String projectStatsShareError(String error);
+
+  /// Specimen part field for the museum's permanent tissue number.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum permanent'**
+  String get projectTissueMuseumPermanent;
+
+  /// No description provided for @projectTissueMuseumLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum loan'**
+  String get projectTissueMuseumLoan;
+
+  /// No description provided for @projectTissueIdOrBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue ID or barcode'**
+  String get projectTissueIdOrBarcode;
+
+  /// No description provided for @projectTissueFillRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows, left to right'**
+  String get projectTissueFillRows;
+
+  /// No description provided for @projectTissueFillColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns, top to bottom'**
+  String get projectTissueFillColumns;
+
+  /// No description provided for @projectTissueFillSerpentine.
+  ///
+  /// In en, this message translates to:
+  /// **'Serpentine rows'**
+  String get projectTissueFillSerpentine;
+
+  /// No description provided for @projectTissueEntryScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get projectTissueEntryScan;
+
+  /// No description provided for @projectTissueEntryWorkList.
+  ///
+  /// In en, this message translates to:
+  /// **'Work list'**
+  String get projectTissueEntryWorkList;
+
+  /// No description provided for @projectTissueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen curation'**
+  String get projectTissueTitle;
+
+  /// No description provided for @projectTissueFilledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{filled} / {capacity} filled'**
+  String projectTissueFilledCount(int filled, int capacity);
+
+  /// No description provided for @projectTissueNextCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Next cell'**
+  String get projectTissueNextCell;
+
+  /// No description provided for @projectTissueFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get projectTissueFull;
+
+  /// No description provided for @projectTissueNextBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Next box'**
+  String get projectTissueNextBox;
+
+  /// No description provided for @projectTissueCellFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'{cell} · filled'**
+  String projectTissueCellFilled(String cell);
+
+  /// No description provided for @projectTissueFilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled'**
+  String get projectTissueFilled;
+
+  /// No description provided for @projectTissueNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get projectTissueNext;
+
+  /// No description provided for @projectTissueTapEmptyCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an empty cell to jump'**
+  String get projectTissueTapEmptyCell;
+
+  /// No description provided for @projectTissueScanTubes.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tubes'**
+  String get projectTissueScanTubes;
+
+  /// No description provided for @projectTissueCameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera scanning is unavailable. Use the scan field instead.'**
+  String get projectTissueCameraUnavailable;
+
+  /// No description provided for @projectTissueCameraError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to use the camera. Retry or use the scan field.'**
+  String get projectTissueCameraError;
+
+  /// No description provided for @projectTissueSessionLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Session log'**
+  String get projectTissueSessionLog;
+
+  /// No description provided for @projectTissueSessionLogCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Session log ({count})'**
+  String projectTissueSessionLogCount(int count);
+
+  /// No description provided for @projectTissueSessionLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked tubes appear here.'**
+  String get projectTissueSessionLogEmpty;
+
+  /// No description provided for @projectTissueSeveralMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Several parts match {code}'**
+  String projectTissueSeveralMatches(String code);
+
+  /// No description provided for @projectTissueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count {count}'**
+  String projectTissueCount(String count);
+
+  /// No description provided for @projectTissueAt.
+  ///
+  /// In en, this message translates to:
+  /// **'At {location}'**
+  String projectTissueAt(String location);
+
+  /// No description provided for @projectTissueFindTubes.
+  ///
+  /// In en, this message translates to:
+  /// **'Find tubes'**
+  String get projectTissueFindTubes;
+
+  /// No description provided for @projectTissueType.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue type'**
+  String get projectTissueType;
+
+  /// No description provided for @projectTissuePreservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Preservation'**
+  String get projectTissuePreservation;
+
+  /// No description provided for @projectTissueUpdateField.
+  ///
+  /// In en, this message translates to:
+  /// **'Update field'**
+  String get projectTissueUpdateField;
+
+  /// No description provided for @projectTissueField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get projectTissueField;
+
+  /// No description provided for @projectTissueValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get projectTissueValue;
+
+  /// No description provided for @projectTissueMuseumCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum code'**
+  String get projectTissueMuseumCode;
+
+  /// No description provided for @projectTissueBoxSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Box size'**
+  String get projectTissueBoxSize;
+
+  /// No description provided for @projectTissueNumbering.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbering'**
+  String get projectTissueNumbering;
+
+  /// No description provided for @projectTissueFillOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill order'**
+  String get projectTissueFillOrder;
+
+  /// No description provided for @projectTissueBoxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Box label'**
+  String get projectTissueBoxLabel;
+
+  /// No description provided for @projectTissueBoxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Box'**
+  String get projectTissueBoxHint;
+
+  /// No description provided for @projectTissueBoxNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Box number'**
+  String get projectTissueBoxNumber;
+
+  /// No description provided for @projectTissueOverwrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite existing values'**
+  String get projectTissueOverwrite;
+
+  /// No description provided for @projectTissueOverwriteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace a stored location or a different field value'**
+  String get projectTissueOverwriteBody;
+
+  /// No description provided for @projectTissueAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get projectTissueAny;
+
+  /// No description provided for @projectTissueScanTube.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan tube'**
+  String get projectTissueScanTube;
+
+  /// No description provided for @projectTissueScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan or type, then press Enter'**
+  String get projectTissueScanHint;
+
+  /// No description provided for @projectTissueScanWithCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with camera'**
+  String get projectTissueScanWithCamera;
+
+  /// No description provided for @projectTissueUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get projectTissueUndo;
+
+  /// No description provided for @projectTissueReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready. Scan the first tube.'**
+  String get projectTissueReady;
+
+  /// No description provided for @projectTissueWorkListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No unplaced parts match the tissue type and preservation filters.'**
+  String get projectTissueWorkListEmpty;
+
+  /// No description provided for @projectTissueRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Next · {count} remaining'**
+  String projectTissueRemaining(int count);
+
+  /// No description provided for @projectTissuePlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Place'**
+  String get projectTissuePlace;
 }
 
 class _AppLocalizationsDelegate

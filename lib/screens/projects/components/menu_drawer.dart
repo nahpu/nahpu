@@ -18,6 +18,7 @@ import 'package:nahpu/screens/projects/batch_import/batch_import.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/projects/project_services.dart';
 import 'package:nahpu/services/common/utility_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 class ProjectMenuDrawer extends ConsumerStatefulWidget {
@@ -32,6 +33,7 @@ class ProjectMenuDrawer extends ConsumerStatefulWidget {
 class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final projectUuid = ref.watch(projectUuidProvider);
     return Padding(
       padding: widget.showCloseProject
@@ -50,14 +52,14 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           if (widget.showCloseProject) ...[
             ListTile(
               leading: const Icon(Icons.exit_to_app_outlined),
-              title: const Text('Close project'),
+              title: Text(l10n.sharedNavCloseProject),
               onTap: () => closeProject(context, ref, projectUuid),
             ),
             const Divider(color: Colors.grey),
           ],
           ListTile(
             leading: const Icon(Icons.move_to_inbox_outlined),
-            title: const Text('Merge project'),
+            title: Text(l10n.labelProjectToolMergeProject),
             onTap: () {
               Navigator.push(
                 context,
@@ -69,7 +71,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: const Icon(Icons.outbox_outlined),
-            title: const Text('Export project'),
+            title: Text(l10n.labelProjectToolExportProject),
             onTap: () {
               Navigator.push(
                 context,
@@ -82,7 +84,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
           ListTile(
             leading: const Icon(Icons.post_add_outlined),
-            title: const Text('Batch import'),
+            title: Text(l10n.labelProjectToolBatchImport),
             onTap: () {
               Navigator.push(
                 context,
@@ -94,7 +96,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: const Icon(Icons.archive_outlined),
-            title: const Text('Bundle records'),
+            title: Text(l10n.labelProjectToolBundleRecords),
             onTap: () {
               Navigator.push(
                 context,
@@ -106,7 +108,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: Icon(Icons.adaptive.share_outlined),
-            title: const Text('Export records'),
+            title: Text(l10n.labelProjectToolExportRecords),
             onTap: () {
               Navigator.push(
                 context,
@@ -116,7 +118,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: const Icon(Icons.picture_as_pdf_outlined),
-            title: const Text('Export documents'),
+            title: Text(l10n.labelProjectToolExportDocuments),
             onTap: () {
               Navigator.push(
                 context,
@@ -129,7 +131,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
           ListTile(
             leading: const Icon(Icons.storage_outlined),
-            title: const Text('Backup database'),
+            title: Text(l10n.drawerBackupDatabase),
             onTap: () {
               Navigator.push(
                 context,
@@ -140,7 +142,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           Divider(color: Theme.of(context).colorScheme.outlineVariant),
           ListTile(
             leading: const Icon(Icons.settings_outlined),
-            title: const Text('Settings'),
+            title: Text(l10n.drawerSettings),
             onTap: () {
               Navigator.push(
                 context,
@@ -152,7 +154,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: Icon(Icons.adaptive.share_outlined),
-            title: const Text('Export user configs'),
+            title: Text(l10n.drawerExportUserConfigs),
             onTap: () {
               Navigator.push(
                 context,
@@ -164,7 +166,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
           ),
           ListTile(
             leading: const Icon(Icons.download_outlined),
-            title: const Text('Import user configs'),
+            title: Text(l10n.drawerImportUserConfigs),
             onTap: () {
               Navigator.push(
                 context,
@@ -192,12 +194,16 @@ class _DeleteProjectTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final errorColor = Theme.of(context).colorScheme.error;
     return Padding(
       padding: const EdgeInsets.only(bottom: NahpuSpacing.lg),
       child: ListTile(
         leading: Icon(Icons.delete_outline, color: errorColor),
-        title: Text('Delete project', style: TextStyle(color: errorColor)),
+        title: Text(
+          l10n.projectDeleteProject,
+          style: TextStyle(color: errorColor),
+        ),
         onTap: () async {
           final confirmationCode = projectUuid.length >= 5
               ? projectUuid.substring(0, 5)
@@ -208,9 +214,8 @@ class _DeleteProjectTile extends ConsumerWidget {
           final messenger = ScaffoldMessenger.of(context);
           return showDeleteAlertOnMenu(
             context: context,
-            title: 'Delete project?',
-            deletePrompt:
-                'You will delete this project and its related data. This cannot be undone.',
+            title: l10n.projectDeleteProjectTitle,
+            deletePrompt: l10n.projectDeleteProjectPrompt,
             requiredConfirmationText: confirmationCode,
             onDelete: () async {
               try {
@@ -233,7 +238,7 @@ class _DeleteProjectTile extends ConsumerWidget {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Error'),
+                      title: Text(l10n.commonError),
                       content: Text(errorMessage),
                     ),
                   );
@@ -283,7 +288,7 @@ class MenuAvatar extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                data?.name ?? 'No Project',
+                data?.name ?? context.l10n.projectNoProject,
                 style: TextStyle(
                   fontFamily: 'Merriweather',
                   fontSize: 22,

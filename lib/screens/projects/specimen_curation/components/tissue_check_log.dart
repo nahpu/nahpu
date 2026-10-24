@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// The tubes checked in this session, newest first.
 class TissueCheckLogCard extends StatelessWidget {
@@ -21,14 +22,14 @@ class TissueCheckLogCard extends StatelessWidget {
           children: [
             Text(
               entries.isEmpty
-                  ? 'Session log'
-                  : 'Session log (${entries.length})',
+                  ? context.l10n.projectTissueSessionLog
+                  : context.l10n.projectTissueSessionLogCount(entries.length),
               style: theme.textTheme.titleSmall,
             ),
             const SizedBox(height: NahpuSpacing.md),
             if (entries.isEmpty)
               Text(
-                'Checked tubes appear here.',
+                context.l10n.projectTissueSessionLogEmpty,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -104,7 +105,7 @@ class TissueMatchDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      title: Text('Several parts match $code'),
+      title: Text(context.l10n.projectTissueSeveralMatches(code)),
       children: [
         for (final record in records)
           SimpleDialogOption(
@@ -113,7 +114,7 @@ class TissueMatchDialog extends StatelessWidget {
           ),
         SimpleDialogOption(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Skip'),
+          child: Text(context.l10n.projectWizardSkip),
         ),
       ],
     );
@@ -139,7 +140,8 @@ class TissueMatchOption extends StatelessWidget {
     final details = [
       if ((part.type ?? '').trim().isNotEmpty) part.type!.trim(),
       if ((part.treatment ?? '').trim().isNotEmpty) part.treatment!.trim(),
-      if ((part.count ?? '').trim().isNotEmpty) 'Count ${part.count!.trim()}',
+      if ((part.count ?? '').trim().isNotEmpty)
+        context.l10n.projectTissueCount(part.count!.trim()),
     ].join(' · ');
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -149,7 +151,7 @@ class TissueMatchOption extends StatelessWidget {
           ? null
           : Chip(
               avatar: const Icon(Icons.inventory_2_outlined),
-              label: Text('At $location'),
+              label: Text(context.l10n.projectTissueAt(location)),
               visualDensity: VisualDensity.compact,
             ),
     );

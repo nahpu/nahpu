@@ -17,6 +17,8 @@ import 'package:nahpu/services/projects/project_transfer_service.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 class ImportProjectScreen extends ConsumerStatefulWidget {
   const ImportProjectScreen({
@@ -38,18 +40,6 @@ class ImportProjectScreen extends ConsumerStatefulWidget {
 }
 
 class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
-  static const _mergeSteps = [
-    'File and safety',
-    'Project info',
-    'Personnel',
-    'Taxonomy',
-    'Sites',
-    'Events',
-    'Specimens',
-    'Narratives',
-    'Review and merge',
-    'Result',
-  ];
   static const _mergeSectionByStep = {
     2: ProjectTransferSection.personnel,
     3: ProjectTransferSection.taxonomy,
@@ -58,14 +48,6 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     6: ProjectTransferSection.specimens,
     7: ProjectTransferSection.narratives,
   };
-  static const _newProjectSteps = [
-    'File and safety',
-    'Personnel',
-    'Taxonomy',
-    'Specimens',
-    'Review and import',
-    'Result',
-  ];
   static const _newProjectSectionByStep = {
     1: ProjectTransferSection.personnel,
     2: ProjectTransferSection.taxonomy,
@@ -98,7 +80,22 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   bool _isCancellingRead = false;
 
   bool get _isNewProject => widget.mode == ProjectTransferImportMode.newProject;
-  List<String> get _steps => _isNewProject ? _newProjectSteps : _mergeSteps;
+  List<String> get _steps {
+    final l10n = context.l10n;
+    final sections = _sectionByStep.values.map(
+      (section) => section.localizedLabel(l10n),
+    );
+    return [
+      l10n.projectTransferFileAndSafety,
+      if (!_isNewProject) l10n.projectTransferProjectInfo,
+      ...sections,
+      _isNewProject
+          ? l10n.projectTransferReviewImport
+          : l10n.projectTransferReviewMerge,
+      l10n.projectTransferResult,
+    ];
+  }
+
   Map<int, ProjectTransferSection> get _sectionByStep =>
       _isNewProject ? _newProjectSectionByStep : _mergeSectionByStep;
   int get _reviewStep => _steps.length - 2;
@@ -128,7 +125,11 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isNewProject ? 'Import project' : 'Merge project'),
+        title: Text(
+          _isNewProject
+              ? context.l10n.drawerImportProject
+              : context.l10n.labelProjectToolMergeProject,
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -148,8 +149,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               isRunning: _isImporting,
               canContinue: _canContinue,
               finalActionLabel: _isNewProject
-                  ? 'Import project'
-                  : 'Merge project',
+                  ? context.l10n.drawerImportProject
+                  : context.l10n.labelProjectToolMergeProject,
               finalActionIcon: _isNewProject
                   ? Icons.download_rounded
                   : Icons.merge_rounded,
@@ -167,10 +168,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
     if (_step == 0) return _fileAndSafety();
     final plan = _plan;
     if (plan == null) {
-      return const _MessageCard(
+      return _MessageCard(
         icon: Icons.upload_file_outlined,
-        title: 'Choose a project transfer first',
-        message: 'Return to File and safety to select an archive.',
+        title: context.l10n.projectTransferChooseFirst,
+        message: context.l10n.projectTransferChooseFirstBody,
       );
     }
     if (!_isNewProject && _step == 1) return _projectInfo(plan);
@@ -182,6 +183,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _fileAndSafety() {
+    final l10n = context.l10n;
     final plan = _plan;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,24 +193,19 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Choose a NAHPU project transfer',
+                l10n.projectTransferChooseTitle,
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ '
-                'contains records only. ZIP and TAR.GZ include media.',
-              ),
+              Text(l10n.projectTransferChooseBody),
               const SizedBox(height: 20),
               if (_isReading && _readProgress != null)
                 // Reading a media-heavy transfer decompresses gigabytes; a
                 // spinner in the button cannot say how far along that is.
                 ExportProgressPanel(
-                  title: 'Reading archive',
+                  title: l10n.projectTransferReadingArchive,
                   progress: _readProgress!,
-                  hint:
-                      'Transfers that include media can take several minutes '
-                      'to unpack. Keep NAHPU open.',
+                  hint: l10n.projectTransferReadingArchiveHint,
                   isCancelling: _isCancellingRead,
                   onCancel: _requestReadCancel,
                 )
@@ -219,8 +216,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                     icon: const Icon(Icons.upload_file_rounded),
                     label: Text(
                       _selectedInput == null
-                          ? 'Choose archive'
-                          : 'Choose another archive',
+                          ? l10n.projectTransferChooseArchive
+                          : l10n.projectTransferChooseAnotherArchive,
                     ),
                   ),
                 ),
@@ -232,7 +229,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   title: Text(plan.payload.projectName),
                   subtitle: Text(
                     '${path.basename(_archiveFile!.extractedDirectory.path)}\n'
-                    'Project UUID: ${plan.payload.sourceProjectUuid}',
+                    '${l10n.projectUuidValue(plan.payload.sourceProjectUuid)}',
                   ),
                   isThreeLine: true,
                 ),
@@ -265,24 +262,21 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   Expanded(
                     child: Text(
                       _isNewProject
-                          ? 'Back up before importing'
-                          : 'Back up before merging',
+                          ? l10n.projectTransferBackupBeforeImport
+                          : l10n.projectTransferBackupBeforeMerge,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
-                'A database backup gives you a recovery point if imported '
-                'changes are not what you expected.',
-              ),
+              Text(l10n.projectTransferBackupBody),
               const SizedBox(height: 12),
               Center(
                 child: OutlinedButton.icon(
                   onPressed: _openBackup,
                   icon: const Icon(Icons.storage_rounded),
-                  label: const Text('Back up now'),
+                  label: Text(l10n.projectTransferBackupNow),
                 ),
               ),
               CheckboxListTile(
@@ -290,10 +284,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 value: _backupAcknowledged,
                 title: Text(
                   _isNewProject
-                      ? 'I understand that I should keep a backup before '
-                            'importing.'
-                      : 'I understand that I should keep a backup before '
-                            'merging.',
+                      ? l10n.projectTransferBackupAckImport
+                      : l10n.projectTransferBackupAckMerge,
                 ),
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (value) =>
@@ -319,31 +311,33 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'New project identity',
+            context.l10n.projectTransferNewIdentity,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          Text('Archive UUID: ${plan.payload.sourceProjectUuid}'),
+          Text(
+            context.l10n.projectTransferArchiveUuid(
+              plan.payload.sourceProjectUuid,
+            ),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _destinationNameController,
             onChanged: _validateDestinationName,
             maxLength: 25,
             decoration: InputDecoration(
-              labelText: 'Destination project name',
+              labelText: context.l10n.projectTransferDestinationName,
               border: const OutlineInputBorder(),
               errorText: _destinationNameError,
               helperText: _nameConflict == null
-                  ? 'Names the new project on this device. The archive is not changed.'
+                  ? context.l10n.projectTransferDestinationNameHelper
                   : null,
             ),
           ),
           if (_nameConflict != null) ...[
             const SizedBox(height: 8),
             Text(
-              'A project named “${_nameConflict!.name}” already exists. '
-              'Choose another name. If these are copies of the same project, '
-              'cancel and use Merge project instead.',
+              context.l10n.projectTransferNameConflict(_nameConflict!.name),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
@@ -359,20 +353,19 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'This project already exists',
+            context.l10n.projectTransferAlreadyExists,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
             '${project.name}\n${project.uuid}\n\n'
-            'Matching UUIDs identify the same project. Import is blocked. '
-            'Merge this archive into the existing project instead.',
+            '${context.l10n.projectTransferAlreadyExistsBody}',
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: _openMatchingProjectMerge,
             icon: const Icon(Icons.merge_rounded),
-            label: const Text('Open Merge project'),
+            label: Text(context.l10n.projectTransferOpenMerge),
           ),
         ],
       ),
@@ -388,23 +381,22 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Project UUID does not match',
+            context.l10n.projectTransferUuidMismatch,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Archive: ${plan.payload.sourceProjectUuid}\n'
-            'Active project: ${plan.activeProjectUuid}',
+            context.l10n.projectTransferUuidMismatchBody(
+              plan.payload.sourceProjectUuid,
+              plan.activeProjectUuid,
+            ),
           ),
           const SizedBox(height: 12),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: _forceMerge,
-            title: const Text('Force merge into the active project'),
-            subtitle: const Text(
-              'Imported project-scoped records will use the active project '
-              'UUID. Conflicts still require the choices shown later.',
-            ),
+            title: Text(context.l10n.projectTransferForceMerge),
+            subtitle: Text(context.l10n.projectTransferForceMergeBody),
             onChanged: (value) => setState(() => _forceMerge = value),
           ),
           if (_forceMerge) ...[
@@ -413,7 +405,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               controller: _forceConfirmationController,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                labelText: 'Type “${plan.activeProjectName}” to confirm',
+                labelText: context.l10n.projectTransferTypeToConfirm(
+                  plan.activeProjectName,
+                ),
                 border: const OutlineInputBorder(),
                 suffixIcon: confirmed
                     ? const Icon(Icons.check_circle_rounded)
@@ -427,28 +421,27 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _projectInfo(ProjectTransferImportPlan plan) {
-    const fields = {
-      'name': 'Project name',
-      'description': 'Description',
-      'principalInvestigator': 'Principal investigator',
-      'location': 'Location',
-      'timeZone': 'Time zone',
-      'startDate': 'Start date',
-      'endDate': 'End date',
-      'accession': 'Accession',
-      'catalogNumberPrefix': 'Catalog number prefix',
-      'currentCatalogNumber': 'Current catalog number',
-      'catalogNumberSuffix': 'Catalog number suffix',
+    final l10n = context.l10n;
+    final fields = {
+      'name': l10n.projectName,
+      'description': l10n.projectDescription,
+      'principalInvestigator': l10n.projectPrincipalInvestigator,
+      'location': l10n.projectLocation,
+      'timeZone': l10n.projectTimeZone,
+      'startDate': l10n.projectStartDate,
+      'endDate': l10n.projectEndDate,
+      'accession': l10n.projectAccession,
+      'catalogNumberPrefix': l10n.projectCatalogNumberPrefix,
+      'currentCatalogNumber': l10n.projectCurrentCatalogNumber,
+      'catalogNumberSuffix': l10n.projectCatalogNumberSuffix,
     };
     final current = ref.watch(currProjInfoProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: 'Project info',
-          message:
-              'Current values are kept by default. Select individual imported '
-              'values when you want to replace them.',
+          title: l10n.projectTransferProjectInfo,
+          message: l10n.projectTransferProjectInfoBody,
         ),
         const SizedBox(height: 12),
         Center(
@@ -461,7 +454,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                     _importedProjectFields[key] = false;
                   }
                 }),
-                child: const Text('Keep all current'),
+                child: Text(l10n.projectTransferKeepAllCurrent),
               ),
               TextButton(
                 onPressed: () => setState(() {
@@ -469,7 +462,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                     _importedProjectFields[key] = true;
                   }
                 }),
-                child: const Text('Use all imported'),
+                child: Text(l10n.projectTransferUseAllImported),
               ),
             ],
           ),
@@ -547,10 +540,8 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: section.label,
-          message:
-              'Review matches before continuing. “Keep current” maps imported '
-              'dependencies to the existing record without replacing it.',
+          title: section.localizedLabel(context.l10n),
+          message: context.l10n.projectTransferReviewMatches,
         ),
         if (bulkTargets.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -558,7 +549,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             child: PopupMenuButton<ProjectTransferConflictAction>(
               // Duplicate identifiers are left out: a blanket choice would
               // dispose of them without the user reading the warning.
-              tooltip: 'Apply one choice to all matched records',
+              tooltip: context.l10n.projectTransferBulkTooltip,
               onSelected: (action) => setState(() {
                 for (final conflict in bulkTargets) {
                   if (conflict.allowedActions.contains(action)) {
@@ -570,13 +561,17 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                   .map(
                     (action) => PopupMenuItem(
                       value: action,
-                      child: Text('${action.label} for all'),
+                      child: Text(
+                        context.l10n.projectTransferActionForAll(
+                          action.localizedLabel(context.l10n),
+                        ),
+                      ),
                     ),
                   )
                   .toList(),
-              child: const Chip(
-                avatar: Icon(Icons.tune_rounded, size: 18),
-                label: Text('Bulk action'),
+              child: Chip(
+                avatar: const Icon(Icons.tune_rounded, size: 18),
+                label: Text(context.l10n.projectTransferBulkAction),
               ),
             ),
           ),
@@ -588,25 +583,25 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           runSpacing: 8,
           children: [
             _StatusChip(
-              label: 'New',
+              label: context.l10n.projectTransferStatusNew,
               count: fresh,
               color: colorScheme.tertiary,
               onColor: colorScheme.onTertiary,
             ),
             _StatusChip(
-              label: 'Matched',
+              label: context.l10n.projectTransferStatusMatched,
               count: matched,
               color: colorScheme.primary,
               onColor: colorScheme.onPrimary,
             ),
             _StatusChip(
-              label: 'Needs attention',
+              label: context.l10n.projectTransferNeedsAttention,
               count: needsAttention,
               color: colorScheme.error,
               onColor: colorScheme.onError,
             ),
             _StatusChip(
-              label: 'Skipped',
+              label: context.l10n.projectTransferSkipped,
               count: conflicts.where((conflict) {
                 return _actions[conflict.id] ==
                     ProjectTransferConflictAction.skip;
@@ -618,10 +613,10 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
         ),
         const SizedBox(height: 16),
         if (conflicts.isEmpty)
-          const _MessageCard(
+          _MessageCard(
             icon: Icons.check_circle_outline_rounded,
-            title: 'No conflicts',
-            message: 'All records in this section can be imported as new.',
+            title: context.l10n.projectTransferNoConflicts,
+            message: context.l10n.projectTransferNoConflictsBody,
           )
         else
           for (final conflict in conflicts)
@@ -643,6 +638,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _review(ProjectTransferImportPlan plan) {
+    final l10n = context.l10n;
     final blockedSections = _blockedSections(plan);
     final skipped = _actions.values
         .where((action) => action == ProjectTransferConflictAction.skip)
@@ -654,48 +650,57 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         NahpuStepHeading(
-          title: _isNewProject ? 'Review and import' : 'Review and merge',
-          message:
-              'Nothing has been written yet. The database changes will be '
-              'committed together; a failure rolls them all back.',
+          title: _isNewProject
+              ? l10n.projectTransferReviewImport
+              : l10n.projectTransferReviewMerge,
+          message: l10n.projectTransferReviewBody,
         ),
         const SizedBox(height: 16),
         NahpuPanel(
           child: Column(
             children: [
               _ReviewRow(
-                label: 'Source project',
+                label: l10n.projectTransferSourceProject,
                 value: plan.payload.projectName,
               ),
               _ReviewRow(
-                label: 'Destination',
+                label: l10n.projectTransferDestination,
                 value: _isNewProject
                     ? _destinationNameController.text.trim()
                     : plan.activeProjectName,
               ),
               _ReviewRow(
-                label: 'UUID handling',
+                label: l10n.projectTransferUuidHandling,
                 value: _isNewProject
-                    ? 'New project UUID: ${plan.destinationProjectUuid}'
+                    ? l10n.projectTransferNewUuid(plan.destinationProjectUuid)
                     : plan.hasUuidMismatch
-                    ? 'Force merge into active UUID'
-                    : 'Matching project UUID',
+                    ? l10n.projectTransferForceMergeUuid
+                    : l10n.projectTransferMatchingUuid,
               ),
-              _ReviewRow(label: 'Conflicts', value: '${plan.conflicts.length}'),
               _ReviewRow(
-                label: 'Needs attention',
+                label: l10n.projectTransferConflicts,
+                value: '${plan.conflicts.length}',
+              ),
+              _ReviewRow(
+                label: l10n.projectTransferNeedsAttention,
                 value: '${unresolvedConflicts(plan, _actions).length}',
               ),
-              _ReviewRow(label: 'Use imported', value: '$replacements'),
-              _ReviewRow(label: 'Skip', value: '$skipped'),
               _ReviewRow(
-                label: 'Media files',
+                label: l10n.projectTransferUseImported,
+                value: '$replacements',
+              ),
+              _ReviewRow(label: l10n.projectWizardSkip, value: '$skipped'),
+              _ReviewRow(
+                label: l10n.projectTransferMediaFiles,
                 value: '${plan.payload.mediaFiles.length}',
               ),
               if (_isNewProject)
                 for (final entry in plan.payload.summary.entries)
                   if (entry.key != 'Media')
-                    _ReviewRow(label: entry.key, value: '${entry.value}'),
+                    _ReviewRow(
+                      label: projectTransferSummaryLabel(l10n, entry.key),
+                      value: '${entry.value}',
+                    ),
             ],
           ),
         ),
@@ -703,10 +708,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           const SizedBox(height: 16),
           _MessageCard(
             icon: Icons.report_problem_outlined,
-            title: 'Resolve conflicts before merging',
+            title: l10n.projectTransferResolveConflicts,
             message:
-                'Duplicate identifiers still need an action in '
-                '${blockedSections.map((section) => section.label).join(', ')}. '
+                '${l10n.projectTransferDuplicateIdentifiers(blockedSections.map((section) => section.localizedLabel(l10n)).join(', '))} '
                 '$duplicateIdentifierAdvice',
           ),
         ],
@@ -718,7 +722,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Archive warnings',
+                  l10n.projectTransferArchiveWarnings,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
@@ -732,16 +736,19 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
   }
 
   Widget _resultView() {
+    final l10n = context.l10n;
     final result = _result;
     if (result == null) {
       return _MessageCard(
         icon: Icons.error_outline_rounded,
-        title: _isNewProject ? 'Import did not finish' : 'Merge did not finish',
+        title: _isNewProject
+            ? l10n.projectTransferImportUnfinished
+            : l10n.projectTransferMergeUnfinished,
         message:
             _error ??
             (_isNewProject
-                ? 'Return to Review and import and try again.'
-                : 'Return to Review and merge and try again.'),
+                ? l10n.projectTransferImportRetry
+                : l10n.projectTransferMergeRetry),
       );
     }
     return NahpuPanel(
@@ -754,7 +761,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            _isNewProject ? 'Project imported' : 'Project data merged',
+            _isNewProject
+                ? l10n.projectTransferImported
+                : l10n.projectTransferMerged,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 20),
@@ -764,17 +773,28 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
             alignment: WrapAlignment.center,
             children: [
               _ResultCount(
-                label: _isNewProject ? 'Imported' : 'Merged',
+                label: _isNewProject
+                    ? l10n.projectTransferCountImported
+                    : l10n.projectTransferCountMerged,
                 value: result.imported,
               ),
-              _ResultCount(label: 'Updated', value: result.updated),
-              _ResultCount(label: 'Skipped', value: result.skipped),
+              _ResultCount(
+                label: l10n.projectTransferCountUpdated,
+                value: result.updated,
+              ),
+              _ResultCount(
+                label: l10n.projectTransferSkipped,
+                value: result.skipped,
+              ),
               if (result.skippedByConflict > 0)
                 _ResultCount(
-                  label: 'Skipped on conflict',
+                  label: l10n.projectTransferSkippedOnConflict,
                   value: result.skippedByConflict,
                 ),
-              _ResultCount(label: 'Media copied', value: result.mediaCopied),
+              _ResultCount(
+                label: l10n.projectTransferMediaCopied,
+                value: result.mediaCopied,
+              ),
             ],
           ),
           if (result.warnings.isNotEmpty) ...[
@@ -785,7 +805,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Warnings',
+                    l10n.projectTransferWarnings,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
@@ -1014,9 +1034,9 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
 
   String? _projectNameError(String value) {
     final trimmed = value.trim();
-    if (trimmed.length < 3) return 'Project name is too short';
-    if (trimmed.length > 25) return 'Project name is too long';
-    if (!trimmed.isValidProjectName) return 'Project name is invalid';
+    if (trimmed.length < 3) return context.l10n.projectNameTooShort;
+    if (trimmed.length > 25) return context.l10n.projectNameTooLong;
+    if (!trimmed.isValidProjectName) return context.l10n.projectNameInvalid;
     return null;
   }
 
@@ -1040,7 +1060,7 @@ class _ImportProjectScreenState extends ConsumerState<ImportProjectScreen> {
       _nameConflict = match;
       _destinationNameError = match == null
           ? null
-          : 'Project name already exists';
+          : context.l10n.projectNameExists;
       _isValidatingName = false;
     });
   }
@@ -1099,7 +1119,11 @@ class _ConflictCard extends StatelessWidget {
                 ),
               ),
               Chip(
-                label: Text(needsChoice ? 'Needs attention' : 'Conflict'),
+                label: Text(
+                  needsChoice
+                      ? context.l10n.projectTransferNeedsAttention
+                      : context.l10n.projectTransferConflict,
+                ),
                 backgroundColor: needsChoice
                     ? colorScheme.errorContainer
                     : null,
@@ -1110,11 +1134,11 @@ class _ConflictCard extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final current = _ComparisonPane(
-                label: 'Current',
+                label: context.l10n.projectTransferCurrent,
                 value: conflict.currentSummary,
               );
               final imported = _ComparisonPane(
-                label: 'Imported',
+                label: context.l10n.projectTransferCountImported,
                 value: conflict.importedSummary,
               );
               return constraints.maxWidth >= 600
@@ -1151,15 +1175,21 @@ class _ConflictCard extends StatelessWidget {
             key: ValueKey('${conflict.id}:$action'),
             initialValue: action,
             decoration: InputDecoration(
-              labelText: 'Conflict action',
-              hintText: needsChoice ? 'Choose an action' : null,
-              errorText: needsChoice ? 'Choose an action to continue' : null,
+              labelText: context.l10n.projectTransferConflictAction,
+              hintText: needsChoice
+                  ? context.l10n.projectTransferChooseAction
+                  : null,
+              errorText: needsChoice
+                  ? context.l10n.projectTransferChooseActionToContinue
+                  : null,
               border: const OutlineInputBorder(),
             ),
             items: conflict.allowedActions
                 .map(
-                  (value) =>
-                      DropdownMenuItem(value: value, child: Text(value.label)),
+                  (value) => DropdownMenuItem(
+                    value: value,
+                    child: Text(value.localizedLabel(context.l10n)),
+                  ),
                 )
                 .toList(),
             onChanged: (value) {
@@ -1204,13 +1234,13 @@ class _ProjectFieldChoice extends StatelessWidget {
               children: [
                 RadioListTile<bool>(
                   value: false,
-                  title: const Text('Keep current'),
-                  subtitle: Text(_displayValue(currentValue)),
+                  title: Text(context.l10n.projectTransferKeepCurrent),
+                  subtitle: Text(_displayValue(context, currentValue)),
                 ),
                 RadioListTile<bool>(
                   value: true,
-                  title: const Text('Use imported'),
-                  subtitle: Text(_displayValue(importedValue)),
+                  title: Text(context.l10n.projectTransferUseImported),
+                  subtitle: Text(_displayValue(context, importedValue)),
                 ),
               ],
             ),
@@ -1220,8 +1250,10 @@ class _ProjectFieldChoice extends StatelessWidget {
     );
   }
 
-  String _displayValue(String? value) =>
-      value == null || value.isEmpty ? 'Not set' : value;
+  String _displayValue(BuildContext context, String? value) =>
+      value == null || value.isEmpty
+      ? context.l10n.projectTransferNotSet
+      : value;
 }
 
 class _MessageCard extends StatelessWidget {
@@ -1266,7 +1298,7 @@ class _ComparisonPane extends StatelessWidget {
         children: [
           Text(label, style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 4),
-          Text(value.isEmpty ? 'No details' : value),
+          Text(value.isEmpty ? context.l10n.projectTransferNoDetails : value),
         ],
       ),
     );

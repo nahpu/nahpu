@@ -21,6 +21,7 @@ import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Curates specimens by scanning. Tissue mode fills a box: each scanned tube
 /// gets the chosen field value and the next cell as its storage location.
@@ -111,7 +112,7 @@ class _SpecimenCurationScreenState
     final logCard = TissueCheckLogCard(entries: _session.entries);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen curation')),
+      appBar: AppBar(title: Text(context.l10n.projectTissueTitle)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {

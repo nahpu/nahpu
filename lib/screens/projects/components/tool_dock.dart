@@ -78,8 +78,8 @@ class ToolDock extends ConsumerWidget {
                   ToolDockLauncher(
                     icon: Icons.edit_outlined,
                     iconColor: colorScheme.outline,
-                    label: 'Edit tools',
-                    tooltip: 'Choose the tools shown here',
+                    label: context.l10n.projectEditTools,
+                    tooltip: context.l10n.projectEditToolsTooltip,
                     onPressed: () => openSettingsDestination(
                       context,
                       SettingsDestination.projectTools,
@@ -192,9 +192,9 @@ class ToolDockLabel extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tools', style: theme.textTheme.titleSmall),
+          Text(context.l10n.settingsTools, style: theme.textTheme.titleSmall),
           Text(
-            'Project utilities',
+            context.l10n.projectUtilities,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
