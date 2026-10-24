@@ -62,8 +62,8 @@ class CoordinatePointDot extends StatelessWidget {
     final color = focused
         ? NahpuTheme.focusedMapMarker(colorScheme)
         : selected
-        ? colorScheme.primary.withValues(alpha: 0.78)
-        : colorScheme.onSurfaceVariant.withValues(alpha: 0.62);
+        ? colorScheme.primary
+        : colorScheme.outline;
     return SizedBox.square(
       dimension: coordinateDotDiameter(selected: selected, focused: focused),
       child: DecoratedBox(

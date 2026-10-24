@@ -20,23 +20,17 @@ class SpatialPointCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    // The circle is see-through, so the count carries its own halo to stay
-    // legible over any basemap, light or dark.
     final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-      color: colorScheme.onSurface,
+      color: colorScheme.onPrimaryContainer,
       fontWeight: FontWeight.w600,
-      shadows: mapLabelHalo(colorScheme),
     );
     return SizedBox.square(
       dimension: diameter,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: colorScheme.primary.withValues(alpha: 0.32),
-          border: Border.all(
-            color: colorScheme.primary.withValues(alpha: 0.86),
-            width: 2,
-          ),
+          color: colorScheme.primaryContainer,
+          border: Border.all(color: colorScheme.primary, width: 2),
         ),
         child: countLabel != null && _fitsInside(context, labelStyle)
             ? Center(
@@ -105,11 +99,8 @@ class SpatialClusterBubble extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: fill.withValues(alpha: 0.88),
+          color: fill,
           border: Border.all(color: colorScheme.surface, width: 2),
-          boxShadow: [
-            BoxShadow(color: fill.withValues(alpha: 0.35), spreadRadius: 3),
-          ],
         ),
         // Labels scale down inside the square inscribed in the circle, so
         // long counts shrink instead of touching the outline.

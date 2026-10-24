@@ -153,7 +153,7 @@ class _GroupedLegendSample extends StatelessWidget {
                 height: _diameter,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: colorScheme.primary.withValues(alpha: 0.88),
+                  color: colorScheme.primary,
                   border: Border.all(color: colorScheme.surface, width: 2),
                 ),
               ),
@@ -203,11 +203,8 @@ class _LegendSample extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: colorScheme.primary.withValues(alpha: 0.32),
-                    border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.86),
-                      width: 2,
-                    ),
+                    color: colorScheme.primaryContainer,
+                    border: Border.all(color: colorScheme.primary, width: 2),
                   ),
                 ),
               ),

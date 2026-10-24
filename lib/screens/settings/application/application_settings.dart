@@ -205,6 +205,10 @@ class LanguageSettings extends ConsumerWidget {
             text: l10n.settingsLanguageBetaNote,
             action: TextButton.icon(
               key: const ValueKey('language-help-translate'),
+              // No leading inset, so the icon starts on the list's edge.
+              style: TextButton.styleFrom(
+                padding: const EdgeInsetsDirectional.only(end: NahpuSpacing.md),
+              ),
               icon: const Icon(Icons.open_in_new_rounded),
               label: Text(l10n.settingsLanguageHelpTranslate),
               onPressed: _openTranslationGuide,
@@ -313,30 +317,32 @@ class _SettingNote extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: padding,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (badge case final badge?) ...[
-            badge,
-            const SizedBox(width: NahpuSpacing.md),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (badge case final badge?) ...[
+                badge,
+                const SizedBox(width: NahpuSpacing.md),
+              ],
+              Expanded(
+                child: Text(
                   text,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                if (action case final action?) ...[
-                  const SizedBox(height: NahpuSpacing.sm),
-                  action,
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
+          // The action spans the note, so it lines up with the left edge of
+          // the setting list rather than sitting indented under the text.
+          if (action case final action?) ...[
+            const SizedBox(height: NahpuSpacing.sm),
+            action,
+          ],
         ],
       ),
     );

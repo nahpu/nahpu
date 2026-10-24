@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/localization/app_language.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/file_explorer.dart';
@@ -75,6 +76,13 @@ void main() {
         matching: find.byKey(const ValueKey('language-help-translate')),
       ),
       findsOneWidget,
+    );
+    expect(
+      tester
+          .getTopLeft(find.byKey(const ValueKey('language-help-translate')))
+          .dx,
+      tester.getTopLeft(find.byType(CommonSettingSection)).dx,
+      reason: 'the translate button lines up with the language list',
     );
     for (final code in ['pt', 'es', 'id']) {
       expect(
