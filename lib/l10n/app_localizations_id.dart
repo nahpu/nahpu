@@ -21,6 +21,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonError => 'Galat';
 
   @override
+  String get commonCancel => 'Batal';
+
+  @override
+  String get commonEdit => 'Sunting';
+
+  @override
+  String get commonPreview => 'Pratinjau';
+
+  @override
+  String get commonSortRecords => 'Urutkan catatan';
+
+  @override
+  String get commonDeleteRecord => 'Hapus catatan';
+
+  @override
+  String get commonDeleteAllRecords => 'Hapus semua catatan';
+
+  @override
   String get homeDatabaseErrorTitle => 'Tidak dapat membuka basis data NAHPU.';
 
   @override
@@ -289,4 +307,71 @@ class AppLocalizationsId extends AppLocalizations {
   String docsReviewerList(String leading, String last) {
     return '$leading, dan $last';
   }
+
+  @override
+  String get narrativeTitle => 'Narasi';
+
+  @override
+  String get narrativeRecordTitle => 'Catatan narasi';
+
+  @override
+  String get narrativeSearchHint => 'Cari narasi';
+
+  @override
+  String get narrativeEmpty => 'Narasi tidak ditemukan';
+
+  @override
+  String get narrativeCreate => 'Buat narasi';
+
+  @override
+  String get narrativeActions => 'Tindakan narasi';
+
+  @override
+  String get narrativeDeleteTitle => 'Hapus narasi?';
+
+  @override
+  String get narrativeDeletePrompt => 'Anda akan menghapus narasi ini';
+
+  @override
+  String get narrativeDeleteAllTitle => 'Hapus semua narasi?';
+
+  @override
+  String get narrativeDeleteAllPrompt =>
+      'Anda akan menghapus semua narasi dalam proyek ini';
+
+  @override
+  String narrativeDeleteError(String error) {
+    return 'Gagal menghapus narasi: $error';
+  }
+
+  @override
+  String get narrativeDeleted => 'Narasi dihapus';
+
+  @override
+  String get narrativeTextLabel => 'Narasi';
+
+  @override
+  String get narrativeTextHint => 'Tulis narasi (mendukung Markdown)';
+
+  @override
+  String get narrativeTextEmpty =>
+      'Belum ada narasi. Gunakan tombol Sunting di atas untuk mulai menulis.';
+
+  @override
+  String get narrativeDate => 'Tanggal';
+
+  @override
+  String get narrativeDateHint => 'Masukkan tanggal';
+
+  @override
+  String get narrativeTime => 'Waktu';
+
+  @override
+  String get narrativeTimeHint => 'Masukkan waktu';
+
+  @override
+  String get narrativeWriter => 'Penulis';
+
+  @override
+  String get narrativeWriterHint => 'Pilih nama orang';
 }

@@ -12,6 +12,10 @@ final _localizedFiles = [
   p.join('lib', 'screens', 'home', 'components', 'global_search.dart'),
   p.join('lib', 'screens', 'home', 'components', 'menu_drawer.dart'),
   p.join('lib', 'screens', 'home', 'components', 'project_actions.dart'),
+  p.join('lib', 'screens', 'narrative', 'narrative_form.dart'),
+  p.join('lib', 'screens', 'narrative', 'narrative_view.dart'),
+  p.join('lib', 'screens', 'narrative', 'components', 'menu_bar.dart'),
+  p.join('lib', 'screens', 'narrative', 'components', 'top_forms.dart'),
   p.join(
     'lib',
     'screens',

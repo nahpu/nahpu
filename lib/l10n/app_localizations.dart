@@ -126,6 +126,42 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get commonError;
 
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @commonEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get commonEdit;
+
+  /// No description provided for @commonPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get commonPreview;
+
+  /// No description provided for @commonSortRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort records'**
+  String get commonSortRecords;
+
+  /// No description provided for @commonDeleteRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete record'**
+  String get commonDeleteRecord;
+
+  /// No description provided for @commonDeleteAllRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all records'**
+  String get commonDeleteAllRecords;
+
   /// No description provided for @homeDatabaseErrorTitle.
   ///
   /// In en, this message translates to:
@@ -593,6 +629,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{leading}, and {last}'**
   String docsReviewerList(String leading, String last);
+
+  /// No description provided for @narrativeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative'**
+  String get narrativeTitle;
+
+  /// Title of a single narrative opened outside the narrative viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative Record'**
+  String get narrativeRecordTitle;
+
+  /// No description provided for @narrativeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search narrative'**
+  String get narrativeSearchHint;
+
+  /// No description provided for @narrativeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No narrative found'**
+  String get narrativeEmpty;
+
+  /// No description provided for @narrativeCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create narrative'**
+  String get narrativeCreate;
+
+  /// No description provided for @narrativeActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative actions'**
+  String get narrativeActions;
+
+  /// No description provided for @narrativeDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete narrative?'**
+  String get narrativeDeleteTitle;
+
+  /// No description provided for @narrativeDeletePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete this narrative'**
+  String get narrativeDeletePrompt;
+
+  /// No description provided for @narrativeDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all narrative?'**
+  String get narrativeDeleteAllTitle;
+
+  /// No description provided for @narrativeDeleteAllPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete all narrative in this project'**
+  String get narrativeDeleteAllPrompt;
+
+  /// No description provided for @narrativeDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting narrative: {error}'**
+  String narrativeDeleteError(String error);
+
+  /// No description provided for @narrativeDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative deleted'**
+  String get narrativeDeleted;
+
+  /// Heading above the narrative text field.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrative'**
+  String get narrativeTextLabel;
+
+  /// No description provided for @narrativeTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter narrative (Markdown supported)'**
+  String get narrativeTextHint;
+
+  /// Shown in the preview when the narrative is empty. Refers to the commonEdit button.
+  ///
+  /// In en, this message translates to:
+  /// **'No narrative. Use the Edit button above to start writing.'**
+  String get narrativeTextEmpty;
+
+  /// No description provided for @narrativeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get narrativeDate;
+
+  /// No description provided for @narrativeDateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter date'**
+  String get narrativeDateHint;
+
+  /// No description provided for @narrativeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get narrativeTime;
+
+  /// No description provided for @narrativeTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter time'**
+  String get narrativeTimeHint;
+
+  /// No description provided for @narrativeWriter.
+  ///
+  /// In en, this message translates to:
+  /// **'Writer'**
+  String get narrativeWriter;
+
+  /// No description provided for @narrativeWriterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person name'**
+  String get narrativeWriterHint;
 }
 
 class _AppLocalizationsDelegate

@@ -21,6 +21,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get commonError => 'Erro';
 
   @override
+  String get commonCancel => 'Cancelar';
+
+  @override
+  String get commonEdit => 'Editar';
+
+  @override
+  String get commonPreview => 'Visualizar';
+
+  @override
+  String get commonSortRecords => 'Ordenar registros';
+
+  @override
+  String get commonDeleteRecord => 'Excluir registro';
+
+  @override
+  String get commonDeleteAllRecords => 'Excluir todos os registros';
+
+  @override
   String get homeDatabaseErrorTitle =>
       'Não foi possível abrir o banco de dados do NAHPU.';
 
@@ -290,4 +308,72 @@ class AppLocalizationsPt extends AppLocalizations {
   String docsReviewerList(String leading, String last) {
     return '$leading e $last';
   }
+
+  @override
+  String get narrativeTitle => 'Narrativa';
+
+  @override
+  String get narrativeRecordTitle => 'Registro de narrativa';
+
+  @override
+  String get narrativeSearchHint => 'Pesquisar narrativa';
+
+  @override
+  String get narrativeEmpty => 'Nenhuma narrativa encontrada';
+
+  @override
+  String get narrativeCreate => 'Criar narrativa';
+
+  @override
+  String get narrativeActions => 'Ações da narrativa';
+
+  @override
+  String get narrativeDeleteTitle => 'Excluir narrativa?';
+
+  @override
+  String get narrativeDeletePrompt => 'Você excluirá esta narrativa';
+
+  @override
+  String get narrativeDeleteAllTitle => 'Excluir todas as narrativas?';
+
+  @override
+  String get narrativeDeleteAllPrompt =>
+      'Você excluirá todas as narrativas deste projeto';
+
+  @override
+  String narrativeDeleteError(String error) {
+    return 'Erro ao excluir a narrativa: $error';
+  }
+
+  @override
+  String get narrativeDeleted => 'Narrativa excluída';
+
+  @override
+  String get narrativeTextLabel => 'Narrativa';
+
+  @override
+  String get narrativeTextHint =>
+      'Digite a narrativa (compatível com Markdown)';
+
+  @override
+  String get narrativeTextEmpty =>
+      'Nenhuma narrativa. Use o botão Editar acima para começar a escrever.';
+
+  @override
+  String get narrativeDate => 'Data';
+
+  @override
+  String get narrativeDateHint => 'Insira a data';
+
+  @override
+  String get narrativeTime => 'Hora';
+
+  @override
+  String get narrativeTimeHint => 'Insira a hora';
+
+  @override
+  String get narrativeWriter => 'Autor';
+
+  @override
+  String get narrativeWriterHint => 'Escolha o nome de uma pessoa';
 }

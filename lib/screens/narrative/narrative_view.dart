@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/services/narrative/narrative_services.dart';
@@ -67,17 +68,18 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final narrativeServices = NarrativeServices(ref: ref);
     listenEntries();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Narrative"),
+        title: Text(l10n.narrativeTitle),
         actions: [
           _isSearching
               ? ExpandedSearchBar(
                   controller: _searchController,
                   focusNode: _focus,
-                  hintText: 'Search narrative',
+                  hintText: l10n.narrativeSearchHint,
                   trailing: [
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -109,7 +111,7 @@ class NarrativeViewerState extends ConsumerState<NarrativeViewer>
                       narrativeServices.invalidateNarrative();
                     });
                   },
-                  child: const Text('Cancel'),
+                  child: Text(l10n.commonCancel),
                 ),
           !_isSearching ? const NewNarrative() : const SizedBox.shrink(),
           NarrativeMenu(narrativeId: _narrativeId),
@@ -241,7 +243,7 @@ class NarrativeFormViewState extends ConsumerState<NarrativeFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Narrative Record')),
+      appBar: AppBar(title: Text(context.l10n.narrativeRecordTitle)),
       body: SafeArea(
         child: ref
             .watch(narrativeEntryProvider)
@@ -280,7 +282,7 @@ class EmptyNarrative extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonEmptyForm(
       iconPath: 'assets/icons/agendas.svg',
-      text: 'No narrative found',
+      text: context.l10n.narrativeEmpty,
       child: Visibility(
         visible: isButtonVisible,
         child: const NewNarrativeTextButton(),

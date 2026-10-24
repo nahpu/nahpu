@@ -8,6 +8,12 @@
   "commonUnavailable": "Unavailable",
   "@commonUnavailable": {"description": "Shown when a value, such as the app version, cannot be read."},
   "commonError": "Error",
+  "commonCancel": "Cancel",
+  "commonEdit": "Edit",
+  "commonPreview": "Preview",
+  "commonSortRecords": "Sort records",
+  "commonDeleteRecord": "Delete record",
+  "commonDeleteAllRecords": "Delete all records",
 
   "homeDatabaseErrorTitle": "Unable to open the NAHPU database.",
   "homeDatabaseErrorBody": "Your data was not deleted. Retry the database migration or restart NAHPU.",
@@ -119,5 +125,31 @@
   "@docsReviewerList": {
     "description": "Joins three or more reviewers. leading is already comma-separated.",
     "placeholders": {"leading": {"type": "String"}, "last": {"type": "String"}}
-  }
+  },
+
+  "narrativeTitle": "Narrative",
+  "narrativeRecordTitle": "Narrative Record",
+  "@narrativeRecordTitle": {"description": "Title of a single narrative opened outside the narrative viewer."},
+  "narrativeSearchHint": "Search narrative",
+  "narrativeEmpty": "No narrative found",
+  "narrativeCreate": "Create narrative",
+  "narrativeActions": "Narrative actions",
+  "narrativeDeleteTitle": "Delete narrative?",
+  "narrativeDeletePrompt": "You will delete this narrative",
+  "narrativeDeleteAllTitle": "Delete all narrative?",
+  "narrativeDeleteAllPrompt": "You will delete all narrative in this project",
+  "narrativeDeleteError": "Error deleting narrative: {error}",
+  "@narrativeDeleteError": {"placeholders": {"error": {"type": "String"}}},
+  "narrativeDeleted": "Narrative deleted",
+  "narrativeTextLabel": "Narrative",
+  "@narrativeTextLabel": {"description": "Heading above the narrative text field."},
+  "narrativeTextHint": "Enter narrative (Markdown supported)",
+  "narrativeTextEmpty": "No narrative. Use the Edit button above to start writing.",
+  "@narrativeTextEmpty": {"description": "Shown in the preview when the narrative is empty. Refers to the commonEdit button."},
+  "narrativeDate": "Date",
+  "narrativeDateHint": "Enter date",
+  "narrativeTime": "Time",
+  "narrativeTimeHint": "Enter time",
+  "narrativeWriter": "Writer",
+  "narrativeWriterHint": "Choose a person name"
 }

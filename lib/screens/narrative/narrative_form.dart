@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/site_name_display.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -191,16 +192,17 @@ class NarrativeTextState extends ConsumerState<NarrativeText> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
-                'Narrative',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                l10n.narrativeTextLabel,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
@@ -215,7 +217,7 @@ class NarrativeTextState extends ConsumerState<NarrativeText> {
                   _isEditing ? Icons.visibility : Icons.edit,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                tooltip: _isEditing ? 'Preview' : 'Edit',
+                tooltip: _isEditing ? l10n.commonPreview : l10n.commonEdit,
               ),
             ),
           ],
@@ -223,9 +225,7 @@ class NarrativeTextState extends ConsumerState<NarrativeText> {
         CommonPadding(
           child: _isEditing
               ? TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Enter narrative (Markdown supported)',
-                  ),
+                  decoration: InputDecoration(hintText: l10n.narrativeTextHint),
                   controller: widget.narrativeCtr.narrativeCtr,
                   maxLines: 20,
                   onChanged: (String? value) {
@@ -247,7 +247,7 @@ class NarrativeTextState extends ConsumerState<NarrativeText> {
                   ),
                   child: MarkdownBody(
                     data: widget.narrativeCtr.narrativeCtr.text.isEmpty
-                        ? '*No narrative. Use the Edit button above to start writing.*'
+                        ? '*${l10n.narrativeTextEmpty}*'
                         : widget.narrativeCtr.narrativeCtr.text,
                     selectable: true,
                     styleSheet: _narrativeMarkdownStyleSheet(context),
