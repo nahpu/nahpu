@@ -7,6 +7,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
+import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 
@@ -40,17 +41,18 @@ class MapLayerSettings extends ConsumerWidget {
     if (selected == null || !context.mounted) return;
     final extension = selected.path.toLowerCase();
     UserMapLayerKind? kind;
-    if (extension.endsWith('.pmtiles')) {
+    final pmtilesKinds = importablePmtilesKinds(
+      usesFlutterMap: !mapLibreIsExpected,
+    );
+    if (extension.endsWith('.pmtiles') && pmtilesKinds.length == 1) {
+      kind = pmtilesKinds.single;
+    } else if (extension.endsWith('.pmtiles')) {
       kind = await showDialog<UserMapLayerKind>(
         context: context,
         builder: (context) => SimpleDialog(
           title: Text(context.l10n.settingsMapPmtilesType),
           children: [
-            for (final candidate in [
-              UserMapLayerKind.rasterPmtiles,
-              UserMapLayerKind.vectorPmtiles,
-              UserMapLayerKind.demPmtiles,
-            ])
+            for (final candidate in pmtilesKinds)
               SimpleDialogOption(
                 onPressed: () => Navigator.pop(context, candidate),
                 child: Text(candidate.label),
@@ -83,7 +85,9 @@ class _BaseLayerSection extends ConsumerWidget {
       title: context.l10n.settingsMapBaseLayer,
       isDivided: true,
       children: [
-        for (final style in SpatialBasemapStyle.values)
+        for (final style in availableBasemapStyles(
+          usesFlutterMap: !mapLibreIsExpected,
+        ))
           CommonSettingTile(
             title: style.localizedLabel(context.l10n),
             label: style.localizedDescription(context.l10n),
@@ -189,7 +193,7 @@ class _CustomLayerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final supported = !Platform.isLinux || layer.kind.isSupportedOffline;
+    final supported = mapLibreIsExpected || layer.kind.isSupportedOffline;
     return CommonSettingTile(
       title: layer.name,
       label: supported
@@ -238,7 +242,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
         catalog?.layers.indexWhere((layer) => layer.id == layerId) ?? -1;
     if (catalog == null || index < 0) return const SizedBox.shrink();
     final layer = catalog.layers[index];
-    final supported = !Platform.isLinux || layer.kind.isSupportedOffline;
+    final supported = mapLibreIsExpected || layer.kind.isSupportedOffline;
     final notifier = ref.read(userMapCatalogProvider.notifier);
     final l10n = context.l10n;
     return SafeArea(
@@ -395,6 +399,6 @@ IconData _layerIcon(UserMapLayerKind kind) => switch (kind) {
   UserMapLayerKind.demPmtiles => Icons.terrain_outlined,
 };
 
-String _supportedFormatsMessage(AppLocalizations l10n) => Platform.isLinux
+String _supportedFormatsMessage(AppLocalizations l10n) => !mapLibreIsExpected
     ? l10n.settingsMapSupportedFormatsLinux
     : l10n.settingsMapSupportedFormats;

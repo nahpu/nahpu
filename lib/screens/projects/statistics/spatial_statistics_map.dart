@@ -7,7 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_legend.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_markers.dart';
 import 'package:nahpu/screens/shared/maps/full_screen_map_page.dart';
-import 'package:nahpu/screens/shared/maps/offline_basemap_notice.dart';
+import 'package:nahpu/screens/shared/maps/flutter_map_basemap.dart';
 import 'package:nahpu/services/sites/natural_earth.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_maplibre.dart';
@@ -160,7 +160,7 @@ class _SpatialMapViewport extends ConsumerWidget {
                       rows: rows,
                       total: total,
                       polygons: snapshot.data!,
-                      showsBaseLayer: showsBaseLayer,
+                      baseLayer: baseLayer,
                       legendInitiallyExpanded: !isNarrow,
                       isFallback: mapLibreIsExpected,
                     );
@@ -242,7 +242,7 @@ class _NaturalEarthMap extends StatelessWidget {
     required this.rows,
     required this.total,
     required this.polygons,
-    required this.showsBaseLayer,
+    required this.baseLayer,
     required this.legendInitiallyExpanded,
     required this.isFallback,
   });
@@ -251,7 +251,7 @@ class _NaturalEarthMap extends StatelessWidget {
   final List<SpatialStatisticDatum> rows;
   final int total;
   final List<NaturalEarthPolygon> polygons;
-  final bool showsBaseLayer;
+  final SpatialBasemapStyle baseLayer;
   final bool legendInitiallyExpanded;
 
   /// Whether this map is standing in for a MapLibre map that failed to load,
@@ -292,19 +292,11 @@ class _NaturalEarthMap extends StatelessWidget {
               backgroundColor: colorScheme.surface,
             ),
             children: [
-              if (showsBaseLayer)
-                PolygonLayer(
-                  polygons: [
-                    for (final polygon in polygons)
-                      Polygon(
-                        points: polygon.points,
-                        holePointsList: polygon.holes,
-                        color: colorScheme.surfaceContainerHighest,
-                        borderColor: colorScheme.outlineVariant,
-                        borderStrokeWidth: 0.6,
-                      ),
-                  ],
-                ),
+              FlutterMapBasemap(
+                style: baseLayer,
+                polygons: polygons,
+                isFallback: isFallback,
+              ),
               const OfflineUserMapLayers(),
               if (rows.isNotEmpty)
                 SpatialStatisticsMarkerLayer(
@@ -315,14 +307,14 @@ class _NaturalEarthMap extends StatelessWidget {
                 ),
             ],
           ),
-          if (showsBaseLayer)
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: isFallback
-                  ? const OfflineBasemapNotice()
-                  : const NaturalEarthAttribution(),
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: FlutterMapBasemapAttribution(
+              style: baseLayer,
+              isFallback: isFallback,
             ),
+          ),
           if (rows.isEmpty)
             const Positioned.fill(
               child: _MapMessage(

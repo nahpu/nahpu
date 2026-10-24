@@ -81,6 +81,7 @@ dependencies:
   record: ^7.1.1
   cupertino_ui: ^1.0.0
   flutter_rust_bridge_hooks: 2.13.0
+  vector_map_tiles: 9.0.0-beta.9
 dev_dependencies:
   flutter_test:
     sdk: flutter

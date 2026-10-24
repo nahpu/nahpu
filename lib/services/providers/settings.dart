@@ -10,6 +10,7 @@ import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/services/types/project_tools.dart';
 import 'package:nahpu/services/settings/user_config_settings_service.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
@@ -228,9 +229,9 @@ class SpatialBasemapStyleSetting extends AsyncNotifier<SpatialBasemapStyle> {
   Future<SpatialBasemapStyle> build() async {
     final prefs = ref.watch(settingProvider);
     final saved = prefs.getString(spatialBasemapStylePrefKey);
-    final style = SpatialBasemapStyle.values
-        .where((candidate) => candidate.name == saved)
-        .firstOrNull;
+    final style = availableBasemapStyles(
+      usesFlutterMap: !mapLibreIsExpected,
+    ).where((candidate) => candidate.name == saved).firstOrNull;
     final resolved = style ?? SpatialBasemapStyle.automatic;
     if (style == null) {
       await prefs.setString(spatialBasemapStylePrefKey, resolved.name);

@@ -8,7 +8,7 @@ import 'package:maplibre/maplibre.dart' as maplibre;
 import 'package:nahpu/screens/shared/maps/maplibre_gesture_surface.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_camera_readiness.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_load_watchdog.dart';
-import 'package:nahpu/screens/shared/maps/offline_basemap_notice.dart';
+import 'package:nahpu/screens/shared/maps/flutter_map_basemap.dart';
 import 'package:nahpu/screens/shared/maps/maplibre_viewport_projection.dart';
 import 'package:nahpu/screens/shared/maps/map_tooltip_card.dart';
 import 'package:nahpu/screens/shared/maps/map_point_hit_test.dart';
@@ -70,7 +70,7 @@ class CoordinateLocationMap extends ConsumerWidget {
             focusRequest: focusRequest,
             onPointSelected: onPointSelected,
             controlsTopOffset: controlsTopOffset,
-            showsBaseLayer: showsBaseLayer,
+            baseLayer: baseLayer,
             isFallback: mapLibreIsExpected,
           );
         },
@@ -124,7 +124,7 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
     required this.focusRequest,
     required this.onPointSelected,
     required this.controlsTopOffset,
-    required this.showsBaseLayer,
+    required this.baseLayer,
     required this.isFallback,
   });
 
@@ -135,7 +135,7 @@ class _NaturalEarthCoordinateMap extends StatefulWidget {
   final int focusRequest;
   final ValueChanged<int> onPointSelected;
   final double controlsTopOffset;
-  final bool showsBaseLayer;
+  final SpatialBasemapStyle baseLayer;
 
   /// Whether this map is standing in for a MapLibre map that failed to load,
   /// rather than being the renderer this platform always uses.
@@ -199,19 +199,11 @@ class _NaturalEarthCoordinateMapState
               onMapReady: _onMapReady,
             ),
             children: [
-              if (widget.showsBaseLayer)
-                flutter_map.PolygonLayer(
-                  polygons: [
-                    for (final polygon in widget.polygons)
-                      flutter_map.Polygon(
-                        points: polygon.points,
-                        holePointsList: polygon.holes,
-                        color: colorScheme.surfaceContainerHighest,
-                        borderColor: colorScheme.outlineVariant,
-                        borderStrokeWidth: 0.6,
-                      ),
-                  ],
-                ),
+              FlutterMapBasemap(
+                style: widget.baseLayer,
+                polygons: widget.polygons,
+                isFallback: widget.isFallback,
+              ),
               const OfflineUserMapLayers(),
               flutter_map.MarkerLayer(
                 markers: [
@@ -249,14 +241,14 @@ class _NaturalEarthCoordinateMapState
               onReset: _resetCamera,
             ),
           ),
-          if (widget.showsBaseLayer)
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: widget.isFallback
-                  ? const OfflineBasemapNotice()
-                  : const NaturalEarthAttribution(),
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: FlutterMapBasemapAttribution(
+              style: widget.baseLayer,
+              isFallback: widget.isFallback,
             ),
+          ),
           if (widget.points.isEmpty)
             const Positioned.fill(child: _MapMessage()),
         ],

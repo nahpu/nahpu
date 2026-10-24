@@ -329,6 +329,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  executor_lib:
+    dependency: transitive
+    description:
+      name: executor_lib
+      sha256: "95ddf2957d9942d9702855b38dd49677f0ee6a8b77d7b16c0e509c7669d17386"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.2"
   exif:
     dependency: "direct main"
     description:
@@ -830,6 +838,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  idb_shim:
+    dependency: transitive
+    description:
+      name: idb_shim
+      sha256: "4f32cd03ce97e2996b57cea03b2d098f5153ac55435a27cf2c89716db571728d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.10.1+1"
   image:
     dependency: transitive
     description:
@@ -1507,6 +1523,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
+  sembast:
+    dependency: transitive
+    description:
+      name: sembast
+      sha256: "05da81104e6d4a1ecbeb9aa92062231620d360c8bd9303b82495842c4d92632b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.0"
   share_plus:
     dependency: "direct main"
     description:
@@ -1840,6 +1864,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.2"
+  vector_map_tiles:
+    dependency: "direct main"
+    description:
+      name: vector_map_tiles
+      sha256: ec9c59c9254f57930f514a523967d5e7082e956878dd9fec942b168b64270c1f
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.0-beta.9"
   vector_math:
     dependency: transitive
     description:
@@ -1848,6 +1880,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.3"
+  vector_tile:
+    dependency: transitive
+    description:
+      name: vector_tile
+      sha256: "7ae290246e3a8734422672dbe791d3f7b8ab631734489fc6d405f1cc2080e38c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
+  vector_tile_renderer:
+    dependency: transitive
+    description:
+      name: vector_tile_renderer
+      sha256: "982ae5d8f0ab285463a4cd62e711c8f9a36b9b3112b5a471ae8d4f4838f31537"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.0"
   video_player:
     dependency: "direct main"
     description:
