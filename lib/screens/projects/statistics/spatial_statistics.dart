@@ -4,6 +4,7 @@ import 'package:nahpu/screens/projects/statistics/spatial_statistics_map.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics_table.dart';
 import 'package:nahpu/screens/projects/statistics/searchable_statistic_filter.dart';
 import 'package:nahpu/screens/projects/statistics/statistic_filter_panel.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_metric_strip.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/providers/statistics.dart';
@@ -266,55 +267,31 @@ class SpatialMetricStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = summary.top;
-    final tiles = [
-      _SpatialMetricTile(
-        value: '${summary.coordinateCount}',
-        label: summary.coordinateCount == 1 ? 'Coordinate' : 'Coordinates',
-      ),
-      // Species and families repeat across coordinates, so their sum is not
-      // a project total; show the mean per coordinate instead.
-      if (kind.countsSpecimens)
-        _SpatialMetricTile(
-          value: '${summary.total}',
-          label: kind.countLabel.toSentenceCase(),
-        )
-      else
-        _SpatialMetricTile(
-          value: summary.average.toStringAsFixed(1),
-          label: 'Mean ${kind.countLabel} per coordinate',
-        ),
-      _SpatialMetricTile(
-        value: top == null ? '—' : '${top.count}',
-        label: top == null ? 'Top coordinate' : 'Top: ${top.displayName}',
-      ),
-      _SpatialMetricTile(value: _elevationText, label: 'Elevation'),
-    ];
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
+    return StatisticMetricStrip(
       key: const ValueKey('spatial-statistics-metrics'),
-      padding: const EdgeInsets.all(NahpuSpacing.md),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(NahpuRadius.md),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const spacing = NahpuSpacing.md;
-          final columns = constraints.maxWidth >= NahpuBreakpoints.compact
-              ? tiles.length
-              : 2;
-          final width =
-              (constraints.maxWidth - spacing * (columns - 1)) / columns;
-          return Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: [
-              for (final tile in tiles) SizedBox(width: width, child: tile),
-            ],
-          );
-        },
-      ),
+      tiles: [
+        StatisticMetricTile(
+          value: '${summary.coordinateCount}',
+          label: summary.coordinateCount == 1 ? 'Coordinate' : 'Coordinates',
+        ),
+        // Species and families repeat across coordinates, so their sum is not
+        // a project total; show the mean per coordinate instead.
+        if (kind.countsSpecimens)
+          StatisticMetricTile(
+            value: '${summary.total}',
+            label: kind.countLabel.toSentenceCase(),
+          )
+        else
+          StatisticMetricTile(
+            value: summary.average.toStringAsFixed(1),
+            label: 'Mean ${kind.countLabel} per coordinate',
+          ),
+        StatisticMetricTile(
+          value: top == null ? '—' : '${top.count}',
+          label: top == null ? 'Top coordinate' : 'Top: ${top.displayName}',
+        ),
+        StatisticMetricTile(value: _elevationText, label: 'Elevation'),
+      ],
     );
   }
 
@@ -327,51 +304,6 @@ class SpatialMetricStrip extends StatelessWidget {
     final minimumText = formatCoordinate(minimum, decimals: 1);
     if (minimum == maximum) return '$minimumText m';
     return '$minimumText–${formatCoordinate(maximum, decimals: 1)} m';
-  }
-}
-
-class _SpatialMetricTile extends StatelessWidget {
-  const _SpatialMetricTile({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Semantics(
-      container: true,
-      label: '$label: $value',
-      child: ExcludeSemantics(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: NahpuSpacing.lg,
-            vertical: NahpuSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(NahpuRadius.sm),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleMedium,
-              ),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

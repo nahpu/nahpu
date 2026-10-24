@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/actions/export_share_button.dart';
 import 'package:nahpu/screens/projects/statistics/charts.dart';
 import 'package:nahpu/screens/projects/statistics/record_statistic_metrics.dart';
 import 'package:nahpu/screens/projects/statistics/spatial_statistics.dart';
+import 'package:nahpu/screens/projects/statistics/statistic_metric_strip.dart';
 import 'package:nahpu/screens/projects/statistics/statistics.dart';
 import 'package:nahpu/screens/projects/statistics/statistics_table.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -1039,6 +1040,40 @@ void main() {
     }
     expect(recordSummary, findsOneWidget);
     expect(detail, findsNothing);
+  });
+
+  testWidgets('statistics plots report N and Explore counts a summary', (
+    tester,
+  ) async {
+    await _pumpRecordStatisticsPanel(tester, const Size(1000, 1400));
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(
+      find.byKey(RecordMetricKind.specimenParts.fullScreenKey),
+      findsOneWidget,
+    );
+    expect(
+      find.byType(StatisticTotalLabel),
+      findsNWidgets(8),
+      reason: 'every summary card reports its N',
+    );
+
+    await _showExploreStatistics(tester);
+    final detail = find.byKey(const ValueKey('explore-statistics-content'));
+    expect(
+      find.descendant(of: detail, matching: find.byType(StatisticTotalLabel)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: detail,
+        matching: find.byKey(const ValueKey('explore-statistics-metrics')),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Explore statistics switches between counts and spatial', (

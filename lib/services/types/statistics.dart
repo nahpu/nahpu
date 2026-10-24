@@ -284,6 +284,7 @@ class RecordStatisticTotals {
     required this.sampledSiteCount,
     required this.eventCount,
     required this.specimenCount,
+    this.specimenPartCount = 0,
     required this.classCount,
     required this.orderCount,
     required this.familyCount,
@@ -311,6 +312,9 @@ class RecordStatisticTotals {
 
   final int eventCount;
   final int specimenCount;
+
+  /// Part records attached to the specimens of the project.
+  final int specimenPartCount;
 
   /// Distinct taxa at each rank across the specimens recorded in the project.
   final int classCount;
@@ -393,4 +397,58 @@ List<StatisticTableRow> buildStatisticTableRows(List<StatisticDatum> data) {
     );
   }
   return rows;
+}
+
+/// Sum of the counts in [data], reported as N beside each statistic plot.
+int statisticTotal(List<StatisticDatum> data) =>
+    data.fold<int>(0, (sum, datum) => sum + datum.count);
+
+/// Headline numbers shown above the Explore count chart and table.
+class StatisticDataSummary {
+  const StatisticDataSummary({
+    required this.total,
+    required this.categoryCount,
+    required this.topLabel,
+    required this.topCount,
+  });
+
+  /// Summarizes [data], folding breakdown series into their category so the
+  /// top category is the one with the largest combined count.
+  factory StatisticDataSummary.fromData(List<StatisticDatum> data) {
+    final categoryTotals = <String, int>{};
+    for (final datum in data) {
+      categoryTotals.update(
+        datum.label,
+        (count) => count + datum.count,
+        ifAbsent: () => datum.count,
+      );
+    }
+    String? topLabel;
+    var topCount = 0;
+    for (final MapEntry(:key, :value) in categoryTotals.entries) {
+      if (topLabel == null || value > topCount) {
+        topLabel = key;
+        topCount = value;
+      }
+    }
+    return StatisticDataSummary(
+      total: statisticTotal(data),
+      categoryCount: categoryTotals.length,
+      topLabel: topLabel,
+      topCount: topCount,
+    );
+  }
+
+  /// Sum of every count, the N of the plot.
+  final int total;
+  final int categoryCount;
+
+  /// Category with the largest count, or null when there is no data.
+  final String? topLabel;
+  final int topCount;
+
+  double get average => categoryCount == 0 ? 0 : total / categoryCount;
+
+  /// Percentage of [total] held by the top category.
+  double get topShare => total == 0 ? 0 : topCount * 100 / total;
 }

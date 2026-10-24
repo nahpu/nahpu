@@ -412,6 +412,7 @@ void main() {
     expect(totals.sampledSiteCount, 1);
     expect(totals.eventCount, 1);
     expect(totals.specimenCount, 4);
+    expect(totals.specimenPartCount, 3);
     expect(totals.classCount, 1);
     expect(totals.orderCount, 1);
     expect(totals.familyCount, 1);
@@ -430,6 +431,7 @@ void main() {
     expect(otherProjectTotals.sampledSiteCount, 0);
     expect(otherProjectTotals.eventCount, 0);
     expect(otherProjectTotals.specimenCount, 1);
+    expect(otherProjectTotals.specimenPartCount, 1);
     expect(otherProjectTotals.classCount, 1);
     expect(otherProjectTotals.orderCount, 1);
     expect(otherProjectTotals.familyCount, 1);
@@ -525,6 +527,7 @@ void main() {
     expect(perProject.first.projectName, 'Project A');
     expect(perProject.first.totals.specimenCount, 4);
     expect(all.specimenCount, sum((totals) => totals.specimenCount));
+    expect(all.specimenPartCount, sum((totals) => totals.specimenPartCount));
     expect(all.eventCount, sum((totals) => totals.eventCount));
     expect(all.narrativeCount, sum((totals) => totals.narrativeCount));
     expect(all.recordedSiteCount, sum((totals) => totals.recordedSiteCount));
@@ -715,6 +718,27 @@ void main() {
 
     expect(rows.map((row) => row.rank), [1, 2]);
     expect(rows.map((row) => row.percent), [75, 25]);
+  });
+
+  test('data summary totals counts and folds breakdown series', () {
+    final summary = StatisticDataSummary.fromData(const [
+      StatisticDatum(label: 'A', count: 2, seriesLabel: 'Male'),
+      StatisticDatum(label: 'B', count: 3, seriesLabel: 'Male'),
+      StatisticDatum(label: 'A', count: 2, seriesLabel: 'Female'),
+      StatisticDatum(label: 'C', count: 1),
+    ]);
+
+    expect(summary.total, 8);
+    expect(summary.categoryCount, 3);
+    expect(summary.topLabel, 'A');
+    expect(summary.topCount, 4);
+    expect(summary.average, closeTo(8 / 3, 1e-9));
+    expect(summary.topShare, 50);
+
+    final empty = StatisticDataSummary.fromData(const []);
+    expect(empty.total, 0);
+    expect(empty.topLabel, equals(null));
+    expect(empty.topShare, 0);
   });
 
   test('statistic titles name measures, groups, and filters accurately', () {

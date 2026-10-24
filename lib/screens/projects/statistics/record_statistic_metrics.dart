@@ -7,6 +7,11 @@ import 'package:material_ui/material_ui.dart';
 /// drift apart.
 enum RecordMetricKind {
   specimens(label: 'Specimens', slug: 'specimens'),
+  specimenParts(
+    label: 'Specimen parts',
+    slug: 'specimen-parts',
+    icon: Icons.science_outlined,
+  ),
   classes(label: 'Classes', slug: 'classes'),
   orders(label: 'Orders', slug: 'orders'),
   families(label: 'Families', slug: 'families'),

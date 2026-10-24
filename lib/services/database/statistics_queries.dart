@@ -357,6 +357,12 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
           (SELECT COUNT(*) FROM recorded_sites) AS sampled_site_count,
           (SELECT COUNT(*) FROM collEvent WHERE ${scoped('projectUuid')}) AS event_count,
           (SELECT COUNT(*) FROM specimen WHERE ${scoped('projectUuid')}) AS specimen_count,
+          (
+            SELECT COUNT(*)
+            FROM specimenPart
+            INNER JOIN specimen ON specimen.uuid = specimenPart.specimenUuid
+            WHERE $specimenScope
+          ) AS specimen_part_count,
 ${_taxonRankCount(StatisticTaxonRank.taxonClass, 'class_count', specimenScope)},
 ${_taxonRankCount(StatisticTaxonRank.order, 'order_count', specimenScope)},
 ${_taxonRankCount(StatisticTaxonRank.family, 'family_count', specimenScope)},
@@ -418,6 +424,7 @@ $projectDates
         sampledSiteCount: row.read<int>('sampled_site_count'),
         eventCount: row.read<int>('event_count'),
         specimenCount: row.read<int>('specimen_count'),
+        specimenPartCount: row.read<int>('specimen_part_count'),
         classCount: row.read<int>('class_count'),
         orderCount: row.read<int>('order_count'),
         familyCount: row.read<int>('family_count'),
@@ -742,6 +749,7 @@ $projectDates
     db.coordinate,
     db.collEvent,
     db.specimen,
+    db.specimenPart,
     db.taxonomy,
     db.narrative,
     db.media,
