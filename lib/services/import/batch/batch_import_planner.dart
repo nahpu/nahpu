@@ -166,6 +166,24 @@ class BatchImportPlanner {
               messages.insert(0, 'Another row adds tissue ID $tissue.');
             }
           }
+        case DataTableRecordType.parasites:
+          final (found, status, message) = _findSpecimen(cells);
+          if (status != null) {
+            blocking = status;
+            messages.insert(0, 'Parent specimen: $message');
+          }
+          parent = found;
+          final parasiteId = cells['parasite::parasiteID'];
+          if (parasiteId != null) {
+            final id = normalizeBatchId(parasiteId);
+            if (index.parasiteIds.containsKey(id)) {
+              blocking ??= BatchRowStatus.exists;
+              messages.insert(0, 'Parasite ID $parasiteId is already in use.');
+            } else if (!seenKeys.add(id)) {
+              blocking ??= BatchRowStatus.duplicateInFile;
+              messages.insert(0, 'Another row adds parasite ID $parasiteId.');
+            }
+          }
         case DataTableRecordType.sites:
           siteName = cells['site::site'];
           if (siteName != null) {
@@ -280,6 +298,18 @@ class BatchImportPlanner {
       case BatchImportKey.barcodeId:
         found =
             index.barcodeIds[normalizeBatchId(cells['part::barcodeID']!)] ??
+            const [];
+      case BatchImportKey.parasiteId:
+        found =
+            index.parasiteIds[normalizeBatchId(
+              cells['parasite::parasiteID']!,
+            )] ??
+            const [];
+      case BatchImportKey.parasiteUuid:
+        found =
+            index.parasiteUuids[normalizeBatchId(
+              cells['parasite::parasiteUuid']!,
+            )] ??
             const [];
       case BatchImportKey.siteId:
         found = index.sites[normalizeBatchId(cells['site::site']!)] ?? const [];

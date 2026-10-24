@@ -61,6 +61,34 @@ Future<Map<String, String>> documentFieldValuesForSpecimenPart(
   return const <String, String>{};
 }
 
+/// Extracts values for exactly one parasite while retaining the complete
+/// parent-specimen context. Sibling parasite values are never concatenated.
+Future<Map<String, String>> documentFieldValuesForParasite(
+  Database db,
+  ParasiteProjectRecord record,
+  WidgetRef ref,
+) async {
+  final records = await DynamicRecordExporter(
+    ref: ref,
+    expansion: MultiEntryExpansion.parasites,
+  ).getRecord(record.specimen);
+  final parasiteUuid = record.parasite.parasiteUuid;
+  for (final fields in records) {
+    if (fields['parasite::parasiteUuid'] == parasiteUuid) {
+      final links = await SpecimenServices(
+        ref: ref,
+      ).getSpecimenMedia(record.specimen.uuid);
+      await _addDocumentMediaValues(
+        fields,
+        links.map((link) => link.mediaId).whereType<int>(),
+        ref,
+      );
+      return fields;
+    }
+  }
+  return const <String, String>{};
+}
+
 /// Builds template field values for a site document record.
 ///
 /// The returned map includes `site::` and `geography::` values, derived

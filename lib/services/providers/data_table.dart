@@ -65,6 +65,8 @@ final dataTableEditSaverProvider = Provider<DataTableEditSaver>(
       widgetRef
         ..invalidate(specimenEntryProvider)
         ..invalidate(specimenPartEntryProvider)
+        ..invalidate(parasiteEntryProvider)
+        ..invalidate(parasiteBySpecimenProvider)
         ..invalidate(siteEntryProvider)
         ..invalidate(collEventEntryProvider)
         ..invalidate(narrativeEntryProvider);

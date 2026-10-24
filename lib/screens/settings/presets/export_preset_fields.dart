@@ -610,6 +610,7 @@ Map<String, List<String>> _availableFieldGroups(
       break;
     case RecordType.specimenRecord:
     case RecordType.specimenParts:
+    case RecordType.parasites:
       allowedTables = {
         'specimen',
         'taxonomy',
@@ -631,6 +632,11 @@ Map<String, List<String>> _availableFieldGroups(
         'fossilAttribute',
         'specimenPart',
       };
+      if (recordType == RecordType.parasites) {
+        allowedTables
+          ..remove('specimenPart')
+          ..addAll({'parasite', 'parasiteDetection'});
+      }
       if (specimenRecordType == SpecimenRecordType.mammals) {
         allowedTables.remove('birdAttribute');
         allowedTables.remove('herpAttribute');
@@ -680,7 +686,9 @@ Map<String, List<String>> _availableFieldGroups(
       RecordType.site || RecordType.narrative => namespace == 'customSite',
       RecordType.collEvent =>
         namespace == 'customSite' || namespace == 'customEnvironment',
-      RecordType.specimenRecord || RecordType.specimenParts => true,
+      RecordType.specimenRecord ||
+      RecordType.specimenParts ||
+      RecordType.parasites => true,
       RecordType.none => false,
     };
     if (!isAvailable ||

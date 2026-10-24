@@ -322,6 +322,8 @@ String _recordTypeLabel(RecordType recordType) {
       return 'Narrative';
     case RecordType.specimenParts:
       return 'Specimen Parts';
+    case RecordType.parasites:
+      return 'Parasites';
     case RecordType.none:
       return 'None';
   }

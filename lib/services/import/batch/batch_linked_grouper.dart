@@ -6,14 +6,14 @@ import 'package:nahpu/services/import/batch/batch_import_planner.dart';
 import 'package:nahpu/services/import/batch/batch_import_targets.dart';
 import 'package:nahpu/services/import/batch/batch_linked_models.dart';
 
-/// Sorts the rows of a linked import into sites, events, specimens, and
-/// parts.
+/// Sorts the rows of a linked import into sites, events, specimens, parts,
+/// and parasites.
 ///
 /// Rows that name the same site ID are one site; without an ID, rows with
 /// the same locality and coordinates are. Events group the same way, by
 /// event ID or by site, dates, and method. Rows with the same catalog
 /// number, UUID, or cataloger and field number are one specimen, each row
-/// adding its part. Sites and events that match the project's own start
+/// adding its part and parasite. Sites and events that match the project's own start
 /// linked to them.
 class BatchLinkedGrouper {
   BatchLinkedGrouper({required this.index});
@@ -63,7 +63,8 @@ class BatchLinkedGrouper {
       final hasSpecimen = values.keys.any(
         (key) =>
             _specimenKeys.contains(key) ||
-            batchLinkedSection(key) == BatchLinkedSection.part,
+            batchLinkedSection(key) == BatchLinkedSection.part ||
+            batchLinkedSection(key) == BatchLinkedSection.parasite,
       );
       if (hasSpecimen) {
         specimenRows.putIfAbsent(_specimenKey(values, row), () => []).add(row);
@@ -99,6 +100,7 @@ class BatchLinkedGrouper {
     );
     final seenSpecimens = <String>{};
     final seenTissues = <String>{};
+    final seenParasites = <String>{};
     final specimens = <BatchLinkedSpecimen>[];
     for (final (n, rows) in specimenRows.values.indexed) {
       specimens.add(
@@ -111,6 +113,7 @@ class BatchLinkedGrouper {
           eventOfRow,
           seenSpecimens,
           seenTissues,
+          seenParasites,
         ),
       );
     }
@@ -340,6 +343,7 @@ class BatchLinkedGrouper {
     Map<int, String> eventOfRow,
     Set<String> seenSpecimens,
     Set<String> seenTissues,
+    Set<String> seenParasites,
   ) {
     final (merged, conflicts) = _merge(rows, cells, _specimenKeys.contains);
     var plan = planner.planCells(
@@ -365,11 +369,22 @@ class BatchLinkedGrouper {
             plan: _part(rowNumbers[row], cells[row], seenTissues),
           ),
     ];
+    final parasites = [
+      for (final row in rows)
+        if (cells[row].keys.any(
+          (key) => batchLinkedSection(key) == BatchLinkedSection.parasite,
+        ))
+          BatchLinkedParasite(
+            row: row,
+            plan: _parasite(rowNumbers[row], cells[row], seenParasites),
+          ),
+    ];
     final eventGroupId = eventOfRow[rows.first];
     if (plan.status.isImportable &&
         plan.values.isEmpty &&
         plan.links.isEmpty &&
         parts.isEmpty &&
+        parasites.isEmpty &&
         eventGroupId == null) {
       plan = plan.copyWith(
         status: BatchRowStatus.invalid,
@@ -384,6 +399,7 @@ class BatchLinkedGrouper {
       plan: plan,
       eventGroupId: eventGroupId,
       parts: parts,
+      parasites: parasites,
     );
   }
 
@@ -391,29 +407,68 @@ class BatchLinkedGrouper {
     int rowNumber,
     Map<String, String> cells,
     Set<String> seenTissues,
-  ) {
+  ) => _child(
+    rowNumber,
+    cells,
+    section: BatchLinkedSection.part,
+    label: 'Part',
+    idKey: 'part::tissueID',
+    idLabel: 'tissue ID',
+    existingIds: index.tissueIds,
+    seenIds: seenTissues,
+  );
+
+  BatchRowPlan _parasite(
+    int rowNumber,
+    Map<String, String> cells,
+    Set<String> seenParasites,
+  ) => _child(
+    rowNumber,
+    cells,
+    section: BatchLinkedSection.parasite,
+    label: 'Parasite',
+    idKey: 'parasite::parasiteID',
+    idLabel: 'parasite ID',
+    existingIds: index.parasiteIds,
+    seenIds: seenParasites,
+  );
+
+  /// A record one row adds to its specimen, such as a part. Its ID must be
+  /// new to the project and to the file.
+  BatchRowPlan _child(
+    int rowNumber,
+    Map<String, String> cells, {
+    required BatchLinkedSection section,
+    required String label,
+    required String idKey,
+    required String idLabel,
+    required Map<String, List<int>> existingIds,
+    required Set<String> seenIds,
+  }) {
     final values = <String, String>{};
     final messages = <String>[];
     var status = BatchRowStatus.ready;
     for (final entry in cells.entries) {
-      if (batchLinkedSection(entry.key) != BatchLinkedSection.part) continue;
+      if (batchLinkedSection(entry.key) != section) continue;
       final target = _targets[entry.key]!;
+      if (target.kind != BatchTargetKind.field) continue;
       final (stored, error) = batchStoredText(target.field, entry.value);
       if (error != null) {
         status = BatchRowStatus.invalid;
-        messages.add('Part ${target.label}: $error ("${entry.value}")');
+        messages.add('$label ${target.label}: $error ("${entry.value}")');
       } else {
         values[entry.key] = stored!;
       }
     }
-    if (values['part::tissueID'] case final tissue?) {
-      final id = normalizeBatchId(tissue);
-      if (index.tissueIds.containsKey(id)) {
+    if (values[idKey] case final value?) {
+      final id = normalizeBatchId(value);
+      final shown = idLabel[0].toUpperCase() + idLabel.substring(1);
+      if (existingIds.containsKey(id)) {
         status = BatchRowStatus.exists;
-        messages.insert(0, 'Tissue ID $tissue is already in use.');
-      } else if (!seenTissues.add(id)) {
+        messages.insert(0, '$shown $value is already in use.');
+      } else if (!seenIds.add(id)) {
         status = BatchRowStatus.duplicateInFile;
-        messages.insert(0, 'Another row adds tissue ID $tissue.');
+        messages.insert(0, 'Another row adds $idLabel $value.');
       }
     }
     return BatchRowPlan(

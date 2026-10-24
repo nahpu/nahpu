@@ -153,7 +153,8 @@ class _AvailableFieldsSectionState
                     runSpacing: 4.0,
                     children: [
                       if (widget.recordType == RecordType.specimenRecord ||
-                          widget.recordType == RecordType.specimenParts)
+                          widget.recordType == RecordType.specimenParts ||
+                          widget.recordType == RecordType.parasites)
                         DropdownButton<String>(
                           value: _selectedTaxon,
                           isDense: true,

@@ -115,6 +115,12 @@ enum BatchImportKey {
   barcodeId(DataTableRecordType.specimenParts, 'Barcode ID', [
     'part::barcodeID',
   ]),
+  parasiteId(DataTableRecordType.parasites, 'Parasite ID', [
+    'parasite::parasiteID',
+  ]),
+  parasiteUuid(DataTableRecordType.parasites, 'Parasite UUID', [
+    'parasite::parasiteUuid',
+  ]),
   siteId(DataTableRecordType.sites, 'Site ID', ['site::site']),
   eventId(DataTableRecordType.events, 'Event ID', ['event::collEventID']),
   narrativeDate(DataTableRecordType.narrative, 'Narrative date', [
@@ -206,7 +212,7 @@ class BatchRowPlan {
   /// A new site's site ID.
   final String? siteName;
 
-  /// The specimen a new part belongs to.
+  /// The specimen a new part or parasite belongs to.
   final String? parentSpecimenUuid;
 
   BatchRowPlan copyWith({

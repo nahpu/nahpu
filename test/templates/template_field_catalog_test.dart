@@ -15,7 +15,11 @@ void main() {
   tearDown(() => db.close());
 
   test('specimen templates can insert collection method fields', () {
-    for (final type in [RecordType.specimenRecord, RecordType.specimenParts]) {
+    for (final type in [
+      RecordType.specimenRecord,
+      RecordType.specimenParts,
+      RecordType.parasites,
+    ]) {
       expect(
         availableTemplateFieldGroups(db, type)['collMethod'],
         containsAll([
@@ -46,4 +50,12 @@ void main() {
       }
     },
   );
+
+  test('parasite templates offer parasite fields instead of part fields', () {
+    final groups = availableTemplateFieldGroups(db, RecordType.parasites);
+    expect(groups['parasite'], contains('parasite::parasiteID'));
+    expect(groups.containsKey('parasiteDetection'), isTrue);
+    expect(groups.containsKey('specimenPart'), isFalse);
+    expect(groups.containsKey('specimen'), isTrue);
+  });
 }

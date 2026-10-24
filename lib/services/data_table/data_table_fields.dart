@@ -2,6 +2,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/birds.dart';
 import 'package:nahpu/services/types/invertebrates.dart';
 import 'package:nahpu/services/types/mammals.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:nahpu/services/types/specimens.dart';
 
 /// How a field's stored value is typed, which decides its editor, the
@@ -25,6 +26,7 @@ enum DataTableWriteTarget {
   /// The specimen's taxon attribute row (mammal, bird, and so on).
   attribute,
   part,
+  parasite,
   site,
   siteAttribute,
 
@@ -52,7 +54,11 @@ enum DataTableJoin {
   herp,
   invertebrate,
   fossil,
-  fish;
+  fish,
+
+  /// A parasite's own taxon and identifier, apart from its host specimen's.
+  parasiteTaxonomy,
+  parasiteIdentifier;
 
   /// Joins this one reads from.
   Set<DataTableJoin> get requires => switch (this) {
@@ -246,6 +252,10 @@ final Map<String, List<DataTableCode>> dataTableCodes = {
   'specimenType': [
     for (final type in FishSpecimenType.values) (type.index, type.name),
   ],
+  'associationStatus': [
+    for (final MapEntry(:key, :value) in parasiteAssociationStatuses.entries)
+      (key, value),
+  ],
 };
 
 /// Columns cleared when a sex change drops male or female attributes,
@@ -387,6 +397,7 @@ final Map<String, DataTableField> _catalog = {
   for (final field in [
     ..._specimenFields,
     ..._partFields,
+    ..._parasiteFields,
     ..._siteFields,
     ..._eventFields,
     ..._environmentFields,
@@ -502,6 +513,65 @@ final _partFields = [
   _part('museumPermanent'),
   _part('museumLoan'),
   _part('remark'),
+];
+
+DataTableField _parasite(
+  String name, {
+  DataTableValueType type = DataTableValueType.text,
+  String? optionKey,
+}) => DataTableField(
+  key: 'parasite::$name',
+  sqlExpr: 'pr.$name',
+  valueType: type,
+  writeTarget: DataTableWriteTarget.parasite,
+  column: name,
+  optionKey: optionKey,
+);
+
+/// A parasite's taxon as its display name: the name at its rank, or the
+/// full scientific name for species and below.
+const _parasiteScientificNameSql =
+    "(CASE LOWER(TRIM(ptx.taxonRank)) "
+    "WHEN 'class' THEN ptx.taxonClass "
+    "WHEN 'order' THEN ptx.taxonOrder "
+    "WHEN 'family' THEN ptx.taxonFamily "
+    "WHEN 'genus' THEN ptx.genus "
+    "ELSE NULLIF(TRIM(COALESCE(ptx.genus, '') || ' ' || "
+    "COALESCE(ptx.specificEpithet, '') || ' ' || "
+    "COALESCE(ptx.subspecificEpithet, '')), '') END)";
+
+final _parasiteFields = [
+  const DataTableField(
+    key: 'parasite::parasiteUuid',
+    sqlExpr: 'pr.parasiteUuid',
+  ),
+  _parasite('parasiteID'),
+  const DataTableField(
+    key: 'parasite::scientificName',
+    sqlExpr: _parasiteScientificNameSql,
+    joins: {DataTableJoin.parasiteTaxonomy},
+  ),
+  const DataTableField(
+    key: 'parasite::identifierID',
+    sqlExpr: 'pid.name',
+    joins: {DataTableJoin.parasiteIdentifier},
+  ),
+  _parasite('count', type: DataTableValueType.integer),
+  _parasite('category', optionKey: parasiteCategoryPrefKey),
+  _parasite('anatomicalLocation', optionKey: parasiteAnatomicalLocationPrefKey),
+  _parasite('lifeStage', optionKey: lifeStagePrefKey),
+  _parasite('associationStatus', type: DataTableValueType.coded),
+  _parasite('detectionMethod', optionKey: parasiteDetectionMethodPrefKey),
+  _parasite('dateCollected', type: DataTableValueType.date),
+  _parasite('timeCollected', type: DataTableValueType.time),
+  _parasite('preparationMethod', optionKey: parasitePreparationMethodPrefKey),
+  _parasite('storage', optionKey: parasiteStoragePrefKey),
+  _parasite('treatment', optionKey: parasiteTreatmentPrefKey),
+  _parasite('datePreserved', type: DataTableValueType.date),
+  _parasite('timePreserved', type: DataTableValueType.time),
+  _parasite('museumPermanent'),
+  _parasite('museumLoan'),
+  _parasite('remark'),
 ];
 
 DataTableField _geography(String key, String column) => DataTableField(

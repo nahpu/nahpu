@@ -23,6 +23,7 @@ import 'package:nahpu/services/settings/preset_transfer_service.dart';
 import 'package:nahpu/screens/shared/document/document_preview_pane.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
+import 'package:nahpu/screens/shared/document/parasite_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -113,6 +114,8 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
                     ? l10n.presetsPreviewCurrentProject
                     : _recordType == RecordType.specimenParts
                     ? l10n.presetsPreviewSpecimenParts(selectedCount)
+                    : _recordType == RecordType.parasites
+                    ? l10n.presetsPreviewParasites(selectedCount)
                     : l10n.presetsPreviewSpecimens(selectedCount),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
@@ -426,6 +429,13 @@ class _DocumentPresetsScreenState extends ConsumerState<DocumentPresetsScreen>
           _previewSelectedUuids = parts
               .take(20)
               .map((part) => part.recordId)
+              .whereType<String>()
+              .toList();
+        } else if (recordType == RecordType.parasites) {
+          final parasites = ref.read(parasiteEntryProvider).value ?? [];
+          _previewSelectedUuids = parasites
+              .take(20)
+              .map((parasite) => parasite.recordId)
               .whereType<String>()
               .toList();
         } else {
@@ -1138,6 +1148,17 @@ class _PreviewRecordSelectionScreenState
         ),
         body: SafeArea(
           child: SpecimenPartSelectionView(
+            selectedIds: _selectedUuids,
+            onSelectionChanged: _setSelection,
+          ),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.parasites) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.presetsPreviewSelectParasites)),
+        body: SafeArea(
+          child: ParasiteSelectionView(
             selectedIds: _selectedUuids,
             onSelectionChanged: _setSelection,
           ),

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -369,6 +369,83 @@ void main() {
           ],
         );
       });
+    });
+
+    testWidgets('adds parasites to the specimen each row names', (
+      tester,
+    ) async {
+      await withService(tester, (service) async {
+        final (table, matches) = file(
+          DataTableRecordType.parasites,
+          ['specimenUUID', 'parasiteID', 'category', 'count'],
+          [
+            ['s1', 'P-2', 'Nematode', '4'],
+            ['s1', 'P-1', 'Cestode', '1'],
+            ['s2', 'P-2', 'Mite', '1'],
+            ['nope', 'P-5', 'Mite', '1'],
+            // P-9 belongs to another project.
+            ['s2', 'P-9', 'Mite', '2'],
+          ],
+        );
+        final review = await service.review(
+          table: table,
+          type: DataTableRecordType.parasites,
+          mode: BatchImportMode.create,
+          matches: matches,
+        );
+        expect(review.rows.map((r) => r.status), [
+          BatchRowStatus.ready,
+          BatchRowStatus.exists,
+          BatchRowStatus.duplicateInFile,
+          BatchRowStatus.noMatch,
+          BatchRowStatus.ready,
+        ]);
+        expect((await service.apply(review)).written, 2);
+        final added = await select(
+          'SELECT specimenUuid, category, count, parasiteUuid FROM parasite '
+          "WHERE parasiteID IN ('P-2', 'P-9') AND specimenUuid <> 'other' "
+          'ORDER BY id',
+        );
+        expect(
+          [
+            for (final row in added)
+              (row['specimenUuid'], row['category'], row['count']),
+          ],
+          [('s1', 'Nematode', 4), ('s2', 'Mite', 2)],
+        );
+        expect(
+          added.map((row) => row['parasiteUuid']),
+          everyElement(isNotNull),
+        );
+      });
+    });
+  });
+
+  testWidgets('updates parasites by their parasite ID', (tester) async {
+    await withService(tester, (service) async {
+      final (table, matches) = file(
+        DataTableRecordType.parasites,
+        ['parasiteID', 'count', 'remark'],
+        [
+          ['P-1', '5', 'Gut'],
+          ['P-9', '1', ''],
+        ],
+      );
+      final review = await service.review(
+        table: table,
+        type: DataTableRecordType.parasites,
+        mode: BatchImportMode.update,
+        matches: matches,
+        key: BatchImportKey.parasiteId,
+      );
+      expect(review.rows.map((r) => r.status), [
+        BatchRowStatus.ready,
+        BatchRowStatus.noMatch,
+      ]);
+      expect((await service.apply(review)).written, 1);
+      expect(await select('SELECT count, remark FROM parasite WHERE id = 1'), [
+        {'count': 5, 'remark': 'Gut'},
+      ]);
     });
   });
 }

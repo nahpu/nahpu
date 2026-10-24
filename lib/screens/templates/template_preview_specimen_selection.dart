@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
+import 'package:nahpu/screens/shared/document/parasite_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/services/templates/template_table_preview_settings_service.dart';
@@ -50,6 +51,22 @@ class _TemplatePreviewSpecimenSelectionScreenState
         ),
         body: SafeArea(
           child: SpecimenPartSelectionView(
+            selectedIds: widget.selectedUuid != null
+                ? {widget.selectedUuid!}
+                : const {},
+            isSingleSelection: true,
+            onSelectionChanged: (selected) {
+              if (selected.isNotEmpty) Navigator.pop(context, selected.first);
+            },
+          ),
+        ),
+      );
+    }
+    if (widget.recordType == RecordType.parasites) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Parasite Selection for Preview')),
+        body: SafeArea(
+          child: ParasiteSelectionView(
             selectedIds: widget.selectedUuid != null
                 ? {widget.selectedUuid!}
                 : const {},

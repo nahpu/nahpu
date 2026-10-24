@@ -64,6 +64,7 @@ void main() {
         'Collector',
         'Field no',
         'Tissue',
+        'parasiteID',
       ];
       final table = BatchImportTable(
         fileName: 'mixed.csv',
@@ -71,15 +72,16 @@ void main() {
         rows: const [
           [
             'BK-5', 'Camp 5', 'Indonesia', '4.2', '96.3', '2026-04-01', //
-            'Live trap', 'Rattus tiomanicus', 'Ana Vale', '31', 'T-20',
+            'Live trap', 'Rattus tiomanicus', 'Ana Vale', '31', 'T-20', //
+            'PX-1',
           ],
           [
             'BK-5', 'Camp 5', 'Indonesia', '4.2', '96.3', '2026-04-01', //
-            'Live trap', 'Rattus tiomanicus', 'Ana Vale', '31', 'T-21',
+            'Live trap', 'Rattus tiomanicus', 'Ana Vale', '31', 'T-21', '',
           ],
           [
             'BK-1', '', '', '', '', '2026-03-14', //
-            '', 'Rattus tiomanicus', 'Ben Oru', '6', '',
+            '', 'Rattus tiomanicus', 'Ben Oru', '6', '', 'PX-2',
           ],
         ],
         rowNumbers: const [2, 3, 4],
@@ -101,7 +103,7 @@ void main() {
         (result.newSites, result.linkedSites, result.newEvents),
         (1, 1, 1),
       );
-      expect((result.specimens, result.parts), (2, 2));
+      expect((result.specimens, result.parts, result.parasites), (2, 2, 2));
 
       final site = await select(
         'SELECT s.id, g.locality, c.decimalLatitude, c.id AS coordinate '
@@ -130,6 +132,16 @@ void main() {
         "'${specimens.first['uuid']}' ORDER BY tissueID",
       );
       expect(parts.map((p) => p['tissueID']), ['T-20', 'T-21']);
+
+      final parasites = await select(
+        'SELECT p.parasiteID, s.fieldNumber FROM parasite p '
+        'JOIN specimen s ON s.uuid = p.specimenUuid '
+        "WHERE p.parasiteID LIKE 'PX-%' ORDER BY p.parasiteID",
+      );
+      expect(
+        [for (final p in parasites) (p['parasiteID'], p['fieldNumber'])],
+        [('PX-1', 31), ('PX-2', 6)],
+      );
     });
   });
 

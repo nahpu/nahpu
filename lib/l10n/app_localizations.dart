@@ -3564,6 +3564,12 @@ abstract class AppLocalizations {
   /// **'Specimen parts'**
   String get presetsRecordTypeSpecimenParts;
 
+  /// Record type a template is for.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites'**
+  String get presetsRecordTypeParasites;
+
   /// Record type for a template that prints no records.
   ///
   /// In en, this message translates to:
@@ -3990,6 +3996,12 @@ abstract class AppLocalizations {
   /// **'Preview Specimen Parts ({count} selected)'**
   String presetsPreviewSpecimenParts(int count);
 
+  /// No description provided for @presetsPreviewParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Parasites ({count} selected)'**
+  String presetsPreviewParasites(int count);
+
   /// No description provided for @presetsPreviewSpecimens.
   ///
   /// In en, this message translates to:
@@ -4085,6 +4097,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select specimen parts for preview'**
   String get presetsPreviewSelectSpecimenParts;
+
+  /// No description provided for @presetsPreviewSelectParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Select parasites for preview'**
+  String get presetsPreviewSelectParasites;
 
   /// No description provided for @presetsPreviewSelectSpecimens.
   ///
@@ -6931,6 +6949,47 @@ abstract class AppLocalizations {
   /// **'Part {id}'**
   String documentPartFallbackTitle(String id);
 
+  /// error is the raw exception text.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load parasites: {error}'**
+  String documentParasitesLoadError(String error);
+
+  /// No description provided for @documentParasitesSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search parasites or specimen numbers'**
+  String get documentParasitesSearch;
+
+  /// No description provided for @documentParasitesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total, plural, =1{1 parasite} other{{total} parasites}} · Selected {selected}'**
+  String documentParasitesSummary(int shown, int total, int selected);
+
+  /// hidden counts selected parasites that the current search hides.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total, plural, =1{1 parasite} other{{total} parasites}} · Selected {selected} ({hidden} hidden)'**
+  String documentParasitesSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  );
+
+  /// No description provided for @documentParasitesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No parasites found'**
+  String get documentParasitesEmpty;
+
+  /// No description provided for @documentParasiteFallbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite {id}'**
+  String documentParasiteFallbackTitle(String id);
+
   /// No description provided for @documentPartFieldNumber.
   ///
   /// In en, this message translates to:
@@ -7381,6 +7440,12 @@ abstract class AppLocalizations {
   /// **'Specimen Parts Selection'**
   String get documentSelectionSpecimenParts;
 
+  /// No description provided for @documentSelectionParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites Selection'**
+  String get documentSelectionParasites;
+
   /// No description provided for @documentSelectionSites.
   ///
   /// In en, this message translates to:
@@ -7524,6 +7589,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select specimen parts'**
   String get documentSelectSpecimenParts;
+
+  /// No description provided for @documentSelectParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Select parasites'**
+  String get documentSelectParasites;
 
   /// Catalog format (taxon discipline).
   ///
@@ -10996,6 +11067,12 @@ abstract class AppLocalizations {
   /// **'Specimen parts'**
   String get projectBatchSpecimenParts;
 
+  /// No description provided for @projectBatchParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites'**
+  String get projectBatchParasites;
+
   /// No description provided for @projectBatchNarrative.
   ///
   /// In en, this message translates to:
@@ -11061,6 +11138,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Barcode ID'**
   String get projectBatchKeyBarcodeId;
+
+  /// No description provided for @projectBatchKeyParasiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite ID'**
+  String get projectBatchKeyParasiteId;
+
+  /// No description provided for @projectBatchKeyParasiteUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite UUID'**
+  String get projectBatchKeyParasiteUuid;
 
   /// No description provided for @projectBatchKeySiteId.
   ///
@@ -11416,6 +11505,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 part} other{{count} parts}}'**
   String projectBatchPartCount(int count);
 
+  /// No description provided for @projectBatchParasiteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 parasite} other{{count} parasites}}'**
+  String projectBatchParasiteCount(int count);
+
   /// No description provided for @projectBatchSetSiteId.
   ///
   /// In en, this message translates to:
@@ -11583,6 +11678,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parts: {count}'**
   String projectBatchPartsSummary(int count);
+
+  /// No description provided for @projectBatchParasitesSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites: {count}'**
+  String projectBatchParasitesSummary(int count);
 
   /// No description provided for @projectBatchRowsSkipped.
   ///
@@ -11787,6 +11888,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Treatment'**
   String get projectStatsTreatment;
+
+  /// No description provided for @projectStatsParasiteTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite taxon'**
+  String get projectStatsParasiteTaxon;
+
+  /// No description provided for @projectStatsParasiteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get projectStatsParasiteCategory;
+
+  /// No description provided for @projectStatsAnatomicalLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anatomical location'**
+  String get projectStatsAnatomicalLocation;
+
+  /// No description provided for @projectStatsHostSpecies.
+  ///
+  /// In en, this message translates to:
+  /// **'Host species'**
+  String get projectStatsHostSpecies;
 
   /// Chart title. The category is lowercase.
   ///

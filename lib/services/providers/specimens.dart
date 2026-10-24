@@ -99,6 +99,16 @@ final specimenPartEntryProvider =
       ).getSpecimenPartsForProject(projectUuid);
     });
 
+/// All parasites in the active project, paired with their parent specimen.
+/// A parasite, not a specimen, is the document-record unit.
+final parasiteEntryProvider =
+    FutureProvider.autoDispose<List<ParasiteProjectRecord>>((ref) async {
+      final projectUuid = ref.watch(projectUuidProvider);
+      return ParasiteQuery(
+        ref.read(databaseProvider),
+      ).getParasitesForProject(projectUuid);
+    });
+
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
       final database = ref.read(databaseProvider);

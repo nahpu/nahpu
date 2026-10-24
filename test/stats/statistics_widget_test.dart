@@ -617,6 +617,55 @@ void main() {
     expect(find.text('All species'), findsOneWidget);
   });
 
+  Future<Finder> openMeasures(
+    WidgetTester tester, {
+    required bool includeParasites,
+  }) async {
+    await _pumpRecordStatisticsPanel(
+      tester,
+      const Size(800, 1200),
+      includeParasites: includeParasites,
+    );
+    await tester.tap(find.text('Explore more stats'));
+    for (var index = 0; index < 4; index++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+    await _showExploreStatistics(tester);
+    final measureControl = find.byKey(
+      const ValueKey('statistics-measure-control'),
+    );
+    await tester.ensureVisible(measureControl);
+    return measureControl;
+  }
+
+  testWidgets('the parasite measure is hidden without parasite records', (
+    tester,
+  ) async {
+    final measureControl = await openMeasures(tester, includeParasites: false);
+    expect(
+      find.descendant(of: measureControl, matching: find.text('Parasites')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the parasite measure groups recorded parasites', (tester) async {
+    final measureControl = await openMeasures(tester, includeParasites: true);
+    await tester.tap(
+      find.descendant(of: measureControl, matching: find.text('Parasites')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Parasites by parasite taxon'), findsOneWidget);
+    expect(
+      _optionLabels(
+        tester,
+        find.byKey(const ValueKey('statistics-group-control')),
+      ),
+      containsAll(['Category', 'Anatomical location', 'Host species']),
+    );
+    expect(find.text('All species'), findsOneWidget);
+  });
+
   testWidgets('taxon rank grouping picks a rank beside Group by', (
     tester,
   ) async {
@@ -1614,6 +1663,7 @@ Future<void> _pumpRecordStatisticsPanel(
   bool includeAdditionalCategoryValues = false,
   TextScaler textScaler = TextScaler.noScaling,
   bool showMetrics = false,
+  bool includeParasites = false,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -1750,6 +1800,15 @@ Future<void> _pumpRecordStatisticsPanel(
         fileName: Value('avatar.jpg'),
       ),
     ]);
+    if (includeParasites) {
+      batch.insertAll(database.parasite, const [
+        ParasiteCompanion(
+          specimenUuid: Value('record-specimen-1'),
+          parasiteUuid: Value('record-parasite-1'),
+          category: Value('Mite'),
+        ),
+      ]);
+    }
   });
 
   final projectSites = await (database.select(

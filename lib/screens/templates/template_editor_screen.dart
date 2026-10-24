@@ -443,6 +443,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             });
           }
         }
+      } else if (recordType == RecordType.parasites) {
+        final list = await ref.read(parasiteEntryProvider.future);
+        if (list.isNotEmpty) {
+          final firstParasite = list.first;
+          m = await documentFieldValuesForParasite(db, firstParasite, ref);
+          if (mounted) {
+            setState(() {
+              _selectedSpecimenUuid = firstParasite.recordId;
+              _editorTemplateFieldPreview = m;
+            });
+          }
+        }
       } else if (recordType == RecordType.site) {
         final list = await SiteServices(ref: ref).getAllSites();
         if (list.isNotEmpty) {
@@ -1430,6 +1442,16 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen>
             _selectedSpecimenUuid = result;
             _editorTemplateFieldPreview = m;
           });
+        } else if (recordType == RecordType.parasites) {
+          final parasites = await ref.read(parasiteEntryProvider.future);
+          final parasite = parasites.firstWhere(
+            (entry) => entry.recordId == result,
+          );
+          final m = await documentFieldValuesForParasite(db, parasite, ref);
+          setState(() {
+            _selectedSpecimenUuid = result;
+            _editorTemplateFieldPreview = m;
+          });
         } else if (recordType == RecordType.site) {
           final list = await SiteServices(ref: ref).getAllSites();
           final s = list.firstWhere(
@@ -1870,6 +1892,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 DropdownMenuItem(
                   value: RecordType.specimenParts,
                   child: Text('Specimen Part'),
+                ),
+                DropdownMenuItem(
+                  value: RecordType.parasites,
+                  child: Text('Parasite'),
                 ),
                 DropdownMenuItem(value: RecordType.site, child: Text('Site')),
                 DropdownMenuItem(

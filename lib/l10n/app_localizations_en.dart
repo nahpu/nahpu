@@ -2162,6 +2162,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetsRecordTypeSpecimenParts => 'Specimen parts';
 
   @override
+  String get presetsRecordTypeParasites => 'Parasites';
+
+  @override
   String get presetsRecordTypeNone => 'No records';
 
   @override
@@ -2471,6 +2474,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String presetsPreviewParasites(int count) {
+    return 'Preview Parasites ($count selected)';
+  }
+
+  @override
   String presetsPreviewSpecimens(int count) {
     return 'Preview Specimens ($count selected)';
   }
@@ -2536,6 +2544,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get presetsPreviewSelectSpecimenParts =>
       'Select specimen parts for preview';
+
+  @override
+  String get presetsPreviewSelectParasites => 'Select parasites for preview';
 
   @override
   String get presetsPreviewSelectSpecimens => 'Select specimens for preview';
@@ -4354,6 +4365,49 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String documentParasitesLoadError(String error) {
+    return 'Unable to load parasites: $error';
+  }
+
+  @override
+  String get documentParasitesSearch => 'Search parasites or specimen numbers';
+
+  @override
+  String documentParasitesSummary(int shown, int total, int selected) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total parasites',
+      one: '1 parasite',
+    );
+    return 'Showing $shown of $_temp0 · Selected $selected';
+  }
+
+  @override
+  String documentParasitesSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total parasites',
+      one: '1 parasite',
+    );
+    return 'Showing $shown of $_temp0 · Selected $selected ($hidden hidden)';
+  }
+
+  @override
+  String get documentParasitesEmpty => 'No parasites found';
+
+  @override
+  String documentParasiteFallbackTitle(String id) {
+    return 'Parasite $id';
+  }
+
+  @override
   String documentPartFieldNumber(String number) {
     return 'Field no. $number';
   }
@@ -4603,6 +4657,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentSelectionSpecimenParts => 'Specimen Parts Selection';
 
   @override
+  String get documentSelectionParasites => 'Parasites Selection';
+
+  @override
   String get documentSelectionSites => 'Sites Selection';
 
   @override
@@ -4684,6 +4741,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentSelectSpecimenParts => 'Select specimen parts';
+
+  @override
+  String get documentSelectParasites => 'Select parasites';
 
   @override
   String get labelCatalogFormatOrnithology => 'Ornithology';
@@ -6889,6 +6949,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchSpecimenParts => 'Specimen parts';
 
   @override
+  String get projectBatchParasites => 'Parasites';
+
+  @override
   String get projectBatchNarrative => 'Narrative';
 
   @override
@@ -6921,6 +6984,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectBatchKeyBarcodeId => 'Barcode ID';
+
+  @override
+  String get projectBatchKeyParasiteId => 'Parasite ID';
+
+  @override
+  String get projectBatchKeyParasiteUuid => 'Parasite UUID';
 
   @override
   String get projectBatchKeySiteId => 'Site ID';
@@ -7162,6 +7231,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String projectBatchParasiteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parasites',
+      one: '1 parasite',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get projectBatchSetSiteId => 'Set site ID';
 
   @override
@@ -7260,6 +7340,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String projectBatchPartsSummary(int count) {
     return 'Parts: $count';
+  }
+
+  @override
+  String projectBatchParasitesSummary(int count) {
+    return 'Parasites: $count';
   }
 
   @override
@@ -7419,6 +7504,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectStatsTreatment => 'Treatment';
+
+  @override
+  String get projectStatsParasiteTaxon => 'Parasite taxon';
+
+  @override
+  String get projectStatsParasiteCategory => 'Category';
+
+  @override
+  String get projectStatsAnatomicalLocation => 'Anatomical location';
+
+  @override
+  String get projectStatsHostSpecies => 'Host species';
 
   @override
   String projectStatsTitle(String measure, String category) {

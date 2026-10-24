@@ -8,6 +8,7 @@ import 'package:nahpu/services/types/specimens.dart';
 enum DataTableRecordType {
   specimenRecords('Specimen records'),
   specimenParts('Specimen parts'),
+  parasites('Parasites'),
   sites('Sites'),
   events('Events'),
   narrative('Narrative');
@@ -41,6 +42,17 @@ enum DataTableRecordType {
       'specimen::genus',
       'specimen::specificEpithet',
     ],
+    DataTableRecordType.parasites => const [
+      'parasite::parasiteID',
+      'parasite::scientificName',
+      'parasite::category',
+      'parasite::count',
+      'parasite::anatomicalLocation',
+      'specimen::cataloger',
+      'specimen::fieldNumber',
+      'specimen::genus',
+      'specimen::specificEpithet',
+    ],
     DataTableRecordType.sites => const [
       'site::site',
       'siteAttribute::habitatType',
@@ -69,6 +81,7 @@ enum DataTableRecordType {
       DataTableWriteTarget.attribute,
     },
     DataTableRecordType.specimenParts => const {DataTableWriteTarget.part},
+    DataTableRecordType.parasites => const {DataTableWriteTarget.parasite},
     DataTableRecordType.sites => const {
       DataTableWriteTarget.site,
       DataTableWriteTarget.siteAttribute,
@@ -244,6 +257,7 @@ DataTableLink? dataTableLinkFor(DataTableRecordType type, String key) {
     case DataTableRecordType.narrative:
       return key == 'narrative::verbatimLocality' ? DataTableLink.site : null;
     case DataTableRecordType.specimenParts:
+    case DataTableRecordType.parasites:
     case DataTableRecordType.sites:
       return null;
   }
@@ -354,6 +368,16 @@ enum DataTableQuickFilter {
     'EXISTS (SELECT 1 FROM specimenMedia l '
         'JOIN media m ON m.primaryId = l.mediaId '
         'WHERE l.specimenUuid = s.uuid)',
+  ),
+  noParasiteId(
+    DataTableRecordType.parasites,
+    'No parasite ID',
+    "(pr.parasiteID IS NULL OR TRIM(pr.parasiteID) = '')",
+  ),
+  parasiteMissingTaxon(
+    DataTableRecordType.parasites,
+    'Missing taxon',
+    'pr.speciesID IS NULL',
   ),
   noCoordinates(
     DataTableRecordType.sites,

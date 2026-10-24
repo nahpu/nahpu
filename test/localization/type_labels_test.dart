@@ -56,6 +56,11 @@ void main() {
   test('record type labels are readable, not raw keys', () {
     expect(RecordType.specimenRecord.localizedLabel(en), 'Specimen');
     expect(recordTypeToString(RecordType.specimenRecord), 'specimen');
+    expect(RecordType.parasites.localizedLabel(en), 'Parasites');
+    expect(
+      parseRecordType(recordTypeToString(RecordType.parasites)),
+      RecordType.parasites,
+    );
     expect(SpecimenRecordType.allTaxa.localizedLabel(en), 'All taxa');
   });
 

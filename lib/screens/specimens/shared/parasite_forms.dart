@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' as db;
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -389,6 +390,8 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                   controller: widget.controller.anatomicalLocationCtr,
                   prefKey: parasiteAnatomicalLocationPrefKey,
                   labelText: 'Anatomical location',
+                  filterSource: widget.controller.categoryCtr,
+                  filter: filterAnatomicalLocations,
                 ),
                 Visibility(
                   visible: _showMore,
@@ -775,11 +778,18 @@ class _ParasiteVocabularyField extends ConsumerWidget {
     required this.controller,
     required this.prefKey,
     required this.labelText,
+    this.filterSource,
+    this.filter,
   });
 
   final TextEditingController controller;
   final String prefKey;
   final String labelText;
+
+  /// Rebuilds the options whenever this source changes, passing its text to
+  /// [filter].
+  final ValueListenable<TextEditingValue>? filterSource;
+  final List<String> Function(List<String> options, String? source)? filter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -787,36 +797,70 @@ class _ParasiteVocabularyField extends ConsumerWidget {
         .watch(effectiveUserDefinedFieldProvider(prefKey))
         .when(
           data: (configured) {
-            final current = controller.text.trim();
-            final options = includeCurrentVocabularyValue(
-              configured,
-              current.isEmpty ? null : current,
-            );
-            return DropdownButtonFormField<String>(
-              isExpanded: true,
-              initialValue: current.isEmpty ? null : current,
-              decoration: InputDecoration(
+            final source = filterSource;
+            final applyFilter = filter;
+            if (source == null || applyFilter == null) {
+              return _VocabularyDropdown(
+                controller: controller,
                 labelText: labelText,
-                hintText: options.isEmpty
-                    ? 'Set options in Specimen settings'
-                    : 'Select ${labelText.toLowerCase()}',
+                available: configured,
+              );
+            }
+            return ValueListenableBuilder<TextEditingValue>(
+              valueListenable: source,
+              builder: (context, value, _) => _VocabularyDropdown(
+                controller: controller,
+                labelText: labelText,
+                available: applyFilter(configured, value.text),
               ),
-              items: options
-                  .map(
-                    (value) => DropdownMenuItem(
-                      value: value,
-                      child: CommonDropdownText(text: value),
-                    ),
-                  )
-                  .toList(),
-              onChanged: options.isEmpty
-                  ? null
-                  : (value) => controller.text = value ?? '',
             );
           },
           loading: () => const CommonProgressIndicator(),
           error: (error, _) => Text('Unable to load $labelText: $error'),
         );
+  }
+}
+
+class _VocabularyDropdown extends StatelessWidget {
+  const _VocabularyDropdown({
+    required this.controller,
+    required this.labelText,
+    required this.available,
+  });
+
+  final TextEditingController controller;
+  final String labelText;
+  final List<String> available;
+
+  @override
+  Widget build(BuildContext context) {
+    final current = controller.text.trim();
+    final options = includeCurrentVocabularyValue(
+      available,
+      current.isEmpty ? null : current,
+    );
+    return DropdownButtonFormField<String>(
+      key: ValueKey(options.join('\u0000')),
+      isExpanded: true,
+      initialValue: current.isEmpty ? null : current,
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: options.isEmpty
+            ? 'Set options in Specimen settings'
+            : 'Select ${labelText.toLowerCase()}',
+      ),
+      items: options
+          .map(
+            (value) => DropdownMenuItem(
+              value: value,
+              child: CommonDropdownText(text: value),
+            ),
+          )
+          .toList(),
+      onChanged: options.isEmpty
+          ? null
+          : (value) => controller.text = value ?? '',
+    );
   }
 }
 

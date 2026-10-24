@@ -141,6 +141,7 @@ class BatchLinkedSpecimen {
     required this.plan,
     this.eventGroupId,
     this.parts = const [],
+    this.parasites = const [],
   });
 
   final String id;
@@ -151,6 +152,7 @@ class BatchLinkedSpecimen {
   final BatchRowPlan plan;
   final String? eventGroupId;
   final List<BatchLinkedPart> parts;
+  final List<BatchLinkedParasite> parasites;
 
   BatchLinkedSpecimen copyWith({String? Function()? eventGroupId}) =>
       BatchLinkedSpecimen(
@@ -159,12 +161,22 @@ class BatchLinkedSpecimen {
         plan: plan,
         eventGroupId: eventGroupId == null ? this.eventGroupId : eventGroupId(),
         parts: parts,
+        parasites: parasites,
       );
 }
 
 /// A part one row adds to its specimen.
 class BatchLinkedPart {
   const BatchLinkedPart({required this.row, required this.plan});
+
+  /// Index into the table's rows.
+  final int row;
+  final BatchRowPlan plan;
+}
+
+/// A parasite one row adds to its specimen.
+class BatchLinkedParasite {
+  const BatchLinkedParasite({required this.row, required this.plan});
 
   /// Index into the table's rows.
   final int row;
@@ -180,6 +192,7 @@ class BatchLinkedCounts {
     required this.linkedEvents,
     required this.specimens,
     required this.parts,
+    this.parasites = 0,
     required this.skippedRows,
   });
 
@@ -189,12 +202,14 @@ class BatchLinkedCounts {
   final int linkedEvents;
   final int specimens;
   final int parts;
+  final int parasites;
 
   /// Rows excluded by the user or with nothing that can be written.
   final int skippedRows;
 }
 
-/// How a linked import's rows become sites, events, specimens, and parts,
+/// How a linked import's rows become sites, events, specimens, parts, and
+/// parasites,
 /// with the user's changes. Every change returns a new plan.
 class BatchLinkedPlan {
   const BatchLinkedPlan({
@@ -247,6 +262,13 @@ class BatchLinkedPlan {
   List<BatchLinkedPart> writableParts(BatchLinkedSpecimen specimen) => [
     for (final part in specimen.parts)
       if (isRowIncluded(part.row) && part.plan.status.isImportable) part,
+  ];
+
+  /// Parasites of [specimen] to write.
+  List<BatchLinkedParasite> writableParasites(BatchLinkedSpecimen specimen) => [
+    for (final parasite in specimen.parasites)
+      if (isRowIncluded(parasite.row) && parasite.plan.status.isImportable)
+        parasite,
   ];
 
   /// Events to write or link: those of a writable specimen, or of active
@@ -313,6 +335,10 @@ class BatchLinkedPlan {
       linkedEvents: count(eventActions, BatchGroupAction.linkExisting),
       specimens: writable.length,
       parts: writable.fold<int>(0, (n, s) => n + writableParts(s).length),
+      parasites: writable.fold<int>(
+        0,
+        (n, s) => n + writableParasites(s).length,
+      ),
       skippedRows: rowNumbers.length - writtenRows.length,
     );
   }

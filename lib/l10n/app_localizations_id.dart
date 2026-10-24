@@ -2142,6 +2142,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get presetsRecordTypeSpecimenParts => 'Bagian spesimen';
 
   @override
+  String get presetsRecordTypeParasites => 'Parasit';
+
+  @override
   String get presetsRecordTypeNone => 'Tanpa catatan';
 
   @override
@@ -2442,6 +2445,11 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String presetsPreviewParasites(int count) {
+    return 'Pratinjau Parasit ($count dipilih)';
+  }
+
+  @override
   String presetsPreviewSpecimens(int count) {
     return 'Pratinjau Spesimen ($count dipilih)';
   }
@@ -2507,6 +2515,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get presetsPreviewSelectSpecimenParts =>
       'Pilih bagian spesimen untuk pratinjau';
+
+  @override
+  String get presetsPreviewSelectParasites => 'Pilih parasit untuk pratinjau';
 
   @override
   String get presetsPreviewSelectSpecimens => 'Pilih spesimen untuk pratinjau';
@@ -4314,6 +4325,47 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String documentParasitesLoadError(String error) {
+    return 'Tidak dapat memuat parasit: $error';
+  }
+
+  @override
+  String get documentParasitesSearch => 'Cari parasit atau nomor spesimen';
+
+  @override
+  String documentParasitesSummary(int shown, int total, int selected) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total parasit',
+    );
+    return 'Menampilkan $shown dari $_temp0 · Dipilih $selected';
+  }
+
+  @override
+  String documentParasitesSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total parasit',
+    );
+    return 'Menampilkan $shown dari $_temp0 · Dipilih $selected ($hidden tersembunyi)';
+  }
+
+  @override
+  String get documentParasitesEmpty => 'Tidak ada parasit';
+
+  @override
+  String documentParasiteFallbackTitle(String id) {
+    return 'Parasit $id';
+  }
+
+  @override
   String documentPartFieldNumber(String number) {
     return 'No. lapangan $number';
   }
@@ -4565,6 +4617,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get documentSelectionSpecimenParts => 'Pilihan Bagian Spesimen';
 
   @override
+  String get documentSelectionParasites => 'Pilihan Parasit';
+
+  @override
   String get documentSelectionSites => 'Pilihan Lokasi';
 
   @override
@@ -4646,6 +4701,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get documentSelectSpecimenParts => 'Pilih bagian spesimen';
+
+  @override
+  String get documentSelectParasites => 'Pilih parasit';
 
   @override
   String get labelCatalogFormatOrnithology => 'Ornitologi';
@@ -6812,6 +6870,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectBatchSpecimenParts => 'Bagian spesimen';
 
   @override
+  String get projectBatchParasites => 'Parasit';
+
+  @override
   String get projectBatchNarrative => 'Narasi';
 
   @override
@@ -6844,6 +6905,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectBatchKeyBarcodeId => 'ID kode batang';
+
+  @override
+  String get projectBatchKeyParasiteId => 'ID parasit';
+
+  @override
+  String get projectBatchKeyParasiteUuid => 'UUID parasit';
 
   @override
   String get projectBatchKeySiteId => 'ID lokasi';
@@ -7084,6 +7151,16 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String projectBatchParasiteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parasit',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get projectBatchSetSiteId => 'Atur ID lokasi';
 
   @override
@@ -7182,6 +7259,11 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String projectBatchPartsSummary(int count) {
     return 'Bagian: $count';
+  }
+
+  @override
+  String projectBatchParasitesSummary(int count) {
+    return 'Parasit: $count';
   }
 
   @override
@@ -7338,6 +7420,18 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectStatsTreatment => 'Perlakuan';
+
+  @override
+  String get projectStatsParasiteTaxon => 'Takson parasit';
+
+  @override
+  String get projectStatsParasiteCategory => 'Kategori';
+
+  @override
+  String get projectStatsAnatomicalLocation => 'Lokasi anatomi';
+
+  @override
+  String get projectStatsHostSpecies => 'Spesies inang';
 
   @override
   String projectStatsTitle(String measure, String category) {

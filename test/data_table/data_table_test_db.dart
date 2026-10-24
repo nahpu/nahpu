@@ -5,9 +5,10 @@ import 'package:nahpu/services/database/database.dart';
 /// An in-memory database with two projects of data table records.
 ///
 /// Project p1 has three specimens (one mammal with measurements, one bird,
-/// one with no taxon), a part, one site with a locality, one event with an
-/// environment row, and two narratives. Project p2 has one specimen that
-/// must never show up in p1's pages.
+/// one with no taxon), a part, two parasites (one identified, one without
+/// an ID or taxon), one site with a locality, one event with an environment
+/// row, and two narratives. Project p2 has one specimen with a parasite
+/// that must never show up in p1's pages.
 Future<Database> seededDataTableDb() async {
   final db = Database.forTesting(DatabaseConnection(NativeDatabase.memory()));
   Future<void> run(String sql, List<Object?> values) =>
@@ -96,6 +97,33 @@ Future<Database> seededDataTableDb() async {
     'VALUES (?, ?, ?, ?)',
     [1, 's1', 'T-1', 'Liver'],
   );
+  await run(
+    'INSERT INTO taxonomy (id, taxonRank, genus, specificEpithet) '
+    'VALUES (?, ?, ?, ?)',
+    [3, 'species', 'Hymenolepis', 'diminuta'],
+  );
+  for (final (id, specimen, uuid, parasiteId, species, identifier, count) in [
+    (1, 's2', 'pu-1', 'P-1', 3, 'ben', 3),
+    (2, 's1', 'pu-2', null, null, null, 1),
+    (3, 'other', 'pu-3', 'P-9', null, null, 2),
+  ]) {
+    await run(
+      'INSERT INTO parasite (id, specimenUuid, parasiteUuid, parasiteID, '
+      'speciesID, identifierID, count, associationStatus, category) '
+      'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        id,
+        specimen,
+        uuid,
+        parasiteId,
+        species,
+        identifier,
+        count,
+        1,
+        'Cestode',
+      ],
+    );
+  }
   await run(
     'INSERT INTO narrative (id, projectUuid, date, siteID, narrative) '
     'VALUES (?, ?, ?, ?, ?)',

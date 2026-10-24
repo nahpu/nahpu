@@ -58,6 +58,13 @@ List<BatchImportTarget> batchImportTargets(DataTableRecordType type) {
       'specimen::cataloger',
       'specimen::fieldNumber',
     ],
+    DataTableRecordType.parasites => [
+      ...parasiteExportList,
+      'specimen::specimenUUID',
+      batchCatalogNumberKey,
+      'specimen::cataloger',
+      'specimen::fieldNumber',
+    ],
     DataTableRecordType.sites => siteExportList,
     DataTableRecordType.events => [...collEventExportList, 'site::site'],
     DataTableRecordType.narrative => narrativeExportList,
@@ -95,7 +102,10 @@ DataTableLink? _linkOf(DataTableRecordType type, String key) {
     final link = dataTableLinkFor(type, key);
     return link != null && link.isRelink ? link : null;
   }
-  if (type == DataTableRecordType.specimenParts) return null;
+  if (type == DataTableRecordType.specimenParts ||
+      type == DataTableRecordType.parasites) {
+    return null;
+  }
   final link = dataTableLinkFor(type, key);
   return link != null && link.isRelink ? link : null;
 }
@@ -108,6 +118,14 @@ const _identityKeys = {
   },
   // A part's parent specimen.
   DataTableRecordType.specimenParts: {
+    'specimen::specimenUUID',
+    'specimen::cataloger',
+    'specimen::fieldNumber',
+    batchCatalogNumberKey,
+  },
+  // A parasite's own UUID, and its parent specimen.
+  DataTableRecordType.parasites: {
+    'parasite::parasiteUuid',
     'specimen::specimenUUID',
     'specimen::cataloger',
     'specimen::fieldNumber',
@@ -131,24 +149,27 @@ final _measurementKeys = {
 
 String _groupLabel(DataTableRecordType type, String key) {
   if (key == batchCatalogNumberKey || key == batchScientificNameKey) {
-    return type == DataTableRecordType.specimenParts
-        ? 'Parent specimen'
-        : 'Specimen';
+    return _hasParentSpecimen(type) ? 'Parent specimen' : 'Specimen';
   }
   final group = key.split('::').first;
-  if (type == DataTableRecordType.specimenParts && group == 'specimen') {
+  if (_hasParentSpecimen(type) && group == 'specimen') {
     return 'Parent specimen';
   }
   return switch (group) {
     'specimen' => 'Specimen',
     'measurement' => 'Measurements',
     'part' => 'Part',
+    'parasite' => 'Parasite',
     'site' || 'siteAttribute' || 'geography' => 'Site',
     'event' || 'environment' => 'Event',
     'narrative' => 'Narrative',
     _ => 'Other',
   };
 }
+
+bool _hasParentSpecimen(DataTableRecordType type) =>
+    type == DataTableRecordType.specimenParts ||
+    type == DataTableRecordType.parasites;
 
 /// A readable name for a field key: `measurement::hindFootLength` becomes
 /// "Hind foot length".
@@ -175,6 +196,8 @@ const _labels = {
   'specimen::iDMethod': 'ID method',
   'part::tissueID': 'Tissue ID',
   'part::barcodeID': 'Barcode ID',
+  'parasite::parasiteID': 'Parasite ID',
+  'parasite::parasiteUuid': 'Parasite UUID',
   'site::site': 'Site ID',
   'event::collEventID': 'Event ID',
   'event::Activity': 'Activity',
@@ -217,6 +240,7 @@ String? batchDwcSourceKey(String key) {
     DataTableWriteTarget.specimen => 'specimen',
     DataTableWriteTarget.attribute => field.attributeTables.firstOrNull?.table,
     DataTableWriteTarget.part => 'specimenPart',
+    DataTableWriteTarget.parasite => 'parasite',
     DataTableWriteTarget.site => 'site',
     DataTableWriteTarget.siteAttribute => 'siteAttribute',
     DataTableWriteTarget.geography => 'geography',
@@ -247,7 +271,7 @@ const batchExtraDwcTerms = {
 };
 
 /// The record a linked import's column belongs to.
-enum BatchLinkedSection { site, event, specimen, part }
+enum BatchLinkedSection { site, event, specimen, part, parasite }
 
 /// The section of a linked import [key] fills.
 BatchLinkedSection batchLinkedSection(String key) {
@@ -261,6 +285,7 @@ BatchLinkedSection batchLinkedSection(String key) {
     'coordinate' => BatchLinkedSection.site,
     'event' || 'environment' => BatchLinkedSection.event,
     'part' => BatchLinkedSection.part,
+    'parasite' => BatchLinkedSection.parasite,
     _ => BatchLinkedSection.specimen,
   };
 }
@@ -276,7 +301,7 @@ const batchCoordinateFields = {
 };
 
 /// Fields one row of a linked import can fill: its site and coordinate,
-/// event, specimen, and part. The site ID and event ID name the row's
+/// event, specimen, part, and parasite. The site ID and event ID name the row's
 /// site and event, which the import groups rows into.
 List<BatchImportTarget> batchLinkedTargets() {
   BatchImportTarget identity(BatchImportTarget target, String group) =>
@@ -310,6 +335,17 @@ List<BatchImportTarget> batchLinkedTargets() {
           kind: target.kind,
         ),
   ];
+  final parasites = [
+    for (final target in batchImportTargets(DataTableRecordType.parasites))
+      if (target.key.startsWith('parasite::') &&
+          target.kind == BatchTargetKind.field)
+        BatchImportTarget(
+          key: target.key,
+          label: target.label,
+          group: 'Parasite',
+          kind: target.kind,
+        ),
+  ];
   return [
     ...sites,
     for (final key in batchCoordinateFields.keys)
@@ -322,6 +358,7 @@ List<BatchImportTarget> batchLinkedTargets() {
     ...events,
     ...specimens,
     ...parts,
+    ...parasites,
   ];
 }
 

@@ -94,6 +94,26 @@ void main() {
     expect(bad.errors.values.single, 'Choose one of the listed values');
   });
 
+  test('writes parasite fields, coded and numeric', () async {
+    final result = await service.save(DataTableRecordType.parasites, [
+      edit(1, 'parasite::count', '7'),
+      edit(1, 'parasite::associationStatus', '0'),
+      edit(1, 'parasite::remark', 'Intestine'),
+    ]);
+    expect(result.errors, isEmpty);
+    expect(
+      await select(
+        'SELECT count, associationStatus, remark FROM parasite WHERE id = ?',
+        [1],
+      ),
+      {'count': 7, 'associationStatus': 0, 'remark': 'Intestine'},
+    );
+    final readOnly = await service.save(DataTableRecordType.parasites, [
+      edit(1, 'specimen::condition', 'Damaged'),
+    ]);
+    expect(readOnly.saved, isEmpty);
+  });
+
   test('refuses a measurement the taxon group does not record', () async {
     final result = await service.save(DataTableRecordType.specimenRecords, [
       edit(

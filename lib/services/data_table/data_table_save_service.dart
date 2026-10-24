@@ -164,6 +164,8 @@ class DataTableSaveService {
         await _update('specimen', values, 'uuid = ?', key);
       case DataTableWriteTarget.part:
         await _update('specimenPart', values, 'id = ?', key);
+      case DataTableWriteTarget.parasite:
+        await _update('parasite', values, 'id = ?', key);
       case DataTableWriteTarget.site:
         await _update('site', values, 'id = ?', key);
       case DataTableWriteTarget.event:

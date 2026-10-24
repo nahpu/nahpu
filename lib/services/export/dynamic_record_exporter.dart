@@ -409,39 +409,42 @@ class DynamicRecordExporter {
     final records = await (db.select(
       db.parasite,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).get();
-    return Future.wait(
-      records.map((record) async {
-        final json = record.toJson()..remove('id');
-        if (record.id != null) {
-          json['individuals'] = _individualIds(
-            await ParasiteIndividualQuery(
-              db,
-            ).getIndividualsForParasite(record.id!),
-          );
-          json.addAll(
-            await _customFieldData(
-              CustomFieldOwner.parasite(record.id!),
-              'customParasite',
-            ),
-          );
-        }
-        json['associationStatus'] =
-            parasiteAssociationStatuses[record.associationStatus] ?? '';
-        if (record.speciesID != null) {
-          final taxon = await TaxonomyServices(
-            ref: ref,
-          ).getTaxonById(record.speciesID!);
-          json['scientificName'] = getTaxonDisplayName(taxon);
-        }
-        if (record.identifierID != null) {
-          final identifier = await PersonnelServices(
-            ref: ref,
-          ).getPersonnelByUuid(record.identifierID!);
-          json['identifierID'] = identifier.name;
-        }
-        return json;
-      }),
-    );
+    return Future.wait(records.map(parasiteValues));
+  }
+
+  /// One parasite's export values, keyed by `parasite` field name.
+  ///
+  /// Links are resolved to readable values: the taxon to its scientific name
+  /// and the identifier to a person's name.
+  Future<Map<String, dynamic>> parasiteValues(ParasiteData record) async {
+    final db = ref.read(databaseProvider);
+    final json = record.toJson()..remove('id');
+    if (record.id != null) {
+      json['individuals'] = _individualIds(
+        await ParasiteIndividualQuery(db).getIndividualsForParasite(record.id!),
+      );
+      json.addAll(
+        await _customFieldData(
+          CustomFieldOwner.parasite(record.id!),
+          'customParasite',
+        ),
+      );
+    }
+    json['associationStatus'] =
+        parasiteAssociationStatuses[record.associationStatus] ?? '';
+    if (record.speciesID != null) {
+      final taxon = await TaxonomyServices(
+        ref: ref,
+      ).getTaxonById(record.speciesID!);
+      json['scientificName'] = getTaxonDisplayName(taxon);
+    }
+    if (record.identifierID != null) {
+      final identifier = await PersonnelServices(
+        ref: ref,
+      ).getPersonnelByUuid(record.identifierID!);
+      json['identifierID'] = identifier.name;
+    }
+    return json;
   }
 
   String _individualIds(List<SpecimenIndividualData> individuals) =>

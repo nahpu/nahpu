@@ -115,18 +115,24 @@ class DataTablePageQuery {
     }
     final selected = fields.where((field) => field.isFilterable).toList();
     final isSpecimen = type == DataTableRecordType.specimenRecords;
-    final hasSpecimen = isSpecimen || type == DataTableRecordType.specimenParts;
+    final hasSpecimen =
+        isSpecimen ||
+        type == DataTableRecordType.specimenParts ||
+        type == DataTableRecordType.parasites;
     final links = switch (type) {
       DataTableRecordType.specimenRecords => const ['st.id', 'ce.id'],
       DataTableRecordType.events => const ['st.id', 'ce.id'],
       DataTableRecordType.narrative => const ['st.id', 'NULL'],
       DataTableRecordType.sites => const ['st.id', 'NULL'],
-      DataTableRecordType.specimenParts => const ['NULL', 'NULL'],
+      DataTableRecordType.specimenParts ||
+      DataTableRecordType.parasites => const ['NULL', 'NULL'],
     };
     final joins = _joinClause(type, {
       ...selected.expand((field) => field.joins),
       if (isSpecimen) ...dataTableAttributeTables.map((table) => table.join),
-      if (type != DataTableRecordType.specimenParts) DataTableJoin.site,
+      if (type != DataTableRecordType.specimenParts &&
+          type != DataTableRecordType.parasites)
+        DataTableJoin.site,
     });
     final columns = [
       '${_key(type)} AS k',
@@ -189,7 +195,8 @@ class DataTablePageQuery {
 
   /// Reads the file names of the media linked to [keys].
   ///
-  /// Parts have no media of their own, so they read their specimen's media.
+  /// Parts and parasites have no media of their own, so they read their
+  /// specimen's media.
   Future<Map<Object, List<String>>> mediaFiles(
     DataTableRecordType type,
     List<Object> keys,
@@ -203,6 +210,10 @@ class DataTablePageQuery {
       DataTableRecordType.specimenParts => (
         'specimenMedia l ON l.specimenUuid = s.uuid',
         'p.id',
+      ),
+      DataTableRecordType.parasites => (
+        'specimenMedia l ON l.specimenUuid = s.uuid',
+        'pr.id',
       ),
       DataTableRecordType.sites => ('siteMedia l ON l.siteId = st.id', 'st.id'),
       DataTableRecordType.events => (
@@ -403,8 +414,18 @@ class DataTablePageQuery {
   String? _joinSql(DataTableRecordType type, DataTableJoin join) {
     final hasSpecimen =
         type == DataTableRecordType.specimenRecords ||
-        type == DataTableRecordType.specimenParts;
+        type == DataTableRecordType.specimenParts ||
+        type == DataTableRecordType.parasites;
+    final isParasite = type == DataTableRecordType.parasites;
     switch (join) {
+      case DataTableJoin.parasiteTaxonomy:
+        return isParasite
+            ? 'LEFT JOIN taxonomy ptx ON ptx.id = pr.speciesID'
+            : null;
+      case DataTableJoin.parasiteIdentifier:
+        return isParasite
+            ? 'LEFT JOIN personnel pid ON pid.uuid = pr.identifierID'
+            : null;
       case DataTableJoin.taxonomy:
         return hasSpecimen
             ? 'LEFT JOIN taxonomy tx ON tx.id = s.speciesID'
@@ -466,6 +487,8 @@ String _from(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords => 'specimen s',
   DataTableRecordType.specimenParts =>
     'specimenPart p JOIN specimen s ON s.uuid = p.specimenUuid',
+  DataTableRecordType.parasites =>
+    'parasite pr JOIN specimen s ON s.uuid = pr.specimenUuid',
   DataTableRecordType.sites => 'site st',
   DataTableRecordType.events => 'collEvent ce',
   DataTableRecordType.narrative => 'narrative n',
@@ -474,6 +497,7 @@ String _from(DataTableRecordType type) => switch (type) {
 String _key(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords => 's.uuid',
   DataTableRecordType.specimenParts => 'p.id',
+  DataTableRecordType.parasites => 'pr.id',
   DataTableRecordType.sites => 'st.id',
   DataTableRecordType.events => 'ce.id',
   DataTableRecordType.narrative => 'n.id',
@@ -486,7 +510,8 @@ String _tiebreak(DataTableRecordType type) =>
 
 String _projectColumn(DataTableRecordType type) => switch (type) {
   DataTableRecordType.specimenRecords ||
-  DataTableRecordType.specimenParts => 's.projectUuid',
+  DataTableRecordType.specimenParts ||
+  DataTableRecordType.parasites => 's.projectUuid',
   DataTableRecordType.sites => 'st.projectUuid',
   DataTableRecordType.events => 'ce.projectUuid',
   DataTableRecordType.narrative => 'n.projectUuid',

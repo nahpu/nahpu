@@ -38,9 +38,11 @@ Future<void> openStatisticRecords(
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => DataTableScreen(
-        initialType: request.measure == StatisticMeasure.partQuantity
-            ? DataTableRecordType.specimenParts
-            : DataTableRecordType.specimenRecords,
+        initialType: switch (request.measure) {
+          StatisticMeasure.partQuantity => DataTableRecordType.specimenParts,
+          StatisticMeasure.parasites => DataTableRecordType.parasites,
+          _ => DataTableRecordType.specimenRecords,
+        },
         initialScope: DataTableKeyScope(keys: keys.toSet(), label: scopeLabel),
         allProjects: allProjects,
       ),

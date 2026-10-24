@@ -85,6 +85,7 @@ enum RecordType {
   collEvent,
   specimenRecord,
   specimenParts,
+  parasites,
   none,
 }
 
@@ -94,6 +95,7 @@ const List<String> recordTypeList = [
   'Events',
   'Specimen records',
   'Specimen parts',
+  'Parasites',
   'None',
 ];
 

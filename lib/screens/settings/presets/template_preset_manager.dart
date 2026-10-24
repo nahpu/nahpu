@@ -317,6 +317,8 @@ class _TemplatePresetManagerState extends ConsumerState<TemplatePresetManager> {
         return Icons.event_outlined;
       case RecordType.specimenParts:
         return Icons.science_outlined;
+      case RecordType.parasites:
+        return Icons.bug_report_outlined;
       case RecordType.none:
         return Icons.folder_outlined;
       case RecordType.specimenRecord:
@@ -469,6 +471,7 @@ String _recordTypeLabel(RecordType recordType, AppLocalizations l10n) {
     RecordType.collEvent => l10n.presetsRecordTypeCollEvent,
     RecordType.narrative => l10n.presetsRecordTypeNarrative,
     RecordType.specimenParts => l10n.presetsRecordTypeSpecimenParts,
+    RecordType.parasites => l10n.presetsRecordTypeParasites,
     RecordType.none => l10n.presetsRecordTypeNone,
   };
 }

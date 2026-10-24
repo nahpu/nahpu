@@ -125,6 +125,49 @@ void main() {
     );
   });
 
+  test('rows add parasites to their specimen, with IDs checked', () {
+    final table = BatchImportTable(
+      fileName: 'parasites.csv',
+      headers: const ['catalogNumber', 'parasiteID', 'category', 'remark'],
+      rows: const [
+        ['A1', 'P-1', 'Mite', ''],
+        ['A1', 'P-1', 'Tick', ''],
+        ['A2', 'P-7', 'Flea', ''],
+      ],
+      rowNumbers: const [2, 3, 4],
+    );
+    final matches = BatchColumnMatcher(
+      targets: batchLinkedTargets(),
+      dwcTerms: batchExtraDwcTerms,
+    ).match(table.headers);
+    final index = BatchImportIndex(
+      parasiteIds: {
+        normalizeBatchId('P-7'): [1],
+      },
+    );
+    final plan = BatchLinkedGrouper(index: index).group(table, matches);
+
+    expect(plan.specimens.map((s) => s.rows), [
+      [0, 1],
+      [2],
+    ]);
+    final first = plan.specimens.first;
+    expect(first.parts, isEmpty);
+    expect(first.parasites.map((p) => p.plan.status), [
+      BatchRowStatus.ready,
+      BatchRowStatus.duplicateInFile,
+    ]);
+    expect(first.parasites.first.plan.values, {
+      'parasite::parasiteID': 'P-1',
+      'parasite::category': 'Mite',
+    });
+    expect(
+      plan.specimens.last.parasites.single.plan.status,
+      BatchRowStatus.exists,
+    );
+    expect(plan.counts().parasites, 1);
+  });
+
   test('sites and events the project has start linked', () {
     final plan = _group(
       [

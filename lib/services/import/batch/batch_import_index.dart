@@ -95,6 +95,8 @@ class BatchImportIndex {
     this.events = const {},
     this.tissueIds = const {},
     this.barcodeIds = const {},
+    this.parasiteIds = const {},
+    this.parasiteUuids = const {},
     this.narrativeDates = const {},
     this.siteRefs = const [],
     this.eventRefs = const [],
@@ -109,6 +111,8 @@ class BatchImportIndex {
   final Map<String, List<int>> events;
   final Map<String, List<int>> tissueIds;
   final Map<String, List<int>> barcodeIds;
+  final Map<String, List<int>> parasiteIds;
+  final Map<String, List<int>> parasiteUuids;
   final Map<String, List<int>> narrativeDates;
   final List<BatchSiteRef> siteRefs;
   final List<BatchEventRef> eventRefs;
@@ -173,6 +177,15 @@ class BatchImportIndex {
           readsFrom: const {},
         )
         .get();
+    final parasites = await db
+        .customSelect(
+          'SELECT pr.id, pr.parasiteID, pr.parasiteUuid FROM parasite pr '
+          'JOIN specimen s ON s.uuid = pr.specimenUuid '
+          'WHERE s.projectUuid = ?',
+          variables: [Variable.withString(projectUuid)],
+          readsFrom: const {},
+        )
+        .get();
 
     final coordinates = <int, (double?, double?)>{};
     for (final row
@@ -232,6 +245,20 @@ class BatchImportIndex {
       barcodeIds: _group([
         for (final part in parts)
           (part.readNullable<String>('barcodeID'), part.read<int>('id')),
+      ]),
+      parasiteIds: _group([
+        for (final parasite in parasites)
+          (
+            parasite.readNullable<String>('parasiteID'),
+            parasite.read<int>('id'),
+          ),
+      ]),
+      parasiteUuids: _group([
+        for (final parasite in parasites)
+          (
+            parasite.readNullable<String>('parasiteUuid'),
+            parasite.read<int>('id'),
+          ),
       ]),
       narrativeDates: _group([
         for (final narrative in narratives) (narrative.date, narrative.id),

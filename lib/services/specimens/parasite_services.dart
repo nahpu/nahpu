@@ -24,6 +24,11 @@ class ParasiteServices extends AppServices {
     ref.invalidate(parasiteDetectionProvider(specimenUuid));
   }
 
+  /// The active project's parasites, each with its parent specimen.
+  Future<List<ParasiteProjectRecord>> getProjectParasites() {
+    return ParasiteQuery(dbAccess).getParasitesForProject(currentProjectUuid);
+  }
+
   Future<int> createParasite(
     String specimenUuid,
     ParasiteCompanion form,
@@ -78,6 +83,7 @@ class ParasiteServices extends AppServices {
 
   void _invalidate(String specimenUuid) {
     ref.invalidate(parasiteBySpecimenProvider(specimenUuid));
+    ref.invalidate(parasiteEntryProvider);
   }
 }
 

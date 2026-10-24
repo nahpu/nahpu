@@ -23,6 +23,7 @@ class BatchLinkedResult {
     required this.linkedEvents,
     required this.specimens,
     required this.parts,
+    this.parasites = 0,
     required this.errors,
   });
 
@@ -32,13 +33,15 @@ class BatchLinkedResult {
   final int linkedEvents;
   final int specimens;
   final int parts;
+  final int parasites;
 
   /// Messages by file row number for rows that failed to write.
   final Map<int, String> errors;
 }
 
 /// Groups and writes a linked import into the open project: sites first,
-/// then events at them, then specimens at those events, then their parts.
+/// then events at them, then specimens at those events, then their parts
+/// and parasites.
 ///
 /// Each record is written in its own transaction. When a record fails,
 /// records that depend on it are skipped and reported, and the rest go on.
@@ -76,7 +79,14 @@ class BatchLinkedService extends AppServices {
     final total =
         sites.length +
         events.length +
-        specimens.fold<int>(0, (n, s) => n + 1 + plan.writableParts(s).length);
+        specimens.fold<int>(
+          0,
+          (n, s) =>
+              n +
+              1 +
+              plan.writableParts(s).length +
+              plan.writableParasites(s).length,
+        );
     var done = 0;
     void step() => onProgress?.call(++done, total);
 
@@ -131,12 +141,14 @@ class BatchLinkedService extends AppServices {
     final records = BatchImportService(ref: ref);
     var written = 0;
     var parts = 0;
+    var parasites = 0;
     for (final specimen in specimens) {
       final eventGroup = specimen.eventGroupId;
       final partsToWrite = plan.writableParts(specimen);
+      final parasitesToWrite = plan.writableParasites(specimen);
       if (eventGroup != null && !eventIds.containsKey(eventGroup)) {
         fail(specimen.rows, 'Skipped: its event couldn\'t be written.');
-        done += partsToWrite.length;
+        done += partsToWrite.length + parasitesToWrite.length;
         step();
         continue;
       }
@@ -157,7 +169,7 @@ class BatchLinkedService extends AppServices {
         written++;
       } catch (e) {
         fail(specimen.rows, 'Specimen: ${_message(e)}');
-        done += partsToWrite.length;
+        done += partsToWrite.length + parasitesToWrite.length;
         step();
         continue;
       }
@@ -176,6 +188,20 @@ class BatchLinkedService extends AppServices {
         }
         step();
       }
+      for (final parasite in parasitesToWrite) {
+        try {
+          await dbAccess.transaction(
+            () => records.createRecord(
+              DataTableRecordType.parasites,
+              parasite.plan.copyWith(parentSpecimenUuid: uuid),
+            ),
+          );
+          parasites++;
+        } catch (e) {
+          fail([parasite.row], 'Parasite: ${_message(e)}');
+        }
+        step();
+      }
     }
 
     records.invalidateRecordLists();
@@ -190,6 +216,7 @@ class BatchLinkedService extends AppServices {
           .length,
       specimens: written,
       parts: parts,
+      parasites: parasites,
       errors: errors,
     );
   }

@@ -16,6 +16,7 @@ import 'package:nahpu/screens/shared/layout/regional_format_rebuilder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/settings/bundled_preset_service.dart';
 import 'package:nahpu/services/settings/config_services.dart';
+import 'package:nahpu/services/settings/parasite_vocabulary_defaults.dart';
 import 'package:nahpu/services/templates/font_registry.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:fvp/fvp.dart' as fvp;
@@ -27,6 +28,7 @@ void main() async {
   final configService = ConfigDbService();
   await configService.initDb();
   await configService.migrate(prefs);
+  await const ParasiteVocabularyDefaults().seedOnce(prefs);
   await const BundledPresetService().loadOnFirstLaunch(prefs);
   await registerUserFonts();
   pdfrxFlutterInitialize();

@@ -43,6 +43,7 @@ extension RecordTypeLocalizedLabel on RecordType {
     RecordType.collEvent => l10n.presetsRecordTypeCollEvent,
     RecordType.narrative => l10n.presetsRecordTypeNarrative,
     RecordType.specimenParts => l10n.presetsRecordTypeSpecimenParts,
+    RecordType.parasites => l10n.presetsRecordTypeParasites,
     RecordType.none => l10n.presetsRecordTypeNone,
   };
 }
@@ -348,6 +349,7 @@ extension DataTableRecordTypeLocalizedLabel on DataTableRecordType {
   String localizedLabel(AppLocalizations l10n) => switch (this) {
     DataTableRecordType.specimenRecords => l10n.projectTaxonSpecimenRecords,
     DataTableRecordType.specimenParts => l10n.projectBatchSpecimenParts,
+    DataTableRecordType.parasites => l10n.projectBatchParasites,
     DataTableRecordType.sites => l10n.projectTransferSites,
     DataTableRecordType.events => l10n.projectTransferEvents,
     DataTableRecordType.narrative => l10n.projectBatchNarrative,
@@ -377,6 +379,8 @@ extension BatchImportKeyLocalizedLabel on BatchImportKey {
       l10n.projectBatchKeyCatalogerFieldNumber,
     BatchImportKey.tissueId => l10n.projectBatchKeyTissueId,
     BatchImportKey.barcodeId => l10n.projectBatchKeyBarcodeId,
+    BatchImportKey.parasiteId => l10n.projectBatchKeyParasiteId,
+    BatchImportKey.parasiteUuid => l10n.projectBatchKeyParasiteUuid,
     BatchImportKey.siteId => l10n.projectBatchKeySiteId,
     BatchImportKey.eventId => l10n.projectBatchKeyEventId,
     BatchImportKey.narrativeDate => l10n.projectBatchKeyNarrativeDate,
@@ -400,12 +404,14 @@ extension StatisticMeasureLocalizedLabel on StatisticMeasure {
     StatisticMeasure.specimens => l10n.projectTransferSpecimens,
     StatisticMeasure.species => l10n.projectTaxonSpecies,
     StatisticMeasure.partQuantity => l10n.projectStatsPartQuantity,
+    StatisticMeasure.parasites => l10n.projectBatchParasites,
   };
 
   String localizedCountLabel(AppLocalizations l10n) => switch (this) {
     StatisticMeasure.specimens => l10n.projectTransferSpecimens,
     StatisticMeasure.species => l10n.projectTaxonSpecies,
     StatisticMeasure.partQuantity => l10n.projectStatsQuantity,
+    StatisticMeasure.parasites => l10n.projectBatchParasites,
   };
 }
 
@@ -420,6 +426,10 @@ extension StatisticGroupLocalizedLabel on StatisticGroup {
     StatisticGroup.lifeStage => l10n.projectStatsLifeStage,
     StatisticGroup.partType => l10n.projectStatsPartType,
     StatisticGroup.partTreatment => l10n.projectStatsTreatment,
+    StatisticGroup.parasiteTaxon => l10n.projectStatsParasiteTaxon,
+    StatisticGroup.parasiteCategory => l10n.projectStatsParasiteCategory,
+    StatisticGroup.anatomicalLocation => l10n.projectStatsAnatomicalLocation,
+    StatisticGroup.hostSpecies => l10n.projectStatsHostSpecies,
   };
 }
 
@@ -453,7 +463,7 @@ extension StatisticRequestLocalizedLabel on StatisticRequest {
     String? speciesLabel,
   }) {
     final category = localizedCategoryLabel(l10n).toLowerCase();
-    if (measure == StatisticMeasure.partQuantity) {
+    if (measure.usesSpeciesFilter) {
       final title = l10n.projectStatsTitle(
         measure.localizedLabel(l10n),
         category,

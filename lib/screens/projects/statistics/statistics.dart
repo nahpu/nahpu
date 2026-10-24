@@ -508,6 +508,17 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       loading: () => false,
       error: (error, stackTrace) => false,
     );
+    final hasParasites = availability.value?.hasParasites ?? false;
+    // Parasites are offered only when the data has them, and the measure goes
+    // away with the last parasite record.
+    ref.listen(statisticAvailabilityProvider(projectUuid), (_, next) {
+      final available = next.value;
+      if (available != null &&
+          !available.hasParasites &&
+          _measure == StatisticMeasure.parasites) {
+        _selectMeasure(StatisticMeasure.specimens, available.hasLifeStage);
+      }
+    });
     final request = StatisticRequest(
       projectUuid: projectUuid,
       measure: _measure,
@@ -642,12 +653,15 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                                 showSelectedIcon: false,
                                 segments: [
                                   for (final measure in StatisticMeasure.values)
-                                    ButtonSegment(
-                                      value: measure,
-                                      label: Text(
-                                        measure.localizedLabel(context.l10n),
+                                    if (measure != StatisticMeasure.parasites ||
+                                        hasParasites ||
+                                        _measure == measure)
+                                      ButtonSegment(
+                                        value: measure,
+                                        label: Text(
+                                          measure.localizedLabel(context.l10n),
+                                        ),
                                       ),
-                                    ),
                                 ],
                                 selected: {_measure},
                                 onSelectionChanged: (selection) =>
@@ -962,7 +976,7 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
       _measure == StatisticMeasure.specimens &&
       _group == StatisticGroup.species;
 
-  bool get _usesSpeciesFilter => _measure == StatisticMeasure.partQuantity;
+  bool get _usesSpeciesFilter => _measure.usesSpeciesFilter;
 
   bool get _canBreakDown =>
       _measure == StatisticMeasure.specimens &&
@@ -1088,6 +1102,11 @@ class _FullScreenRecordStatisticsCard extends StatelessWidget {
               key: RecordMetricKind.specimenParts.fullScreenKey,
               kind: RecordMetricKind.specimenParts,
               value: totals.specimenPartCount.toString(),
+            ),
+            _SummaryMetric(
+              key: RecordMetricKind.parasites.fullScreenKey,
+              kind: RecordMetricKind.parasites,
+              value: totals.parasiteCount.toString(),
             ),
             _SummaryMetric(
               key: RecordMetricKind.narratives.fullScreenKey,
@@ -1401,6 +1420,7 @@ class _ProjectBreakdownTable extends ConsumerWidget {
   static const _metrics = [
     RecordMetricKind.specimens,
     RecordMetricKind.specimenParts,
+    RecordMetricKind.parasites,
     RecordMetricKind.species,
     RecordMetricKind.families,
     RecordMetricKind.recordedSites,
@@ -1520,6 +1540,7 @@ class _ProjectBreakdownDataSource extends DataTableSource {
   ) => switch (metric) {
     RecordMetricKind.specimens => totals.specimenCount.toString(),
     RecordMetricKind.specimenParts => totals.specimenPartCount.toString(),
+    RecordMetricKind.parasites => totals.parasiteCount.toString(),
     RecordMetricKind.species => totals.speciesCount.toString(),
     RecordMetricKind.families => totals.familyCount.toString(),
     RecordMetricKind.recordedSites => totals.recordedSiteCount.toString(),

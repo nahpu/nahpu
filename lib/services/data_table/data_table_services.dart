@@ -6,6 +6,7 @@ import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/export/coll_event_writer.dart';
 import 'package:nahpu/services/export/collecting_records.dart';
 import 'package:nahpu/services/export/narrative_writer.dart';
+import 'package:nahpu/services/export/parasite_records.dart';
 import 'package:nahpu/services/export/record_writer.dart';
 import 'package:nahpu/services/export/site_writer.dart';
 import 'package:nahpu/services/export/specimen_part_records.dart';
@@ -136,6 +137,7 @@ class DataTableService extends AppServices {
       includeBatFields: includeBatFields,
     ).header,
     DataTableRecordType.specimenParts => SpecimenPartWriter.header,
+    DataTableRecordType.parasites => ParasiteWriter.header,
     DataTableRecordType.sites => SiteWriterServices.header,
     DataTableRecordType.events => CollEventRecordWriter.header,
     DataTableRecordType.narrative => narrativeExportList,
@@ -173,6 +175,14 @@ class DataTableService extends AppServices {
           ref: ref,
         ).getRecord(specimen);
         return [...partValues, ...collecting];
+      case DataTableRecordType.parasites:
+        final parasite = await (dbAccess.select(
+          dbAccess.parasite,
+        )..where((t) => t.id.equals(key as int))).getSingle();
+        final specimen = await SpecimenServices(
+          ref: ref,
+        ).getSpecimen(parasite.specimenUuid!);
+        return ParasiteWriter(ref: ref).getRow(parasite, specimen);
       case DataTableRecordType.sites:
         return SiteWriterServices(ref: ref).getSiteRow(key as int);
       case DataTableRecordType.events:

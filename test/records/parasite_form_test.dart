@@ -187,6 +187,46 @@ void main() {
     expect(find.text('Preparation & preservation'), findsNothing);
     expect(find.text('Life stage'), findsNothing);
   });
+
+  testWidgets('anatomical locations follow the selected category', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) async => getDefaultOptionsList(prefKey),
+          ),
+        ],
+        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await _openDropdown(tester, 'Category');
+    await tester.tap(find.text('Endoparasite').last);
+    await tester.pumpAndSettle();
+
+    await _openDropdown(tester, 'Anatomical location');
+    expect(find.text('Liver'), findsWidgets);
+    expect(find.text('Fur'), findsNothing);
+  });
+}
+
+Future<void> _openDropdown(WidgetTester tester, String label) async {
+  final dropdown = find.ancestor(
+    of: find.text(label),
+    matching: find.byType(DropdownButtonFormField<String>),
+  );
+  await tester.ensureVisible(dropdown);
+  await tester.tap(dropdown);
+  await tester.pumpAndSettle();
 }
 
 void _expectOutsideScroll(WidgetTester tester, String label) {

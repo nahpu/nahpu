@@ -407,11 +407,17 @@ class BatchSpecimenCard extends StatelessWidget {
                             event.existingLabel ?? event.startDate,
                           ),
                     context.l10n.projectBatchPartCount(specimen.parts.length),
+                    if (specimen.parasites.isNotEmpty)
+                      context.l10n.projectBatchParasiteCount(
+                        specimen.parasites.length,
+                      ),
                   ].join(' · '),
                 ),
                 for (final message in [
                   ...specimen.plan.messages,
                   for (final part in specimen.parts) ...part.plan.messages,
+                  for (final parasite in specimen.parasites)
+                    ...parasite.plan.messages,
                 ])
                   Text(
                     message,

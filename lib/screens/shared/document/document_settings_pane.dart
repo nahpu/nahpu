@@ -22,6 +22,7 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/screens/shared/document/column_picker.dart';
 import 'package:nahpu/screens/shared/document/specimen_selection.dart';
 import 'package:nahpu/screens/shared/document/specimen_part_selection.dart';
+import 'package:nahpu/screens/shared/document/parasite_selection.dart';
 import 'package:nahpu/screens/shared/document/record_selection.dart';
 
 class DocumentSettingsPane extends StatelessWidget {
@@ -825,6 +826,15 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                           0;
                                       label =
                                           l10n.documentSelectionSpecimenParts;
+                                    } else if (recordType ==
+                                        RecordType.parasites) {
+                                      totalCount =
+                                          ref
+                                              .watch(parasiteEntryProvider)
+                                              .value
+                                              ?.length ??
+                                          0;
+                                      label = l10n.documentSelectionParasites;
                                     } else if (recordType == RecordType.site) {
                                       totalCount =
                                           ref
@@ -1768,6 +1778,16 @@ class RecordNavigationButton extends ConsumerWidget {
           ),
         ),
       );
+    } else if (recordType == RecordType.parasites) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => _BlockParasiteSelectionScreen(
+            initialSelectedIds: selectedIds,
+            param: param,
+          ),
+        ),
+      );
     } else if (recordType == RecordType.site) {
       await Navigator.push(
         context,
@@ -1836,6 +1856,49 @@ class _BlockSpecimenPartSelectionScreenState
       appBar: AppBar(title: Text(context.l10n.documentSelectSpecimenParts)),
       body: SafeArea(
         child: SpecimenPartSelectionView(
+          selectedIds: _selectedIds,
+          onSelectionChanged: (next) {
+            setState(() => _selectedIds = next);
+            ref
+                .read(blockRecordSelectionProvider(widget.param).notifier)
+                .updateSelection(next);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _BlockParasiteSelectionScreen extends ConsumerStatefulWidget {
+  const _BlockParasiteSelectionScreen({
+    required this.initialSelectedIds,
+    required this.param,
+  });
+
+  final Set<String> initialSelectedIds;
+  final BlockRecordSelectionParam param;
+
+  @override
+  ConsumerState<_BlockParasiteSelectionScreen> createState() =>
+      _BlockParasiteSelectionScreenState();
+}
+
+class _BlockParasiteSelectionScreenState
+    extends ConsumerState<_BlockParasiteSelectionScreen> {
+  late Set<String> _selectedIds;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIds = Set<String>.from(widget.initialSelectedIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.documentSelectParasites)),
+      body: SafeArea(
+        child: ParasiteSelectionView(
           selectedIds: _selectedIds,
           onSelectionChanged: (next) {
             setState(() => _selectedIds = next);

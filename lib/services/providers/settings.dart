@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/types/parasites.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/types/events.dart';
@@ -24,6 +25,8 @@ const String themeModePrefKey = 'themeMode';
 const String catalogFmtPrefKey = 'catalogFmt';
 const String spatialBasemapStylePrefKey = 'spatialBasemapStyle';
 const String fieldIdModeDefaultMigratedPrefKey = 'fieldIdModeDefaultMigrated';
+const String parasiteVocabularyDefaultsSeededPrefKey =
+    'parasiteVocabularyDefaultsSeeded';
 
 /// The UI language code, kept apart from [regionalFormatPrefKey] so labels
 /// and date formats can differ. Missing follows the device.
@@ -276,6 +279,18 @@ List<String> getDefaultOptionsList(String prefKey) {
       return defaultIdMethods;
     case lifeStagePrefKey:
       return defaultLifeStages;
+    case parasiteCategoryPrefKey:
+      return defaultParasiteCategories;
+    case parasiteDetectionMethodPrefKey:
+      return defaultParasiteDetectionMethods;
+    case parasitePreparationMethodPrefKey:
+      return defaultParasitePreparationMethods;
+    case parasiteAnatomicalLocationPrefKey:
+      return defaultParasiteAnatomicalLocations;
+    case parasiteStoragePrefKey:
+      return defaultParasiteStorage;
+    case parasiteTreatmentPrefKey:
+      return defaultParasiteTreatments;
     default:
       return [];
   }

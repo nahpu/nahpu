@@ -39,6 +39,32 @@ class ParasiteQuery extends DatabaseAccessor<Database>
         .get();
   }
 
+  /// Returns the project's parasites together with their parent specimen.
+  /// The inner join intentionally excludes orphaned parasite rows.
+  Future<List<ParasiteProjectRecord>> getParasitesForProject(
+    String projectUuid,
+  ) async {
+    final query =
+        select(parasite).join([
+            innerJoin(specimen, specimen.uuid.equalsExp(parasite.specimenUuid)),
+          ])
+          ..where(specimen.projectUuid.equals(projectUuid))
+          ..orderBy([
+            OrderingTerm.asc(specimen.fieldNumber),
+            OrderingTerm.asc(parasite.parasiteID),
+            OrderingTerm.asc(parasite.id),
+          ]);
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => ParasiteProjectRecord(
+            parasite: row.readTable(parasite),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   Future<List<String>> getDistinctCategories() {
     return _getDistinctValues(parasite.category);
   }
@@ -103,4 +129,14 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     final rows = await query.get();
     return rows.map((row) => row.read(column)).whereType<String>().toList();
   }
+}
+
+/// A parasite paired with the specimen it was collected from.
+class ParasiteProjectRecord {
+  const ParasiteProjectRecord({required this.parasite, required this.specimen});
+
+  final ParasiteData parasite;
+  final SpecimenData specimen;
+
+  String? get recordId => parasite.id?.toString();
 }
