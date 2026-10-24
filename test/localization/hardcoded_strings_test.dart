@@ -23,11 +23,74 @@ final _localizedFiles = [
     'application',
     'application_settings.dart',
   ),
+  p.join('lib', 'screens', 'settings', 'application', 'data_usage.dart'),
+  p.join('lib', 'screens', 'settings', 'application', 'file_tree.dart'),
+  p.join('lib', 'screens', 'settings', 'application', 'map_settings.dart'),
+  p.join(
+    'lib',
+    'screens',
+    'settings',
+    'application',
+    'project_tool_settings.dart',
+  ),
+  p.join('lib', 'screens', 'settings', 'application', 'selection_review.dart'),
+  p.join('lib', 'screens', 'settings', 'common.dart'),
+  p.join('lib', 'screens', 'settings', 'database', 'db_settings.dart'),
+  p.join('lib', 'screens', 'settings', 'onboarding', 'setup_wizard.dart'),
+  p.join('lib', 'screens', 'settings', 'presets', 'document_presets.dart'),
+  p.join('lib', 'screens', 'settings', 'presets', 'export_preset_edit.dart'),
+  p.join('lib', 'screens', 'settings', 'presets', 'export_preset_fields.dart'),
+  p.join('lib', 'screens', 'settings', 'presets', 'export_presets.dart'),
+  p.join('lib', 'screens', 'settings', 'presets', 'font_manager.dart'),
+  p.join(
+    'lib',
+    'screens',
+    'settings',
+    'presets',
+    'template_preset_deletion.dart',
+  ),
+  p.join(
+    'lib',
+    'screens',
+    'settings',
+    'presets',
+    'template_preset_manager.dart',
+  ),
+  p.join('lib', 'screens', 'settings', 'records', 'catalog_format.dart'),
+  p.join('lib', 'screens', 'settings', 'records', 'collevent_settings.dart'),
+  p.join('lib', 'screens', 'settings', 'records', 'controlled_vocabulary.dart'),
+  p.join('lib', 'screens', 'settings', 'records', 'custom_fields.dart'),
+  p.join('lib', 'screens', 'settings', 'records', 'site_settings.dart'),
+  p.join('lib', 'screens', 'settings', 'records', 'specimen_settings.dart'),
+  p.join('lib', 'screens', 'settings', 'settings.dart'),
+  p.join('lib', 'screens', 'settings', 'settings_destination.dart'),
+  p.join('lib', 'screens', 'settings', 'transfer', 'app_settings_import.dart'),
+  p.join(
+    'lib',
+    'screens',
+    'settings',
+    'transfer',
+    'custom_field_transfer.dart',
+  ),
+  p.join(
+    'lib',
+    'screens',
+    'settings',
+    'transfer',
+    'user_config_transfer_widgets.dart',
+  ),
   p.join('lib', 'screens', 'shared', 'docs', 'documentation_widgets.dart'),
 ];
 
 /// Text that stays the same in every language.
-const _untranslatable = {'NAHPU'};
+const _untranslatable = {
+  'NAHPU',
+  'pt',
+  // Export header formats, shown as the literal header syntax.
+  'table::fieldName',
+  'fieldName',
+  'Darwin Core (dwc:/dcterms:)',
+};
 
 final _literal = RegExp(
   r'''(?:Text\(\s*|(?:title|label|tooltip|hintText|labelText|helperText): )'''
@@ -45,7 +108,11 @@ void main() {
       final literals = _literal
           .allMatches(source)
           .map((match) => match[1]!)
-          .where((text) => !_untranslatable.contains(text))
+          .where(
+            (text) => !_untranslatable.contains(
+              text.replaceAll(_interpolation, '').trim(),
+            ),
+          )
           .where((text) => text.replaceAll(_interpolation, '').contains(_word))
           .toList();
       expect(literals, isEmpty, reason: path);

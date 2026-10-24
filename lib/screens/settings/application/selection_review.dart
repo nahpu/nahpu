@@ -6,6 +6,7 @@ import 'package:nahpu/services/common/file_export_services.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/export/export_progress.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/file_explorer.dart';
@@ -66,10 +67,14 @@ class SelectionGroup {
 }
 
 /// Summarises [paths] by their top-level folder under the app directory.
+///
+/// [applicationFolderLabel] names files sitting directly in the app folder;
+/// screens pass the localized label.
 List<SelectionGroup> summarizeSelection({
   required String root,
   required List<String> paths,
   required NahpuDirectoryNode tree,
+  String applicationFolderLabel = 'Application folder',
 }) {
   final sizes = <String, int>{};
   final counts = <String, int>{};
@@ -127,7 +132,7 @@ List<SelectionGroup> summarizeSelection({
       ),
     );
     return SelectionGroup(
-      label: key == '.' ? 'Application folder' : key,
+      label: key == '.' ? applicationFolderLabel : key,
       detail: detail.join(' · '),
       fileCount: counts[key]!,
       sizeBytes: sizes[key]!,
@@ -231,10 +236,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
 
   Widget _buildDialog(BuildContext context) {
     return AlertDialog(
-      title: Text(
-        '${widget.fileCount} selected '
-        '${widget.fileCount == 1 ? 'file' : 'files'}',
-      ),
+      title: Text(context.l10n.settingsSelectionTitle(widget.fileCount)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: NahpuContentWidth.form),
         child: _scrollableContent(context),
@@ -268,8 +270,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '${widget.fileCount} selected '
-                '${widget.fileCount == 1 ? 'file' : 'files'}',
+                context.l10n.settingsSelectionTitle(widget.fileCount),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               Flexible(child: _scrollableContent(context)),
@@ -287,6 +288,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
   }
 
   Widget _scrollableContent(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       child: Column(
@@ -312,7 +314,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
               formats: DbArchiveFormat.values,
               formatLabel: (format) => format.label,
               extensionForFormat: (format) => format.extension,
-              formatFieldLabel: 'Archive format',
+              formatFieldLabel: l10n.settingsSelectionArchiveFormat,
               onFormatChanged: (format) => setState(() => _format = format),
               onFileNameChanged: (_) => setState(() {}),
               appendDate: _appendDate,
@@ -323,9 +325,7 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
             )
           else
             Text(
-              'Exporting a selection needs a folder to write to, which this '
-              'device cannot offer. You can still delete the selected files '
-              'after reviewing them.',
+              l10n.settingsSelectionNoFolder,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -333,11 +333,8 @@ class _SelectionReviewDialogState extends State<SelectionReviewDialog> {
           const SizedBox(height: NahpuSpacing.lg),
           Text(
             _mode == ExportDestinationMode.chooseDirectory
-                ? 'Exporting writes these files to one compressed archive, then '
-                      'offers to remove the originals. Deleting removes them '
-                      'straight away and cannot be undone.'
-                : 'Deleting removes the selected files straight away and '
-                      'cannot be undone.',
+                ? l10n.settingsSelectionExportNote
+                : l10n.settingsSelectionDeleteNote,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
@@ -392,6 +389,7 @@ class _ReviewActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final colors = Theme.of(context).colorScheme;
     if (compact) {
       return Column(
@@ -402,7 +400,7 @@ class _ReviewActions extends StatelessWidget {
             child: TextButton(
               style: TextButton.styleFrom(foregroundColor: colors.error),
               onPressed: onDelete,
-              child: const Text('Delete permanently'),
+              child: Text(l10n.settingsSelectionDeletePermanently),
             ),
           ),
           const SizedBox(height: NahpuSpacing.xs),
@@ -411,13 +409,13 @@ class _ReviewActions extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(l10n.commonCancel),
               ),
               const SizedBox(width: NahpuSpacing.sm),
               FilledButton.icon(
                 onPressed: onExport,
                 icon: const Icon(Icons.archive_outlined),
-                label: const Text('Export'),
+                label: Text(l10n.commonExport),
               ),
             ],
           ),
@@ -430,18 +428,18 @@ class _ReviewActions extends StatelessWidget {
         TextButton(
           style: TextButton.styleFrom(foregroundColor: colors.error),
           onPressed: onDelete,
-          child: const Text('Delete permanently'),
+          child: Text(l10n.settingsSelectionDeletePermanently),
         ),
         const Spacer(),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
         const SizedBox(width: NahpuSpacing.sm),
         FilledButton.icon(
           onPressed: onExport,
           icon: const Icon(Icons.archive_outlined),
-          label: const Text('Export'),
+          label: Text(l10n.commonExport),
         ),
       ],
     );

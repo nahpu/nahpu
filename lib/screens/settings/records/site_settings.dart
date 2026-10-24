@@ -5,6 +5,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/application/map_settings.dart';
 import 'package:nahpu/screens/settings/records/controlled_vocabulary.dart';
 import 'package:nahpu/services/types/sites.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SiteSelection extends StatefulWidget {
   const SiteSelection({super.key});
@@ -16,27 +17,28 @@ class SiteSelection extends StatefulWidget {
 class _SiteSelectionState extends State<SiteSelection> {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Site settings')),
+      appBar: AppBar(title: Text(l10n.recordsSiteSettings)),
       body: SafeArea(
         child: CommonSettingList(
-          sections: const [
-            SiteMapSettings(),
-            SiteGeographyFieldSettings(),
+          sections: [
+            const SiteMapSettings(),
+            const SiteGeographyFieldSettings(),
             ControlledVocabularySetting(
-              title: 'Site types',
+              title: l10n.recordsSiteTypes,
               typePrefKey: siteTypePrefKey,
               fmtPrefKey: siteTypeFmtPrefKey,
               typeName: 'site type',
             ),
             ControlledVocabularySetting(
-              title: 'Habitat types',
+              title: l10n.recordsSiteHabitatTypes,
               typePrefKey: habitatTypePrefKey,
               fmtPrefKey: habitatTypeFmtPrefKey,
               typeName: 'habitat type',
             ),
             ControlledVocabularySetting(
-              title: 'Datums',
+              title: l10n.recordsSiteDatums,
               typePrefKey: datumPrefKey,
               fmtPrefKey: datumFmtPrefKey,
               typeName: 'datum',
@@ -55,7 +57,7 @@ class SiteGeographyFieldSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonSettingSection(
-      title: 'Geography fields',
+      title: context.l10n.recordsSiteGeographyFields,
       isDivided: true,
       children: [
         ref
@@ -91,8 +93,11 @@ class SiteGeographyFieldSettings extends ConsumerWidget {
                 ],
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (error, _) =>
-                  Text('Unable to load geography fields: $error'),
+              error: (error, _) => Text(
+                context.l10n.recordsSiteGeographyFieldsLoadError(
+                  error.toString(),
+                ),
+              ),
             ),
       ],
     );
@@ -105,12 +110,12 @@ class SiteMapSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonSettingSection(
-      title: 'Maps',
+      title: context.l10n.recordsSiteMaps,
       isDivided: true,
       children: [
         CommonSettingTile(
-          title: 'Map layers',
-          label: 'Choose a base layer or import and manage custom layers',
+          title: context.l10n.recordsSiteMapLayers,
+          label: context.l10n.recordsSiteMapLayersLabel,
           icon: Icons.layers_outlined,
           isNavigation: true,
           onTap: () => Navigator.push(

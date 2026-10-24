@@ -8,6 +8,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/screens/shared/file/file_operation.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -49,6 +50,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isLargeScreen = MediaQuery.sizeOf(context).width > 600;
     final availableSections = _source?.preview.includedSections.toSet() ?? {};
     final settingsPane = ScrollableConstrainedLayout(
@@ -101,7 +103,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
           ],
           const SizedBox(height: 24),
           ProgressButton(
-            label: 'Import selected configs',
+            label: l10n.transferImportSelectedConfigs,
             icon: Icons.refresh_rounded,
             isRunning: _isImporting,
             onPressed: _canImport ? _confirmImport : null,
@@ -112,7 +114,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     final previewPane = Padding(
       padding: const EdgeInsets.all(16),
       child: UserConfigPreviewPane(
-        title: 'Will import',
+        title: l10n.transferWillImport,
         preview: _source?.preview,
         selectedSections: _selectedSections,
         isLoading: _isSelectingFile,
@@ -121,7 +123,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Import user configs')),
+      appBar: AppBar(title: Text(l10n.drawerImportUserConfigs)),
       body: SafeArea(
         child: isLargeScreen
             ? Row(
@@ -135,12 +137,15 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
                 children: [
                   TabBar(
                     controller: _tabController,
-                    tabs: const [
+                    tabs: [
                       Tab(
-                        icon: Icon(Icons.settings_outlined),
-                        text: 'Settings',
+                        icon: const Icon(Icons.settings_outlined),
+                        text: l10n.drawerSettings,
                       ),
-                      Tab(icon: Icon(Icons.preview_outlined), text: 'Preview'),
+                      Tab(
+                        icon: const Icon(Icons.preview_outlined),
+                        text: l10n.commonPreview,
+                      ),
                     ],
                   ),
                   Expanded(
@@ -201,16 +206,16 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import selected configs?'),
+        title: Text(context.l10n.transferImportSelectedConfigsConfirm),
         content: _ImportConfirmation(sections: _selectedSections),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Import'),
+            child: Text(context.l10n.commonImport),
           ),
         ],
       ),
@@ -244,7 +249,7 @@ class _AppSettingsImportState extends ConsumerState<AppSettingsImport>
         if (!mounted) return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selected user configs were imported.')),
+        SnackBar(content: Text(context.l10n.transferConfigsImported)),
       );
     } catch (error) {
       if (!mounted) return;
@@ -277,21 +282,18 @@ class _ImportConfirmation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'The selected groups will be replaced. Custom fields are matched '
-          'by template ID and merged, so existing definitions are kept. '
-          'Unselected groups remain unchanged.',
-        ),
+        Text(l10n.transferImportConfirmationBody),
         const SizedBox(height: 12),
         for (final section in userConfigSectionOrder)
           if (sections.contains(section))
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Text('• ${section.label}'),
+              child: Text('• ${section.label(l10n)}'),
             ),
       ],
     );
@@ -316,6 +318,7 @@ class _CustomFieldDestinationCard extends StatelessWidget {
     final value = projectAvailable
         ? destination
         : UserConfigImportDestination.global;
+    final l10n = context.l10n;
     return Card(
       elevation: 0,
       color: Theme.of(
@@ -326,18 +329,18 @@ class _CustomFieldDestinationCard extends StatelessWidget {
         child: DropdownButtonFormField<UserConfigImportDestination>(
           key: ValueKey(value),
           initialValue: value,
-          decoration: const InputDecoration(
-            labelText: 'Custom field destination',
+          decoration: InputDecoration(
+            labelText: l10n.transferCustomFieldDestination,
           ),
           items: [
-            const DropdownMenuItem(
+            DropdownMenuItem(
               value: UserConfigImportDestination.global,
-              child: Text('Global'),
+              child: Text(l10n.transferScopeGlobal),
             ),
             if (projectAvailable)
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: UserConfigImportDestination.currentProject,
-                child: Text('Current project'),
+                child: Text(l10n.transferScopeCurrentProject),
               ),
           ],
           onChanged: enabled

@@ -6,7 +6,8 @@ import 'package:path/path.dart' as p;
 
 void main() {
   final arbDir = Directory(p.join('lib', 'l10n'));
-  final placeholder = RegExp(r'\{(\w+)\}');
+  // Skips ICU branch text such as `=1{block}` or `other{blocks}`.
+  final placeholder = RegExp(r'(?<![\w=])\{(\w+)[},]');
 
   Map<String, String> messages(File file) {
     final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;

@@ -16,6 +16,7 @@ import 'package:nahpu/screens/settings/records/site_settings.dart';
 import 'package:nahpu/screens/settings/records/specimen_settings.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/templates/template_editor_screen.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/settings.dart';
 
 /// A page reachable from the settings section list.
@@ -125,7 +126,11 @@ class _CustomFieldsDestination extends ConsumerWidget {
           loading: () =>
               const Scaffold(body: Center(child: CommonProgressIndicator())),
           error: (error, _) => Scaffold(
-            body: Center(child: Text('Unable to load catalog format: $error')),
+            body: Center(
+              child: Text(
+                context.l10n.settingsNavCatalogFormatLoadError('$error'),
+              ),
+            ),
           ),
         );
   }

@@ -375,4 +375,2776 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get narrativeWriterHint => 'Elija el nombre de una persona';
+
+  @override
+  String get commonDelete => 'Eliminar';
+
+  @override
+  String get commonDone => 'Listo';
+
+  @override
+  String get commonExport => 'Exportar';
+
+  @override
+  String get commonRemove => 'Quitar';
+
+  @override
+  String get commonReset => 'Restablecer';
+
+  @override
+  String get settingsNavCatalogs => 'Catálogos';
+
+  @override
+  String get settingsNavCatalogFormat => 'Formato';
+
+  @override
+  String get settingsNavCatalogFormatLabel => 'Elija el formato del catálogo';
+
+  @override
+  String settingsNavCatalogFormatLoadError(String error) {
+    return 'No se pudo cargar el formato del catálogo: $error';
+  }
+
+  @override
+  String get settingsNavSites => 'Sitios';
+
+  @override
+  String get settingsNavSitesLabel =>
+      'Administre tipos de sitio, tipos de hábitat y datums de coordenadas';
+
+  @override
+  String get settingsNavEvents => 'Eventos';
+
+  @override
+  String get settingsNavEventsLabel =>
+      'Administre actividades, métodos de colecta, funciones del personal y campos ambientales';
+
+  @override
+  String get settingsNavSpecimens => 'Especímenes';
+
+  @override
+  String get settingsNavSpecimensLabel =>
+      'Administre la configuración de campos y de ID de tejidos, y los vocabularios controlados de los formularios de especímenes';
+
+  @override
+  String get settingsNavCustomFields => 'Campos personalizados';
+
+  @override
+  String get settingsNavCustomFieldsLabel =>
+      'Administre campos para sitios, datos ambientales, especímenes, partes y parásitos';
+
+  @override
+  String get settingsNavDatabase => 'Base de datos';
+
+  @override
+  String get settingsNavTaxa => 'Taxones';
+
+  @override
+  String get settingsNavTaxaLabel => 'Administre los registros taxonómicos';
+
+  @override
+  String get settingsNavPersonnel => 'Personal';
+
+  @override
+  String get settingsNavPersonnelLabel =>
+      'Administre los registros del personal';
+
+  @override
+  String get settingsNavBackupDatabaseLabel =>
+      'Copia de seguridad completa de todos los registros y la configuración';
+
+  @override
+  String get settingsNavReplaceDatabase => 'Reemplazar base de datos';
+
+  @override
+  String get settingsNavReplaceDatabaseLabel =>
+      'Reemplace la base de datos actual por otro archivo de base de datos';
+
+  @override
+  String get settingsNavExports => 'Exportaciones';
+
+  @override
+  String get settingsNavTabularData => 'Datos tabulares';
+
+  @override
+  String get settingsNavTabularDataLabel =>
+      'Administre los ajustes predefinidos para exportar en formatos tabulares';
+
+  @override
+  String get settingsNavDocuments => 'Documentos';
+
+  @override
+  String get settingsNavDocumentsLabel =>
+      'Administre los ajustes predefinidos para exportar documentos';
+
+  @override
+  String get settingsNavTemplateEditor => 'Editor de plantillas';
+
+  @override
+  String get settingsNavTemplateEditorLabel =>
+      'Cree y edite plantillas de documentos';
+
+  @override
+  String get settingsCommonSetCaseFormat => 'Elegir mayúsculas y minúsculas';
+
+  @override
+  String get settingsFileTreeEmpty => 'La carpeta de la aplicación está vacía.';
+
+  @override
+  String settingsFileTreeUnlinkedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sin vincular',
+      one: '1 sin vincular',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsFileTreeRemoveEmptyFolder => 'Quitar esta carpeta vacía';
+
+  @override
+  String get settingsFileTreeSelectFolder => 'Seleccionar esta carpeta';
+
+  @override
+  String settingsFileTreeSelectRemovable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Seleccionar los $count archivos que se pueden quitar aquí',
+      one: 'Seleccionar el archivo que se puede quitar aquí',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsFileTreeSaveCopy => 'Guardar una copia';
+
+  @override
+  String get settingsFileTreeRemoveFile => 'Quitar este archivo';
+
+  @override
+  String get settingsFileTreeKept => 'Conservado';
+
+  @override
+  String get settingsSelectionApplicationFolder => 'Carpeta de la aplicación';
+
+  @override
+  String settingsSelectionTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos seleccionados',
+      one: '1 archivo seleccionado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsSelectionArchiveFormat => 'Formato del archivo comprimido';
+
+  @override
+  String get settingsSelectionNoFolder =>
+      'Para exportar una selección se necesita una carpeta donde escribir, y este dispositivo no la ofrece. Aun así, puede eliminar los archivos seleccionados después de revisarlos.';
+
+  @override
+  String get settingsSelectionExportNote =>
+      'Al exportar, estos archivos se guardan en un único archivo comprimido y luego se ofrece quitar los originales. Al eliminar, se quitan de inmediato y no se puede deshacer.';
+
+  @override
+  String get settingsSelectionDeleteNote =>
+      'Al eliminar, los archivos seleccionados se quitan de inmediato y no se puede deshacer.';
+
+  @override
+  String get settingsSelectionDeletePermanently => 'Eliminar definitivamente';
+
+  @override
+  String get settingsMapLayers => 'Capas del mapa';
+
+  @override
+  String get settingsMapPmtilesType => 'Tipo de capa PMTiles';
+
+  @override
+  String settingsMapImportError(String error) {
+    return 'No se pudo importar la capa del mapa: $error';
+  }
+
+  @override
+  String get settingsMapBaseLayer => 'Capa base';
+
+  @override
+  String get settingsMapCustomLayers => 'Capas personalizadas';
+
+  @override
+  String settingsMapLoadError(String error) {
+    return 'No se pudieron cargar las capas personalizadas del mapa: $error';
+  }
+
+  @override
+  String get settingsMapNoCustomLayers =>
+      'No se ha importado ninguna capa personalizada.';
+
+  @override
+  String get settingsMapImportCustomLayer => 'Importar capa personalizada';
+
+  @override
+  String settingsMapKindUnavailableOnLinux(String kind) {
+    return '$kind · no disponible en Linux';
+  }
+
+  @override
+  String get settingsMapConfigureLayer => 'Configurar capa';
+
+  @override
+  String get settingsMapShowLayer => 'Mostrar capa';
+
+  @override
+  String get settingsMapLayerUnavailableOnLinux =>
+      'Esta capa no está disponible en Linux';
+
+  @override
+  String get settingsMapLayerTypeUnavailableOnLinux =>
+      'Este tipo de capa no está disponible en Linux.';
+
+  @override
+  String get settingsMapOpacity => 'Opacidad';
+
+  @override
+  String get settingsMapUseTerrain => 'Usar para el terreno 3D';
+
+  @override
+  String get settingsMapHillshadeNote =>
+      'El sombreado del relieve sigue visible cuando el terreno está desactivado.';
+
+  @override
+  String get settingsMapLayerOrder => 'Orden de las capas';
+
+  @override
+  String get settingsMapMoveEarlier => 'Mover antes';
+
+  @override
+  String get settingsMapMoveLater => 'Mover después';
+
+  @override
+  String get settingsMapDeleteLayer => 'Eliminar capa';
+
+  @override
+  String get settingsMapDeleteLayerTitle => '¿Eliminar la capa del mapa?';
+
+  @override
+  String settingsMapDeleteLayerBody(String name) {
+    return '¿Eliminar $name y sus datos de mapa almacenados?';
+  }
+
+  @override
+  String get settingsMapSupportedFormatsLinux =>
+      'En Linux admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles ráster.';
+
+  @override
+  String get settingsMapSupportedFormats =>
+      'Admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles.';
+
+  @override
+  String get settingsDataUsage => 'Uso de datos';
+
+  @override
+  String get settingsDataUsageLabel =>
+      'Explore y limpie la carpeta de la aplicación';
+
+  @override
+  String get settingsDataUsageRescan => 'Volver a analizar';
+
+  @override
+  String get settingsDataUsageFiles => 'Archivos';
+
+  @override
+  String get settingsDataUsageFilesLabel => 'Incluye imágenes y otros archivos';
+
+  @override
+  String get settingsDataUsageMediaFiles => 'Archivos multimedia';
+
+  @override
+  String get settingsDataUsageMediaFilesLabel => 'Imágenes, audio, video';
+
+  @override
+  String get settingsDataUsageTotal => 'Uso total';
+
+  @override
+  String get settingsDataUsageReclaimable => 'Recuperable';
+
+  @override
+  String get settingsDataUsageReclaimableLabel =>
+      'Archivos sin vincular que se pueden quitar';
+
+  @override
+  String get settingsDataUsageNone => 'Ninguno';
+
+  @override
+  String get settingsDataUsageRemoveOriginalsTitle => '¿Quitar los originales?';
+
+  @override
+  String settingsDataUsageArchiveWritten(
+    int count,
+    String archive,
+    String size,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se guardaron $count archivos en $archive ($size).',
+      one: 'Se guardó 1 archivo en $archive ($size).',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsDataUsageRemoveOriginalsBody =>
+      'Quitarlos de NAHPU libera el espacio. El archivo comprimido conserva su copia, y esto no se puede deshacer.';
+
+  @override
+  String settingsDataUsageExportedTo(String path) {
+    return 'Exportado a $path';
+  }
+
+  @override
+  String settingsDataUsageExportFailed(String error) {
+    return 'La exportación falló: $error';
+  }
+
+  @override
+  String settingsDataUsageSaveCopyFailed(String name, String error) {
+    return 'No se pudo guardar $name: $error';
+  }
+
+  @override
+  String get settingsDataUsageRemoveFileTitle => '¿Quitar este archivo?';
+
+  @override
+  String settingsDataUsageRemoveFileBody(String name, String size) {
+    return '$name ($size) no está vinculado a ningún registro. Esto no se puede deshacer.';
+  }
+
+  @override
+  String get settingsDataUsageRemoveFolderTitle =>
+      '¿Quitar esta carpeta vacía?';
+
+  @override
+  String settingsDataUsageRemoveFolderBody(String name) {
+    return '$name no contiene archivos. Quitarla no afecta a ningún registro.';
+  }
+
+  @override
+  String settingsDataUsageRemovedFolder(String name) {
+    return 'Se quitó $name.';
+  }
+
+  @override
+  String settingsDataUsageRemoveFolderFailed(String name) {
+    return 'No se pudo quitar $name.';
+  }
+
+  @override
+  String settingsDataUsageDeleteSelectionTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Eliminar $count archivos seleccionados?',
+      one: '¿Eliminar 1 archivo seleccionado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsDataUsageDeleteSelectionBody =>
+      'Estos archivos no están vinculados a ningún registro. Esto no se puede deshacer.';
+
+  @override
+  String get settingsDataUsageCollapseAll => 'Contraer todo';
+
+  @override
+  String get settingsDataUsageExpandAll => 'Expandir todo';
+
+  @override
+  String get settingsDataUsageSelectAll => 'Seleccionar todo';
+
+  @override
+  String get settingsDataUsageSelect => 'Seleccionar';
+
+  @override
+  String get settingsDataUsageClear => 'Borrar selección';
+
+  @override
+  String settingsDataUsageReview(int count) {
+    return 'Revisar $count';
+  }
+
+  @override
+  String get settingsDataUsageScanError =>
+      'No se pudo leer la carpeta de la aplicación';
+
+  @override
+  String get settingsDataUsagePruneTitle => 'Quitar archivos sin vincular';
+
+  @override
+  String get settingsDataUsagePruneDescription =>
+      'Archivos que ya no usa ningún registro, como restos de multimedia eliminada o de importaciones canceladas. No se ven afectados los archivos vinculados, las bases de datos y sus copias de seguridad, las fuentes personalizadas, las capas del mapa ni los archivos fuera de las carpetas que administra NAHPU.';
+
+  @override
+  String get settingsDataUsageNothingToReclaim =>
+      'No hay espacio que recuperar.';
+
+  @override
+  String settingsDataUsagePruneButton(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Quitar $count archivos sin vincular ($size)',
+      one: 'Quitar 1 archivo sin vincular ($size)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsDataUsagePruneConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '¿Quitar $count archivos sin vincular?',
+      one: '¿Quitar 1 archivo sin vincular?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsDataUsagePruneConfirmBody(String size) {
+    return 'Esto libera $size. No se ven afectados los archivos aún vinculados a sus registros, su base de datos y sus copias de seguridad, ni sus fuentes personalizadas y capas del mapa.\n\nEsto no se puede deshacer.';
+  }
+
+  @override
+  String settingsDataUsageRemovedSummary(int count, String size) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se quitaron $count archivos ($size).',
+      one: 'Se quitó 1 archivo ($size).',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsDataUsageKeptChanged(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Se conservaron $count archivos porque cambiaron durante el análisis.',
+      one: 'Se conservó 1 archivo porque cambió durante el análisis.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get commonOk => 'Aceptar';
+
+  @override
+  String get recordsCatalogFormat => 'Formato de catálogo';
+
+  @override
+  String get recordsCatalogMeasurementRecords => 'Registros de medidas';
+
+  @override
+  String get recordsCatalogAlwaysShowBatFields =>
+      'Mostrar siempre los campos de murciélagos';
+
+  @override
+  String get recordsCatalogBatFieldsNote =>
+      'Si se activa, los campos específicos de murciélagos se muestran siempre en los campos de medidas de mamíferos. También puede mostrar u ocultar los campos específicos de murciélagos para cada registro de espécimen en la pantalla del registro de espécimen.';
+
+  @override
+  String get recordsVocabularyCaseFormat => 'Formato de mayúsculas';
+
+  @override
+  String recordsVocabularyCaseFormatLoadError(String error) {
+    return 'No se pudo cargar el formato de mayúsculas: $error';
+  }
+
+  @override
+  String get recordsVocabularyCaseAny => 'Sin formato fijo';
+
+  @override
+  String get recordsVocabularyCaseSentence => 'Tipo oración';
+
+  @override
+  String get recordsVocabularyCaseTitle => 'Tipo título';
+
+  @override
+  String get recordsVocabularyCaseUpper => 'Mayúsculas';
+
+  @override
+  String get recordsVocabularyCaseLower => 'Minúsculas';
+
+  @override
+  String get recordsSiteSettings => 'Configuración de sitios';
+
+  @override
+  String get recordsSiteTypes => 'Tipos de sitio';
+
+  @override
+  String get recordsSiteHabitatTypes => 'Tipos de hábitat';
+
+  @override
+  String get recordsSiteDatums => 'Datums';
+
+  @override
+  String get recordsSiteGeographyFields => 'Campos geográficos';
+
+  @override
+  String recordsSiteGeographyFieldsLoadError(String error) {
+    return 'No se pudieron cargar los campos geográficos: $error';
+  }
+
+  @override
+  String get recordsSiteMaps => 'Mapas';
+
+  @override
+  String get recordsSiteMapLayers => 'Capas del mapa';
+
+  @override
+  String get recordsSiteMapLayersLabel =>
+      'Elija una capa base o importe y administre capas personalizadas';
+
+  @override
+  String get recordsCollEventSettings =>
+      'Configuración de eventos de recolección';
+
+  @override
+  String get recordsCollEventPrimaryActivities => 'Actividades principales';
+
+  @override
+  String get recordsCollEventCollectionMethods => 'Métodos de recolección';
+
+  @override
+  String get recordsCollEventPersonnelRoles => 'Funciones del personal';
+
+  @override
+  String get recordsCollEventEnvironmentalDataFields =>
+      'Campos de datos ambientales';
+
+  @override
+  String recordsCollEventEnvironmentalDataFieldsLoadError(String error) {
+    return 'No se pudieron cargar los campos de datos ambientales: $error';
+  }
+
+  @override
+  String get recordsCollEventTemperature => 'Temperatura';
+
+  @override
+  String get recordsCollEventHumidity => 'Humedad';
+
+  @override
+  String get recordsCollEventEnvironmentalMeasurements =>
+      'Mediciones ambientales';
+
+  @override
+  String get recordsCollEventAquaticData => 'Datos acuáticos';
+
+  @override
+  String get recordsCollEventAstronomy => 'Astronomía';
+
+  @override
+  String get recordsSpecimenSettings => 'Configuración de especímenes';
+
+  @override
+  String get recordsSpecimenCaptureRecords => 'Registros de captura';
+
+  @override
+  String get recordsSpecimenAlwaysShowCollector =>
+      'Mostrar siempre el campo de colector';
+
+  @override
+  String get recordsSpecimenIdentificationMethods =>
+      'Métodos de identificación';
+
+  @override
+  String get recordsSpecimenLifeStages => 'Etapas de vida';
+
+  @override
+  String get recordsSpecimenTypes => 'Tipos de espécimen';
+
+  @override
+  String get recordsSpecimenTreatments => 'Tratamientos';
+
+  @override
+  String get recordsSpecimenConditions => 'Condiciones';
+
+  @override
+  String get recordsSpecimenSex => 'Sexo';
+
+  @override
+  String recordsSpecimenSexNote(String male, String female, String unknown) {
+    return '$male, $female y $unknown están siempre disponibles. Agregue términos opcionales con +. Un signo de interrogación registra la incertidumbre del examinador.';
+  }
+
+  @override
+  String recordsSpecimenSexLoadError(String error) {
+    return 'No se pudieron cargar las opciones de sexo: $error';
+  }
+
+  @override
+  String get recordsSpecimenSexSelected => 'Seleccionados';
+
+  @override
+  String get recordsSpecimenSexAdditional => 'Opciones adicionales';
+
+  @override
+  String get recordsSpecimenSexRemoveBlockedTitle =>
+      'No se puede quitar el sexo';
+
+  @override
+  String recordsSpecimenSexRemoveBlockedBody(String sex) {
+    return '$sex se usa en uno o más registros de espécimen. Cambie esos registros antes de quitar esta opción.';
+  }
+
+  @override
+  String get recordsSpecimenParasites => 'Parásitos';
+
+  @override
+  String get recordsSpecimenParasiteIdentification => 'Identificación';
+
+  @override
+  String get recordsSpecimenParasiteCategories => 'Categorías';
+
+  @override
+  String get recordsSpecimenParasiteDetectionMethods => 'Métodos de detección';
+
+  @override
+  String get recordsSpecimenParasitePreparationMethods =>
+      'Métodos de preparación';
+
+  @override
+  String get recordsSpecimenParasiteAnatomicalLocations =>
+      'Ubicaciones anatómicas';
+
+  @override
+  String get recordsSpecimenParasiteStorage => 'Almacenamiento';
+
+  @override
+  String get recordsSpecimenParasiteIdPrefix => 'Prefijo del ID de parásito';
+
+  @override
+  String recordsSpecimenParasiteIdPrefixHint(String example) {
+    return 'Ingrese un prefijo, p. ej. $example';
+  }
+
+  @override
+  String get recordsSpecimenParasiteIdNumber => 'Número del ID de parásito';
+
+  @override
+  String get recordsSpecimenNextNumberHint => 'Ingrese el siguiente número';
+
+  @override
+  String get recordsSpecimenFieldId => 'ID de campo';
+
+  @override
+  String recordsSpecimenFieldIdModeLoadError(String error) {
+    return 'No se pudo cargar el modo de ID de campo: $error';
+  }
+
+  @override
+  String get recordsSpecimenPersonnelId => 'ID del personal';
+
+  @override
+  String get recordsSpecimenPersonnelIdDescription =>
+      'El ID consiste en las iniciales de una persona y un número correlativo. Lo configurará al crear personal con la función de catalogador.';
+
+  @override
+  String get recordsSpecimenProjectId => 'ID del proyecto';
+
+  @override
+  String get recordsSpecimenProjectIdDescription =>
+      'El proyecto mantiene un único número correlativo con un prefijo y un sufijo compartidos.';
+
+  @override
+  String get recordsSpecimenPersonnelFieldIdNoteTitle =>
+      'Los ID de campo del personal requieren un catalogador';
+
+  @override
+  String get recordsSpecimenPersonnelFieldIdNoteBody =>
+      'Agregue una persona con la función de catalogador en el proyecto y asigne un número de campo actual a esa función.';
+
+  @override
+  String get recordsSpecimenAddPersonnel => 'Agregar personal';
+
+  @override
+  String get recordsSpecimenPrefix => 'Prefijo';
+
+  @override
+  String get recordsSpecimenSuffix => 'Sufijo';
+
+  @override
+  String recordsSpecimenExampleHint(String example) {
+    return 'p. ej. $example';
+  }
+
+  @override
+  String get recordsSpecimenCurrentCatalogNumber => 'Número de catálogo actual';
+
+  @override
+  String recordsSpecimenFieldIdPreview(String id) {
+    return 'Vista previa: $id';
+  }
+
+  @override
+  String get recordsSpecimenAutoIncrement =>
+      'Incrementar automáticamente el número de catálogo';
+
+  @override
+  String get recordsSpecimenSaveFieldIdSettings =>
+      'Guardar la configuración de ID de campo';
+
+  @override
+  String get recordsSpecimenFieldIdSettingsSaved =>
+      'Configuración de ID de campo guardada.';
+
+  @override
+  String get recordsSpecimenNoProjectFieldIdTitle =>
+      'Abra un proyecto para configurar los ID de campo del proyecto';
+
+  @override
+  String get recordsSpecimenNoProjectFieldIdBody =>
+      'El prefijo, el número actual y el sufijo se guardan por proyecto.';
+
+  @override
+  String get recordsSpecimenFieldIdChangeTitle =>
+      '¿Cambiar el formato de ID de campo del proyecto?';
+
+  @override
+  String get recordsSpecimenFieldIdChangeBody =>
+      'Cambiar el prefijo o el sufijo del ID de campo del proyecto modifica los ID existentes del proyecto. Es posible que estos identificadores ya se hayan usado en exportaciones o escrito en etiquetas de especímenes. Verifique los nuevos valores antes de cambiarlos.';
+
+  @override
+  String get recordsSpecimenIUnderstand => 'Entiendo';
+
+  @override
+  String get recordsSpecimenTissueId => 'ID de tejido';
+
+  @override
+  String get recordsSpecimenNextTissueId => 'Siguiente ID de tejido';
+
+  @override
+  String get recordsSpecimenIndividualTagId => 'ID de etiqueta individual';
+
+  @override
+  String get recordsSpecimenNextTag => 'Siguiente etiqueta';
+
+  @override
+  String get recordsCustomFieldTitle => 'Campos personalizados';
+
+  @override
+  String get recordsCustomFieldFieldsTab => 'Campos';
+
+  @override
+  String get recordsCustomFieldEditField => 'Editar campo';
+
+  @override
+  String recordsCustomFieldLoadError(String error) {
+    return 'No se pudieron cargar los campos: $error';
+  }
+
+  @override
+  String recordsCustomFieldSaved(String name) {
+    return 'Se guardó «$name».';
+  }
+
+  @override
+  String recordsCustomFieldImportQrError(String error) {
+    return 'No se pudo importar el código QR: $error';
+  }
+
+  @override
+  String recordsCustomFieldImportError(String error) {
+    return 'No se pudieron importar los campos personalizados: $error';
+  }
+
+  @override
+  String get recordsCustomFieldImportEmpty =>
+      'Esta configuración de usuario no contiene plantillas de campos personalizados.';
+
+  @override
+  String recordsCustomFieldImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se importaron $count definiciones de campos personalizados.',
+      one: 'Se importó 1 definición de campo personalizado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recordsCustomFieldExportError(String error) {
+    return 'No se pudieron exportar los campos personalizados: $error';
+  }
+
+  @override
+  String recordsCustomFieldExportedTo(String path) {
+    return 'Campos personalizados exportados a $path';
+  }
+
+  @override
+  String get recordsCustomFieldExported => 'Campos personalizados exportados';
+
+  @override
+  String get recordsCustomFieldQrTooLargeTitle =>
+      'El código QR es demasiado grande';
+
+  @override
+  String get recordsCustomFieldQrTooLargeBody =>
+      'Los campos personalizados seleccionados contienen demasiados datos para un solo código QR. Expórtelos como archivo.';
+
+  @override
+  String get recordsCustomFieldExportFile => 'Exportar archivo';
+
+  @override
+  String get recordsCustomFieldDiscardLegacyTitle =>
+      '¿Descartar los valores heredados?';
+
+  @override
+  String recordsCustomFieldDiscardLegacyBody(String name) {
+    return 'Los valores heredados de «$name» no se pueden recuperar después de descartarlos.';
+  }
+
+  @override
+  String get recordsCustomFieldDiscardValues => 'Descartar valores';
+
+  @override
+  String get recordsCustomFieldDeleteTitle =>
+      '¿Eliminar el campo personalizado?';
+
+  @override
+  String recordsCustomFieldDeleteBody(String name) {
+    return '¿Eliminar «$name» de forma permanente? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get recordsCustomFieldSelectFields => 'Seleccionar campos';
+
+  @override
+  String get recordsCustomFieldShowArchived => 'Mostrar campos archivados';
+
+  @override
+  String recordsCustomFieldAllArchived(String location) {
+    return 'Todos los campos personalizados de $location están archivados.';
+  }
+
+  @override
+  String recordsCustomFieldEmpty(String location) {
+    return 'Aún no hay campos personalizados en $location.';
+  }
+
+  @override
+  String get recordsCustomFieldAdd => 'Agregar campo personalizado';
+
+  @override
+  String get recordsCustomFieldArchived => 'Archivado';
+
+  @override
+  String get recordsCustomFieldActive => 'Activo';
+
+  @override
+  String get recordsCustomFieldDefinitionActions => 'Acciones de la definición';
+
+  @override
+  String get recordsCustomFieldMoveUp => 'Subir';
+
+  @override
+  String get recordsCustomFieldMoveDown => 'Bajar';
+
+  @override
+  String get recordsCustomFieldRestore => 'Restaurar';
+
+  @override
+  String get recordsCustomFieldArchive => 'Archivar';
+
+  @override
+  String get recordsCustomFieldDiscardLegacy => 'Descartar valores heredados';
+
+  @override
+  String get recordsCustomFieldDeleteInUse => 'Eliminar (valores en uso)';
+
+  @override
+  String get recordsCustomFieldSelectPrompt =>
+      'Seleccione un campo personalizado para editarlo o agregue uno nuevo.';
+
+  @override
+  String get recordsCustomFieldNew => 'Nuevo campo personalizado';
+
+  @override
+  String recordsCustomFieldEditName(String name) {
+    return 'Editar $name';
+  }
+
+  @override
+  String recordsCustomFieldShownIn(String location) {
+    return 'Se muestra en $location';
+  }
+
+  @override
+  String get recordsCustomFieldDetails => 'Detalles';
+
+  @override
+  String get recordsCustomFieldStatus => 'Estado';
+
+  @override
+  String get recordsCustomFieldScope => 'Alcance';
+
+  @override
+  String get recordsCustomFieldStoredValues => 'Valores almacenados';
+
+  @override
+  String get recordsCustomFieldLegacyValues => 'Valores heredados';
+
+  @override
+  String get recordsCustomFieldDeletion => 'Eliminación';
+
+  @override
+  String get recordsCustomFieldDeletionAvailable => 'Disponible';
+
+  @override
+  String get recordsCustomFieldDeletionUnavailable =>
+      'No disponible hasta que se borren todos los valores almacenados';
+
+  @override
+  String recordsCustomFieldUsageLoadError(String error) {
+    return 'No se pudo cargar el uso: $error';
+  }
+
+  @override
+  String get recordsCustomFieldProjectUuid => 'UUID del proyecto';
+
+  @override
+  String get recordsCustomFieldDefinitionUuid => 'UUID de la definición';
+
+  @override
+  String get recordsCustomFieldSourceTemplateUuid =>
+      'UUID de la plantilla de origen';
+
+  @override
+  String get recordsCustomFieldNotFromTemplate =>
+      'No se importó desde una plantilla';
+
+  @override
+  String get recordsCustomFieldTypeText => 'Texto';
+
+  @override
+  String get recordsCustomFieldTypeNumber => 'Número';
+
+  @override
+  String get recordsCustomFieldTypeBoolean => 'Sí / No';
+
+  @override
+  String get recordsCustomFieldTypeDropdown => 'Lista desplegable';
+
+  @override
+  String get recordsCustomFieldScopeGlobal => 'Global';
+
+  @override
+  String get recordsCustomFieldScopeProject => 'Proyecto actual';
+
+  @override
+  String get recordsCustomFieldAllCatalogs => 'Todos los formatos de catálogo';
+
+  @override
+  String recordsCustomFieldCatalogOnly(String catalog) {
+    return 'Solo $catalog';
+  }
+
+  @override
+  String get commonSelectAll => 'Seleccionar todo';
+
+  @override
+  String get commonClear => 'Borrar';
+
+  @override
+  String get commonImport => 'Importar';
+
+  @override
+  String get databaseSelectFileFailed => 'No se pudo seleccionar el archivo.';
+
+  @override
+  String get databaseReplaceConfirmTitle => '¿Reemplazar la base de datos?';
+
+  @override
+  String get databaseReplace => 'Reemplazar';
+
+  @override
+  String get databaseRestoreCancelled =>
+      'Restauración cancelada. La base de datos no se reemplazó.';
+
+  @override
+  String get databaseRestoreCannotStop =>
+      'La restauración está reemplazando sus datos y no se puede detener ahora.';
+
+  @override
+  String get databaseCancelRestoreTitle => '¿Cancelar la restauración?';
+
+  @override
+  String get databaseCancelRestoreBody =>
+      'El archivo comprimido aún se está leyendo. Si sale ahora, se cancela la restauración y sus datos actuales no se modifican.';
+
+  @override
+  String get databaseKeepRestoring => 'Continuar restaurando';
+
+  @override
+  String get databaseCancelRestore => 'Cancelar restauración';
+
+  @override
+  String databaseReplaceFailed(String error) {
+    return 'No se pudo reemplazar la base de datos: $error';
+  }
+
+  @override
+  String get databaseReplaceDatabase => 'Reemplazar la base de datos';
+
+  @override
+  String get databaseReplaceWith => 'Reemplazar con';
+
+  @override
+  String get databaseSourceDescription =>
+      'Un archivo de respaldo de NAHPU o un archivo de base de datos SQLite.';
+
+  @override
+  String get databaseNoFileSelected => 'Ningún archivo seleccionado';
+
+  @override
+  String get databaseBrowse => 'Examinar';
+
+  @override
+  String get databaseChangeFile => 'Cambiar';
+
+  @override
+  String get databaseClearFile => 'Quitar archivo';
+
+  @override
+  String get databaseSupportedFormats => 'ZIP, TAR.GZ o SQLITE3';
+
+  @override
+  String get databaseCannotRestore => 'No se puede restaurar';
+
+  @override
+  String get databaseSqliteDatabase => 'Base de datos SQLite';
+
+  @override
+  String get databaseBackupArchive => 'Archivo de respaldo de NAHPU';
+
+  @override
+  String databaseBackupArchiveRestores(String database) {
+    return 'Archivo de respaldo de NAHPU · restaura $database';
+  }
+
+  @override
+  String get databaseBeforeReplacing => 'Antes de reemplazar';
+
+  @override
+  String get databaseReplaceWarning =>
+      'Esta acción reemplazará todos los registros de NAHPU. Los archivos multimedia o de configuración que coincidan con el archivo de respaldo se sobrescribirán. Esta acción no se puede deshacer.';
+
+  @override
+  String get databaseBackupFirst => 'Respaldar primero los datos actuales';
+
+  @override
+  String get databaseBackupFirstSubtitle =>
+      'Guarda un archivo completo, incluidos los archivos multimedia, en la carpeta de respaldos de NAHPU';
+
+  @override
+  String get databaseNoSafetyBackup =>
+      'Sin respaldo de seguridad. Sus registros y archivos multimedia actuales no se guardan antes de reemplazarlos.';
+
+  @override
+  String get databaseComparisonTitle => 'Actual y reemplazo';
+
+  @override
+  String get databaseChooseFileToCompare => 'Elija un archivo para comparar.';
+
+  @override
+  String get databaseArchiveIncludesConfigs =>
+      'Este archivo también incluye configuraciones de usuario, que la restauración importa.';
+
+  @override
+  String get databaseSchemaVersion => 'Versión del esquema';
+
+  @override
+  String get databaseAssociatedFiles => 'Archivos asociados';
+
+  @override
+  String get databaseSize => 'Tamaño';
+
+  @override
+  String databaseSchemaUpgraded(int version, int current) {
+    return 'El esquema v$version del reemplazo se actualiza a la v$current después de la restauración.';
+  }
+
+  @override
+  String databaseSchemaNewer(int version) {
+    return 'El esquema v$version del reemplazo es más reciente que esta aplicación.';
+  }
+
+  @override
+  String get databaseTableProjects => 'Proyectos';
+
+  @override
+  String get databaseTablePersonnel => 'Personal';
+
+  @override
+  String get databaseTableTaxa => 'Taxones';
+
+  @override
+  String get databaseTableSites => 'Sitios';
+
+  @override
+  String get databaseTableCollectionEvents => 'Eventos de colecta';
+
+  @override
+  String get databaseTableSpecimens => 'Especímenes';
+
+  @override
+  String get databaseTableNarratives => 'Narrativas';
+
+  @override
+  String get databaseTableMediaRecords => 'Registros multimedia';
+
+  @override
+  String get databaseIssueNotNahpu =>
+      'Este archivo no es una base de datos de NAHPU. Elija un archivo de respaldo o de base de datos de NAHPU.';
+
+  @override
+  String get databaseIssueNewerSchema =>
+      'Esta base de datos se creó con una versión más reciente de NAHPU. Actualice NAHPU y luego restáurela.';
+
+  @override
+  String get databaseIssueUnreadable =>
+      'No se pudo leer esta base de datos. Es posible que el archivo esté dañado.';
+
+  @override
+  String get databaseColumnCurrent => 'Actual';
+
+  @override
+  String get databaseColumnReplacement => 'Reemplazo';
+
+  @override
+  String get databaseColumnChange => 'Cambio';
+
+  @override
+  String get databaseRestoring => 'Restaurando la base de datos';
+
+  @override
+  String get databaseRestoreHint =>
+      'Restaurar un respaldo con muchas fotos puede tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+
+  @override
+  String get databaseChooseDatabase => 'Elegir base de datos';
+
+  @override
+  String get databaseChooseDatabaseBody =>
+      'Este archivo contiene varios archivos de base de datos en su raíz. Elija la base de datos que desea restaurar.';
+
+  @override
+  String get databaseConfirmWithBackup =>
+      'Primero se guarda un respaldo completo de sus datos actuales. ¿Desea continuar?';
+
+  @override
+  String get databaseConfirmWithoutBackup =>
+      'No se hará ningún respaldo, por lo que sus datos actuales no se podrán recuperar. ¿Desea continuar?';
+
+  @override
+  String get databaseReplaceSuccess => 'Listo 🎉';
+
+  @override
+  String get databaseReplaced => '¡La base de datos se reemplazó!';
+
+  @override
+  String get databaseBackupFilePath => 'Ruta del archivo de respaldo:';
+
+  @override
+  String get databaseBackToHome => 'Volver al inicio';
+
+  @override
+  String databaseIosBackupPath(
+    String appDir,
+    String backupDir,
+    String fileName,
+  ) {
+    return 'App Archivos/En mi dispositivo/$appDir/$backupDir/$fileName';
+  }
+
+  @override
+  String get transferCustomFieldsQrTitle =>
+      'Código QR de campos personalizados';
+
+  @override
+  String transferCustomFieldsQrDescription(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Escanee este código desde otro dispositivo con NAHPU para importar $count definiciones de campos personalizados.',
+      one:
+          'Escanee este código desde otro dispositivo con NAHPU para importar 1 definición de campo personalizado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferExportCustomFields => 'Exportar campos personalizados';
+
+  @override
+  String get transferShowQr => 'Mostrar QR';
+
+  @override
+  String get transferExportFile => 'Exportar archivo';
+
+  @override
+  String get transferNoCustomFields =>
+      'No hay campos personalizados disponibles para exportar.';
+
+  @override
+  String transferSelectedCount(int selected, int total) {
+    return '$selected de $total seleccionados';
+  }
+
+  @override
+  String get transferScopeGlobal => 'Global';
+
+  @override
+  String get transferScopeCurrentProject => 'Proyecto actual';
+
+  @override
+  String get transferArchived => 'Archivado';
+
+  @override
+  String get transferImportCustomFields => 'Importar campos personalizados';
+
+  @override
+  String transferReusableDefinitions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count definiciones reutilizables',
+      one: '1 definición reutilizable',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferDestination => 'Destino';
+
+  @override
+  String get transferCustomFieldImportNote =>
+      'Las definiciones se verifican antes de importarlas. Las que coinciden por ID de plantilla se actualizan de forma segura; los demás campos no cambian.';
+
+  @override
+  String get transferImportSelectedConfigs =>
+      'Importar configuraciones seleccionadas';
+
+  @override
+  String get transferWillImport => 'Se importará';
+
+  @override
+  String get transferImportSelectedConfigsConfirm =>
+      '¿Importar las configuraciones seleccionadas?';
+
+  @override
+  String get transferConfigsImported =>
+      'Se importaron las configuraciones de usuario seleccionadas.';
+
+  @override
+  String get transferImportConfirmationBody =>
+      'Los grupos seleccionados se reemplazarán. Los campos personalizados se emparejan por ID de plantilla y se combinan, por lo que se conservan las definiciones existentes. Los grupos no seleccionados no cambian.';
+
+  @override
+  String get transferCustomFieldDestination =>
+      'Destino de los campos personalizados';
+
+  @override
+  String get transferSectionUserConfigs =>
+      'Vocabularios controlados y configuración';
+
+  @override
+  String get transferSectionRecordExportPresets =>
+      'Ajustes predefinidos de exportación tabular';
+
+  @override
+  String get transferSectionTemplatePresets => 'Plantillas de documentos';
+
+  @override
+  String get transferSectionDocumentLayouts =>
+      'Ajustes predefinidos de diseño de documentos';
+
+  @override
+  String get transferSectionTemplateTablePreview =>
+      'Columnas de vista previa de la tabla de plantillas';
+
+  @override
+  String get transferSectionCustomFields => 'Campos personalizados';
+
+  @override
+  String get transferConfigSections => 'Secciones de configuración';
+
+  @override
+  String get transferChooseFileToPreview =>
+      'Elija un archivo de configuración de usuario para ver una vista previa de su contenido.';
+
+  @override
+  String get transferSelectAtLeastOneSection =>
+      'Seleccione al menos una sección de configuración.';
+
+  @override
+  String transferEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas',
+      one: '1 entrada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferNoSavedEntries => 'No hay entradas guardadas';
+
+  @override
+  String get transferOtherSettings => 'Otros ajustes';
+
+  @override
+  String get transferNoItems => 'Sin elementos';
+
+  @override
+  String transferMappingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count asignaciones',
+      one: '1 asignación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get transferIncompatiblePreset => 'Ajuste predefinido incompatible';
+
+  @override
+  String transferBlockCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bloques',
+      one: '1 bloque',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setupReviewSetup => 'Revisar configuración';
+
+  @override
+  String get setupSkipSetup => 'Omitir configuración';
+
+  @override
+  String get setupStepWelcome => 'Bienvenida';
+
+  @override
+  String get setupCatalogFormat => 'Formato de catálogo';
+
+  @override
+  String get setupIdentifiers => 'Identificadores';
+
+  @override
+  String get setupStepSites => 'Sitios';
+
+  @override
+  String get setupStepEvents => 'Eventos';
+
+  @override
+  String get setupStepSpecimens => 'Especímenes';
+
+  @override
+  String get setupParasites => 'Parásitos';
+
+  @override
+  String get setupExportPresets => 'Ajustes de exportación';
+
+  @override
+  String get setupStepFinish => 'Finalizar';
+
+  @override
+  String get setupWelcomeTitle => 'Configure NAHPU';
+
+  @override
+  String get setupWelcomeMessage =>
+      'NAHPU registra especímenes según sus propias convenciones. Aquí se configura el formato del número de catálogo y los vocabularios controlados para sitios, eventos y especímenes.';
+
+  @override
+  String get setupWelcomeCatalogFormat => 'El grupo taxonómico que cataloga.';
+
+  @override
+  String get setupWelcomeIdentifiers =>
+      'Cómo se forman los números de campo y de tejido.';
+
+  @override
+  String get setupControlledVocabularies => 'Vocabularios controlados';
+
+  @override
+  String get setupWelcomeVocabularies =>
+      'Los vocabularios para sitios, eventos y especímenes.';
+
+  @override
+  String get setupWelcomeExportPresets =>
+      'Diseños de impresión y ajustes tabulares incluidos para las exportaciones.';
+
+  @override
+  String get setupWelcomeNotPermanent =>
+      'Esto toma unos minutos y nada aquí es permanente. Puede cambiar cada respuesta más adelante en Configuración o al ejecutar este asistente de nuevo.';
+
+  @override
+  String get setupImportTitle => '¿Ya tiene la configuración de su equipo?';
+
+  @override
+  String get setupImportMessage =>
+      'Un equipo solo necesita configurar esto una vez. Si su equipo ya configuró NAHPU, importe su archivo de configuraciones de usuario y podrá omitir el resto de este asistente. Al final puede exportar la suya para el resto del equipo.';
+
+  @override
+  String get setupCatalogFormatMessage =>
+      'El formato determina qué campos de medidas aparecen en los registros de especímenes.';
+
+  @override
+  String get setupCatalogFormatNote =>
+      'Puede cambiar el formato de catálogo en cualquier momento, y un mismo proyecto puede contener registros en más de un formato. Elija el formato que usará con más frecuencia.';
+
+  @override
+  String setupCatalogFormatLoadError(String error) {
+    return 'No se pudo cargar el formato de catálogo: $error';
+  }
+
+  @override
+  String get setupFieldIdsTitle => 'ID de campo de especímenes';
+
+  @override
+  String get setupFieldIdsMessage =>
+      'Elija su estrategia de ID de campo. Completará la configuración de ID al crear un proyecto nuevo.';
+
+  @override
+  String get setupIdentifiersNote =>
+      'Esta configuración de identificadores puede cambiarse para otro proyecto. Puede ajustarla en Configuración > Catálogos.';
+
+  @override
+  String get setupTissueIdsTitle => 'ID de tejidos';
+
+  @override
+  String get setupTissueIdsMessage =>
+      'Algunas colecciones numeran los tejidos por separado del espécimen. Configúrelo aquí si su colección lo usa. Si no establece un ID de tejido, NAHPU usa automáticamente el ID de campo del espécimen.';
+
+  @override
+  String get setupUseSeparateTissueId => 'Usar un ID de tejido independiente';
+
+  @override
+  String get setupNextTissueId => 'Siguiente ID de tejido';
+
+  @override
+  String get setupSitesTitle => 'Vocabularios de sitios';
+
+  @override
+  String get setupSitesMessage =>
+      'Los vocabularios controlados para los formularios de sitios y coordenadas. Agregue sus propios términos, elimine los que no usará o deje los valores predeterminados. Puede actualizar estas listas más adelante en Configuración > Sitios.';
+
+  @override
+  String get setupSiteTypes => 'Tipos de sitio';
+
+  @override
+  String get setupHabitatTypes => 'Tipos de hábitat';
+
+  @override
+  String get setupDatums => 'Datums';
+
+  @override
+  String get setupEventsTitle => 'Vocabularios de eventos de recolecta';
+
+  @override
+  String get setupEventsMessage =>
+      'Los vocabularios controlados para los eventos de recolecta. Puede actualizar estas listas más adelante en Configuración > Eventos.';
+
+  @override
+  String get setupPrimaryActivities => 'Actividades principales';
+
+  @override
+  String get setupCollectionMethods => 'Métodos de recolecta';
+
+  @override
+  String get setupPersonnelRoles => 'Funciones del personal';
+
+  @override
+  String get setupSpecimensTitle => 'Vocabularios de especímenes';
+
+  @override
+  String get setupSpecimensMessage =>
+      'Los vocabularios controlados para los registros de especímenes. Puede actualizar estas listas más adelante en Configuración > Especímenes.';
+
+  @override
+  String get setupIdentificationMethods => 'Métodos de identificación';
+
+  @override
+  String get setupLifeStages => 'Etapas de vida';
+
+  @override
+  String get setupSpecimenTypes => 'Tipos de espécimen';
+
+  @override
+  String get setupTreatments => 'Tratamientos';
+
+  @override
+  String get setupConditions => 'Condiciones';
+
+  @override
+  String get setupParasitesMessage =>
+      'NAHPU incluye un formulario de parásitos independiente para asociar registros de parásitos con especímenes. El interruptor de abajo le permite configurar los vocabularios controlados para los registros de parásitos.';
+
+  @override
+  String get setupCollectsParasites => 'Recolectaré parásitos';
+
+  @override
+  String get setupParasiteCategories => 'Categorías';
+
+  @override
+  String get setupDetectionMethods => 'Métodos de detección';
+
+  @override
+  String get setupPreparationMethods => 'Métodos de preparación';
+
+  @override
+  String get setupAnatomicalLocations => 'Ubicaciones anatómicas';
+
+  @override
+  String get setupStorage => 'Almacenamiento';
+
+  @override
+  String get setupFinishTitle => 'Todo está configurado';
+
+  @override
+  String get setupFinishMessage =>
+      'NAHPU usará estas convenciones para los registros nuevos.';
+
+  @override
+  String get setupNotSet => 'Sin definir';
+
+  @override
+  String get setupFieldId => 'ID de campo';
+
+  @override
+  String get setupProjectId => 'ID del proyecto';
+
+  @override
+  String get setupPersonnelId => 'ID del personal';
+
+  @override
+  String get setupTissueId => 'ID de tejido';
+
+  @override
+  String get setupTissueNumberedSeparately => 'Numerado por separado';
+
+  @override
+  String get setupTissueFollowsSpecimen => 'Sigue al espécimen';
+
+  @override
+  String get setupParasitesCollected => 'Se recolectan';
+
+  @override
+  String get setupParasitesNotCollected => 'No se recolectan';
+
+  @override
+  String get setupShareTitle => 'Comparta esta configuración con su equipo';
+
+  @override
+  String get setupShareMessage =>
+      'Su equipo solo necesita hacer esto una vez. Exporte estas configuraciones de usuario y compártalas con los miembros de su equipo o colaboradores para que todos trabajen con los mismos vocabularios y ajustes.';
+
+  @override
+  String get setupFinishNote =>
+      'Nada aquí es definitivo. Cambie cualquier ajuste en Configuración o vuelva a ejecutar Configurar NAHPU desde el menú.';
+
+  @override
+  String get setupExportPresetsMessage =>
+      'Estos son los ajustes predeterminados para exportar registros. Los diseños de impresión se usan para etiquetas, marbetes y libretas de campo. Los ajustes tabulares se usan para hojas de cálculo. Puede administrar o crear sus propios ajustes en el menú Configuración.';
+
+  @override
+  String get setupPresetDefaults => 'Predeterminados';
+
+  @override
+  String get setupPresetDefaultsMessage =>
+      'Ajustes adecuados para cualquier formato de catálogo.';
+
+  @override
+  String setupPresetsForFormat(String catalogFormat) {
+    return 'Para $catalogFormat';
+  }
+
+  @override
+  String get setupPresetsForFormatMessage =>
+      'Ajustes opcionales creados para este formato de catálogo.';
+
+  @override
+  String get setupAddSelectedPresets => 'Agregar ajustes seleccionados';
+
+  @override
+  String setupBundledPresetsLoadError(String error) {
+    return 'No se pudieron cargar los ajustes incluidos: $error';
+  }
+
+  @override
+  String setupAddPresetsError(String error) {
+    return 'No se pudieron agregar los ajustes: $error';
+  }
+
+  @override
+  String setupExportPresetCounts(int documentCount, int tabularCount) {
+    return '$documentCount de documento, $tabularCount tabulares';
+  }
+
+  @override
+  String get commonClose => 'Cerrar';
+
+  @override
+  String get commonCreate => 'Crear';
+
+  @override
+  String get commonSelect => 'Seleccionar';
+
+  @override
+  String get presetsTemplateDeleteTitle => 'Eliminar plantilla';
+
+  @override
+  String presetsDeleteNamePrompt(String name) {
+    return '¿Eliminar \"$name\"?';
+  }
+
+  @override
+  String get presetsTemplateUnusedDelete =>
+      'Esta plantilla no se usa y se eliminará de forma permanente.';
+
+  @override
+  String presetsTemplateInUse(int blockCount, int layoutCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      blockCount,
+      locale: localeName,
+      other: '$blockCount bloques',
+      one: '1 bloque',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      layoutCount,
+      locale: localeName,
+      other: '$layoutCount diseños de impresión',
+      one: '1 diseño de impresión',
+    );
+    return 'Esta plantilla se usa en $_temp0 de $_temp1. Elija un reemplazo antes de eliminarla.';
+  }
+
+  @override
+  String presetsTemplateUsageBlocks(
+    String layoutName,
+    int count,
+    String blocks,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'bloques',
+      one: 'bloque',
+    );
+    return '$layoutName: $_temp0 $blocks';
+  }
+
+  @override
+  String get presetsTemplateNoReplacement =>
+      'Cree otra plantilla con el mismo tipo de registro o cambie los bloques de diseño afectados antes de eliminar esta.';
+
+  @override
+  String get presetsTemplateReplacement => 'Plantilla de reemplazo';
+
+  @override
+  String get presetsTemplateReplacementNote =>
+      'El tamaño de página, los márgenes, la cuadrícula y el relleno no cambiarán. Revise los diseños de impresión afectados después del reemplazo.';
+
+  @override
+  String get presetsTemplateEmpty =>
+      'Aún no hay plantillas. Las plantillas definen el contenido que se coloca en los bloques de los diseños de impresión.';
+
+  @override
+  String get presetsTemplateNoMatch =>
+      'Ninguna plantilla coincide con su búsqueda.';
+
+  @override
+  String get presetsTemplateNoneToExport => 'No hay plantillas para exportar';
+
+  @override
+  String get presetsTemplateExportTitle => 'Exportar plantillas';
+
+  @override
+  String presetsTemplateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plantillas',
+      one: '1 plantilla',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsTemplateInvalidFile(String error) {
+    return 'Archivo de plantilla no válido: $error';
+  }
+
+  @override
+  String presetsTemplateImportFailed(String error) {
+    return 'Error al importar las plantillas: $error';
+  }
+
+  @override
+  String presetsTemplateImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se importaron $count plantillas',
+      one: 'Se importó 1 plantilla',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsTemplateImportedPartial(int imported, int offered, int limit) {
+    return 'Se importaron $imported de $offered plantillas (límite: $limit)';
+  }
+
+  @override
+  String presetsTemplateLoadError(String error) {
+    return 'No se pudieron cargar las plantillas: $error';
+  }
+
+  @override
+  String presetsTemplateDeleted(String name) {
+    return 'Se eliminó \"$name\"';
+  }
+
+  @override
+  String presetsTemplateDeletedUpdated(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'actualizaron $count bloques',
+      one: 'actualizó 1 bloque',
+    );
+    return 'Se eliminó \"$name\" y se $_temp0';
+  }
+
+  @override
+  String presetsTemplateDeleteError(String error) {
+    return 'No se pudo eliminar la plantilla: $error';
+  }
+
+  @override
+  String get presetsTemplateSearchHint => 'Buscar plantillas';
+
+  @override
+  String get presetsUnused => 'Sin usar';
+
+  @override
+  String presetsTemplateLayoutCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count diseños',
+      one: '1 diseño',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get presetsTemplateOptions => 'Opciones de plantilla';
+
+  @override
+  String get presetsRecordTypeSpecimen => 'Espécimen';
+
+  @override
+  String get presetsRecordTypeSite => 'Sitio';
+
+  @override
+  String get presetsRecordTypeCollEvent => 'Evento de recolección';
+
+  @override
+  String get presetsRecordTypeNarrative => 'Narrativa';
+
+  @override
+  String get presetsRecordTypeSpecimenParts => 'Partes del espécimen';
+
+  @override
+  String get presetsRecordTypeNone => 'Sin registros';
+
+  @override
+  String presetsFontReadError(String error) {
+    return 'No se pudieron leer las fuentes: $error';
+  }
+
+  @override
+  String get presetsFonts => 'Fuentes';
+
+  @override
+  String presetsFontInstalled(String family) {
+    return 'Se instaló $family';
+  }
+
+  @override
+  String presetsFontInstallError(String error) {
+    return 'No se pudo instalar la fuente: $error';
+  }
+
+  @override
+  String presetsFontInUseTitle(String family) {
+    return '$family está en uso';
+  }
+
+  @override
+  String presetsFontInUseBody(int count, String templates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'estas plantillas',
+      one: 'esta plantilla',
+    );
+    return 'Quite o cambie esta fuente en $_temp0 antes de eliminarla:\n\n$templates';
+  }
+
+  @override
+  String presetsFontDeleteTitle(String family) {
+    return '¿Eliminar $family?';
+  }
+
+  @override
+  String get presetsFontDeleteBody =>
+      'Los archivos de la fuente se quitan de esta instalación. Las plantillas que la usan en otros lugares no cambian.';
+
+  @override
+  String get presetsFontSearch => 'Buscar fuentes';
+
+  @override
+  String get presetsFontInstall => 'Instalar fuente';
+
+  @override
+  String get presetsFontFind => 'Buscar fuentes en línea';
+
+  @override
+  String get presetsFontLicenseNote =>
+      'Descargue una fuente en su navegador y luego instale aquí el archivo .ttf u .otf. Usted es responsable de la licencia de cualquier fuente que instale.';
+
+  @override
+  String get presetsFontNoMatch => 'Ninguna fuente coincide con su búsqueda';
+
+  @override
+  String get presetsFontInstalledByYou => 'Instaladas por usted';
+
+  @override
+  String get presetsFontBundledWithNahpu => 'Incluidas con NAHPU';
+
+  @override
+  String presetsFontFileCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count archivos',
+      one: '1 archivo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsFontUsedByCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Usada en $count plantillas',
+      one: 'Usada en 1 plantilla',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get presetsFontDelete => 'Eliminar fuente';
+
+  @override
+  String get presetsFontSelectToPreview => 'Seleccione una fuente para verla';
+
+  @override
+  String get presetsFontBundled => 'Incluida';
+
+  @override
+  String get presetsFontInstalledLabel => 'Instalada';
+
+  @override
+  String presetsFontUsedBy(String templates) {
+    return 'Usada en $templates';
+  }
+
+  @override
+  String get presetsFontSize => 'Tamaño';
+
+  @override
+  String presetsMaxReached(int max) {
+    return 'Se alcanzó el máximo de $max ajustes predefinidos.';
+  }
+
+  @override
+  String presetsImported(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se importaron $count ajustes predefinidos',
+      one: 'Se importó 1 ajuste predefinido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsImportFailed(String error) {
+    return 'Error al importar los ajustes predefinidos: $error';
+  }
+
+  @override
+  String get presetsNoneToExport => 'No hay ajustes predefinidos para exportar';
+
+  @override
+  String get presetsExportTabularTitle =>
+      'Exportar ajustes predefinidos tabulares';
+
+  @override
+  String presetsTabularCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ajustes predefinidos tabulares',
+      one: '1 ajuste predefinido tabular',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsExportFailed(String error) {
+    return 'Error al exportar los ajustes predefinidos: $error';
+  }
+
+  @override
+  String get presetsTabularTitle =>
+      'Ajustes predefinidos de exportación tabular';
+
+  @override
+  String get presetsTabPresets => 'Ajustes predefinidos';
+
+  @override
+  String get presetsTabEditPreset => 'Editar ajuste predefinido';
+
+  @override
+  String get presetsSelectPresets => 'Seleccionar ajustes predefinidos';
+
+  @override
+  String get presetsTabularEmpty =>
+      'Aún no hay ajustes predefinidos tabulares. Cree o importe uno, o agregue los ajustes predefinidos de su formato de catálogo en Configurar NAHPU.';
+
+  @override
+  String presetsMappingSummary(int count, String recordType) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count asignaciones',
+      one: '1 asignación',
+    );
+    return '$_temp0 · $recordType';
+  }
+
+  @override
+  String get presetsExportThisPreset => 'Exportar este ajuste predefinido';
+
+  @override
+  String presetsErrorDetail(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get presetsDeletePresetTitle => 'Eliminar ajuste predefinido';
+
+  @override
+  String presetsDeletePresetConfirm(String name) {
+    return '¿Está seguro de que desea eliminar el ajuste predefinido \"$name\"?';
+  }
+
+  @override
+  String get presetsSelectToEdit =>
+      'Seleccione un ajuste predefinido para editarlo';
+
+  @override
+  String get presetsNotFound => 'No se encontró el ajuste predefinido';
+
+  @override
+  String get presetsLoadError => 'Error al cargar el ajuste predefinido';
+
+  @override
+  String get presetsNewPreset => 'Nuevo ajuste predefinido';
+
+  @override
+  String get presetsName => 'Nombre del ajuste predefinido';
+
+  @override
+  String get presetsNameExists =>
+      'Ya existe un ajuste predefinido con este nombre';
+
+  @override
+  String get presetsNameEmpty => 'El nombre no puede estar vacío';
+
+  @override
+  String get presetsNameInvalidChars =>
+      'Solo se permiten letras, números, guiones bajos y guiones';
+
+  @override
+  String get presetsPreviewEmptyTitle => 'No hay datos para la vista previa';
+
+  @override
+  String get presetsPreviewEmptyBody =>
+      'Ningún registro coincidió con los filtros seleccionados o no hay asignaciones.';
+
+  @override
+  String presetsPreviewFailed(String error) {
+    return 'No se pudo generar la vista previa: $error';
+  }
+
+  @override
+  String presetsSaveError(String error) {
+    return 'No se pudo guardar: $error';
+  }
+
+  @override
+  String get presetsNameRequired =>
+      'El nombre del ajuste predefinido no puede estar vacío.';
+
+  @override
+  String presetsNameTaken(String name) {
+    return 'Ya existe un ajuste predefinido llamado \"$name\".';
+  }
+
+  @override
+  String presetsUpdateError(String error) {
+    return 'No se pudo actualizar: $error';
+  }
+
+  @override
+  String get presetsDuplicateTitle => 'Duplicar ajuste predefinido';
+
+  @override
+  String presetsDuplicateError(String error) {
+    return 'No se pudo duplicar: $error';
+  }
+
+  @override
+  String presetsEditTitle(String name) {
+    return 'Editar $name';
+  }
+
+  @override
+  String get presetsEditFields => 'Editar campos';
+
+  @override
+  String get presetsPreviewExportTable =>
+      'Vista previa de la tabla de exportación';
+
+  @override
+  String get presetsSaving => 'Guardando…';
+
+  @override
+  String get presetsSavedAutomatically => 'Se guarda automáticamente';
+
+  @override
+  String get presetsRecordType => 'Tipo de registro';
+
+  @override
+  String get presetsSpecimenTaxonGroup => 'Grupo taxonómico del espécimen';
+
+  @override
+  String get presetsHeaderFormat => 'Formato de encabezado generado';
+
+  @override
+  String get presetsHeaderNahpuNamespace =>
+      'Espacio de nombres de NAHPU (nahpu:table.field)';
+
+  @override
+  String presetsPreviewSites(int count) {
+    return 'Vista previa de sitios ($count seleccionados)';
+  }
+
+  @override
+  String presetsPreviewEvents(int count) {
+    return 'Vista previa de eventos ($count seleccionados)';
+  }
+
+  @override
+  String presetsPreviewNarratives(int count) {
+    return 'Vista previa de narrativas ($count seleccionadas)';
+  }
+
+  @override
+  String presetsPreviewSpecimenParts(int count) {
+    return 'Vista previa de partes de espécimen ($count seleccionadas)';
+  }
+
+  @override
+  String presetsPreviewSpecimens(int count) {
+    return 'Vista previa de espécimenes ($count seleccionados)';
+  }
+
+  @override
+  String get presetsPreviewCurrentProject => 'Proyecto actual (ninguno)';
+
+  @override
+  String get presetsDocumentTitle => 'Ajustes predefinidos de documentos';
+
+  @override
+  String get presetsPrintLayouts => 'Diseños de impresión';
+
+  @override
+  String get presetsTemplates => 'Plantillas';
+
+  @override
+  String get presetsDocumentNew => 'Nuevo ajuste predefinido de documento';
+
+  @override
+  String presetsRenamed(String name) {
+    return 'Se cambió el nombre a $name';
+  }
+
+  @override
+  String presetsRenameFailed(String error) {
+    return 'No se pudo cambiar el nombre: $error';
+  }
+
+  @override
+  String get presetsExportPrintLayoutsTitle => 'Exportar diseños de impresión';
+
+  @override
+  String presetsPrintLayoutCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count diseños de impresión',
+      one: '1 diseño de impresión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String presetsDocumentInvalidFile(String error) {
+    return 'Archivo de diseño de documento no válido: $error';
+  }
+
+  @override
+  String get presetsDocumentEmpty =>
+      'Aún no hay diseños de impresión. Cree o importe uno, o cargue los diseños predeterminados.';
+
+  @override
+  String get presetsIncompatible => 'Ajuste predefinido incompatible';
+
+  @override
+  String get presetsIncompatibleBody =>
+      'Este ajuste predefinido no es compatible con la versión actual.';
+
+  @override
+  String get presetsPreviewNoRecords =>
+      'No hay registros de vista previa para este tipo';
+
+  @override
+  String get presetsPreviewSelectSpecimenParts =>
+      'Seleccione partes de espécimen para la vista previa';
+
+  @override
+  String get presetsPreviewSelectSpecimens =>
+      'Seleccione espécimenes para la vista previa';
+
+  @override
+  String get presetsTableColumns => 'Columnas de la tabla';
+
+  @override
+  String get commonApply => 'Aplicar';
+
+  @override
+  String get exportFieldsTitle => 'Editar asignaciones del ajuste';
+
+  @override
+  String get exportFieldsAvailableFields => 'Campos disponibles';
+
+  @override
+  String get exportFieldsSelectedMappings => 'Asignaciones seleccionadas';
+
+  @override
+  String get exportFieldsNoPreviewTitle => 'Sin datos para la vista previa';
+
+  @override
+  String get exportFieldsNoPreviewBody =>
+      'Ningún registro coincide con los filtros seleccionados o las asignaciones están vacías.';
+
+  @override
+  String exportFieldsPreviewFailed(String error) {
+    return 'No se pudo generar la vista previa: $error';
+  }
+
+  @override
+  String get exportFieldsInsertSourceField => 'Insertar campo de origen';
+
+  @override
+  String get exportFieldsDisplayTableField => 'Tabla::Campo';
+
+  @override
+  String get exportFieldsDisplayFieldOnly => 'Solo el campo';
+
+  @override
+  String get exportFieldsOtherFields => 'Otros campos';
+
+  @override
+  String get exportFieldsSelectField => 'Seleccionar campo';
+
+  @override
+  String get exportFieldsChooseField => 'Elija un campo';
+
+  @override
+  String get exportFieldsCloseFieldPicker => 'Cerrar el selector de campos';
+
+  @override
+  String get exportFieldsSearchFields => 'Buscar campos o tablas';
+
+  @override
+  String get exportFieldsNoMatchingFields => 'No hay campos coincidentes.';
+
+  @override
+  String get exportFieldsAddCustomField => 'Agregar campo personalizado';
+
+  @override
+  String get exportFieldsAddNested => 'Agregar anidado';
+
+  @override
+  String get exportFieldsUnnamed => 'Sin nombre';
+
+  @override
+  String exportFieldsCardNested(String name) {
+    return 'Anidado: $name';
+  }
+
+  @override
+  String exportFieldsCardList(String name) {
+    return 'Lista: $name';
+  }
+
+  @override
+  String exportFieldsCardField(String name) {
+    return 'Campo: $name';
+  }
+
+  @override
+  String exportFieldsCardCustom(String name) {
+    return 'Personalizado: $name';
+  }
+
+  @override
+  String exportFieldsCardIndexedColumns(String style) {
+    return 'Columnas indexadas · $style';
+  }
+
+  @override
+  String get exportFieldsCardDarwinCoreSeparator =>
+      'Una columna · separador \" | \" de Darwin Core';
+
+  @override
+  String exportFieldsCardSeparator(String separator) {
+    return 'Una columna · separador $separator';
+  }
+
+  @override
+  String exportFieldsCardFormat(String format, String options) {
+    return 'Formato: $format · Opciones: $options';
+  }
+
+  @override
+  String get exportFieldsCustomize => 'Personalizar';
+
+  @override
+  String get exportFieldsOneColumn => 'Una columna';
+
+  @override
+  String get exportFieldsIndexedColumns => 'Columnas indexadas';
+
+  @override
+  String get exportFieldsRepeatedRows => 'Filas repetidas';
+
+  @override
+  String get exportFieldsFormatConditionalBrackets => 'corchetes condicionales';
+
+  @override
+  String get exportFieldsFormatConditionalField => 'campo condicional';
+
+  @override
+  String get exportFieldsFormatConditionalValue => 'valor condicional';
+
+  @override
+  String get exportFieldsMappingType => 'Tipo de asignación';
+
+  @override
+  String get exportFieldsKindSingle => 'Campo único';
+
+  @override
+  String get exportFieldsKindCustom => 'Campo personalizado';
+
+  @override
+  String get exportFieldsKindList => 'Campo de lista';
+
+  @override
+  String get exportFieldsKindNested => 'Registros anidados';
+
+  @override
+  String get exportFieldsSourceField => 'Campo de origen';
+
+  @override
+  String get exportFieldsSourceFieldHelper =>
+      'Elija el campo de NAHPU que proporciona esta columna.';
+
+  @override
+  String get exportFieldsColumnNameOptional =>
+      'Nombre de la columna (opcional)';
+
+  @override
+  String get exportFieldsColumnNameOptionalHelper =>
+      'Déjelo en blanco para usar el nombre del campo de origen.';
+
+  @override
+  String get exportFieldsListOutput => 'Salida de la lista';
+
+  @override
+  String exportFieldsExample(String example) {
+    return 'Ejemplo: $example';
+  }
+
+  @override
+  String get exportFieldsDarwinCoreListSeparator =>
+      'Los valores de lista de Darwin Core se separan con \" | \".';
+
+  @override
+  String get exportFieldsSeparator => 'Separador';
+
+  @override
+  String get exportFieldsSeparatorPipe => 'Barra vertical (A | B)';
+
+  @override
+  String get exportFieldsSeparatorComma => 'Coma (A, B)';
+
+  @override
+  String get exportFieldsSeparatorSemicolon => 'Punto y coma (A; B)';
+
+  @override
+  String get exportFieldsSeparatorSlash => 'Barra (A / B)';
+
+  @override
+  String get exportFieldsSeparatorNewLine => 'Nueva línea';
+
+  @override
+  String get exportFieldsSeparatorBulleted => 'Con viñetas';
+
+  @override
+  String get exportFieldsSeparatorCustom => 'Personalizado';
+
+  @override
+  String get exportFieldsCustomSeparator => 'Separador personalizado';
+
+  @override
+  String get exportFieldsValueFormat => 'Formato del valor';
+
+  @override
+  String get exportFieldsValueNormal => 'Texto normal';
+
+  @override
+  String get exportFieldsValueEncoded => 'Texto codificado';
+
+  @override
+  String get exportFieldsValueCoordinates => 'Coordenadas';
+
+  @override
+  String get exportFieldsValueConditionalBrackets => 'Corchetes condicionales';
+
+  @override
+  String get exportFieldsValueConditionalField => 'Campo condicional';
+
+  @override
+  String get exportFieldsValueConditionalValue => 'Valor condicional';
+
+  @override
+  String get exportFieldsReplacementText => 'Texto de reemplazo';
+
+  @override
+  String get exportFieldsReplacementTextHelper =>
+      'Se escribe cuando se cumple la condición; de lo contrario, se conserva el valor original.';
+
+  @override
+  String get exportFieldsColumnName => 'Nombre de la columna';
+
+  @override
+  String get exportFieldsColumnNameHelper =>
+      'Asigne un nombre a la columna de salida que contiene el valor personalizado.';
+
+  @override
+  String get exportFieldsRelatedRecords => 'Registros relacionados';
+
+  @override
+  String get exportFieldsRelatedRecordsHelper =>
+      'Seleccione el grupo de registros repetidos que desea exportar.';
+
+  @override
+  String get exportFieldsSelectedChildFields =>
+      'Campos secundarios seleccionados';
+
+  @override
+  String get exportFieldsSelectChildFieldHint =>
+      'Seleccione al menos un campo secundario a continuación.';
+
+  @override
+  String get exportFieldsMoveUp => 'Subir';
+
+  @override
+  String get exportFieldsMoveDown => 'Bajar';
+
+  @override
+  String get exportFieldsRemoveField => 'Quitar campo';
+
+  @override
+  String get exportFieldsChooseChildFields => 'Elegir campos secundarios';
+
+  @override
+  String get exportFieldsColumnPrefixOptional =>
+      'Prefijo de columna (opcional)';
+
+  @override
+  String get exportFieldsNestedOutput => 'Salida anidada';
+
+  @override
+  String get exportFieldsNestedOneColumnHint =>
+      'Combina todos los registros secundarios en una sola celda.';
+
+  @override
+  String get exportFieldsNestedIndexedHint =>
+      'Crea un grupo de columnas para cada registro.';
+
+  @override
+  String get exportFieldsNestedRepeatedHint =>
+      'Crea una fila de exportación por cada registro secundario.';
+
+  @override
+  String get exportFieldsNestedRepeatedTaken =>
+      'Otra asignación ya expande las filas de exportación.';
+
+  @override
+  String get exportFieldsFieldSeparator => 'Separador de campos';
+
+  @override
+  String get exportFieldsRecordSeparator => 'Separador de registros';
+
+  @override
+  String get exportFieldsAdvanced => 'Avanzado';
+
+  @override
+  String get exportFieldsRawExpression => 'Expresión de origen sin procesar';
+
+  @override
+  String get exportFieldsRawFormatOption => 'Opción de formato sin procesar';
+
+  @override
+  String get exportFieldsRawFormatOptionHelper =>
+      'Por ejemplo: enum, dms o custom_map:0=No.';
+
+  @override
+  String get exportFieldsEmptyValue => 'Valor vacío';
+
+  @override
+  String get exportFieldsEmptyBlank => 'En blanco';
+
+  @override
+  String get exportFieldsEmptyCustomText => 'Texto personalizado';
+
+  @override
+  String get exportFieldsCustomEmptyText =>
+      'Texto personalizado para valores vacíos';
+
+  @override
+  String get exportFieldsRawNamespace =>
+      'Espacio de nombres sin procesar de registros relacionados';
+
+  @override
+  String exportFieldsErrorReplacement(int number, String error) {
+    return 'Reemplazo $number: $error';
+  }
+
+  @override
+  String get exportFieldsErrorChooseGroup =>
+      'Elija un grupo de registros relacionados.';
+
+  @override
+  String get exportFieldsErrorChooseChild =>
+      'Elija al menos un campo secundario.';
+
+  @override
+  String get exportFieldsErrorSeparatorsEmpty =>
+      'Los separadores de campos y de registros no pueden estar vacíos.';
+
+  @override
+  String get exportFieldsErrorMultiFieldHeader =>
+      'Defina un encabezado personalizado para una asignación concatenada de varios campos.';
+
+  @override
+  String get exportFieldsErrorAddSegment =>
+      'Agregue al menos un campo o segmento de texto.';
+
+  @override
+  String get exportFieldsErrorChooseSource => 'Elija un campo de origen.';
+
+  @override
+  String get exportFieldsErrorCompositeHeader =>
+      'Defina un encabezado personalizado para una asignación compuesta.';
+
+  @override
+  String get exportFieldsErrorIndexedSingleSource =>
+      'Las listas indexadas requieren exactamente un campo de origen.';
+
+  @override
+  String get exportFieldsErrorConditionalSingleSource =>
+      'La salida condicional requiere exactamente un campo de origen.';
+
+  @override
+  String get exportFieldsErrorAddCondition => 'Agregue al menos una condición.';
+
+  @override
+  String get exportFieldsErrorReplacementText =>
+      'Ingrese el texto de reemplazo.';
+
+  @override
+  String get exportFieldsErrorControllingField =>
+      'Elija un campo de control para cada condición de corchetes.';
+
+  @override
+  String get exportFieldsErrorComparisonValue =>
+      'Ingrese un valor de comparación para cada condición de corchetes.';
+
+  @override
+  String get exportFieldsErrorSelfDependency =>
+      'Un campo condicional no puede depender de sí mismo.';
+
+  @override
+  String get exportFieldsCustomValue => 'Valor personalizado';
+
+  @override
+  String get exportFieldsCustomValueHelp =>
+      'Los campos y el texto se escriben de izquierda a derecha. Agregue tantos segmentos como necesite.';
+
+  @override
+  String get exportFieldsCustomValueEmpty =>
+      'Agregue un campo o texto para comenzar.';
+
+  @override
+  String get exportFieldsTextOrSeparator => 'Texto o separador';
+
+  @override
+  String get exportFieldsShowLabel => 'Mostrar etiqueta';
+
+  @override
+  String get exportFieldsEditConditionalText => 'Editar texto condicional';
+
+  @override
+  String get exportFieldsMoveSegmentUp => 'Subir segmento';
+
+  @override
+  String get exportFieldsMoveSegmentDown => 'Bajar segmento';
+
+  @override
+  String get exportFieldsRemoveSegment => 'Quitar segmento';
+
+  @override
+  String get exportFieldsAddField => 'Agregar campo';
+
+  @override
+  String get exportFieldsAddText => 'Agregar texto';
+
+  @override
+  String get exportFieldsAddConditionalText => 'Agregar texto condicional';
+
+  @override
+  String exportFieldsExpression(String expression) {
+    return 'Expresión: $expression';
+  }
+
+  @override
+  String get exportFieldsAddSourceField => 'Agregar campo de origen';
+
+  @override
+  String get exportFieldsConditionalText => 'Texto condicional';
+
+  @override
+  String get exportFieldsTextWhenMatched => 'Texto si se cumple';
+
+  @override
+  String exportFieldsTextWhenMatchedHelper(String example) {
+    return 'Los campos como $example se completan.';
+  }
+
+  @override
+  String get exportFieldsTextOtherwise => 'Texto en caso contrario (opcional)';
+
+  @override
+  String get exportFieldsTextOtherwiseHelper =>
+      'Déjelo vacío para no escribir nada.';
+
+  @override
+  String get exportFieldsSummaryOr => 'o';
+
+  @override
+  String get exportFieldsSummaryAnd => 'y';
+
+  @override
+  String exportFieldsSummaryIf(String conditions, String text) {
+    return 'Si $conditions → \"$text\"';
+  }
+
+  @override
+  String exportFieldsSummaryIfOtherwise(
+    String conditions,
+    String text,
+    String otherwise,
+  ) {
+    return 'Si $conditions → \"$text\"; si no, \"$otherwise\"';
+  }
+
+  @override
+  String exportFieldsSummaryEquals(String field, String value) {
+    return '$field es igual a \"$value\"';
+  }
+
+  @override
+  String exportFieldsSummaryNotEquals(String field, String value) {
+    return '$field no es igual a \"$value\"';
+  }
+
+  @override
+  String exportFieldsSummaryContains(String field, String value) {
+    return '$field contiene \"$value\"';
+  }
+
+  @override
+  String exportFieldsSummaryIsNotEmpty(String field) {
+    return '$field no está vacío';
+  }
+
+  @override
+  String exportFieldsSummaryIsEmpty(String field) {
+    return '$field está vacío';
+  }
+
+  @override
+  String get exportFieldsValueConditions => 'Condiciones del valor';
+
+  @override
+  String get exportFieldsFieldConditions => 'Condiciones de campo';
+
+  @override
+  String get exportFieldsConditionsHelp =>
+      'Compara los valores almacenados sin procesar. Los valores de control en blanco nunca coinciden.';
+
+  @override
+  String get exportFieldsMatchLogic => 'Lógica de coincidencia';
+
+  @override
+  String get exportFieldsMatchAny => 'Cualquier condición (O)';
+
+  @override
+  String get exportFieldsMatchAll => 'Todas las condiciones (Y)';
+
+  @override
+  String get exportFieldsAddCondition => 'Agregar condición';
+
+  @override
+  String get exportFieldsControllingField => 'Campo de control';
+
+  @override
+  String get exportFieldsOperatorEquals => 'Es igual a';
+
+  @override
+  String get exportFieldsOperatorNotEquals => 'No es igual a';
+
+  @override
+  String get exportFieldsOperatorContains => 'Contiene';
+
+  @override
+  String get exportFieldsOperatorIsNotEmpty => 'No está vacío';
+
+  @override
+  String get exportFieldsOperatorIsEmpty => 'Está vacío';
+
+  @override
+  String get exportFieldsValue => 'Valor';
+
+  @override
+  String get exportFieldsRemoveCondition => 'Quitar condición';
+
+  @override
+  String get exportFieldsIndexedColumnNames => 'Nombres de columnas indexadas';
+
+  @override
+  String exportFieldsIndexedUnderscore(String example) {
+    return 'Guion bajo: $example';
+  }
+
+  @override
+  String exportFieldsIndexedCompact(String example) {
+    return 'Compacto: $example';
+  }
+
+  @override
+  String exportFieldsIndexedBrackets(String example) {
+    return 'Corchetes: $example';
+  }
+
+  @override
+  String get exportFieldsOutputExample => 'Ejemplo de salida';
+
+  @override
+  String get exportFieldsOutputExampleEmpty =>
+      'Complete la asignación para ver la forma de su salida.';
+
+  @override
+  String get exportFieldsOutputExampleRows =>
+      'Cada registro secundario crea otra fila de exportación.';
+
+  @override
+  String get exportFieldsCustomizeNested => 'Personalizar asignación anidada';
+
+  @override
+  String get exportFieldsCustomizeField => 'Personalizar asignación de campo';
+
+  @override
+  String get exportFieldsPreviewTitle => 'Vista previa de la exportación';
+
+  @override
+  String exportFieldsPreviewShowing(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Mostrando $shown de $total registros',
+      one: 'Mostrando $shown de 1 registro',
+    );
+    return '$_temp0';
+  }
 }

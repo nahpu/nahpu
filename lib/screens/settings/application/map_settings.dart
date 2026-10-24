@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/map_layers.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/map_layers.dart';
@@ -15,7 +16,7 @@ class MapLayerSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog = ref.watch(userMapCatalogProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Map layers')),
+      appBar: AppBar(title: Text(context.l10n.settingsMapLayers)),
       body: CommonSettingList(
         sections: [
           const _BaseLayerSection(),
@@ -42,7 +43,7 @@ class MapLayerSettings extends ConsumerWidget {
       kind = await showDialog<UserMapLayerKind>(
         context: context,
         builder: (context) => SimpleDialog(
-          title: const Text('PMTiles layer type'),
+          title: Text(context.l10n.settingsMapPmtilesType),
           children: [
             for (final candidate in [
               UserMapLayerKind.rasterPmtiles,
@@ -65,7 +66,7 @@ class MapLayerSettings extends ConsumerWidget {
     } catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to import map layer: $error')),
+        SnackBar(content: Text(context.l10n.settingsMapImportError('$error'))),
       );
     }
   }
@@ -78,7 +79,7 @@ class _BaseLayerSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(spatialBasemapStyleProvider);
     return CommonSettingSection(
-      title: 'Base layer',
+      title: context.l10n.settingsMapBaseLayer,
       isDivided: true,
       children: [
         for (final style in SpatialBasemapStyle.values)
@@ -101,9 +102,9 @@ class _LoadingCustomLayersSection extends StatelessWidget {
   const _LoadingCustomLayersSection();
 
   @override
-  Widget build(BuildContext context) => const CommonSettingSection(
-    title: 'Custom layers',
-    children: [
+  Widget build(BuildContext context) => CommonSettingSection(
+    title: context.l10n.settingsMapCustomLayers,
+    children: const [
       Padding(
         padding: EdgeInsets.all(20),
         child: Center(child: CircularProgressIndicator()),
@@ -119,11 +120,11 @@ class _CustomLayersErrorSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CommonSettingSection(
-    title: 'Custom layers',
+    title: context.l10n.settingsMapCustomLayers,
     children: [
       Padding(
         padding: const EdgeInsets.all(16),
-        child: Text('Unable to load custom map layers: $error'),
+        child: Text(context.l10n.settingsMapLoadError('$error')),
       ),
     ],
   );
@@ -137,13 +138,13 @@ class _CustomLayersSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => CommonSettingSection(
-    title: 'Custom layers',
+    title: context.l10n.settingsMapCustomLayers,
     isDivided: catalog.layers.isNotEmpty,
     children: [
       if (catalog.layers.isEmpty)
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Text('No custom layers have been imported.'),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(context.l10n.settingsMapNoCustomLayers),
         ),
       for (final layer in catalog.layers)
         _CustomLayerTile(
@@ -161,14 +162,14 @@ class _CustomLayersSection extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: onImport,
                 icon: const Icon(Icons.file_open_outlined),
-                label: const Text('Import custom layer'),
+                label: Text(context.l10n.settingsMapImportCustomLayer),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Text(
-              _supportedFormatsMessage(),
+              _supportedFormatsMessage(context.l10n),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -186,25 +187,26 @@ class _CustomLayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final supported = !Platform.isLinux || layer.kind.isSupportedOffline;
     return CommonSettingTile(
       title: layer.name,
       label: supported
           ? layer.kind.label
-          : '${layer.kind.label} · unavailable on Linux',
+          : l10n.settingsMapKindUnavailableOnLinux(layer.kind.label),
       icon: _layerIcon(layer.kind),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            tooltip: 'Configure layer',
+            tooltip: l10n.settingsMapConfigureLayer,
             onPressed: () => _showLayerDetails(context, layer.id),
             icon: const Icon(Icons.tune_outlined),
           ),
           Tooltip(
             message: supported
-                ? 'Show layer'
-                : 'This layer is unavailable on Linux',
+                ? l10n.settingsMapShowLayer
+                : l10n.settingsMapLayerUnavailableOnLinux,
             child: Checkbox(
               value: layer.enabled,
               onChanged: supported
@@ -235,6 +237,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
     final layer = catalog.layers[index];
     final supported = !Platform.isLinux || layer.kind.isSupportedOffline;
     final notifier = ref.read(userMapCatalogProvider.notifier);
+    final l10n = context.l10n;
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -252,14 +255,14 @@ class _LayerDetailsSheet extends ConsumerWidget {
             if (!supported) ...[
               const SizedBox(height: 8),
               Text(
-                'This layer type is unavailable on Linux.',
+                l10n.settingsMapLayerTypeUnavailableOnLinux,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
             const SizedBox(height: 20),
             Row(
               children: [
-                const Text('Opacity'),
+                Text(l10n.settingsMapOpacity),
                 const Spacer(),
                 Text('${(layer.opacity * 100).round()}%'),
               ],
@@ -273,17 +276,18 @@ class _LayerDetailsSheet extends ConsumerWidget {
             if (layer.kind == UserMapLayerKind.demPmtiles)
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Use for 3D terrain'),
-                subtitle: const Text(
-                  'Hillshade remains visible when terrain is off.',
-                ),
+                title: Text(l10n.settingsMapUseTerrain),
+                subtitle: Text(l10n.settingsMapHillshadeNote),
                 value: catalog.activeTerrainLayerId == layer.id,
                 onChanged: supported && layer.enabled
                     ? (enabled) => notifier.setTerrain(layer.id, enabled)
                     : null,
               ),
             const SizedBox(height: 12),
-            Text('Layer order', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              l10n.settingsMapLayerOrder,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -292,7 +296,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
                       ? () => notifier.reorder(index, index - 1)
                       : null,
                   icon: const Icon(Icons.arrow_upward_rounded),
-                  label: const Text('Move earlier'),
+                  label: Text(l10n.settingsMapMoveEarlier),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
@@ -300,7 +304,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
                       ? () => notifier.reorder(index, index + 2)
                       : null,
                   icon: const Icon(Icons.arrow_downward_rounded),
-                  label: const Text('Move later'),
+                  label: Text(l10n.settingsMapMoveLater),
                 ),
               ],
             ),
@@ -308,7 +312,7 @@ class _LayerDetailsSheet extends ConsumerWidget {
             TextButton.icon(
               onPressed: () => _deleteLayer(context, ref, layer),
               icon: const Icon(Icons.delete_outline_rounded),
-              label: const Text('Delete layer'),
+              label: Text(l10n.settingsMapDeleteLayer),
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
               ),
@@ -352,16 +356,16 @@ Future<void> _deleteLayer(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Delete map layer?'),
-      content: Text('Delete ${layer.name} and its stored map data?'),
+      title: Text(context.l10n.settingsMapDeleteLayerTitle),
+      content: Text(context.l10n.settingsMapDeleteLayerBody(layer.name)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete'),
+          child: Text(context.l10n.commonDelete),
         ),
       ],
     ),
@@ -388,6 +392,6 @@ IconData _layerIcon(UserMapLayerKind kind) => switch (kind) {
   UserMapLayerKind.demPmtiles => Icons.terrain_outlined,
 };
 
-String _supportedFormatsMessage() => Platform.isLinux
-    ? 'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on Linux.'
-    : 'Supports GeoJSON, zipped WGS84 Shapefiles, and PMTiles.';
+String _supportedFormatsMessage(AppLocalizations l10n) => Platform.isLinux
+    ? l10n.settingsMapSupportedFormatsLinux
+    : l10n.settingsMapSupportedFormats;

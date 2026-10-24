@@ -86,7 +86,7 @@ void main() {
       await tester.pumpWidget(
         _settingsHarness(
           const ControlledVocabularySetting(
-            title: 'specimen types',
+            title: 'Specimen Types',
             typePrefKey: specimenTypePrefKey,
             fmtPrefKey: specimenTypeFmtPrefKey,
             typeName: 'specimen type',
@@ -179,7 +179,7 @@ void main() {
               typeName: 'category',
             ),
             ControlledVocabularySetting(
-              title: 'Detection methods',
+              title: 'Detection Methods',
               typePrefKey: parasiteDetectionMethodPrefKey,
               fmtPrefKey: parasiteDetectionMethodFmtPrefKey,
               typeName: 'detection method',
@@ -241,7 +241,7 @@ void main() {
     await tester.pumpWidget(
       _settingsHarness(
         const ControlledVocabularySetting(
-          title: 'specimen types',
+          title: 'Specimen Types',
           typePrefKey: specimenTypePrefKey,
           fmtPrefKey: specimenTypeFmtPrefKey,
           typeName: 'specimen type',

@@ -17,6 +17,7 @@ import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/custom_fields/custom_field_order.dart';
 import 'package:nahpu/services/export/export_destination.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -75,9 +76,10 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
     final definitions = ref.watch(
       manageableCustomFieldsProvider(widget.projectUuid),
     );
+    final l10n = context.l10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Custom fields'),
+        title: Text(l10n.recordsCustomFieldTitle),
         actions: [
           PresetAppBarActions(
             itemName: 'custom field',
@@ -168,9 +170,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
                 else ...[
                   TabBar(
                     controller: _tabController,
-                    tabs: const [
-                      Tab(text: 'Fields'),
-                      Tab(text: 'Edit field'),
+                    tabs: [
+                      Tab(text: l10n.recordsCustomFieldFieldsTab),
+                      Tab(text: l10n.recordsCustomFieldEditField),
                     ],
                   ),
                   Expanded(
@@ -187,7 +189,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(NahpuSpacing.xl),
-              child: Text('Unable to load fields: $error'),
+              child: Text(l10n.recordsCustomFieldLoadError(error.toString())),
             ),
           ),
         ),
@@ -236,9 +238,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
       _selectedId = saved.id;
       _isCreating = false;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Saved “${saved.name}”.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.recordsCustomFieldSaved(saved.name))),
+    );
   }
 
   void _cancelEdit() {
@@ -289,7 +291,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
       if (!mounted) return;
       await _importSource(source);
     } catch (error) {
-      if (mounted) _showError('Unable to import QR code: $error');
+      if (mounted) {
+        _showError(context.l10n.recordsCustomFieldImportQrError('$error'));
+      }
     } finally {
       await source?.dispose();
     }
@@ -304,7 +308,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
       if (!mounted) return;
       await _importSource(source);
     } catch (error) {
-      if (mounted) _showError('Unable to import custom fields: $error');
+      if (mounted) {
+        _showError(context.l10n.recordsCustomFieldImportError('$error'));
+      }
     } finally {
       await source?.dispose();
     }
@@ -312,9 +318,7 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
 
   Future<void> _importSource(UserConfigImportSource source) async {
     if (source.preview.customFields.isEmpty) {
-      throw const FormatException(
-        'This user-config payload has no custom field templates.',
-      );
+      throw FormatException(context.l10n.recordsCustomFieldImportEmpty);
     }
     final destination = await showCustomFieldImportPreview(
       context: context,
@@ -334,8 +338,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Imported ${source.preview.customFields.length} custom field '
-          '${source.preview.customFields.length == 1 ? 'definition' : 'definitions'}.',
+          context.l10n.recordsCustomFieldImported(
+            source.preview.customFields.length,
+          ),
         ),
       ),
     );
@@ -359,7 +364,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
           await _showQr(choice.ids);
       }
     } catch (error) {
-      if (mounted) _showError('Unable to export custom fields: $error');
+      if (mounted) {
+        _showError(context.l10n.recordsCustomFieldExportError('$error'));
+      }
     }
   }
 
@@ -408,8 +415,8 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
           SnackBar(
             content: Text(
               picked != null
-                  ? 'Custom fields exported to ${output.path}'
-                  : 'Custom fields exported',
+                  ? context.l10n.recordsCustomFieldExportedTo(output.path)
+                  : context.l10n.recordsCustomFieldExported,
             ),
           ),
         );
@@ -427,11 +434,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
     if (!canEncodeQrPayload(payload)) {
       final exportFile = await showAdaptiveConfirmation(
         context: context,
-        title: 'QR code is too large',
-        message:
-            'The selected custom fields contain too much data for one QR '
-            'code. Export them as a file instead.',
-        confirmLabel: 'Export file',
+        title: context.l10n.recordsCustomFieldQrTooLargeTitle,
+        message: context.l10n.recordsCustomFieldQrTooLargeBody,
+        confirmLabel: context.l10n.recordsCustomFieldExportFile,
         confirmIcon: Icons.file_upload_outlined,
       );
       if (exportFile) await _exportFile(definitionIds);
@@ -471,11 +476,11 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
   Future<void> _discardLegacy(CustomFieldDefinitionData definition) async {
     final confirmed = await showAdaptiveConfirmation(
       context: context,
-      title: 'Discard legacy values?',
-      message:
-          'Legacy values for “${definition.name}” cannot be recovered after '
-          'they are discarded.',
-      confirmLabel: 'Discard values',
+      title: context.l10n.recordsCustomFieldDiscardLegacyTitle,
+      message: context.l10n.recordsCustomFieldDiscardLegacyBody(
+        definition.name,
+      ),
+      confirmLabel: context.l10n.recordsCustomFieldDiscardValues,
       isDestructive: true,
     );
     if (!confirmed) return;
@@ -489,11 +494,9 @@ class _CustomFieldsSettingsState extends ConsumerState<CustomFieldsSettings>
   Future<void> _delete(CustomFieldDefinitionData definition) async {
     final confirmed = await showAdaptiveConfirmation(
       context: context,
-      title: 'Delete custom field?',
-      message:
-          'Delete “${definition.name}” permanently? This action cannot be '
-          'undone.',
-      confirmLabel: 'Delete',
+      title: context.l10n.recordsCustomFieldDeleteTitle,
+      message: context.l10n.recordsCustomFieldDeleteBody(definition.name),
+      confirmLabel: context.l10n.commonDelete,
       isDestructive: true,
     );
     if (!confirmed) return;
@@ -666,8 +669,9 @@ class _FieldListColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return FormCard(
-      title: 'Select fields',
+      title: l10n.recordsCustomFieldSelectFields,
       isWithSidePadding: false,
       isExpanded: true,
       child: Column(
@@ -677,7 +681,7 @@ class _FieldListColumn extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
               child: SwitchSettings(
-                label: 'Show archived fields',
+                label: l10n.recordsCustomFieldShowArchived,
                 value: showArchived,
                 onChanged: onShowArchivedChanged,
               ),
@@ -686,10 +690,9 @@ class _FieldListColumn extends StatelessWidget {
             child: definitions.isEmpty
                 ? PresetEmptyState(
                     message: hasArchived
-                        ? 'All custom fields in ${placement.label} are '
-                              'archived.'
-                        : 'No custom fields in ${placement.label} yet.',
-                    secondaryLabel: 'Add custom field',
+                        ? l10n.recordsCustomFieldAllArchived(placement.label)
+                        : l10n.recordsCustomFieldEmpty(placement.label),
+                    secondaryLabel: l10n.recordsCustomFieldAdd,
                     secondaryIcon: Icons.add_circle_outline_rounded,
                     onSecondary: onCreate,
                   )
@@ -736,6 +739,7 @@ class _DefinitionTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final usage = ref.watch(customFieldUsageProvider(definition.id!));
     final currentUsage = usage.when(
       data: (value) => value,
@@ -770,20 +774,20 @@ class _DefinitionTile extends ConsumerWidget {
               ),
               if (definition.archived) ...[
                 const SizedBox(width: NahpuSpacing.md),
-                const BetaBadge(label: 'Archived'),
+                BetaBadge(label: l10n.recordsCustomFieldArchived),
               ],
             ],
           ),
           subtitle: Text(
-            '${_fieldTypeLabel(definition.fieldType)} · '
-            '${_scopeLabel(definition.fieldScope)} · '
-            '${_catalogLabel(definition)}',
+            '${_fieldTypeLabel(l10n, definition.fieldType)} · '
+            '${_scopeLabel(l10n, definition.fieldScope)} · '
+            '${_catalogLabel(l10n, definition)}',
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           trailing: AdaptiveMenuButton<_DefinitionAction>(
-            tooltip: 'Definition actions',
-            itemBuilder: () => _items(currentUsage),
+            tooltip: l10n.recordsCustomFieldDefinitionActions,
+            itemBuilder: () => _items(l10n, currentUsage),
             onSelected: onAction,
           ),
           onTap: onTap,
@@ -792,20 +796,23 @@ class _DefinitionTile extends ConsumerWidget {
     );
   }
 
-  List<AdaptiveMenuItem<_DefinitionAction>> _items(CustomFieldUsage? usage) {
+  List<AdaptiveMenuItem<_DefinitionAction>> _items(
+    AppLocalizations l10n,
+    CustomFieldUsage? usage,
+  ) {
     final moves = this.moves;
     return [
       if (moves != null) ...[
         AdaptiveMenuItem(
           value: _DefinitionAction.up,
           icon: Icons.arrow_upward,
-          label: 'Move up',
+          label: l10n.recordsCustomFieldMoveUp,
           enabled: moves.canMoveUp,
         ),
         AdaptiveMenuItem(
           value: _DefinitionAction.down,
           icon: Icons.arrow_downward,
-          label: 'Move down',
+          label: l10n.recordsCustomFieldMoveDown,
           enabled: moves.canMoveDown,
         ),
       ],
@@ -814,20 +821,24 @@ class _DefinitionTile extends ConsumerWidget {
         icon: definition.archived
             ? Icons.unarchive_outlined
             : Icons.archive_outlined,
-        label: definition.archived ? 'Restore' : 'Archive',
+        label: definition.archived
+            ? l10n.recordsCustomFieldRestore
+            : l10n.recordsCustomFieldArchive,
         hasDividerBefore: true,
       ),
       if (usage?.legacyValueCount case final count? when count > 0)
-        const AdaptiveMenuItem(
+        AdaptiveMenuItem(
           value: _DefinitionAction.discardLegacy,
           icon: Icons.delete_sweep_outlined,
-          label: 'Discard legacy values',
+          label: l10n.recordsCustomFieldDiscardLegacy,
           isDestructive: true,
         ),
       AdaptiveMenuItem(
         value: _DefinitionAction.delete,
         icon: Icons.delete_outline,
-        label: usage?.canDelete == true ? 'Delete' : 'Delete (values in use)',
+        label: usage?.canDelete == true
+            ? l10n.commonDelete
+            : l10n.recordsCustomFieldDeleteInUse,
         enabled: usage?.canDelete ?? false,
         isDestructive: true,
       ),
@@ -862,20 +873,19 @@ class _FieldEditColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final definition = this.definition;
+    final l10n = context.l10n;
     if (!isCreating && definition == null) {
-      return const FormCard(
-        title: 'Edit field',
+      return FormCard(
+        title: l10n.recordsCustomFieldEditField,
         isExpanded: true,
-        child: EmptyDetailsPrompt(
-          message: 'Select a custom field to edit, or add a new one.',
-        ),
+        child: EmptyDetailsPrompt(message: l10n.recordsCustomFieldSelectPrompt),
       );
     }
     final formPlacement = definition?.placement ?? placement;
     return FormCard(
       title: definition == null
-          ? 'New custom field'
-          : 'Edit ${definition.name}',
+          ? l10n.recordsCustomFieldNew
+          : l10n.recordsCustomFieldEditName(definition.name),
       isExpanded: true,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(NahpuSpacing.md),
@@ -883,7 +893,7 @@ class _FieldEditColumn extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Shown in ${formPlacement.label}',
+              l10n.recordsCustomFieldShownIn(formPlacement.label),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -920,48 +930,65 @@ class _DefinitionDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final usage = ref.watch(customFieldUsageProvider(definition.id!));
+    final l10n = context.l10n;
     return NahpuPanel(
       padding: const EdgeInsets.all(NahpuSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Details', style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            l10n.recordsCustomFieldDetails,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: NahpuSpacing.xs),
           _DetailRow(
-            label: 'Status',
-            value: definition.archived ? 'Archived' : 'Active',
+            label: l10n.recordsCustomFieldStatus,
+            value: definition.archived
+                ? l10n.recordsCustomFieldArchived
+                : l10n.recordsCustomFieldActive,
           ),
-          _DetailRow(label: 'Scope', value: _scopeLabel(definition.fieldScope)),
+          _DetailRow(
+            label: l10n.recordsCustomFieldScope,
+            value: _scopeLabel(l10n, definition.fieldScope),
+          ),
           usage.when(
             data: (value) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _DetailRow(
-                  label: 'Stored values',
+                  label: l10n.recordsCustomFieldStoredValues,
                   value: value.valueCount.toString(),
                 ),
                 _DetailRow(
-                  label: 'Legacy values',
+                  label: l10n.recordsCustomFieldLegacyValues,
                   value: value.legacyValueCount.toString(),
                 ),
                 _DetailRow(
-                  label: 'Deletion',
+                  label: l10n.recordsCustomFieldDeletion,
                   value: value.canDelete
-                      ? 'Available'
-                      : 'Unavailable until all stored values are cleared',
+                      ? l10n.recordsCustomFieldDeletionAvailable
+                      : l10n.recordsCustomFieldDeletionUnavailable,
                 ),
               ],
             ),
             loading: () => const LinearProgressIndicator(),
-            error: (error, _) => Text('Unable to load usage: $error'),
+            error: (error, _) =>
+                Text(l10n.recordsCustomFieldUsageLoadError(error.toString())),
           ),
           if (definition.projectUuid != null)
-            _DetailRow(label: 'Project UUID', value: definition.projectUuid!),
-          _DetailRow(label: 'Definition UUID', value: definition.uuid),
+            _DetailRow(
+              label: l10n.recordsCustomFieldProjectUuid,
+              value: definition.projectUuid!,
+            ),
           _DetailRow(
-            label: 'Source template UUID',
+            label: l10n.recordsCustomFieldDefinitionUuid,
+            value: definition.uuid,
+          ),
+          _DetailRow(
+            label: l10n.recordsCustomFieldSourceTemplateUuid,
             value:
-                definition.sourceTemplateUuid ?? 'Not imported from a template',
+                definition.sourceTemplateUuid ??
+                l10n.recordsCustomFieldNotFromTemplate,
           ),
         ],
       ),
@@ -1012,21 +1039,24 @@ List<CustomFieldDefinitionData> _visibleDefinitions(
       .toList(growable: false);
 }
 
-String _fieldTypeLabel(FieldType type) => switch (type) {
-  FieldType.text => 'Text',
-  FieldType.number => 'Number',
-  FieldType.boolean => 'Yes / No',
-  FieldType.dropdown => 'Dropdown',
+String _fieldTypeLabel(AppLocalizations l10n, FieldType type) => switch (type) {
+  FieldType.text => l10n.recordsCustomFieldTypeText,
+  FieldType.number => l10n.recordsCustomFieldTypeNumber,
+  FieldType.boolean => l10n.recordsCustomFieldTypeBoolean,
+  FieldType.dropdown => l10n.recordsCustomFieldTypeDropdown,
 };
 
-String _scopeLabel(FieldScope scope) => switch (scope) {
-  FieldScope.global => 'Global',
-  FieldScope.project => 'Current project',
+String _scopeLabel(AppLocalizations l10n, FieldScope scope) => switch (scope) {
+  FieldScope.global => l10n.recordsCustomFieldScopeGlobal,
+  FieldScope.project => l10n.recordsCustomFieldScopeProject,
 };
 
-String _catalogLabel(CustomFieldDefinitionData definition) {
+String _catalogLabel(
+  AppLocalizations l10n,
+  CustomFieldDefinitionData definition,
+) {
   final catalog = definition.applicableCatalog;
   return catalog == null
-      ? 'All catalog formats'
-      : '${catalogFmtDisplayName(catalog)} only';
+      ? l10n.recordsCustomFieldAllCatalogs
+      : l10n.recordsCustomFieldCatalogOnly(catalogFmtDisplayName(catalog));
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/types/project_tools.dart';
 
@@ -12,13 +13,14 @@ class ProjectToolSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final enabled = ref.watch(projectToolsProvider);
     final notifier = ref.read(projectToolsProvider.notifier);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tools'),
+        title: Text(l10n.settingsTools),
         actions: [
-          TextButton(onPressed: notifier.reset, child: const Text('Reset')),
+          TextButton(onPressed: notifier.reset, child: Text(l10n.commonReset)),
         ],
       ),
       body: CommonSettingList(
