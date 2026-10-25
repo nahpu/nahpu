@@ -93,7 +93,7 @@ class _BatchMediaExportScreenState
         if (!didPop) _confirmLeave();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Export selected media')),
+        appBar: AppBar(title: Text(context.l10n.mediaExportSelected)),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -101,11 +101,9 @@ class _BatchMediaExportScreenState
               final progress = _jobProgress;
               final settingsPane = _isSaving && progress != null
                   ? ExportProgressPanel(
-                      title: 'Exporting media',
+                      title: context.l10n.mediaExporting,
                       progress: progress,
-                      hint:
-                          'Large media selections can take several minutes. '
-                          'Keep NAHPU open until this finishes.',
+                      hint: context.l10n.mediaExportingHint,
                       onCancel: _requestCancel,
                       isCancelling: _isCancelling,
                     )
@@ -223,8 +221,8 @@ class _BatchMediaExportScreenState
                     ),
                   ),
                   ExportActionBar(
-                    label: 'Export media',
-                    repeatLabel: 'Export another',
+                    label: context.l10n.mediaExport,
+                    repeatLabel: context.l10n.projectExportAnother,
                     icon: Icons.archive_outlined,
                     canExport: _canExport,
                     isRunning: _isSaving,
@@ -404,19 +402,16 @@ class _BatchMediaExportScreenState
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel the export?'),
-        content: const Text(
-          'The export is still running. Leaving now cancels it and no file '
-          'will be saved.',
-        ),
+        title: Text(context.l10n.projectExportCancelTitle),
+        content: Text(context.l10n.mediaExportLeaveBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep exporting'),
+            child: Text(context.l10n.projectExportKeepExporting),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel export'),
+            child: Text(context.l10n.projectExportCancel),
           ),
         ],
       ),
@@ -437,7 +432,7 @@ class _BatchMediaExportScreenState
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open the folder: $error')),
+        SnackBar(content: Text(context.l10n.projectOpenFolderFailed('$error'))),
       );
     }
   }
@@ -453,9 +448,9 @@ class _BatchMediaExportScreenState
       await FilePickerServices().saveCopyToDevice(output);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unable to save a copy: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.projectSaveCopyFailed('$error'))),
+      );
     }
   }
 
@@ -527,7 +522,10 @@ class _BatchMediaExportSettings extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Media archive', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            context.l10n.mediaArchive,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: NahpuSpacing.xl),
           SegmentedButton<MediaBatchArchiveFormat>(
             segments: [
@@ -547,7 +545,9 @@ class _BatchMediaExportSettings extends StatelessWidget {
             const SizedBox(height: NahpuSpacing.xl),
             DropdownButtonFormField<MediaExportFormat>(
               initialValue: imageFormat,
-              decoration: const InputDecoration(labelText: 'Image format'),
+              decoration: InputDecoration(
+                labelText: context.l10n.mediaImageFormat,
+              ),
               items: [
                 for (final format in MediaExportFormat.values)
                   DropdownMenuItem(
@@ -564,10 +564,8 @@ class _BatchMediaExportSettings extends StatelessWidget {
             if (imageFormat != MediaExportFormat.original) ...[
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Limit image dimensions'),
-                subtitle: const Text(
-                  'Constrain the longer side without upscaling',
-                ),
+                title: Text(context.l10n.mediaLimitDimensions),
+                subtitle: Text(context.l10n.mediaLimitDimensionsBody),
                 value: limitImageSize,
                 onChanged: enabled ? onLimitImageSizeChanged : null,
               ),
@@ -575,9 +573,9 @@ class _BatchMediaExportSettings extends StatelessWidget {
                 TextField(
                   controller: maxPixelsController,
                   enabled: enabled,
-                  decoration: const InputDecoration(
-                    labelText: 'Maximum width or height (px)',
-                    helperText: 'Applies to whichever side is longer.',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.mediaMaxDimension,
+                    helperText: context.l10n.mediaMaxDimensionHelper,
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -587,7 +585,7 @@ class _BatchMediaExportSettings extends StatelessWidget {
                 const SizedBox(height: NahpuSpacing.lg),
                 Row(
                   children: [
-                    const Text('JPEG quality'),
+                    Text(context.l10n.mediaJpegQuality),
                     const Spacer(),
                     Text('$jpegQuality%'),
                   ],
@@ -649,7 +647,7 @@ class _BatchMediaSummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Archive contents',
+            context.l10n.projectExportArchiveContents,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: NahpuSpacing.lg),
@@ -663,21 +661,36 @@ class _BatchMediaSummary extends StatelessWidget {
           else if (error != null)
             ErrorText(error: error!)
           else if (prepared != null) ...[
-            _SummaryRow(label: 'Selected', value: prepared.requestedCount),
-            _SummaryRow(label: 'Available', value: prepared.items.length),
             _SummaryRow(
-              label: 'Images',
+              label: context.l10n.recordsSpecimenSexSelected,
+              value: prepared.requestedCount,
+            ),
+            _SummaryRow(
+              label: context.l10n.recordsCustomFieldDeletionAvailable,
+              value: prepared.items.length,
+            ),
+            _SummaryRow(
+              label: context.l10n.mediaImages,
               value: prepared.count(MediaKind.image),
             ),
-            _SummaryRow(label: 'Audio', value: prepared.count(MediaKind.audio)),
-            _SummaryRow(label: 'Video', value: prepared.count(MediaKind.video)),
-            _SummaryRow(label: 'Other', value: prepared.count(MediaKind.other)),
+            _SummaryRow(
+              label: context.l10n.mediaAudio,
+              value: prepared.count(MediaKind.audio),
+            ),
+            _SummaryRow(
+              label: context.l10n.mediaVideo,
+              value: prepared.count(MediaKind.video),
+            ),
+            _SummaryRow(
+              label: context.l10n.mediaOther,
+              value: prepared.count(MediaKind.other),
+            ),
             const Divider(),
             ListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
               leading: const Icon(Icons.sd_storage_outlined),
-              title: const Text('Source size'),
+              title: Text(context.l10n.mediaSourceSize),
               trailing: Text(
                 formatByteSize(prepared.sourceBytes),
                 style: Theme.of(context).textTheme.titleMedium,
@@ -685,17 +698,25 @@ class _BatchMediaSummary extends StatelessWidget {
             ),
             if (result != null) ...[
               const Divider(),
-              _SummaryRow(label: 'Exported', value: result!.exportedCount),
-              _SummaryRow(label: 'Skipped', value: result!.skippedCount),
+              _SummaryRow(
+                label: context.l10n.mediaExported,
+                value: result!.exportedCount,
+              ),
+              _SummaryRow(
+                label: context.l10n.projectTransferSkipped,
+                value: result!.skippedCount,
+              ),
             ],
-            if (_warnings(prepared).isNotEmpty) ...[
+            if (_warnings(context.l10n, prepared).isNotEmpty) ...[
               const Divider(),
               Text(
-                '${_warnings(prepared).length} warning(s)',
+                context.l10n.mediaWarningCount(
+                  _warnings(context.l10n, prepared).length,
+                ),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: NahpuSpacing.sm),
-              for (final warning in _warnings(prepared))
+              for (final warning in _warnings(context.l10n, prepared))
                 Padding(
                   padding: const EdgeInsets.only(bottom: NahpuSpacing.sm),
                   child: Text('• $warning'),
@@ -707,7 +728,10 @@ class _BatchMediaSummary extends StatelessWidget {
     );
   }
 
-  List<MediaBatchWarning> _warnings(PreparedMediaBatch prepared) {
+  List<MediaBatchWarning> _warnings(
+    AppLocalizations l10n,
+    PreparedMediaBatch prepared,
+  ) {
     final warnings = <MediaBatchWarning>[
       if (result != null) ...result!.warnings else ...prepared.warnings,
       ...failureWarnings,
@@ -718,9 +742,9 @@ class _BatchMediaSummary extends StatelessWidget {
           if (item.kind == MediaKind.image && !item.canConvertImage)
             MediaBatchWarning(
               fileName: item.fileName,
-              message:
-                  '${item.originalExtension.toUpperCase()} cannot be '
-                  'converted and will remain in its original format.',
+              message: l10n.mediaCannotConvert(
+                item.originalExtension.toUpperCase(),
+              ),
             ),
     ];
     final unique = <String, MediaBatchWarning>{};

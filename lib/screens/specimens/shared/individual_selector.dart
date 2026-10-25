@@ -6,10 +6,11 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Chooses the lot individuals a part or parasite came from.
 ///
-/// Linked individuals show as tags above an "Add individual" dropdown that
+/// Linked individuals show as tags above an context.l10n.fishAddIndividual dropdown that
 /// lists only the ones not yet linked. A tag is removed through its delete
 /// icon after a confirmation, so a stray tap cannot unlink an individual.
 /// [selectedIds] is updated in place. Renders nothing for specimens without
@@ -62,14 +63,14 @@ class SpecimenIndividualSelectorState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Individuals',
+            context.l10n.fishIndividuals,
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: NahpuSpacing.md),
           if (selected.isEmpty)
-            Text('None selected', style: muted)
+            Text(context.l10n.specimenNoneSelected, style: muted)
           else
             Wrap(
               spacing: NahpuSpacing.md,
@@ -81,8 +82,10 @@ class SpecimenIndividualSelectorState
                     child: InputChip(
                       key: ValueKey('individual-selected-${individual.id}'),
                       label: Text(individualShortId(individual)),
-                      deleteButtonTooltipMessage:
-                          'Remove ${individualShortId(individual)}',
+                      deleteButtonTooltipMessage: context.l10n
+                          .specimenRemoveIndividualTooltip(
+                            individualShortId(individual),
+                          ),
                       onDeleted: () => _confirmRemove(individual),
                     ),
                   ),
@@ -93,11 +96,13 @@ class SpecimenIndividualSelectorState
             key: ValueKey('individual-add-$_pickCount'),
             isExpanded: true,
             decoration: InputDecoration(
-              labelText: 'Add individual',
+              labelText: context.l10n.fishAddIndividual,
               prefixIcon: const Icon(Icons.add),
-              helperText: available.isEmpty ? 'All individuals added' : null,
+              helperText: available.isEmpty
+                  ? context.l10n.specimenAllIndividualsAdded
+                  : null,
             ),
-            hint: const Text('Select an individual'),
+            hint: Text(context.l10n.specimenSelectIndividual),
             items: [
               for (final individual in available)
                 DropdownMenuItem(
@@ -141,11 +146,9 @@ class SpecimenIndividualSelectorState
     final label = individualShortId(individual);
     final confirmed = await showAdaptiveConfirmation(
       context: context,
-      title: 'Remove $label?',
-      message:
-          'This record will no longer be linked to individual $label. '
-          'The individual itself is kept.',
-      confirmLabel: 'Remove',
+      title: context.l10n.specimenRemoveIndividualTitle(label),
+      message: context.l10n.specimenRemoveIndividualBody(label),
+      confirmLabel: context.l10n.commonRemove,
       confirmIcon: Icons.link_off,
       isDestructive: true,
     );
@@ -156,12 +159,16 @@ class SpecimenIndividualSelectorState
   String _measurements(SpecimenIndividualData individual) {
     final values = [
       if (individual.standardLength != null)
-        'SL ${individual.standardLength!.truncateZero()} mm',
+        context.l10n.fishStandardLengthValue(
+          individual.standardLength!.truncateZero(),
+        ),
       if (individual.totalLength != null)
-        'TL ${individual.totalLength!.truncateZero()} mm',
+        context.l10n.fishTotalLengthValue(
+          individual.totalLength!.truncateZero(),
+        ),
       if (individual.weight != null)
         '${individual.weight!.truncateZero()} ${individual.weightUnit ?? 'g'}',
     ];
-    return values.isEmpty ? 'Not measured' : values.join(' · ');
+    return values.isEmpty ? context.l10n.fishNotMeasured : values.join(' · ');
   }
 }

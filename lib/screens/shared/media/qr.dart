@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:qr/qr.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Whether this platform can scan codes with the camera.
 bool get supportsCameraScanning =>
@@ -62,7 +63,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_mode.screenTitle)),
+      appBar: AppBar(title: Text(_mode.localizedTitle(context.l10n))),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -176,7 +177,7 @@ class ScannerCameraOverlay extends StatelessWidget {
                     right: 24,
                     top: top + frameHeight + 24,
                     child: Text(
-                      mode.instruction,
+                      mode.localizedInstruction(context.l10n),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white,
@@ -202,7 +203,7 @@ class ScannerCameraOverlay extends StatelessWidget {
                     child: SegmentedButton<ScannerMode>(
                       key: const ValueKey('scanner-mode-selector'),
                       showSelectedIcon: false,
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: ScannerMode.qr,
                           icon: Icon(Icons.qr_code_2_outlined),
@@ -211,7 +212,7 @@ class ScannerCameraOverlay extends StatelessWidget {
                         ButtonSegment(
                           value: ScannerMode.barcode,
                           icon: Icon(Icons.barcode_reader),
-                          label: Text('Barcode'),
+                          label: Text(context.l10n.mediaBarcode),
                         ),
                       ],
                       selected: {mode},
@@ -249,14 +250,14 @@ BarcodeCapture filterScannerCapture(BarcodeCapture capture, ScannerMode mode) {
 }
 
 extension on ScannerMode {
-  String get screenTitle => switch (this) {
-    ScannerMode.qr => 'Scan QR code',
-    ScannerMode.barcode => 'Scan barcode',
+  String localizedTitle(AppLocalizations l10n) => switch (this) {
+    ScannerMode.qr => l10n.mediaScanQrCode,
+    ScannerMode.barcode => l10n.mediaScanBarcode,
   };
 
-  String get instruction => switch (this) {
-    ScannerMode.qr => 'Align the QR code within the frame',
-    ScannerMode.barcode => 'Align the barcode within the frame',
+  String localizedInstruction(AppLocalizations l10n) => switch (this) {
+    ScannerMode.qr => l10n.mediaAlignQrCode,
+    ScannerMode.barcode => l10n.mediaAlignBarcode,
   };
 }
 
@@ -352,13 +353,13 @@ class QrImageView extends StatelessWidget {
             color: backgroundColor,
             borderRadius: BorderRadius.circular(NahpuRadius.xs),
           ),
-          child: const Center(
+          child: Center(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Padding(
                 padding: EdgeInsets.all(NahpuSpacing.md),
                 child: Text(
-                  'Data is too large for a QR code.\nExport it as a file instead.',
+                  context.l10n.mediaQrTooLarge,
                   textAlign: TextAlign.center,
                 ),
               ),

@@ -179,20 +179,20 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Data table'),
+          title: Text(context.l10n.labelProjectToolDataTable),
           actions: [
             AdaptiveMenuButton<DataTableMenuAction>(
-              tooltip: 'More actions',
+              tooltip: context.l10n.dataTableMoreActions,
               itemBuilder: () => [
                 AdaptiveMenuItem(
                   value: DataTableMenuAction.findReplace,
-                  label: 'Find and replace',
+                  label: context.l10n.textReplaceDialogTitle,
                   icon: Icons.find_replace,
                   enabled: _data != null,
                 ),
                 AdaptiveMenuItem(
                   value: DataTableMenuAction.export,
-                  label: 'Export table',
+                  label: context.l10n.projectStatsExportTable,
                   icon: Icons.file_download_outlined,
                   enabled: _data != null,
                 ),
@@ -317,7 +317,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       return DataTableMessage(
         icon: Icons.error_outline,
         message: _errorMessage(_error!),
-        actionLabel: 'Retry',
+        actionLabel: context.l10n.commonRetry,
         onAction: _load,
       );
     }
@@ -336,16 +336,18 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
               _specimenType != SpecimenRecordType.allTaxa
           ? _specimenType.localizedLabel(context.l10n).toLowerCase()
           : null;
-      final records = _type.label.toLowerCase();
+      final records = _type.localizedLabel(context.l10n).toLowerCase();
       return DataTableMessage(
         icon: isFiltered ? Icons.search_off : Icons.table_rows_outlined,
         message: isFiltered
-            ? 'No $records match your search and filters.'
+            ? context.l10n.dataTableNoMatches(records)
             : widget.allProjects
-            ? 'No $records${taxa == null ? '' : ' for $taxa'} yet.'
+            ? (taxa == null
+                  ? context.l10n.dataTableNoRecordsYet(records)
+                  : context.l10n.dataTableNoRecordsForTaxaYet(records, taxa))
             : taxa != null
-            ? 'This project has no $records for $taxa.'
-            : 'This project has no $records yet.',
+            ? context.l10n.dataTableProjectNoRecordsForTaxa(records, taxa)
+            : context.l10n.dataTableProjectNoRecordsYet(records),
       );
     }
     return DataTableGrid(
@@ -415,7 +417,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       ),
     );
     if (!saved || !mounted) return;
-    _showMessage('Saved.');
+    _showMessage(context.l10n.dataTableSaved);
     _invalidateRecordLists();
     _load();
   }
@@ -455,7 +457,9 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
 
   String _errorMessage(Object error) => switch (error) {
     FormatException(:final message) => message,
-    _ => 'Couldn\'t load ${_type.label.toLowerCase()}.',
+    _ => context.l10n.dataTableLoadError(
+      _type.localizedLabel(context.l10n).toLowerCase(),
+    ),
   };
 
   DataTableColumn? _columnFor(String? key) {
@@ -507,7 +511,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     if (!widget.allProjects || _projectUuids.isEmpty) return null;
     final projects = ref.watch(projectListProvider).asData?.value ?? const [];
     final names = {for (final project in projects) project.uuid: project.name};
-    return dataTableProjectScopeLabel([
+    return dataTableProjectScopeLocalizedLabel(context.l10n, [
       for (final uuid in _projectUuids) names[uuid] ?? uuid,
     ]);
   }
@@ -576,7 +580,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   Future<void> _save() async {
     await _edits.save();
     if (mounted && _edits.failedCount > 0) {
-      _showMessage('Some changes couldn\'t be saved. Check the marked cells.');
+      _showMessage(context.l10n.dataTableSomeChangesFailed);
     }
   }
 
@@ -634,7 +638,7 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
     await ref.read(dataTableAutoSaveProvider.notifier).set(value);
     await _edits.setAutoSave(value);
     if (mounted && value && _edits.failedCount > 0) {
-      _showMessage('Some changes couldn\'t be saved. Check the marked cells.');
+      _showMessage(context.l10n.dataTableSomeChangesFailed);
     }
   }
 
@@ -827,7 +831,11 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   void _turnFindPage(DataTablePageData data, int direction) {
     final target = data.page + direction;
     if (target < 0 || target >= data.pageCount) {
-      _showMessage(direction > 0 ? 'No more matches.' : 'No earlier matches.');
+      _showMessage(
+        direction > 0
+            ? context.l10n.dataTableNoMoreMatches
+            : context.l10n.dataTableNoEarlierMatches,
+      );
       return;
     }
     _findAfterLoad = direction;
@@ -867,7 +875,9 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
           pendingOf: _pendingValue,
         );
         if (plan.edits.isEmpty) {
-          _showMessage(_leftAlone(plan) ?? 'This cell can\'t be replaced.');
+          _showMessage(
+            _leftAlone(plan) ?? context.l10n.dataTableCellCannotBeReplaced,
+          );
         } else {
           _edits.commit(plan.edits);
         }
@@ -894,7 +904,9 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
         data.columns,
       );
     } catch (e) {
-      if (mounted) _showMessage('Couldn\'t read records to replace: $e');
+      if (mounted) {
+        _showMessage(context.l10n.dataTableReadForReplaceError('$e'));
+      }
       return;
     } finally {
       if (mounted) {
@@ -911,22 +923,21 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
       pendingOf: _pendingValue,
     );
     if (plan.edits.isEmpty) {
-      _showMessage(_leftAlone(plan) ?? 'Nothing to replace.');
+      _showMessage(_leftAlone(plan) ?? context.l10n.dataTableNothingToReplace);
       return;
     }
     final confirmed = await showAdaptiveConfirmation(
       context: context,
-      title: 'Replace all?',
+      title: context.l10n.dataTableReplaceAllTitle,
       message:
-          'Replace ${_plural(plan.edits.length, 'value')} in '
-          '${_plural(plan.recordCount, 'record')}? '
-          '${_edits.autoSave ? 'Auto-save writes them right away.' : 'They wait for Save.'}',
-      confirmLabel: 'Replace',
+          '${context.l10n.dataTableReplaceAllBody(context.l10n.dataTableValueCount(plan.edits.length), context.l10n.dataTableRecordCount(plan.recordCount))} '
+          '${_edits.autoSave ? context.l10n.dataTableAutoSaveWrites : context.l10n.dataTableWaitForSave}',
+      confirmLabel: context.l10n.databaseReplace,
     );
     if (!confirmed || !mounted) return;
     final accepted = _edits.commit(plan.edits);
     _showMessage(
-      ['Replaced ${_plural(accepted, 'value')}.', ?_leftAlone(plan)].join(' '),
+      [context.l10n.dataTableReplaced(accepted), ?_leftAlone(plan)].join(' '),
     );
   }
 
@@ -934,17 +945,11 @@ class DataTableScreenState extends ConsumerState<DataTableScreen> {
   String? _leftAlone(DataTableReplacePlan plan) {
     final parts = [
       if (plan.skippedChoices > 0)
-        '${_plural(plan.skippedChoices, 'dropdown value')} skipped; '
-            'pick those from their list.',
-      if (plan.invalid > 0)
-        '${_plural(plan.invalid, 'value')} wouldn\'t fit '
-            '${plan.invalid == 1 ? 'its field' : 'their fields'}.',
+        context.l10n.dataTableSkippedChoices(plan.skippedChoices),
+      if (plan.invalid > 0) context.l10n.dataTableInvalidValues(plan.invalid),
     ];
     return parts.isEmpty ? null : parts.join(' ');
   }
-
-  String _plural(int count, String noun) =>
-      count == 1 ? '1 $noun' : '$count ${noun}s';
 
   /// Exports every record the table matches with its visible columns. Unsaved
   /// edits are settled first, so the file holds what is stored.

@@ -15,6 +15,7 @@ import 'package:nahpu/services/specimens/fish_lot_services.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Read-only mean, standard deviation, and range of the lot individuals.
 class FishLotSummary extends ConsumerWidget {
@@ -55,19 +56,19 @@ class FishLotSummary extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final tiles = [
       _MeasurementStatTile(
-        label: 'Standard length',
+        label: context.l10n.fishStandardLengthShort,
         unit: 'mm',
         summary: stats.standardLength,
         fractionDigits: 1,
       ),
       _MeasurementStatTile(
-        label: 'Total length',
+        label: context.l10n.fishTotalLengthShort,
         unit: 'mm',
         summary: stats.totalLength,
         fractionDigits: 1,
       ),
       _MeasurementStatTile(
-        label: 'Weight',
+        label: context.l10n.fishWeight,
         unit: weightUnit,
         summary: stats.weight,
         fractionDigits: 2,
@@ -86,12 +87,15 @@ class FishLotSummary extends ConsumerWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Expanded(
-                child: Text('Lot summary', style: textTheme.titleMedium),
+                child: Text(
+                  context.l10n.fishLotSummary,
+                  style: textTheme.titleMedium,
+                ),
               ),
               Text(
                 total == null
-                    ? '$measured measured'
-                    : '$measured of $total individuals measured',
+                    ? context.l10n.fishMeasuredCount(measured)
+                    : context.l10n.fishMeasuredOfTotal(measured, total),
                 style: textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -184,9 +188,10 @@ class _MeasurementStatTile extends StatelessWidget {
           ),
           Text(
             summary == null
-                ? 'Not measured'
+                ? context.l10n.fishNotMeasured
                 : [
-                    if (sd != null) '± ${_format(sd)} SD',
+                    if (sd != null)
+                      context.l10n.fishStandardDeviation(_format(sd)),
                     'n = ${summary.count}',
                   ].join(' · '),
             style: muted,
@@ -194,7 +199,11 @@ class _MeasurementStatTile extends StatelessWidget {
           if (summary != null) ...[
             const Divider(height: NahpuSpacing.lg),
             Text(
-              'Range ${_format(summary.min)}–${_format(summary.max)} $unit',
+              context.l10n.fishRange(
+                _format(summary.min),
+                _format(summary.max),
+                unit,
+              ),
               style: muted,
             ),
           ],
@@ -240,7 +249,7 @@ class SpecimenIndividualList extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const FormCardSectionLabel(text: 'Individuals'),
+          FormCardSectionLabel(text: context.l10n.fishIndividuals),
           individuals.when(
             data: (data) => Column(
               children: [
@@ -253,7 +262,8 @@ class SpecimenIndividualList extends ConsumerWidget {
               ],
             ),
             loading: () => const LinearProgressIndicator(),
-            error: (error, _) => Text('Unable to load individuals: $error'),
+            error: (error, _) =>
+                Text(context.l10n.fishIndividualsLoadError('$error')),
           ),
           Center(
             child: TextButton.icon(
@@ -267,7 +277,7 @@ class SpecimenIndividualList extends ConsumerWidget {
                 suggestedId: '${(individuals.asData?.value.length ?? 0) + 1}',
               ),
               icon: const Icon(Icons.add),
-              label: const Text('Add individual'),
+              label: Text(context.l10n.fishAddIndividual),
             ),
           ),
         ],
@@ -292,7 +302,7 @@ class _IndividualTile extends ConsumerWidget {
     return ListTile(
       dense: true,
       title: Text(individualLabel(individual)),
-      subtitle: Text(_measurements()),
+      subtitle: Text(_measurements(context.l10n)),
       onTap: () => showIndividualForm(
         context: context,
         specimenUuid: specimenUuid,
@@ -300,35 +310,35 @@ class _IndividualTile extends ConsumerWidget {
         individual: individual,
       ),
       trailing: IconButton(
-        tooltip: 'Delete individual',
+        tooltip: context.l10n.fishDeleteIndividual,
         icon: const Icon(Icons.delete_outline),
         onPressed: () => _confirmDelete(context, ref),
       ),
     );
   }
 
-  String _measurements() {
+  String _measurements(AppLocalizations l10n) {
     final values = [
       if (individual.standardLength != null)
-        'SL ${individual.standardLength!.truncateZero()} mm',
+        l10n.fishStandardLengthValue(individual.standardLength!.truncateZero()),
       if (individual.totalLength != null)
-        'TL ${individual.totalLength!.truncateZero()} mm',
+        l10n.fishTotalLengthValue(individual.totalLength!.truncateZero()),
       if (individual.weight != null)
         '${individual.weight!.truncateZero()} ${individual.weightUnit ?? weightUnit}',
       ?getSpecimenSexLabel(individual.sex),
       if (individual.lifeStage?.isNotEmpty == true) individual.lifeStage!,
     ];
-    return values.isEmpty ? 'No measurements' : values.join(' · ');
+    return values.isEmpty ? l10n.fishNoMeasurements : values.join(' · ');
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showAdaptiveConfirmation(
       context: context,
-      title: 'Delete ${individualLabel(individual)}?',
-      message:
-          'This deletes the individual and unlinks it from any specimen parts '
-          'and parasites.',
-      confirmLabel: 'Delete',
+      title: context.l10n.fishDeleteIndividualTitle(
+        individualLabel(individual),
+      ),
+      message: context.l10n.fishDeleteIndividualBody,
+      confirmLabel: context.l10n.commonDelete,
       confirmIcon: Icons.delete_outline,
       isDestructive: true,
     );
@@ -404,7 +414,7 @@ class IndividualFormState extends ConsumerState<IndividualForm> {
   String? _autoTag;
   int _savedCount = 0;
 
-  /// Bumped to reset the dropdowns after "Save and add another".
+  /// Bumped to reset the dropdowns after context.l10n.fishSaveAndAddAnother.
   int _formVersion = 0;
   bool _isSaving = false;
 
@@ -442,16 +452,16 @@ class IndividualFormState extends ConsumerState<IndividualForm> {
       first: CommonNumField(
         key: const ValueKey('individual-standard-length'),
         controller: ctr.standardLengthCtr,
-        labelText: 'SL (mm)',
-        hintText: 'Standard length',
+        labelText: context.l10n.fishStandardLengthMm,
+        hintText: context.l10n.fishStandardLengthShort,
         isDouble: true,
         isLastField: false,
       ),
       second: CommonNumField(
         key: const ValueKey('individual-total-length'),
         controller: ctr.totalLengthCtr,
-        labelText: 'TL (mm)',
-        hintText: 'Total length',
+        labelText: context.l10n.fishTotalLengthMm,
+        hintText: context.l10n.fishTotalLengthShort,
         isDouble: true,
         isLastField: false,
       ),
@@ -459,40 +469,44 @@ class IndividualFormState extends ConsumerState<IndividualForm> {
     final weightField = CommonNumField(
       key: const ValueKey('individual-weight'),
       controller: ctr.weightCtr,
-      labelText: 'Weight (${widget.weightUnit})',
-      hintText: 'Enter weight',
+      labelText: context.l10n.fishWeightWithUnit(widget.weightUnit),
+      hintText: context.l10n.fishEnterWeight,
       isDouble: true,
       isLastField: false,
     );
     final remarkField = CommonTextField(
       controller: ctr.remarkCtr,
       maxLines: 3,
-      labelText: 'Remarks',
-      hintText: 'Add notes about this individual',
+      labelText: context.l10n.specimenRemarks,
+      hintText: context.l10n.fishIndividualRemarksHint,
       isLastField: true,
       keyboardType: TextInputType.multiline,
     );
     return AdaptiveSheetDialogBody(
-      title: _isAdding ? 'Add individual' : 'Edit individual',
+      title: _isAdding
+          ? context.l10n.fishAddIndividual
+          : context.l10n.fishEditIndividual,
       description: _isAdding
-          ? (total == null ? '$entered entered' : '$entered of $total entered')
+          ? (total == null
+                ? context.l10n.fishEnteredCount(entered)
+                : context.l10n.fishEnteredOfTotal(entered, total))
           : null,
       showCloseButton: !widget.isSheet,
       isCloseEnabled: !_isSaving,
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         if (_isAdding)
           OutlinedButton(
             key: const ValueKey('individual-save-another'),
             onPressed: _isSaving ? null : () => _save(addAnother: true),
-            child: const Text('Save and add another'),
+            child: Text(context.l10n.fishSaveAndAddAnother),
           ),
         PrimaryButton(
           key: const ValueKey('individual-save'),
-          label: 'Save',
+          label: context.l10n.commonSave,
           icon: Icons.save_alt_outlined,
           isRunning: _isSaving,
           onPressed: () => _save(addAnother: false),
@@ -519,14 +533,14 @@ class IndividualFormState extends ConsumerState<IndividualForm> {
                     children: [
                       Expanded(
                         child: _IndividualFormSection(
-                          title: 'Identity',
+                          title: context.l10n.projectIdentity,
                           children: [tagField, sexAndLifeStage],
                         ),
                       ),
                       const SizedBox(width: NahpuSpacing.xxl),
                       Expanded(
                         child: _IndividualFormSection(
-                          title: 'Measurements',
+                          title: context.l10n.fishMeasurements,
                           children: [lengths, weightField],
                         ),
                       ),
@@ -658,21 +672,21 @@ class _IndividualTagField extends ConsumerWidget {
       key: const ValueKey('individual-id'),
       controller: controller,
       decoration: InputDecoration(
-        labelText: 'Tag ID',
-        hintText: 'Enter individual or tag ID',
-        helperText: isAutoNumbered ? 'Auto-numbered. Edit to override.' : null,
+        labelText: context.l10n.fishTagId,
+        hintText: context.l10n.fishTagIdHint,
+        helperText: isAutoNumbered ? context.l10n.fishAutoNumbered : null,
         suffixIcon: AdaptiveMenuButton<_TagIdAction>(
-          tooltip: 'Tag ID options',
+          tooltip: context.l10n.fishTagIdOptions,
           icon: const Icon(Icons.more_vert),
-          itemBuilder: () => const [
+          itemBuilder: () => [
             AdaptiveMenuItem(
               value: _TagIdAction.newNumber,
-              label: 'New number',
+              label: context.l10n.parasiteNewNumber,
               icon: Icons.pin_outlined,
             ),
             AdaptiveMenuItem(
               value: _TagIdAction.settings,
-              label: 'Settings',
+              label: context.l10n.parasiteSettings,
               icon: Icons.settings_outlined,
             ),
           ],
@@ -695,18 +709,18 @@ class _IndividualTagField extends ConsumerWidget {
     return showAdaptiveSheetDialog<void>(
       context: context,
       builder: (context, isSheet) => AdaptiveSheetDialogBody(
-        title: 'Tag ID settings',
+        title: context.l10n.fishTagIdSettings,
         showCloseButton: !isSheet,
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            child: Text(context.l10n.commonDone),
           ),
         ],
         child: NumberedIdFields(
           store: IndividualTagIdServices(ref: ref),
           useHorizontalLayout: false,
-          previewLabel: 'Next tag',
+          previewLabel: context.l10n.recordsSpecimenNextTag,
           prefixHint: 'FT-',
           suffixHint: '-A',
         ),

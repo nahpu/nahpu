@@ -24,6 +24,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/statistics/spatial_map_style.dart';
 import 'package:nahpu/services/statistics/spatial_marker_clusters.dart';
 import 'package:nahpu/services/types/map_layers.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// A shared, read-only coordinate map. Selecting a marker reports the
 /// corresponding coordinate to the owner; it never creates or edits points.
@@ -578,7 +579,11 @@ class _MapLibreCoordinateMapState
       _tooltip = _CoordinateMapTooltip(
         point: maplibre.Geographic(lon: center.longitude, lat: center.latitude),
         title: coordinateClusterTitle(context, cluster),
-        details: coordinateClusterDetails(cluster, canZoomIn: false),
+        details: coordinateClusterDetails(
+          context.l10n,
+          cluster,
+          canZoomIn: false,
+        ),
         pointIds: [for (final point in cluster.members) point.id],
       );
     });
@@ -765,7 +770,11 @@ class _FlutterMapCoordinateMarker extends StatelessWidget {
         ? cluster.members.single.name
         : [
             coordinateClusterTitle(context, cluster),
-            ...coordinateClusterDetails(cluster, canZoomIn: canZoomIn),
+            ...coordinateClusterDetails(
+              context.l10n,
+              cluster,
+              canZoomIn: canZoomIn,
+            ),
           ].join('\n');
     final isTappable = cluster.isSingle || canZoomIn;
     return Semantics(
@@ -924,7 +933,7 @@ class _MapControls extends StatelessWidget {
           icon: const Icon(Icons.remove),
         ),
         IconButton(
-          tooltip: 'Center map on coordinates',
+          tooltip: context.l10n.mapCenterOnCoordinates,
           visualDensity: VisualDensity.compact,
           onPressed: onReset,
           icon: const Icon(Icons.center_focus_strong_outlined),

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/templates/image_service.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateImagePickerDialog extends StatelessWidget {
   const TemplateImagePickerDialog({
@@ -18,7 +19,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add image'),
+      title: Text(context.l10n.templateAddImage),
       content: SizedBox(
         width: double.maxFinite,
         height: 400,
@@ -27,17 +28,15 @@ class TemplateImagePickerDialog extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: const Text('Upload from device'),
-              subtitle: const Text(
-                'Copies the file into your template images folder',
-              ),
+              title: Text(context.l10n.templateUploadFromDevice),
+              subtitle: Text(context.l10n.templateUploadFromDeviceBody),
               onTap: onUpload,
             ),
             const Divider(height: 2),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
               child: Text(
-                'Saved images',
+                context.l10n.templateSavedImages,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
@@ -53,7 +52,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
                   if (paths.isEmpty) {
                     return Center(
                       child: Text(
-                        'No saved images yet - upload one first.',
+                        context.l10n.templateNoSavedImages,
                         style: Theme.of(context).textTheme.bodySmall,
                         textAlign: TextAlign.center,
                       ),
@@ -85,7 +84,7 @@ class TemplateImagePickerDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     );

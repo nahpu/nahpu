@@ -122,6 +122,7 @@ String coordinateClusterTitle(
 
 /// Tooltip lines for a grouped bubble: its first members, then a zoom hint.
 List<String> coordinateClusterDetails(
+  AppLocalizations l10n,
   MarkerCluster<CoordinateMapPoint> cluster, {
   required bool canZoomIn,
 }) {
@@ -130,7 +131,7 @@ List<String> coordinateClusterDetails(
   return [
     for (final point in members.take(coordinateClusterDetailLimit)) point.name,
     if (members.length > coordinateClusterDetailLimit)
-      '+${members.length - coordinateClusterDetailLimit} more',
-    if (canZoomIn) 'Tap to zoom in',
+      l10n.mapMoreCount(members.length - coordinateClusterDetailLimit),
+    if (canZoomIn) l10n.mapTapToZoomIn,
   ];
 }

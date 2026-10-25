@@ -17,6 +17,7 @@ import 'package:nahpu/services/types/mammals.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class MammalAttributeForms extends ConsumerStatefulWidget {
   const MammalAttributeForms({
@@ -110,7 +111,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             SwitchField(
-              label: 'Show outlier warnings',
+              label: context.l10n.specimenShowOutlierWarnings,
               value: _showOutlierWarnings,
               onPressed: (value) {
                 setState(() {
@@ -135,8 +136,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               isBracketed:
                   _isMeasurementInaccurate('totalLength') &&
                   ctr.totalLengthCtr.text.isNotEmpty,
-              labelText: 'Total length (mm)',
-              hintText: 'Enter TTL',
+              labelText: context.l10n.mammalTotalLength,
+              hintText: context.l10n.mammalTotalLengthHint,
               isLastField: false,
               isDouble: true,
               // errorText: _hblErrorText,
@@ -163,8 +164,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               isBracketed:
                   _isMeasurementInaccurate('tailLength') &&
                   ctr.tailLengthCtr.text.isNotEmpty,
-              labelText: 'Tail length (mm)',
-              hintText: 'Enter TL',
+              labelText: context.l10n.mammalTailLength,
+              hintText: context.l10n.mammalTailLengthHint,
               isDouble: true,
               isLastField: false,
               // errorText: _hblErrorText,
@@ -191,11 +192,11 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             Tooltip(
-              message: 'Automatically calculated',
+              message: context.l10n.specimenAutoCalculated,
               child: CommonNumField(
                 controller: headBodyLengthCtr,
-                labelText: 'Head and body length (mm)',
-                hintText: 'Enter HBL',
+                labelText: context.l10n.mammalHeadBodyLength,
+                hintText: context.l10n.mammalHeadBodyLengthHint,
                 enabled: false,
                 isDouble: true,
                 isLastField: false,
@@ -203,11 +204,11 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               ),
             ),
             Tooltip(
-              message: 'Automatically calculated',
+              message: context.l10n.specimenAutoCalculated,
               child: CommonNumField(
                 controller: tailHeadBodyPercentCtr,
-                labelText: 'Tail/HB length',
-                hintText: 'Enter TL/HBL',
+                labelText: context.l10n.mammalTailHeadBodyRatio,
+                hintText: context.l10n.mammalTailHeadBodyRatioHint,
                 enabled: false,
                 isDouble: true,
                 isLastField: false,
@@ -225,8 +226,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               isBracketed:
                   _isMeasurementInaccurate('hindFootLength') &&
                   ctr.hindFootCtr.text.isNotEmpty,
-              labelText: 'Hind foot length (mm)',
-              hintText: 'Enter HF length',
+              labelText: context.l10n.mammalHindFootLength,
+              hintText: context.l10n.mammalHindFootLengthHint,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -250,8 +251,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
               isBracketed:
                   _isMeasurementInaccurate('earLength') &&
                   ctr.earCtr.text.isNotEmpty,
-              labelText: 'Ear length (mm)',
-              hintText: 'Enter ER length',
+              labelText: context.l10n.mammalEarLength,
+              hintText: context.l10n.mammalEarLengthHint,
               isLastField: false,
               isDouble: true,
               onChanged: (String? value) {
@@ -310,7 +311,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             SwitchField(
-              label: 'Show bat fields',
+              label: context.l10n.mammalShowBatFields,
               value: _showBatFields,
               disabled: _isBatSectionForced,
               onPressed: (value) {
@@ -395,8 +396,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
           child: CommonTextField(
             controller: ctr.remarksCtr,
             maxLines: 5,
-            labelText: 'Remarks',
-            hintText: 'Write notes about the measurements (optional)',
+            labelText: context.l10n.specimenRemarks,
+            hintText: context.l10n.specimenMeasurementRemarksHint,
             isLastField: true,
             onChanged: (value) {
               SpecimenServices(ref: ref).updateMammalAttribute(
@@ -593,7 +594,7 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unusual measurement'),
+        title: Text(context.l10n.specimenUnusualMeasurement),
         content: Text(result.message),
         actions: [
           TextButton(
@@ -625,10 +626,8 @@ class MammalAttributeFormsState extends ConsumerState<MammalAttributeForms> {
       context: context,
       builder: (BuildContext context) {
         return CommonAlertDialog(
-          titleText: 'Change sex?',
-          descText:
-              'Changing the sex will clear reproductive data that does not '
-              'apply to the new selection.',
+          titleText: context.l10n.mammalChangeSexTitle,
+          descText: context.l10n.mammalChangeSexBody,
           confirmFunction: () {
             ctr.clearSexControllers(male: clearMale, female: clearFemale);
             SpecimenServices(ref: ref).clearMammalSexAttributes(
@@ -687,9 +686,9 @@ class MammalAccuracyField extends StatelessWidget {
         children: [
           DropdownButtonFormField<MammalAccuracyStatus>(
             initialValue: details.status,
-            decoration: const InputDecoration(
-              labelText: 'Accuracy',
-              hintText: 'Select measurement accuracy',
+            decoration: InputDecoration(
+              labelText: context.l10n.specimenAccuracy,
+              hintText: context.l10n.specimenAccuracyHint,
             ),
             items: MammalAccuracyStatus.values
                 .map(
@@ -705,12 +704,14 @@ class MammalAccuracyField extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               selectedLabels.isEmpty
-                  ? 'No inaccurate measurements selected'
-                  : '*Inaccurate: $selectedLabels',
+                  ? context.l10n.specimenNoInaccurateSelected
+                  : context.l10n.specimenInaccurateList(selectedLabels),
             ),
             if (details.remark.trim().isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Remark:\n${details.remark.trim()}'),
+              Text(
+                context.l10n.specimenAccuracyRemarkValue(details.remark.trim()),
+              ),
             ],
             const SizedBox(height: 8),
             Align(
@@ -718,7 +719,7 @@ class MammalAccuracyField extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onEditPressed,
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Select inaccurate measurements'),
+                label: Text(context.l10n.specimenSelectInaccurate),
               ),
             ),
             const SizedBox(height: 8),
@@ -770,7 +771,7 @@ class _MammalAccuracyDialogState extends State<MammalAccuracyDialog> {
     );
 
     return AlertDialog(
-      title: const Text('Inaccurate measurements'),
+      title: Text(context.l10n.specimenInaccurateMeasurements),
       content: SizedBox(
         width: 480,
         child: SingleChildScrollView(
@@ -778,7 +779,7 @@ class _MammalAccuracyDialogState extends State<MammalAccuracyDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Select every measurement that is inaccurate.'),
+              Text(context.l10n.specimenSelectEveryInaccurate),
               const SizedBox(height: 8),
               for (final field in availableFields)
                 CheckboxListTile(
@@ -798,15 +799,15 @@ class _MammalAccuracyDialogState extends State<MammalAccuracyDialog> {
                 ),
               if (_showSelectionError)
                 Text(
-                  'Select at least one inaccurate measurement.',
+                  context.l10n.specimenSelectAtLeastOneInaccurate,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               const SizedBox(height: 12),
               TextField(
                 controller: _remarkController,
-                decoration: const InputDecoration(
-                  labelText: 'Accuracy remark',
-                  hintText: 'Describe why the measurements are inaccurate',
+                decoration: InputDecoration(
+                  labelText: context.l10n.specimenAccuracyRemark,
+                  hintText: context.l10n.specimenAccuracyRemarkHint,
                 ),
                 maxLines: 3,
                 textInputAction: TextInputAction.newline,
@@ -818,9 +819,9 @@ class _MammalAccuracyDialogState extends State<MammalAccuracyDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(onPressed: _save, child: Text(context.l10n.commonSave)),
       ],
     );
   }
@@ -867,14 +868,14 @@ class MaleGonadFormState extends ConsumerState<MaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Testes'),
+          FormCardSectionLabel(text: context.l10n.mammalTestes),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<TestisPosition>(
               initialValue: getTestisPosition(widget.ctr.testisPosCtr),
-              decoration: const InputDecoration(
-                labelText: 'Position',
-                hintText: 'Select testis position',
+              decoration: InputDecoration(
+                labelText: context.l10n.mammalTestisPosition,
+                hintText: context.l10n.mammalTestisPositionHint,
               ),
               items: testisPositionList
                   .map(
@@ -944,8 +945,8 @@ class ScrotalMaleFormState extends ConsumerState<ScrotalMaleForm> {
             children: [
               CommonNumField(
                 controller: widget.ctr.testisLengthCtr,
-                labelText: 'Length (mm)',
-                hintText: 'Enter the length of the right testes ',
+                labelText: context.l10n.specimenLengthMm,
+                hintText: context.l10n.mammalTestisLengthHint,
                 isLastField: false,
                 isDouble: true,
                 onChanged: (String? value) {
@@ -959,8 +960,8 @@ class ScrotalMaleFormState extends ConsumerState<ScrotalMaleForm> {
               ),
               CommonNumField(
                 controller: widget.ctr.testisWidthCtr,
-                labelText: 'Width (mm)',
-                hintText: 'Enter the width of the right testes ',
+                labelText: context.l10n.specimenWidthMm,
+                hintText: context.l10n.mammalTestisWidthHint,
                 isLastField: true,
                 isDouble: true,
                 onChanged: (String? value) {
@@ -978,9 +979,9 @@ class ScrotalMaleFormState extends ConsumerState<ScrotalMaleForm> {
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<EpididymisAppearance>(
               initialValue: _getEpididymisAppearance(),
-              decoration: const InputDecoration(
-                labelText: 'Epididymis',
-                hintText: 'Select epididymis appearance',
+              decoration: InputDecoration(
+                labelText: context.l10n.mammalEpididymis,
+                hintText: context.l10n.mammalEpididymisHint,
               ),
               items: epididymisAppearanceList
                   .map(
@@ -1042,9 +1043,9 @@ class OvaryOpeningField extends ConsumerWidget {
           child: DropdownButtonFormField<VaginaOpening>(
             isExpanded: true,
             initialValue: _getVaginaOpening(),
-            decoration: const InputDecoration(
-              labelText: 'Vagina opening',
-              hintText: 'Select vagina opening',
+            decoration: InputDecoration(
+              labelText: context.l10n.mammalVaginaOpening,
+              hintText: context.l10n.mammalVaginaOpeningHint,
             ),
             items: vaginaOpeningList
                 .map(
@@ -1073,9 +1074,9 @@ class OvaryOpeningField extends ConsumerWidget {
           child: DropdownButtonFormField<PubicSymphysis>(
             initialValue: _getPubicSymphysis(),
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Pubic symphysis',
-              hintText: 'Select pubic symphysis condition',
+            decoration: InputDecoration(
+              labelText: context.l10n.mammalPubicSymphysis,
+              hintText: context.l10n.mammalPubicSymphysisHint,
             ),
             items: pubicSymphysisList
                 .map(
@@ -1140,14 +1141,14 @@ class FemaleGonadForm extends ConsumerWidget {
       child: Column(
         children: [
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Female reproductive attributes'),
+          FormCardSectionLabel(text: context.l10n.mammalFemaleReproductive),
           Padding(
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<ReproductiveStage>(
               initialValue: _getReproductiveStage(),
-              decoration: const InputDecoration(
-                labelText: 'Reproductive stage',
-                hintText: 'Select reproductive stage',
+              decoration: InputDecoration(
+                labelText: context.l10n.mammalReproductiveStage,
+                hintText: context.l10n.mammalReproductiveStageHint,
               ),
               items: reproductiveStageList
                   .map(
@@ -1171,7 +1172,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Mammae counts (pairs)'),
+          FormCardSectionLabel(text: context.l10n.mammalMammaeCounts),
           MammaeForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1181,9 +1182,9 @@ class FemaleGonadForm extends ConsumerWidget {
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<MammaeCondition>(
               initialValue: _getMammaeCondition(),
-              decoration: const InputDecoration(
-                labelText: 'Mammae condition',
-                hintText: 'Select mammae condition',
+              decoration: InputDecoration(
+                labelText: context.l10n.mammalMammaeCondition,
+                hintText: context.l10n.mammalMammaeConditionHint,
               ),
               items: mammaeConditionList
                   .map(
@@ -1207,7 +1208,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Embryo'),
+          FormCardSectionLabel(text: context.l10n.mammalEmbryo),
           EmbryoForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1217,8 +1218,8 @@ class FemaleGonadForm extends ConsumerWidget {
             padding: const EdgeInsets.all(4),
             child: CommonNumField(
               controller: ctr.embryoCRCtr,
-              labelText: 'CR length (mm)',
-              hintText: 'Enter crown-rump length',
+              labelText: context.l10n.mammalCrownRumpLength,
+              hintText: context.l10n.mammalCrownRumpLengthHint,
               isLastField: true,
               onChanged: (String? value) {
                 if (value != null) {
@@ -1233,7 +1234,7 @@ class FemaleGonadForm extends ConsumerWidget {
             ),
           ),
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Placental scars'),
+          FormCardSectionLabel(text: context.l10n.mammalPlacentalScars),
           PlacentalScarForm(
             useHorizontalLayout: useHorizontalLayout,
             specimenUuid: specimenUuid,
@@ -1278,8 +1279,8 @@ class MammaeForm extends ConsumerWidget {
       children: [
         CommonNumField(
           controller: ctr.mammaeAxCtr,
-          labelText: 'Axillary',
-          hintText: 'Enter the axillary pair number',
+          labelText: context.l10n.mammalAxillary,
+          hintText: context.l10n.mammalAxillaryHint,
           isLastField: false,
           onChanged: (String? value) {
             if (value != null) {
@@ -1294,8 +1295,8 @@ class MammaeForm extends ConsumerWidget {
         ),
         CommonNumField(
           controller: ctr.mammaeAbdCtr,
-          labelText: 'Abdominal',
-          hintText: 'Enter the abdominal pair number',
+          labelText: context.l10n.mammalAbdominal,
+          hintText: context.l10n.mammalAbdominalHint,
           isLastField: false,
           onChanged: (String? value) {
             if (value != null) {
@@ -1310,8 +1311,8 @@ class MammaeForm extends ConsumerWidget {
         ),
         CommonNumField(
           controller: ctr.mammaeIngCtr,
-          labelText: 'Inguinal',
-          hintText: 'Enter the inguinal pair number',
+          labelText: context.l10n.mammalInguinal,
+          hintText: context.l10n.mammalInguinalHint,
           isLastField: false,
           onChanged: (String? value) {
             if (value != null) {
@@ -1348,8 +1349,8 @@ class EmbryoForm extends ConsumerWidget {
       children: [
         CommonNumField(
           controller: ctr.embryoLeftCtr,
-          labelText: 'Left',
-          hintText: 'Left',
+          labelText: context.l10n.specimenLeft,
+          hintText: context.l10n.specimenLeft,
           isLastField: false,
           onChanged: (String? value) {
             if (value != null) {
@@ -1364,8 +1365,8 @@ class EmbryoForm extends ConsumerWidget {
         ),
         CommonNumField(
           controller: ctr.embryoRightCtr,
-          labelText: 'Right',
-          hintText: 'Right',
+          labelText: context.l10n.specimenRight,
+          hintText: context.l10n.specimenRight,
           isLastField: true,
           onChanged: (String? value) {
             if (value != null) {
@@ -1402,8 +1403,8 @@ class PlacentalScarForm extends ConsumerWidget {
       children: [
         CommonNumField(
           controller: ctr.leftPlacentaCtr,
-          labelText: 'Left',
-          hintText: 'Left',
+          labelText: context.l10n.specimenLeft,
+          hintText: context.l10n.specimenLeft,
           isLastField: false,
           onChanged: (String? value) {
             if (value != null) {
@@ -1418,8 +1419,8 @@ class PlacentalScarForm extends ConsumerWidget {
         ),
         CommonNumField(
           controller: ctr.rightPlacentaCtr,
-          labelText: 'Right',
-          hintText: 'Right',
+          labelText: context.l10n.specimenRight,
+          hintText: context.l10n.specimenRight,
           isLastField: true,
           onChanged: (String? value) {
             if (value != null) {
@@ -1481,8 +1482,8 @@ class BatFormState extends ConsumerState<BatForm> {
               isBracketed:
                   widget.inaccurateFields.contains('forearm') &&
                   widget.ctr.forearmCtr.text.isNotEmpty,
-              labelText: 'Forearm Length (mm)',
-              hintText: 'Enter FL length',
+              labelText: context.l10n.mammalForearmLength,
+              hintText: context.l10n.mammalForearmLengthHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {
@@ -1502,8 +1503,8 @@ class BatFormState extends ConsumerState<BatForm> {
               isBracketed:
                   widget.inaccurateFields.contains('tibia') &&
                   widget.ctr.tibiaCtr.text.isNotEmpty,
-              labelText: 'Tibia Length (mm)',
-              hintText: 'Enter tibia length',
+              labelText: context.l10n.mammalTibiaLength,
+              hintText: context.l10n.mammalTibiaLengthHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {
@@ -1524,7 +1525,7 @@ class BatFormState extends ConsumerState<BatForm> {
           useHorizontalLayout: widget.useHorizontalLayout,
           children: [
             SwitchField(
-              label: 'Echolocate?',
+              label: context.l10n.mammalEcholocate,
               value: _echolocate,
               disabled: _hasStoredEcholocationData,
               onPressed: (value) {
@@ -1594,9 +1595,9 @@ class EcholocateForm extends ConsumerWidget {
             DropdownButtonFormField<Echolocation>(
               initialValue: getEcholocation(ctr.echolocationCtr),
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Echolocation',
-                hintText: 'Select echolocation type',
+              decoration: InputDecoration(
+                labelText: context.l10n.mammalEcholocation,
+                hintText: context.l10n.mammalEcholocationHint,
               ),
               items: echolocationList
                   .map(
@@ -1626,8 +1627,8 @@ class EcholocateForm extends ConsumerWidget {
           children: [
             CommonNumField(
               controller: ctr.frequencyMaxCtr,
-              labelText: 'Frequency Max (kHz)',
-              hintText: 'Enter maximum echolocate frequency',
+              labelText: context.l10n.mammalFrequencyMax,
+              hintText: context.l10n.mammalFrequencyMaxHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {
@@ -1644,8 +1645,8 @@ class EcholocateForm extends ConsumerWidget {
             ),
             CommonNumField(
               controller: ctr.frequencyMinCtr,
-              labelText: 'Frequency Min (kHz)',
-              hintText: 'Enter minimum echolocate frequency',
+              labelText: context.l10n.mammalFrequencyMin,
+              hintText: context.l10n.mammalFrequencyMinHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {
@@ -1667,8 +1668,8 @@ class EcholocateForm extends ConsumerWidget {
           children: [
             CommonNumField(
               controller: ctr.frequencyAtMaxEnergyCtr,
-              labelText: 'Frequency At Max Energy (kHz)',
-              hintText: 'Enter echolocate frequency at max energy',
+              labelText: context.l10n.mammalFrequencyMaxEnergy,
+              hintText: context.l10n.mammalFrequencyMaxEnergyHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {
@@ -1685,8 +1686,8 @@ class EcholocateForm extends ConsumerWidget {
             ),
             CommonNumField(
               controller: ctr.durationCtr,
-              labelText: 'Duration (seconds)',
-              hintText: 'Enter echolocation duration',
+              labelText: context.l10n.mammalEcholocationDuration,
+              hintText: context.l10n.mammalEcholocationDurationHint,
               isLastField: false,
               isDouble: true,
               onChanged: (value) {

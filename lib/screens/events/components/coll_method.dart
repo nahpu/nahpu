@@ -27,7 +27,7 @@ class CollMethodSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Collection methods',
+      title: context.l10n.setupCollectionMethods,
       infoTopic: InfoTopic.eventMethods,
       child: SizedBox(
         height: 484,
@@ -53,7 +53,7 @@ class AddCollMethodButton extends StatelessWidget {
           ),
         );
       },
-      label: 'Add collection method',
+      label: context.l10n.eventAddCollMethod,
       icon: Icons.add,
     );
   }
@@ -205,7 +205,7 @@ class EmptyCollMethod extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No collection methods added'),
+        Text(context.l10n.eventNoCollMethods),
         const SizedBox(height: 8),
         AddCollMethodButton(collEventId: collEventId),
       ],
@@ -223,7 +223,7 @@ class NewCollMethod extends ConsumerWidget {
     final collMethodCtr = CollMethodCtrModel.empty();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Collection Method'),
+        title: Text(context.l10n.eventAddCollMethodTitle),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -254,7 +254,7 @@ class EditCollMethod extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Collection Method'),
+        title: Text(context.l10n.eventEditCollMethod),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -341,9 +341,9 @@ class CollMethodTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${type ?? 'Unknown'}'
+      '${type ?? context.l10n.templateSexUnknown}'
       '$listTileSeparator'
-      '${count ?? 'No count'}',
+      '${count ?? context.l10n.partNoCount}',
       style: Theme.of(context).textTheme.titleMedium,
     );
   }
@@ -357,23 +357,23 @@ class Subtitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${_getSize()}'
+      '${_getSize(context.l10n)}'
       '$listTileSeparator'
-      '${_getBrand()}',
+      '${_getBrand(context.l10n)}',
     );
   }
 
-  String _getBrand() {
+  String _getBrand(AppLocalizations l10n) {
     if (data.brand == null || data.brand!.isEmpty) {
-      return 'Unknown';
+      return l10n.templateSexUnknown;
     } else {
       return data.brand!;
     }
   }
 
-  String _getSize() {
+  String _getSize(AppLocalizations l10n) {
     if (data.size == null || data.size!.isEmpty) {
-      return 'N/A';
+      return l10n.templateSexNa;
     } else {
       return data.size!;
     }
@@ -405,40 +405,40 @@ class CollMethodFormState extends ConsumerState<CollMethodForm> {
       child: Column(
         children: [
           FormSection(
-            title: 'Collection method',
+            title: context.l10n.eventCollMethod,
             child: Column(
               children: [
                 CollMethodDropdown(ctr: widget.collMethodCtr),
                 CommonNumField(
                   controller: widget.collMethodCtr.countCtr,
-                  labelText: 'Count',
-                  hintText: 'How many of this tool were used (if applicable)?',
+                  labelText: context.l10n.projectStatsColumnCount,
+                  hintText: context.l10n.eventCountHint,
                   isLastField: false,
                 ),
               ],
             ),
           ),
           FormSection(
-            title: 'Method details',
+            title: context.l10n.eventMethodDetails,
             child: Column(
               children: [
                 CommonTextField(
                   controller: widget.collMethodCtr.brandCtr,
-                  labelText: 'Brand and Model',
-                  hintText: 'Enter brand and model of the tool (if applicable)',
+                  labelText: context.l10n.eventBrandModel,
+                  hintText: context.l10n.eventBrandModelHint,
                   isLastField: false,
                 ),
                 CommonTextField(
                   controller: widget.collMethodCtr.sizeCtr,
-                  labelText: 'Size',
-                  hintText: 'Enter size of the tool (if applicable)',
+                  labelText: context.l10n.databaseSize,
+                  hintText: context.l10n.eventSizeHint,
                   isLastField: false,
                 ),
                 CommonTextField(
                   controller: widget.collMethodCtr.noteCtr,
                   maxLines: 3,
-                  labelText: 'Notes',
-                  hintText: 'Enter any notes about the tool (if applicable)',
+                  labelText: context.l10n.labelEnvironmentalNotes,
+                  hintText: context.l10n.eventToolNotesHint,
                   isLastField: true,
                 ),
               ],
@@ -512,9 +512,9 @@ class CollMethodDropdown extends ConsumerWidget {
             }
             return DropdownButtonFormField(
               initialValue: ctr.methodCtr,
-              decoration: const InputDecoration(
-                labelText: 'Method',
-                hintText: 'Select a method',
+              decoration: InputDecoration(
+                labelText: context.l10n.projectStatsMethod,
+                hintText: context.l10n.eventSelectMethod,
               ),
               items: options
                   .map(

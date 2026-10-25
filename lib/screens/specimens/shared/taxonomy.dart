@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/projects/taxonomy_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TaxonomicForm extends ConsumerWidget {
   const TaxonomicForm({
@@ -25,7 +26,7 @@ class TaxonomicForm extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FormCard(
-      title: 'Taxon Info',
+      title: context.l10n.specimenTaxonInfo,
       infoTopic: InfoTopic.specimenTaxonomy,
       mainAxisAlignment: MainAxisAlignment.center,
       child: ref
@@ -33,29 +34,39 @@ class TaxonomicForm extends ConsumerWidget {
           .when(
             data: (taxonData) {
               if (taxonData == null) {
-                return const Text('No species selected');
+                return Text(context.l10n.specimenNoSpeciesSelected);
               } else {
                 return Column(
                   children: [
                     AdaptiveLayout(
                       useHorizontalLayout: useHorizontalLayout,
                       children: [
-                        TaxonText(rank: 'Class', value: taxonData.taxonClass),
-                        TaxonText(rank: 'Order', value: taxonData.taxonOrder),
-                        TaxonText(rank: 'Family', value: taxonData.taxonFamily),
+                        TaxonText(
+                          rank: context.l10n.projectTaxonClass,
+                          value: taxonData.taxonClass,
+                        ),
+                        TaxonText(
+                          rank: context.l10n.projectTaxonOrder,
+                          value: taxonData.taxonOrder,
+                        ),
+                        TaxonText(
+                          rank: context.l10n.projectTaxonFamily,
+                          value: taxonData.taxonFamily,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => _showDetails(context, taxonData),
-                      child: const Text('View details'),
+                      child: Text(context.l10n.projectStatsViewDetails),
                     ),
                   ],
                 );
               }
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Text('Error: $error'),
+            error: (error, stack) =>
+                Text(context.l10n.formsErrorDetail('$error')),
           ),
     );
   }
@@ -74,7 +85,7 @@ class TaxonomicForm extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(context.l10n.commonClose),
             ),
           ],
         ),
@@ -152,14 +163,14 @@ class SpeciesAutoCompleteState extends ConsumerState<SpeciesAutoComplete> {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Type taxon name and select from list',
+      message: context.l10n.specimenTaxonTooltip,
       child: AutoCompleteField<TaxonomyData>(
         focusNode: _focusNode,
         controller: widget.speciesCtr,
         options: widget.options,
         displayStringFor: getTaxonDisplayName,
-        labelText: 'Taxon',
-        hintText: 'Type taxon name',
+        labelText: context.l10n.specimenTaxon,
+        hintText: context.l10n.specimenTaxonHint,
         onSelected: _inputTaxon,
       ),
     );
@@ -262,9 +273,9 @@ class DisabledSpeciesField extends StatelessWidget {
     return CommonPadding(
       child: TextFormField(
         enabled: false,
-        decoration: const InputDecoration(
-          labelText: 'Taxon',
-          hintText: 'Enter taxon',
+        decoration: InputDecoration(
+          labelText: context.l10n.specimenTaxon,
+          hintText: context.l10n.specimenEnterTaxon,
         ),
       ),
     );

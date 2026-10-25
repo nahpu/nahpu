@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Padding inside a property panel docked under the editor toolbar, kept tight
 /// so the panel costs as little canvas height as possible.
@@ -42,7 +43,7 @@ class TemplatePropertyPanelShell extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.close, size: NahpuControlSize.iconMedium),
-            tooltip: 'Dismiss toolbar',
+            tooltip: context.l10n.templateDismissToolbar,
             onPressed: onDismiss,
           ),
         ],

@@ -15,6 +15,7 @@ import 'package:nahpu/screens/specimens/specimen_form.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/record_page_reconciler.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SpecimenViewer extends ConsumerStatefulWidget {
   const SpecimenViewer({super.key});
@@ -68,7 +69,7 @@ class SpecimenViewerState extends ConsumerState<SpecimenViewer>
     listenEntries();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Specimen Records"),
+        title: Text(context.l10n.specimenRecordsTitle),
         actions: [
           IconButton(
             onPressed: _specimenUuid == null ? null : _openSearch,
@@ -135,7 +136,10 @@ class SearchOptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Search Options', textAlign: TextAlign.center),
+      title: Text(
+        context.l10n.specimenSearchOptions,
+        textAlign: TextAlign.center,
+      ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Column(
@@ -150,7 +154,7 @@ class SearchOptionScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
           ],
         ),
@@ -254,7 +258,7 @@ class SpecimenFormViewState extends ConsumerState<SpecimenFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen Record')),
+      appBar: AppBar(title: Text(context.l10n.specimenRecordTitle)),
       body: SafeArea(
         child: ref
             .watch(specimenEntryProvider)
@@ -294,7 +298,7 @@ class EmptySpecimen extends ConsumerWidget {
     return Center(
       child: CommonEmptyForm(
         iconPath: SpecimenServices(ref: ref).getIconPath(),
-        text: 'No specimen found',
+        text: context.l10n.specimenNoneFound,
         child: Visibility(
           visible: isButtonVisible,
           child: const NewSpecimensTextButton(),

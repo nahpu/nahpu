@@ -12,6 +12,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SiteInfo extends ConsumerWidget {
   const SiteInfo({
@@ -33,7 +34,7 @@ class SiteInfo extends ConsumerWidget {
 
     return FormCard(
       isPrimary: true,
-      title: 'Site Identity',
+      title: context.l10n.siteIdentity,
       infoTopic: InfoTopic.siteOverview,
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -46,10 +47,9 @@ class SiteInfo extends ConsumerWidget {
               LengthLimitingTextInputFormatter(40),
               FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9-_]+')),
             ],
-            decoration: const InputDecoration(
-              labelText: 'Site ID',
-              hintText:
-                  'Enter a site ID (max. 40 chars), e.g. "CAMP-01", "LINE-1"',
+            decoration: InputDecoration(
+              labelText: context.l10n.formsSiteId,
+              hintText: context.l10n.siteIdHint,
             ),
             onChanged: (value) {
               siteFormCtr.siteIDCtr.value = TextEditingValue(
@@ -65,9 +65,9 @@ class SiteInfo extends ConsumerWidget {
           DropdownButtonFormField(
             initialValue: siteFormCtr.leadStaffCtr,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Site Leader',
-              hintText: 'Choose a person name',
+            decoration: InputDecoration(
+              labelText: context.l10n.siteLeader,
+              hintText: context.l10n.narrativeWriterHint,
             ),
             items: personnelList
                 .map(
@@ -103,9 +103,9 @@ class SiteInfo extends ConsumerWidget {
                   return DropdownButtonFormField<String?>(
                     initialValue: siteFormCtr.siteTypeCtr,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Site Type',
-                      hintText: 'Choose a site type',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.siteType,
+                      hintText: context.l10n.siteTypeHint,
                     ),
                     items: items,
                     onChanged: (String? value) {

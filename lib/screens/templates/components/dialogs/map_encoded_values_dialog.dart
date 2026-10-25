@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/birds.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class _EncodedMapping {
   _EncodedMapping({required this.key, required this.controller});
@@ -145,7 +146,7 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Map Encoded Values'),
+      title: Text(context.l10n.templateMapEncodedValues),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -153,7 +154,9 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
           children: [
             if (widget.placeholderKey.isNotEmpty) ...[
               Text(
-                'Define custom labels for [${widget.placeholderKey}] values:',
+                context.l10n.templateMapEncodedValuesBody(
+                  widget.placeholderKey,
+                ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -193,9 +196,9 @@ class _MapEncodedValuesDialogState extends State<MapEncodedValuesDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
-        FilledButton(onPressed: _onSave, child: const Text('Save')),
+        FilledButton(onPressed: _onSave, child: Text(context.l10n.commonSave)),
       ],
     );
   }

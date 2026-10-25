@@ -17,6 +17,7 @@ import 'package:nahpu/services/projects/personnel_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class GeneralRecordField extends ConsumerStatefulWidget {
   const GeneralRecordField({
@@ -49,7 +50,7 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
     final personnelEntry = ref.watch(projectPersonnelProvider);
     personnelEntry.whenData((personnelEntry) => personnelList = personnelEntry);
     return FormCard(
-      title: 'Collection & Identification',
+      title: context.l10n.specimenCollectionIdentification,
       isPrimary: true,
       infoTopic: InfoTopic.specimenGeneralRecord,
       mainAxisSize: MainAxisSize.min,
@@ -99,7 +100,9 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
               ),
             ],
           ),
-          const FormCardSectionLabel(text: 'Identification'),
+          FormCardSectionLabel(
+            text: context.l10n.recordsSpecimenParasiteIdentification,
+          ),
           SpeciesFieldCtr(
             specimenUuid: widget.specimenUuid,
             speciesCtr: widget.specimenCtr.speciesCtr,
@@ -128,7 +131,11 @@ class GeneralRecordFieldState extends ConsumerState<GeneralRecordField> {
                   _showMore = !_showMore;
                 });
               },
-              child: Text(_showMore ? 'Show less' : 'Show more'),
+              child: Text(
+                _showMore
+                    ? context.l10n.sharedShowLess
+                    : context.l10n.sharedShowMore,
+              ),
             ),
           ),
         ],
@@ -163,7 +170,7 @@ class SpeciesFieldCtr extends ConsumerWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (error, stack) => const Text('Error loading taxa'),
+          error: (error, stack) => Text(context.l10n.specimenTaxaLoadError),
         );
   }
 }
@@ -193,14 +200,14 @@ class IDConfidence extends ConsumerWidget {
             SpecimenCompanion(iDConfidence: db.Value(value)),
           );
         },
-        decoration: const InputDecoration(
-          labelText: 'ID Confidence',
-          hintText: 'Choose a confidence level',
+        decoration: InputDecoration(
+          labelText: context.l10n.specimenIdConfidence,
+          hintText: context.l10n.specimenIdConfidenceHint,
         ),
         items: [
-          const DropdownMenuItem<int?>(
+          DropdownMenuItem<int?>(
             value: null,
-            child: CommonDropdownText(text: 'Not assigned'),
+            child: CommonDropdownText(text: context.l10n.parasiteNotAssigned),
           ),
           ...idConfidenceList.reversed.map(
             (e) => DropdownMenuItem<int?>(
@@ -231,9 +238,9 @@ class DeterminerField extends ConsumerWidget {
         key: ValueKey(specimenCtr.determinerCtr),
         initialValue: specimenCtr.determinerCtr,
         isExpanded: true,
-        decoration: const InputDecoration(
-          labelText: 'Determiner',
-          hintText: 'Choose a determiner (default is cataloger)',
+        decoration: InputDecoration(
+          labelText: context.l10n.parasiteDeterminer,
+          hintText: context.l10n.specimenDeterminerHint,
           hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
         ),
         items: ref
@@ -291,14 +298,16 @@ class IDMethod extends ConsumerWidget {
             return CommonPadding(
               child: DropdownButtonFormField<String?>(
                 initialValue: specimenCtr.idMethodCtr,
-                decoration: const InputDecoration(
-                  labelText: 'Identification Method',
-                  hintText: 'Choose an identification method',
+                decoration: InputDecoration(
+                  labelText: context.l10n.specimenIdMethod,
+                  hintText: context.l10n.specimenIdMethodHint,
                 ),
                 items: [
-                  const DropdownMenuItem<String?>(
+                  DropdownMenuItem<String?>(
                     value: null,
-                    child: CommonDropdownText(text: 'Not assigned'),
+                    child: CommonDropdownText(
+                      text: context.l10n.parasiteNotAssigned,
+                    ),
                   ),
                   ...options.map(
                     (value) => DropdownMenuItem<String?>(
@@ -319,7 +328,7 @@ class IDMethod extends ConsumerWidget {
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Error: $error'),
+          error: (error, _) => Text(context.l10n.formsErrorDetail('$error')),
         );
   }
 }
@@ -338,8 +347,8 @@ class SpecimenCollectionDateField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
       controller: specimenCtr.collDateCtr,
-      labelText: 'Collection date',
-      hintText: 'Enter date',
+      labelText: context.l10n.specimenCollectionDate,
+      hintText: context.l10n.narrativeDateHint,
       initialDate: DateTime.now(),
       lastDate: DateTime.now(),
       onTap: () {
@@ -374,8 +383,8 @@ class SpecimenCollectionTimeField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
       controller: specimenCtr.collTimeCtr,
-      labelText: 'Collection time',
-      hintText: 'Enter time',
+      labelText: context.l10n.specimenCollectionTime,
+      hintText: context.l10n.narrativeTimeHint,
       initialTime: TimeOfDay.now(),
       onTap: () {
         SpecimenServices(ref: ref).updateSpecimen(
@@ -425,9 +434,9 @@ class SpecimenConditionField extends ConsumerWidget {
                     SpecimenCompanion(condition: db.Value(value)),
                   );
                 },
-                decoration: const InputDecoration(
-                  labelText: 'Condition',
-                  hintText: 'Choose a condition',
+                decoration: InputDecoration(
+                  labelText: context.l10n.formsSearchCondition,
+                  hintText: context.l10n.specimenConditionHint,
                 ),
                 items: options
                     .map(
@@ -441,7 +450,7 @@ class SpecimenConditionField extends ConsumerWidget {
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Error: $error'),
+          error: (error, _) => Text(context.l10n.formsErrorDetail('$error')),
         );
   }
 }
@@ -460,8 +469,8 @@ class PrepDateField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
       controller: specimenCtr.prepDateCtr,
-      labelText: 'Prep. date',
-      hintText: 'Enter date',
+      labelText: context.l10n.specimenPrepDate,
+      hintText: context.l10n.narrativeDateHint,
       initialDate: DateTime.now(),
       lastDate: DateTime.now(),
       onTap: () {
@@ -494,8 +503,8 @@ class PrepTimeField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTimeField(
       controller: specimenCtr.prepTimeCtr,
-      labelText: 'Prep. time',
-      hintText: 'Enter time',
+      labelText: context.l10n.specimenPrepTime,
+      hintText: context.l10n.narrativeTimeHint,
       initialTime: TimeOfDay.now(),
       onTap: () {
         SpecimenServices(ref: ref).updateSpecimen(
@@ -540,9 +549,9 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
           DropdownButtonFormField<String>(
             initialValue: widget.specimenCtr.catalogerCtr,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Cataloger',
-              hintText: 'Choose a cataloger',
+            decoration: InputDecoration(
+              labelText: context.l10n.formsSearchCataloger,
+              hintText: context.l10n.projectWizardChooseCataloger,
               hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
             ),
             items: ref
@@ -568,9 +577,9 @@ class PersonnelRecordsState extends ConsumerState<PersonnelRecords> {
             key: ValueKey(widget.specimenCtr.preparatorCtr),
             initialValue: widget.specimenCtr.preparatorCtr,
             isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Preparator',
-              hintText: 'Choose a preparator (default is cataloger)',
+            decoration: InputDecoration(
+              labelText: context.l10n.formsSearchPreparator,
+              hintText: context.l10n.specimenPreparatorHint,
               hintStyle: TextStyle(overflow: TextOverflow.ellipsis),
             ),
             items: ref
@@ -696,7 +705,7 @@ class IdTile extends ConsumerWidget {
           child: Column(
             children: [
               SelectableText(
-                'Specimen UUID: $specimenUuid',
+                context.l10n.specimenUuid(specimenUuid),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -708,8 +717,8 @@ class IdTile extends ConsumerWidget {
                   visible: showMore || specimenCtr.museumIDCtr.text.isNotEmpty,
                   child: CommonTextField(
                     controller: specimenCtr.museumIDCtr,
-                    labelText: 'Museum ID',
-                    hintText: 'Enter museum ID (if applicable)',
+                    labelText: context.l10n.specimenMuseumId,
+                    hintText: context.l10n.specimenMuseumIdHint,
                     isLastField: true,
                     onChanged: (String? value) {
                       if (value != null) {
@@ -737,8 +746,8 @@ class IdTile extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Text('Loading...'),
-      error: (error, stack) => Text('Error: $error'),
+      loading: () => Text(context.l10n.projectLoading),
+      error: (error, stack) => Text(context.l10n.formsErrorDetail('$error')),
     );
   }
 }
@@ -792,12 +801,17 @@ class _SpecimenFieldIdTile extends ConsumerWidget {
         ? ref
               .watch(currProjInfoProvider)
               .when(
-                data: (project) =>
-                    'Field ID: ${formatProjectFieldId(project, int.tryParse(specimenCtr.projFieldNumberCtr.text))}',
-                loading: () => 'Field ID: Loading...',
-                error: (error, stack) => 'Field ID: unavailable',
+                data: (project) => context.l10n.specimenFieldIdValue(
+                  formatProjectFieldId(
+                    project,
+                    int.tryParse(specimenCtr.projFieldNumberCtr.text),
+                  ),
+                ),
+                loading: () => context.l10n.specimenFieldIdLoading,
+                error: (error, stack) =>
+                    context.l10n.specimenFieldIdUnavailable,
               )
-        : _personnelTitle(ref);
+        : _personnelTitle(context.l10n, ref);
     return ListTile(
       title: Text(title),
       trailing: IconButton(
@@ -811,20 +825,22 @@ class _SpecimenFieldIdTile extends ConsumerWidget {
     );
   }
 
-  String _personnelTitle(WidgetRef ref) {
-    if (catalogerUuid.isEmpty) return 'Field ID: select a cataloger';
+  String _personnelTitle(AppLocalizations l10n, WidgetRef ref) {
+    if (catalogerUuid.isEmpty) return l10n.specimenFieldIdSelectCataloger;
     return ref
         .watch(personnelNameProvider(catalogerUuid))
         .when(
           data: (personnel) {
             if (!personnel.isRegisterField) {
-              return 'Field ID: cataloger is not set up for field numbers';
+              return l10n.specimenFieldIdCatalogerNotSetUp;
             }
-            return 'Field ID: ${personnel.initial ?? ''}'
-                '${specimenCtr.persFieldNumberCtr.text}';
+            return l10n.specimenFieldIdValue(
+              '${personnel.initial ?? ''}'
+              '${specimenCtr.persFieldNumberCtr.text}',
+            );
           },
-          loading: () => 'Field ID: Loading...',
-          error: (error, stack) => 'Field ID: unavailable',
+          loading: () => l10n.specimenFieldIdLoading,
+          error: (error, stack) => l10n.specimenFieldIdUnavailable,
         );
   }
 }
@@ -929,19 +945,22 @@ class _SpecimenFieldIdEditorState
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Edit field ID', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          context.l10n.specimenEditFieldId,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 16),
         SegmentedButton<FieldIdMode>(
-          segments: const [
+          segments: [
             ButtonSegment(
               value: FieldIdMode.personnel,
               icon: Icon(Icons.person_outline),
-              label: Text('Personnel'),
+              label: Text(context.l10n.specimenFieldIdPersonnel),
             ),
             ButtonSegment(
               value: FieldIdMode.project,
               icon: Icon(Icons.folder_outlined),
-              label: Text('Project'),
+              label: Text(context.l10n.specimenFieldIdProject),
             ),
           ],
           selected: {mode},
@@ -956,10 +975,7 @@ class _SpecimenFieldIdEditorState
         ),
         const SizedBox(height: 16),
         if (personnelUnavailable)
-          const Text(
-            'Select a Cataloger with personal field-number registration '
-            'enabled before assigning a personnel field ID.',
-          )
+          Text(context.l10n.specimenFieldIdPersonnelUnavailable)
         else ...[
           TextField(
             controller: _numberController,
@@ -967,25 +983,23 @@ class _SpecimenFieldIdEditorState
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
               labelText: mode == FieldIdMode.personnel
-                  ? 'Personnel field number'
-                  : 'Project catalog number',
-              hintText: 'Enter a number',
+                  ? context.l10n.specimenPersonnelFieldNumber
+                  : context.l10n.specimenProjectCatalogNumber,
+              hintText: context.l10n.formsEnterNumber,
             ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 8),
-          Text('Preview: ${_preview(mode, number)}'),
+          Text(
+            context.l10n.recordsSpecimenFieldIdPreview(_preview(mode, number)),
+          ),
         ],
         if (typeChanged)
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             value: _acknowledged,
             controlAffinity: ListTileControlAffinity.leading,
-            title: const Text(
-              'I understand that changing identifier type removes the '
-              'specimen’s previous field ID and that it may already appear '
-              'in exports or on specimen labels.',
-            ),
+            title: Text(context.l10n.specimenFieldIdTypeChangeAck),
             onChanged: (value) =>
                 setState(() => _acknowledged = value ?? false),
           ),
@@ -995,12 +1009,14 @@ class _SpecimenFieldIdEditorState
           children: [
             TextButton(
               onPressed: _saving ? null : () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             const SizedBox(width: 8),
             FilledButton(
               onPressed: canSave ? _save : null,
-              child: Text(_saving ? 'Saving...' : 'Save'),
+              child: Text(
+                _saving ? context.l10n.specimenSaving : context.l10n.commonSave,
+              ),
             ),
           ],
         ),

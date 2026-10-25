@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class ZoomControls extends StatelessWidget {
   const ZoomControls({
@@ -37,7 +38,7 @@ class ZoomControls extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               icon: const Icon(Icons.remove, size: 20),
-              tooltip: 'Zoom out',
+              tooltip: context.l10n.projectStatsZoomOut,
               onPressed: zoom > 0.5
                   ? () => onZoomChanged((zoom - 0.25).clamp(0.5, 4.0))
                   : null,
@@ -46,7 +47,7 @@ class ZoomControls extends StatelessWidget {
               percentage
             else
               Tooltip(
-                message: 'Fit to screen',
+                message: context.l10n.templateFitToScreen,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(NahpuRadius.sm),
                   onTap: onFitToScreen,
@@ -63,7 +64,7 @@ class ZoomControls extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               icon: const Icon(Icons.add, size: 20),
-              tooltip: 'Zoom in',
+              tooltip: context.l10n.projectStatsZoomIn,
               onPressed: zoom < 4.0
                   ? () => onZoomChanged((zoom + 0.25).clamp(0.5, 4.0))
                   : null,

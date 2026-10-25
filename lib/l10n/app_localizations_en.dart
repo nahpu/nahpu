@@ -8262,4 +8262,4358 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectTissuePlace => 'Place';
+
+  @override
+  String get parasiteRecords => 'Parasite records';
+
+  @override
+  String get parasiteUnidentified => 'Unidentified parasite';
+
+  @override
+  String parasiteIndividuals(String ids) {
+    return 'Ind: $ids';
+  }
+
+  @override
+  String parasiteCount(String count) {
+    return 'Count: $count';
+  }
+
+  @override
+  String get parasiteNoneAdded => 'No parasites added';
+
+  @override
+  String get parasiteAdd => 'Add parasite';
+
+  @override
+  String get parasiteEdit => 'Edit parasite';
+
+  @override
+  String get parasiteDetails => 'Parasite details';
+
+  @override
+  String get parasiteCountLabel => 'Count';
+
+  @override
+  String get parasiteCountHint => 'Enter parasite count';
+
+  @override
+  String get parasiteCategory => 'Category';
+
+  @override
+  String get parasiteAnatomicalLocation => 'Anatomical location';
+
+  @override
+  String get parasiteCollectionIdentification => 'Collection & identification';
+
+  @override
+  String get parasiteCollector => 'Collector';
+
+  @override
+  String get parasiteCollectorHint => 'Select who collected the parasite';
+
+  @override
+  String get parasiteDetectionMethod => 'Detection method';
+
+  @override
+  String get parasiteDateCollected => 'Date collected';
+
+  @override
+  String get parasiteDateCollectedHint => 'Enter collection date';
+
+  @override
+  String get parasiteTimeCollected => 'Time collected';
+
+  @override
+  String get parasiteTimeCollectedHint => 'Enter collection time';
+
+  @override
+  String get parasiteDeterminer => 'Determiner';
+
+  @override
+  String get parasiteDeterminerHint => 'Select who identified the parasite';
+
+  @override
+  String get parasiteDateDetermined => 'Date determined';
+
+  @override
+  String get parasiteDateDeterminedHint => 'Enter identification date';
+
+  @override
+  String get parasiteDeterminationMethod => 'Determination method';
+
+  @override
+  String parasiteSaveError(String error) {
+    return 'Unable to save parasite: $error';
+  }
+
+  @override
+  String get parasiteTaxon => 'Parasite taxon';
+
+  @override
+  String get parasiteTaxonHint => 'Select a registered taxon';
+
+  @override
+  String get parasiteNotIdentified => 'Not identified';
+
+  @override
+  String parasiteTaxaLoadError(String error) {
+    return 'Unable to load taxa: $error';
+  }
+
+  @override
+  String get parasiteAddTaxon => 'Add taxon';
+
+  @override
+  String get parasiteNotAssigned => 'Not assigned';
+
+  @override
+  String get parasitePreparationPreservation => 'Preparation & preservation';
+
+  @override
+  String get parasitePreparationMethod => 'Preparation method';
+
+  @override
+  String get parasiteTreatment => 'Treatment';
+
+  @override
+  String get parasiteDatePreserved => 'Date preserved';
+
+  @override
+  String get parasiteDatePreservedHint => 'Enter preservation date';
+
+  @override
+  String get parasiteTimePreserved => 'Time preserved';
+
+  @override
+  String get parasiteTimePreservedHint => 'Enter preservation time';
+
+  @override
+  String get parasiteCuration => 'Curation';
+
+  @override
+  String get parasiteStorage => 'Storage';
+
+  @override
+  String get parasiteStorageLocation => 'Storage location';
+
+  @override
+  String get parasiteStorageLocationHint =>
+      'Enter freezer, cabinet, shelf, or container';
+
+  @override
+  String get parasiteMuseumPermanent => 'Museum permanent';
+
+  @override
+  String get parasiteMuseumHint => 'Enter museum name or abbreviation';
+
+  @override
+  String get parasiteMuseumLoan => 'Museum loan';
+
+  @override
+  String get parasiteRemarks => 'Remarks';
+
+  @override
+  String get parasiteRemarksHint => 'Enter parasite remarks';
+
+  @override
+  String get parasiteLifeStage => 'Life stage';
+
+  @override
+  String get parasiteLifeStageHint => 'Select parasite life stage';
+
+  @override
+  String get parasiteAssociationStatus => 'Association status';
+
+  @override
+  String get parasiteAssociationStatusHint => 'Select association status';
+
+  @override
+  String parasiteFieldLoadError(String field, String error) {
+    return 'Unable to load $field: $error';
+  }
+
+  @override
+  String get parasiteSetOptionsInSettings => 'Set options in Specimen settings';
+
+  @override
+  String parasiteSelectField(String field) {
+    return 'Select $field';
+  }
+
+  @override
+  String get parasiteIds => 'IDs';
+
+  @override
+  String parasiteUuid(String uuid) {
+    return 'UUID: $uuid';
+  }
+
+  @override
+  String get parasiteId => 'Parasite ID';
+
+  @override
+  String get parasiteIdHint => 'Enter a user-defined parasite ID';
+
+  @override
+  String get parasiteIdOptions => 'Parasite ID options';
+
+  @override
+  String get parasiteScanCode => 'Scan QR/Barcode';
+
+  @override
+  String get parasiteNewNumber => 'New number';
+
+  @override
+  String get parasiteSettings => 'Settings';
+
+  @override
+  String get parasiteIdSettings => 'Parasite ID settings';
+
+  @override
+  String get parasitePrefix => 'Prefix';
+
+  @override
+  String get parasitePrefixHint => 'Enter parasite ID prefix';
+
+  @override
+  String get parasiteNumber => 'Number';
+
+  @override
+  String get parasiteNumberHint => 'Enter the next parasite ID number';
+
+  @override
+  String get specimenShowOutlierWarnings => 'Show outlier warnings';
+
+  @override
+  String get mammalTotalLength => 'Total length (mm)';
+
+  @override
+  String get mammalTotalLengthHint => 'Enter TTL';
+
+  @override
+  String get mammalTailLength => 'Tail length (mm)';
+
+  @override
+  String get mammalTailLengthHint => 'Enter TL';
+
+  @override
+  String get specimenAutoCalculated => 'Automatically calculated';
+
+  @override
+  String get mammalHeadBodyLength => 'Head and body length (mm)';
+
+  @override
+  String get mammalHeadBodyLengthHint => 'Enter HBL';
+
+  @override
+  String get mammalTailHeadBodyRatio => 'Tail/HB length';
+
+  @override
+  String get mammalTailHeadBodyRatioHint => 'Enter TL/HBL';
+
+  @override
+  String get mammalHindFootLength => 'Hind foot length (mm)';
+
+  @override
+  String get mammalHindFootLengthHint => 'Enter HF length';
+
+  @override
+  String get mammalEarLength => 'Ear length (mm)';
+
+  @override
+  String get mammalEarLengthHint => 'Enter ER length';
+
+  @override
+  String get mammalShowBatFields => 'Show bat fields';
+
+  @override
+  String get specimenRemarks => 'Remarks';
+
+  @override
+  String get specimenMeasurementRemarksHint =>
+      'Write notes about the measurements (optional)';
+
+  @override
+  String get specimenUnusualMeasurement => 'Unusual measurement';
+
+  @override
+  String get mammalChangeSexTitle => 'Change sex?';
+
+  @override
+  String get mammalChangeSexBody =>
+      'Changing the sex will clear reproductive data that does not apply to the new selection.';
+
+  @override
+  String get specimenAccuracy => 'Accuracy';
+
+  @override
+  String get specimenAccuracyHint => 'Select measurement accuracy';
+
+  @override
+  String get specimenNoInaccurateSelected =>
+      'No inaccurate measurements selected';
+
+  @override
+  String specimenInaccurateList(String labels) {
+    return '*Inaccurate: $labels';
+  }
+
+  @override
+  String specimenAccuracyRemarkValue(String remark) {
+    return 'Remark:\n$remark';
+  }
+
+  @override
+  String get specimenSelectInaccurate => 'Select inaccurate measurements';
+
+  @override
+  String get specimenInaccurateMeasurements => 'Inaccurate measurements';
+
+  @override
+  String get specimenSelectEveryInaccurate =>
+      'Select every measurement that is inaccurate.';
+
+  @override
+  String get specimenSelectAtLeastOneInaccurate =>
+      'Select at least one inaccurate measurement.';
+
+  @override
+  String get specimenAccuracyRemark => 'Accuracy remark';
+
+  @override
+  String get specimenAccuracyRemarkHint =>
+      'Describe why the measurements are inaccurate';
+
+  @override
+  String get mammalTestes => 'Testes';
+
+  @override
+  String get mammalTestisPosition => 'Position';
+
+  @override
+  String get mammalTestisPositionHint => 'Select testis position';
+
+  @override
+  String get specimenLengthMm => 'Length (mm)';
+
+  @override
+  String get mammalTestisLengthHint => 'Enter the length of the right testes';
+
+  @override
+  String get specimenWidthMm => 'Width (mm)';
+
+  @override
+  String get mammalTestisWidthHint => 'Enter the width of the right testes';
+
+  @override
+  String get mammalEpididymis => 'Epididymis';
+
+  @override
+  String get mammalEpididymisHint => 'Select epididymis appearance';
+
+  @override
+  String get mammalVaginaOpening => 'Vagina opening';
+
+  @override
+  String get mammalVaginaOpeningHint => 'Select vagina opening';
+
+  @override
+  String get mammalPubicSymphysis => 'Pubic symphysis';
+
+  @override
+  String get mammalPubicSymphysisHint => 'Select pubic symphysis condition';
+
+  @override
+  String get mammalFemaleReproductive => 'Female reproductive attributes';
+
+  @override
+  String get mammalReproductiveStage => 'Reproductive stage';
+
+  @override
+  String get mammalReproductiveStageHint => 'Select reproductive stage';
+
+  @override
+  String get mammalMammaeCounts => 'Mammae counts (pairs)';
+
+  @override
+  String get mammalMammaeCondition => 'Mammae condition';
+
+  @override
+  String get mammalMammaeConditionHint => 'Select mammae condition';
+
+  @override
+  String get mammalEmbryo => 'Embryo';
+
+  @override
+  String get mammalCrownRumpLength => 'CR length (mm)';
+
+  @override
+  String get mammalCrownRumpLengthHint => 'Enter crown-rump length';
+
+  @override
+  String get mammalPlacentalScars => 'Placental scars';
+
+  @override
+  String get mammalAxillary => 'Axillary';
+
+  @override
+  String get mammalAxillaryHint => 'Enter the axillary pair number';
+
+  @override
+  String get mammalAbdominal => 'Abdominal';
+
+  @override
+  String get mammalAbdominalHint => 'Enter the abdominal pair number';
+
+  @override
+  String get mammalInguinal => 'Inguinal';
+
+  @override
+  String get mammalInguinalHint => 'Enter the inguinal pair number';
+
+  @override
+  String get specimenLeft => 'Left';
+
+  @override
+  String get specimenRight => 'Right';
+
+  @override
+  String get mammalForearmLength => 'Forearm Length (mm)';
+
+  @override
+  String get mammalForearmLengthHint => 'Enter FL length';
+
+  @override
+  String get mammalTibiaLength => 'Tibia Length (mm)';
+
+  @override
+  String get mammalTibiaLengthHint => 'Enter tibia length';
+
+  @override
+  String get mammalEcholocate => 'Echolocate?';
+
+  @override
+  String get mammalEcholocation => 'Echolocation';
+
+  @override
+  String get mammalEcholocationHint => 'Select echolocation type';
+
+  @override
+  String get mammalFrequencyMax => 'Frequency Max (kHz)';
+
+  @override
+  String get mammalFrequencyMaxHint => 'Enter maximum echolocate frequency';
+
+  @override
+  String get mammalFrequencyMin => 'Frequency Min (kHz)';
+
+  @override
+  String get mammalFrequencyMinHint => 'Enter minimum echolocate frequency';
+
+  @override
+  String get mammalFrequencyMaxEnergy => 'Frequency At Max Energy (kHz)';
+
+  @override
+  String get mammalFrequencyMaxEnergyHint =>
+      'Enter echolocate frequency at max energy';
+
+  @override
+  String get mammalEcholocationDuration => 'Duration (seconds)';
+
+  @override
+  String get mammalEcholocationDurationHint => 'Enter echolocation duration';
+
+  @override
+  String get birdWingspan => 'Wingspan (mm)';
+
+  @override
+  String get birdWingspanHint => 'Enter wingspan length';
+
+  @override
+  String get birdBillColor => 'Bill color';
+
+  @override
+  String get birdBillColorHint => 'Enter bill color';
+
+  @override
+  String get birdMaxillaColor => 'Maxilla color';
+
+  @override
+  String get birdMaxillaColorHint => 'Enter maxilla color';
+
+  @override
+  String get birdMandibleColor => 'Mandible color';
+
+  @override
+  String get birdMandibleColorHint => 'Enter mandible color';
+
+  @override
+  String get birdIrisColor => 'Iris color';
+
+  @override
+  String get birdIrisColorHint => 'Enter iris color';
+
+  @override
+  String get birdTarsusColor => 'Tarsus color';
+
+  @override
+  String get birdTarsusColorHint => 'Enter tarsus color';
+
+  @override
+  String get birdToeColor => 'Toe color';
+
+  @override
+  String get birdToeColorHint => 'Enter toe color';
+
+  @override
+  String get birdBroodPatch => 'Brood patch';
+
+  @override
+  String get birdBursaPresent => 'Bursa present';
+
+  @override
+  String get birdStomachContents => 'Stomach contents';
+
+  @override
+  String get birdStomachContentsHint => 'Enter stomach contents';
+
+  @override
+  String get birdBursaLength => 'Bursa length (mm)';
+
+  @override
+  String get birdBursaLengthHint => 'Enter bursa length';
+
+  @override
+  String get birdBursaWidth => 'Bursa width (mm)';
+
+  @override
+  String get birdBursaWidthHint => 'Enter bursa width';
+
+  @override
+  String get birdMaleGonads => 'Male gonads';
+
+  @override
+  String get birdLeftTestisSize => 'Left testis size (mm)';
+
+  @override
+  String get birdSize => 'Size';
+
+  @override
+  String get birdMinute => 'minute';
+
+  @override
+  String get birdOneMmOrGreater => '1 mm or greater';
+
+  @override
+  String get birdLength => 'Length';
+
+  @override
+  String get specimenEnterLength => 'Enter length';
+
+  @override
+  String get birdWidth => 'Width';
+
+  @override
+  String get specimenEnterWidth => 'Enter width';
+
+  @override
+  String get birdTestisRemarksHint => 'Enter remarks, e.g. right testis size';
+
+  @override
+  String get birdFemaleGonads => 'Female gonads';
+
+  @override
+  String get birdOvarySize => 'Ovary size';
+
+  @override
+  String get birdAppearance => 'Appearance';
+
+  @override
+  String get birdOviduct => 'Oviduct';
+
+  @override
+  String get birdGonadRemarksHint =>
+      'Add additional information about the gonads';
+
+  @override
+  String get birdSkullOssification => 'Skull ossification (%)';
+
+  @override
+  String get birdSkullOssificationHint => 'Enter percentage';
+
+  @override
+  String get birdFat => 'Fat';
+
+  @override
+  String get birdLargestOva => 'Diameter of three largest ova (mm)';
+
+  @override
+  String get birdFirst => 'First';
+
+  @override
+  String get birdEnterSize => 'Enter size';
+
+  @override
+  String get birdSecond => 'Second';
+
+  @override
+  String get birdThird => 'Third';
+
+  @override
+  String get birdMolt => 'Molt';
+
+  @override
+  String get birdWingMolt => 'Wing molt';
+
+  @override
+  String get birdTailMolt => 'Tail molt';
+
+  @override
+  String get birdMoltRemarksHint => 'Add additional molt information';
+
+  @override
+  String get birdWingMoltHint => 'Enter wing molt';
+
+  @override
+  String get birdTailMoltHint => 'Enter tail molt';
+
+  @override
+  String get birdBodyMolt => 'Body molt';
+
+  @override
+  String get specimenNotes => 'Notes';
+
+  @override
+  String get birdHabitat => 'Habitat';
+
+  @override
+  String get birdHabitatHint => 'Add additional information about the habitat';
+
+  @override
+  String get specimenSpecimen => 'Specimen';
+
+  @override
+  String get specimenRemarksHint =>
+      'Add additional information about the specimen';
+
+  @override
+  String get fishStandardLength => 'Standard length (mm)';
+
+  @override
+  String get fishStandardLengthHint => 'Enter standard length';
+
+  @override
+  String get fishTotalLengthHint => 'Enter total length';
+
+  @override
+  String get fishTotalIndividuals => 'Total individuals';
+
+  @override
+  String get fishTotalIndividualsHint =>
+      'Enter the number of individuals in the lot';
+
+  @override
+  String get fishAutoUpdateRanges => 'Auto-update min and max';
+
+  @override
+  String get fishAutoUpdateRangesBody =>
+      'Fill the ranges from the individuals measured below';
+
+  @override
+  String get fishMinStandardLength => 'Min. standard length (mm)';
+
+  @override
+  String get fishMinStandardLengthHint => 'Enter minimum standard length';
+
+  @override
+  String get fishMaxStandardLength => 'Max. standard length (mm)';
+
+  @override
+  String get fishMaxStandardLengthHint => 'Enter maximum standard length';
+
+  @override
+  String get fishMinTotalLength => 'Min. total length (mm)';
+
+  @override
+  String get fishMinTotalLengthHint => 'Enter minimum total length';
+
+  @override
+  String get fishMaxTotalLength => 'Max. total length (mm)';
+
+  @override
+  String get fishMaxTotalLengthHint => 'Enter maximum total length';
+
+  @override
+  String get fishMinWeight => 'Min. weight';
+
+  @override
+  String get fishMinWeightHint => 'Enter minimum weight';
+
+  @override
+  String get fishMaxWeight => 'Max. weight';
+
+  @override
+  String get fishMaxWeightHint => 'Enter maximum weight';
+
+  @override
+  String get fishSpecimenType => 'Specimen type';
+
+  @override
+  String get fishTypeIndividual => 'Individual';
+
+  @override
+  String get fishTypeLot => 'Lot';
+
+  @override
+  String get fishTypeIndividualDescription =>
+      'One fish with its own measurements';
+
+  @override
+  String get fishTypeLotDescription => 'Many individuals stored together';
+
+  @override
+  String get invertCaste => 'Caste';
+
+  @override
+  String get invertCasteHint => 'Select caste';
+
+  @override
+  String get invertEcologicalInteractions => 'Ecological interactions';
+
+  @override
+  String get invertShowMorphometrics => 'Show specimen morphometrics';
+
+  @override
+  String get invertMorphometrics => 'Specimen morphometrics';
+
+  @override
+  String get invertHostOrganism => 'Host organism';
+
+  @override
+  String get invertHostOrganismHint => 'Enter the associated host taxon';
+
+  @override
+  String get invertHostPart => 'Host part';
+
+  @override
+  String get invertHostPartHint => 'Enter the occupied host part';
+
+  @override
+  String get invertHeadWidth => 'Head width (mm)';
+
+  @override
+  String get invertHeadWidthHint => 'Enter head width';
+
+  @override
+  String get invertBodyLength => 'Body length (mm)';
+
+  @override
+  String get invertBodyLengthHint => 'Enter body length';
+
+  @override
+  String get invertUpperWingspan => 'Upper wingspan (mm)';
+
+  @override
+  String get invertUpperWingspanHint => 'Enter upper wingspan';
+
+  @override
+  String get invertLowerWingspan => 'Lower wingspan (mm)';
+
+  @override
+  String get invertLowerWingspanHint => 'Enter lower wingspan';
+
+  @override
+  String get herpSnoutVentLength => 'SVL (cm)';
+
+  @override
+  String get herpSnoutVentLengthHint => 'Enter snout-vent length';
+
+  @override
+  String get partSpecimenParts => 'Specimen Parts';
+
+  @override
+  String get partAdd => 'Add specimen part';
+
+  @override
+  String get partNoneAdded => 'No parts added';
+
+  @override
+  String get partUnknown => 'Unknown part';
+
+  @override
+  String get partNoCount => 'No count';
+
+  @override
+  String get partNoTreatment => 'None';
+
+  @override
+  String get partHasRemark => 'has remark';
+
+  @override
+  String partPmi(String pmi) {
+    return 'PMI $pmi';
+  }
+
+  @override
+  String get partAddParts => 'Add specimen parts';
+
+  @override
+  String get partEditParts => 'Edit specimen parts';
+
+  @override
+  String get partPreparation => 'Preparation';
+
+  @override
+  String get partSampling => 'Sampling';
+
+  @override
+  String partSaveError(String error) {
+    return 'Unable to save specimen part: $error';
+  }
+
+  @override
+  String get partCounts => 'Counts';
+
+  @override
+  String get partCountsHint => 'Enter part counts';
+
+  @override
+  String get partPreparationType => 'Preparation type';
+
+  @override
+  String get partPreparationTypeHint => 'Enter preparation type';
+
+  @override
+  String get partTreatmentHint => 'Enter treatment';
+
+  @override
+  String get partAdditionalTreatment => 'Additional treatment';
+
+  @override
+  String get partAdditionalTreatmentHint => 'Enter additional treatment';
+
+  @override
+  String get partPreparatorHint => 'If different from voucher preparator';
+
+  @override
+  String get partDateTaken => 'Date taken';
+
+  @override
+  String get partTimeTaken => 'Time taken';
+
+  @override
+  String get partRecommendedFresh => 'Recommended for fresh tissues';
+
+  @override
+  String get partStorageType => 'Storage type';
+
+  @override
+  String get partStorageTypeHint => 'Enter storage type';
+
+  @override
+  String get partStorageLocationHint =>
+      'It can be cell or jar ID, following your museum convention';
+
+  @override
+  String get partMuseumHint => 'Enter a museum name or abbreviation';
+
+  @override
+  String get partRemarksHint => 'Enter a remark specific to this part';
+
+  @override
+  String get partBarcodeId => 'QR/barcode ID';
+
+  @override
+  String get partBarcodeIdHint => 'Enter barcode ID (if applicable)';
+
+  @override
+  String get partBarcodeIdOptions => 'QR/barcode ID options';
+
+  @override
+  String get partGenerateUuid => 'Generate UUID';
+
+  @override
+  String get partInvalidBarcode => 'Invalid QR/barcode';
+
+  @override
+  String get partBarcodeIdExists =>
+      'QR/barcode ID already exists. Clear the field to generate a new UUID';
+
+  @override
+  String get partTissueIdHint => 'Enter tissue ID';
+
+  @override
+  String get partRepeatTissueFailed => 'Failed to repeat tissue number';
+
+  @override
+  String get partTissueIdOptions => 'Tissue ID options';
+
+  @override
+  String get partTissueIdSettings => 'Tissue ID settings';
+
+  @override
+  String get specimenCollectionIdentification => 'Collection & Identification';
+
+  @override
+  String get specimenTaxaLoadError => 'Error loading taxa';
+
+  @override
+  String get specimenIdConfidence => 'ID Confidence';
+
+  @override
+  String get specimenIdConfidenceHint => 'Choose a confidence level';
+
+  @override
+  String get specimenDeterminerHint =>
+      'Choose a determiner (default is cataloger)';
+
+  @override
+  String get specimenIdMethod => 'Identification Method';
+
+  @override
+  String get specimenIdMethodHint => 'Choose an identification method';
+
+  @override
+  String get specimenCollectionDate => 'Collection date';
+
+  @override
+  String get specimenCollectionTime => 'Collection time';
+
+  @override
+  String get specimenConditionHint => 'Choose a condition';
+
+  @override
+  String get specimenPrepDate => 'Prep. date';
+
+  @override
+  String get specimenPrepTime => 'Prep. time';
+
+  @override
+  String get specimenPreparatorHint =>
+      'Choose a preparator (default is cataloger)';
+
+  @override
+  String specimenUuid(String uuid) {
+    return 'Specimen UUID: $uuid';
+  }
+
+  @override
+  String get specimenMuseumId => 'Museum ID';
+
+  @override
+  String get specimenMuseumIdHint => 'Enter museum ID (if applicable)';
+
+  @override
+  String specimenFieldIdValue(String id) {
+    return 'Field ID: $id';
+  }
+
+  @override
+  String get specimenFieldIdLoading => 'Field ID: Loading…';
+
+  @override
+  String get specimenFieldIdUnavailable => 'Field ID: unavailable';
+
+  @override
+  String get specimenFieldIdSelectCataloger => 'Field ID: select a cataloger';
+
+  @override
+  String get specimenFieldIdCatalogerNotSetUp =>
+      'Field ID: cataloger is not set up for field numbers';
+
+  @override
+  String get specimenEditFieldId => 'Edit field ID';
+
+  @override
+  String get specimenFieldIdPersonnel => 'Personnel';
+
+  @override
+  String get specimenFieldIdProject => 'Project';
+
+  @override
+  String get specimenFieldIdPersonnelUnavailable =>
+      'Select a Cataloger with personal field-number registration enabled before assigning a personnel field ID.';
+
+  @override
+  String get specimenPersonnelFieldNumber => 'Personnel field number';
+
+  @override
+  String get specimenProjectCatalogNumber => 'Project catalog number';
+
+  @override
+  String get specimenFieldIdTypeChangeAck =>
+      'I understand that changing identifier type removes the specimen’s previous field ID and that it may already appear in exports or on specimen labels.';
+
+  @override
+  String get specimenSaving => 'Saving…';
+
+  @override
+  String get fishStandardLengthShort => 'Standard length';
+
+  @override
+  String get fishTotalLengthShort => 'Total length';
+
+  @override
+  String get fishWeight => 'Weight';
+
+  @override
+  String get fishLotSummary => 'Lot summary';
+
+  @override
+  String fishMeasuredCount(int count) {
+    return '$count measured';
+  }
+
+  @override
+  String fishMeasuredOfTotal(int count, int total) {
+    return '$count of $total individuals measured';
+  }
+
+  @override
+  String get fishNotMeasured => 'Not measured';
+
+  @override
+  String fishStandardDeviation(String value) {
+    return '± $value SD';
+  }
+
+  @override
+  String fishRange(String min, String max, String unit) {
+    return 'Range $min–$max $unit';
+  }
+
+  @override
+  String get fishIndividuals => 'Individuals';
+
+  @override
+  String fishIndividualsLoadError(String error) {
+    return 'Unable to load individuals: $error';
+  }
+
+  @override
+  String get fishAddIndividual => 'Add individual';
+
+  @override
+  String get fishDeleteIndividual => 'Delete individual';
+
+  @override
+  String fishStandardLengthValue(String value) {
+    return 'SL $value mm';
+  }
+
+  @override
+  String fishTotalLengthValue(String value) {
+    return 'TL $value mm';
+  }
+
+  @override
+  String get fishNoMeasurements => 'No measurements';
+
+  @override
+  String fishDeleteIndividualTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get fishDeleteIndividualBody =>
+      'This deletes the individual and unlinks it from any specimen parts and parasites.';
+
+  @override
+  String get fishStandardLengthMm => 'SL (mm)';
+
+  @override
+  String get fishTotalLengthMm => 'TL (mm)';
+
+  @override
+  String fishWeightWithUnit(String unit) {
+    return 'Weight ($unit)';
+  }
+
+  @override
+  String get fishEnterWeight => 'Enter weight';
+
+  @override
+  String get fishIndividualRemarksHint => 'Add notes about this individual';
+
+  @override
+  String get fishEditIndividual => 'Edit individual';
+
+  @override
+  String fishEnteredCount(int count) {
+    return '$count entered';
+  }
+
+  @override
+  String fishEnteredOfTotal(int count, int total) {
+    return '$count of $total entered';
+  }
+
+  @override
+  String get fishSaveAndAddAnother => 'Save and add another';
+
+  @override
+  String get fishMeasurements => 'Measurements';
+
+  @override
+  String get fishTagId => 'Tag ID';
+
+  @override
+  String get fishTagIdHint => 'Enter individual or tag ID';
+
+  @override
+  String get fishAutoNumbered => 'Auto-numbered. Edit to override.';
+
+  @override
+  String get fishTagIdOptions => 'Tag ID options';
+
+  @override
+  String get fishTagIdSettings => 'Tag ID settings';
+
+  @override
+  String get specimenCaptureRecords => 'Capture Records';
+
+  @override
+  String get specimenChooseSite => 'Choose a site';
+
+  @override
+  String get specimenChangeSiteTitle => 'Change site?';
+
+  @override
+  String get specimenChangeSiteBody =>
+      'Except for capture date and time, all fields in the collecting record section will be empty again.';
+
+  @override
+  String get specimenChooseEvent => 'Choose a collecting event ID';
+
+  @override
+  String get specimenChangeEventTitle => 'Change collecting event ID?';
+
+  @override
+  String get specimenChangeEventBody =>
+      'Except for capture date and time, all fields in the collecting record section will be empty again. The coordinate is kept when it belongs to the same site.';
+
+  @override
+  String get specimenChooseMethod => 'Choose a method type';
+
+  @override
+  String get specimenRelativeTime => 'Relative time';
+
+  @override
+  String get specimenMethodId => 'Method ID';
+
+  @override
+  String get specimenMethodIdHint => 'Enter ID, e.g. trap/net number, etc.';
+
+  @override
+  String get specimenCaptureDate => 'Capture date';
+
+  @override
+  String get specimenCoordinateId => 'Coordinate ID';
+
+  @override
+  String get specimenChooseCoordinate => 'Choose a coordinate';
+
+  @override
+  String get specimenCoordinateExtent => 'Coordinate extent (m)';
+
+  @override
+  String get specimenCoordinateExtentHint => 'Add the coordinate extent';
+
+  @override
+  String get specimenExtentInvalid =>
+      'Extent must be a number greater than zero';
+
+  @override
+  String get specimenCaptureTime => 'Capture time';
+
+  @override
+  String get specimenChoosePerson => 'Choose a person';
+
+  @override
+  String get specimenSexHint => 'Select specimen sex';
+
+  @override
+  String get specimenLifeStageHint => 'Select life stage';
+
+  @override
+  String specimenLifeStagesLoadError(String error) {
+    return 'Unable to load life stages: $error';
+  }
+
+  @override
+  String specimenParasiteDetectionLoadError(String error) {
+    return 'Unable to load parasite detection: $error';
+  }
+
+  @override
+  String get specimenParasitesExamined => 'Parasites examined';
+
+  @override
+  String get specimenParasitesDetected => 'Parasites detected';
+
+  @override
+  String get specimenDetectionRemarks => 'Detection remarks';
+
+  @override
+  String get specimenDetectionRemarksHint =>
+      'Enter parasite examination or detection remarks';
+
+  @override
+  String get specimenCreate => 'Create specimen';
+
+  @override
+  String get specimenActions => 'Specimen actions';
+
+  @override
+  String get specimenDuplicatePart => 'Duplicate part';
+
+  @override
+  String get specimenExport => 'Export specimen';
+
+  @override
+  String get specimenImport => 'Import specimen';
+
+  @override
+  String specimenDuplicatePartError(String error) {
+    return 'Error duplicating part: $error';
+  }
+
+  @override
+  String get specimenDeleteTitle => 'Delete specimen?';
+
+  @override
+  String get specimenDeleteBody =>
+      'You will delete this specimen record, all measurements, and specimen parts.\nYou will need to manually update the field number.';
+
+  @override
+  String specimenDeleteError(String error) {
+    return 'Error deleting specimen: $error';
+  }
+
+  @override
+  String get specimenDeleteAllTitle => 'Delete all specimens?';
+
+  @override
+  String get specimenDeleteAllBody =>
+      'It will remove all specimens records, measurements, and specimen parts';
+
+  @override
+  String specimenDeleteAllError(String error) {
+    return 'Error deleting all specimens: $error';
+  }
+
+  @override
+  String get specimenTaxonInfo => 'Taxon Info';
+
+  @override
+  String get specimenNoSpeciesSelected => 'No species selected';
+
+  @override
+  String get specimenTaxonTooltip => 'Type taxon name and select from list';
+
+  @override
+  String get specimenTaxon => 'Taxon';
+
+  @override
+  String get specimenTaxonHint => 'Type taxon name';
+
+  @override
+  String get specimenEnterTaxon => 'Enter taxon';
+
+  @override
+  String get specimenNoneSelected => 'None selected';
+
+  @override
+  String specimenRemoveIndividualTooltip(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String get specimenAllIndividualsAdded => 'All individuals added';
+
+  @override
+  String get specimenSelectIndividual => 'Select an individual';
+
+  @override
+  String specimenRemoveIndividualTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String specimenRemoveIndividualBody(String name) {
+    return 'This record will no longer be linked to individual $name. The individual itself is kept.';
+  }
+
+  @override
+  String get specimenRecordsTitle => 'Specimen Records';
+
+  @override
+  String get specimenSearchOptions => 'Search Options';
+
+  @override
+  String get specimenRecordTitle => 'Specimen Record';
+
+  @override
+  String get specimenNoneFound => 'No specimen found';
+
+  @override
+  String get specimenWeightHint => 'Enter specimen weight';
+
+  @override
+  String get specimenChangeWeightUnit => 'Change weight unit';
+
+  @override
+  String get templateDeleteTextBox => 'Delete text box';
+
+  @override
+  String get templateHeightMm => 'Height (mm)';
+
+  @override
+  String get templatePictureTypeOptions => 'Picture type options';
+
+  @override
+  String get templateRotation => 'Rotation';
+
+  @override
+  String get templateQrCode => 'QR Code';
+
+  @override
+  String get templateQrSize => 'QR Size (mm)';
+
+  @override
+  String get templateContentFormattingOptions => 'Content formatting options';
+
+  @override
+  String get templateShape => 'Shape';
+
+  @override
+  String get templateSquare => 'Square';
+
+  @override
+  String get templateCircle => 'Circle';
+
+  @override
+  String get templateDynamic => 'Dynamic';
+
+  @override
+  String get templateSizePt => 'Size (pt)';
+
+  @override
+  String get templateDecreaseFontSize => 'Decrease font size';
+
+  @override
+  String get templateIncreaseFontSize => 'Increase font size';
+
+  @override
+  String get templateTextFormattingOptions => 'Text formatting options';
+
+  @override
+  String get templateTextStylingOptions => 'Text styling options';
+
+  @override
+  String get templateMaxWidth => 'Max Width (mm)';
+
+  @override
+  String get templateMaxHeight => 'Max Height (mm)';
+
+  @override
+  String get templateFont => 'Font';
+
+  @override
+  String templateFontNotInstalled(String font) {
+    return '$font (not installed)';
+  }
+
+  @override
+  String get templateUnderline => 'Underline';
+
+  @override
+  String get templateStrikethrough => 'Strikethrough';
+
+  @override
+  String get templateForeground => 'Foreground';
+
+  @override
+  String get templateQrForegroundColor => 'Select QR foreground color';
+
+  @override
+  String get templateBackground => 'Background';
+
+  @override
+  String get templateQrBackgroundColor => 'Select QR background color';
+
+  @override
+  String get templateConditionalOutput => 'Conditional output';
+
+  @override
+  String get templateFormat => 'Format';
+
+  @override
+  String get templateMapEncodedValues => 'Map encoded values';
+
+  @override
+  String get templateHeaderCase => 'Header Case';
+
+  @override
+  String get templateUppercase => 'Uppercase';
+
+  @override
+  String get templateLowercase => 'Lowercase';
+
+  @override
+  String get templateMissing => 'Missing';
+
+  @override
+  String get templateTextColor => 'Select text color';
+
+  @override
+  String get templateTextBackgroundColor => 'Select text background color';
+
+  @override
+  String get templateStroke => 'Stroke';
+
+  @override
+  String get templateTextStrokeColor => 'Select text stroke color';
+
+  @override
+  String get templateStyle => 'Style';
+
+  @override
+  String get templateRadius => 'Radius';
+
+  @override
+  String get templatePadding => 'Padding';
+
+  @override
+  String get templateAlignLeft => 'Align left';
+
+  @override
+  String get templateAlignCenter => 'Align center';
+
+  @override
+  String get templateAlignRight => 'Align right';
+
+  @override
+  String templateClearColor(String label) {
+    return 'Clear $label';
+  }
+
+  @override
+  String get templateNoContentPlaceholder => 'No Content Placeholder';
+
+  @override
+  String get templateCustomText => 'Custom Text';
+
+  @override
+  String get templateCustomTextHint => 'Enter custom fallback text';
+
+  @override
+  String get templateConditionalType => 'Conditional type';
+
+  @override
+  String get templateTargetField => 'Target field';
+
+  @override
+  String get templateConditionalTextHelper =>
+      'Fields such as [mammalAttribute::testisWidth] are filled in.';
+
+  @override
+  String get templateReplacementHelper =>
+      'Written when matched; otherwise the original target value is kept. Leave it empty to hide the value.';
+
+  @override
+  String get templateTypeNormalText => 'Normal Text';
+
+  @override
+  String get templateTypePicture => 'Picture';
+
+  @override
+  String get templateTypeMarkdown => 'Markdown';
+
+  @override
+  String get templateTypeCoordinates => 'Coordinates';
+
+  @override
+  String get templateTypeList => 'List Values';
+
+  @override
+  String get templateTypeNestedList => 'Nested List';
+
+  @override
+  String get templateTypeDates => 'Dates';
+
+  @override
+  String get templateTypeDateTime => 'Date and Time';
+
+  @override
+  String get templateTypeTime => 'Time';
+
+  @override
+  String get templateTypeSex => 'Sex';
+
+  @override
+  String get templateTypeNumber => 'Number';
+
+  @override
+  String get templateTypeEncoded => 'Encoded Text';
+
+  @override
+  String get templateFormatDefaultMapping => 'Default mapping';
+
+  @override
+  String get templateFormatCustomMapping => 'Custom mapping...';
+
+  @override
+  String get templateFormatDecimal => 'Decimal (45.123, -122.543)';
+
+  @override
+  String get templateFormatCardinalDecimal =>
+      'Cardinal Dec (45.123° N, 122.543° W)';
+
+  @override
+  String get templateFormatPipe => 'Pipe separated (A | B | C)';
+
+  @override
+  String get templateFormatComma => 'Comma separated (A, B, C)';
+
+  @override
+  String get templateFormatSemicolon => 'Semicolon separated (A; B; C)';
+
+  @override
+  String get templateFormatSlash => 'Slash separated (A / B / C)';
+
+  @override
+  String get templateFormatNewline => 'New line (A\nB\nC)';
+
+  @override
+  String get templateFormatBullet => 'Bulleted (• A\n• B)';
+
+  @override
+  String get templateFormatCustomSeparator => 'Custom separator...';
+
+  @override
+  String get templateFormatTable => 'Table';
+
+  @override
+  String get templateFormatCardList => 'Card list';
+
+  @override
+  String get templateFormatMonthDdYyyy => 'Month DD, YYYY (June 28, 2026)';
+
+  @override
+  String get templateFormatDdMonthYyyy => 'DD Month YYYY (28 June 2026)';
+
+  @override
+  String get templateFormatDdMonthAbbr => 'DD Month (Abbr) (28 Jun 2026)';
+
+  @override
+  String get templateFormatYmdSeconds =>
+      'YYYY-MM-DD seconds (2026-06-28 14:05:09)';
+
+  @override
+  String get templateFormatIsoMinutes => 'ISO minutes (2026-06-28T14:05)';
+
+  @override
+  String get templateFormatIsoSeconds => 'ISO seconds (2026-06-28T14:05:09)';
+
+  @override
+  String get templateFormatDdMonthYyyyTime =>
+      'DD Month YYYY 24h (28 June 2026 14:05)';
+
+  @override
+  String get templateFormatMonthDdYyyyTime =>
+      'Month DD, YYYY 12h (June 28, 2026 2:05 PM)';
+
+  @override
+  String get templateFormatDdMonYyyyTime =>
+      'DD Mon YYYY 24h (28 Jun 2026 14:05)';
+
+  @override
+  String get templateFormatMonDdYyyyTime =>
+      'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)';
+
+  @override
+  String get templateFormatTime24 => 'Time 24h (14:05)';
+
+  @override
+  String get templateFormatTime24Seconds => 'Time 24h seconds (14:05:09)';
+
+  @override
+  String get templateFormatTime12 => 'Time 12h (2:05 PM)';
+
+  @override
+  String get templateFormatTime12Padded => 'Time 12h padded (02:05 PM)';
+
+  @override
+  String get templateFormatOriginal => 'Original';
+
+  @override
+  String get templateFormatDecimals0 => '0 decimal places (e.g. 12)';
+
+  @override
+  String get templateFormatDecimals1 => '1 decimal place (e.g. 12.3)';
+
+  @override
+  String get templateFormatDecimals2 => '2 decimal places (e.g. 12.34)';
+
+  @override
+  String get templateFormatDecimals3 => '3 decimal places (e.g. 12.345)';
+
+  @override
+  String get templateFormatNormal => 'Normal';
+
+  @override
+  String get templateFormatCapitalize => 'Capitalize';
+
+  @override
+  String get templateSexSymbol => 'Symbol (♂/♀)';
+
+  @override
+  String get templateSexLetter => 'Letter (M/F)';
+
+  @override
+  String get templateSexText => 'Text (Male/Female)';
+
+  @override
+  String get templateSexUnknown => 'Unknown';
+
+  @override
+  String get templateSexNa => 'N/A';
+
+  @override
+  String get templateSexNone => 'None';
+
+  @override
+  String get templateSizeLabel => 'Template size:';
+
+  @override
+  String get templateAddImage => 'Add image';
+
+  @override
+  String get templateAddLine => 'Add line';
+
+  @override
+  String get templateAddShape => 'Add shape';
+
+  @override
+  String get templateFront => 'Front';
+
+  @override
+  String get templateBack => 'Back';
+
+  @override
+  String get templateSave => 'Save template';
+
+  @override
+  String get templateRedo => 'Redo';
+
+  @override
+  String get templateBorder => 'Template border';
+
+  @override
+  String get templateElements => 'Elements';
+
+  @override
+  String get templateHideGrid => 'Hide grid';
+
+  @override
+  String get templateShowGrid => 'Show grid';
+
+  @override
+  String get templateDisableSnap => 'Disable snap';
+
+  @override
+  String get templateEnableSnap => 'Enable snap';
+
+  @override
+  String get templateUnlockCanvas => 'Unlock canvas movement';
+
+  @override
+  String get templateLockCanvas => 'Lock canvas movement';
+
+  @override
+  String get templateSelectPreviewRecord => 'Select specimen for text preview';
+
+  @override
+  String get templateSettings => 'Template settings';
+
+  @override
+  String get templateToolPage => 'Page';
+
+  @override
+  String get templateToolView => 'View';
+
+  @override
+  String get templatePresetTemplate => 'Preset template';
+
+  @override
+  String templateMirrorOn(String side) {
+    return '$side: rotated 180° for print (tap to turn off)';
+  }
+
+  @override
+  String templateMirrorOff(String side) {
+    return '$side: tap to rotate template 180° for print';
+  }
+
+  @override
+  String get templateOneSided => '1 sided';
+
+  @override
+  String templateEditSide(String side) {
+    return 'Edit $side side';
+  }
+
+  @override
+  String templateElementsForSide(String side) {
+    return 'Elements · $side';
+  }
+
+  @override
+  String get templateNoElements =>
+      'No elements on this side yet. Add one from the Add tools.';
+
+  @override
+  String get templateHidden => 'Hidden';
+
+  @override
+  String get templateLocked => 'Locked';
+
+  @override
+  String get templateNoSaved => 'No saved templates yet.';
+
+  @override
+  String get templateFitToScreen => 'Fit to screen';
+
+  @override
+  String get templateRemoveImage => 'Remove image';
+
+  @override
+  String get templateDragToRotate => 'Drag to rotate';
+
+  @override
+  String get templateRemoveLine => 'Remove line';
+
+  @override
+  String get templateDragToMove => 'Drag to move';
+
+  @override
+  String get templateRemoveShape => 'Remove shape';
+
+  @override
+  String get templateDeleteImage => 'Delete image';
+
+  @override
+  String get templateLineStrokeOptions => 'Line stroke options';
+
+  @override
+  String get templateThickness => 'Thickness';
+
+  @override
+  String get templateColor => 'Color';
+
+  @override
+  String get templateSelectColor => 'Select color';
+
+  @override
+  String get templateDeleteLine => 'Delete line';
+
+  @override
+  String get templateDismissToolbar => 'Dismiss toolbar';
+
+  @override
+  String get templateBorderFillOptions => 'Border and fill options';
+
+  @override
+  String get templateSelectStrokeColor => 'Select stroke color';
+
+  @override
+  String get templateFill => 'Fill';
+
+  @override
+  String get templateClearFill => 'Clear fill';
+
+  @override
+  String get templateDeleteShape => 'Delete shape';
+
+  @override
+  String get templateRectangle => 'Rectangle';
+
+  @override
+  String get templateEllipse => 'Ellipse';
+
+  @override
+  String get templateTriangle => 'Triangle';
+
+  @override
+  String get templatePolygon => 'Polygon';
+
+  @override
+  String get templateCorners => 'Corners';
+
+  @override
+  String get templateSelectFillColor => 'Select fill color';
+
+  @override
+  String get templateBorderTitle => 'Border';
+
+  @override
+  String get templateSelectBorderColor => 'Select border color';
+
+  @override
+  String get templateSelectColorShade => 'Select color shade';
+
+  @override
+  String get templateSelectedColorShades => 'Selected color and its shades';
+
+  @override
+  String get templateSendToBack => 'Send to back';
+
+  @override
+  String get templateSendBackward => 'Send backward';
+
+  @override
+  String get templateBringForward => 'Bring forward';
+
+  @override
+  String get templateBringToFront => 'Bring to front';
+
+  @override
+  String get templateUnlockPosition => 'Unlock position';
+
+  @override
+  String get templateLockPosition => 'Lock position';
+
+  @override
+  String get templateHideElement => 'Hide element';
+
+  @override
+  String get templateShowElement => 'Show element';
+
+  @override
+  String get templateDuplicateElement => 'Duplicate element';
+
+  @override
+  String get templateCopyElement => 'Copy element';
+
+  @override
+  String get templatePasteElement => 'Paste element';
+
+  @override
+  String templateMapEncodedValuesBody(String field) {
+    return 'Define custom labels for [$field] values:';
+  }
+
+  @override
+  String get templateFontsNotInstalled => 'Fonts not installed';
+
+  @override
+  String templateMissingFontOne(int templates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      templates,
+      locale: localeName,
+      other:
+          'This installation does not have 1 font used by the imported templates. Choose a replacement.',
+      one:
+          'This installation does not have 1 font used by the imported template. Choose a replacement.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String templateMissingFontMany(int templates, int fonts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      templates,
+      locale: localeName,
+      other:
+          'This installation does not have $fonts fonts used by the imported templates. Choose a replacement for each.',
+      one:
+          'This installation does not have $fonts fonts used by the imported template. Choose a replacement for each.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get templateInstallOriginalFonts =>
+      'Install the original fonts under Documents > Fonts if you need an exact match.';
+
+  @override
+  String templateFontPreview(String font) {
+    return 'Preview: $font';
+  }
+
+  @override
+  String get templateCancelImport => 'Cancel import';
+
+  @override
+  String get templateReplaceAndImport => 'Replace and import';
+
+  @override
+  String get templateExistsTitle => 'Template exists';
+
+  @override
+  String templateExistsBody(String name) {
+    return 'A template named \"$name\" already exists. Replace the saved copy?';
+  }
+
+  @override
+  String get templateNewName => 'New name';
+
+  @override
+  String get templateUploadFromDevice => 'Upload from device';
+
+  @override
+  String get templateUploadFromDeviceBody =>
+      'Copies the file into your template images folder';
+
+  @override
+  String get templateSavedImages => 'Saved images';
+
+  @override
+  String get templateNoSavedImages => 'No saved images yet - upload one first.';
+
+  @override
+  String get templateName => 'Template name';
+
+  @override
+  String get templateEnterName => 'Enter a name';
+
+  @override
+  String get templateSaveImportedAs => 'Save imported template as';
+
+  @override
+  String templateMustDiffer(String name) {
+    return 'Must differ from \"$name\"';
+  }
+
+  @override
+  String get templateNameExists => 'A template with this name already exists';
+
+  @override
+  String templateRecordTypeValue(String type) {
+    return 'Record type: $type';
+  }
+
+  @override
+  String get templateSides => 'Sides';
+
+  @override
+  String get templateOneSidedBody =>
+      'Create a template with a Front side only.';
+
+  @override
+  String get templateTwoSided => '2 sided';
+
+  @override
+  String get templateTwoSidedBody => 'Create separate Front and Back designs.';
+
+  @override
+  String get templateCreateNew => 'Create new template';
+
+  @override
+  String get templateOptions => 'Template Options';
+
+  @override
+  String get templateSaveAs => 'Save as...';
+
+  @override
+  String get templateChoose => 'Choose template';
+
+  @override
+  String get templateUntitled => 'Untitled template';
+
+  @override
+  String get templateInsertField => 'Insert Field';
+
+  @override
+  String get templateAllTaxa => 'All Taxa';
+
+  @override
+  String get templateEditCustomText => 'Edit Custom Text';
+
+  @override
+  String get templateTextInput => 'Text Input';
+
+  @override
+  String get templateTextInputHint => 'Enter text or insert fields...';
+
+  @override
+  String get templateAvailableSymbols => 'Available Symbols';
+
+  @override
+  String get templateEnterText => 'Enter text...';
+
+  @override
+  String templateRenamedTo(String name) {
+    return 'Renamed to $name';
+  }
+
+  @override
+  String templateRenameFailed(String error) {
+    return 'Rename failed: $error';
+  }
+
+  @override
+  String templateSavedName(String name) {
+    return 'Saved template \"$name\"';
+  }
+
+  @override
+  String templateSavedFile(String file) {
+    return 'Saved $file';
+  }
+
+  @override
+  String templateReplacementInvalid(int index, String text, String message) {
+    return 'Text replacement $index in \"$text\" is invalid: $message';
+  }
+
+  @override
+  String templateImportedAndSaved(String name) {
+    return 'Imported and saved \"$name\"';
+  }
+
+  @override
+  String get templateImportFailed => 'Import failed or file invalid';
+
+  @override
+  String get templateUnsavedChanges => 'Unsaved Changes';
+
+  @override
+  String get templateUnsavedChangesBody =>
+      'Do you want to save the changes to the template before leaving?';
+
+  @override
+  String get templateDiscard => 'Discard';
+
+  @override
+  String get templatePreviewPartSelection =>
+      'Specimen Part Selection for Preview';
+
+  @override
+  String get templatePreviewParasiteSelection =>
+      'Parasite Selection for Preview';
+
+  @override
+  String get templatePreviewSpecimenSelection =>
+      'Specimen Selection for Preview';
+
+  @override
+  String get templateSizePreset => 'Template Size Preset';
+
+  @override
+  String get templateSizePaper => 'Paper';
+
+  @override
+  String get templateSizeCryotubes => 'Cryotubes';
+
+  @override
+  String get templateSizeRangeHelper => 'Enter value between 10 and 500 mm';
+
+  @override
+  String get templateSizeEnterWidth => 'Please enter a width';
+
+  @override
+  String get templateSizeInvalidNumber => 'Please enter a valid number';
+
+  @override
+  String get templateSizeOutOfRange => 'Must be between 10 and 500';
+
+  @override
+  String get templateSizeEnterHeight => 'Please enter a height';
+
+  @override
+  String get templateSizeApplyCustom => 'Apply Custom Size';
+
+  @override
+  String get templatePresetLetter => 'Letter';
+
+  @override
+  String get templatePresetLegal => 'Legal';
+
+  @override
+  String get templatePresetVialSideLarge => '1.5 - 2.0 mL Vial Side';
+
+  @override
+  String get templatePresetVialSideSmall => '0.5 - 1.0 mL Vial Side';
+
+  @override
+  String get templatePresetCapDotSmall => 'Small Vial Cap Dot';
+
+  @override
+  String get templatePresetCapDotLarge => 'Large Vial Cap Dot';
+
+  @override
+  String get templatePresetSelfLaminating => 'Self-Laminating Wrap';
+
+  @override
+  String get templatePresetPinnedLocality => 'Invertebrate Pinned (Locality)';
+
+  @override
+  String get templatePresetPinnedTaxon => 'Invertebrate Pinned (Taxon ID)';
+
+  @override
+  String get templatePresetJarInsert => 'Fluid Collection (Jar Insert)';
+
+  @override
+  String get templatePresetVertebrateTag => 'Vertebrate Specimen Tag (Medium)';
+
+  @override
+  String get templatePresetSkullBox => 'Skull Box / Micro-Vial';
+
+  @override
+  String get templatePresetA4Description =>
+      'International standard default for catalogs, reports, and label sheets.';
+
+  @override
+  String get templatePresetLetterDescription =>
+      'North American standard default for documentation and matrix printing.';
+
+  @override
+  String get templatePresetLegalDescription =>
+      'Extended canvas for long field logs, history sheets, or oversized tables.';
+
+  @override
+  String get templatePresetA5Description =>
+      'Compact size ideal for pocket field books and small log inserts.';
+
+  @override
+  String get templatePresetA3Description =>
+      'Oversized sheet for map generation, collection drawer layouts, and system grids.';
+
+  @override
+  String get templatePresetVialSideLargeDescription =>
+      'Standard side-wall label. Fits 3-4 lines of text plus a barcode.';
+
+  @override
+  String get templatePresetVialSideSmallDescription =>
+      'Compact side-wall profile for smaller tissue or DNA aliquots.';
+
+  @override
+  String get templatePresetCapDotSmallDescription =>
+      'Circular top dot fitting 0.5–1.5 mL tube caps for top-down scanning.';
+
+  @override
+  String get templatePresetCapDotLargeDescription =>
+      'Circular top dot fitting 2.0 mL or larger cryovial screw caps.';
+
+  @override
+  String get templatePresetSelfLaminatingDescription =>
+      'Text prints on a 25.4x12.7mm zone; clear tail wraps over to protect against liquid nitrogen.';
+
+  @override
+  String get templatePresetPinnedLocalityDescription =>
+      'Rigid boundary for pinned insects; fits 5-6 lines of ultra-compact metadata.';
+
+  @override
+  String get templatePresetPinnedTaxonDescription =>
+      'Smallest footprint; contains Genus species, author, and determiner info.';
+
+  @override
+  String get templatePresetJarInsertDescription =>
+      'Placed inside wet jars (alcohol/formalin). High legibility through curved glass.';
+
+  @override
+  String get templatePresetVertebrateTagDescription =>
+      'Standard medium-sized vertebrate curation and hang tag.';
+
+  @override
+  String get templatePresetSkullBoxDescription =>
+      'Optimized for 1-to-2 dram glass vials or small cardboard osteological boxes.';
+
+  @override
+  String get templateElementImage => 'Image';
+
+  @override
+  String templateElementImageDetail(String width, String height) {
+    return 'Image · $width × $height mm';
+  }
+
+  @override
+  String get templateElementLine => 'Line';
+
+  @override
+  String get templateElementEmptyText => 'Empty text';
+
+  @override
+  String get mediaGallery => 'Gallery';
+
+  @override
+  String get mediaActions => 'Actions';
+
+  @override
+  String get mediaDeleteSelectedTitle => 'Delete selected media?';
+
+  @override
+  String get mediaDeleteSelectedBody =>
+      'Delete the selected media from all NAHPU records and from disk? This cannot be undone.';
+
+  @override
+  String mediaSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get mediaNoneAdded => 'No media added';
+
+  @override
+  String get mediaAdd => 'Add media';
+
+  @override
+  String get mediaTakePhotosVideos => 'Take photos/videos';
+
+  @override
+  String get mediaRecordAudio => 'Record audio';
+
+  @override
+  String get mediaAddFromGallery => 'Add from gallery';
+
+  @override
+  String get mediaAddFromFile => 'Add from file';
+
+  @override
+  String get mediaUnavailable => 'Media unavailable';
+
+  @override
+  String get mediaFileMissing => 'File missing';
+
+  @override
+  String get mediaImageUnavailable => 'Image unavailable';
+
+  @override
+  String get mediaNone => 'No media';
+
+  @override
+  String get mediaMenuActions => 'Media actions';
+
+  @override
+  String get mediaShowInfo => 'Show info';
+
+  @override
+  String get mediaEdit => 'Edit media';
+
+  @override
+  String get mediaInfo => 'Media info';
+
+  @override
+  String get mediaDeleteFileTitle => 'Delete media file?';
+
+  @override
+  String mediaDeleteFileBody(String name) {
+    return 'Delete $name from all NAHPU records and from disk? This cannot be undone.';
+  }
+
+  @override
+  String get mediaDeleteThisFileBody =>
+      'Delete this media file from all NAHPU records and from disk? This cannot be undone.';
+
+  @override
+  String get mediaFileAlreadyExists => 'File already exists';
+
+  @override
+  String get mediaFileName => 'File name';
+
+  @override
+  String get mediaFileNameHint => 'Enter a file name';
+
+  @override
+  String get mediaCaption => 'Caption';
+
+  @override
+  String get mediaCaptionHint => 'Enter a caption';
+
+  @override
+  String get mediaTag => 'Tag';
+
+  @override
+  String get mediaTagHint => 'Enter a tag';
+
+  @override
+  String get mediaPhotographer => 'Photographer';
+
+  @override
+  String get mediaSelectPersonnel => 'Select personnel';
+
+  @override
+  String get mediaClearPhotographer => 'Clear photographer';
+
+  @override
+  String get mediaExportSelected => 'Export selected media';
+
+  @override
+  String get mediaExporting => 'Exporting media';
+
+  @override
+  String get mediaExportingHint =>
+      'Large media selections can take several minutes. Keep NAHPU open until this finishes.';
+
+  @override
+  String get mediaExport => 'Export media';
+
+  @override
+  String get mediaExportLeaveBody =>
+      'The export is still running. Leaving now cancels it and no file will be saved.';
+
+  @override
+  String get mediaArchive => 'Media archive';
+
+  @override
+  String get mediaImageFormat => 'Image format';
+
+  @override
+  String get mediaLimitDimensions => 'Limit image dimensions';
+
+  @override
+  String get mediaLimitDimensionsBody =>
+      'Constrain the longer side without upscaling';
+
+  @override
+  String get mediaMaxDimension => 'Maximum width or height (px)';
+
+  @override
+  String get mediaMaxDimensionHelper => 'Applies to whichever side is longer.';
+
+  @override
+  String get mediaJpegQuality => 'JPEG quality';
+
+  @override
+  String get mediaImages => 'Images';
+
+  @override
+  String get mediaAudio => 'Audio';
+
+  @override
+  String get mediaVideo => 'Video';
+
+  @override
+  String get mediaOther => 'Other';
+
+  @override
+  String get mediaSourceSize => 'Source size';
+
+  @override
+  String get mediaExported => 'Exported';
+
+  @override
+  String mediaWarningCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count warnings',
+      one: '1 warning',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mediaCannotConvert(String format) {
+    return '$format cannot be converted and will remain in its original format.';
+  }
+
+  @override
+  String get mediaPause => 'Pause';
+
+  @override
+  String get mediaPlay => 'Play';
+
+  @override
+  String mediaPlaybackUnavailable(String error) {
+    return 'Playback preview is unavailable: $error';
+  }
+
+  @override
+  String get mediaCameraAccessRequired =>
+      'Camera access is required to take photos and videos.';
+
+  @override
+  String get mediaMicrophoneAccessRequired =>
+      'Microphone access is required to record video.';
+
+  @override
+  String get mediaCameraError => 'Unable to use the camera.';
+
+  @override
+  String get mediaPhoto => 'Photo';
+
+  @override
+  String get mediaSwitchCamera => 'Switch camera';
+
+  @override
+  String get mediaStopRecording => 'Stop recording';
+
+  @override
+  String get mediaRecordVideo => 'Record video';
+
+  @override
+  String get mediaRetake => 'Retake';
+
+  @override
+  String get mediaUse => 'Use';
+
+  @override
+  String get mediaDetailFile => 'File';
+
+  @override
+  String get mediaCategory => 'Category';
+
+  @override
+  String get mediaCaptureEquipment => 'Capture and equipment';
+
+  @override
+  String get mediaTaken => 'Taken';
+
+  @override
+  String get mediaCamera => 'Camera';
+
+  @override
+  String get mediaLenses => 'Lenses';
+
+  @override
+  String get mediaAdditionalExif => 'Additional EXIF';
+
+  @override
+  String get mediaId => 'Media ID';
+
+  @override
+  String get mediaSecondaryId => 'Secondary ID';
+
+  @override
+  String get mediaPhotographerId => 'Photographer ID';
+
+  @override
+  String get mediaLinkedInformation => 'Linked information';
+
+  @override
+  String mediaLinkedInformationError(String error) {
+    return 'Linked information is unavailable: $error';
+  }
+
+  @override
+  String get mediaResume => 'Resume';
+
+  @override
+  String get mediaPausePlayback => 'Pause playback';
+
+  @override
+  String get mediaPlayRecording => 'Play recording';
+
+  @override
+  String get mediaRecordingNotSaved => 'The audio recording was not saved.';
+
+  @override
+  String get mediaImageSettings => 'Image Settings';
+
+  @override
+  String mediaOriginalSize(int width, int height) {
+    return 'Original: $width × $height px';
+  }
+
+  @override
+  String get mediaResizeImage => 'Resize image';
+
+  @override
+  String get mediaAspectLocked => 'Aspect ratio is locked';
+
+  @override
+  String get mediaWidthPx => 'Width (px)';
+
+  @override
+  String mediaMaxValue(int value) {
+    return 'Max $value';
+  }
+
+  @override
+  String get mediaHeightPx => 'Height (px)';
+
+  @override
+  String get mediaSearchMetadata => 'Search media metadata';
+
+  @override
+  String get mediaGalleryTitle => 'Media gallery';
+
+  @override
+  String get mediaSearch => 'Search media';
+
+  @override
+  String get mediaDeleteSelected => 'Delete selected media';
+
+  @override
+  String get mediaCategoryEvent => 'Event';
+
+  @override
+  String get mediaSort => 'Sort media';
+
+  @override
+  String get mediaNoMatching => 'No matching media';
+
+  @override
+  String get mediaSortAddedNewest => 'Newest added';
+
+  @override
+  String get mediaSortAddedOldest => 'Oldest added';
+
+  @override
+  String get mediaSortFileNameAsc => 'File name A–Z';
+
+  @override
+  String get mediaSortFileNameDesc => 'File name Z–A';
+
+  @override
+  String get mediaSortTakenNewest => 'Date taken, newest';
+
+  @override
+  String get mediaSortTakenOldest => 'Date taken, oldest';
+
+  @override
+  String get mediaHideDetails => 'Hide details';
+
+  @override
+  String get mediaShowDetails => 'Show details';
+
+  @override
+  String get mediaPrevious => 'Previous';
+
+  @override
+  String get mediaMute => 'Mute';
+
+  @override
+  String get mediaUnmute => 'Unmute';
+
+  @override
+  String get mediaPlaybackSpeed => 'Playback speed';
+
+  @override
+  String get mediaExitFullscreen => 'Exit fullscreen';
+
+  @override
+  String get mediaFullscreen => 'Fullscreen';
+
+  @override
+  String mediaCannotDisplay(String kind) {
+    return 'Cannot display this $kind file';
+  }
+
+  @override
+  String get mediaBarcode => 'Barcode';
+
+  @override
+  String get mediaScanQrCode => 'Scan QR code';
+
+  @override
+  String get mediaScanBarcode => 'Scan barcode';
+
+  @override
+  String get mediaAlignQrCode => 'Align the QR code within the frame';
+
+  @override
+  String get mediaAlignBarcode => 'Align the barcode within the frame';
+
+  @override
+  String get mediaQrTooLarge =>
+      'Data is too large for a QR code.\nExport it as a file instead.';
+
+  @override
+  String get associatedUnnamed => 'Unnamed associated data';
+
+  @override
+  String get associatedFileUnavailable => 'File unavailable';
+
+  @override
+  String get associatedTypeLink => 'Link';
+
+  @override
+  String get associatedUnknownType => 'Unknown type';
+
+  @override
+  String get associatedNoResource => 'No resource';
+
+  @override
+  String get associatedActions => 'Associated data actions';
+
+  @override
+  String get associatedOpenInDefaultApp => 'Open in default app';
+
+  @override
+  String get associatedOpenLink => 'Open link';
+
+  @override
+  String get associatedNoUriToShare => 'No URI to share.';
+
+  @override
+  String get associatedFileNotFound => 'File not found';
+
+  @override
+  String get associatedInvalidUri => 'Invalid URI.';
+
+  @override
+  String associatedCouldNotOpen(String uri) {
+    return 'Could not open $uri';
+  }
+
+  @override
+  String get associatedAdd => 'Add associated data';
+
+  @override
+  String get associatedNoneAdded => 'No associated data added';
+
+  @override
+  String get associatedEdit => 'Edit associated data';
+
+  @override
+  String get associatedDataType => 'Data type';
+
+  @override
+  String get associatedDataTypeHint => 'Select data type';
+
+  @override
+  String get associatedNameHint => 'e.g., GenBank or MorphoSource';
+
+  @override
+  String get associatedDescriptionHint => 'Describe the associated data';
+
+  @override
+  String get associatedResource => 'Resource';
+
+  @override
+  String get associatedNonMediaFiles => 'Non-media files';
+
+  @override
+  String get associatedCopyToProject => 'Copy to project';
+
+  @override
+  String get associatedLinkOriginal => 'Link original';
+
+  @override
+  String get associatedLinkOriginalWarning =>
+      'The link will stop working if the original file is moved or deleted.';
+
+  @override
+  String get associatedSelectDataType => 'Select a data type.';
+
+  @override
+  String get associatedEnterValidUri => 'Enter a valid URI.';
+
+  @override
+  String get associatedSelectFile => 'Select a file.';
+
+  @override
+  String get associatedNoIdentifier => 'Associated data has no identifier.';
+
+  @override
+  String get associatedInfo => 'Associated data info';
+
+  @override
+  String get associatedOriginStoragePath => 'Origin storage path';
+
+  @override
+  String get associatedLinkedOriginal => 'Linked original';
+
+  @override
+  String get associatedProjectCopy => 'Project copy';
+
+  @override
+  String get associatedAvailability => 'Availability';
+
+  @override
+  String get associatedChecking => 'Checking…';
+
+  @override
+  String get legalReadThe => 'Please read the ';
+
+  @override
+  String get legalTermsAndConditions => 'Terms and Conditions';
+
+  @override
+  String get legalAndThe => ' and the ';
+
+  @override
+  String get legalPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get legalBeforeYouStart =>
+      ' before you start. Using NAHPU accepts them.';
+
+  @override
+  String get legalTermsTile => 'Terms and conditions';
+
+  @override
+  String get legalPrivacyTile => 'Privacy policy';
+
+  @override
+  String get mapCenterOnCoordinates => 'Center map on coordinates';
+
+  @override
+  String mapMoreCount(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String get mapTapToZoomIn => 'Tap to zoom in';
+
+  @override
+  String get mapNaturalEarthOffline => 'Natural Earth · offline';
+
+  @override
+  String get mapRetryDetailed => 'Try the detailed map again';
+
+  @override
+  String get siteAddCoordinates => 'Add coordinates';
+
+  @override
+  String get siteViewMap => 'View map';
+
+  @override
+  String siteAddSelected(int count) {
+    return 'Add $count selected';
+  }
+
+  @override
+  String get siteNewCoordinate => 'New coordinate';
+
+  @override
+  String get siteSupportedFiles => 'Supported files:';
+
+  @override
+  String get siteSupportedFileTypes =>
+      'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.';
+
+  @override
+  String get siteSelectCoordinateFile => 'Select coordinate file';
+
+  @override
+  String siteRowsSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows skipped',
+      one: '1 row skipped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteEditColumnMapping => 'Edit column mapping';
+
+  @override
+  String get siteChooseAnotherFile => 'Choose another file';
+
+  @override
+  String get siteCoordinateChanged =>
+      'The coordinate changed. Refresh the map to update the preview.';
+
+  @override
+  String get siteEnterValidCoordinate =>
+      'Enter a valid WGS84 latitude and longitude, then refresh the map.';
+
+  @override
+  String get siteRefreshMap => 'Refresh map';
+
+  @override
+  String get siteEditCoordinates => 'Edit Coordinates';
+
+  @override
+  String get siteAddName => 'Add a name';
+
+  @override
+  String get siteDeviceGps => 'Device GPS';
+
+  @override
+  String get siteDeviceGpsBody => 'Use device sensor to autofill coordinates';
+
+  @override
+  String get siteGetLocation => 'Get location';
+
+  @override
+  String get siteCoordinateFormat => 'Coordinate format';
+
+  @override
+  String get siteDecimalDegrees => 'Decimal degrees';
+
+  @override
+  String get siteDdm => 'Degrees decimal minutes (DDM)';
+
+  @override
+  String get siteDms => 'Degrees minutes seconds (DMS)';
+
+  @override
+  String get siteUtm => 'UTM (WGS84)';
+
+  @override
+  String get siteUtmCoordinate => 'UTM coordinate';
+
+  @override
+  String get siteDecimalLatitude => 'Decimal Latitude';
+
+  @override
+  String get siteAddLatitude => 'Add a latitude';
+
+  @override
+  String get siteDecimalLongitude => 'Decimal Longitude';
+
+  @override
+  String get siteAddLongitude => 'Add a longitude';
+
+  @override
+  String get siteAddElevation => 'Add an elevation';
+
+  @override
+  String get siteSpecifyDatum => 'Specify the datum';
+
+  @override
+  String get siteAddUncertainty => 'Add an uncertainty';
+
+  @override
+  String get siteGpsUnit => 'GPS Unit';
+
+  @override
+  String get siteSpecifyGpsUnit => 'Specify the GPS unit';
+
+  @override
+  String get siteAddNotes => 'Add notes (optional)';
+
+  @override
+  String get siteChangeFormatTitle => 'Change coordinate format?';
+
+  @override
+  String get siteChangeFormatBody =>
+      'Changing the format clears the entered coordinate values. Name, elevation, datum, uncertainty, GPS unit, and notes are kept.';
+
+  @override
+  String get siteClearAndSwitch => 'Clear and switch';
+
+  @override
+  String siteInvalidVerbatim(String axis, String value) {
+    return 'This verbatim $axis could not be read and may have been changed outside NAHPU. Re-enter it before saving.\nOriginal: $value';
+  }
+
+  @override
+  String get siteMissingValue => '(missing)';
+
+  @override
+  String get siteDegree => 'Degree';
+
+  @override
+  String get siteMinute => 'Minute';
+
+  @override
+  String get siteSecond => 'Second';
+
+  @override
+  String get siteManageCoordinates => 'Manage coordinates';
+
+  @override
+  String get siteCoordinateMap => 'Coordinate map';
+
+  @override
+  String siteExportCoordinatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Export $count coordinates',
+      one: 'Export 1 coordinate',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteFormatGeoJson => 'GeoJSON (.geojson)';
+
+  @override
+  String get siteFormatShapefile => 'Shapefile bundle (.zip)';
+
+  @override
+  String get siteShowCoordinates => 'Show coordinates';
+
+  @override
+  String get siteAllCoordinates => 'All coordinates';
+
+  @override
+  String siteLoadSitesError(String error) {
+    return 'Unable to load sites: $error';
+  }
+
+  @override
+  String siteLoadCoordinatesError(String error) {
+    return 'Unable to load coordinates: $error';
+  }
+
+  @override
+  String siteExportSelectedCoordinates(int count) {
+    return 'Export coordinates ($count)';
+  }
+
+  @override
+  String get siteNoCoordinates => 'No coordinates added';
+
+  @override
+  String siteSelectedOfCoordinates(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total coordinates',
+      one: '1 coordinate',
+    );
+    return '$count of $_temp0';
+  }
+
+  @override
+  String siteUnnamedCoordinateId(String id) {
+    return 'Unnamed coordinate ($id)';
+  }
+
+  @override
+  String siteCoordinatesNotShown(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count coordinates are not shown because latitude or longitude is missing or invalid.',
+      one:
+          '1 coordinate is not shown because latitude or longitude is missing or invalid.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteCoordinateActions => 'Coordinate actions';
+
+  @override
+  String get siteCopy => 'Copy';
+
+  @override
+  String get siteOpenInMap => 'Open in map';
+
+  @override
+  String get siteCoordinateDetails => 'Coordinate Details';
+
+  @override
+  String get siteCopiedToClipboard =>
+      'Latitude and Longitude copied to clipboard';
+
+  @override
+  String get siteNoName => 'No Name';
+
+  @override
+  String get siteOriginalCoordinate => 'Original coordinate';
+
+  @override
+  String get siteOriginalFormat => 'Original format';
+
+  @override
+  String get siteUncertainty => 'Uncertainty';
+
+  @override
+  String get siteUnnamedCoordinate => 'Unnamed coordinate';
+
+  @override
+  String get siteAddCoordinate => 'Add coordinate';
+
+  @override
+  String get siteNoId => 'No ID';
+
+  @override
+  String siteColumnsDetected(int columns, int rows) {
+    return '$columns columns and $rows data rows detected. NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.';
+  }
+
+  @override
+  String siteColumnsDetectedInWorksheet(
+    int columns,
+    int rows,
+    String worksheet,
+  ) {
+    return '$columns columns and $rows data rows detected in worksheet \"$worksheet\". NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.';
+  }
+
+  @override
+  String get siteNotIncluded => 'Not included';
+
+  @override
+  String siteHeaderColumn(String header, int index) {
+    return '$header (column $index)';
+  }
+
+  @override
+  String get siteReviewCoordinates => 'Review coordinates';
+
+  @override
+  String get siteImportFieldNameId => 'Name / ID';
+
+  @override
+  String get siteCopyFromProject => 'Copy from project';
+
+  @override
+  String get siteChooseDataToCopy => 'Choose data to copy';
+
+  @override
+  String get siteSelectSourceProject =>
+      'Select the project that contains the site to copy.';
+
+  @override
+  String siteSelectFromProject(String project) {
+    return 'Select a site from $project.';
+  }
+
+  @override
+  String get siteNoSitesInProject => 'No sites found in this project.';
+
+  @override
+  String get siteSelectDataToCopy =>
+      'Select the data to copy into the empty site.';
+
+  @override
+  String get siteNoCopyableData => 'The selected site has no copyable data.';
+
+  @override
+  String get siteNoDataInSource => 'No data in source';
+
+  @override
+  String get siteMustBeEmptyBody =>
+      'The current site must be empty before copying data. Clear its site information, coordinates, media, and linked data first.';
+
+  @override
+  String get siteMustBeEmpty => 'Site must be empty';
+
+  @override
+  String get siteNeedAnotherProject =>
+      'Create or import another project before copying site data.';
+
+  @override
+  String get siteMultipleProjectsRequired => 'Multiple projects required';
+
+  @override
+  String siteUnnamedSite(String id) {
+    return 'Unnamed site #$id';
+  }
+
+  @override
+  String siteGeographySettingsError(String error) {
+    return 'Unable to load geography settings: $error';
+  }
+
+  @override
+  String get siteFindLocalityTooltip =>
+      'Type a locality and select a saved one to fill every geography field';
+
+  @override
+  String get siteFindLocality => 'Find existing locality';
+
+  @override
+  String get siteFindLocalityHint => 'Type to reuse a saved locality';
+
+  @override
+  String get siteEnterCountry => 'Enter a country';
+
+  @override
+  String get siteEnterIslandGroup => 'Enter an island group';
+
+  @override
+  String get siteEnterStateProvince => 'Enter a state/province';
+
+  @override
+  String get siteEnterCounty => 'Enter a county/parish/district';
+
+  @override
+  String get siteEnterMunicipality => 'Enter a municipality/city/town';
+
+  @override
+  String get sitePreciseLocality => 'Precise Locality';
+
+  @override
+  String get sitePreciseLocalityHint =>
+      'Enter a precise locality lower than municipality';
+
+  @override
+  String get siteRemarksHint => 'Enter more info about the site (optional)';
+
+  @override
+  String get siteHabitatType => 'Habitat Type';
+
+  @override
+  String get siteHabitatTypeHint => 'Select a habitat type';
+
+  @override
+  String get siteHabitatCondition => 'Habitat Condition';
+
+  @override
+  String get siteHabitatConditionHint =>
+      'E.g. \"Pristine\", \"Disturbed\", \"etc.\"';
+
+  @override
+  String get siteHabitatDescription => 'Habitat Description';
+
+  @override
+  String get siteHabitatDescriptionHint =>
+      'Describe the site, e.g. \"A camp site in the middle of the forest.\"';
+
+  @override
+  String get siteCanopyCover => 'Canopy Cover';
+
+  @override
+  String get siteCanopyCoverHint => 'Enter canopy cover';
+
+  @override
+  String get siteCreate => 'Create site';
+
+  @override
+  String get siteActions => 'Site actions';
+
+  @override
+  String get siteDuplicate => 'Duplicate site';
+
+  @override
+  String get siteCopyFromProjectMenu => 'Copy from project ...';
+
+  @override
+  String get siteExport => 'Export site';
+
+  @override
+  String get siteImport => 'Import site';
+
+  @override
+  String siteCopiedSummary(
+    String fields,
+    String coordinates,
+    String site,
+    String project,
+  ) {
+    return 'Copied $fields and $coordinates from $site in $project.';
+  }
+
+  @override
+  String siteFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteDeleteTitle => 'Delete site?';
+
+  @override
+  String get siteDeleteBody => 'You will delete all records in this site form';
+
+  @override
+  String get siteDeleteAllTitle => 'Delete all sites?';
+
+  @override
+  String get siteDeleteAllBody => 'You will delete all site records';
+
+  @override
+  String get siteDeleteInUse =>
+      'Cannot delete sites. Being used by other records.';
+
+  @override
+  String get siteIdentity => 'Site Identity';
+
+  @override
+  String get siteIdHint =>
+      'Enter a site ID (max. 40 chars), e.g. \"CAMP-01\", \"LINE-1\"';
+
+  @override
+  String get siteLeader => 'Site Leader';
+
+  @override
+  String get siteType => 'Site Type';
+
+  @override
+  String get siteTypeHint => 'Choose a site type';
+
+  @override
+  String get siteSearch => 'Search sites';
+
+  @override
+  String get siteRecordTitle => 'Site Record';
+
+  @override
+  String get siteNoneFound => 'No site found';
+
+  @override
+  String get siteCopyFieldSiteLeader => 'Site leader';
+
+  @override
+  String get siteCopyFieldSiteType => 'Site type';
+
+  @override
+  String get siteCopyFieldPreciseLocality => 'Precise locality';
+
+  @override
+  String get siteCopyFieldHabitatType => 'Habitat type';
+
+  @override
+  String get siteCopyFieldHabitatCondition => 'Habitat condition';
+
+  @override
+  String get siteCopyFieldHabitatDescription => 'Habitat description';
+
+  @override
+  String get siteCopyFieldCanopyCover => 'Canopy cover';
+
+  @override
+  String eventEnvironmentLoadError(String error) {
+    return 'Unable to load environmental data: $error';
+  }
+
+  @override
+  String get eventDayLowest => 'Day Lowest';
+
+  @override
+  String get eventDayHighest => 'Day Highest';
+
+  @override
+  String get eventNightLowest => 'Night Lowest';
+
+  @override
+  String get eventNightHighest => 'Night Highest';
+
+  @override
+  String get eventAverage => 'Average';
+
+  @override
+  String get eventDewPoint => 'Dew Point';
+
+  @override
+  String get eventEnterLowestTemp => 'Enter lowest temperature';
+
+  @override
+  String get eventEnterHighestTemp => 'Enter highest temperature';
+
+  @override
+  String get eventEnterAverageHumidity => 'Enter average humidity';
+
+  @override
+  String get eventEnterDewPoint => 'Enter dew point';
+
+  @override
+  String get eventCloudCover => 'Cloud cover (oktas)';
+
+  @override
+  String get eventCloudCoverHint => 'Select cloud cover';
+
+  @override
+  String get eventCloudCoverHelper =>
+      'One okta represents one eighth of the visible sky.';
+
+  @override
+  String eventInvalidStoredValue(String value) {
+    return '$value — Invalid stored value';
+  }
+
+  @override
+  String get eventEnterRainfall => 'Enter rainfall';
+
+  @override
+  String get eventEnterAmbientTemp => 'Enter ambient temperature';
+
+  @override
+  String get eventEnterRelativeHumidity => 'Enter relative humidity';
+
+  @override
+  String get eventEnterWaterTemp => 'Enter water temperature';
+
+  @override
+  String get eventEnterPh => 'Enter pH';
+
+  @override
+  String get eventEnterDissolvedOxygen => 'Enter dissolved oxygen';
+
+  @override
+  String get eventEnterOxygenSaturation => 'Enter dissolved oxygen saturation';
+
+  @override
+  String get eventEnterConductivity => 'Enter conductivity';
+
+  @override
+  String get eventEnterFlowVelocity => 'Enter flow velocity';
+
+  @override
+  String get eventEnterSunrise => 'Enter sunrise time';
+
+  @override
+  String get eventEnterSunset => 'Enter sunset time';
+
+  @override
+  String get eventMoonPhaseHint => 'Select moon phase';
+
+  @override
+  String eventRecoveryTitle(int count) {
+    return 'Some stored environmental values need attention ($count)';
+  }
+
+  @override
+  String get eventRecoveryBody =>
+      'Correct or clear the highlighted fields. Other values will not be changed.';
+
+  @override
+  String eventSaveValueError(String error) {
+    return 'Could not save this value: $error';
+  }
+
+  @override
+  String get eventEnterValidNumber => 'Enter a valid number.';
+
+  @override
+  String eventValueRange(String minimum, String maximum) {
+    return 'Enter a value from $minimum to $maximum';
+  }
+
+  @override
+  String eventValueMinimum(String minimum) {
+    return 'Enter a value of $minimum or more';
+  }
+
+  @override
+  String get eventOkta0 => '0 — Clear sky';
+
+  @override
+  String get eventOkta1 => '1 — Up to 1/8 covered';
+
+  @override
+  String get eventOkta2 => '2 — 2/8 covered';
+
+  @override
+  String get eventOkta3 => '3 — 3/8 covered';
+
+  @override
+  String get eventOkta4 => '4 — Half covered';
+
+  @override
+  String get eventOkta5 => '5 — 5/8 covered';
+
+  @override
+  String get eventOkta6 => '6 — 6/8 covered';
+
+  @override
+  String get eventOkta7 => '7 — At least 7/8, not overcast';
+
+  @override
+  String get eventOkta8 => '8 — Fully overcast';
+
+  @override
+  String get eventOkta9 => '9 — Sky obscured';
+
+  @override
+  String get eventMoonNew => 'New Moon';
+
+  @override
+  String get eventMoonWaxingCrescent => 'Waxing Crescent';
+
+  @override
+  String get eventMoonFirstQuarter => 'First Quarter';
+
+  @override
+  String get eventMoonWaxingGibbous => 'Waxing Gibbous';
+
+  @override
+  String get eventMoonFull => 'Full Moon';
+
+  @override
+  String get eventMoonWaningGibbous => 'Waning Gibbous';
+
+  @override
+  String get eventMoonLastQuarter => 'Last Quarter';
+
+  @override
+  String get eventMoonWaningCrescent => 'Waning Crescent';
+
+  @override
+  String get eventActivity => 'Activity';
+
+  @override
+  String get eventPrimaryActivity => 'Primary activity';
+
+  @override
+  String get eventSelectActivity => 'Select an activity';
+
+  @override
+  String eventActivitiesLoadError(String error) {
+    return 'Unable to load primary activities: $error';
+  }
+
+  @override
+  String get eventActivityNotesHint => 'Enter notes about the activity';
+
+  @override
+  String get eventAddCollMethod => 'Add collection method';
+
+  @override
+  String get eventNoCollMethods => 'No collection methods added';
+
+  @override
+  String get eventAddCollMethodTitle => 'Add Collection Method';
+
+  @override
+  String get eventEditCollMethod => 'Edit Collection Method';
+
+  @override
+  String get eventCollMethod => 'Collection method';
+
+  @override
+  String get eventCountHint =>
+      'How many of this tool were used (if applicable)?';
+
+  @override
+  String get eventMethodDetails => 'Method details';
+
+  @override
+  String get eventBrandModel => 'Brand and Model';
+
+  @override
+  String get eventBrandModelHint =>
+      'Enter brand and model of the tool (if applicable)';
+
+  @override
+  String get eventSizeHint => 'Enter size of the tool (if applicable)';
+
+  @override
+  String get eventToolNotesHint =>
+      'Enter any notes about the tool (if applicable)';
+
+  @override
+  String get eventSelectMethod => 'Select a method';
+
+  @override
+  String get eventIdentity => 'Event Identity';
+
+  @override
+  String get eventStartDate => 'Start Date';
+
+  @override
+  String get eventEndDate => 'End Date';
+
+  @override
+  String get eventEditId => 'Edit Event ID';
+
+  @override
+  String get eventIdSuffix => 'ID suffix';
+
+  @override
+  String get eventIdSuffixHint => 'Enter ID suffix';
+
+  @override
+  String get eventIdLabel => 'Event ID: ';
+
+  @override
+  String get eventStartTime => 'Start Time';
+
+  @override
+  String get eventEndTime => 'End Time';
+
+  @override
+  String get eventCreate => 'Create event';
+
+  @override
+  String get eventDeleteInUse =>
+      'Failed to delete the events. The events are currently in use by other records.';
+
+  @override
+  String get eventActions => 'Event actions';
+
+  @override
+  String get eventDuplicate => 'Duplicate event';
+
+  @override
+  String get eventExport => 'Export event';
+
+  @override
+  String get eventImport => 'Import event';
+
+  @override
+  String get eventDeleteTitle => 'Delete collecting event?';
+
+  @override
+  String get eventDeleteBody =>
+      'You will also delete collection methods, collecting personnel, environmental data, and media in this event.';
+
+  @override
+  String get eventDeleteAllTitle => 'Delete all collecting events?';
+
+  @override
+  String get eventDeleteAllBody =>
+      'Deleting all collecting events will also delete all associated collection methods, collecting personnel, environmental data, and media from the database.';
+
+  @override
+  String get eventPersonnel => 'Event Personnel';
+
+  @override
+  String get eventNoPersonnel => 'No personnel added';
+
+  @override
+  String get eventUnknownPersonnel => 'Unknown personnel';
+
+  @override
+  String get eventEnterRole => 'Enter a role';
+
+  @override
+  String get eventSearch => 'Search events';
+
+  @override
+  String get eventRecordTitle => 'Collecting Event Record';
+
+  @override
+  String get eventNoneFound => 'No collecting event found';
+
+  @override
+  String exportPresetsLoadError(String error) {
+    return 'Unable to load export presets: $error';
+  }
+
+  @override
+  String get exportPreset => 'Export preset';
+
+  @override
+  String get exportNoPresets =>
+      'No export presets found. Manage presets in settings to create one.';
+
+  @override
+  String get exportManagePresetsButton => 'Manage Presets';
+
+  @override
+  String get exportPresetHelper =>
+      'Record type, headers, and field mappings are set by the preset.';
+
+  @override
+  String get exportPresetDetails => 'Preset details';
+
+  @override
+  String get exportSelectPresetPrompt =>
+      'Select an export preset to see details and preview.';
+
+  @override
+  String exportPresetName(String name) {
+    return 'Preset: $name';
+  }
+
+  @override
+  String exportPresetRecord(String type) {
+    return 'Record: $type';
+  }
+
+  @override
+  String exportPresetTaxon(String taxon) {
+    return 'Taxon: $taxon';
+  }
+
+  @override
+  String exportPresetHeader(String format) {
+    return 'Header: $format';
+  }
+
+  @override
+  String exportSelectedColumns(int count) {
+    return 'Selected Columns ($count):';
+  }
+
+  @override
+  String get exportPreviewTable => 'Preview Table';
+
+  @override
+  String get exportNoFieldsMapped => 'No fields mapped in this preset.';
+
+  @override
+  String exportNestedFields(String namespace, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fields',
+      one: '1 field',
+    );
+    return '$namespace ($_temp0)';
+  }
+
+  @override
+  String get exportTablePreview => 'Table preview';
+
+  @override
+  String get exportNoRecordsForPreset => 'No records found for this preset.';
+
+  @override
+  String exportShowingRecords(int start, int end, int total) {
+    return 'Showing $start-$end of $total records';
+  }
+
+  @override
+  String exportPageOf(int page, int total) {
+    return 'Page $page of $total';
+  }
+
+  @override
+  String get exportBundling => 'Bundling records';
+
+  @override
+  String get exportBundlingHint =>
+      'Packaging writes the records, copies media, compresses the bundle, and then checks it. Keep NAHPU open.';
+
+  @override
+  String get exportCreateBundle => 'Create bundle';
+
+  @override
+  String get exportBundleAnother => 'Bundle another';
+
+  @override
+  String get exportCancelBundleTitle => 'Cancel the bundle?';
+
+  @override
+  String get exportCancelBundleBody =>
+      'The bundle is still being written. Leaving now cancels it and no package will be saved.';
+
+  @override
+  String get exportKeepBundling => 'Keep bundling';
+
+  @override
+  String get exportCancelBundle => 'Cancel bundle';
+
+  @override
+  String exportCreatedFile(String file) {
+    return 'Created $file';
+  }
+
+  @override
+  String get exportBundleComplete => 'Bundle complete!';
+
+  @override
+  String get exportCompleteData => 'Complete NAHPU data';
+
+  @override
+  String get exportCompleteDataBody =>
+      'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.';
+
+  @override
+  String get exportFrictionless => 'Export is in Frictionless Data Format.';
+
+  @override
+  String get exportRecordedTaxa => 'Recorded Taxa';
+
+  @override
+  String get exportSelectedTaxa => 'Selected taxa';
+
+  @override
+  String get exportNoTaxaRecorded => 'No specimen taxa have been recorded yet.';
+
+  @override
+  String exportTaxonGroupsIncluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recorded taxon groups will be included.',
+      one: '1 recorded taxon group will be included.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exportPackageContents => 'Package contents';
+
+  @override
+  String get exportSelectTaxonPrompt =>
+      'Select at least one recorded taxon to list the package contents.';
+
+  @override
+  String get exportPackageContentsBody =>
+      'The list reflects exactly what will be bundled. Empty optional fields and tables are omitted.';
+
+  @override
+  String exportRecordsAndFields(int records, int fields) {
+    String _temp0 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records records',
+      one: '1 record',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      fields,
+      locale: localeName,
+      other: '$fields fields',
+      one: '1 field',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get exportBackingUp => 'Backing up database';
+
+  @override
+  String get exportBackingUpHint =>
+      'Large media libraries can take several minutes. Keep NAHPU open until this finishes.';
+
+  @override
+  String get exportSaveBackup => 'Save backup';
+
+  @override
+  String get exportSaveAnother => 'Save another';
+
+  @override
+  String get exportCancelBackupTitle => 'Cancel the backup?';
+
+  @override
+  String get exportCancelBackupBody =>
+      'The backup is still running. Leaving now cancels it and no file will be saved.';
+
+  @override
+  String get exportKeepBackingUp => 'Keep backing up';
+
+  @override
+  String get exportCancelBackup => 'Cancel backup';
+
+  @override
+  String get exportBackupArchive => 'Backup archive';
+
+  @override
+  String get exportBackupBody =>
+      'This creates a full NAHPU database backup. For a project-only backup, use Export project.';
+
+  @override
+  String get exportBackupDetail =>
+      'It copies all projects and every file in NAHPU app data, whether or not a project links to it. Run it occasionally in the field, when battery use is not a concern.';
+
+  @override
+  String get exportWillExport => 'Will export';
+
+  @override
+  String exportUserConfigsExportedTo(String path) {
+    return 'User configs exported to $path';
+  }
+
+  @override
+  String get exportCustomFieldTemplates => 'Custom field templates';
+
+  @override
+  String get exportNoCustomFields => 'No custom fields available';
+
+  @override
+  String get exportNoPrintLayouts =>
+      'No print layouts yet. Load the default layouts, or create one in Document Presets.';
+
+  @override
+  String get exportEnterFileNameFirst => 'Enter a file name first.';
+
+  @override
+  String exportShareFailed(String error) {
+    return 'Unable to share export: $error';
+  }
+
+  @override
+  String get exportFormatOptionsTitle => 'Format Options';
+
+  @override
+  String get exportFormatOptions => 'Format options';
+
+  @override
+  String get exportConcatenateMultiEntry => 'Concatenate multi-entry records';
+
+  @override
+  String get exportFieldNamesOnly => 'Field names only for headers';
+
+  @override
+  String get exportSelectFieldsTitle => 'Select Fields';
+
+  @override
+  String get exportClearAll => 'Clear All';
+
+  @override
+  String get exportRequired => 'Required';
+
+  @override
+  String get dataTableMoreActions => 'More actions';
+
+  @override
+  String dataTableNoMatches(String records) {
+    return 'No $records match your search and filters.';
+  }
+
+  @override
+  String dataTableNoRecordsYet(String records) {
+    return 'No $records yet.';
+  }
+
+  @override
+  String dataTableNoRecordsForTaxaYet(String records, String taxa) {
+    return 'No $records for $taxa yet.';
+  }
+
+  @override
+  String dataTableProjectNoRecordsForTaxa(String records, String taxa) {
+    return 'This project has no $records for $taxa.';
+  }
+
+  @override
+  String dataTableProjectNoRecordsYet(String records) {
+    return 'This project has no $records yet.';
+  }
+
+  @override
+  String get dataTableSaved => 'Saved.';
+
+  @override
+  String dataTableLoadError(String records) {
+    return 'Couldn\'t load $records.';
+  }
+
+  @override
+  String get dataTableSomeChangesFailed =>
+      'Some changes couldn\'t be saved. Check the marked cells.';
+
+  @override
+  String get dataTableNoMoreMatches => 'No more matches.';
+
+  @override
+  String get dataTableNoEarlierMatches => 'No earlier matches.';
+
+  @override
+  String get dataTableCellCannotBeReplaced => 'This cell can\'t be replaced.';
+
+  @override
+  String dataTableReadForReplaceError(String error) {
+    return 'Couldn\'t read records to replace: $error';
+  }
+
+  @override
+  String get dataTableNothingToReplace => 'Nothing to replace.';
+
+  @override
+  String get dataTableReplaceAllTitle => 'Replace all?';
+
+  @override
+  String dataTableReplaceAllBody(String values, String records) {
+    return 'Replace $values in $records?';
+  }
+
+  @override
+  String dataTableValueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count values',
+      one: '1 value',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableRecordCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records',
+      one: '1 record',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableAutoSaveWrites => 'Auto-save writes them right away.';
+
+  @override
+  String get dataTableWaitForSave => 'They wait for Save.';
+
+  @override
+  String dataTableReplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Replaced $count values.',
+      one: 'Replaced 1 value.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableSkippedChoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dropdown values skipped; pick those from their list.',
+      one: '1 dropdown value skipped; pick it from its list.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableInvalidValues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count values wouldn\'t fit their fields.',
+      one: '1 value wouldn\'t fit its field.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTablePickDate => 'Pick a date';
+
+  @override
+  String get dataTablePickTime => 'Pick a time';
+
+  @override
+  String get dataTableSaveChangesTitle => 'Save your changes?';
+
+  @override
+  String dataTableUnsavedChanges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You have $count unsaved changes in this table.',
+      one: 'You have 1 unsaved change in this table.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableFindField => 'Find a field';
+
+  @override
+  String dataTableFieldsShown(int count, int total) {
+    return '$count of $total fields shown';
+  }
+
+  @override
+  String get dataTableComputedNotSearchable =>
+      'Calculated during export: not searchable or sortable';
+
+  @override
+  String get dataTableShowAll => 'Show all';
+
+  @override
+  String get dataTableAutoSaveTooltip =>
+      'Save each change as you commit it. Undo with Ctrl+Z or ⌘Z while this table is open.';
+
+  @override
+  String get dataTableAutoSave => 'Auto-save';
+
+  @override
+  String get dataTableDiscardChanges => 'Discard changes';
+
+  @override
+  String get dataTableRetrySave => 'Retry save';
+
+  @override
+  String get dataTableEditModeOn => 'Edit mode is on (Ctrl+E or ⌘E)';
+
+  @override
+  String get dataTableEditModeOff => 'Edit mode is off (Ctrl+E or ⌘E)';
+
+  @override
+  String dataTableCellsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cells need attention',
+      one: '1 cell needs attention',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableUnsavedChangeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unsaved changes',
+      one: '1 unsaved change',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableAllChangesSaved => 'All changes saved';
+
+  @override
+  String dataTableColumnCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count columns',
+      one: '1 column',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableExportSummary(String records, String columns) {
+    return '$records × $columns, with the current search, filters, sort, and visible columns.';
+  }
+
+  @override
+  String get dataTableColumnHeaders => 'Column headers';
+
+  @override
+  String get dataTableDwcOnly => 'Darwin Core-mapped columns only';
+
+  @override
+  String get dataTableDwcOnlyBody =>
+      'Leave out columns without a Darwin Core term. Otherwise they keep their NAHPU key.';
+
+  @override
+  String dataTableReadProgress(int count, int total) {
+    return 'Read $count of $total records';
+  }
+
+  @override
+  String dataTableScopeChip(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get dataTableClearFilters => 'Clear filters';
+
+  @override
+  String dataTableBetweenValues(String low, String high) {
+    return '$low and $high';
+  }
+
+  @override
+  String get dataTableFilterRules => 'Filter rules';
+
+  @override
+  String get dataTableFilterRulesBody => 'Show records that match every rule.';
+
+  @override
+  String get dataTableAddRule => 'Add rule';
+
+  @override
+  String get dataTableEnterValueEveryRule => 'Enter a value for every rule.';
+
+  @override
+  String get dataTableEnterDates => 'Enter dates as YYYY-MM-DD.';
+
+  @override
+  String get dataTableEnterTimes => 'Enter times as HH:MM.';
+
+  @override
+  String get dataTableChooseListed => 'Choose one of the listed values.';
+
+  @override
+  String get dataTableEnterNumber => 'Enter a number.';
+
+  @override
+  String get dataTableComputedNotFilterable =>
+      'Calculated during export; not filterable';
+
+  @override
+  String get dataTableRemoveRule => 'Remove rule';
+
+  @override
+  String get dataTableReplacingNeedsEditMode => 'Replacing needs edit mode.';
+
+  @override
+  String get dataTableMatchCase => 'Match case';
+
+  @override
+  String get dataTableWholeCell => 'Whole cell';
+
+  @override
+  String get dataTablePreviousMatch => 'Previous match';
+
+  @override
+  String get dataTableNextMatch => 'Next match';
+
+  @override
+  String get dataTableTurnOnEditMode => 'Turn on edit mode';
+
+  @override
+  String get dataTableReplaceAll => 'Replace all';
+
+  @override
+  String get dataTableNoMatchesShort => 'No matches';
+
+  @override
+  String dataTableFoundCount(int count) {
+    return '$count found';
+  }
+
+  @override
+  String dataTableMatchOf(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get dataTableAllVisibleColumns => 'All visible columns';
+
+  @override
+  String dataTableColumnReadOnly(String column) {
+    return '$column is read-only here.';
+  }
+
+  @override
+  String dataTableSkippedOffList(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Skipped $count values that aren\'t in their lists.',
+      one: 'Skipped 1 value that isn\'t in its list.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableChangeFishTypeTitle => 'Change fish record type?';
+
+  @override
+  String dataTableSexClears(String fields) {
+    return 'This clears $fields that no longer apply to the new sex.';
+  }
+
+  @override
+  String get dataTableFishTypeChangeBody =>
+      'Switching between an individual and a lot changes which measurements apply.';
+
+  @override
+  String dataTableSkippedReadOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Skipped $count read-only or linked cells.',
+      one: 'Skipped 1 read-only or linked cell.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableCopiedCells(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Copied $count cells.',
+      one: 'Copied 1 cell.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableSwitchToEditToPaste => 'Switch to edit mode to paste.';
+
+  @override
+  String dataTablePastedSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Pasted; skipped $count read-only or linked cells.',
+      one: 'Pasted; skipped 1 read-only or linked cell.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTablePastedCutOff =>
+      'Pasted; cut off at the edge of the page.';
+
+  @override
+  String dataTablePastedSkippedAndCutOff(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Pasted; skipped $count read-only or linked cells and cut off at the edge of the page.',
+      one:
+          'Pasted; skipped 1 read-only or linked cell and cut off at the edge of the page.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableComputedField =>
+      'Calculated during export: not searchable, sortable, or filterable.';
+
+  @override
+  String get dataTableLinkedDataHint =>
+      'Linked data: double-click or press F2 to edit.';
+
+  @override
+  String get dataTableReadOnlyHere => 'Read-only here.';
+
+  @override
+  String get dataTableOpenForm => 'Open form';
+
+  @override
+  String dataTableLinkCurrent(String value) {
+    return 'Now: $value.';
+  }
+
+  @override
+  String get dataTableLoadChoicesError => 'Couldn\'t load the choices.';
+
+  @override
+  String get dataTableLinkCatalogerNote =>
+      'The field number follows the new cataloger. The determiner and preparator change too when they were the previous cataloger.';
+
+  @override
+  String get dataTableLinkEventNote =>
+      'The collecting method and personnel are cleared, and the coordinate follows the new event\'s site.';
+
+  @override
+  String get dataTableLinkTaxonNote =>
+      'Order, family, genus, and epithet all come from the chosen taxon.';
+
+  @override
+  String dataTableSaveError(String error) {
+    return 'Couldn\'t save: $error';
+  }
+
+  @override
+  String get dataTableNothingMatches => 'Nothing matches.';
+
+  @override
+  String dataTableNotLinked(String noun) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'This record isn\'t linked to a site yet.',
+      'other': 'This record isn\'t linked to an event yet.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableLinkedLoadError(String noun) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'Couldn\'t load the site.',
+      'other': 'Couldn\'t load the event.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableLinkShared(String noun, int count) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'Changes apply to every record linked to this site ($count).',
+      'other': 'Changes apply to every record linked to this event ($count).',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableSomeChangesNotSaved => 'Some changes couldn\'t be saved.';
+
+  @override
+  String get dataTablePageRangeEmpty => '0 of 0';
+
+  @override
+  String dataTablePageRange(String first, String last, String total) {
+    return '$first–$last of $total';
+  }
+
+  @override
+  String get dataTableRowsPerPage => 'Rows per page';
+
+  @override
+  String get dataTableFirstPage => 'First page';
+
+  @override
+  String get dataTablePreviousPage => 'Previous page';
+
+  @override
+  String get dataTableNextPage => 'Next page';
+
+  @override
+  String get dataTableLastPage => 'Last page';
+
+  @override
+  String dataTableSearchIn(String target) {
+    return 'Search $target';
+  }
+
+  @override
+  String get dataTableRefresh => 'Refresh';
+
+  @override
+  String get dataTableAddFieldRules => 'Add field rules';
+
+  @override
+  String get dataTableEditFieldRules => 'Edit field rules';
+
+  @override
+  String get dataTableFilters => 'Filters';
+
+  @override
+  String get dataTableAllVisibleFields => 'All visible fields';
+
+  @override
+  String get dataTableSearchingAllFields => 'Searching all visible fields';
+
+  @override
+  String dataTableSearchingField(String field) {
+    return 'Searching $field';
+  }
+
+  @override
+  String get dataTableFilterOpIs => 'is';
+
+  @override
+  String get dataTableFilterOpContains => 'contains';
+
+  @override
+  String get dataTableFilterOpStartsWith => 'starts with';
+
+  @override
+  String get dataTableFilterOpGreaterThan => 'greater than';
+
+  @override
+  String get dataTableFilterOpLessThan => 'less than';
+
+  @override
+  String get dataTableFilterOpBetween => 'between';
+
+  @override
+  String get dataTableFilterOpIsEmpty => 'is empty';
+
+  @override
+  String get dataTableFilterOpIsNotEmpty => 'is not empty';
+
+  @override
+  String get dataTableQuickMissingTaxon => 'Missing taxon';
+
+  @override
+  String get dataTableQuickNoFieldNumber => 'No field number';
+
+  @override
+  String get dataTableQuickNoEvent => 'No event';
+
+  @override
+  String get dataTableQuickHasParts => 'Has parts';
+
+  @override
+  String get dataTableQuickHasMedia => 'Has media';
+
+  @override
+  String get dataTableQuickNoTissueId => 'No tissue ID';
+
+  @override
+  String get dataTableQuickNoParasiteId => 'No parasite ID';
+
+  @override
+  String get dataTableQuickNoCoordinates => 'No coordinates';
+
+  @override
+  String get dataTableQuickNoLocality => 'No locality';
+
+  @override
+  String get dataTableQuickNoSpecimens => 'No specimens';
+
+  @override
+  String get dataTableQuickNoEndDate => 'No end date';
+
+  @override
+  String get dataTableQuickNoSite => 'No site';
+
+  @override
+  String dataTableProjectScopeOne(String name) {
+    return 'Project: $name';
+  }
+
+  @override
+  String dataTableProjectScopeTwo(String first, String second) {
+    return 'Projects: $first, $second';
+  }
+
+  @override
+  String dataTableProjectScopeMany(int count) {
+    return '$count projects';
+  }
+
+  @override
+  String get siteImportFieldGpsUnit => 'GPS unit';
 }

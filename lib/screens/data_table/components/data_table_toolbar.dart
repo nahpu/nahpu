@@ -67,8 +67,10 @@ class DataTableToolbar extends StatelessWidget {
       controller: searchController,
       focusNode: searchFocusNode,
       hint: searchField == null
-          ? 'Search ${type.label.toLowerCase()}'
-          : 'Search ${searchField!.label}',
+          ? context.l10n.dataTableSearchIn(
+              type.localizedLabel(context.l10n).toLowerCase(),
+            )
+          : context.l10n.dataTableSearchIn(searchField!.label),
       onChanged: onSearchChanged,
       scope: DataTableSearchScopeMenu(
         field: searchField,
@@ -92,14 +94,14 @@ class DataTableToolbar extends StatelessWidget {
           if (showLabels) const SizedBox(width: NahpuSpacing.xs),
           DataTableToolButton(
             icon: Icons.view_column_outlined,
-            label: 'Columns',
+            label: context.l10n.projectBatchStepColumns,
             showLabel: showLabels,
             onPressed: onPickColumns,
           ),
           if (showLabels) const SizedBox(width: NahpuSpacing.xs),
           DataTableToolButton(
             icon: Icons.refresh,
-            label: 'Refresh',
+            label: context.l10n.dataTableRefresh,
             showLabel: showLabels,
             onPressed: onRefresh,
           ),
@@ -255,7 +257,7 @@ class DataTableFilterMenu extends StatelessWidget {
             value: selected.contains(filter),
             closeOnActivate: false,
             onChanged: (_) => onToggled(filter),
-            child: Text(filter.label),
+            child: Text(filter.localizedLabel(context.l10n)),
           ),
         if (type.quickFilters.isNotEmpty)
           const Divider(height: NahpuStroke.thin),
@@ -265,12 +267,16 @@ class DataTableFilterMenu extends StatelessWidget {
             size: NahpuControlSize.iconMedium,
           ),
           onPressed: onEditRules,
-          child: Text(ruleCount == 0 ? 'Add field rules' : 'Edit field rules'),
+          child: Text(
+            ruleCount == 0
+                ? context.l10n.dataTableAddFieldRules
+                : context.l10n.dataTableEditFieldRules,
+          ),
         ),
       ],
       builder: (context, controller, _) => DataTableToolButton(
         icon: Icons.filter_list,
-        label: 'Filters',
+        label: context.l10n.dataTableFilters,
         showLabel: showLabel,
         badgeCount: count,
         onPressed: () =>
@@ -420,7 +426,7 @@ class DataTableSearchField extends StatelessWidget {
             builder: (context, value, _) => value.text.isEmpty
                 ? const SizedBox.shrink()
                 : IconButton(
-                    tooltip: 'Clear search',
+                    tooltip: context.l10n.documentSelectionClearSearch,
                     icon: const Icon(
                       Icons.close,
                       size: NahpuControlSize.iconMedium,
@@ -475,7 +481,7 @@ class DataTableSearchScopeMenu extends StatelessWidget {
             size: NahpuControlSize.iconMedium,
           ),
           onPressed: () => onChanged(null),
-          child: const Text('All visible fields'),
+          child: Text(context.l10n.dataTableAllVisibleFields),
         ),
         const Divider(height: NahpuStroke.thin),
         for (final column in columns)
@@ -490,8 +496,8 @@ class DataTableSearchScopeMenu extends StatelessWidget {
       ],
       builder: (context, controller, _) => IconButton(
         tooltip: field == null
-            ? 'Searching all visible fields'
-            : 'Searching ${field!.label}',
+            ? context.l10n.dataTableSearchingAllFields
+            : context.l10n.dataTableSearchingField(field!.label),
         icon: Icon(
           field == null ? Icons.search : Icons.manage_search,
           size: NahpuControlSize.iconMedium,

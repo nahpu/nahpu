@@ -6,6 +6,7 @@ import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:nahpu/services/media/audio_recording_services.dart';
 import 'package:record/record.dart';
 import 'package:video_player/video_player.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 typedef AudioRecordingServiceFactory = AudioRecordingServices Function();
 
@@ -98,12 +99,12 @@ class _AudioRecorderViewState extends State<AudioRecorderView> {
               children: [
                 Expanded(
                   child: Text(
-                    'Record audio',
+                    context.l10n.mediaRecordAudio,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.commonClose,
                   onPressed: _close,
                   icon: const Icon(Icons.close),
                 ),
@@ -148,7 +149,9 @@ class _AudioRecorderViewState extends State<AudioRecorderView> {
       children: [
         if (isRecording || isPaused)
           IconButton.filledTonal(
-            tooltip: isPaused ? 'Resume' : 'Pause',
+            tooltip: isPaused
+                ? context.l10n.mediaResume
+                : context.l10n.mediaPause,
             onPressed: _isBusy
                 ? null
                 : isPaused
@@ -178,7 +181,9 @@ class _AudioRecorderViewState extends State<AudioRecorderView> {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton.filledTonal(
-          tooltip: isPlaying ? 'Pause playback' : 'Play recording',
+          tooltip: isPlaying
+              ? context.l10n.mediaPausePlayback
+              : context.l10n.mediaPlayRecording,
           onPressed: canPlay ? _togglePlayback : null,
           icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
         ),
@@ -189,12 +194,12 @@ class _AudioRecorderViewState extends State<AudioRecorderView> {
             TextButton.icon(
               onPressed: _isBusy ? null : _discard,
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Discard'),
+              label: Text(context.l10n.templateDiscard),
             ),
             const SizedBox(width: 8),
             PrimaryButton(
               onPressed: _isBusy ? null : _save,
-              label: 'Save',
+              label: context.l10n.commonSave,
               icon: Icons.check,
             ),
           ],
@@ -235,16 +240,17 @@ class _AudioRecorderViewState extends State<AudioRecorderView> {
   }
 
   Future<void> _stop() async {
+    final l10n = context.l10n;
     setState(() => _isBusy = true);
     try {
       final path = await _recordingServices.stop();
-      if (path == null) throw StateError('The audio recording was not saved.');
+      if (path == null) throw StateError(l10n.mediaRecordingNotSaved);
       _recordingPath = path;
       _reviewController = VideoPlayerController.file(File(path));
       try {
         await _reviewController!.initialize();
       } catch (error) {
-        _error = 'Playback preview is unavailable: $error';
+        _error = l10n.mediaPlaybackUnavailable('$error');
         _reviewController?.dispose().ignore();
         _reviewController = null;
       }

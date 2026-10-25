@@ -9,6 +9,7 @@ import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 Future<void> createNewSpecimens(BuildContext context, WidgetRef ref) async {
   final newUuid = await SpecimenServices(ref: ref).createSpecimen();
@@ -42,7 +43,7 @@ class NewSpecimensTextButtonState
           }
         }
       },
-      child: const Text('Create specimen'),
+      child: Text(context.l10n.specimenCreate),
     );
   }
 }
@@ -102,7 +103,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_SpecimenMenuAction>(
-      tooltip: 'Specimen actions',
+      tooltip: context.l10n.specimenActions,
       itemBuilder: _items,
       onSelected: _onSelected,
     );
@@ -119,38 +120,38 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
       AdaptiveMenuItem(
         value: _SpecimenMenuAction.duplicatePart,
         icon: Icons.copy_outlined,
-        label: 'Duplicate part',
+        label: context.l10n.specimenDuplicatePart,
         enabled: hasSpecimen,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SpecimenMenuAction.sort,
         icon: Icons.sort_rounded,
-        label: 'Sort records',
+        label: context.l10n.commonSortRecords,
         hasDividerBefore: true,
       ),
       AdaptiveMenuItem(
         value: _SpecimenMenuAction.export,
         icon: Icons.file_upload_outlined,
-        label: 'Export specimen',
+        label: context.l10n.specimenExport,
         enabled: hasSpecimen,
         hasDividerBefore: true,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SpecimenMenuAction.import,
         icon: Icons.file_download_outlined,
-        label: 'Import specimen',
+        label: context.l10n.specimenImport,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SpecimenMenuAction.delete,
         icon: Icons.delete_outline,
-        label: 'Delete record',
+        label: context.l10n.commonDeleteRecord,
         isDestructive: true,
         hasDividerBefore: true,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SpecimenMenuAction.deleteAll,
         icon: Icons.delete_forever_outlined,
-        label: 'Delete all records',
+        label: context.l10n.commonDeleteAllRecords,
         isDestructive: true,
       ),
     ];
@@ -177,7 +178,7 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   }
 
   String _getNewSpecimenLabel() {
-    return 'Create specimen';
+    return context.l10n.specimenCreate;
   }
 
   Future<void> _duplicatePart() async {
@@ -192,8 +193,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
       }
       ref.invalidate(specimenEntryProvider);
     } catch (e) {
-      if (context.mounted) {
-        _showError('Error duplicating part: $e');
+      if (mounted) {
+        _showError(context.l10n.specimenDuplicatePartError('$e'));
       }
     }
   }
@@ -207,10 +208,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
   void _deleteSpecimen() {
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete specimen?',
-      deletePrompt:
-          'You will delete this specimen record, all measurements, and specimen parts.\n'
-          'You will need to manually update the field number.',
+      title: context.l10n.specimenDeleteTitle,
+      deletePrompt: context.l10n.specimenDeleteBody,
       onDelete: () async {
         if (widget.specimenUuid != null && widget.catalogFmt != null) {
           try {
@@ -222,8 +221,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             }
             ref.invalidate(specimenEntryProvider);
           } catch (e) {
-            if (context.mounted) {
-              _showError('Error deleting specimen: $e');
+            if (mounted) {
+              _showError(context.l10n.specimenDeleteError('$e'));
             }
           }
         }
@@ -239,10 +238,8 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
     final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete all specimens?',
-      deletePrompt:
-          'It will remove all specimens records'
-          ', measurements, and specimen parts',
+      title: context.l10n.specimenDeleteAllTitle,
+      deletePrompt: context.l10n.specimenDeleteAllBody,
       onDelete: () async {
         try {
           await SpecimenServices(ref: ref).deleteAllSpecimens(projectUuid);
@@ -250,9 +247,9 @@ class SpecimenMenuState extends ConsumerState<SpecimenMenu> {
             _pop();
           }
         } catch (e) {
-          if (context.mounted) {
+          if (mounted) {
             _pop();
-            _showError('Error deleting all specimens: $e');
+            _showError(context.l10n.specimenDeleteAllError('$e'));
           }
         }
       },

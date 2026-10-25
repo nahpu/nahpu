@@ -17,6 +17,7 @@ import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// The site geography card.
 ///
@@ -69,7 +70,7 @@ class _SiteGeographyState extends ConsumerState<SiteGeography> {
               if (!hasFocus) _resolveGeography();
             },
             child: FormCard(
-              title: 'Geography',
+              title: context.l10n.labelTableGeography,
               infoTopic: InfoTopic.siteGeography,
               child: Column(
                 spacing: NahpuSpacing.md,
@@ -110,7 +111,7 @@ class _SiteGeographyState extends ConsumerState<SiteGeography> {
           ),
           loading: () => const CommonProgressIndicator(),
           error: (error, _) =>
-              Text('Unable to load geography settings: $error'),
+              Text(context.l10n.siteGeographySettingsError('$error')),
         );
   }
 
@@ -176,17 +177,15 @@ class _LocalityLookupState extends ConsumerState<LocalityLookup> {
           data: (records) {
             if (records.isEmpty) return const SizedBox.shrink();
             return Tooltip(
-              message:
-                  'Type a locality and select a saved one to fill '
-                  'every geography field',
+              message: context.l10n.siteFindLocalityTooltip,
               child: AutoCompleteField<GeographyData>(
                 focusNode: _focusNode,
                 controller: _controller,
                 options: records,
                 displayStringFor: (record) =>
                     GeographyDraft.fromData(record).displayName,
-                labelText: 'Find existing locality',
-                hintText: 'Type to reuse a saved locality',
+                labelText: context.l10n.siteFindLocality,
+                hintText: context.l10n.siteFindLocalityHint,
                 isProminent: true,
                 onSelected: (record) {
                   widget.onSelected(record);
@@ -231,36 +230,36 @@ class MainSiteLocality extends ConsumerWidget {
           GeographyValueField(
             controller: siteFormCtr.countryCtr,
             field: GeographyField.country,
-            labelText: 'Country',
-            hintText: 'Enter a country',
+            labelText: context.l10n.labelSiteGeographyCountry,
+            hintText: context.l10n.siteEnterCountry,
           ),
         if (visibleFields.contains('islandGroup'))
           GeographyValueField(
             controller: siteFormCtr.islandGroupCtr,
             field: GeographyField.islandGroup,
-            labelText: 'Island group',
-            hintText: 'Enter an island group',
+            labelText: context.l10n.labelSiteGeographyIslandGroup,
+            hintText: context.l10n.siteEnterIslandGroup,
           ),
         if (visibleFields.contains('stateProvince'))
           GeographyValueField(
             controller: siteFormCtr.stateProvinceCtr,
             field: GeographyField.stateProvince,
-            labelText: 'State/Province',
-            hintText: 'Enter a state/province',
+            labelText: context.l10n.labelSiteGeographyStateProvince,
+            hintText: context.l10n.siteEnterStateProvince,
           ),
         if (visibleFields.contains('county'))
           GeographyValueField(
             controller: siteFormCtr.countyCtr,
             field: GeographyField.county,
-            labelText: 'County/Parish/District',
-            hintText: 'Enter a county/parish/district',
+            labelText: context.l10n.labelSiteGeographyCounty,
+            hintText: context.l10n.siteEnterCounty,
           ),
         if (visibleFields.contains('municipality'))
           GeographyValueField(
             controller: siteFormCtr.municipalityCtr,
             field: GeographyField.municipality,
-            labelText: 'Municipality/City/Town',
-            hintText: 'Enter a municipality/city/town',
+            labelText: context.l10n.labelSiteGeographyMunicipality,
+            hintText: context.l10n.siteEnterMunicipality,
           ),
       ],
     );
@@ -353,9 +352,9 @@ class PreciseLocality extends ConsumerWidget {
     return TextFormField(
       controller: siteFormCtr.localityCtr,
       maxLines: 3,
-      decoration: const InputDecoration(
-        labelText: 'Precise Locality',
-        hintText: 'Enter a precise locality lower than municipality',
+      decoration: InputDecoration(
+        labelText: context.l10n.sitePreciseLocality,
+        hintText: context.l10n.sitePreciseLocalityHint,
       ),
     );
   }
@@ -378,9 +377,9 @@ class LocalityNote extends ConsumerWidget {
     return TextFormField(
       controller: siteFormCtr.remarkCtr,
       maxLines: 3,
-      decoration: const InputDecoration(
-        labelText: 'Remarks',
-        hintText: 'Enter more info about the site (optional)',
+      decoration: InputDecoration(
+        labelText: context.l10n.parasiteRemarks,
+        hintText: context.l10n.siteRemarksHint,
       ),
       // Remarks stay on the site row, so they keep saving as they are typed.
       onChanged: (value) {

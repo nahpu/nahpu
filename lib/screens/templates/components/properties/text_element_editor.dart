@@ -37,7 +37,7 @@ class _ClearTextButton extends StatelessWidget {
           child: TextButton.icon(
             onPressed: value.text.isEmpty ? null : controller.clear,
             icon: const Icon(Icons.clear),
-            label: const Text('Clear'),
+            label: Text(context.l10n.commonClear),
           ),
         );
       },
@@ -116,7 +116,7 @@ class _AvailableFieldsSectionState
             });
           },
           icon: const Icon(Icons.add),
-          label: const Text('Insert Field'),
+          label: Text(context.l10n.templateInsertField),
         ),
       );
     }
@@ -141,8 +141,8 @@ class _AvailableFieldsSectionState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Available Fields',
+                Text(
+                  context.l10n.exportFieldsAvailableFields,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Flexible(
@@ -159,32 +159,34 @@ class _AvailableFieldsSectionState
                           value: _selectedTaxon,
                           isDense: true,
                           underline: const SizedBox.shrink(),
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: 'All Taxa',
                               child: Text(
-                                'All Taxa',
+                                context.l10n.templateAllTaxa,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
                             DropdownMenuItem(
                               value: 'Mammals',
                               child: Text(
-                                'Mammals',
+                                context.l10n.labelSpecimenRecordTypeMammals,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
                             DropdownMenuItem(
                               value: 'Birds',
                               child: Text(
-                                'Birds',
+                                context.l10n.labelSpecimenRecordTypeBirds,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
                             DropdownMenuItem(
                               value: 'Herpetofauna',
                               child: Text(
-                                'Herpetofauna',
+                                context
+                                    .l10n
+                                    .labelSpecimenRecordTypeHerpetofauna,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
@@ -194,14 +196,16 @@ class _AvailableFieldsSectionState
                               // pre-v22 'Arthropods' value.
                               value: 'Invertebrates',
                               child: Text(
-                                'Invertebrates',
+                                context
+                                    .l10n
+                                    .labelSpecimenRecordTypeInvertebrates,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
                             DropdownMenuItem(
                               value: 'Fishes',
                               child: Text(
-                                'Fishes',
+                                context.l10n.labelSpecimenRecordTypeFishes,
                                 style: TextStyle(fontSize: 12.0),
                               ),
                             ),
@@ -218,18 +222,18 @@ class _AvailableFieldsSectionState
                         value: _fieldDisplayOption,
                         isDense: true,
                         underline: const SizedBox.shrink(),
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: 'full',
                             child: Text(
-                              'Table::Field',
+                              context.l10n.exportFieldsDisplayTableField,
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
                           DropdownMenuItem(
                             value: 'short',
                             child: Text(
-                              'Field Only',
+                              context.l10n.exportFieldsDisplayFieldOnly,
                               style: TextStyle(fontSize: 12.0),
                             ),
                           ),
@@ -371,7 +375,7 @@ class _TextElementEditorDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit Custom Text'),
+      title: Text(context.l10n.templateEditCustomText),
       content: SizedBox(
         width: 800.0,
         child: Row(
@@ -383,8 +387,8 @@ class _TextElementEditorDialogState
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Text Input',
+                  Text(
+                    context.l10n.templateTextInput,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14.0,
@@ -396,7 +400,7 @@ class _TextElementEditorDialogState
                     maxLines: 8,
                     autofocus: true,
                     decoration: InputDecoration(
-                      hintText: 'Enter text or insert fields...',
+                      hintText: context.l10n.templateTextInputHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
@@ -415,8 +419,8 @@ class _TextElementEditorDialogState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Available Symbols',
+                    Text(
+                      context.l10n.templateAvailableSymbols,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14.0,
@@ -439,14 +443,14 @@ class _TextElementEditorDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         ElevatedButton(
           onPressed: () {
             widget.onSave(_controller.text);
             Navigator.pop(context);
           },
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );
@@ -538,7 +542,7 @@ class _TextElementEditorBottomSheetState
             children: [
               Expanded(
                 child: Text(
-                  'Edit Custom Text',
+                  context.l10n.templateEditCustomText,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -549,21 +553,21 @@ class _TextElementEditorBottomSheetState
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                    child: Text(context.l10n.commonCancel),
                   ),
                   ElevatedButton(
                     onPressed: () {
                       widget.onSave(_controller.text);
                       Navigator.pop(context);
                     },
-                    child: const Text('Save'),
+                    child: Text(context.l10n.commonSave),
                   ),
                 ],
               ),
             ],
           ),
           Text(
-            'Text Input',
+            context.l10n.templateTextInput,
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -574,7 +578,7 @@ class _TextElementEditorBottomSheetState
             maxLines: 4,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Enter text...',
+              hintText: context.l10n.templateEnterText,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
@@ -589,7 +593,7 @@ class _TextElementEditorBottomSheetState
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Available Symbols',
+                    context.l10n.templateAvailableSymbols,
                     style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

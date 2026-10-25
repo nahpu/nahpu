@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class DataTablePaginationBar extends StatelessWidget {
   const DataTablePaginationBar({
@@ -24,10 +25,12 @@ class DataTablePaginationBar extends StatelessWidget {
     final current = page;
     final format = NumberFormat.decimalPattern();
     final range = current == null || current.totalRows == 0
-        ? '0 of 0'
-        : '${format.format(current.firstRowIndex + 1)}–'
-              '${format.format(current.firstRowIndex + current.rows.length)} '
-              'of ${format.format(current.totalRows)}';
+        ? context.l10n.dataTablePageRangeEmpty
+        : context.l10n.dataTablePageRange(
+            format.format(current.firstRowIndex + 1),
+            format.format(current.firstRowIndex + current.rows.length),
+            format.format(current.totalRows),
+          );
     final canGoBack = current != null && current.page > 0;
     final canGoForward =
         current != null && current.page < current.pageCount - 1;
@@ -41,7 +44,10 @@ class DataTablePaginationBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Rows per page', style: theme.textTheme.bodySmall),
+              Text(
+                context.l10n.dataTableRowsPerPage,
+                style: theme.textTheme.bodySmall,
+              ),
               const SizedBox(width: NahpuSpacing.md),
               DropdownButton<int>(
                 value: rowsPerPage,
@@ -61,26 +67,26 @@ class DataTablePaginationBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: 'First page',
+                tooltip: context.l10n.dataTableFirstPage,
                 icon: const Icon(Icons.first_page),
                 onPressed: canGoBack ? () => onPageChanged(0) : null,
               ),
               IconButton(
-                tooltip: 'Previous page',
+                tooltip: context.l10n.dataTablePreviousPage,
                 icon: const Icon(Icons.chevron_left),
                 onPressed: canGoBack
                     ? () => onPageChanged(current.page - 1)
                     : null,
               ),
               IconButton(
-                tooltip: 'Next page',
+                tooltip: context.l10n.dataTableNextPage,
                 icon: const Icon(Icons.chevron_right),
                 onPressed: canGoForward
                     ? () => onPageChanged(current.page + 1)
                     : null,
               ),
               IconButton(
-                tooltip: 'Last page',
+                tooltip: context.l10n.dataTableLastPage,
                 icon: const Icon(Icons.last_page),
                 onPressed: canGoForward
                     ? () => onPageChanged(current.pageCount - 1)

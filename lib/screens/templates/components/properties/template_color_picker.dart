@@ -1,5 +1,6 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Shared color picker and swatch for template element properties.
 Future<Color?> showTemplateColorPicker(
@@ -17,11 +18,11 @@ Future<Color?> showTemplateColorPicker(
     enableShadesSelection: enableShadesSelection,
     heading: Text(title, style: Theme.of(context).textTheme.titleSmall),
     subheading: Text(
-      'Select color shade',
+      context.l10n.templateSelectColorShade,
       style: Theme.of(context).textTheme.titleSmall,
     ),
     wheelSubheading: Text(
-      'Selected color and its shades',
+      context.l10n.templateSelectedColorShades,
       style: Theme.of(context).textTheme.titleSmall,
     ),
     showColorName: true,

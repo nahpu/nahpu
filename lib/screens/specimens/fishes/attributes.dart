@@ -15,16 +15,8 @@ import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/nahpu_icons.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
-
-const Map<FishSpecimenType, String> fishSpecimenTypeLabels = {
-  FishSpecimenType.individual: 'Individual',
-  FishSpecimenType.lot: 'Lot',
-};
-
-const Map<FishSpecimenType, String> fishSpecimenTypeDescriptions = {
-  FishSpecimenType.individual: 'One fish with its own measurements',
-  FishSpecimenType.lot: 'Many individuals stored together',
-};
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const Map<FishSpecimenType, IconData> fishSpecimenTypeIcons = {
   FishSpecimenType.individual: NahpuIcons.fishOutlined,
@@ -119,8 +111,8 @@ class FishAttributeFormsState extends ConsumerState<FishAttributeForms> {
             CommonTextField(
               controller: ctr.remarkCtr,
               maxLines: 6,
-              labelText: 'Remarks',
-              hintText: 'Add additional information about the specimen',
+              labelText: context.l10n.specimenRemarks,
+              hintText: context.l10n.specimenRemarksHint,
               isLastField: false,
               keyboardType: TextInputType.multiline,
               onChanged: (String? value) {
@@ -217,8 +209,8 @@ class _FishIndividualFields extends StatelessWidget {
             CommonNumField(
               key: const ValueKey('fish-standard-length'),
               controller: ctr.standardLengthCtr,
-              labelText: 'Standard length (mm)',
-              hintText: 'Enter standard length',
+              labelText: context.l10n.fishStandardLength,
+              hintText: context.l10n.fishStandardLengthHint,
               isDouble: true,
               isLastField: false,
               onChanged: (value) => onChanged(
@@ -230,8 +222,8 @@ class _FishIndividualFields extends StatelessWidget {
             CommonNumField(
               key: const ValueKey('fish-total-length'),
               controller: ctr.totalLengthCtr,
-              labelText: 'Total length (mm)',
-              hintText: 'Enter total length',
+              labelText: context.l10n.mammalTotalLength,
+              hintText: context.l10n.fishTotalLengthHint,
               isDouble: true,
               isLastField: false,
               onChanged: (value) => onChanged(
@@ -297,8 +289,8 @@ class _FishLotFields extends StatelessWidget {
               CommonNumField(
                 key: const ValueKey('fish-individual-count'),
                 controller: ctr.individualCountCtr,
-                labelText: 'Total individuals',
-                hintText: 'Enter the number of individuals in the lot',
+                labelText: context.l10n.fishTotalIndividuals,
+                hintText: context.l10n.fishTotalIndividualsHint,
                 isLastField: false,
                 onChanged: (value) => onChanged(
                   FishAttributeCompanion(
@@ -318,10 +310,8 @@ class _FishLotFields extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(
               horizontal: NahpuSpacing.xs,
             ),
-            title: const Text('Auto-update min and max'),
-            subtitle: const Text(
-              'Fill the ranges from the individuals measured below',
-            ),
+            title: Text(context.l10n.fishAutoUpdateRanges),
+            subtitle: Text(context.l10n.fishAutoUpdateRangesBody),
             value: ctr.isAutoRange,
             onChanged: onAutoRangeChanged,
           ),
@@ -331,8 +321,8 @@ class _FishLotFields extends StatelessWidget {
               CommonNumField(
                 key: const ValueKey('fish-min-standard-length'),
                 controller: ctr.minStandardLengthCtr,
-                labelText: 'Min. standard length (mm)',
-                hintText: 'Enter minimum standard length',
+                labelText: context.l10n.fishMinStandardLength,
+                hintText: context.l10n.fishMinStandardLengthHint,
                 isDouble: true,
                 enabled: isManual,
                 isLastField: false,
@@ -345,8 +335,8 @@ class _FishLotFields extends StatelessWidget {
               CommonNumField(
                 key: const ValueKey('fish-max-standard-length'),
                 controller: ctr.maxStandardLengthCtr,
-                labelText: 'Max. standard length (mm)',
-                hintText: 'Enter maximum standard length',
+                labelText: context.l10n.fishMaxStandardLength,
+                hintText: context.l10n.fishMaxStandardLengthHint,
                 isDouble: true,
                 enabled: isManual,
                 isLastField: false,
@@ -364,8 +354,8 @@ class _FishLotFields extends StatelessWidget {
               CommonNumField(
                 key: const ValueKey('fish-min-total-length'),
                 controller: ctr.minTotalLengthCtr,
-                labelText: 'Min. total length (mm)',
-                hintText: 'Enter minimum total length',
+                labelText: context.l10n.fishMinTotalLength,
+                hintText: context.l10n.fishMinTotalLengthHint,
                 isDouble: true,
                 enabled: isManual,
                 isLastField: false,
@@ -378,8 +368,8 @@ class _FishLotFields extends StatelessWidget {
               CommonNumField(
                 key: const ValueKey('fish-max-total-length'),
                 controller: ctr.maxTotalLengthCtr,
-                labelText: 'Max. total length (mm)',
-                hintText: 'Enter maximum total length',
+                labelText: context.l10n.fishMaxTotalLength,
+                hintText: context.l10n.fishMaxTotalLengthHint,
                 isDouble: true,
                 enabled: isManual,
                 isLastField: false,
@@ -398,8 +388,8 @@ class _FishLotFields extends StatelessWidget {
                 key: const ValueKey('fish-min-weight'),
                 controller: ctr.minWeightCtr,
                 unit: ctr.weightUnitCtr,
-                labelText: 'Min. weight',
-                hintText: 'Enter minimum weight',
+                labelText: context.l10n.fishMinWeight,
+                hintText: context.l10n.fishMinWeightHint,
                 enabled: isManual,
                 onUnitChanged: onWeightUnitChanged,
                 onChanged: (value) => onChanged(
@@ -412,8 +402,8 @@ class _FishLotFields extends StatelessWidget {
                 key: const ValueKey('fish-max-weight'),
                 controller: ctr.maxWeightCtr,
                 unit: ctr.weightUnitCtr,
-                labelText: 'Max. weight',
-                hintText: 'Enter maximum weight',
+                labelText: context.l10n.fishMaxWeight,
+                hintText: context.l10n.fishMaxWeightHint,
                 enabled: isManual,
                 onUnitChanged: onWeightUnitChanged,
                 onChanged: (value) => onChanged(
@@ -463,8 +453,8 @@ class FishSpecimenTypeField extends StatelessWidget {
       initialValue: value,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'Specimen type',
-        helperText: fishSpecimenTypeDescriptions[value],
+        labelText: context.l10n.fishSpecimenType,
+        helperText: value.localizedDescription(context.l10n),
         prefixIcon: Icon(
           fishSpecimenTypeIcons[value],
           color: colorScheme.primary,
@@ -472,7 +462,7 @@ class FishSpecimenTypeField extends StatelessWidget {
       ),
       selectedItemBuilder: (context) => [
         for (final type in FishSpecimenType.values)
-          CommonDropdownText(text: fishSpecimenTypeLabels[type]!),
+          CommonDropdownText(text: type.localizedLabel(context.l10n)),
       ],
       items: [
         for (final type in FishSpecimenType.values)
@@ -488,7 +478,7 @@ class FishSpecimenTypeField extends StatelessWidget {
                 const SizedBox(width: NahpuSpacing.md),
                 Expanded(
                   child: CommonDropdownText(
-                    text: fishSpecimenTypeLabels[type]!,
+                    text: type.localizedLabel(context.l10n),
                   ),
                 ),
               ],

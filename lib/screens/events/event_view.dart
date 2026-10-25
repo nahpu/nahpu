@@ -12,6 +12,7 @@ import 'package:nahpu/screens/events/event_form.dart';
 import 'package:nahpu/screens/events/components/menu_bar.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/layout/navigation.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CollEventViewer extends ConsumerStatefulWidget {
   const CollEventViewer({super.key});
@@ -70,7 +71,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
               ? ExpandedSearchBar(
                   controller: _searchController,
                   focusNode: _focus,
-                  hintText: 'Search events',
+                  hintText: context.l10n.eventSearch,
                   trailing: [
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -102,7 +103,7 @@ class CollEventViewerState extends ConsumerState<CollEventViewer>
                       services.invalidateCollEvent();
                     });
                   },
-                  child: const Text("Cancel"),
+                  child: Text(context.l10n.commonCancel),
                 ),
           !_isSearching ? const NewCollEvents() : const SizedBox.shrink(),
           CollEventMenu(collEventId: _collEvenId),
@@ -199,7 +200,7 @@ class CollEventFormView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Collecting Event Record')),
+      appBar: AppBar(title: Text(context.l10n.eventRecordTitle)),
       body: SafeArea(
         child: ref
             .watch(collEventEntryProvider)
@@ -228,7 +229,7 @@ class EmptyCollEvent extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonEmptyForm(
       iconPath: 'assets/icons/planner.svg',
-      text: "No collecting event found",
+      text: context.l10n.eventNoneFound,
       child: Visibility(
         visible: isButtonVisible,
         child: const NewCollEventTextButton(),

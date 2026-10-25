@@ -179,7 +179,7 @@ class _GlobalSearchSheetState extends ConsumerState<GlobalSearchSheet> {
                 children: [
                   for (final filter in _typeQuickFilters)
                     FilterChip(
-                      label: Text(filter.label),
+                      label: Text(filter.localizedLabel(l10n)),
                       selected: _quickFilters.contains(filter),
                       onSelected: (_) => _toggleQuickFilter(filter),
                     ),

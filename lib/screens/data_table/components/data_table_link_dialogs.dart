@@ -8,6 +8,7 @@ import 'package:nahpu/services/data_table/data_table_save_service.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Opens the dialog for a linked cell: a bottom sheet on small screens and
 /// a dialog elsewhere. Returns true when something was saved.
@@ -83,15 +84,18 @@ class _DataTableRelinkDialogState extends ConsumerState<DataTableRelinkDialog> {
       title: dataTableLinkTitle(widget.link),
       showCloseButton: !widget.isSheet,
       isCloseEnabled: !_isSaving,
-      description: [if (current.isNotEmpty) 'Now: $current.', ?_note].join(' '),
+      description: [
+        if (current.isNotEmpty) context.l10n.dataTableLinkCurrent(current),
+        ?_note(context.l10n),
+      ].join(' '),
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _selected == null || _isSaving ? null : _apply,
-          child: const Text('Apply'),
+          child: Text(context.l10n.commonApply),
         ),
       ],
       child: Column(
@@ -100,7 +104,7 @@ class _DataTableRelinkDialogState extends ConsumerState<DataTableRelinkDialog> {
         children: [
           DataTableSearchField(
             controller: _search,
-            hint: 'Search',
+            hint: context.l10n.sharedSearch,
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: NahpuSpacing.md),
@@ -114,7 +118,7 @@ class _DataTableRelinkDialogState extends ConsumerState<DataTableRelinkDialog> {
                 );
               }
               if (snapshot.hasError) {
-                return const Text('Couldn\'t load the choices.');
+                return Text(context.l10n.dataTableLoadChoicesError);
               }
               return DataTableSearchableList(
                 options: snapshot.data!,
@@ -136,15 +140,10 @@ class _DataTableRelinkDialogState extends ConsumerState<DataTableRelinkDialog> {
     );
   }
 
-  String? get _note => switch (widget.link) {
-    DataTableLink.cataloger =>
-      'The field number follows the new cataloger. The determiner and '
-          'preparator change too when they were the previous cataloger.',
-    DataTableLink.event =>
-      'The collecting method and personnel are cleared, and the coordinate '
-          'follows the new event\'s site.',
-    DataTableLink.taxon =>
-      'Order, family, genus, and epithet all come from the chosen taxon.',
+  String? _note(AppLocalizations l10n) => switch (widget.link) {
+    DataTableLink.cataloger => l10n.dataTableLinkCatalogerNote,
+    DataTableLink.event => l10n.dataTableLinkEventNote,
+    DataTableLink.taxon => l10n.dataTableLinkTaxonNote,
     _ => null,
   };
 
@@ -162,7 +161,7 @@ class _DataTableRelinkDialogState extends ConsumerState<DataTableRelinkDialog> {
       if (!mounted) return;
       setState(() {
         _isSaving = false;
-        _error = 'Couldn\'t save: $e';
+        _error = context.l10n.dataTableSaveError('$e');
       });
     }
   }
@@ -194,9 +193,12 @@ class DataTableSearchableList extends StatelessWidget {
           option,
     ];
     if (shown.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(NahpuSpacing.xl),
-        child: Text('Nothing matches.', textAlign: TextAlign.center),
+        child: Text(
+          context.l10n.dataTableNothingMatches,
+          textAlign: TextAlign.center,
+        ),
       );
     }
     return ConstrainedBox(
@@ -272,15 +274,15 @@ class _DataTableLinkedRecordDialogState
       actions: [
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _id == null || _isSaving ? null : _apply,
-          child: const Text('Apply'),
+          child: Text(context.l10n.commonApply),
         ),
       ],
       child: _id == null
-          ? Text('This record isn\'t linked to a $noun yet.')
+          ? Text(context.l10n.dataTableNotLinked(noun))
           : FutureBuilder<_LinkedRecord>(
               future: _record,
               builder: (context, snapshot) {
@@ -291,7 +293,7 @@ class _DataTableLinkedRecordDialogState
                   );
                 }
                 if (snapshot.hasError) {
-                  return Text('Couldn\'t load the $noun.');
+                  return Text(context.l10n.dataTableLinkedLoadError(noun));
                 }
                 return _form(context, snapshot.data!, noun);
               },
@@ -301,9 +303,7 @@ class _DataTableLinkedRecordDialogState
 
   Widget _form(BuildContext context, _LinkedRecord record, String noun) {
     final theme = Theme.of(context);
-    final records = record.sharing == 1
-        ? '1 ${widget.type.label.toLowerCase()} record'
-        : '${record.sharing} ${widget.type.label.toLowerCase()} records';
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -320,7 +320,7 @@ class _DataTableLinkedRecordDialogState
               const SizedBox(width: NahpuSpacing.md),
               Expanded(
                 child: Text(
-                  'Changes apply to $records linked to this $noun.',
+                  context.l10n.dataTableLinkShared(noun, record.sharing),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSecondaryContainer,
                   ),
@@ -410,7 +410,7 @@ class _DataTableLinkedRecordDialogState
         for (final entry in result.errors.entries)
           entry.key.fieldKey: entry.value,
       });
-      _error = 'Some changes couldn\'t be saved.';
+      _error = context.l10n.dataTableSomeChangesNotSaved;
     });
   }
 }
@@ -508,7 +508,10 @@ class _DataTableLinkedChoiceFieldState
         border: const OutlineInputBorder(),
       ),
       items: [
-        const DropdownMenuItem(value: '', child: Text('None')),
+        DropdownMenuItem(
+          value: '',
+          child: Text(context.l10n.settingsDataUsageNone),
+        ),
         for (final choice in choices)
           DropdownMenuItem(value: choice.value, child: Text(choice.label)),
       ],

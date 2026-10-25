@@ -9,6 +9,7 @@ import 'package:nahpu/services/templates/template_table_preview_settings_service
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplatePreviewSpecimenSelectionScreen extends ConsumerStatefulWidget {
   const TemplatePreviewSpecimenSelectionScreen({
@@ -40,15 +41,13 @@ class _TemplatePreviewSpecimenSelectionScreenState
   @override
   Widget build(BuildContext context) {
     if (widget.recordType == RecordType.none) {
-      return const Scaffold(
-        body: Center(child: Text('No preview records for this type')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.presetsPreviewNoRecords)),
       );
     }
     if (widget.recordType == RecordType.specimenParts) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Specimen Part Selection for Preview'),
-        ),
+        appBar: AppBar(title: Text(context.l10n.templatePreviewPartSelection)),
         body: SafeArea(
           child: SpecimenPartSelectionView(
             selectedIds: widget.selectedUuid != null
@@ -64,7 +63,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
     }
     if (widget.recordType == RecordType.parasites) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Parasite Selection for Preview')),
+        appBar: AppBar(
+          title: Text(context.l10n.templatePreviewParasiteSelection),
+        ),
         body: SafeArea(
           child: ParasiteSelectionView(
             selectedIds: widget.selectedUuid != null
@@ -123,7 +124,9 @@ class _TemplatePreviewSpecimenSelectionScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Specimen Selection for Preview')),
+      appBar: AppBar(
+        title: Text(context.l10n.templatePreviewSpecimenSelection),
+      ),
       body: SafeArea(
         child: SpecimenSelectionView(
           selectedUuidList: widget.selectedUuid != null

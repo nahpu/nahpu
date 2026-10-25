@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class FormatOptionsCard extends StatelessWidget {
   const FormatOptionsCard({
@@ -39,7 +40,7 @@ class FormatOptionsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Format Options',
+              context.l10n.exportFormatOptionsTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -47,7 +48,9 @@ class FormatOptionsCard extends StatelessWidget {
               visible: recordType == RecordType.specimenRecord && !isPreset,
               child: DropdownButtonFormField<SpecimenExportFmt>(
                 initialValue: specimenExportFmt,
-                decoration: const InputDecoration(labelText: 'Format options'),
+                decoration: InputDecoration(
+                  labelText: context.l10n.exportFormatOptions,
+                ),
                 items: specimenExportFmtList
                     .map(
                       (e) => DropdownMenuItem(
@@ -67,7 +70,7 @@ class FormatOptionsCard extends StatelessWidget {
                 child: Center(
                   child: TextButton(
                     onPressed: onSelectFields,
-                    child: const Text('Select fields'),
+                    child: Text(context.l10n.recordsCustomFieldSelectFields),
                   ),
                 ),
               ),
@@ -75,7 +78,7 @@ class FormatOptionsCard extends StatelessWidget {
               visible: recordType == RecordType.specimenRecord,
               child: SwitchField(
                 value: concatenateMultiEntry,
-                label: 'Concatenate multi-entry records',
+                label: context.l10n.exportConcatenateMultiEntry,
                 onPressed: onConcatenateMultiEntryChanged,
               ),
             ),
@@ -83,7 +86,7 @@ class FormatOptionsCard extends StatelessWidget {
               visible: !isPreset,
               child: SwitchField(
                 value: useFieldNamesOnly,
-                label: 'Field names only for headers',
+                label: context.l10n.exportFieldNamesOnly,
                 onPressed: onUseFieldNamesOnlyChanged,
               ),
             ),

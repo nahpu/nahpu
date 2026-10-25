@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
 import 'package:video_player/video_player.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MediaCaptureMode { photo, video }
 
@@ -73,7 +74,7 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
           foregroundColor: Colors.white,
           title: Text(_capturedPath == null ? 'Take photos/videos' : 'Review'),
           leading: IconButton(
-            tooltip: 'Close',
+            tooltip: context.l10n.commonClose,
             onPressed: _close,
             icon: const Icon(Icons.close),
           ),
@@ -141,7 +142,9 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
             ),
           ),
           IconButton.filledTonal(
-            tooltip: reviewController.value.isPlaying ? 'Pause' : 'Play',
+            tooltip: reviewController.value.isPlaying
+                ? context.l10n.mediaPause
+                : context.l10n.mediaPlay,
             iconSize: 40,
             onPressed: () async {
               reviewController.value.isPlaying
@@ -274,6 +277,7 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
   Future<void> _stopVideo() async {
     final controller = _controller;
     if (controller == null || !_isRecording) return;
+    final l10n = context.l10n;
     setState(() => _isCapturing = true);
     _recordingTimer?.cancel();
     try {
@@ -284,7 +288,7 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
       try {
         await _reviewController!.initialize();
       } catch (error) {
-        _error = 'Playback preview is unavailable: $error';
+        _error = l10n.mediaPlaybackUnavailable('$error');
         _reviewController?.dispose().ignore();
         _reviewController = null;
       }
@@ -352,13 +356,11 @@ class _MediaCaptureScreenState extends State<MediaCaptureScreen>
     return switch (error.code) {
       'CameraAccessDenied' ||
       'CameraAccessDeniedWithoutPrompt' ||
-      'CameraAccessRestricted' =>
-        'Camera access is required to take photos and videos.',
+      'CameraAccessRestricted' => context.l10n.mediaCameraAccessRequired,
       'AudioAccessDenied' ||
       'AudioAccessDeniedWithoutPrompt' ||
-      'AudioAccessRestricted' =>
-        'Microphone access is required to record video.',
-      _ => error.description ?? 'Unable to use the camera.',
+      'AudioAccessRestricted' => context.l10n.mediaMicrophoneAccessRequired,
+      _ => error.description ?? context.l10n.mediaCameraError,
     };
   }
 
@@ -415,16 +417,16 @@ class _CaptureControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             SegmentedButton<MediaCaptureMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: MediaCaptureMode.photo,
                   icon: Icon(Icons.photo_camera_outlined),
-                  label: Text('Photo'),
+                  label: Text(context.l10n.mediaPhoto),
                 ),
                 ButtonSegment(
                   value: MediaCaptureMode.video,
                   icon: Icon(Icons.videocam_outlined),
-                  label: Text('Video'),
+                  label: Text(context.l10n.mediaVideo),
                 ),
               ],
               selected: {mode},
@@ -440,7 +442,7 @@ class _CaptureControls extends StatelessWidget {
                   width: 72,
                   child: canSwitchCamera
                       ? IconButton(
-                          tooltip: 'Switch camera',
+                          tooltip: context.l10n.mediaSwitchCamera,
                           color: Colors.white,
                           onPressed: isRecording || isCapturing
                               ? null
@@ -453,8 +455,8 @@ class _CaptureControls extends StatelessWidget {
                   tooltip: mode == MediaCaptureMode.photo
                       ? 'Take photo'
                       : isRecording
-                      ? 'Stop recording'
-                      : 'Record video',
+                      ? context.l10n.mediaStopRecording
+                      : context.l10n.mediaRecordVideo,
                   iconSize: 40,
                   onPressed: isCapturing ? null : onCapture,
                   style: IconButton.styleFrom(
@@ -512,10 +514,14 @@ class _ReviewControls extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetake,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retake'),
+              label: Text(context.l10n.mediaRetake),
             ),
             const SizedBox(width: 8),
-            PrimaryButton(onPressed: onUse, label: 'Use', icon: Icons.check),
+            PrimaryButton(
+              onPressed: onUse,
+              label: context.l10n.mediaUse,
+              icon: Icons.check,
+            ),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ import 'package:nahpu/screens/shared/layout/navigation.dart';
 import 'package:nahpu/screens/sites/components/menu_bar.dart';
 import 'package:nahpu/screens/sites/site_form.dart';
 import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum MenuSelection { newSite, pdfExport, deleteRecords, deleteAllRecords }
 
@@ -71,14 +72,14 @@ class SiteViewerState extends ConsumerState<SiteViewer>
     listenEntries();
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sites"),
+        title: Text(context.l10n.settingsNavSites),
         automaticallyImplyLeading: false,
         actions: [
           _isSearching
               ? ExpandedSearchBar(
                   controller: _searchController,
                   focusNode: _focus,
-                  hintText: 'Search sites',
+                  hintText: context.l10n.siteSearch,
                   trailing: [
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -110,7 +111,7 @@ class SiteViewerState extends ConsumerState<SiteViewer>
                       ref.invalidate(siteEntryProvider);
                     });
                   },
-                  child: const Text('Cancel'),
+                  child: Text(context.l10n.commonCancel),
                 ),
           !_isSearching ? const NewSite() : const SizedBox.shrink(),
           SiteMenu(siteId: _siteId),
@@ -239,7 +240,7 @@ class SiteFormView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Site Record')),
+      appBar: AppBar(title: Text(context.l10n.siteRecordTitle)),
       body: SafeArea(
         child: ref
             .watch(siteEntryProvider)
@@ -278,7 +279,7 @@ class EmptySite extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonEmptyForm(
       iconPath: 'assets/icons/forest.svg',
-      text: 'No site found',
+      text: context.l10n.siteNoneFound,
       child: Visibility(
         visible: isButtonVisible,
         child: const NewSiteTextButton(),

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_find_replace.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// What the find panel shows about the table behind it.
 class DataTableFindStatus {
@@ -114,13 +115,13 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Find and replace',
+                      context.l10n.textReplaceDialogTitle,
                       style: theme.textTheme.headlineSmall,
                     ),
                   ),
                   if (widget.showCloseButton)
                     IconButton(
-                      tooltip: 'Close',
+                      tooltip: context.l10n.commonClose,
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -132,9 +133,11 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                 autofocus: true,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  labelText: 'Find',
+                  labelText: context.l10n.sharedFind,
                   prefixIcon: const Icon(Icons.search),
-                  suffixText: hasText ? _countLabel(status) : null,
+                  suffixText: hasText
+                      ? _countLabel(context.l10n, status)
+                      : null,
                 ),
                 onChanged: (_) => _set(() {}),
                 onSubmitted: (_) => widget.onNext(),
@@ -144,10 +147,10 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                 controller: _replace,
                 enabled: status.isEditMode,
                 decoration: InputDecoration(
-                  labelText: 'Replace with',
+                  labelText: context.l10n.databaseReplaceWith,
                   helperText: status.isEditMode
                       ? null
-                      : 'Replacing needs edit mode.',
+                      : context.l10n.dataTableReplacingNeedsEditMode,
                   prefixIcon: const Icon(Icons.find_replace),
                 ),
                 onChanged: (_) => _notify(),
@@ -166,12 +169,12 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                     onChanged: (key) => _set(() => _columnKey = key),
                   ),
                   FilterChip(
-                    label: const Text('Match case'),
+                    label: Text(context.l10n.dataTableMatchCase),
                     selected: _matchCase,
                     onSelected: (value) => _set(() => _matchCase = value),
                   ),
                   FilterChip(
-                    label: const Text('Whole cell'),
+                    label: Text(context.l10n.dataTableWholeCell),
                     selected: _wholeCell,
                     onSelected: (value) => _set(() => _wholeCell = value),
                   ),
@@ -181,12 +184,12 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
               Row(
                 children: [
                   IconButton(
-                    tooltip: 'Previous match',
+                    tooltip: context.l10n.dataTablePreviousMatch,
                     icon: const Icon(Icons.keyboard_arrow_up),
                     onPressed: hasText ? widget.onPrevious : null,
                   ),
                   IconButton(
-                    tooltip: 'Next match',
+                    tooltip: context.l10n.dataTableNextMatch,
                     icon: const Icon(Icons.keyboard_arrow_down),
                     onPressed: hasText ? widget.onNext : null,
                   ),
@@ -194,13 +197,13 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                   if (!status.isEditMode)
                     TextButton.icon(
                       icon: const Icon(Icons.edit),
-                      label: const Text('Turn on edit mode'),
+                      label: Text(context.l10n.dataTableTurnOnEditMode),
                       onPressed: widget.onEnableEditMode,
                     )
                   else ...[
                     TextButton(
                       onPressed: canReplace ? widget.onReplace : null,
-                      child: const Text('Replace'),
+                      child: Text(context.l10n.databaseReplace),
                     ),
                     const SizedBox(width: NahpuSpacing.xs),
                     FilledButton(
@@ -212,7 +215,7 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
                                 strokeWidth: NahpuStroke.regular,
                               ),
                             )
-                          : const Text('Replace all'),
+                          : Text(context.l10n.dataTableReplaceAll),
                     ),
                   ],
                 ],
@@ -225,12 +228,12 @@ class _DataTableFindReplacePanelState extends State<DataTableFindReplacePanel> {
   }
 
   /// Counts matches on the current page.
-  String _countLabel(DataTableFindStatus status) {
-    if (status.matchCount == 0) return 'No matches';
+  String _countLabel(AppLocalizations l10n, DataTableFindStatus status) {
+    if (status.matchCount == 0) return l10n.dataTableNoMatchesShort;
     final current = status.currentMatch;
     return current == null
-        ? '${status.matchCount} found'
-        : '$current of ${status.matchCount}';
+        ? l10n.dataTableFoundCount(status.matchCount)
+        : l10n.dataTableMatchOf(current, status.matchCount);
   }
 
   void _set(VoidCallback change) {
@@ -277,7 +280,7 @@ class DataTableFindColumnMenu extends StatelessWidget {
             size: NahpuControlSize.iconMedium,
           ),
           onPressed: () => onChanged(null),
-          child: const Text('All visible columns'),
+          child: Text(context.l10n.dataTableAllVisibleColumns),
         ),
         const Divider(height: NahpuStroke.thin),
         for (final column in columns)
@@ -295,7 +298,7 @@ class DataTableFindColumnMenu extends StatelessWidget {
           Icons.view_column_outlined,
           size: NahpuControlSize.iconSmall,
         ),
-        label: Text(label ?? 'All visible columns'),
+        label: Text(label ?? context.l10n.dataTableAllVisibleColumns),
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
       ),

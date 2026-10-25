@@ -11,6 +11,7 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class AttributeForm extends StatefulWidget {
   const AttributeForm({super.key, required this.children});
@@ -27,7 +28,7 @@ class _AttributeFormState extends State<AttributeForm> {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Specimen Attributes',
+      title: context.l10n.labelFieldSectionSpecimenAttributes,
       infoTopic: InfoTopic.specimenAttributes,
       mainAxisAlignment: MainAxisAlignment.start,
       child: SizedBox(
@@ -69,9 +70,9 @@ class SpecimenSexDropdown extends ConsumerWidget {
     return DropdownButtonFormField<SpecimenSex>(
       initialValue: current,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Sex',
-        hintText: 'Select specimen sex',
+      decoration: InputDecoration(
+        labelText: context.l10n.recordsSpecimenSex,
+        hintText: context.l10n.specimenSexHint,
       ),
       items: [
         for (final sex in options)
@@ -108,14 +109,16 @@ class LifeStageDropdown extends ConsumerWidget {
             return DropdownButtonFormField<String?>(
               initialValue: currentValue,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Life stage',
-                hintText: 'Select life stage',
+              decoration: InputDecoration(
+                labelText: context.l10n.parasiteLifeStage,
+                hintText: context.l10n.specimenLifeStageHint,
               ),
               items: [
-                const DropdownMenuItem<String?>(
+                DropdownMenuItem<String?>(
                   value: null,
-                  child: CommonDropdownText(text: 'Not assigned'),
+                  child: CommonDropdownText(
+                    text: context.l10n.parasiteNotAssigned,
+                  ),
                 ),
                 ...options.map(
                   (value) => DropdownMenuItem<String?>(
@@ -128,7 +131,8 @@ class LifeStageDropdown extends ConsumerWidget {
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Unable to load life stages: $error'),
+          error: (error, _) =>
+              Text(context.l10n.specimenLifeStagesLoadError('$error')),
         );
   }
 }
@@ -149,7 +153,7 @@ class ParasiteDetectionForm extends ConsumerWidget {
           ),
           loading: () => const LinearProgressIndicator(),
           error: (error, _) =>
-              Text('Unable to load parasite detection: $error'),
+              Text(context.l10n.specimenParasiteDetectionLoadError('$error')),
         );
   }
 
@@ -199,11 +203,13 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
     return Column(
       children: [
         const CommonDivider(),
-        const FormCardSectionLabel(text: 'Parasites'),
+        FormCardSectionLabel(text: context.l10n.recordsSpecimenParasites),
         DropdownButtonFormField<int?>(
           key: ValueKey('examined-${detection?.parasiteExamined}'),
           initialValue: detection?.parasiteExamined,
-          decoration: const InputDecoration(labelText: 'Parasites examined'),
+          decoration: InputDecoration(
+            labelText: context.l10n.specimenParasitesExamined,
+          ),
           items: DropDownMenuItems.booleanDropDownItems(),
           onChanged: (value) => widget.onUpdate(
             ParasiteDetectionCompanion(parasiteExamined: db.Value(value)),
@@ -212,7 +218,9 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
         DropdownButtonFormField<int?>(
           key: ValueKey('detected-${detection?.parasiteDetected}'),
           initialValue: detection?.parasiteDetected,
-          decoration: const InputDecoration(labelText: 'Parasites detected'),
+          decoration: InputDecoration(
+            labelText: context.l10n.specimenParasitesDetected,
+          ),
           items: DropDownMenuItems.booleanDropDownItems(),
           onChanged: (value) => widget.onUpdate(
             ParasiteDetectionCompanion(parasiteDetected: db.Value(value)),
@@ -222,8 +230,8 @@ class _ParasiteDetectionFieldsState extends State<_ParasiteDetectionFields> {
           onFocusChange: (hasFocus) => _remarkHasFocus = hasFocus,
           child: CommonTextField(
             controller: _remarkController,
-            labelText: 'Detection remarks',
-            hintText: 'Enter parasite examination or detection remarks',
+            labelText: context.l10n.specimenDetectionRemarks,
+            hintText: context.l10n.specimenDetectionRemarksHint,
             maxLines: 3,
             isLastField: true,
             onChanged: (value) => widget.onUpdate(

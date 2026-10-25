@@ -49,12 +49,12 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     return FalseWillPop(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Add coordinates'),
+          title: Text(context.l10n.siteAddCoordinates),
           automaticallyImplyLeading: false,
           actions: [
             if (MediaQuery.sizeOf(context).width < 600)
               IconButton(
-                tooltip: 'View map',
+                tooltip: context.l10n.siteViewMap,
                 onPressed: () => _showMapSheet(_buildMap()),
                 icon: const Icon(Icons.map_outlined),
               ),
@@ -89,16 +89,16 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                     child: SegmentedButton<_AddCoordinateMode>(
                       showSelectedIcon: false,
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: _AddCoordinateMode.manual,
                           icon: Icon(Icons.edit_location_alt_outlined),
-                          label: Text('Manual'),
+                          label: Text(context.l10n.projectTaxonManual),
                         ),
                         ButtonSegment(
                           value: _AddCoordinateMode.import,
                           icon: Icon(Icons.move_to_inbox_outlined),
-                          label: Text('Import'),
+                          label: Text(context.l10n.commonImport),
                         ),
                       ],
                       selected: {_mode},
@@ -172,14 +172,14 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       SecondaryButton(
-        text: 'Cancel',
+        text: context.l10n.commonCancel,
         onPressed: () => Navigator.of(context).pop(),
       ),
       const SizedBox(width: 24),
       PrimaryButton(
         label: _mode == _AddCoordinateMode.import
-            ? 'Add ${_selectedImports.length} selected'
-            : 'Add',
+            ? context.l10n.siteAddSelected(_selectedImports.length)
+            : context.l10n.sharedAdd,
         icon: Icons.add,
         onPressed:
             _mode == _AddCoordinateMode.import && _selectedImports.isEmpty
@@ -212,7 +212,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
       setState(() {
         _manualPreview = CoordinateMapPoint(
           id: 0,
-          name: name.isEmpty ? 'New coordinate' : name,
+          name: name.isEmpty ? context.l10n.siteNewCoordinate : name,
           latitude: parsed.decimalLatitude,
           longitude: parsed.decimalLongitude,
         );
@@ -247,13 +247,13 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Supported files:',
+                context.l10n.siteSupportedFiles,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 4),
               Text(
-                'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.',
+                context.l10n.siteSupportedFileTypes,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -266,7 +266,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                   OutlinedButton.icon(
                     onPressed: _scanQr,
                     icon: const Icon(Icons.qr_code_scanner_outlined),
-                    label: const Text('Scan QR'),
+                    label: Text(context.l10n.sharedPresetScanQr),
                   ),
                   FilledButton.icon(
                     onPressed: _isLoadingFile ? null : _pickCoordinateFile,
@@ -278,8 +278,8 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                         : const Icon(Icons.file_open_outlined),
                     label: Text(
                       _isLoadingFile
-                          ? 'Reading file…'
-                          : 'Select coordinate file',
+                          ? context.l10n.projectReadingFile
+                          : context.l10n.siteSelectCoordinateFile,
                     ),
                   ),
                 ],
@@ -310,11 +310,11 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                         index,
                     };
                   }),
-                  child: const Text('Select all'),
+                  child: Text(context.l10n.commonSelectAll),
                 ),
                 TextButton(
                   onPressed: () => setState(_selectedImports.clear),
-                  child: const Text('Clear all'),
+                  child: Text(context.l10n.documentSelectionClearAll),
                 ),
               ],
             ),
@@ -332,7 +332,7 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
             child: Text(
-              '${review.skippedCount} row${review.skippedCount == 1 ? '' : 's'} skipped',
+              context.l10n.siteRowsSkipped(review.skippedCount),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -368,7 +368,10 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
               OutlinedButton.icon(
                 onPressed: _scanQr,
                 icon: const Icon(Icons.qr_code_scanner_outlined),
-                label: const Text('Scan QR', overflow: TextOverflow.ellipsis),
+                label: Text(
+                  context.l10n.sharedPresetScanQr,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               if (_tabularData != null)
                 OutlinedButton.icon(
@@ -378,13 +381,13 @@ class _NewCoordinateState extends ConsumerState<NewCoordinate> {
                     _focusedImport = null;
                   }),
                   icon: const Icon(Icons.table_chart_outlined),
-                  label: const Text('Edit column mapping'),
+                  label: Text(context.l10n.siteEditColumnMapping),
                 ),
               OutlinedButton.icon(
                 onPressed: _pickCoordinateFile,
                 icon: const Icon(Icons.file_open_outlined),
-                label: const Text(
-                  'Choose another file',
+                label: Text(
+                  context.l10n.siteChooseAnotherFile,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -589,8 +592,8 @@ class _ManualCoordinateMap extends StatelessWidget {
             children: [
               Text(
                 isStale
-                    ? 'The coordinate changed. Refresh the map to update the preview.'
-                    : 'Enter a valid WGS84 latitude and longitude, then refresh the map.',
+                    ? context.l10n.siteCoordinateChanged
+                    : context.l10n.siteEnterValidCoordinate,
                 textAlign: TextAlign.center,
               ),
               if (canRefresh) ...[
@@ -598,7 +601,7 @@ class _ManualCoordinateMap extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onRefresh,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh map'),
+                  label: Text(context.l10n.siteRefreshMap),
                 ),
               ],
             ],
@@ -661,7 +664,7 @@ class EditCoordinate extends ConsumerWidget {
     return FalseWillPop(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Edit Coordinates'),
+          title: Text(context.l10n.siteEditCoordinates),
           automaticallyImplyLeading: false,
         ),
         body: Center(
@@ -746,8 +749,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           CommonPadding(
             child: CommonTextField(
               controller: widget.coordCtr.nameIdCtr,
-              labelText: 'Name',
-              hintText: 'Add a name',
+              labelText: context.l10n.projectStatsColumnName,
+              hintText: context.l10n.siteAddName,
               isLastField: false,
             ),
           ),
@@ -769,13 +772,13 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Device GPS',
+                          context.l10n.siteDeviceGps,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Use device sensor to autofill coordinates',
+                          context.l10n.siteDeviceGpsBody,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -814,7 +817,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.gps_fixed),
-                    tooltip: 'Get location',
+                    tooltip: context.l10n.siteGetLocation,
                   ),
                 ],
               ),
@@ -826,23 +829,25 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               key: ValueKey(_formatSelectionRevision),
               initialValue: _inputFormat,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Coordinate format'),
-              items: const [
+              decoration: InputDecoration(
+                labelText: context.l10n.siteCoordinateFormat,
+              ),
+              items: [
                 DropdownMenuItem(
                   value: CoordinateInputFormat.decimalDegrees,
-                  child: Text('Decimal degrees'),
+                  child: Text(context.l10n.siteDecimalDegrees),
                 ),
                 DropdownMenuItem(
                   value: CoordinateInputFormat.degreesDecimalMinutes,
-                  child: Text('Degrees decimal minutes (DDM)'),
+                  child: Text(context.l10n.siteDdm),
                 ),
                 DropdownMenuItem(
                   value: CoordinateInputFormat.degreesMinutesSeconds,
-                  child: Text('Degrees minutes seconds (DMS)'),
+                  child: Text(context.l10n.siteDms),
                 ),
                 DropdownMenuItem(
                   value: CoordinateInputFormat.utm,
-                  child: Text('UTM (WGS84)'),
+                  child: Text(context.l10n.siteUtm),
                 ),
               ],
               onChanged: _changeInputFormat,
@@ -853,7 +858,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
             CommonPadding(
               child: CommonTextField(
                 controller: widget.coordCtr.utmCtr,
-                labelText: 'UTM coordinate',
+                labelText: context.l10n.siteUtmCoordinate,
                 hintText: '11 N 385153 3768853',
                 isLastField: false,
                 onChanged: (_) => _coordinateInputChanged(),
@@ -865,8 +870,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               children: [
                 CommonNumField(
                   controller: widget.coordCtr.latitudeCtr,
-                  labelText: 'Decimal Latitude',
-                  hintText: 'Add a latitude',
+                  labelText: context.l10n.siteDecimalLatitude,
+                  hintText: context.l10n.siteAddLatitude,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -875,8 +880,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                 ),
                 CommonNumField(
                   controller: widget.coordCtr.longitudeCtr,
-                  labelText: 'Decimal Longitude',
-                  hintText: 'Add a longitude',
+                  labelText: context.l10n.siteDecimalLongitude,
+                  hintText: context.l10n.siteAddLongitude,
                   isDouble: true,
                   isSigned: true,
                   isLastField: false,
@@ -919,8 +924,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           CommonPadding(
             child: CommonNumField(
               controller: widget.coordCtr.elevationCtr,
-              labelText: 'Elevation (m)',
-              hintText: 'Add an elevation',
+              labelText: context.l10n.projectStatsColumnElevation,
+              hintText: context.l10n.siteAddElevation,
               isDouble: false,
               isLastField: false,
             ),
@@ -942,9 +947,9 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                       key: ValueKey(selected),
                       initialValue: selected,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Datum',
-                        hintText: 'Specify the datum',
+                      decoration: InputDecoration(
+                        labelText: context.l10n.projectStatsColumnDatum,
+                        hintText: context.l10n.siteSpecifyDatum,
                       ),
                       items: options
                           .map(
@@ -966,8 +971,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           CommonPadding(
             child: CommonNumField(
               controller: widget.coordCtr.uncertaintyCtr,
-              labelText: 'Uncertainty (m)',
-              hintText: 'Add an uncertainty',
+              labelText: context.l10n.projectStatsColumnUncertainty,
+              hintText: context.l10n.siteAddUncertainty,
               isDouble: false,
               isLastField: false,
             ),
@@ -975,8 +980,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           CommonPadding(
             child: CommonTextField(
               controller: widget.coordCtr.gpsUnitCtr,
-              labelText: 'GPS Unit',
-              hintText: 'Specify the GPS unit',
+              labelText: context.l10n.siteGpsUnit,
+              hintText: context.l10n.siteSpecifyGpsUnit,
               isLastField: false,
             ),
           ),
@@ -984,8 +989,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
             child: CommonTextField(
               maxLines: 3,
               controller: widget.coordCtr.noteCtr,
-              labelText: 'Notes',
-              hintText: 'Add notes (optional)',
+              labelText: context.l10n.labelEnvironmentalNotes,
+              hintText: context.l10n.siteAddNotes,
               isLastField: true,
             ),
           ),
@@ -1009,19 +1014,16 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Change coordinate format?'),
-          content: const Text(
-            'Changing the format clears the entered coordinate values. '
-            'Name, elevation, datum, uncertainty, GPS unit, and notes are kept.',
-          ),
+          title: Text(context.l10n.siteChangeFormatTitle),
+          content: Text(context.l10n.siteChangeFormatBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Clear and switch'),
+              child: Text(context.l10n.siteClearAndSwitch),
             ),
           ],
         ),
@@ -1177,7 +1179,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
           SnackBar(
             content: Text(e.toString()),
             action: SnackBarAction(
-              label: 'Settings',
+              label: context.l10n.drawerSettings,
               onPressed: () async {
                 await Geolocator.openLocationSettings();
               },
@@ -1346,8 +1348,8 @@ class _AngularCoordinateFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final axisLabel = axis == AngularCoordinateAxis.latitude
-        ? 'Latitude'
-        : 'Longitude';
+        ? context.l10n.projectStatsColumnLatitude
+        : context.l10n.projectStatsColumnLongitude;
     final directions = axis == AngularCoordinateAxis.latitude
         ? const [
             AngularCoordinateDirection.north,
@@ -1389,9 +1391,12 @@ class _AngularCoordinateFields extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'This verbatim ${axis.name} could not be read and may have been '
-                'changed outside NAHPU. Re-enter it before saving.\n'
-                'Original: ${invalidStoredValue.isEmpty ? '(missing)' : invalidStoredValue}',
+                context.l10n.siteInvalidVerbatim(
+                  axisLabel.toLowerCase(),
+                  invalidStoredValue.isEmpty
+                      ? context.l10n.siteMissingValue
+                      : invalidStoredValue,
+                ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onErrorContainer,
                 ),
@@ -1408,7 +1413,7 @@ class _AngularCoordinateFields extends StatelessWidget {
                 width: _controlWidth,
                 child: CommonNumField(
                   controller: controller.degreesCtr,
-                  labelText: 'Degree',
+                  labelText: context.l10n.siteDegree,
                   hintText: '0',
                   isLastField: false,
                   errorText: validation?.degreesError,
@@ -1419,7 +1424,7 @@ class _AngularCoordinateFields extends StatelessWidget {
                 width: _controlWidth,
                 child: CommonNumField(
                   controller: controller.minutesCtr,
-                  labelText: 'Minute',
+                  labelText: context.l10n.siteMinute,
                   hintText: '0',
                   isDouble: !includesSeconds,
                   isLastField: false,
@@ -1432,7 +1437,7 @@ class _AngularCoordinateFields extends StatelessWidget {
                   width: _controlWidth,
                   child: CommonNumField(
                     controller: controller.secondsCtr,
-                    labelText: 'Second',
+                    labelText: context.l10n.siteSecond,
                     hintText: '0',
                     isDouble: true,
                     isLastField: false,
@@ -1445,7 +1450,7 @@ class _AngularCoordinateFields extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Direction'),
+                    Text(context.l10n.documentSortDirection),
                     const SizedBox(height: 4),
                     SegmentedButton<AngularCoordinateDirection>(
                       showSelectedIcon: false,

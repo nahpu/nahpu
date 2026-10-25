@@ -14,6 +14,8 @@ import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const _galleryCategories = [
   MediaCategory.all,
@@ -87,27 +89,30 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
             ? CommonSearchBar(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                hintText: 'Search media metadata',
+                hintText: context.l10n.mediaSearchMetadata,
                 trailing: [
                   if (_searchController.text.isNotEmpty)
                     IconButton(
-                      tooltip: 'Clear search',
+                      tooltip: context.l10n.documentSelectionClearSearch,
                       onPressed: _clearSearch,
                       icon: const Icon(Icons.clear_rounded),
                     ),
                 ],
                 onChanged: (_) => _pruneSelectionToVisible(),
               )
-            : const Text('Media gallery'),
+            : Text(context.l10n.mediaGalleryTitle),
         actions: [
           if (!_isSearching)
             IconButton(
-              tooltip: 'Search media',
+              tooltip: context.l10n.mediaSearch,
               onPressed: _startSearch,
               icon: const Icon(Icons.search),
             )
           else
-            TextButton(onPressed: _cancelSearch, child: const Text('Cancel')),
+            TextButton(
+              onPressed: _cancelSearch,
+              child: Text(context.l10n.commonCancel),
+            ),
           if (!_isSearching) _SortMenu(value: _sort, onSelected: _setSort),
         ],
       ),
@@ -185,7 +190,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Delete selected media',
+                  tooltip: context.l10n.mediaDeleteSelected,
                   color: Theme.of(context).colorScheme.error,
                   onPressed: selectedVisible.isEmpty
                       ? null
@@ -194,13 +199,13 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    '${selectedVisible.length} selected',
+                    context.l10n.mediaSelectedCount(selectedVisible.length),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
                 PrimaryButton(
-                  label: 'Export',
+                  label: context.l10n.commonExport,
                   icon: Icons.file_upload_outlined,
                   onPressed: selectedVisible.isEmpty
                       ? null
@@ -304,15 +309,12 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete selected media?'),
-        content: const Text(
-          'Delete the selected media from all NAHPU records and from disk? '
-          'This cannot be undone.',
-        ),
+        title: Text(context.l10n.mediaDeleteSelectedTitle),
+        content: Text(context.l10n.mediaDeleteSelectedBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -356,7 +358,7 @@ class _CategoryFilter extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: NahpuSpacing.sm),
               child: ChoiceChip(
-                label: Text(_categoryLabel(category)),
+                label: Text(_categoryLabel(context.l10n, category)),
                 selected: selected == category,
                 onSelected: (_) => onSelected(category),
               ),
@@ -366,14 +368,15 @@ class _CategoryFilter extends StatelessWidget {
     );
   }
 
-  String _categoryLabel(MediaCategory category) => switch (category) {
-    MediaCategory.all => 'All',
-    MediaCategory.specimen => 'Specimen',
-    MediaCategory.site => 'Site',
-    MediaCategory.event => 'Event',
-    MediaCategory.narrative => 'Narrative',
-    MediaCategory.personnel => 'Personnel',
-  };
+  String _categoryLabel(AppLocalizations l10n, MediaCategory category) =>
+      switch (category) {
+        MediaCategory.all => l10n.formsSearchAll,
+        MediaCategory.specimen => l10n.presetsRecordTypeSpecimen,
+        MediaCategory.site => l10n.presetsRecordTypeSite,
+        MediaCategory.event => l10n.mediaCategoryEvent,
+        MediaCategory.narrative => l10n.narrativeTitle,
+        MediaCategory.personnel => l10n.settingsNavPersonnel,
+      };
 }
 
 class _SortMenu extends StatelessWidget {
@@ -385,7 +388,7 @@ class _SortMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<MediaGallerySort>(
-      tooltip: 'Sort media',
+      tooltip: context.l10n.mediaSort,
       initialValue: value,
       icon: const Icon(Icons.sort),
       onSelected: onSelected,
@@ -393,7 +396,7 @@ class _SortMenu extends StatelessWidget {
         for (final sort in MediaGallerySort.values)
           AdaptiveMenuItem(
             value: sort,
-            label: sort.label,
+            label: sort.localizedLabel(context.l10n),
             checked: sort == value,
           ),
       ],
@@ -411,7 +414,9 @@ class _GalleryEmptyState extends StatelessWidget {
     return Center(
       child: CommonEmptyForm(
         iconPath: 'assets/icons/image-gallery.svg',
-        text: hasProjectMedia ? 'No matching media' : 'No media added',
+        text: hasProjectMedia
+            ? context.l10n.mediaNoMatching
+            : context.l10n.mediaNoneAdded,
       ),
     );
   }
