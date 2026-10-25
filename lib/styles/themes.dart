@@ -8,6 +8,12 @@ class NahpuTheme {
   static const _canopyMist = Color(0xFF7FD9BE);
   static const _canopyDeep = Color(0xFF0F7B5C);
 
+  /// Dark theme secondary and tertiary: the misty sage and moss hues lifted to
+  /// a light tone so they read at 4.5:1 on every dark surface. The light theme
+  /// tones are too dark to read there.
+  static const _mistySageLight = Color(0xFFB4CCC3);
+  static const _mossLight = Color(0xFFA5D0BF);
+
   /// Light theme primary: the canopy hue just dark enough for 4.5:1 as text
   /// on every light surface, up to surfaceContainerHighest.
   static const _canopyForest = Color(0xFF0C7055);
@@ -37,8 +43,10 @@ class NahpuTheme {
     seedColor: _canopyTeal,
     brightness: Brightness.dark,
     primary: _canopyMist,
-    secondary: _mistySage,
-    tertiary: _mossShadow,
+    secondary: _mistySageLight,
+    onSecondary: _mossShadow,
+    tertiary: _mossLight,
+    onTertiary: _mossShadow,
   );
 
   /// Colors for the record types of the statistics network, one per type in
@@ -49,12 +57,13 @@ class NahpuTheme {
       ? _networkTypeColorsDark
       : _networkTypeColorsLight;
 
+  // Dark2 hues, deepened where needed to keep 3:1 on surfaceContainerHighest.
   static const _networkTypeColorsLight = [
-    Color(0xFF1B9E77),
-    Color(0xFFD95F02),
+    Color(0xFF178A68),
+    Color(0xFFD05B01),
     Color(0xFF7570B3),
     Color(0xFFE7298A),
-    Color(0xFF66A61E),
+    Color(0xFF538C17),
     Color(0xFFA6761D),
   ];
 
@@ -68,10 +77,10 @@ class NahpuTheme {
   ];
 
   /// Text color for edits that are waiting to be saved, such as the data
-  /// table's "2 unsaved changes". Readable on the surface in both themes,
-  /// where [ColorScheme.tertiary] is too dark on the dark surface.
+  /// table's "2 unsaved changes". Readable at 4.5:1 on every surface in both
+  /// themes, up to surfaceContainerHighest.
   static Color pendingChange(ColorScheme colorScheme) =>
-      colorScheme.brightness == Brightness.dark ? _canopyMist : _canopyDeep;
+      colorScheme.brightness == Brightness.dark ? _canopyMist : _canopyForest;
 
   /// Text and icon color for warnings, such as a skipped or conflicting
   /// scan. [ColorScheme.tertiary] is too dark to read on dark surfaces, and

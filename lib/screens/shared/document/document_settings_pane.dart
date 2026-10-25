@@ -476,9 +476,11 @@ class _DocumentLayoutSectionState extends ConsumerState<DocumentLayoutSection> {
                                   if (widget.layout.blocks.length > 1)
                                     IconButton(
                                       onPressed: () => _deleteBlock(idx),
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.delete_sweep_outlined,
-                                        color: Colors.red,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
                                       ),
                                       tooltip: l10n.documentDeleteBlock,
                                     ),

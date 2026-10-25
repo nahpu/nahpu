@@ -164,12 +164,7 @@ class NarrativeMenuState extends ConsumerState<NarrativeMenu> {
 
   void _showError(String errors) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          context.l10n.narrativeDeleteError(errors),
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
+      SnackBar(content: Text(context.l10n.narrativeDeleteError(errors))),
     );
   }
 

@@ -55,7 +55,7 @@ class ProjectMenuDrawerState extends ConsumerState<ProjectMenuDrawer> {
               title: Text(l10n.sharedNavCloseProject),
               onTap: () => closeProject(context, ref, projectUuid),
             ),
-            const Divider(color: Colors.grey),
+            Divider(color: Theme.of(context).colorScheme.outline),
           ],
           ListTile(
             leading: const Icon(Icons.move_to_inbox_outlined),

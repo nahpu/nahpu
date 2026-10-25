@@ -93,7 +93,9 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                             l10n.recordsCatalogBatFieldsNote,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),

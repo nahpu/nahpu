@@ -90,7 +90,7 @@ class CommonLineDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(color: Colors.grey);
+    return Divider(color: Theme.of(context).colorScheme.outline);
   }
 }
 
