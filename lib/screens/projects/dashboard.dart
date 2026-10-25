@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,6 +46,15 @@ class DashboardState extends ConsumerState<Dashboard> {
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints c) {
           bool useHorizontalLayout = c.maxWidth > NahpuBreakpoints.compact;
+          // Tall windows leave a gap above the tool dock; the top row takes
+          // it up rather than leaving it empty. It never shrinks below its
+          // usual height, so shorter windows scroll as before.
+          final topHeight = useHorizontalLayout
+              ? math.max(
+                  topDashboardHeight,
+                  c.maxHeight - bottomDashboardHeight,
+                )
+              : topDashboardHeight;
           return SafeArea(
             bottom: false,
             child: SingleChildScrollView(
@@ -52,7 +63,10 @@ class DashboardState extends ConsumerState<Dashboard> {
               ),
               child: Column(
                 children: [
-                  TopPanel(useHorizontalLayout: useHorizontalLayout),
+                  TopPanel(
+                    useHorizontalLayout: useHorizontalLayout,
+                    height: topHeight,
+                  ),
                   BottomPanel(useHorizontalLayout: useHorizontalLayout),
                 ],
               ),
@@ -66,16 +80,22 @@ class DashboardState extends ConsumerState<Dashboard> {
 }
 
 class TopPanel extends ConsumerWidget {
-  const TopPanel({super.key, required this.useHorizontalLayout});
+  const TopPanel({super.key, required this.useHorizontalLayout, this.height});
 
   final bool useHorizontalLayout;
+
+  /// Height of the row in the horizontal layout; defaults to
+  /// [topDashboardHeight].
+  final double? height;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectUuid = ref.watch(projectUuidProvider);
     return AdaptiveMainLayout(
       useHorizontalLayout: useHorizontalLayout,
-      height: topDashboardHeight,
+      height: height ?? topDashboardHeight,
+      // Both cards fill the row, so they grow together.
+      stretchChildren: true,
       children: [
         ProjectOverview(
           projectUuid: projectUuid,
@@ -88,7 +108,7 @@ class TopPanel extends ConsumerWidget {
             );
           },
         ),
-        const PersonnelViewer(),
+        PersonnelViewer(isExpanded: useHorizontalLayout),
       ],
     );
   }

@@ -20,7 +20,11 @@ enum PersonnelMenuAction { edit, delete }
 const int avatarSize = 48;
 
 class PersonnelViewer extends ConsumerStatefulWidget {
-  const PersonnelViewer({super.key});
+  const PersonnelViewer({super.key, this.isExpanded = false});
+
+  /// Fills the height its parent gives it, scrolling the list inside, rather
+  /// than keeping a fixed height.
+  final bool isExpanded;
 
   @override
   PersonnelViewerState createState() => PersonnelViewerState();
@@ -33,10 +37,13 @@ class PersonnelViewerState extends ConsumerState<PersonnelViewer> {
       title: context.l10n.settingsNavPersonnel,
       infoTopic: InfoTopic.projectPersonnel,
       mainAxisAlignment: MainAxisAlignment.start,
-      child: SizedBox(
-        height: topDashboardHeight - 96,
-        child: const PersonnelList(),
-      ),
+      isExpanded: widget.isExpanded,
+      child: widget.isExpanded
+          ? const PersonnelList()
+          : SizedBox(
+              height: topDashboardHeight - 96,
+              child: const PersonnelList(),
+            ),
     );
   }
 }
