@@ -200,7 +200,8 @@ class ProjectTransferService extends AppServices {
     _addStringValues(records['specimen']!, 'determinerID', personnelIds);
     _addStringValues(records['specimen']!, 'preparatorID', personnelIds);
     _addStringValues(records['specimenPart']!, 'personnelId', personnelIds);
-    _addStringValues(records['parasite']!, 'identifierID', personnelIds);
+    _addStringValues(records['parasite']!, 'determinerID', personnelIds);
+    _addStringValues(records['parasite']!, 'collectorID', personnelIds);
     _addStringValues(records['narrative']!, 'writerId', personnelIds);
     records['personnel'] = await _rowsForStrings(
       'personnel',
@@ -1670,10 +1671,12 @@ class ProjectTransferService extends AppServices {
       if (!specimensUsingImportedChildren.contains(sourceUuid)) continue;
       final uuid = specimenMap[sourceUuid];
       final taxonId = taxonomyMap[row['speciesID'] as int?];
-      final identifierId = personnelMap[row['identifierID'] as String?];
+      final determinerId = personnelMap[row['determinerID'] as String?];
+      final collectorId = personnelMap[row['collectorID'] as String?];
       if (uuid == null ||
           (row['speciesID'] != null && taxonId == null) ||
-          (row['identifierID'] != null && identifierId == null)) {
+          (row['determinerID'] != null && determinerId == null) ||
+          (row['collectorID'] != null && collectorId == null)) {
         continue;
       }
       final parasiteConflict = _findConflict(plan, 'parasiteUuid', row['id']);
@@ -1703,7 +1706,8 @@ class ProjectTransferService extends AppServices {
           ...row,
           'specimenUuid': uuid,
           'speciesID': taxonId,
-          'identifierID': identifierId,
+          'determinerID': determinerId,
+          'collectorID': collectorId,
           'parasiteUuid': parasiteUuid,
         },
         omit: {'id'},

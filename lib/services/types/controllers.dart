@@ -1617,7 +1617,8 @@ class ParasiteFormCtrModel {
     required this.parasiteUuid,
     required this.parasiteIdCtr,
     required this.speciesId,
-    required this.identifierId,
+    required this.determinerId,
+    required this.collectorId,
     required this.countCtr,
     required this.preparationMethodCtr,
     required this.storageCtr,
@@ -1628,6 +1629,8 @@ class ParasiteFormCtrModel {
     required this.categoryCtr,
     required this.associationStatus,
     required this.detectionMethodCtr,
+    required this.dateDeterminedCtr,
+    required this.determinationMethodCtr,
     required this.dateCollectedCtr,
     required this.timeCollectedCtr,
     required this.datePreservedCtr,
@@ -1643,7 +1646,8 @@ class ParasiteFormCtrModel {
   /// Individuals within the specimen lot that this parasite was found on.
   Set<int> individualIds = {};
   int? speciesId;
-  String? identifierId;
+  String? determinerId;
+  String? collectorId;
   TextEditingController countCtr;
   TextEditingController preparationMethodCtr;
   TextEditingController storageCtr;
@@ -1654,6 +1658,8 @@ class ParasiteFormCtrModel {
   TextEditingController categoryCtr;
   int? associationStatus;
   TextEditingController detectionMethodCtr;
+  DateEditingController dateDeterminedCtr;
+  TextEditingController determinationMethodCtr;
   DateEditingController dateCollectedCtr;
   TimeEditingController timeCollectedCtr;
   DateEditingController datePreservedCtr;
@@ -1662,29 +1668,35 @@ class ParasiteFormCtrModel {
   TextEditingController museumLoanCtr;
   TextEditingController remarkCtr;
 
-  factory ParasiteFormCtrModel.empty() => ParasiteFormCtrModel(
-    parasiteUuid: const Uuid().v4(),
-    parasiteIdCtr: TextEditingController(),
-    speciesId: null,
-    identifierId: null,
-    countCtr: TextEditingController(text: '1'),
-    preparationMethodCtr: TextEditingController(),
-    storageCtr: TextEditingController(),
-    storageLocationCtr: TextEditingController(),
-    treatmentCtr: TextEditingController(),
-    anatomicalLocationCtr: TextEditingController(),
-    lifeStageCtr: TextEditingController(),
-    categoryCtr: TextEditingController(),
-    associationStatus: null,
-    detectionMethodCtr: TextEditingController(),
-    dateCollectedCtr: DateEditingController(),
-    timeCollectedCtr: TimeEditingController(),
-    datePreservedCtr: DateEditingController(),
-    timePreservedCtr: TimeEditingController(),
-    museumPermanentCtr: TextEditingController(),
-    museumLoanCtr: TextEditingController(),
-    remarkCtr: TextEditingController(),
-  );
+  /// [collectorId] usually comes from the host's preparator, since whoever
+  /// processes the host also sweeps and necropsies it for parasites.
+  factory ParasiteFormCtrModel.empty({String? collectorId}) =>
+      ParasiteFormCtrModel(
+        parasiteUuid: const Uuid().v4(),
+        parasiteIdCtr: TextEditingController(),
+        speciesId: null,
+        determinerId: null,
+        collectorId: collectorId,
+        countCtr: TextEditingController(text: '1'),
+        preparationMethodCtr: TextEditingController(),
+        storageCtr: TextEditingController(),
+        storageLocationCtr: TextEditingController(),
+        treatmentCtr: TextEditingController(),
+        anatomicalLocationCtr: TextEditingController(),
+        lifeStageCtr: TextEditingController(),
+        categoryCtr: TextEditingController(),
+        associationStatus: null,
+        detectionMethodCtr: TextEditingController(),
+        dateDeterminedCtr: DateEditingController(),
+        determinationMethodCtr: TextEditingController(),
+        dateCollectedCtr: DateEditingController(),
+        timeCollectedCtr: TimeEditingController(),
+        datePreservedCtr: DateEditingController(),
+        timePreservedCtr: TimeEditingController(),
+        museumPermanentCtr: TextEditingController(),
+        museumLoanCtr: TextEditingController(),
+        remarkCtr: TextEditingController(),
+      );
 
   factory ParasiteFormCtrModel.fromData(
     ParasiteData data,
@@ -1692,7 +1704,8 @@ class ParasiteFormCtrModel {
     parasiteUuid: data.parasiteUuid,
     parasiteIdCtr: TextEditingController(text: data.parasiteID ?? ''),
     speciesId: data.speciesID,
-    identifierId: data.identifierID,
+    determinerId: data.determinerID,
+    collectorId: data.collectorID,
     countCtr: TextEditingController(text: data.count?.toString() ?? ''),
     preparationMethodCtr: TextEditingController(
       text: data.preparationMethod ?? '',
@@ -1707,6 +1720,10 @@ class ParasiteFormCtrModel {
     categoryCtr: TextEditingController(text: data.category ?? ''),
     associationStatus: data.associationStatus,
     detectionMethodCtr: TextEditingController(text: data.detectionMethod ?? ''),
+    dateDeterminedCtr: DateEditingController(date: data.dateDetermined),
+    determinationMethodCtr: TextEditingController(
+      text: data.determinationMethod ?? '',
+    ),
     dateCollectedCtr: DateEditingController(date: data.dateCollected),
     timeCollectedCtr: TimeEditingController(time: data.timeCollected),
     datePreservedCtr: DateEditingController(date: data.datePreserved),
@@ -1727,6 +1744,8 @@ class ParasiteFormCtrModel {
     lifeStageCtr.dispose();
     categoryCtr.dispose();
     detectionMethodCtr.dispose();
+    dateDeterminedCtr.dispose();
+    determinationMethodCtr.dispose();
     dateCollectedCtr.dispose();
     timeCollectedCtr.dispose();
     datePreservedCtr.dispose();

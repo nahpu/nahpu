@@ -32,6 +32,7 @@ class _MigrationCoordinator {
       21: (m) => _Version22Migration(db).upgrade(m),
       22: (m) => _Version23Migration(db).upgrade(m),
       23: (m) => _Version24Migration(db).upgrade(m),
+      24: (m) => _Version25Migration(db).upgrade(m),
     };
     while (currentVersion < to) {
       final step = releaseSteps[currentVersion];
@@ -44,6 +45,100 @@ class _MigrationCoordinator {
       await step(migrator);
       currentVersion++;
     }
+  }
+}
+
+class _Version25Migration {
+  const _Version25Migration(this.db);
+
+  final Database db;
+
+  Future<void> upgrade(Migrator migrator) async {
+    final parasiteCount = await _rowCount();
+    final columns = await _columnNames();
+    final hasIdentifier = columns.contains('identifierID');
+    final hasDeterminer = columns.contains('determinerID');
+    // Drift does not run `onUpgrade` in a transaction, so an interrupted
+    // attempt can leave the column renamed while the version stays at v24.
+    if (hasIdentifier && hasDeterminer) {
+      throw StateError(
+        'Expected exactly one of parasite.identifierID or determinerID.',
+      );
+    }
+    if (hasIdentifier) {
+      await migrator.renameColumn(
+        db.parasite,
+        'identifierID',
+        db.parasite.determinerID,
+      );
+    } else if (!hasDeterminer) {
+      await migrator.addColumn(db.parasite, db.parasite.determinerID);
+    }
+    await _addColumnIfMissing(migrator, 'collectorID', db.parasite.collectorID);
+    await _addColumnIfMissing(
+      migrator,
+      'dateDetermined',
+      db.parasite.dateDetermined,
+    );
+    await _addColumnIfMissing(
+      migrator,
+      'determinationMethod',
+      db.parasite.determinationMethod,
+    );
+    await _validate(parasiteCount);
+  }
+
+  Future<void> _addColumnIfMissing(
+    Migrator migrator,
+    String name,
+    GeneratedColumn column,
+  ) async {
+    if ((await _columnNames()).contains(name)) return;
+    await migrator.addColumn(db.parasite, column);
+  }
+
+  Future<void> _validate(int expectedParasites) async {
+    final columns = await _columnNames();
+    if (columns.contains('identifierID')) {
+      throw StateError('Database migration retained parasite.identifierID.');
+    }
+    if (!columns.containsAll({
+      'determinerID',
+      'collectorID',
+      'dateDetermined',
+      'determinationMethod',
+    })) {
+      throw StateError('Database migration did not add the v25 columns.');
+    }
+    if (await _rowCount() != expectedParasites) {
+      throw StateError('Database migration lost parasite records.');
+    }
+    final violations = await db
+        .customSelect('PRAGMA foreign_key_check', readsFrom: const {})
+        .get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+        'Database migration introduced ${violations.length} foreign-key '
+        'violation(s).',
+      );
+    }
+  }
+
+  Future<int> _rowCount() async {
+    final row = await db
+        .customSelect(
+          'SELECT COUNT(*) AS count FROM parasite',
+          readsFrom: const {},
+        )
+        .getSingle();
+    return row.read<int>('count');
+  }
+
+  Future<Set<String>> _columnNames() async {
+    final columns = await db
+        .customSelect('PRAGMA table_info(parasite)', readsFrom: const {})
+        .get();
+    return columns.map((row) => row.read<String>('name')).toSet();
   }
 }
 
@@ -1420,8 +1515,14 @@ class _Version15Migration {
     if (!parasiteColumns.contains('parasiteID')) {
       await migrator.addColumn(db.parasite, db.parasite.parasiteID);
     }
-    if (!parasiteColumns.contains('identifierID')) {
-      await migrator.addColumn(db.parasite, db.parasite.identifierID);
+    // v25 renamed this column to determinerID, so add the v15 shape by name.
+    // Tables created from the current schema already carry determinerID.
+    if (!parasiteColumns.contains('identifierID') &&
+        !parasiteColumns.contains('determinerID')) {
+      await db.customStatement(
+        'ALTER TABLE parasite ADD COLUMN identifierID TEXT '
+        'REFERENCES personnel(uuid)',
+      );
     }
 
     await migrator.createTable(db.eventMedia);
@@ -1495,11 +1596,11 @@ class _Version15Migration {
     final parasiteColumnNames = parasiteColumns
         .map((row) => row.read<String>('name'))
         .toSet();
-    if (!parasiteColumnNames.containsAll({
-      'parasiteID',
-      'parasiteUuid',
-      'identifierID',
-    })) {
+    final hasPersonColumn =
+        parasiteColumnNames.contains('identifierID') ||
+        parasiteColumnNames.contains('determinerID');
+    if (!hasPersonColumn ||
+        !parasiteColumnNames.containsAll({'parasiteID', 'parasiteUuid'})) {
       throw StateError('Database migration did not add parasite identifiers.');
     }
     final violations = await db

@@ -58,7 +58,8 @@ enum DataTableJoin {
 
   /// A parasite's own taxon and identifier, apart from its host specimen's.
   parasiteTaxonomy,
-  parasiteIdentifier;
+  parasiteDeterminer,
+  parasiteCollector;
 
   /// Joins this one reads from.
   Set<DataTableJoin> get requires => switch (this) {
@@ -552,10 +553,17 @@ final _parasiteFields = [
     joins: {DataTableJoin.parasiteTaxonomy},
   ),
   const DataTableField(
-    key: 'parasite::identifierID',
-    sqlExpr: 'pid.name',
-    joins: {DataTableJoin.parasiteIdentifier},
+    key: 'parasite::collectorID',
+    sqlExpr: 'pcol.name',
+    joins: {DataTableJoin.parasiteCollector},
   ),
+  const DataTableField(
+    key: 'parasite::determinerID',
+    sqlExpr: 'pdet.name',
+    joins: {DataTableJoin.parasiteDeterminer},
+  ),
+  _parasite('dateDetermined', type: DataTableValueType.date),
+  _parasite('determinationMethod', optionKey: idMethodPrefKey),
   _parasite('count', type: DataTableValueType.integer),
   _parasite('category', optionKey: parasiteCategoryPrefKey),
   _parasite('anatomicalLocation', optionKey: parasiteAnatomicalLocationPrefKey),

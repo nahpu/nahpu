@@ -57,6 +57,17 @@ void main() {
     );
   });
 
+  test('renames the pre-v25 parasite identifier to determiner', () {
+    expect(
+      canonicalizeSpecimenAttributeSourceKey('parasite::identifierID'),
+      'parasite::determinerID',
+    );
+    expect(
+      canonicalizeSpecimenAttributeExpression('By [parasite::identifierID]'),
+      'By [parasite::determinerID]',
+    );
+  });
+
   test('moves legacy arthropod environment and canopy sources', () {
     expect(
       canonicalizeSpecimenAttributeSourceKey(

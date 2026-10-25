@@ -113,6 +113,29 @@ void main() {
       expect(decoded.records, isNot(contains('herpMeasurement')));
     });
 
+    test('reads a pre-v25 parasite identifier as its determiner', () {
+      final decoded = ProjectTransferPayload.parse(
+        jsonEncode({
+          'nahpu_project': 'project',
+          'version': 1,
+          'project': {'uuid': 'project-a', 'name': 'Project A'},
+          'records': {
+            'parasite': [
+              {
+                'specimenUuid': 'host',
+                'parasiteUuid': 'parasite',
+                'identifierID': 'person',
+              },
+            ],
+          },
+        }),
+      );
+
+      final parasite = decoded.rows('parasite').single;
+      expect(parasite['determinerID'], 'person');
+      expect(parasite, isNot(contains('identifierID')));
+    });
+
     test('normalizes legacy bird foot colors to toe colors', () {
       final decoded = ProjectTransferPayload.parse(
         jsonEncode({
@@ -534,7 +557,7 @@ void main() {
             ParasiteCompanion(
               specimenUuid: const Value('specimen-a'),
               speciesID: Value(parasiteTaxon),
-              identifierID: const Value('identifier'),
+              determinerID: const Value('identifier'),
               parasiteID: const Value('P-1'),
               parasiteUuid: const Value('parasite-uuid'),
             ),
@@ -574,7 +597,7 @@ void main() {
       final payload = await tester.runAsync(service.buildExport);
 
       expect(payload!.rows('parasite'), hasLength(1));
-      expect(payload.rows('parasite').single['identifierID'], 'identifier');
+      expect(payload.rows('parasite').single['determinerID'], 'identifier');
       expect(payload.rows('personnel').single['uuid'], 'identifier');
       expect(payload.rows('taxonomy').single['genus'], 'Ixodes');
       expect(payload.rows('eventAssociatedData'), hasLength(1));

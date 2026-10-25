@@ -61,7 +61,10 @@ class DynamicRecordExporter {
     for (final col in const [
       'specimenUuid',
       'speciesID',
-      'identifierID',
+      'determinerID',
+      'collectorID',
+      'dateDetermined',
+      'determinationMethod',
       'parasiteID',
       'parasiteUuid',
       'count',
@@ -438,11 +441,13 @@ class DynamicRecordExporter {
       ).getTaxonById(record.speciesID!);
       json['scientificName'] = getTaxonDisplayName(taxon);
     }
-    if (record.identifierID != null) {
-      final identifier = await PersonnelServices(
-        ref: ref,
-      ).getPersonnelByUuid(record.identifierID!);
-      json['identifierID'] = identifier.name;
+    for (final (key, uuid) in [
+      ('determinerID', record.determinerID),
+      ('collectorID', record.collectorID),
+    ]) {
+      if (uuid == null) continue;
+      final person = await PersonnelServices(ref: ref).getPersonnelByUuid(uuid);
+      json[key] = person.name;
     }
     return json;
   }

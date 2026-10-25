@@ -362,6 +362,8 @@ class ProjectTransferPayload {
                 .toList(growable: false),
           'specimen' =>
             entry.value.map(_normalizeSpecimen).toList(growable: false),
+          'parasite' =>
+            entry.value.map(_normalizeParasite).toList(growable: false),
           'customFieldDefinition' =>
             entry.value
                 .map(_normalizeCustomFieldDefinition)
@@ -468,6 +470,14 @@ class ProjectTransferPayload {
     final normalized = Map<String, dynamic>.from(source);
     normalized['uri'] ??= normalized['url'];
     normalized.remove('url');
+    return normalized;
+  }
+
+  /// v25 renamed `parasite.identifierID` to `determinerID`.
+  static Map<String, dynamic> _normalizeParasite(Map<String, dynamic> source) {
+    final normalized = Map<String, dynamic>.from(source);
+    normalized['determinerID'] ??= normalized['identifierID'];
+    normalized.remove('identifierID');
     return normalized;
   }
 

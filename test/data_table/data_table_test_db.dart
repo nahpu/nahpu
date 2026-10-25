@@ -109,7 +109,7 @@ Future<Database> seededDataTableDb() async {
   ]) {
     await run(
       'INSERT INTO parasite (id, specimenUuid, parasiteUuid, parasiteID, '
-      'speciesID, identifierID, count, associationStatus, category) '
+      'speciesID, determinerID, count, associationStatus, category) '
       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         id,

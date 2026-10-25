@@ -106,7 +106,7 @@ void main() {
           ParasiteCompanion(
             specimenUuid: const Value('specimen'),
             speciesID: Value(taxonId),
-            identifierID: const Value('identifier'),
+            determinerID: const Value('identifier'),
             parasiteID: Value(parasiteId),
             parasiteUuid: parasiteId == 'P-1'
                 ? const Value('uuid-P-1')
@@ -127,7 +127,7 @@ void main() {
       final parasites = await database.select(database.parasite).get();
       expect(parasites, hasLength(2));
       expect(
-        parasites.map((row) => row.identifierID),
+        parasites.map((row) => row.determinerID),
         everyElement('identifier'),
       );
       expect(parasites.first.parasiteUuid, 'uuid-P-1');
@@ -148,7 +148,7 @@ void main() {
       expect(concatenated, hasLength(1));
       expect(concatenated.single['parasite::parasiteID'], 'P-1|P-2');
       expect(
-        concatenated.single['parasite::identifierID'],
+        concatenated.single['parasite::determinerID'],
         'A. Identifier|A. Identifier',
       );
       expect(concatenated.single['parasiteDetection::parasiteDetected'], 'Yes');
@@ -203,7 +203,7 @@ void main() {
       String cell(String key) => row[ParasiteWriter.header.indexOf(key)];
       expect(cell('parasite::parasiteID'), 'P-1');
       expect(cell('parasite::scientificName'), 'Pulex irritans');
-      expect(cell('parasite::identifierID'), 'A. Identifier');
+      expect(cell('parasite::determinerID'), 'A. Identifier');
       expect(cell('parasite::associationStatus'), 'Confirmed');
     },
   );

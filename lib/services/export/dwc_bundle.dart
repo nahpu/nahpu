@@ -1118,10 +1118,16 @@ class DwcBundleWriter extends AppServices {
         taxon?.genus,
         taxon?.specificEpithet,
       ].whereType<String>().where((value) => value.trim().isNotEmpty).join(' ');
-      final identifier = await _resolveAgent(
-        parasite.identifierID,
+      final determiner = await _resolveAgent(
+        parasite.determinerID,
         null,
         'determiner',
+        agents,
+      );
+      final collector = await _resolveAgent(
+        parasite.collectorID,
+        null,
+        'collector',
         agents,
       );
       final occurrence = <String, dynamic>{
@@ -1137,8 +1143,12 @@ class DwcBundleWriter extends AppServices {
         'family': taxon?.taxonFamily,
         'genus': taxon?.genus,
         'specificEpithet': taxon?.specificEpithet,
-        'identifiedBy': identifier?.name,
-        'identifiedByID': identifier?.id,
+        'recordedBy': collector?.name,
+        'recordedByID': collector?.id,
+        'identifiedBy': determiner?.name,
+        'identifiedByID': determiner?.id,
+        'dateIdentified': parasite.dateDetermined,
+        'identificationType': parasite.determinationMethod,
         'lifeStage': parasite.lifeStage,
         'individualCount': parasite.count,
         'preparations': _joinedValues([
@@ -1151,11 +1161,12 @@ class DwcBundleWriter extends AppServices {
         'occurrenceRemarks': parasite.remark,
         'associatedOccurrences': 'host:${host.uuid}',
       };
-      if (identifier != null) {
+      final occurrenceAgents = [?collector, ?determiner];
+      if (occurrenceAgents.isNotEmpty) {
         _addAgentRoles(
           targetId: occurrenceId,
           targetKey: 'occurrenceID',
-          agents: [identifier],
+          agents: occurrenceAgents,
           output: occurrenceAgentRoles,
         );
       }

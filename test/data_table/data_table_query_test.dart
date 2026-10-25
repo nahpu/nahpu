@@ -485,7 +485,7 @@ void main() {
         const DataTableQuery(
           rules: [
             DataTableFilterRule(
-              fieldKey: 'parasite::identifierID',
+              fieldKey: 'parasite::determinerID',
               op: DataTableFilterOp.equals,
               value: 'Ben Oru',
             ),

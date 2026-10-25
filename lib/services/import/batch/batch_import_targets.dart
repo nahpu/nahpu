@@ -198,6 +198,8 @@ const _labels = {
   'part::barcodeID': 'Barcode ID',
   'parasite::parasiteID': 'Parasite ID',
   'parasite::parasiteUuid': 'Parasite UUID',
+  'parasite::collectorID': 'Collector',
+  'parasite::determinerID': 'Determiner',
   'site::site': 'Site ID',
   'event::collEventID': 'Event ID',
   'event::Activity': 'Activity',

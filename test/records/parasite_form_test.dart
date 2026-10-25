@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +8,7 @@ import 'package:nahpu/screens/specimens/shared/parasite_forms.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/specimens/parasite_services.dart';
 
 void main() {
   testWidgets('parasite form links the selected lot individuals', (
@@ -133,6 +134,82 @@ void main() {
 
     final parasite = await database.select(database.parasite).getSingle();
     expect(parasite.parasiteUuid, displayedUuid);
+  });
+
+  testWidgets('a new parasite starts with the host preparator as collector', (
+    tester,
+  ) async {
+    final database = Database.forTesting(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+    await database
+        .into(database.project)
+        .insert(
+          const ProjectCompanion(uuid: Value('project'), name: Value('Test')),
+        );
+    await database
+        .into(database.personnel)
+        .insert(
+          const PersonnelCompanion(
+            uuid: Value('preparator'),
+            name: Value('A. Preparator'),
+          ),
+        );
+    await database
+        .into(database.specimen)
+        .insert(
+          const SpecimenCompanion(
+            uuid: Value('specimen'),
+            projectUuid: Value('project'),
+            preparatorID: Value('preparator'),
+          ),
+        );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(database),
+          userDefinedFieldProvider.overrideWith(
+            (ref, prefKey) async => const [],
+          ),
+        ],
+        child: const MaterialApp(home: NewParasite(specimenUuid: 'specimen')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (final label in [
+      'Collector',
+      'Determiner',
+      'Date determined',
+      'Determination method',
+    ]) {
+      _expectFieldInSection(tester, label, 'Collection & identification');
+    }
+
+    await tester.ensureVisible(find.text('Add'));
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    final parasite = await database.select(database.parasite).getSingle();
+    expect(parasite.collectorID, 'preparator');
+    expect(parasite.determinerID, isNull);
+  });
+
+  test('the default collector falls back from preparator to cataloger', () {
+    SpecimenData host({String? cataloger, String? preparator}) => SpecimenData(
+      uuid: 'host',
+      catalogerID: cataloger,
+      preparatorID: preparator,
+    );
+    expect(
+      defaultParasiteCollector(host(cataloger: 'c', preparator: 'p')),
+      'p',
+    );
+    expect(defaultParasiteCollector(host(cataloger: 'c', preparator: '')), 'c');
+    expect(defaultParasiteCollector(host()), isNull);
+    expect(defaultParasiteCollector(null), isNull);
   });
 
   testWidgets('parasite fields are grouped into expandable sections', (

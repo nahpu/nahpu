@@ -422,9 +422,13 @@ class DataTablePageQuery {
         return isParasite
             ? 'LEFT JOIN taxonomy ptx ON ptx.id = pr.speciesID'
             : null;
-      case DataTableJoin.parasiteIdentifier:
+      case DataTableJoin.parasiteDeterminer:
         return isParasite
-            ? 'LEFT JOIN personnel pid ON pid.uuid = pr.identifierID'
+            ? 'LEFT JOIN personnel pdet ON pdet.uuid = pr.determinerID'
+            : null;
+      case DataTableJoin.parasiteCollector:
+        return isParasite
+            ? 'LEFT JOIN personnel pcol ON pcol.uuid = pr.collectorID'
             : null;
       case DataTableJoin.taxonomy:
         return hasSpecimen

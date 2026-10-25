@@ -257,39 +257,57 @@ class _AddParasiteButton extends StatelessWidget {
   }
 }
 
-class NewParasite extends StatefulWidget {
+class NewParasite extends ConsumerStatefulWidget {
   const NewParasite({super.key, required this.specimenUuid});
 
   final String specimenUuid;
 
   @override
-  State<NewParasite> createState() => _NewParasiteState();
+  ConsumerState<NewParasite> createState() => _NewParasiteState();
 }
 
-class _NewParasiteState extends State<NewParasite> {
-  late final ParasiteFormCtrModel _controller;
+class _NewParasiteState extends ConsumerState<NewParasite> {
+  ParasiteFormCtrModel? _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = ParasiteFormCtrModel.empty();
+    _loadController();
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = _controller;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add parasite'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: ParasiteRecordForm(
-          specimenUuid: widget.specimenUuid,
-          parasite: null,
-          controller: _controller,
-        ),
+        child: controller == null
+            ? const CommonProgressIndicator()
+            : ParasiteRecordForm(
+                specimenUuid: widget.specimenUuid,
+                parasite: null,
+                controller: controller,
+              ),
       ),
     );
+  }
+
+  Future<void> _loadController() async {
+    String? collectorId;
+    try {
+      collectorId = await ParasiteServices(
+        ref: ref,
+      ).getDefaultCollector(widget.specimenUuid);
+    } catch (_) {
+      collectorId = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      _controller = ParasiteFormCtrModel.empty(collectorId: collectorId);
+    });
   }
 }
 
@@ -406,7 +424,12 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             title: 'Collection & identification',
             child: Column(
               children: [
-                _IdentifierField(controller: widget.controller),
+                _ParasitePersonnelField(
+                  initialValue: widget.controller.collectorId,
+                  labelText: 'Collector',
+                  hintText: 'Select who collected the parasite',
+                  onChanged: (value) => widget.controller.collectorId = value,
+                ),
                 _ParasiteVocabularyField(
                   controller: widget.controller.detectionMethodCtr,
                   prefKey: parasiteDetectionMethodPrefKey,
@@ -428,6 +451,26 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                   initialTime: TimeOfDay.now(),
                   onTap: () {},
                   onClear: () {},
+                ),
+                _ParasitePersonnelField(
+                  initialValue: widget.controller.determinerId,
+                  labelText: 'Determiner',
+                  hintText: 'Select who identified the parasite',
+                  onChanged: (value) => widget.controller.determinerId = value,
+                ),
+                CommonDateField(
+                  controller: widget.controller.dateDeterminedCtr,
+                  labelText: 'Date determined',
+                  hintText: 'Enter identification date',
+                  initialDate: DateTime.now(),
+                  lastDate: DateTime.now(),
+                  onTap: () {},
+                  onClear: () {},
+                ),
+                _ParasiteVocabularyField(
+                  controller: widget.controller.determinationMethodCtr,
+                  prefKey: idMethodPrefKey,
+                  labelText: 'Determination method',
                 ),
               ],
             ),
@@ -507,7 +550,10 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
     return ParasiteCompanion(
       specimenUuid: db.Value(widget.specimenUuid),
       speciesID: db.Value(controller.speciesId),
-      identifierID: db.Value(controller.identifierId),
+      determinerID: db.Value(controller.determinerId),
+      collectorID: db.Value(controller.collectorId),
+      dateDetermined: db.Value(controller.dateDeterminedCtr.date),
+      determinationMethod: db.Value(_text(controller.determinationMethodCtr)),
       parasiteID: db.Value(_text(controller.parasiteIdCtr)),
       parasiteUuid: db.Value(controller.parasiteUuid),
       count: db.Value(int.tryParse(controller.countCtr.text)),
@@ -593,39 +639,43 @@ class _TaxonField extends ConsumerWidget {
   }
 }
 
-class _IdentifierField extends ConsumerWidget {
-  const _IdentifierField({required this.controller});
+class _ParasitePersonnelField extends ConsumerWidget {
+  const _ParasitePersonnelField({
+    required this.initialValue,
+    required this.labelText,
+    required this.hintText,
+    required this.onChanged,
+  });
 
-  final ParasiteFormCtrModel controller;
+  final String? initialValue;
+  final String labelText;
+  final String hintText;
+  final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final people = ref.watch(projectPersonnelProvider).asData?.value;
+    // Select the stored person only once they appear in the project list.
+    // The controller keeps the stored value either way.
+    final knownIds = people?.map((person) => person.uuid).toSet() ?? {};
     return DropdownButtonFormField<String?>(
+      key: ValueKey('$labelText-${people?.length}'),
       isExpanded: true,
-      initialValue: controller.identifierId,
-      decoration: const InputDecoration(
-        labelText: 'Identifier',
-        hintText: 'Select who identified the parasite',
-      ),
-      items: ref
-          .watch(projectPersonnelProvider)
-          .when(
-            data: (people) => [
-              const DropdownMenuItem<String?>(
-                value: null,
-                child: CommonDropdownText(text: 'Not assigned'),
-              ),
-              ...people.map(
-                (person) => DropdownMenuItem(
-                  value: person.uuid,
-                  child: CommonDropdownText(text: person.name ?? ''),
-                ),
-              ),
-            ],
-            loading: () => const [],
-            error: (_, _) => const [],
+      initialValue: knownIds.contains(initialValue) ? initialValue : null,
+      decoration: InputDecoration(labelText: labelText, hintText: hintText),
+      items: [
+        const DropdownMenuItem<String?>(
+          value: null,
+          child: CommonDropdownText(text: 'Not assigned'),
+        ),
+        ...?people?.map(
+          (person) => DropdownMenuItem(
+            value: person.uuid,
+            child: CommonDropdownText(text: person.name ?? ''),
           ),
-      onChanged: (value) => controller.identifierId = value,
+        ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

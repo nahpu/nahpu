@@ -97,6 +97,14 @@ void main() {
             name: Value('Identifier A'),
           ),
         );
+    await database
+        .into(database.personnel)
+        .insert(
+          const PersonnelCompanion(
+            uuid: Value('collector-a'),
+            name: Value('Collector A'),
+          ),
+        );
     final taxonId = await database
         .into(database.taxonomy)
         .insert(
@@ -143,7 +151,10 @@ void main() {
           ParasiteCompanion(
             specimenUuid: const Value('specimen-dwc'),
             speciesID: Value(taxonId),
-            identifierID: const Value('identifier-a'),
+            determinerID: const Value('identifier-a'),
+            collectorID: const Value('collector-a'),
+            dateDetermined: const Value('2026-09-01'),
+            determinationMethod: const Value('morphology'),
             parasiteID: const Value('P-1'),
             parasiteUuid: const Value('parasite-dwc'),
             count: const Value(3),
@@ -253,7 +264,13 @@ void main() {
     );
     expect(
       files['identification.csv']!.columns,
-      containsAll(<String>{'occurrence_fk', 'genus', 'scientificName'}),
+      containsAll(<String>{
+        'occurrence_fk',
+        'genus',
+        'scientificName',
+        'identificationType',
+        'dateIdentified',
+      }),
     );
     expect(files['event.csv']!.columns, contains('eventRemarks'));
     expect(
