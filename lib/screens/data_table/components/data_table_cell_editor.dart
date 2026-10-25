@@ -6,6 +6,7 @@ import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/invariant_formats.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Where focus goes after an edit is committed.
 enum DataTableEditorExit { down, up, next, previous, stay }
@@ -93,14 +94,14 @@ class _DataTableCellEditorState extends ConsumerState<DataTableCellEditor> {
             ),
             if (widget.field.valueType == DataTableValueType.date)
               IconButton(
-                tooltip: 'Pick a date',
+                tooltip: context.l10n.dataTablePickDate,
                 iconSize: NahpuControlSize.iconSmall,
                 icon: const Icon(Icons.calendar_today_outlined),
                 onPressed: _pickDate,
               )
             else if (widget.field.valueType == DataTableValueType.time)
               IconButton(
-                tooltip: 'Pick a time',
+                tooltip: context.l10n.dataTablePickTime,
                 iconSize: NahpuControlSize.iconSmall,
                 icon: const Icon(Icons.schedule),
                 onPressed: _pickTime,
@@ -261,7 +262,7 @@ class _DataTableChoiceEditorState extends ConsumerState<DataTableChoiceEditor> {
           autofocus: focusValue == '',
           onPressed: () => _choose(''),
           child: Text(
-            'None',
+            context.l10n.settingsDataUsageNone,
             style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),

@@ -3,6 +3,8 @@ import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_query.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 /// The record scope, active preset filters, and field rules as removable chips, shown
 /// after the edit controls only while any are on.
@@ -49,19 +51,23 @@ class DataTableFilterChips extends StatelessWidget {
           ),
         if (scope case final scope?)
           DataTableActiveFilterChip(
-            label: '${scope.label} (${scope.keys.length})',
+            label: context.l10n.dataTableScopeChip(
+              scope.label,
+              scope.keys.length,
+            ),
             onDeleted: onScopeRemoved ?? () {},
           ),
         // Keep the menu's order rather than the order they were picked.
         for (final filter in DataTableQuickFilter.values)
           if (selected.contains(filter))
             DataTableActiveFilterChip(
-              label: filter.label,
+              label: filter.localizedLabel(context.l10n),
               onDeleted: () => onToggled(filter),
             ),
         for (var i = 0; i < rules.length; i++)
           DataTableActiveFilterChip(
             label: describeDataTableRule(
+              context.l10n,
               rules[i],
               labels[rules[i].fieldKey] ?? rules[i].fieldKey,
             ),
@@ -70,7 +76,7 @@ class DataTableFilterChips extends StatelessWidget {
         TextButton(
           style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
           onPressed: onCleared,
-          child: const Text('Clear filters'),
+          child: Text(context.l10n.dataTableClearFilters),
         ),
       ],
     );
@@ -103,13 +109,18 @@ class DataTableActiveFilterChip extends StatelessWidget {
 }
 
 /// A short reading of [rule], such as "weight between 10 and 20".
-String describeDataTableRule(DataTableFilterRule rule, String fieldLabel) {
+String describeDataTableRule(
+  AppLocalizations l10n,
+  DataTableFilterRule rule,
+  String fieldLabel,
+) {
   final value = switch (rule.op) {
     DataTableFilterOp.isEmpty || DataTableFilterOp.isNotEmpty => '',
-    DataTableFilterOp.between => ' ${rule.value} and ${rule.value2}',
+    DataTableFilterOp.between =>
+      ' ${l10n.dataTableBetweenValues(rule.value, rule.value2)}',
     _ => ' "${rule.value}"',
   };
-  return '$fieldLabel ${rule.op.label}$value';
+  return '$fieldLabel ${rule.op.localizedLabel(l10n)}$value';
 }
 
 /// Shows the rule editor as a sheet on small screens and a dialog
@@ -193,10 +204,13 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Filter rules', style: theme.textTheme.titleLarge),
+        Text(
+          context.l10n.dataTableFilterRules,
+          style: theme.textTheme.titleLarge,
+        ),
         const SizedBox(height: NahpuSpacing.xs),
         Text(
-          'Show records that match every rule.',
+          context.l10n.dataTableFilterRulesBody,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -224,7 +238,7 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
           alignment: AlignmentDirectional.centerStart,
           child: TextButton.icon(
             icon: const Icon(Icons.add),
-            label: const Text('Add rule'),
+            label: Text(context.l10n.dataTableAddRule),
             onPressed: filterable.isEmpty
                 ? null
                 : () => setState(
@@ -246,15 +260,18 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
             TextButton(
               onPressed: () =>
                   Navigator.of(context).pop(const <DataTableFilterRule>[]),
-              child: const Text('Clear all'),
+              child: Text(context.l10n.documentSelectionClearAll),
             ),
             const SizedBox(width: NahpuSpacing.md),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             const SizedBox(width: NahpuSpacing.md),
-            FilledButton(onPressed: _apply, child: const Text('Apply')),
+            FilledButton(
+              onPressed: _apply,
+              child: Text(context.l10n.commonApply),
+            ),
           ],
         ),
       ],
@@ -266,6 +283,7 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
     for (final draft in _drafts) {
       final rule = draft.toRule();
       final problem = validateDataTableRule(
+        context.l10n,
         dataTableField(rule.fieldKey),
         rule,
       );
@@ -280,7 +298,11 @@ class _DataTableFilterRulesFormState extends State<DataTableFilterRulesForm> {
 }
 
 /// Why [rule] can't run, or null when it can.
-String? validateDataTableRule(DataTableField field, DataTableFilterRule rule) {
+String? validateDataTableRule(
+  AppLocalizations l10n,
+  DataTableField field,
+  DataTableFilterRule rule,
+) {
   if (!rule.op.takesValue) return null;
   final values = [
     rule.value,
@@ -288,7 +310,7 @@ String? validateDataTableRule(DataTableField field, DataTableFilterRule rule) {
   ];
   for (final value in values) {
     final text = value.trim();
-    if (text.isEmpty) return 'Enter a value for every rule.';
+    if (text.isEmpty) return l10n.dataTableEnterValueEveryRule;
     final ok = switch (field.valueType) {
       DataTableValueType.integer ||
       DataTableValueType.real => double.tryParse(text) != null,
@@ -299,10 +321,10 @@ String? validateDataTableRule(DataTableField field, DataTableFilterRule rule) {
     };
     if (!ok) {
       return switch (field.valueType) {
-        DataTableValueType.date => 'Enter dates as YYYY-MM-DD.',
-        DataTableValueType.time => 'Enter times as HH:MM.',
-        DataTableValueType.coded => 'Choose one of the listed values.',
-        _ => 'Enter a number.',
+        DataTableValueType.date => l10n.dataTableEnterDates,
+        DataTableValueType.time => l10n.dataTableEnterTimes,
+        DataTableValueType.coded => l10n.dataTableChooseListed,
+        _ => l10n.dataTableEnterNumber,
       };
     }
   }
@@ -365,7 +387,7 @@ class DataTableRuleRow extends StatelessWidget {
     final hint = switch (draft.column.field.valueType) {
       DataTableValueType.date => 'YYYY-MM-DD',
       DataTableValueType.time => 'HH:MM',
-      _ => 'Value',
+      _ => context.l10n.exportFieldsValue,
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: NahpuSpacing.md),
@@ -379,7 +401,7 @@ class DataTableRuleRow extends StatelessWidget {
             initialSelection: draft.column.key,
             enableFilter: true,
             requestFocusOnTap: true,
-            label: const Text('Field'),
+            label: Text(context.l10n.projectTissueField),
             dropdownMenuEntries: [
               for (final column in columns)
                 DropdownMenuEntry(
@@ -388,8 +410,8 @@ class DataTableRuleRow extends StatelessWidget {
                   enabled: column.field.isFilterable,
                   trailingIcon: column.field.isFilterable
                       ? null
-                      : const Tooltip(
-                          message: 'Calculated during export; not filterable',
+                      : Tooltip(
+                          message: context.l10n.dataTableComputedNotFilterable,
                           child: Icon(
                             Icons.block,
                             size: NahpuControlSize.iconSmall,
@@ -411,7 +433,10 @@ class DataTableRuleRow extends StatelessWidget {
             value: draft.op,
             items: [
               for (final op in ops)
-                DropdownMenuItem(value: op, child: Text(op.label)),
+                DropdownMenuItem(
+                  value: op,
+                  child: Text(op.localizedLabel(context.l10n)),
+                ),
             ],
             onChanged: (op) {
               if (op == null) return;
@@ -428,7 +453,7 @@ class DataTableRuleRow extends StatelessWidget {
                   )
                   ? draft.value.text
                   : null,
-              hint: const Text('Value'),
+              hint: Text(context.l10n.exportFieldsValue),
               items: [
                 for (final (_, label) in draft.column.field.codes)
                   DropdownMenuItem(value: label, child: Text(label)),
@@ -457,7 +482,7 @@ class DataTableRuleRow extends StatelessWidget {
               ),
             ),
           IconButton(
-            tooltip: 'Remove rule',
+            tooltip: context.l10n.dataTableRemoveRule,
             icon: const Icon(Icons.close),
             onPressed: onRemoved,
           ),

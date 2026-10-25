@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Where the published legal documents live.
 ///
@@ -57,19 +58,19 @@ class _LegalNoticeState extends State<LegalNotice> {
       TextSpan(
         style: baseStyle,
         children: [
-          const TextSpan(text: 'Please read the '),
+          TextSpan(text: context.l10n.legalReadThe),
           TextSpan(
-            text: 'Terms and Conditions',
+            text: context.l10n.legalTermsAndConditions,
             style: linkStyle,
             recognizer: _termsRecognizer,
           ),
-          const TextSpan(text: ' and the '),
+          TextSpan(text: context.l10n.legalAndThe),
           TextSpan(
-            text: 'Privacy Policy',
+            text: context.l10n.legalPrivacyPolicy,
             style: linkStyle,
             recognizer: _privacyRecognizer,
           ),
-          const TextSpan(text: ' before you start. Using NAHPU accepts them.'),
+          TextSpan(text: context.l10n.legalBeforeYouStart),
         ],
       ),
       textAlign: TextAlign.center,
@@ -92,7 +93,7 @@ class TermsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.gavel_outlined),
-      title: const Text('Terms and conditions'),
+      title: Text(context.l10n.legalTermsTile),
       onTap: () => launchLegalUrl(nahpuTermsUrl),
     );
   }
@@ -106,7 +107,7 @@ class PrivacyPolicyTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.privacy_tip_outlined),
-      title: const Text('Privacy policy'),
+      title: Text(context.l10n.legalPrivacyTile),
       onTap: () => launchLegalUrl(nahpuPrivacyUrl),
     );
   }

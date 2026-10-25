@@ -10,6 +10,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class SpecimenSearchView extends ConsumerStatefulWidget {
   const SpecimenSearchView({super.key, required this.specimenData});
@@ -48,13 +49,13 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
     return FalseWillPop(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Specimen Records"),
+          title: Text(context.l10n.specimenRecordsTitle),
           automaticallyImplyLeading: false,
           actions: [
             ExpandedSearchBar(
               controller: _searchController,
               focusNode: _focus,
-              hintText: 'Search specimens',
+              hintText: context.l10n.projectTaxonSearchSpecimens,
               trailing: [
                 _searchController.text.isNotEmpty
                     ? IconButton(
@@ -115,7 +116,7 @@ class SpecimenSearchViewState extends ConsumerState<SpecimenSearchView> {
                 // Return to the still-mounted viewer below this screen.
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
           ],
         ),

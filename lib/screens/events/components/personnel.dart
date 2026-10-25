@@ -39,8 +39,8 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const TitleForm(
-          text: 'Event Personnel',
+        TitleForm(
+          text: context.l10n.eventPersonnel,
           infoTopic: InfoTopic.eventPersonnel,
         ),
         SizedBox(
@@ -135,7 +135,8 @@ class CollectingPersonnelFormState extends ConsumerState<EventPersonnel> {
                         );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => const Center(child: Text('Error')),
+                error: (error, stack) =>
+                    Center(child: Text(context.l10n.commonError)),
               ),
         ),
       ],
@@ -193,7 +194,7 @@ class AddPersonnelButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PrimaryButton(
-      label: 'Add personnel',
+      label: context.l10n.recordsSpecimenAddPersonnel,
       icon: Icons.add,
       onPressed: onPressed,
     );
@@ -210,7 +211,7 @@ class EmptyPersonnel extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No personnel added'),
+        Text(context.l10n.eventNoPersonnel),
         const SizedBox(height: 8),
         AddPersonnelButton(onPressed: onPressed),
       ],
@@ -261,9 +262,9 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
             child: DropdownButtonFormField<String>(
               initialValue: widget.controller.nameIDCtr,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Personnel',
-                hintText: 'Enter a name',
+              decoration: InputDecoration(
+                labelText: context.l10n.settingsNavPersonnel,
+                hintText: context.l10n.templateEnterName,
               ),
               items: ref
                   .watch(projectPersonnelProvider)
@@ -278,7 +279,8 @@ class EventPersonnelFieldState extends ConsumerState<EventPersonnelField> {
                       final currentId = widget.controller.nameIDCtr;
                       if (currentId != null && !names.containsKey(currentId)) {
                         names[currentId] =
-                            widget.controller.nameCtr ?? 'Unknown personnel';
+                            widget.controller.nameCtr ??
+                            context.l10n.eventUnknownPersonnel;
                       }
                       return names.entries
                           .map(
@@ -362,9 +364,9 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
             return DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: widget.controller.roleCtr,
-              decoration: const InputDecoration(
-                labelText: 'Role',
-                hintText: 'Enter a role',
+              decoration: InputDecoration(
+                labelText: context.l10n.projectPersonnelRole,
+                hintText: context.l10n.eventEnterRole,
               ),
               items: roles
                   .map(
@@ -390,7 +392,7 @@ class PersonnelRoleState extends ConsumerState<PersonnelRole> {
           },
           loading: () => const CommonProgressIndicator(),
           error: (error, _) {
-            return const Text('Error');
+            return Text(context.l10n.commonError);
           },
         );
   }

@@ -3,6 +3,7 @@ import 'package:nahpu/screens/templates/components/properties/property_panel_she
 import 'package:nahpu/screens/templates/components/properties/synced_dim_field.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class LinePropertiesPanel extends StatefulWidget {
   const LinePropertiesPanel({
@@ -60,7 +61,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                           widget.zIndexControls,
                           const SizedBox(width: 16),
                           Text(
-                            'Length (mm)',
+                            context.l10n.specimenLengthMm,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -96,7 +97,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                           IconButton(
                             icon: const Icon(Icons.palette_outlined, size: 22),
                             isSelected: _showStrokeOptions,
-                            tooltip: 'Line stroke options',
+                            tooltip: context.l10n.templateLineStrokeOptions,
                             onPressed: () {
                               setState(() {
                                 _showStrokeOptions = !_showStrokeOptions;
@@ -105,7 +106,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Rotation',
+                            context.l10n.templateRotation,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -129,7 +130,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Thickness',
+                              context.l10n.templateThickness,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -142,14 +143,14 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Color',
+                              context.l10n.templateColor,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
                             TemplateColorSwatch(
                               color: Color(widget.line.colorArgb),
                               borderColor: scheme.outline,
-                              title: 'Select color',
+                              title: context.l10n.templateSelectColor,
                               onPicked: (color) => widget.onUpdate(
                                 widget.page1,
                                 widget.line.copyWith(
@@ -159,7 +160,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Style',
+                              context.l10n.templateStyle,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -181,7 +182,7 @@ class _LinePropertiesPanelState extends State<LinePropertiesPanel> {
             const SizedBox(width: 16),
             IconButton(
               icon: Icon(Icons.delete_outline, color: scheme.error, size: 22),
-              tooltip: 'Delete line',
+              tooltip: context.l10n.templateDeleteLine,
               onPressed: () => widget.onDelete(widget.page1, widget.id),
             ),
           ],

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/providers/map_renderer.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Attribution for the bundled basemap, plus why it is standing in for the
 /// detailed one and how to go back.
@@ -33,11 +34,11 @@ class OfflineBasemapNotice extends ConsumerWidget {
             ),
             const SizedBox(width: NahpuSpacing.sm),
             Text(
-              'Natural Earth · offline',
+              context.l10n.mapNaturalEarthOffline,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             IconButton(
-              tooltip: 'Try the detailed map again',
+              tooltip: context.l10n.mapRetryDetailed,
               visualDensity: VisualDensity.compact,
               iconSize: NahpuControlSize.iconSmall,
               onPressed:

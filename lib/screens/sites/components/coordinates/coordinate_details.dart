@@ -20,39 +20,39 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<CoordinatePopUpMenuItems>(
-      tooltip: 'Coordinate actions',
+      tooltip: context.l10n.siteCoordinateActions,
       icon: const Icon(Icons.more_vert),
       itemBuilder: _items,
       onSelected: _onSelected,
     );
   }
 
-  List<AdaptiveMenuItem<CoordinatePopUpMenuItems>> _items() => const [
+  List<AdaptiveMenuItem<CoordinatePopUpMenuItems>> _items() => [
     AdaptiveMenuItem(
       value: CoordinatePopUpMenuItems.edit,
       icon: Icons.edit_outlined,
-      label: 'Edit',
+      label: context.l10n.commonEdit,
     ),
     AdaptiveMenuItem(
       value: CoordinatePopUpMenuItems.qr,
       icon: Icons.qr_code_outlined,
-      label: 'Show QR',
+      label: context.l10n.homeProjectShowQr,
       hasDividerBefore: true,
     ),
     AdaptiveMenuItem(
       value: CoordinatePopUpMenuItems.copy,
       icon: Icons.copy_outlined,
-      label: 'Copy',
+      label: context.l10n.siteCopy,
     ),
     AdaptiveMenuItem(
       value: CoordinatePopUpMenuItems.open,
       icon: Icons.open_in_browser_outlined,
-      label: 'Open in map',
+      label: context.l10n.siteOpenInMap,
     ),
     AdaptiveMenuItem(
       value: CoordinatePopUpMenuItems.details,
       icon: Icons.info_outline,
-      label: 'Details',
+      label: context.l10n.homeProjectDetails,
       hasDividerBefore: true,
     ),
   ];
@@ -96,8 +96,8 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text(
-              'Coordinate Details',
+            title: Text(
+              context.l10n.siteCoordinateDetails,
               textAlign: TextAlign.center,
             ),
             content: SizedBox(
@@ -108,7 +108,7 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+                child: Text(context.l10n.commonClose),
               ),
             ],
           );
@@ -131,7 +131,7 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Coordinate Details',
+                    context.l10n.siteCoordinateDetails,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -151,11 +151,9 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
   }
 
   void _showCopiedSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Latitude and Longitude copied to clipboard'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.siteCopiedToClipboard)));
   }
 
   Future<void> _launchGoogleMap() async {
@@ -164,8 +162,9 @@ class CoordinateMenuState extends ConsumerState<CoordinateMenu> {
     final queryParameters = {'api': '1', 'query': _latLong};
     Uri url = Uri.https(host, path, queryParameters);
     if (kDebugMode) print(url.toString());
+    final error = context.l10n.associatedCouldNotOpen('$url');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $url';
+      throw error;
     }
   }
 
@@ -185,8 +184,8 @@ class CoordinateDetails extends ConsumerStatefulWidget {
 }
 
 class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
-  String _dmsLatitude = 'Loading...';
-  String _dmsLongitude = 'Loading...';
+  String? _dmsLatitude;
+  String? _dmsLongitude;
 
   @override
   void initState() {
@@ -249,8 +248,8 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
           _buildDetailRow(
             context,
             Icons.tag_outlined,
-            'Name',
-            widget.coordinate.nameId ?? 'No Name',
+            context.l10n.projectStatsColumnName,
+            widget.coordinate.nameId ?? context.l10n.siteNoName,
           ),
           const Divider(height: 16),
           _buildDetailRow(
@@ -258,7 +257,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
             Icons.pin_drop_outlined,
             'Latitude',
             widget.coordinate.decimalLatitude != null
-                ? '${widget.coordinate.decimalLatitude} ($_dmsLatitude)'
+                ? '${widget.coordinate.decimalLatitude} (${_dmsLatitude ?? context.l10n.projectLoading})'
                 : 'N/A',
           ),
           const Divider(height: 16),
@@ -267,7 +266,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
             Icons.pin_drop_outlined,
             'Longitude',
             widget.coordinate.decimalLongitude != null
-                ? '${widget.coordinate.decimalLongitude} ($_dmsLongitude)'
+                ? '${widget.coordinate.decimalLongitude} (${_dmsLongitude ?? context.l10n.projectLoading})'
                 : 'N/A',
           ),
           if (widget.coordinate.verbatimCoordinateSystem != null) ...[
@@ -275,7 +274,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
             _buildDetailRow(
               context,
               Icons.text_fields_outlined,
-              'Original coordinate',
+              context.l10n.siteOriginalCoordinate,
               [
                     widget.coordinate.verbatimLatitude,
                     widget.coordinate.verbatimLongitude,
@@ -289,7 +288,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
             _buildDetailRow(
               context,
               Icons.grid_on_outlined,
-              'Original format',
+              context.l10n.siteOriginalFormat,
               widget.coordinate.verbatimCoordinateSystem!,
             ),
           ],
@@ -313,7 +312,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
           _buildDetailRow(
             context,
             Icons.circle_outlined,
-            'Uncertainty',
+            context.l10n.siteUncertainty,
             widget.coordinate.uncertaintyInMeters != null &&
                     widget.coordinate.uncertaintyInMeters != 0
                 ? '±${widget.coordinate.uncertaintyInMeters} m'
@@ -333,7 +332,7 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
           _buildDetailRow(
             context,
             Icons.notes_outlined,
-            'Notes',
+            context.l10n.labelEnvironmentalNotes,
             widget.coordinate.notes != null &&
                     widget.coordinate.notes!.isNotEmpty
                 ? widget.coordinate.notes!
@@ -454,7 +453,7 @@ class _CoordinateDetailMap extends StatelessWidget {
     final name = coordinate.nameId?.trim() ?? '';
     final point = CoordinateMapPoint(
       id: coordinate.id ?? 0,
-      name: name.isNotEmpty ? name : 'Unnamed coordinate',
+      name: name.isNotEmpty ? name : context.l10n.siteUnnamedCoordinate,
       latitude: coordinate.decimalLatitude,
       longitude: coordinate.decimalLongitude,
     );

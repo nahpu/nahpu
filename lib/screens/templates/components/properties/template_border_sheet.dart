@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/templates/components/properties/property_panel_shell.dart';
 import 'package:nahpu/screens/templates/components/properties/template_color_picker.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Line style, thickness, and color for the template outline.
 class TemplateBorderEditorSheet extends StatefulWidget {
@@ -107,12 +108,12 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Border',
+                            context.l10n.templateBorderTitle,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           const SizedBox(width: 16),
                           Text(
-                            'Style',
+                            context.l10n.templateStyle,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -125,7 +126,7 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
                           if (_style != null) ...[
                             const SizedBox(width: 16),
                             Text(
-                              'Thickness',
+                              context.l10n.templateThickness,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
@@ -140,14 +141,14 @@ class _TemplateBorderEditorSheetState extends State<TemplateBorderEditorSheet> {
                             ),
                             const SizedBox(width: 16),
                             Text(
-                              'Color',
+                              context.l10n.templateColor,
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                             const SizedBox(width: 8),
                             TemplateColorSwatch(
                               color: Color(_colorArgb),
                               borderColor: scheme.outline,
-                              title: 'Select border color',
+                              title: context.l10n.templateSelectBorderColor,
                               onPicked: (color) {
                                 setState(() {
                                   _colorArgb = color.toARGB32();
@@ -205,7 +206,7 @@ class _StylePicker extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   val == 'none'
-                      ? 'None'
+                      ? context.l10n.settingsDataUsageNone
                       : val[0].toUpperCase() + val.substring(1),
                 ),
               ],

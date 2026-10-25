@@ -12,6 +12,7 @@ import 'package:nahpu/services/providers/data_table.dart';
 import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Width a column gets, by the kind of value it holds.
 double dataTableColumnWidth(DataTableColumn column) {
@@ -220,7 +221,9 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
     }
     if (!_isEditable(col)) {
       if (widget.isEditMode) {
-        widget.onMessage('${widget.columns[col].label} is read-only here.');
+        widget.onMessage(
+          context.l10n.dataTableColumnReadOnly(widget.columns[col].label),
+        );
       }
       return;
     }
@@ -305,26 +308,23 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
     }
 
     if (offList > 0) {
-      widget.onMessage(
-        offList == 1
-            ? 'Skipped 1 value that isn\'t in its list.'
-            : 'Skipped $offList values that aren\'t in their lists.',
-      );
+      widget.onMessage(context.l10n.dataTableSkippedOffList(offList));
     }
     final clears = _sexClears(sexChanges);
     if (clears.isNotEmpty || typeChanges > 0) {
       final confirmed = await showAdaptiveConfirmation(
         context: context,
-        title: clears.isNotEmpty ? 'Change sex?' : 'Change fish record type?',
+        title: clears.isNotEmpty
+            ? context.l10n.mammalChangeSexTitle
+            : context.l10n.dataTableChangeFishTypeTitle,
         message: [
           if (clears.isNotEmpty)
-            'This clears ${clears.map((c) => c.$1.column).toSet().join(', ')} '
-                'that no longer apply to the new sex.',
-          if (typeChanges > 0)
-            'Switching between an individual and a lot changes which '
-                'measurements apply.',
+            context.l10n.dataTableSexClears(
+              clears.map((c) => c.$1.column).toSet().join(', '),
+            ),
+          if (typeChanges > 0) context.l10n.dataTableFishTypeChangeBody,
         ].join('\n\n'),
-        confirmLabel: 'Change',
+        confirmLabel: context.l10n.databaseChangeFile,
       );
       if (!mounted) return skipped;
       if (!confirmed) {
@@ -526,7 +526,7 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
           (row: row, col: col): '',
     });
     if (skipped > 0 && mounted) {
-      widget.onMessage('Skipped $skipped read-only or linked cells.');
+      widget.onMessage(context.l10n.dataTableSkippedReadOnly(skipped));
     }
   }
 
@@ -549,16 +549,17 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
             _shownValue(row, col),
         ],
     ]);
+    final l10n = context.l10n;
     await Clipboard.setData(ClipboardData(text: text));
     final count =
         (selection.bottom - selection.top + 1) *
         (selection.right - selection.left + 1);
-    widget.onMessage(count == 1 ? 'Copied 1 cell.' : 'Copied $count cells.');
+    widget.onMessage(l10n.dataTableCopiedCells(count));
   }
 
   Future<void> _paste() async {
     if (!widget.isEditMode) {
-      widget.onMessage('Switch to edit mode to paste.');
+      widget.onMessage(context.l10n.dataTableSwitchToEditToPaste);
       return;
     }
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -579,12 +580,15 @@ class DataTableGridState extends ConsumerState<DataTableGrid> {
         values[pos] = rows[r][c];
       }
     }
+    final l10n = context.l10n;
     final skipped = await _setValues(values);
-    final notes = [
-      if (skipped > 0) 'skipped $skipped read-only or linked cells',
-      if (cutOff) 'cut off at the edge of the page',
-    ];
-    if (notes.isNotEmpty) widget.onMessage('Pasted; ${notes.join(' and ')}.');
+    if (skipped > 0 && cutOff) {
+      widget.onMessage(l10n.dataTablePastedSkippedAndCutOff(skipped));
+    } else if (skipped > 0) {
+      widget.onMessage(l10n.dataTablePastedSkipped(skipped));
+    } else if (cutOff) {
+      widget.onMessage(l10n.dataTablePastedCutOff);
+    }
   }
 
   void _onGridChanged() {
@@ -702,10 +706,9 @@ class DataTableHeaderCell extends StatelessWidget {
     final field = column.field;
     final notes = [
       column.key,
-      if (field.isComputed)
-        'Calculated during export: not searchable, sortable, or filterable.',
-      if (isLinked) 'Linked data: double-click or press F2 to edit.',
-      if (isLocked) 'Read-only here.',
+      if (field.isComputed) context.l10n.dataTableComputedField,
+      if (isLinked) context.l10n.dataTableLinkedDataHint,
+      if (isLocked) context.l10n.dataTableReadOnlyHere,
     ];
     final current = sort;
     return Tooltip(
@@ -877,7 +880,7 @@ class DataTableRowActions extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Open form',
+            tooltip: context.l10n.dataTableOpenForm,
             icon: const Icon(Icons.open_in_new),
             iconSize: NahpuControlSize.iconSmall,
             padding: EdgeInsets.zero,
@@ -1019,7 +1022,8 @@ class DataTableGridCell extends StatelessWidget {
               ),
             ),
           );
-    final tooltip = error ?? (edits.isSavingCell(cell) ? 'Saving…' : null);
+    final tooltip =
+        error ?? (edits.isSavingCell(cell) ? context.l10n.presetsSaving : null);
     // Selection follows the pointer going down, as in a spreadsheet; a tap
     // handler would wait out the double-tap window first.
     final cellBox = Listener(

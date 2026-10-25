@@ -39,6 +39,7 @@ import 'package:nahpu/styles/design_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:nahpu/services/types/geography.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 part 'coordinates/coordinate_list.dart';
 part 'coordinates/coordinate_details.dart';

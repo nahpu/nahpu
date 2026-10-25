@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/templates/template_settings_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplatePreset {
   final String name;
@@ -371,7 +372,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
               vertical: 8,
             ),
             title: Text(
-              preset.name,
+              localizedTemplatePresetName(context.l10n, preset),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: isSelected ? theme.colorScheme.primary : null,
@@ -390,7 +391,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    preset.description,
+                    localizedTemplatePresetDescription(context.l10n, preset),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -427,7 +428,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
                 children: [
                   Expanded(
                     child: Text(
-                      'Template Size Preset',
+                      context.l10n.templateSizePreset,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -442,11 +443,11 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
             ),
             TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(text: 'Paper'),
-                Tab(text: 'Cryotubes'),
-                Tab(text: 'Curation'),
-                Tab(text: 'Custom'),
+              tabs: [
+                Tab(text: context.l10n.templateSizePaper),
+                Tab(text: context.l10n.templateSizeCryotubes),
+                Tab(text: context.l10n.parasiteCuration),
+                Tab(text: context.l10n.exportFieldsSeparatorCustom),
               ],
             ),
             Expanded(
@@ -467,26 +468,26 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
                           TextFormField(
                             key: const Key('custom-width-field'),
                             controller: _wController,
-                            decoration: const InputDecoration(
-                              labelText: 'Width (mm)',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.specimenWidthMm,
                               border: OutlineInputBorder(),
-                              helperText: 'Enter value between 10 and 500 mm',
+                              helperText: context.l10n.templateSizeRangeHelper,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
                             validator: (val) {
                               if (val == null || val.isEmpty) {
-                                return 'Please enter a width';
+                                return context.l10n.templateSizeEnterWidth;
                               }
                               final d = double.tryParse(
                                 val.replaceAll(',', '.'),
                               );
                               if (d == null) {
-                                return 'Please enter a valid number';
+                                return context.l10n.templateSizeInvalidNumber;
                               }
                               if (d < 10.0 || d > 500.0) {
-                                return 'Must be between 10 and 500';
+                                return context.l10n.templateSizeOutOfRange;
                               }
                               return null;
                             },
@@ -495,26 +496,26 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
                           TextFormField(
                             key: const Key('custom-height-field'),
                             controller: _hController,
-                            decoration: const InputDecoration(
-                              labelText: 'Height (mm)',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.templateHeightMm,
                               border: OutlineInputBorder(),
-                              helperText: 'Enter value between 10 and 500 mm',
+                              helperText: context.l10n.templateSizeRangeHelper,
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
                             validator: (val) {
                               if (val == null || val.isEmpty) {
-                                return 'Please enter a height';
+                                return context.l10n.templateSizeEnterHeight;
                               }
                               final d = double.tryParse(
                                 val.replaceAll(',', '.'),
                               );
                               if (d == null) {
-                                return 'Please enter a valid number';
+                                return context.l10n.templateSizeInvalidNumber;
                               }
                               if (d < 10.0 || d > 500.0) {
-                                return 'Must be between 10 and 500';
+                                return context.l10n.templateSizeOutOfRange;
                               }
                               return null;
                             },
@@ -525,7 +526,7 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
                             child: FilledButton(
                               key: const Key('custom-apply-button'),
                               onPressed: _applyCustom,
-                              child: const Text('Apply Custom Size'),
+                              child: Text(context.l10n.templateSizeApplyCustom),
                             ),
                           ),
                         ],
@@ -540,4 +541,54 @@ class _TemplateSizeDialogState extends State<TemplateSizeDialog>
       ),
     );
   }
+}
+
+/// The UI name of [preset]. Paper sizes such as A4 keep their standard name.
+String localizedTemplatePresetName(
+  AppLocalizations l10n,
+  TemplatePreset preset,
+) {
+  return switch (preset.name) {
+    'Letter' => l10n.templatePresetLetter,
+    'Legal' => l10n.templatePresetLegal,
+    '1.5 - 2.0 mL Vial Side' => l10n.templatePresetVialSideLarge,
+    '0.5 - 1.0 mL Vial Side' => l10n.templatePresetVialSideSmall,
+    'Small Vial Cap Dot' => l10n.templatePresetCapDotSmall,
+    'Large Vial Cap Dot' => l10n.templatePresetCapDotLarge,
+    'Self-Laminating Wrap' => l10n.templatePresetSelfLaminating,
+    'Invertebrate Pinned (Locality)' => l10n.templatePresetPinnedLocality,
+    'Invertebrate Pinned (Taxon ID)' => l10n.templatePresetPinnedTaxon,
+    'Fluid Collection (Jar Insert)' => l10n.templatePresetJarInsert,
+    'Vertebrate Specimen Tag (Medium)' => l10n.templatePresetVertebrateTag,
+    'Skull Box / Micro-Vial' => l10n.templatePresetSkullBox,
+    _ => preset.name,
+  };
+}
+
+/// The UI description of [preset].
+String localizedTemplatePresetDescription(
+  AppLocalizations l10n,
+  TemplatePreset preset,
+) {
+  return switch (preset.name) {
+    'A4' => l10n.templatePresetA4Description,
+    'Letter' => l10n.templatePresetLetterDescription,
+    'Legal' => l10n.templatePresetLegalDescription,
+    'A5' => l10n.templatePresetA5Description,
+    'A3' => l10n.templatePresetA3Description,
+    '1.5 - 2.0 mL Vial Side' => l10n.templatePresetVialSideLargeDescription,
+    '0.5 - 1.0 mL Vial Side' => l10n.templatePresetVialSideSmallDescription,
+    'Small Vial Cap Dot' => l10n.templatePresetCapDotSmallDescription,
+    'Large Vial Cap Dot' => l10n.templatePresetCapDotLargeDescription,
+    'Self-Laminating Wrap' => l10n.templatePresetSelfLaminatingDescription,
+    'Invertebrate Pinned (Locality)' =>
+      l10n.templatePresetPinnedLocalityDescription,
+    'Invertebrate Pinned (Taxon ID)' =>
+      l10n.templatePresetPinnedTaxonDescription,
+    'Fluid Collection (Jar Insert)' => l10n.templatePresetJarInsertDescription,
+    'Vertebrate Specimen Tag (Medium)' =>
+      l10n.templatePresetVertebrateTagDescription,
+    'Skull Box / Micro-Vial' => l10n.templatePresetSkullBoxDescription,
+    _ => preset.description,
+  };
 }

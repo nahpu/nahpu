@@ -121,11 +121,9 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: ExportProgressPanel(
-                title: 'Bundling records',
+                title: context.l10n.exportBundling,
                 progress: jobProgress,
-                hint:
-                    'Packaging writes the records, copies media, compresses '
-                    'the bundle, and then checks it. Keep NAHPU open.',
+                hint: context.l10n.exportBundlingHint,
                 isCancelling: _isCancelling,
                 onCancel: _requestCancel,
               ),
@@ -177,9 +175,15 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
             children: [
               TabBar(
                 controller: _mobileTabs,
-                tabs: const [
-                  Tab(icon: Icon(Icons.settings_outlined), text: 'Settings'),
-                  Tab(icon: Icon(Icons.inventory_2_outlined), text: 'Contents'),
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.settings_outlined),
+                    text: context.l10n.drawerSettings,
+                  ),
+                  Tab(
+                    icon: Icon(Icons.inventory_2_outlined),
+                    text: context.l10n.docsContents,
+                  ),
                 ],
               ),
               Expanded(
@@ -191,14 +195,14 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
             ],
           );
     return Scaffold(
-      appBar: AppBar(title: const Text('Bundle records')),
+      appBar: AppBar(title: Text(context.l10n.labelProjectToolBundleRecords)),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(child: body),
             ExportActionBar(
-              label: 'Create bundle',
-              repeatLabel: 'Bundle another',
+              label: context.l10n.exportCreateBundle,
+              repeatLabel: context.l10n.exportBundleAnother,
               icon: Icons.inventory_2_outlined,
               canExport:
                   _fileController.isValid &&
@@ -408,19 +412,16 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel the bundle?'),
-        content: const Text(
-          'The bundle is still being written. Leaving now cancels it and no '
-          'package will be saved.',
-        ),
+        title: Text(context.l10n.exportCancelBundleTitle),
+        content: Text(context.l10n.exportCancelBundleBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep bundling'),
+            child: Text(context.l10n.exportKeepBundling),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel bundle'),
+            child: Text(context.l10n.exportCancelBundle),
           ),
         ],
       ),
@@ -464,7 +465,7 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     try {
       await FilePickerServices().openContainingDirectory(File(outputPath));
     } catch (error) {
-      if (mounted) _showError('Unable to open the folder: $error');
+      if (mounted) _showError(context.l10n.projectOpenFolderFailed('$error'));
     }
   }
 
@@ -478,7 +479,7 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
     try {
       await FilePickerServices().saveCopyToDevice(File(outputPath));
     } catch (error) {
-      if (mounted) _showError('Unable to save a copy: $error');
+      if (mounted) _showError(context.l10n.projectSaveCopyFailed('$error'));
     }
   }
 
@@ -500,8 +501,8 @@ class BundleRecordsFormState extends ConsumerState<BundleRecordsForm>
       SnackBar(
         content: Text(
           systemPlatform == PlatformType.desktop
-              ? 'Created ${path.basename(outputPath)}'
-              : 'Bundle complete!',
+              ? context.l10n.exportCreatedFile(path.basename(outputPath))
+              : context.l10n.exportBundleComplete,
         ),
       ),
     );
@@ -595,19 +596,17 @@ class _NahpuPackageScopeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    return SizedBox(
       width: double.infinity,
       child: NahpuPanel(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Complete NAHPU data'),
+            Text(context.l10n.exportCompleteData),
             SizedBox(height: 8),
-            Text(
-              'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.',
-            ),
+            Text(context.l10n.exportCompleteDataBody),
             SizedBox(height: 8),
-            Text('Export is in Frictionless Data Format.'),
+            Text(context.l10n.exportFrictionless),
           ],
         ),
       ),
@@ -642,21 +641,21 @@ class BundleTaxonSelectionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Recorded Taxa',
+              context.l10n.exportRecordedTaxa,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
             Center(
               child: SegmentedButton<BundleTaxonSelectionMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: BundleTaxonSelectionMode.all,
-                    label: Text('All taxa'),
+                    label: Text(context.l10n.labelSpecimenRecordTypeAllTaxa),
                     icon: Icon(Icons.select_all_outlined),
                   ),
                   ButtonSegment(
                     value: BundleTaxonSelectionMode.selected,
-                    label: Text('Selected taxa'),
+                    label: Text(context.l10n.exportSelectedTaxa),
                     icon: Icon(Icons.filter_alt_outlined),
                   ),
                 ],
@@ -669,10 +668,12 @@ class BundleTaxonSelectionCard extends StatelessWidget {
             if (isLoading)
               const Center(child: CircularProgressIndicator())
             else if (availableTaxonGroups.isEmpty)
-              const Text('No specimen taxa have been recorded yet.')
+              Text(context.l10n.exportNoTaxaRecorded)
             else if (selectionMode == BundleTaxonSelectionMode.all)
               Text(
-                '${availableTaxonGroups.length} recorded taxon groups will be included.',
+                context.l10n.exportTaxonGroupsIncluded(
+                  availableTaxonGroups.length,
+                ),
               )
             else
               ...availableTaxonGroups.map((group) {
@@ -713,43 +714,40 @@ class BundleContentsPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const FormCard(
-        title: 'Package contents',
+      return FormCard(
+        title: context.l10n.exportPackageContents,
         isExpanded: true,
         child: Center(child: CircularProgressIndicator()),
       );
     }
     if (error != null) {
       return FormCard(
-        title: 'Package contents',
+        title: context.l10n.exportPackageContents,
         isExpanded: true,
         child: Center(child: Text(error!, textAlign: TextAlign.center)),
       );
     }
     if (manifest == null) {
-      return const FormCard(
-        title: 'Package contents',
+      return FormCard(
+        title: context.l10n.exportPackageContents,
         isExpanded: true,
-        child: Center(
-          child: Text(
-            'Select at least one recorded taxon to list the package contents.',
-          ),
-        ),
+        child: Center(child: Text(context.l10n.exportSelectTaxonPrompt)),
       );
     }
     return FormCard(
-      title: 'Package contents',
+      title: context.l10n.exportPackageContents,
       isExpanded: true,
       child: ListView(
         children: [
-          const Text(
-            'The list reflects exactly what will be bundled. Empty optional fields and tables are omitted.',
-          ),
+          Text(context.l10n.exportPackageContentsBody),
           const SizedBox(height: 12),
           ...manifest!.files.map((file) => _BundleFileTile(file: file)),
           if (manifest!.warnings.isNotEmpty) ...[
             const Divider(),
-            Text('Warnings', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              context.l10n.projectTransferWarnings,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             ...manifest!.warnings.map(
               (warning) => ListTile(
                 leading: const Icon(Icons.warning_amber_outlined),
@@ -772,7 +770,10 @@ class _BundleFileTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final detail = file.records == 0
         ? file.mediaType
-        : '${file.records} records · ${file.columns.length} fields';
+        : context.l10n.exportRecordsAndFields(
+            file.records,
+            file.columns.length,
+          );
     final leading = Icon(_bundleFileIcon(file.path));
     if (file.columns.isEmpty) {
       return Material(

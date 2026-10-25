@@ -62,7 +62,7 @@ class AddCoordinateButton extends ConsumerWidget {
         ),
         PrimaryButton(
           icon: Icons.add,
-          label: 'Add coordinate',
+          label: context.l10n.siteAddCoordinate,
           onPressed: () {
             Navigator.push(
               context,
@@ -276,7 +276,7 @@ class EmptyCoordinateList extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No coordinates added'),
+        Text(context.l10n.siteNoCoordinates),
         const SizedBox(height: 8),
         AddCoordinateButton(siteId: siteId),
       ],
@@ -307,7 +307,7 @@ class CoordinateTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      coordinateId ?? 'No ID',
+      coordinateId ?? context.l10n.siteNoId,
       style: Theme.of(context).textTheme.titleMedium,
     );
   }
@@ -399,7 +399,7 @@ void showCoordinateQrDialog(BuildContext context, CoordinateData coordinate) {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     ),

@@ -6,6 +6,7 @@ import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/media/media_linked_information_services.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/services/types/import.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class MediaDetailsView extends ConsumerStatefulWidget {
   const MediaDetailsView({super.key, required this.media});
@@ -61,35 +62,41 @@ class MediaDetailsViewState extends ConsumerState<MediaDetailsView> {
     );
     final sections = <_MediaDetailSection>[
       _MediaDetailSection(
-        title: 'File',
+        title: context.l10n.mediaDetailFile,
         rows: [
-          MapEntry('File name', media.fileName),
-          MapEntry('Size', _mediaSizeLoading ? 'Loading…' : _mediaSize),
+          MapEntry(context.l10n.sharedFileName, media.fileName),
+          MapEntry(
+            context.l10n.databaseSize,
+            _mediaSizeLoading ? context.l10n.projectLoading : _mediaSize,
+          ),
           MapEntry('URI', media.uri),
-          MapEntry('Category', media.category),
+          MapEntry(context.l10n.mediaCategory, media.category),
         ],
       ),
       _MediaDetailSection(
-        title: 'Description',
-        rows: [MapEntry('Caption', media.caption), MapEntry('Tag', media.tag)],
-      ),
-      _MediaDetailSection(
-        title: 'Capture and equipment',
+        title: context.l10n.projectDescription,
         rows: [
-          MapEntry('Photographer', photographer),
-          MapEntry('Taken', _dateTaken(media.taken)),
-          MapEntry('Camera', media.camera),
-          MapEntry('Lenses', media.lenses),
-          MapEntry('Additional EXIF', media.additionalExif),
+          MapEntry(context.l10n.mediaCaption, media.caption),
+          MapEntry(context.l10n.mediaTag, media.tag),
         ],
       ),
       _MediaDetailSection(
-        title: 'Identifiers',
+        title: context.l10n.mediaCaptureEquipment,
         rows: [
-          MapEntry('Media ID', media.primaryId.toString()),
-          MapEntry('Secondary ID', media.secondaryId),
-          MapEntry('Project ID', media.projectUuid),
-          MapEntry('Photographer ID', media.personnelId),
+          MapEntry(context.l10n.mediaPhotographer, photographer),
+          MapEntry(context.l10n.mediaTaken, _dateTaken(media.taken)),
+          MapEntry(context.l10n.mediaCamera, media.camera),
+          MapEntry(context.l10n.mediaLenses, media.lenses),
+          MapEntry(context.l10n.mediaAdditionalExif, media.additionalExif),
+        ],
+      ),
+      _MediaDetailSection(
+        title: context.l10n.setupIdentifiers,
+        rows: [
+          MapEntry(context.l10n.mediaId, media.primaryId.toString()),
+          MapEntry(context.l10n.mediaSecondaryId, media.secondaryId),
+          MapEntry(context.l10n.recordsSpecimenProjectId, media.projectUuid),
+          MapEntry(context.l10n.mediaPhotographerId, media.personnelId),
         ],
       ),
     ];
@@ -104,19 +111,19 @@ class MediaDetailsViewState extends ConsumerState<MediaDetailsView> {
                 ? const SizedBox.shrink()
                 : _MediaDetailSectionView(
                     section: _MediaDetailSection(
-                      title: 'Linked information',
+                      title: context.l10n.mediaLinkedInformation,
                       rows: information.fields
                           .map((field) => MapEntry(field.label, field.value))
                           .toList(growable: false),
                     ),
                   ),
-            loading: () => const FormSection(
-              title: 'Linked information',
+            loading: () => FormSection(
+              title: context.l10n.mediaLinkedInformation,
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (error, stack) => FormSection(
-              title: 'Linked information',
-              child: Text('Linked information is unavailable: $error'),
+              title: context.l10n.mediaLinkedInformation,
+              child: Text(context.l10n.mediaLinkedInformationError('$error')),
             ),
           ),
           for (final section in sections)

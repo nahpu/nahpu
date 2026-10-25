@@ -4,6 +4,8 @@ import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/sites/site_copy_services.dart';
 import 'package:nahpu/services/types/sites.dart';
 import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 Future<SiteCopyResult?> showCopyFromProjectDialog({
   required BuildContext context,
@@ -76,9 +78,9 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
   String get _title =>
       _blockingTitle ??
       switch (_step) {
-        0 => 'Copy from project',
-        1 => 'Choose a site',
-        _ => 'Choose data to copy',
+        0 => context.l10n.siteCopyFromProject,
+        1 => context.l10n.specimenChooseSite,
+        _ => context.l10n.siteChooseDataToCopy,
       };
 
   Widget get _stepContent {
@@ -97,11 +99,11 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
       if (_step > 0)
         TextButton(
           onPressed: _saving ? null : _back,
-          child: const Text('Back'),
+          child: Text(context.l10n.sharedBack),
         ),
       TextButton(
         onPressed: _saving ? null : () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: Text(context.l10n.commonCancel),
       ),
       FilledButton(
         onPressed: _saving || !canContinue ? null : _continue,
@@ -111,7 +113,11 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
                 width: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(_step == 2 ? 'Copy' : 'Continue'),
+            : Text(
+                _step == 2
+                    ? context.l10n.siteCopy
+                    : context.l10n.sharedContinue,
+              ),
       ),
     ];
   }
@@ -120,7 +126,7 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Select the project that contains the site to copy.'),
+        Text(context.l10n.siteSelectSourceProject),
         const SizedBox(height: 12),
         Expanded(
           child: ListView(
@@ -157,18 +163,18 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Select a site from ${_project!.name}.'),
+        Text(context.l10n.siteSelectFromProject(_project!.name)),
         const SizedBox(height: 12),
         Expanded(
           child: _sites.isEmpty
-              ? const Center(child: Text('No sites found in this project.'))
+              ? Center(child: Text(context.l10n.siteNoSitesInProject))
               : ListView(
                   children: [
                     for (final site in _sites)
                       _CopySelectionTile(
                         key: ValueKey('copy-source-site-tile-${site.id}'),
                         selected: _site?.id == site.id,
-                        title: _siteLabel(site),
+                        title: _siteLabel(context.l10n, site),
                         subtitle: _siteSubtitle(site),
                         onChanged: (_) => setState(() => _site = site),
                       ),
@@ -190,7 +196,7 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
       children: [
         Text('${source.project.name} · ${source.siteLabel}'),
         const SizedBox(height: 4),
-        const Text('Select the data to copy into the empty site.'),
+        Text(context.l10n.siteSelectDataToCopy),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -198,31 +204,29 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
               onPressed: availableFields.isEmpty
                   ? null
                   : () => setState(() => _selectedFields = availableFields),
-              child: const Text('Select all'),
+              child: Text(context.l10n.commonSelectAll),
             ),
             TextButton(
               onPressed: _selectedFields.isEmpty
                   ? null
                   : () => setState(() => _selectedFields.clear()),
-              child: const Text('Clear all'),
+              child: Text(context.l10n.documentSelectionClearAll),
             ),
           ],
         ),
         Expanded(
           child: availableFields.isEmpty
-              ? const Center(
-                  child: Text('The selected site has no copyable data.'),
-                )
+              ? Center(child: Text(context.l10n.siteNoCopyableData))
               : ListView(
                   children: [
                     for (final field in fields)
                       _CopySelectionTile(
                         key: ValueKey('copy-field-tile-${field.name}'),
                         selected: _selectedFields.contains(field),
-                        title: field.label,
+                        title: field.localizedLabel(context.l10n),
                         subtitle: _hasSourceValue(field, source)
-                            ? _fieldSubtitle(field, source)
-                            : 'No data in source',
+                            ? _fieldSubtitle(context.l10n, field, source)
+                            : context.l10n.siteNoDataInSource,
                         enabled: availableFields.contains(field),
                         onChanged: (value) => setState(() {
                           if (value) {
@@ -242,10 +246,11 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
   Future<void> _loadProjects() async {
     try {
       final targetEmpty = await _service.isTargetEmpty(widget.targetSiteId);
+      if (!mounted) return;
       if (!targetEmpty) {
         _setBlocking(
-          'The current site must be empty before copying data. Clear its site information, coordinates, media, and linked data first.',
-          title: 'Site must be empty',
+          context.l10n.siteMustBeEmptyBody,
+          title: context.l10n.siteMustBeEmpty,
         );
         return;
       }
@@ -255,9 +260,8 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
         _projects = projects;
         _loading = false;
         if (projects.isEmpty) {
-          _blockingMessage =
-              'Create or import another project before copying site data.';
-          _blockingTitle = 'Multiple projects required';
+          _blockingMessage = context.l10n.siteNeedAnotherProject;
+          _blockingTitle = context.l10n.siteMultipleProjectsRequired;
         }
       });
     } catch (error) {
@@ -369,10 +373,14 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     return value?.trim().isNotEmpty == true;
   }
 
-  String _fieldSubtitle(SiteCopyField field, SiteCopySource source) {
+  String _fieldSubtitle(
+    AppLocalizations l10n,
+    SiteCopyField field,
+    SiteCopySource source,
+  ) {
     if (field == SiteCopyField.coordinates) {
       final count = source.coordinates.length;
-      return '$count ${count == 1 ? 'coordinate' : 'coordinates'}';
+      return l10n.sharedCoordinateCount(count);
     }
     if (field == SiteCopyField.leadStaff) {
       return source.leaderName ?? source.site.leadStaffId ?? '';
@@ -397,9 +405,11 @@ class _SiteCopyDialogState extends ConsumerState<SiteCopyDialog> {
     return value ?? '';
   }
 
-  String _siteLabel(SiteRecord site) {
+  String _siteLabel(AppLocalizations l10n, SiteRecord site) {
     final value = site.siteID?.trim();
-    return value == null || value.isEmpty ? 'Unnamed site #${site.id}' : value;
+    return value == null || value.isEmpty
+        ? l10n.siteUnnamedSite('${site.id}')
+        : value;
   }
 
   String _siteSubtitle(SiteRecord site) {

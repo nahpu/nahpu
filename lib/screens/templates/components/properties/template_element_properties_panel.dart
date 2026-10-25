@@ -4,6 +4,7 @@ import 'package:nahpu/screens/templates/components/properties/line_properties_pa
 import 'package:nahpu/screens/templates/components/properties/shape_properties_panel.dart';
 import 'package:nahpu/screens/templates/components/properties/text_properties_panel.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateElementPropertiesPanel extends StatelessWidget {
   const TemplateElementPropertiesPanel({
@@ -253,22 +254,22 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
       children: [
         IconButton(
           icon: const Icon(Icons.keyboard_double_arrow_down, size: 20),
-          tooltip: 'Send to back',
+          tooltip: context.l10n.templateSendToBack,
           onPressed: () => setZIndex(-5),
         ),
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          tooltip: 'Send backward',
+          tooltip: context.l10n.templateSendBackward,
           onPressed: () => setZIndex(-1),
         ),
         IconButton(
           icon: const Icon(Icons.keyboard_arrow_up, size: 20),
-          tooltip: 'Bring forward',
+          tooltip: context.l10n.templateBringForward,
           onPressed: () => setZIndex(1),
         ),
         IconButton(
           icon: const Icon(Icons.keyboard_double_arrow_up, size: 20),
-          tooltip: 'Bring to front',
+          tooltip: context.l10n.templateBringToFront,
           onPressed: () => setZIndex(5),
         ),
         const SizedBox(width: 8),
@@ -277,7 +278,9 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
             isLocked ? Icons.lock : Icons.lock_open_outlined,
             size: 20,
           ),
-          tooltip: isLocked ? 'Unlock position' : 'Lock position',
+          tooltip: isLocked
+              ? context.l10n.templateUnlockPosition
+              : context.l10n.templateLockPosition,
           onPressed: toggleLock,
           color: isLocked ? scheme.primary : null,
         ),
@@ -286,23 +289,25 @@ class TemplateElementPropertiesPanel extends StatelessWidget {
             isVisible ? Icons.visibility_outlined : Icons.visibility_off,
             size: 20,
           ),
-          tooltip: isVisible ? 'Hide element' : 'Show element',
+          tooltip: isVisible
+              ? context.l10n.templateHideElement
+              : context.l10n.templateShowElement,
           onPressed: toggleVisibility,
           color: !isVisible ? scheme.error : null,
         ),
         IconButton(
           icon: const Icon(Icons.control_point_duplicate_outlined, size: 20),
-          tooltip: 'Duplicate element',
+          tooltip: context.l10n.templateDuplicateElement,
           onPressed: () => onDuplicateElement(selectedElement),
         ),
         IconButton(
           icon: const Icon(Icons.content_copy_outlined, size: 20),
-          tooltip: 'Copy element',
+          tooltip: context.l10n.templateCopyElement,
           onPressed: () => onCopyElement(selectedElement),
         ),
         IconButton(
           icon: const Icon(Icons.content_paste_outlined, size: 20),
-          tooltip: 'Paste element',
+          tooltip: context.l10n.templatePasteElement,
           onPressed: canPasteElement ? onPasteElement : null,
         ),
       ],

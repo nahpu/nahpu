@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/data_table/data_table_edits.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/styles/themes.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// View or edit mode, auto-save, Discard and Save, and the save status.
 class DataTableEditToolbar extends StatelessWidget {
@@ -37,15 +38,16 @@ class DataTableEditToolbar extends StatelessWidget {
           if (isEditMode) ...[
             const SizedBox(width: NahpuSpacing.md),
             Tooltip(
-              message:
-                  'Save each change as you commit it. Undo with Ctrl+Z or ⌘Z '
-                  'while this table is open.',
+              message: context.l10n.dataTableAutoSaveTooltip,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Switch(value: edits.autoSave, onChanged: onAutoSaveChanged),
                   const SizedBox(width: NahpuSpacing.xs),
-                  Text('Auto-save', style: theme.textTheme.labelMedium),
+                  Text(
+                    context.l10n.dataTableAutoSave,
+                    style: theme.textTheme.labelMedium,
+                  ),
                 ],
               ),
             ),
@@ -53,7 +55,7 @@ class DataTableEditToolbar extends StatelessWidget {
           if (edits.hasPending) ...[
             const SizedBox(width: NahpuSpacing.xs),
             IconButton(
-              tooltip: 'Discard changes',
+              tooltip: context.l10n.dataTableDiscardChanges,
               icon: const Icon(Icons.undo),
               onPressed: onDiscard,
             ),
@@ -67,7 +69,11 @@ class DataTableEditToolbar extends StatelessWidget {
                 Icons.save_outlined,
                 size: NahpuControlSize.iconSmall,
               ),
-              label: Text(edits.failedCount > 0 ? 'Retry save' : 'Save'),
+              label: Text(
+                edits.failedCount > 0
+                    ? context.l10n.dataTableRetrySave
+                    : context.l10n.commonSave,
+              ),
               onPressed: edits.isSaving ? null : onSave,
             ),
           ],
@@ -94,15 +100,15 @@ class DataTableEditModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: isEditMode
-          ? 'Edit mode is on (Ctrl+E or ⌘E)'
-          : 'Edit mode is off (Ctrl+E or ⌘E)',
+          ? context.l10n.dataTableEditModeOn
+          : context.l10n.dataTableEditModeOff,
       child: FilterChip(
         avatar: Icon(
           isEditMode ? Icons.edit : Icons.edit_outlined,
           size: NahpuControlSize.iconMedium,
         ),
         showCheckmark: false,
-        label: const Text('Edit'),
+        label: Text(context.l10n.commonEdit),
         selected: isEditMode,
         shape: const StadiumBorder(),
         onSelected: onChanged,
@@ -129,7 +135,7 @@ class DataTableSaveStatus extends StatelessWidget {
     return ListenableBuilder(
       listenable: edits,
       builder: (context, _) {
-        final status = _status(theme.colorScheme);
+        final status = _status(context.l10n, theme.colorScheme);
         if (status == null) return const SizedBox.shrink();
         final (text, color) = status;
         return Text(
@@ -140,24 +146,23 @@ class DataTableSaveStatus extends StatelessWidget {
     );
   }
 
-  (String, Color)? _status(ColorScheme colorScheme) {
+  (String, Color)? _status(AppLocalizations l10n, ColorScheme colorScheme) {
     final failed = edits.failedCount;
     final pending = edits.pendingCount;
-    if (edits.isSaving) return ('Saving…', colorScheme.onSurfaceVariant);
+    if (edits.isSaving) {
+      return (l10n.presetsSaving, colorScheme.onSurfaceVariant);
+    }
     if (failed > 0) {
-      return (
-        failed == 1 ? '1 cell needs attention' : '$failed cells need attention',
-        colorScheme.error,
-      );
+      return (l10n.dataTableCellsNeedAttention(failed), colorScheme.error);
     }
     if (pending > 0) {
       return (
-        pending == 1 ? '1 unsaved change' : '$pending unsaved changes',
+        l10n.dataTableUnsavedChangeCount(pending),
         NahpuTheme.pendingChange(colorScheme),
       );
     }
     if (isEditMode && edits.autoSave) {
-      return ('All changes saved', colorScheme.onSurfaceVariant);
+      return (l10n.dataTableAllChangesSaved, colorScheme.onSurfaceVariant);
     }
     return null;
   }

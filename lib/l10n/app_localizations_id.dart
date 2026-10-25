@@ -8232,4 +8232,4346 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get projectTissueTapCellHint =>
       'Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya';
+
+  @override
+  String get parasiteRecords => 'Catatan parasit';
+
+  @override
+  String get parasiteUnidentified => 'Parasit tak teridentifikasi';
+
+  @override
+  String parasiteIndividuals(String ids) {
+    return 'Ind: $ids';
+  }
+
+  @override
+  String parasiteCount(String count) {
+    return 'Jumlah: $count';
+  }
+
+  @override
+  String get parasiteNoneAdded => 'Belum ada parasit';
+
+  @override
+  String get parasiteAdd => 'Tambah parasit';
+
+  @override
+  String get parasiteEdit => 'Sunting parasit';
+
+  @override
+  String get parasiteDetails => 'Detail parasit';
+
+  @override
+  String get parasiteCountLabel => 'Jumlah';
+
+  @override
+  String get parasiteCountHint => 'Masukkan jumlah parasit';
+
+  @override
+  String get parasiteCategory => 'Kategori';
+
+  @override
+  String get parasiteAnatomicalLocation => 'Lokasi anatomi';
+
+  @override
+  String get parasiteCollectionIdentification => 'Koleksi & identifikasi';
+
+  @override
+  String get parasiteCollector => 'Kolektor';
+
+  @override
+  String get parasiteCollectorHint => 'Pilih siapa yang mengoleksi parasit';
+
+  @override
+  String get parasiteDetectionMethod => 'Metode deteksi';
+
+  @override
+  String get parasiteDateCollected => 'Tanggal koleksi';
+
+  @override
+  String get parasiteDateCollectedHint => 'Masukkan tanggal koleksi';
+
+  @override
+  String get parasiteTimeCollected => 'Waktu koleksi';
+
+  @override
+  String get parasiteTimeCollectedHint => 'Masukkan waktu koleksi';
+
+  @override
+  String get parasiteDeterminer => 'Pengidentifikasi';
+
+  @override
+  String get parasiteDeterminerHint =>
+      'Pilih siapa yang mengidentifikasi parasit';
+
+  @override
+  String get parasiteDateDetermined => 'Tanggal identifikasi';
+
+  @override
+  String get parasiteDateDeterminedHint => 'Masukkan tanggal identifikasi';
+
+  @override
+  String get parasiteDeterminationMethod => 'Metode identifikasi';
+
+  @override
+  String parasiteSaveError(String error) {
+    return 'Tidak dapat menyimpan parasit: $error';
+  }
+
+  @override
+  String get parasiteTaxon => 'Takson parasit';
+
+  @override
+  String get parasiteTaxonHint => 'Pilih takson terdaftar';
+
+  @override
+  String get parasiteNotIdentified => 'Belum diidentifikasi';
+
+  @override
+  String parasiteTaxaLoadError(String error) {
+    return 'Tidak dapat memuat takson: $error';
+  }
+
+  @override
+  String get parasiteAddTaxon => 'Tambah takson';
+
+  @override
+  String get parasiteNotAssigned => 'Belum ditetapkan';
+
+  @override
+  String get parasitePreparationPreservation => 'Preparasi & pengawetan';
+
+  @override
+  String get parasitePreparationMethod => 'Metode preparasi';
+
+  @override
+  String get parasiteTreatment => 'Perlakuan';
+
+  @override
+  String get parasiteDatePreserved => 'Tanggal pengawetan';
+
+  @override
+  String get parasiteDatePreservedHint => 'Masukkan tanggal pengawetan';
+
+  @override
+  String get parasiteTimePreserved => 'Waktu pengawetan';
+
+  @override
+  String get parasiteTimePreservedHint => 'Masukkan waktu pengawetan';
+
+  @override
+  String get parasiteCuration => 'Kurasi';
+
+  @override
+  String get parasiteStorage => 'Penyimpanan';
+
+  @override
+  String get parasiteStorageLocation => 'Lokasi penyimpanan';
+
+  @override
+  String get parasiteStorageLocationHint =>
+      'Masukkan freezer, lemari, rak, atau wadah';
+
+  @override
+  String get parasiteMuseumPermanent => 'Koleksi tetap museum';
+
+  @override
+  String get parasiteMuseumHint => 'Masukkan nama atau singkatan museum';
+
+  @override
+  String get parasiteMuseumLoan => 'Pinjaman museum';
+
+  @override
+  String get parasiteRemarks => 'Catatan';
+
+  @override
+  String get parasiteRemarksHint => 'Masukkan catatan parasit';
+
+  @override
+  String get parasiteLifeStage => 'Tahap hidup';
+
+  @override
+  String get parasiteLifeStageHint => 'Pilih tahap hidup parasit';
+
+  @override
+  String get parasiteAssociationStatus => 'Status asosiasi';
+
+  @override
+  String get parasiteAssociationStatusHint => 'Pilih status asosiasi';
+
+  @override
+  String parasiteFieldLoadError(String field, String error) {
+    return 'Tidak dapat memuat $field: $error';
+  }
+
+  @override
+  String get parasiteSetOptionsInSettings => 'Atur opsi di pengaturan spesimen';
+
+  @override
+  String parasiteSelectField(String field) {
+    return 'Pilih $field';
+  }
+
+  @override
+  String get parasiteIds => 'ID';
+
+  @override
+  String parasiteUuid(String uuid) {
+    return 'UUID: $uuid';
+  }
+
+  @override
+  String get parasiteId => 'ID parasit';
+
+  @override
+  String get parasiteIdHint => 'Masukkan ID parasit buatan pengguna';
+
+  @override
+  String get parasiteIdOptions => 'Opsi ID parasit';
+
+  @override
+  String get parasiteScanCode => 'Pindai QR/kode batang';
+
+  @override
+  String get parasiteNewNumber => 'Nomor baru';
+
+  @override
+  String get parasiteSettings => 'Pengaturan';
+
+  @override
+  String get parasiteIdSettings => 'Pengaturan ID parasit';
+
+  @override
+  String get parasitePrefix => 'Prefiks';
+
+  @override
+  String get parasitePrefixHint => 'Masukkan prefiks ID parasit';
+
+  @override
+  String get parasiteNumber => 'Nomor';
+
+  @override
+  String get parasiteNumberHint => 'Masukkan nomor ID parasit berikutnya';
+
+  @override
+  String get specimenShowOutlierWarnings => 'Tampilkan peringatan pencilan';
+
+  @override
+  String get mammalTotalLength => 'Panjang total (mm)';
+
+  @override
+  String get mammalTotalLengthHint => 'Masukkan PT';
+
+  @override
+  String get mammalTailLength => 'Panjang ekor (mm)';
+
+  @override
+  String get mammalTailLengthHint => 'Masukkan PE';
+
+  @override
+  String get specimenAutoCalculated => 'Dihitung otomatis';
+
+  @override
+  String get mammalHeadBodyLength => 'Panjang kepala dan badan (mm)';
+
+  @override
+  String get mammalHeadBodyLengthHint => 'Masukkan PKB';
+
+  @override
+  String get mammalTailHeadBodyRatio => 'Panjang ekor/KB';
+
+  @override
+  String get mammalTailHeadBodyRatioHint => 'Masukkan PE/PKB';
+
+  @override
+  String get mammalHindFootLength => 'Panjang kaki belakang (mm)';
+
+  @override
+  String get mammalHindFootLengthHint => 'Masukkan panjang KB';
+
+  @override
+  String get mammalEarLength => 'Panjang telinga (mm)';
+
+  @override
+  String get mammalEarLengthHint => 'Masukkan panjang telinga';
+
+  @override
+  String get mammalShowBatFields => 'Tampilkan bidang kelelawar';
+
+  @override
+  String get specimenRemarks => 'Catatan';
+
+  @override
+  String get specimenMeasurementRemarksHint =>
+      'Tulis catatan tentang pengukuran (opsional)';
+
+  @override
+  String get specimenUnusualMeasurement => 'Pengukuran tidak biasa';
+
+  @override
+  String get mammalChangeSexTitle => 'Ubah jenis kelamin?';
+
+  @override
+  String get mammalChangeSexBody =>
+      'Mengubah jenis kelamin akan menghapus data reproduksi yang tidak berlaku untuk pilihan baru.';
+
+  @override
+  String get specimenAccuracy => 'Akurasi';
+
+  @override
+  String get specimenAccuracyHint => 'Pilih akurasi pengukuran';
+
+  @override
+  String get specimenNoInaccurateSelected =>
+      'Tidak ada pengukuran tidak akurat yang dipilih';
+
+  @override
+  String specimenInaccurateList(String labels) {
+    return '*Tidak akurat: $labels';
+  }
+
+  @override
+  String specimenAccuracyRemarkValue(String remark) {
+    return 'Catatan:\n$remark';
+  }
+
+  @override
+  String get specimenSelectInaccurate => 'Pilih pengukuran tidak akurat';
+
+  @override
+  String get specimenInaccurateMeasurements => 'Pengukuran tidak akurat';
+
+  @override
+  String get specimenSelectEveryInaccurate =>
+      'Pilih setiap pengukuran yang tidak akurat.';
+
+  @override
+  String get specimenSelectAtLeastOneInaccurate =>
+      'Pilih setidaknya satu pengukuran tidak akurat.';
+
+  @override
+  String get specimenAccuracyRemark => 'Catatan akurasi';
+
+  @override
+  String get specimenAccuracyRemarkHint =>
+      'Jelaskan mengapa pengukuran tidak akurat';
+
+  @override
+  String get mammalTestes => 'Testis';
+
+  @override
+  String get mammalTestisPosition => 'Posisi';
+
+  @override
+  String get mammalTestisPositionHint => 'Pilih posisi testis';
+
+  @override
+  String get specimenLengthMm => 'Panjang (mm)';
+
+  @override
+  String get mammalTestisLengthHint => 'Masukkan panjang testis kanan';
+
+  @override
+  String get specimenWidthMm => 'Lebar (mm)';
+
+  @override
+  String get mammalTestisWidthHint => 'Masukkan lebar testis kanan';
+
+  @override
+  String get mammalEpididymis => 'Epididimis';
+
+  @override
+  String get mammalEpididymisHint => 'Pilih tampilan epididimis';
+
+  @override
+  String get mammalVaginaOpening => 'Bukaan vagina';
+
+  @override
+  String get mammalVaginaOpeningHint => 'Pilih bukaan vagina';
+
+  @override
+  String get mammalPubicSymphysis => 'Simfisis pubis';
+
+  @override
+  String get mammalPubicSymphysisHint => 'Pilih kondisi simfisis pubis';
+
+  @override
+  String get mammalFemaleReproductive => 'Atribut reproduksi betina';
+
+  @override
+  String get mammalReproductiveStage => 'Tahap reproduksi';
+
+  @override
+  String get mammalReproductiveStageHint => 'Pilih tahap reproduksi';
+
+  @override
+  String get mammalMammaeCounts => 'Jumlah mamae (pasang)';
+
+  @override
+  String get mammalMammaeCondition => 'Kondisi mamae';
+
+  @override
+  String get mammalMammaeConditionHint => 'Pilih kondisi mamae';
+
+  @override
+  String get mammalEmbryo => 'Embrio';
+
+  @override
+  String get mammalCrownRumpLength => 'Panjang CR (mm)';
+
+  @override
+  String get mammalCrownRumpLengthHint => 'Masukkan panjang mahkota-pantat';
+
+  @override
+  String get mammalPlacentalScars => 'Bekas luka plasenta';
+
+  @override
+  String get mammalAxillary => 'Aksila';
+
+  @override
+  String get mammalAxillaryHint => 'Masukkan jumlah pasang aksila';
+
+  @override
+  String get mammalAbdominal => 'Abdomen';
+
+  @override
+  String get mammalAbdominalHint => 'Masukkan jumlah pasang abdomen';
+
+  @override
+  String get mammalInguinal => 'Inguinal';
+
+  @override
+  String get mammalInguinalHint => 'Masukkan jumlah pasang inguinal';
+
+  @override
+  String get specimenLeft => 'Kiri';
+
+  @override
+  String get specimenRight => 'Kanan';
+
+  @override
+  String get mammalForearmLength => 'Panjang lengan bawah (mm)';
+
+  @override
+  String get mammalForearmLengthHint => 'Masukkan panjang LB';
+
+  @override
+  String get mammalTibiaLength => 'Panjang tibia (mm)';
+
+  @override
+  String get mammalTibiaLengthHint => 'Masukkan panjang tibia';
+
+  @override
+  String get mammalEcholocate => 'Berekolokasi?';
+
+  @override
+  String get mammalEcholocation => 'Ekolokasi';
+
+  @override
+  String get mammalEcholocationHint => 'Pilih jenis ekolokasi';
+
+  @override
+  String get mammalFrequencyMax => 'Frekuensi maksimum (kHz)';
+
+  @override
+  String get mammalFrequencyMaxHint => 'Masukkan frekuensi ekolokasi maksimum';
+
+  @override
+  String get mammalFrequencyMin => 'Frekuensi minimum (kHz)';
+
+  @override
+  String get mammalFrequencyMinHint => 'Masukkan frekuensi ekolokasi minimum';
+
+  @override
+  String get mammalFrequencyMaxEnergy => 'Frekuensi pada energi maksimum (kHz)';
+
+  @override
+  String get mammalFrequencyMaxEnergyHint =>
+      'Masukkan frekuensi ekolokasi pada energi maksimum';
+
+  @override
+  String get mammalEcholocationDuration => 'Durasi (detik)';
+
+  @override
+  String get mammalEcholocationDurationHint => 'Masukkan durasi ekolokasi';
+
+  @override
+  String get birdWingspan => 'Rentang sayap (mm)';
+
+  @override
+  String get birdWingspanHint => 'Masukkan rentang sayap';
+
+  @override
+  String get birdBillColor => 'Warna paruh';
+
+  @override
+  String get birdBillColorHint => 'Masukkan warna paruh';
+
+  @override
+  String get birdMaxillaColor => 'Warna maksila';
+
+  @override
+  String get birdMaxillaColorHint => 'Masukkan warna maksila';
+
+  @override
+  String get birdMandibleColor => 'Warna mandibula';
+
+  @override
+  String get birdMandibleColorHint => 'Masukkan warna mandibula';
+
+  @override
+  String get birdIrisColor => 'Warna iris';
+
+  @override
+  String get birdIrisColorHint => 'Masukkan warna iris';
+
+  @override
+  String get birdTarsusColor => 'Warna tarsus';
+
+  @override
+  String get birdTarsusColorHint => 'Masukkan warna tarsus';
+
+  @override
+  String get birdToeColor => 'Warna jari kaki';
+
+  @override
+  String get birdToeColorHint => 'Masukkan warna jari kaki';
+
+  @override
+  String get birdBroodPatch => 'Bercak eram';
+
+  @override
+  String get birdBursaPresent => 'Bursa ada';
+
+  @override
+  String get birdStomachContents => 'Isi lambung';
+
+  @override
+  String get birdStomachContentsHint => 'Masukkan isi lambung';
+
+  @override
+  String get birdBursaLength => 'Panjang bursa (mm)';
+
+  @override
+  String get birdBursaLengthHint => 'Masukkan panjang bursa';
+
+  @override
+  String get birdBursaWidth => 'Lebar bursa (mm)';
+
+  @override
+  String get birdBursaWidthHint => 'Masukkan lebar bursa';
+
+  @override
+  String get birdMaleGonads => 'Gonad jantan';
+
+  @override
+  String get birdLeftTestisSize => 'Ukuran testis kiri (mm)';
+
+  @override
+  String get birdSize => 'Ukuran';
+
+  @override
+  String get birdMinute => 'sangat kecil';
+
+  @override
+  String get birdOneMmOrGreater => '1 mm atau lebih';
+
+  @override
+  String get birdLength => 'Panjang';
+
+  @override
+  String get specimenEnterLength => 'Masukkan panjang';
+
+  @override
+  String get birdWidth => 'Lebar';
+
+  @override
+  String get specimenEnterWidth => 'Masukkan lebar';
+
+  @override
+  String get birdTestisRemarksHint =>
+      'Masukkan catatan, mis. ukuran testis kanan';
+
+  @override
+  String get birdFemaleGonads => 'Gonad betina';
+
+  @override
+  String get birdOvarySize => 'Ukuran ovarium';
+
+  @override
+  String get birdAppearance => 'Tampilan';
+
+  @override
+  String get birdOviduct => 'Oviduk';
+
+  @override
+  String get birdGonadRemarksHint =>
+      'Tambahkan informasi tambahan tentang gonad';
+
+  @override
+  String get birdSkullOssification => 'Osifikasi tengkorak (%)';
+
+  @override
+  String get birdSkullOssificationHint => 'Masukkan persentase';
+
+  @override
+  String get birdFat => 'Lemak';
+
+  @override
+  String get birdLargestOva => 'Diameter tiga ovum terbesar (mm)';
+
+  @override
+  String get birdFirst => 'Pertama';
+
+  @override
+  String get birdEnterSize => 'Masukkan ukuran';
+
+  @override
+  String get birdSecond => 'Kedua';
+
+  @override
+  String get birdThird => 'Ketiga';
+
+  @override
+  String get birdMolt => 'Molting';
+
+  @override
+  String get birdWingMolt => 'Molting sayap';
+
+  @override
+  String get birdTailMolt => 'Molting ekor';
+
+  @override
+  String get birdMoltRemarksHint => 'Tambahkan informasi molting tambahan';
+
+  @override
+  String get birdWingMoltHint => 'Masukkan molting sayap';
+
+  @override
+  String get birdTailMoltHint => 'Masukkan molting ekor';
+
+  @override
+  String get birdBodyMolt => 'Molting tubuh';
+
+  @override
+  String get specimenNotes => 'Catatan';
+
+  @override
+  String get birdHabitat => 'Habitat';
+
+  @override
+  String get birdHabitatHint => 'Tambahkan informasi tambahan tentang habitat';
+
+  @override
+  String get specimenSpecimen => 'Spesimen';
+
+  @override
+  String get specimenRemarksHint =>
+      'Tambahkan informasi tambahan tentang spesimen';
+
+  @override
+  String get fishStandardLength => 'Panjang standar (mm)';
+
+  @override
+  String get fishStandardLengthHint => 'Masukkan panjang standar';
+
+  @override
+  String get fishTotalLengthHint => 'Masukkan panjang total';
+
+  @override
+  String get fishTotalIndividuals => 'Total individu';
+
+  @override
+  String get fishTotalIndividualsHint => 'Masukkan jumlah individu dalam lot';
+
+  @override
+  String get fishAutoUpdateRanges => 'Perbarui min dan maks otomatis';
+
+  @override
+  String get fishAutoUpdateRangesBody =>
+      'Isi rentang dari individu yang diukur di bawah';
+
+  @override
+  String get fishMinStandardLength => 'Panjang standar min. (mm)';
+
+  @override
+  String get fishMinStandardLengthHint => 'Masukkan panjang standar minimum';
+
+  @override
+  String get fishMaxStandardLength => 'Panjang standar maks. (mm)';
+
+  @override
+  String get fishMaxStandardLengthHint => 'Masukkan panjang standar maksimum';
+
+  @override
+  String get fishMinTotalLength => 'Panjang total min. (mm)';
+
+  @override
+  String get fishMinTotalLengthHint => 'Masukkan panjang total minimum';
+
+  @override
+  String get fishMaxTotalLength => 'Panjang total maks. (mm)';
+
+  @override
+  String get fishMaxTotalLengthHint => 'Masukkan panjang total maksimum';
+
+  @override
+  String get fishMinWeight => 'Berat min.';
+
+  @override
+  String get fishMinWeightHint => 'Masukkan berat minimum';
+
+  @override
+  String get fishMaxWeight => 'Berat maks.';
+
+  @override
+  String get fishMaxWeightHint => 'Masukkan berat maksimum';
+
+  @override
+  String get fishSpecimenType => 'Jenis spesimen';
+
+  @override
+  String get fishTypeIndividual => 'Individu';
+
+  @override
+  String get fishTypeLot => 'Lot';
+
+  @override
+  String get fishTypeIndividualDescription =>
+      'Satu ikan dengan pengukurannya sendiri';
+
+  @override
+  String get fishTypeLotDescription => 'Banyak individu disimpan bersama';
+
+  @override
+  String get invertCaste => 'Kasta';
+
+  @override
+  String get invertCasteHint => 'Pilih kasta';
+
+  @override
+  String get invertEcologicalInteractions => 'Interaksi ekologis';
+
+  @override
+  String get invertShowMorphometrics => 'Tampilkan morfometri spesimen';
+
+  @override
+  String get invertMorphometrics => 'Morfometri spesimen';
+
+  @override
+  String get invertHostOrganism => 'Organisme inang';
+
+  @override
+  String get invertHostOrganismHint => 'Masukkan takson inang terkait';
+
+  @override
+  String get invertHostPart => 'Bagian inang';
+
+  @override
+  String get invertHostPartHint => 'Masukkan bagian inang yang ditempati';
+
+  @override
+  String get invertHeadWidth => 'Lebar kepala (mm)';
+
+  @override
+  String get invertHeadWidthHint => 'Masukkan lebar kepala';
+
+  @override
+  String get invertBodyLength => 'Panjang tubuh (mm)';
+
+  @override
+  String get invertBodyLengthHint => 'Masukkan panjang tubuh';
+
+  @override
+  String get invertUpperWingspan => 'Rentang sayap atas (mm)';
+
+  @override
+  String get invertUpperWingspanHint => 'Masukkan rentang sayap atas';
+
+  @override
+  String get invertLowerWingspan => 'Rentang sayap bawah (mm)';
+
+  @override
+  String get invertLowerWingspanHint => 'Masukkan rentang sayap bawah';
+
+  @override
+  String get herpSnoutVentLength => 'PMK (cm)';
+
+  @override
+  String get herpSnoutVentLengthHint => 'Masukkan panjang moncong-kloaka';
+
+  @override
+  String get partSpecimenParts => 'Bagian spesimen';
+
+  @override
+  String get partAdd => 'Tambah bagian spesimen';
+
+  @override
+  String get partNoneAdded => 'Belum ada bagian';
+
+  @override
+  String get partUnknown => 'Bagian tidak diketahui';
+
+  @override
+  String get partNoCount => 'Tanpa jumlah';
+
+  @override
+  String get partNoTreatment => 'Tidak ada';
+
+  @override
+  String get partHasRemark => 'ada catatan';
+
+  @override
+  String partPmi(String pmi) {
+    return 'PMI $pmi';
+  }
+
+  @override
+  String get partAddParts => 'Tambah bagian spesimen';
+
+  @override
+  String get partEditParts => 'Sunting bagian spesimen';
+
+  @override
+  String get partPreparation => 'Preparasi';
+
+  @override
+  String get partSampling => 'Pengambilan sampel';
+
+  @override
+  String partSaveError(String error) {
+    return 'Tidak dapat menyimpan bagian spesimen: $error';
+  }
+
+  @override
+  String get partCounts => 'Jumlah';
+
+  @override
+  String get partCountsHint => 'Masukkan jumlah bagian';
+
+  @override
+  String get partPreparationType => 'Jenis preparasi';
+
+  @override
+  String get partPreparationTypeHint => 'Masukkan jenis preparasi';
+
+  @override
+  String get partTreatmentHint => 'Masukkan perlakuan';
+
+  @override
+  String get partAdditionalTreatment => 'Perlakuan tambahan';
+
+  @override
+  String get partAdditionalTreatmentHint => 'Masukkan perlakuan tambahan';
+
+  @override
+  String get partPreparatorHint => 'Jika berbeda dari preparator voucer';
+
+  @override
+  String get partDateTaken => 'Tanggal pengambilan';
+
+  @override
+  String get partTimeTaken => 'Waktu pengambilan';
+
+  @override
+  String get partRecommendedFresh => 'Disarankan untuk jaringan segar';
+
+  @override
+  String get partStorageType => 'Jenis penyimpanan';
+
+  @override
+  String get partStorageTypeHint => 'Masukkan jenis penyimpanan';
+
+  @override
+  String get partStorageLocationHint =>
+      'Dapat berupa ID sel atau toples, sesuai konvensi museum Anda';
+
+  @override
+  String get partMuseumHint => 'Masukkan nama atau singkatan museum';
+
+  @override
+  String get partRemarksHint => 'Masukkan catatan khusus untuk bagian ini';
+
+  @override
+  String get partBarcodeId => 'ID QR/kode batang';
+
+  @override
+  String get partBarcodeIdHint => 'Masukkan ID kode batang (jika ada)';
+
+  @override
+  String get partBarcodeIdOptions => 'Opsi ID QR/kode batang';
+
+  @override
+  String get partGenerateUuid => 'Buat UUID';
+
+  @override
+  String get partInvalidBarcode => 'QR/kode batang tidak valid';
+
+  @override
+  String get partBarcodeIdExists =>
+      'ID QR/kode batang sudah ada. Kosongkan kolom untuk membuat UUID baru';
+
+  @override
+  String get partTissueIdHint => 'Masukkan ID jaringan';
+
+  @override
+  String get partRepeatTissueFailed => 'Gagal mengulang nomor jaringan';
+
+  @override
+  String get partTissueIdOptions => 'Opsi ID jaringan';
+
+  @override
+  String get partTissueIdSettings => 'Pengaturan ID jaringan';
+
+  @override
+  String get specimenCollectionIdentification => 'Koleksi & identifikasi';
+
+  @override
+  String get specimenTaxaLoadError => 'Galat saat memuat takson';
+
+  @override
+  String get specimenIdConfidence => 'Keyakinan identifikasi';
+
+  @override
+  String get specimenIdConfidenceHint => 'Pilih tingkat keyakinan';
+
+  @override
+  String get specimenDeterminerHint =>
+      'Pilih pengidentifikasi (bawaan: katalogis)';
+
+  @override
+  String get specimenIdMethod => 'Metode identifikasi';
+
+  @override
+  String get specimenIdMethodHint => 'Pilih metode identifikasi';
+
+  @override
+  String get specimenCollectionDate => 'Tanggal koleksi';
+
+  @override
+  String get specimenCollectionTime => 'Waktu koleksi';
+
+  @override
+  String get specimenConditionHint => 'Pilih kondisi';
+
+  @override
+  String get specimenPrepDate => 'Tanggal prep.';
+
+  @override
+  String get specimenPrepTime => 'Waktu prep.';
+
+  @override
+  String get specimenPreparatorHint => 'Pilih preparator (bawaan: katalogis)';
+
+  @override
+  String specimenUuid(String uuid) {
+    return 'UUID spesimen: $uuid';
+  }
+
+  @override
+  String get specimenMuseumId => 'ID museum';
+
+  @override
+  String get specimenMuseumIdHint => 'Masukkan ID museum (jika ada)';
+
+  @override
+  String specimenFieldIdValue(String id) {
+    return 'ID lapangan: $id';
+  }
+
+  @override
+  String get specimenFieldIdLoading => 'ID lapangan: memuat…';
+
+  @override
+  String get specimenFieldIdUnavailable => 'ID lapangan: tidak tersedia';
+
+  @override
+  String get specimenFieldIdSelectCataloger => 'ID lapangan: pilih katalogis';
+
+  @override
+  String get specimenFieldIdCatalogerNotSetUp =>
+      'ID lapangan: katalogis belum diatur untuk nomor lapangan';
+
+  @override
+  String get specimenEditFieldId => 'Sunting ID lapangan';
+
+  @override
+  String get specimenFieldIdPersonnel => 'Personel';
+
+  @override
+  String get specimenFieldIdProject => 'Proyek';
+
+  @override
+  String get specimenFieldIdPersonnelUnavailable =>
+      'Pilih katalogis dengan pendaftaran nomor lapangan pribadi aktif sebelum menetapkan ID lapangan personel.';
+
+  @override
+  String get specimenPersonnelFieldNumber => 'Nomor lapangan personel';
+
+  @override
+  String get specimenProjectCatalogNumber => 'Nomor katalog proyek';
+
+  @override
+  String get specimenFieldIdTypeChangeAck =>
+      'Saya memahami bahwa mengubah jenis pengenal akan menghapus ID lapangan spesimen sebelumnya dan ID tersebut mungkin sudah muncul di ekspor atau label spesimen.';
+
+  @override
+  String get specimenSaving => 'Menyimpan…';
+
+  @override
+  String get fishStandardLengthShort => 'Panjang standar';
+
+  @override
+  String get fishTotalLengthShort => 'Panjang total';
+
+  @override
+  String get fishWeight => 'Berat';
+
+  @override
+  String get fishLotSummary => 'Ringkasan lot';
+
+  @override
+  String fishMeasuredCount(int count) {
+    return '$count diukur';
+  }
+
+  @override
+  String fishMeasuredOfTotal(int count, int total) {
+    return '$count dari $total individu diukur';
+  }
+
+  @override
+  String get fishNotMeasured => 'Belum diukur';
+
+  @override
+  String fishStandardDeviation(String value) {
+    return '± $value SD';
+  }
+
+  @override
+  String fishRange(String min, String max, String unit) {
+    return 'Rentang $min–$max $unit';
+  }
+
+  @override
+  String get fishIndividuals => 'Individu';
+
+  @override
+  String fishIndividualsLoadError(String error) {
+    return 'Tidak dapat memuat individu: $error';
+  }
+
+  @override
+  String get fishAddIndividual => 'Tambah individu';
+
+  @override
+  String get fishDeleteIndividual => 'Hapus individu';
+
+  @override
+  String fishStandardLengthValue(String value) {
+    return 'PS $value mm';
+  }
+
+  @override
+  String fishTotalLengthValue(String value) {
+    return 'PT $value mm';
+  }
+
+  @override
+  String get fishNoMeasurements => 'Tidak ada pengukuran';
+
+  @override
+  String fishDeleteIndividualTitle(String name) {
+    return 'Hapus $name?';
+  }
+
+  @override
+  String get fishDeleteIndividualBody =>
+      'Ini menghapus individu dan melepaskan tautannya dari semua bagian spesimen dan parasit.';
+
+  @override
+  String get fishStandardLengthMm => 'PS (mm)';
+
+  @override
+  String get fishTotalLengthMm => 'PT (mm)';
+
+  @override
+  String fishWeightWithUnit(String unit) {
+    return 'Berat ($unit)';
+  }
+
+  @override
+  String get fishEnterWeight => 'Masukkan berat';
+
+  @override
+  String get fishIndividualRemarksHint =>
+      'Tambahkan catatan tentang individu ini';
+
+  @override
+  String get fishEditIndividual => 'Sunting individu';
+
+  @override
+  String fishEnteredCount(int count) {
+    return '$count dimasukkan';
+  }
+
+  @override
+  String fishEnteredOfTotal(int count, int total) {
+    return '$count dari $total dimasukkan';
+  }
+
+  @override
+  String get fishSaveAndAddAnother => 'Simpan dan tambah lagi';
+
+  @override
+  String get fishMeasurements => 'Pengukuran';
+
+  @override
+  String get fishTagId => 'ID tag';
+
+  @override
+  String get fishTagIdHint => 'Masukkan ID individu atau tag';
+
+  @override
+  String get fishAutoNumbered => 'Bernomor otomatis. Sunting untuk mengganti.';
+
+  @override
+  String get fishTagIdOptions => 'Opsi ID tag';
+
+  @override
+  String get fishTagIdSettings => 'Pengaturan ID tag';
+
+  @override
+  String get specimenCaptureRecords => 'Catatan penangkapan';
+
+  @override
+  String get specimenChooseSite => 'Pilih situs';
+
+  @override
+  String get specimenChangeSiteTitle => 'Ubah situs?';
+
+  @override
+  String get specimenChangeSiteBody =>
+      'Kecuali tanggal dan waktu penangkapan, semua kolom di bagian catatan koleksi akan kosong kembali.';
+
+  @override
+  String get specimenChooseEvent => 'Pilih ID kegiatan koleksi';
+
+  @override
+  String get specimenChangeEventTitle => 'Ubah ID kegiatan koleksi?';
+
+  @override
+  String get specimenChangeEventBody =>
+      'Kecuali tanggal dan waktu penangkapan, semua kolom di bagian catatan koleksi akan kosong kembali. Koordinat tetap disimpan jika berada di situs yang sama.';
+
+  @override
+  String get specimenChooseMethod => 'Pilih jenis metode';
+
+  @override
+  String get specimenRelativeTime => 'Waktu relatif';
+
+  @override
+  String get specimenMethodId => 'ID metode';
+
+  @override
+  String get specimenMethodIdHint =>
+      'Masukkan ID, mis. nomor perangkap/jaring, dll.';
+
+  @override
+  String get specimenCaptureDate => 'Tanggal penangkapan';
+
+  @override
+  String get specimenCoordinateId => 'ID koordinat';
+
+  @override
+  String get specimenChooseCoordinate => 'Pilih koordinat';
+
+  @override
+  String get specimenCoordinateExtent => 'Cakupan koordinat (m)';
+
+  @override
+  String get specimenCoordinateExtentHint => 'Tambahkan cakupan koordinat';
+
+  @override
+  String get specimenExtentInvalid =>
+      'Cakupan harus berupa angka lebih dari nol';
+
+  @override
+  String get specimenCaptureTime => 'Waktu penangkapan';
+
+  @override
+  String get specimenChoosePerson => 'Pilih orang';
+
+  @override
+  String get specimenSexHint => 'Pilih jenis kelamin spesimen';
+
+  @override
+  String get specimenLifeStageHint => 'Pilih tahap hidup';
+
+  @override
+  String specimenLifeStagesLoadError(String error) {
+    return 'Tidak dapat memuat tahap hidup: $error';
+  }
+
+  @override
+  String specimenParasiteDetectionLoadError(String error) {
+    return 'Tidak dapat memuat deteksi parasit: $error';
+  }
+
+  @override
+  String get specimenParasitesExamined => 'Parasit diperiksa';
+
+  @override
+  String get specimenParasitesDetected => 'Parasit terdeteksi';
+
+  @override
+  String get specimenDetectionRemarks => 'Catatan deteksi';
+
+  @override
+  String get specimenDetectionRemarksHint =>
+      'Masukkan catatan pemeriksaan atau deteksi parasit';
+
+  @override
+  String get specimenCreate => 'Buat spesimen';
+
+  @override
+  String get specimenActions => 'Tindakan spesimen';
+
+  @override
+  String get specimenDuplicatePart => 'Duplikat bagian';
+
+  @override
+  String get specimenExport => 'Ekspor spesimen';
+
+  @override
+  String get specimenImport => 'Impor spesimen';
+
+  @override
+  String specimenDuplicatePartError(String error) {
+    return 'Galat saat menduplikasi bagian: $error';
+  }
+
+  @override
+  String get specimenDeleteTitle => 'Hapus spesimen?';
+
+  @override
+  String get specimenDeleteBody =>
+      'Anda akan menghapus catatan spesimen ini, semua pengukuran, dan bagian spesimen.\nAnda perlu memperbarui nomor lapangan secara manual.';
+
+  @override
+  String specimenDeleteError(String error) {
+    return 'Galat saat menghapus spesimen: $error';
+  }
+
+  @override
+  String get specimenDeleteAllTitle => 'Hapus semua spesimen?';
+
+  @override
+  String get specimenDeleteAllBody =>
+      'Ini akan menghapus semua catatan spesimen, pengukuran, dan bagian spesimen';
+
+  @override
+  String specimenDeleteAllError(String error) {
+    return 'Galat saat menghapus semua spesimen: $error';
+  }
+
+  @override
+  String get specimenTaxonInfo => 'Info takson';
+
+  @override
+  String get specimenNoSpeciesSelected => 'Belum ada spesies yang dipilih';
+
+  @override
+  String get specimenTaxonTooltip => 'Ketik nama takson dan pilih dari daftar';
+
+  @override
+  String get specimenTaxon => 'Takson';
+
+  @override
+  String get specimenTaxonHint => 'Ketik nama takson';
+
+  @override
+  String get specimenEnterTaxon => 'Masukkan takson';
+
+  @override
+  String get specimenNoneSelected => 'Tidak ada yang dipilih';
+
+  @override
+  String specimenRemoveIndividualTooltip(String name) {
+    return 'Hapus $name';
+  }
+
+  @override
+  String get specimenAllIndividualsAdded => 'Semua individu telah ditambahkan';
+
+  @override
+  String get specimenSelectIndividual => 'Pilih individu';
+
+  @override
+  String specimenRemoveIndividualTitle(String name) {
+    return 'Hapus $name?';
+  }
+
+  @override
+  String specimenRemoveIndividualBody(String name) {
+    return 'Catatan ini tidak akan lagi ditautkan ke individu $name. Individunya tetap disimpan.';
+  }
+
+  @override
+  String get specimenRecordsTitle => 'Catatan spesimen';
+
+  @override
+  String get specimenSearchOptions => 'Opsi pencarian';
+
+  @override
+  String get specimenRecordTitle => 'Catatan spesimen';
+
+  @override
+  String get specimenNoneFound => 'Spesimen tidak ditemukan';
+
+  @override
+  String get specimenWeightHint => 'Masukkan berat spesimen';
+
+  @override
+  String get specimenChangeWeightUnit => 'Ubah satuan berat';
+
+  @override
+  String get templateDeleteTextBox => 'Hapus kotak teks';
+
+  @override
+  String get templateHeightMm => 'Tinggi (mm)';
+
+  @override
+  String get templatePictureTypeOptions => 'Opsi jenis gambar';
+
+  @override
+  String get templateRotation => 'Rotasi';
+
+  @override
+  String get templateQrCode => 'Kode QR';
+
+  @override
+  String get templateQrSize => 'Ukuran QR (mm)';
+
+  @override
+  String get templateContentFormattingOptions => 'Opsi format konten';
+
+  @override
+  String get templateShape => 'Bentuk';
+
+  @override
+  String get templateSquare => 'Persegi';
+
+  @override
+  String get templateCircle => 'Lingkaran';
+
+  @override
+  String get templateDynamic => 'Dinamis';
+
+  @override
+  String get templateSizePt => 'Ukuran (pt)';
+
+  @override
+  String get templateDecreaseFontSize => 'Perkecil ukuran huruf';
+
+  @override
+  String get templateIncreaseFontSize => 'Perbesar ukuran huruf';
+
+  @override
+  String get templateTextFormattingOptions => 'Opsi format teks';
+
+  @override
+  String get templateTextStylingOptions => 'Opsi gaya teks';
+
+  @override
+  String get templateMaxWidth => 'Lebar maksimum (mm)';
+
+  @override
+  String get templateMaxHeight => 'Tinggi maksimum (mm)';
+
+  @override
+  String get templateFont => 'Huruf';
+
+  @override
+  String templateFontNotInstalled(String font) {
+    return '$font (tidak terpasang)';
+  }
+
+  @override
+  String get templateUnderline => 'Garis bawah';
+
+  @override
+  String get templateStrikethrough => 'Coret';
+
+  @override
+  String get templateForeground => 'Latar depan';
+
+  @override
+  String get templateQrForegroundColor => 'Pilih warna latar depan QR';
+
+  @override
+  String get templateBackground => 'Latar belakang';
+
+  @override
+  String get templateQrBackgroundColor => 'Pilih warna latar belakang QR';
+
+  @override
+  String get templateConditionalOutput => 'Keluaran bersyarat';
+
+  @override
+  String get templateFormat => 'Format';
+
+  @override
+  String get templateMapEncodedValues => 'Petakan nilai terkode';
+
+  @override
+  String get templateHeaderCase => 'Kapitalisasi judul';
+
+  @override
+  String get templateUppercase => 'Huruf besar';
+
+  @override
+  String get templateLowercase => 'Huruf kecil';
+
+  @override
+  String get templateMissing => 'Kosong';
+
+  @override
+  String get templateTextColor => 'Pilih warna teks';
+
+  @override
+  String get templateTextBackgroundColor => 'Pilih warna latar belakang teks';
+
+  @override
+  String get templateStroke => 'Garis tepi';
+
+  @override
+  String get templateTextStrokeColor => 'Pilih warna garis tepi teks';
+
+  @override
+  String get templateStyle => 'Gaya';
+
+  @override
+  String get templateRadius => 'Radius';
+
+  @override
+  String get templatePadding => 'Bantalan';
+
+  @override
+  String get templateAlignLeft => 'Rata kiri';
+
+  @override
+  String get templateAlignCenter => 'Rata tengah';
+
+  @override
+  String get templateAlignRight => 'Rata kanan';
+
+  @override
+  String templateClearColor(String label) {
+    return 'Hapus $label';
+  }
+
+  @override
+  String get templateNoContentPlaceholder => 'Pengganti tanpa konten';
+
+  @override
+  String get templateCustomText => 'Teks khusus';
+
+  @override
+  String get templateCustomTextHint => 'Masukkan teks pengganti khusus';
+
+  @override
+  String get templateConditionalType => 'Jenis bersyarat';
+
+  @override
+  String get templateTargetField => 'Bidang target';
+
+  @override
+  String get templateConditionalTextHelper =>
+      'Bidang seperti [mammalAttribute::testisWidth] akan diisi.';
+
+  @override
+  String get templateReplacementHelper =>
+      'Ditulis jika cocok; jika tidak, nilai target asli dipertahankan. Biarkan kosong untuk menyembunyikan nilai.';
+
+  @override
+  String get templateTypeNormalText => 'Teks biasa';
+
+  @override
+  String get templateTypePicture => 'Gambar';
+
+  @override
+  String get templateTypeMarkdown => 'Markdown';
+
+  @override
+  String get templateTypeCoordinates => 'Koordinat';
+
+  @override
+  String get templateTypeList => 'Nilai daftar';
+
+  @override
+  String get templateTypeNestedList => 'Daftar bertingkat';
+
+  @override
+  String get templateTypeDates => 'Tanggal';
+
+  @override
+  String get templateTypeDateTime => 'Tanggal dan waktu';
+
+  @override
+  String get templateTypeTime => 'Waktu';
+
+  @override
+  String get templateTypeSex => 'Jenis kelamin';
+
+  @override
+  String get templateTypeNumber => 'Angka';
+
+  @override
+  String get templateTypeEncoded => 'Teks terkode';
+
+  @override
+  String get templateFormatDefaultMapping => 'Pemetaan bawaan';
+
+  @override
+  String get templateFormatCustomMapping => 'Pemetaan khusus…';
+
+  @override
+  String get templateFormatDecimal => 'Desimal (45.123, -122.543)';
+
+  @override
+  String get templateFormatCardinalDecimal =>
+      'Desimal arah mata angin (45.123° LU, 122.543° BB)';
+
+  @override
+  String get templateFormatPipe => 'Dipisahkan garis tegak (A | B | C)';
+
+  @override
+  String get templateFormatComma => 'Dipisahkan koma (A, B, C)';
+
+  @override
+  String get templateFormatSemicolon => 'Dipisahkan titik koma (A; B; C)';
+
+  @override
+  String get templateFormatSlash => 'Dipisahkan garis miring (A / B / C)';
+
+  @override
+  String get templateFormatNewline => 'Baris baru (A\nB\nC)';
+
+  @override
+  String get templateFormatBullet => 'Berpoin (• A\n• B)';
+
+  @override
+  String get templateFormatCustomSeparator => 'Pemisah khusus…';
+
+  @override
+  String get templateFormatTable => 'Tabel';
+
+  @override
+  String get templateFormatCardList => 'Daftar kartu';
+
+  @override
+  String get templateFormatMonthDdYyyy => 'Bulan DD, YYYY (Juni 28, 2026)';
+
+  @override
+  String get templateFormatDdMonthYyyy => 'DD Bulan YYYY (28 Juni 2026)';
+
+  @override
+  String get templateFormatDdMonthAbbr => 'DD Bulan (singkat) (28 Jun 2026)';
+
+  @override
+  String get templateFormatYmdSeconds =>
+      'YYYY-MM-DD detik (2026-06-28 14:05:09)';
+
+  @override
+  String get templateFormatIsoMinutes => 'ISO menit (2026-06-28T14:05)';
+
+  @override
+  String get templateFormatIsoSeconds => 'ISO detik (2026-06-28T14:05:09)';
+
+  @override
+  String get templateFormatDdMonthYyyyTime =>
+      'DD Bulan YYYY 24j (28 Juni 2026 14:05)';
+
+  @override
+  String get templateFormatMonthDdYyyyTime =>
+      'Bulan DD, YYYY 12j (Juni 28, 2026 2:05 PM)';
+
+  @override
+  String get templateFormatDdMonYyyyTime =>
+      'DD Bln YYYY 24j (28 Jun 2026 14:05)';
+
+  @override
+  String get templateFormatMonDdYyyyTime =>
+      'Bln DD, YYYY 12j (Jun 28, 2026 2:05 PM)';
+
+  @override
+  String get templateFormatTime24 => 'Waktu 24j (14:05)';
+
+  @override
+  String get templateFormatTime24Seconds => 'Waktu 24j dengan detik (14:05:09)';
+
+  @override
+  String get templateFormatTime12 => 'Waktu 12j (2:05 PM)';
+
+  @override
+  String get templateFormatTime12Padded =>
+      'Waktu 12j dengan nol di depan (02:05 PM)';
+
+  @override
+  String get templateFormatOriginal => 'Asli';
+
+  @override
+  String get templateFormatDecimals0 => '0 tempat desimal (mis. 12)';
+
+  @override
+  String get templateFormatDecimals1 => '1 tempat desimal (mis. 12.3)';
+
+  @override
+  String get templateFormatDecimals2 => '2 tempat desimal (mis. 12.34)';
+
+  @override
+  String get templateFormatDecimals3 => '3 tempat desimal (mis. 12.345)';
+
+  @override
+  String get templateFormatNormal => 'Biasa';
+
+  @override
+  String get templateFormatCapitalize => 'Kapitalisasi';
+
+  @override
+  String get templateSexSymbol => 'Simbol (♂/♀)';
+
+  @override
+  String get templateSexLetter => 'Huruf (J/B)';
+
+  @override
+  String get templateSexText => 'Teks (Jantan/Betina)';
+
+  @override
+  String get templateSexUnknown => 'Tidak diketahui';
+
+  @override
+  String get templateSexNa => 'T/A';
+
+  @override
+  String get templateSexNone => 'Tidak ada';
+
+  @override
+  String get templateSizeLabel => 'Ukuran templat:';
+
+  @override
+  String get templateAddImage => 'Tambah gambar';
+
+  @override
+  String get templateAddLine => 'Tambah garis';
+
+  @override
+  String get templateAddShape => 'Tambah bentuk';
+
+  @override
+  String get templateFront => 'Depan';
+
+  @override
+  String get templateBack => 'Belakang';
+
+  @override
+  String get templateSave => 'Simpan templat';
+
+  @override
+  String get templateRedo => 'Ulangi';
+
+  @override
+  String get templateBorder => 'Batas templat';
+
+  @override
+  String get templateElements => 'Elemen';
+
+  @override
+  String get templateHideGrid => 'Sembunyikan kisi';
+
+  @override
+  String get templateShowGrid => 'Tampilkan kisi';
+
+  @override
+  String get templateDisableSnap => 'Nonaktifkan jepret';
+
+  @override
+  String get templateEnableSnap => 'Aktifkan jepret';
+
+  @override
+  String get templateUnlockCanvas => 'Buka kunci gerakan kanvas';
+
+  @override
+  String get templateLockCanvas => 'Kunci gerakan kanvas';
+
+  @override
+  String get templateSelectPreviewRecord =>
+      'Pilih spesimen untuk pratinjau teks';
+
+  @override
+  String get templateSettings => 'Pengaturan templat';
+
+  @override
+  String get templateToolPage => 'Halaman';
+
+  @override
+  String get templateToolView => 'Tampilan';
+
+  @override
+  String get templatePresetTemplate => 'Templat prasetel';
+
+  @override
+  String templateMirrorOn(String side) {
+    return '$side: diputar 180° untuk dicetak (ketuk untuk menonaktifkan)';
+  }
+
+  @override
+  String templateMirrorOff(String side) {
+    return '$side: ketuk untuk memutar templat 180° saat dicetak';
+  }
+
+  @override
+  String get templateOneSided => '1 sisi';
+
+  @override
+  String templateEditSide(String side) {
+    return 'Sunting sisi $side';
+  }
+
+  @override
+  String templateElementsForSide(String side) {
+    return 'Elemen · $side';
+  }
+
+  @override
+  String get templateNoElements =>
+      'Belum ada elemen di sisi ini. Tambahkan dari alat Tambah.';
+
+  @override
+  String get templateHidden => 'Tersembunyi';
+
+  @override
+  String get templateLocked => 'Terkunci';
+
+  @override
+  String get templateNoSaved => 'Belum ada templat tersimpan.';
+
+  @override
+  String get templateFitToScreen => 'Sesuaikan dengan layar';
+
+  @override
+  String get templateRemoveImage => 'Hapus gambar';
+
+  @override
+  String get templateDragToRotate => 'Seret untuk memutar';
+
+  @override
+  String get templateRemoveLine => 'Hapus garis';
+
+  @override
+  String get templateDragToMove => 'Seret untuk memindahkan';
+
+  @override
+  String get templateRemoveShape => 'Hapus bentuk';
+
+  @override
+  String get templateDeleteImage => 'Hapus gambar';
+
+  @override
+  String get templateLineStrokeOptions => 'Opsi garis';
+
+  @override
+  String get templateThickness => 'Ketebalan';
+
+  @override
+  String get templateColor => 'Warna';
+
+  @override
+  String get templateSelectColor => 'Pilih warna';
+
+  @override
+  String get templateDeleteLine => 'Hapus garis';
+
+  @override
+  String get templateDismissToolbar => 'Tutup bilah alat';
+
+  @override
+  String get templateBorderFillOptions => 'Opsi batas dan isian';
+
+  @override
+  String get templateSelectStrokeColor => 'Pilih warna garis tepi';
+
+  @override
+  String get templateFill => 'Isian';
+
+  @override
+  String get templateClearFill => 'Hapus isian';
+
+  @override
+  String get templateDeleteShape => 'Hapus bentuk';
+
+  @override
+  String get templateRectangle => 'Persegi panjang';
+
+  @override
+  String get templateEllipse => 'Elips';
+
+  @override
+  String get templateTriangle => 'Segitiga';
+
+  @override
+  String get templatePolygon => 'Poligon';
+
+  @override
+  String get templateCorners => 'Sudut';
+
+  @override
+  String get templateSelectFillColor => 'Pilih warna isian';
+
+  @override
+  String get templateBorderTitle => 'Batas';
+
+  @override
+  String get templateSelectBorderColor => 'Pilih warna batas';
+
+  @override
+  String get templateSelectColorShade => 'Pilih corak warna';
+
+  @override
+  String get templateSelectedColorShades => 'Warna terpilih dan coraknya';
+
+  @override
+  String get templateSendToBack => 'Kirim ke paling belakang';
+
+  @override
+  String get templateSendBackward => 'Mundurkan';
+
+  @override
+  String get templateBringForward => 'Majukan';
+
+  @override
+  String get templateBringToFront => 'Bawa ke paling depan';
+
+  @override
+  String get templateUnlockPosition => 'Buka kunci posisi';
+
+  @override
+  String get templateLockPosition => 'Kunci posisi';
+
+  @override
+  String get templateHideElement => 'Sembunyikan elemen';
+
+  @override
+  String get templateShowElement => 'Tampilkan elemen';
+
+  @override
+  String get templateDuplicateElement => 'Duplikat elemen';
+
+  @override
+  String get templateCopyElement => 'Salin elemen';
+
+  @override
+  String get templatePasteElement => 'Tempel elemen';
+
+  @override
+  String templateMapEncodedValuesBody(String field) {
+    return 'Tentukan label khusus untuk nilai [$field]:';
+  }
+
+  @override
+  String get templateFontsNotInstalled => 'Huruf tidak terpasang';
+
+  @override
+  String templateMissingFontOne(int templates) {
+    String _temp0 = intl.Intl.pluralLogic(
+      templates,
+      locale: localeName,
+      other:
+          'Instalasi ini tidak memiliki 1 huruf yang digunakan oleh templat yang diimpor. Pilih penggantinya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String templateMissingFontMany(int templates, int fonts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      templates,
+      locale: localeName,
+      other:
+          'Instalasi ini tidak memiliki $fonts huruf yang digunakan oleh templat yang diimpor. Pilih pengganti untuk masing-masing.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get templateInstallOriginalFonts =>
+      'Pasang huruf asli di Dokumen > Huruf jika Anda memerlukan kecocokan persis.';
+
+  @override
+  String templateFontPreview(String font) {
+    return 'Pratinjau: $font';
+  }
+
+  @override
+  String get templateCancelImport => 'Batalkan impor';
+
+  @override
+  String get templateReplaceAndImport => 'Ganti dan impor';
+
+  @override
+  String get templateExistsTitle => 'Templat sudah ada';
+
+  @override
+  String templateExistsBody(String name) {
+    return 'Templat bernama \"$name\" sudah ada. Ganti salinan yang tersimpan?';
+  }
+
+  @override
+  String get templateNewName => 'Nama baru';
+
+  @override
+  String get templateUploadFromDevice => 'Unggah dari perangkat';
+
+  @override
+  String get templateUploadFromDeviceBody =>
+      'Menyalin berkas ke folder gambar templat Anda';
+
+  @override
+  String get templateSavedImages => 'Gambar tersimpan';
+
+  @override
+  String get templateNoSavedImages =>
+      'Belum ada gambar tersimpan - unggah satu terlebih dahulu.';
+
+  @override
+  String get templateName => 'Nama templat';
+
+  @override
+  String get templateEnterName => 'Masukkan nama';
+
+  @override
+  String get templateSaveImportedAs => 'Simpan templat yang diimpor sebagai';
+
+  @override
+  String templateMustDiffer(String name) {
+    return 'Harus berbeda dari \"$name\"';
+  }
+
+  @override
+  String get templateNameExists => 'Templat dengan nama ini sudah ada';
+
+  @override
+  String templateRecordTypeValue(String type) {
+    return 'Jenis catatan: $type';
+  }
+
+  @override
+  String get templateSides => 'Sisi';
+
+  @override
+  String get templateOneSidedBody => 'Buat templat hanya dengan sisi depan.';
+
+  @override
+  String get templateTwoSided => '2 sisi';
+
+  @override
+  String get templateTwoSidedBody => 'Buat desain depan dan belakang terpisah.';
+
+  @override
+  String get templateCreateNew => 'Buat templat baru';
+
+  @override
+  String get templateOptions => 'Opsi templat';
+
+  @override
+  String get templateSaveAs => 'Simpan sebagai…';
+
+  @override
+  String get templateChoose => 'Pilih templat';
+
+  @override
+  String get templateUntitled => 'Templat tanpa judul';
+
+  @override
+  String get templateInsertField => 'Sisipkan bidang';
+
+  @override
+  String get templateAllTaxa => 'Semua takson';
+
+  @override
+  String get templateEditCustomText => 'Sunting teks khusus';
+
+  @override
+  String get templateTextInput => 'Masukan teks';
+
+  @override
+  String get templateTextInputHint => 'Masukkan teks atau sisipkan bidang…';
+
+  @override
+  String get templateAvailableSymbols => 'Simbol yang tersedia';
+
+  @override
+  String get templateEnterText => 'Masukkan teks…';
+
+  @override
+  String templateRenamedTo(String name) {
+    return 'Diganti nama menjadi $name';
+  }
+
+  @override
+  String templateRenameFailed(String error) {
+    return 'Gagal mengganti nama: $error';
+  }
+
+  @override
+  String templateSavedName(String name) {
+    return 'Templat \"$name\" disimpan';
+  }
+
+  @override
+  String templateSavedFile(String file) {
+    return '$file disimpan';
+  }
+
+  @override
+  String templateReplacementInvalid(int index, String text, String message) {
+    return 'Penggantian teks $index di \"$text\" tidak valid: $message';
+  }
+
+  @override
+  String templateImportedAndSaved(String name) {
+    return '\"$name\" diimpor dan disimpan';
+  }
+
+  @override
+  String get templateImportFailed => 'Impor gagal atau berkas tidak valid';
+
+  @override
+  String get templateUnsavedChanges => 'Perubahan belum disimpan';
+
+  @override
+  String get templateUnsavedChangesBody =>
+      'Apakah Anda ingin menyimpan perubahan templat sebelum keluar?';
+
+  @override
+  String get templateDiscard => 'Buang';
+
+  @override
+  String get templatePreviewPartSelection =>
+      'Pemilihan bagian spesimen untuk pratinjau';
+
+  @override
+  String get templatePreviewParasiteSelection =>
+      'Pemilihan parasit untuk pratinjau';
+
+  @override
+  String get templatePreviewSpecimenSelection =>
+      'Pemilihan spesimen untuk pratinjau';
+
+  @override
+  String get templateSizePreset => 'Prasetel ukuran templat';
+
+  @override
+  String get templateSizePaper => 'Kertas';
+
+  @override
+  String get templateSizeCryotubes => 'Kriotabung';
+
+  @override
+  String get templateSizeRangeHelper => 'Masukkan nilai antara 10 dan 500 mm';
+
+  @override
+  String get templateSizeEnterWidth => 'Masukkan lebar';
+
+  @override
+  String get templateSizeInvalidNumber => 'Masukkan angka yang valid';
+
+  @override
+  String get templateSizeOutOfRange => 'Harus antara 10 dan 500';
+
+  @override
+  String get templateSizeEnterHeight => 'Masukkan tinggi';
+
+  @override
+  String get templateSizeApplyCustom => 'Terapkan ukuran khusus';
+
+  @override
+  String get templatePresetLetter => 'Letter';
+
+  @override
+  String get templatePresetLegal => 'Legal';
+
+  @override
+  String get templatePresetVialSideLarge => 'Sisi vial 1.5 - 2.0 mL';
+
+  @override
+  String get templatePresetVialSideSmall => 'Sisi vial 0.5 - 1.0 mL';
+
+  @override
+  String get templatePresetCapDotSmall => 'Titik tutup vial kecil';
+
+  @override
+  String get templatePresetCapDotLarge => 'Titik tutup vial besar';
+
+  @override
+  String get templatePresetSelfLaminating => 'Pembungkus laminasi mandiri';
+
+  @override
+  String get templatePresetPinnedLocality =>
+      'Invertebrata berjarum (lokalitas)';
+
+  @override
+  String get templatePresetPinnedTaxon => 'Invertebrata berjarum (ID takson)';
+
+  @override
+  String get templatePresetJarInsert => 'Koleksi basah (sisipan toples)';
+
+  @override
+  String get templatePresetVertebrateTag => 'Tag spesimen vertebrata (sedang)';
+
+  @override
+  String get templatePresetSkullBox => 'Kotak tengkorak / mikrovial';
+
+  @override
+  String get templatePresetA4Description =>
+      'Standar internasional bawaan untuk katalog, laporan, dan lembar label.';
+
+  @override
+  String get templatePresetLetterDescription =>
+      'Standar Amerika Utara bawaan untuk dokumentasi dan pencetakan matriks.';
+
+  @override
+  String get templatePresetLegalDescription =>
+      'Kanvas panjang untuk catatan lapangan panjang, lembar riwayat, atau tabel besar.';
+
+  @override
+  String get templatePresetA5Description =>
+      'Ukuran ringkas, ideal untuk buku lapangan saku dan sisipan catatan kecil.';
+
+  @override
+  String get templatePresetA3Description =>
+      'Lembar besar untuk pembuatan peta, tata letak laci koleksi, dan kisi sistem.';
+
+  @override
+  String get templatePresetVialSideLargeDescription =>
+      'Label sisi standar. Muat 3-4 baris teks dan kode batang.';
+
+  @override
+  String get templatePresetVialSideSmallDescription =>
+      'Profil sisi ringkas untuk alikuot jaringan atau DNA yang lebih kecil.';
+
+  @override
+  String get templatePresetCapDotSmallDescription =>
+      'Titik bundar atas untuk tutup tabung 0.5–1.5 mL agar dapat dipindai dari atas.';
+
+  @override
+  String get templatePresetCapDotLargeDescription =>
+      'Titik bundar atas untuk tutup ulir krivial 2.0 mL atau lebih besar.';
+
+  @override
+  String get templatePresetSelfLaminatingDescription =>
+      'Teks dicetak di area 25.4x12.7 mm; ekor bening membungkus untuk melindungi dari nitrogen cair.';
+
+  @override
+  String get templatePresetPinnedLocalityDescription =>
+      'Batas kaku untuk serangga berjarum; muat 5-6 baris metadata sangat ringkas.';
+
+  @override
+  String get templatePresetPinnedTaxonDescription =>
+      'Ukuran terkecil; memuat genus spesies, author, dan info pengidentifikasi.';
+
+  @override
+  String get templatePresetJarInsertDescription =>
+      'Diletakkan di dalam toples basah (alkohol/formalin). Mudah dibaca melalui kaca lengkung.';
+
+  @override
+  String get templatePresetVertebrateTagDescription =>
+      'Tag gantung standar berukuran sedang untuk kurasi vertebrata.';
+
+  @override
+  String get templatePresetSkullBoxDescription =>
+      'Dioptimalkan untuk vial kaca 1–2 dram atau kotak osteologi karton kecil.';
+
+  @override
+  String get templateElementImage => 'Gambar';
+
+  @override
+  String templateElementImageDetail(String width, String height) {
+    return 'Gambar · $width × $height mm';
+  }
+
+  @override
+  String get templateElementLine => 'Garis';
+
+  @override
+  String get templateElementEmptyText => 'Teks kosong';
+
+  @override
+  String get mediaGallery => 'Galeri';
+
+  @override
+  String get mediaActions => 'Tindakan';
+
+  @override
+  String get mediaDeleteSelectedTitle => 'Hapus media yang dipilih?';
+
+  @override
+  String get mediaDeleteSelectedBody =>
+      'Hapus media yang dipilih dari semua catatan NAHPU dan dari disk? Tindakan ini tidak dapat dibatalkan.';
+
+  @override
+  String mediaSelectedCount(int count) {
+    return '$count dipilih';
+  }
+
+  @override
+  String get mediaNoneAdded => 'Belum ada media';
+
+  @override
+  String get mediaAdd => 'Tambah media';
+
+  @override
+  String get mediaTakePhotosVideos => 'Ambil foto/video';
+
+  @override
+  String get mediaRecordAudio => 'Rekam audio';
+
+  @override
+  String get mediaAddFromGallery => 'Tambah dari galeri';
+
+  @override
+  String get mediaAddFromFile => 'Tambah dari berkas';
+
+  @override
+  String get mediaUnavailable => 'Media tidak tersedia';
+
+  @override
+  String get mediaFileMissing => 'Berkas tidak ada';
+
+  @override
+  String get mediaImageUnavailable => 'Gambar tidak tersedia';
+
+  @override
+  String get mediaNone => 'Tidak ada media';
+
+  @override
+  String get mediaMenuActions => 'Tindakan media';
+
+  @override
+  String get mediaShowInfo => 'Tampilkan info';
+
+  @override
+  String get mediaEdit => 'Sunting media';
+
+  @override
+  String get mediaInfo => 'Info media';
+
+  @override
+  String get mediaDeleteFileTitle => 'Hapus berkas media?';
+
+  @override
+  String mediaDeleteFileBody(String name) {
+    return 'Hapus $name dari semua catatan NAHPU dan dari disk? Tindakan ini tidak dapat dibatalkan.';
+  }
+
+  @override
+  String get mediaDeleteThisFileBody =>
+      'Hapus berkas media ini dari semua catatan NAHPU dan dari disk? Tindakan ini tidak dapat dibatalkan.';
+
+  @override
+  String get mediaFileAlreadyExists => 'Berkas sudah ada';
+
+  @override
+  String get mediaFileName => 'Nama berkas';
+
+  @override
+  String get mediaFileNameHint => 'Masukkan nama berkas';
+
+  @override
+  String get mediaCaption => 'Keterangan';
+
+  @override
+  String get mediaCaptionHint => 'Masukkan keterangan';
+
+  @override
+  String get mediaTag => 'Tag';
+
+  @override
+  String get mediaTagHint => 'Masukkan tag';
+
+  @override
+  String get mediaPhotographer => 'Fotografer';
+
+  @override
+  String get mediaSelectPersonnel => 'Pilih personel';
+
+  @override
+  String get mediaClearPhotographer => 'Hapus fotografer';
+
+  @override
+  String get mediaExportSelected => 'Ekspor media yang dipilih';
+
+  @override
+  String get mediaExporting => 'Mengekspor media';
+
+  @override
+  String get mediaExportingHint =>
+      'Pilihan media yang besar dapat memakan waktu beberapa menit. Biarkan NAHPU tetap terbuka hingga selesai.';
+
+  @override
+  String get mediaExport => 'Ekspor media';
+
+  @override
+  String get mediaExportLeaveBody =>
+      'Ekspor masih berjalan. Keluar sekarang akan membatalkannya dan tidak ada berkas yang disimpan.';
+
+  @override
+  String get mediaArchive => 'Arsip media';
+
+  @override
+  String get mediaImageFormat => 'Format gambar';
+
+  @override
+  String get mediaLimitDimensions => 'Batasi dimensi gambar';
+
+  @override
+  String get mediaLimitDimensionsBody =>
+      'Batasi sisi terpanjang tanpa memperbesar';
+
+  @override
+  String get mediaMaxDimension => 'Lebar atau tinggi maksimum (px)';
+
+  @override
+  String get mediaMaxDimensionHelper =>
+      'Berlaku untuk sisi yang lebih panjang.';
+
+  @override
+  String get mediaJpegQuality => 'Kualitas JPEG';
+
+  @override
+  String get mediaImages => 'Gambar';
+
+  @override
+  String get mediaAudio => 'Audio';
+
+  @override
+  String get mediaVideo => 'Video';
+
+  @override
+  String get mediaOther => 'Lainnya';
+
+  @override
+  String get mediaSourceSize => 'Ukuran sumber';
+
+  @override
+  String get mediaExported => 'Diekspor';
+
+  @override
+  String mediaWarningCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count peringatan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mediaCannotConvert(String format) {
+    return '$format tidak dapat dikonversi dan akan tetap dalam format aslinya.';
+  }
+
+  @override
+  String get mediaPause => 'Jeda';
+
+  @override
+  String get mediaPlay => 'Putar';
+
+  @override
+  String mediaPlaybackUnavailable(String error) {
+    return 'Pratinjau pemutaran tidak tersedia: $error';
+  }
+
+  @override
+  String get mediaCameraAccessRequired =>
+      'Akses kamera diperlukan untuk mengambil foto dan video.';
+
+  @override
+  String get mediaMicrophoneAccessRequired =>
+      'Akses mikrofon diperlukan untuk merekam video.';
+
+  @override
+  String get mediaCameraError => 'Tidak dapat menggunakan kamera.';
+
+  @override
+  String get mediaPhoto => 'Foto';
+
+  @override
+  String get mediaSwitchCamera => 'Ganti kamera';
+
+  @override
+  String get mediaStopRecording => 'Hentikan perekaman';
+
+  @override
+  String get mediaRecordVideo => 'Rekam video';
+
+  @override
+  String get mediaRetake => 'Ambil ulang';
+
+  @override
+  String get mediaUse => 'Gunakan';
+
+  @override
+  String get mediaDetailFile => 'Berkas';
+
+  @override
+  String get mediaCategory => 'Kategori';
+
+  @override
+  String get mediaCaptureEquipment => 'Pengambilan dan peralatan';
+
+  @override
+  String get mediaTaken => 'Diambil';
+
+  @override
+  String get mediaCamera => 'Kamera';
+
+  @override
+  String get mediaLenses => 'Lensa';
+
+  @override
+  String get mediaAdditionalExif => 'EXIF tambahan';
+
+  @override
+  String get mediaId => 'ID media';
+
+  @override
+  String get mediaSecondaryId => 'ID sekunder';
+
+  @override
+  String get mediaPhotographerId => 'ID fotografer';
+
+  @override
+  String get mediaLinkedInformation => 'Informasi tertaut';
+
+  @override
+  String mediaLinkedInformationError(String error) {
+    return 'Informasi tertaut tidak tersedia: $error';
+  }
+
+  @override
+  String get mediaResume => 'Lanjutkan';
+
+  @override
+  String get mediaPausePlayback => 'Jeda pemutaran';
+
+  @override
+  String get mediaPlayRecording => 'Putar rekaman';
+
+  @override
+  String get mediaRecordingNotSaved => 'Rekaman audio tidak disimpan.';
+
+  @override
+  String get mediaImageSettings => 'Pengaturan gambar';
+
+  @override
+  String mediaOriginalSize(int width, int height) {
+    return 'Asli: $width × $height px';
+  }
+
+  @override
+  String get mediaResizeImage => 'Ubah ukuran gambar';
+
+  @override
+  String get mediaAspectLocked => 'Rasio aspek terkunci';
+
+  @override
+  String get mediaWidthPx => 'Lebar (px)';
+
+  @override
+  String mediaMaxValue(int value) {
+    return 'Maks. $value';
+  }
+
+  @override
+  String get mediaHeightPx => 'Tinggi (px)';
+
+  @override
+  String get mediaSearchMetadata => 'Cari metadata media';
+
+  @override
+  String get mediaGalleryTitle => 'Galeri media';
+
+  @override
+  String get mediaSearch => 'Cari media';
+
+  @override
+  String get mediaDeleteSelected => 'Hapus media yang dipilih';
+
+  @override
+  String get mediaCategoryEvent => 'Kegiatan';
+
+  @override
+  String get mediaSort => 'Urutkan media';
+
+  @override
+  String get mediaNoMatching => 'Tidak ada media yang cocok';
+
+  @override
+  String get mediaSortAddedNewest => 'Terbaru ditambahkan';
+
+  @override
+  String get mediaSortAddedOldest => 'Terlama ditambahkan';
+
+  @override
+  String get mediaSortFileNameAsc => 'Nama berkas A–Z';
+
+  @override
+  String get mediaSortFileNameDesc => 'Nama berkas Z–A';
+
+  @override
+  String get mediaSortTakenNewest => 'Tanggal diambil, terbaru';
+
+  @override
+  String get mediaSortTakenOldest => 'Tanggal diambil, terlama';
+
+  @override
+  String get mediaHideDetails => 'Sembunyikan detail';
+
+  @override
+  String get mediaShowDetails => 'Tampilkan detail';
+
+  @override
+  String get mediaPrevious => 'Sebelumnya';
+
+  @override
+  String get mediaMute => 'Bisukan';
+
+  @override
+  String get mediaUnmute => 'Bunyikan';
+
+  @override
+  String get mediaPlaybackSpeed => 'Kecepatan pemutaran';
+
+  @override
+  String get mediaExitFullscreen => 'Keluar dari layar penuh';
+
+  @override
+  String get mediaFullscreen => 'Layar penuh';
+
+  @override
+  String mediaCannotDisplay(String kind) {
+    return 'Tidak dapat menampilkan berkas $kind ini';
+  }
+
+  @override
+  String get mediaBarcode => 'Kode batang';
+
+  @override
+  String get mediaScanQrCode => 'Pindai kode QR';
+
+  @override
+  String get mediaScanBarcode => 'Pindai kode batang';
+
+  @override
+  String get mediaAlignQrCode => 'Sejajarkan kode QR di dalam bingkai';
+
+  @override
+  String get mediaAlignBarcode => 'Sejajarkan kode batang di dalam bingkai';
+
+  @override
+  String get mediaQrTooLarge =>
+      'Data terlalu besar untuk kode QR.\nEkspor sebagai berkas.';
+
+  @override
+  String get associatedUnnamed => 'Data terkait tanpa nama';
+
+  @override
+  String get associatedFileUnavailable => 'Berkas tidak tersedia';
+
+  @override
+  String get associatedTypeLink => 'Tautan';
+
+  @override
+  String get associatedUnknownType => 'Jenis tidak diketahui';
+
+  @override
+  String get associatedNoResource => 'Tidak ada sumber daya';
+
+  @override
+  String get associatedActions => 'Tindakan data terkait';
+
+  @override
+  String get associatedOpenInDefaultApp => 'Buka di aplikasi bawaan';
+
+  @override
+  String get associatedOpenLink => 'Buka tautan';
+
+  @override
+  String get associatedNoUriToShare => 'Tidak ada URI untuk dibagikan.';
+
+  @override
+  String get associatedFileNotFound => 'Berkas tidak ditemukan';
+
+  @override
+  String get associatedInvalidUri => 'URI tidak valid.';
+
+  @override
+  String associatedCouldNotOpen(String uri) {
+    return 'Tidak dapat membuka $uri';
+  }
+
+  @override
+  String get associatedAdd => 'Tambah data terkait';
+
+  @override
+  String get associatedNoneAdded => 'Belum ada data terkait';
+
+  @override
+  String get associatedEdit => 'Sunting data terkait';
+
+  @override
+  String get associatedDataType => 'Jenis data';
+
+  @override
+  String get associatedDataTypeHint => 'Pilih jenis data';
+
+  @override
+  String get associatedNameHint => 'mis. GenBank atau MorphoSource';
+
+  @override
+  String get associatedDescriptionHint => 'Jelaskan data terkait';
+
+  @override
+  String get associatedResource => 'Sumber daya';
+
+  @override
+  String get associatedNonMediaFiles => 'Berkas non-media';
+
+  @override
+  String get associatedCopyToProject => 'Salin ke proyek';
+
+  @override
+  String get associatedLinkOriginal => 'Tautkan asli';
+
+  @override
+  String get associatedLinkOriginalWarning =>
+      'Tautan akan berhenti berfungsi jika berkas asli dipindahkan atau dihapus.';
+
+  @override
+  String get associatedSelectDataType => 'Pilih jenis data.';
+
+  @override
+  String get associatedEnterValidUri => 'Masukkan URI yang valid.';
+
+  @override
+  String get associatedSelectFile => 'Pilih berkas.';
+
+  @override
+  String get associatedNoIdentifier => 'Data terkait tidak memiliki pengenal.';
+
+  @override
+  String get associatedInfo => 'Info data terkait';
+
+  @override
+  String get associatedOriginStoragePath => 'Jalur penyimpanan asal';
+
+  @override
+  String get associatedLinkedOriginal => 'Asli tertaut';
+
+  @override
+  String get associatedProjectCopy => 'Salinan proyek';
+
+  @override
+  String get associatedAvailability => 'Ketersediaan';
+
+  @override
+  String get associatedChecking => 'Memeriksa…';
+
+  @override
+  String get legalReadThe => 'Harap baca ';
+
+  @override
+  String get legalTermsAndConditions => 'Syarat dan Ketentuan';
+
+  @override
+  String get legalAndThe => ' dan ';
+
+  @override
+  String get legalPrivacyPolicy => 'Kebijakan Privasi';
+
+  @override
+  String get legalBeforeYouStart =>
+      ' sebelum memulai. Dengan menggunakan NAHPU, Anda menyetujuinya.';
+
+  @override
+  String get legalTermsTile => 'Syarat dan ketentuan';
+
+  @override
+  String get legalPrivacyTile => 'Kebijakan privasi';
+
+  @override
+  String get mapCenterOnCoordinates => 'Pusatkan peta pada koordinat';
+
+  @override
+  String mapMoreCount(int count) {
+    return '+$count lainnya';
+  }
+
+  @override
+  String get mapTapToZoomIn => 'Ketuk untuk memperbesar';
+
+  @override
+  String get mapNaturalEarthOffline => 'Natural Earth · luring';
+
+  @override
+  String get mapRetryDetailed => 'Coba lagi peta terperinci';
+
+  @override
+  String get siteAddCoordinates => 'Tambah koordinat';
+
+  @override
+  String get siteViewMap => 'Lihat peta';
+
+  @override
+  String siteAddSelected(int count) {
+    return 'Tambah $count yang dipilih';
+  }
+
+  @override
+  String get siteNewCoordinate => 'Koordinat baru';
+
+  @override
+  String get siteSupportedFiles => 'Berkas yang didukung:';
+
+  @override
+  String get siteSupportedFileTypes =>
+      'CSV, TSV, Excel, GeoJSON/JSON, KML, Shapefile terkompresi, dan GPX.';
+
+  @override
+  String get siteSelectCoordinateFile => 'Pilih berkas koordinat';
+
+  @override
+  String siteRowsSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count baris dilewati',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteEditColumnMapping => 'Sunting pemetaan kolom';
+
+  @override
+  String get siteChooseAnotherFile => 'Pilih berkas lain';
+
+  @override
+  String get siteCoordinateChanged =>
+      'Koordinat berubah. Muat ulang peta untuk memperbarui pratinjau.';
+
+  @override
+  String get siteEnterValidCoordinate =>
+      'Masukkan lintang dan bujur WGS84 yang valid, lalu muat ulang peta.';
+
+  @override
+  String get siteRefreshMap => 'Muat ulang peta';
+
+  @override
+  String get siteEditCoordinates => 'Sunting koordinat';
+
+  @override
+  String get siteAddName => 'Tambahkan nama';
+
+  @override
+  String get siteDeviceGps => 'GPS perangkat';
+
+  @override
+  String get siteDeviceGpsBody =>
+      'Gunakan sensor perangkat untuk mengisi koordinat otomatis';
+
+  @override
+  String get siteGetLocation => 'Dapatkan lokasi';
+
+  @override
+  String get siteCoordinateFormat => 'Format koordinat';
+
+  @override
+  String get siteDecimalDegrees => 'Derajat desimal';
+
+  @override
+  String get siteDdm => 'Derajat menit desimal (DDM)';
+
+  @override
+  String get siteDms => 'Derajat menit detik (DMS)';
+
+  @override
+  String get siteUtm => 'UTM (WGS84)';
+
+  @override
+  String get siteUtmCoordinate => 'Koordinat UTM';
+
+  @override
+  String get siteDecimalLatitude => 'Lintang desimal';
+
+  @override
+  String get siteAddLatitude => 'Tambahkan lintang';
+
+  @override
+  String get siteDecimalLongitude => 'Bujur desimal';
+
+  @override
+  String get siteAddLongitude => 'Tambahkan bujur';
+
+  @override
+  String get siteAddElevation => 'Tambahkan elevasi';
+
+  @override
+  String get siteSpecifyDatum => 'Tentukan datum';
+
+  @override
+  String get siteAddUncertainty => 'Tambahkan ketidakpastian';
+
+  @override
+  String get siteGpsUnit => 'Unit GPS';
+
+  @override
+  String get siteSpecifyGpsUnit => 'Tentukan unit GPS';
+
+  @override
+  String get siteAddNotes => 'Tambahkan catatan (opsional)';
+
+  @override
+  String get siteChangeFormatTitle => 'Ubah format koordinat?';
+
+  @override
+  String get siteChangeFormatBody =>
+      'Mengubah format akan menghapus nilai koordinat yang dimasukkan. Nama, elevasi, datum, ketidakpastian, unit GPS, dan catatan tetap disimpan.';
+
+  @override
+  String get siteClearAndSwitch => 'Hapus dan ganti';
+
+  @override
+  String siteInvalidVerbatim(String axis, String value) {
+    return '$axis verbatim ini tidak dapat dibaca dan mungkin telah diubah di luar NAHPU. Masukkan ulang sebelum menyimpan.\nAsli: $value';
+  }
+
+  @override
+  String get siteMissingValue => '(kosong)';
+
+  @override
+  String get siteDegree => 'Derajat';
+
+  @override
+  String get siteMinute => 'Menit';
+
+  @override
+  String get siteSecond => 'Detik';
+
+  @override
+  String get siteManageCoordinates => 'Kelola koordinat';
+
+  @override
+  String get siteCoordinateMap => 'Peta koordinat';
+
+  @override
+  String siteExportCoordinatesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ekspor $count koordinat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteFormatGeoJson => 'GeoJSON (.geojson)';
+
+  @override
+  String get siteFormatShapefile => 'Bundel Shapefile (.zip)';
+
+  @override
+  String get siteShowCoordinates => 'Tampilkan koordinat';
+
+  @override
+  String get siteAllCoordinates => 'Semua koordinat';
+
+  @override
+  String siteLoadSitesError(String error) {
+    return 'Tidak dapat memuat situs: $error';
+  }
+
+  @override
+  String siteLoadCoordinatesError(String error) {
+    return 'Tidak dapat memuat koordinat: $error';
+  }
+
+  @override
+  String siteExportSelectedCoordinates(int count) {
+    return 'Ekspor koordinat ($count)';
+  }
+
+  @override
+  String get siteNoCoordinates => 'Belum ada koordinat';
+
+  @override
+  String siteSelectedOfCoordinates(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total koordinat',
+    );
+    return '$count dari $_temp0';
+  }
+
+  @override
+  String siteUnnamedCoordinateId(String id) {
+    return 'Koordinat tanpa nama ($id)';
+  }
+
+  @override
+  String siteCoordinatesNotShown(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count koordinat tidak ditampilkan karena lintang atau bujur kosong atau tidak valid.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteCoordinateActions => 'Tindakan koordinat';
+
+  @override
+  String get siteCopy => 'Salin';
+
+  @override
+  String get siteOpenInMap => 'Buka di peta';
+
+  @override
+  String get siteCoordinateDetails => 'Detail koordinat';
+
+  @override
+  String get siteCopiedToClipboard => 'Lintang dan bujur disalin ke papan klip';
+
+  @override
+  String get siteNoName => 'Tanpa nama';
+
+  @override
+  String get siteOriginalCoordinate => 'Koordinat asli';
+
+  @override
+  String get siteOriginalFormat => 'Format asli';
+
+  @override
+  String get siteUncertainty => 'Ketidakpastian';
+
+  @override
+  String get siteUnnamedCoordinate => 'Koordinat tanpa nama';
+
+  @override
+  String get siteAddCoordinate => 'Tambah koordinat';
+
+  @override
+  String get siteNoId => 'Tanpa ID';
+
+  @override
+  String siteColumnsDetected(int columns, int rows) {
+    return 'Terdeteksi $columns kolom dan $rows baris data. NAHPU menyimpulkan kecocokan di bawah. Lintang dan bujur wajib diisi; bidang lainnya opsional.';
+  }
+
+  @override
+  String siteColumnsDetectedInWorksheet(
+    int columns,
+    int rows,
+    String worksheet,
+  ) {
+    return 'Terdeteksi $columns kolom dan $rows baris data di lembar kerja \"$worksheet\". NAHPU menyimpulkan kecocokan di bawah. Lintang dan bujur wajib diisi; bidang lainnya opsional.';
+  }
+
+  @override
+  String get siteNotIncluded => 'Tidak disertakan';
+
+  @override
+  String siteHeaderColumn(String header, int index) {
+    return '$header (kolom $index)';
+  }
+
+  @override
+  String get siteReviewCoordinates => 'Tinjau koordinat';
+
+  @override
+  String get siteImportFieldNameId => 'Nama / ID';
+
+  @override
+  String get siteCopyFromProject => 'Salin dari proyek';
+
+  @override
+  String get siteChooseDataToCopy => 'Pilih data untuk disalin';
+
+  @override
+  String get siteSelectSourceProject =>
+      'Pilih proyek yang berisi situs yang akan disalin.';
+
+  @override
+  String siteSelectFromProject(String project) {
+    return 'Pilih situs dari $project.';
+  }
+
+  @override
+  String get siteNoSitesInProject => 'Tidak ada situs di proyek ini.';
+
+  @override
+  String get siteSelectDataToCopy =>
+      'Pilih data yang akan disalin ke situs kosong.';
+
+  @override
+  String get siteNoCopyableData =>
+      'Situs yang dipilih tidak memiliki data yang dapat disalin.';
+
+  @override
+  String get siteNoDataInSource => 'Tidak ada data di sumber';
+
+  @override
+  String get siteMustBeEmptyBody =>
+      'Situs saat ini harus kosong sebelum menyalin data. Hapus informasi situs, koordinat, media, dan data tertautnya terlebih dahulu.';
+
+  @override
+  String get siteMustBeEmpty => 'Situs harus kosong';
+
+  @override
+  String get siteNeedAnotherProject =>
+      'Buat atau impor proyek lain sebelum menyalin data situs.';
+
+  @override
+  String get siteMultipleProjectsRequired => 'Diperlukan beberapa proyek';
+
+  @override
+  String siteUnnamedSite(String id) {
+    return 'Situs tanpa nama #$id';
+  }
+
+  @override
+  String siteGeographySettingsError(String error) {
+    return 'Tidak dapat memuat pengaturan geografi: $error';
+  }
+
+  @override
+  String get siteFindLocalityTooltip =>
+      'Ketik lokalitas dan pilih yang tersimpan untuk mengisi semua bidang geografi';
+
+  @override
+  String get siteFindLocality => 'Cari lokalitas yang ada';
+
+  @override
+  String get siteFindLocalityHint => 'Ketik untuk memakai lokalitas tersimpan';
+
+  @override
+  String get siteEnterCountry => 'Masukkan negara';
+
+  @override
+  String get siteEnterIslandGroup => 'Masukkan kelompok pulau';
+
+  @override
+  String get siteEnterStateProvince => 'Masukkan negara bagian/provinsi';
+
+  @override
+  String get siteEnterCounty => 'Masukkan kabupaten/paroki/distrik';
+
+  @override
+  String get siteEnterMunicipality => 'Masukkan kotamadya/kota/desa';
+
+  @override
+  String get sitePreciseLocality => 'Lokalitas tepat';
+
+  @override
+  String get sitePreciseLocalityHint =>
+      'Masukkan lokalitas tepat di bawah tingkat kotamadya';
+
+  @override
+  String get siteRemarksHint =>
+      'Masukkan info lebih lanjut tentang situs (opsional)';
+
+  @override
+  String get siteHabitatType => 'Jenis habitat';
+
+  @override
+  String get siteHabitatTypeHint => 'Pilih jenis habitat';
+
+  @override
+  String get siteHabitatCondition => 'Kondisi habitat';
+
+  @override
+  String get siteHabitatConditionHint => 'Mis. \"Asli\", \"Terganggu\", dll.';
+
+  @override
+  String get siteHabitatDescription => 'Deskripsi habitat';
+
+  @override
+  String get siteHabitatDescriptionHint =>
+      'Jelaskan situs, mis. \"Lokasi kemah di tengah hutan.\"';
+
+  @override
+  String get siteCanopyCover => 'Tutupan kanopi';
+
+  @override
+  String get siteCanopyCoverHint => 'Masukkan tutupan kanopi';
+
+  @override
+  String get siteCreate => 'Buat situs';
+
+  @override
+  String get siteActions => 'Tindakan situs';
+
+  @override
+  String get siteDuplicate => 'Duplikat situs';
+
+  @override
+  String get siteCopyFromProjectMenu => 'Salin dari proyek…';
+
+  @override
+  String get siteExport => 'Ekspor situs';
+
+  @override
+  String get siteImport => 'Impor situs';
+
+  @override
+  String siteCopiedSummary(
+    String fields,
+    String coordinates,
+    String site,
+    String project,
+  ) {
+    return 'Disalin $fields dan $coordinates dari $site di $project.';
+  }
+
+  @override
+  String siteFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bidang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get siteDeleteTitle => 'Hapus situs?';
+
+  @override
+  String get siteDeleteBody =>
+      'Anda akan menghapus semua catatan di formulir situs ini';
+
+  @override
+  String get siteDeleteAllTitle => 'Hapus semua situs?';
+
+  @override
+  String get siteDeleteAllBody => 'Anda akan menghapus semua catatan situs';
+
+  @override
+  String get siteDeleteInUse =>
+      'Tidak dapat menghapus situs. Sedang digunakan oleh catatan lain.';
+
+  @override
+  String get siteIdentity => 'Identitas situs';
+
+  @override
+  String get siteIdHint =>
+      'Masukkan ID situs (maks. 40 karakter), mis. \"CAMP-01\", \"LINE-1\"';
+
+  @override
+  String get siteLeader => 'Pemimpin situs';
+
+  @override
+  String get siteType => 'Jenis situs';
+
+  @override
+  String get siteTypeHint => 'Pilih jenis situs';
+
+  @override
+  String get siteSearch => 'Cari situs';
+
+  @override
+  String get siteRecordTitle => 'Catatan situs';
+
+  @override
+  String get siteNoneFound => 'Situs tidak ditemukan';
+
+  @override
+  String get siteCopyFieldSiteLeader => 'Pemimpin situs';
+
+  @override
+  String get siteCopyFieldSiteType => 'Jenis situs';
+
+  @override
+  String get siteCopyFieldPreciseLocality => 'Lokalitas tepat';
+
+  @override
+  String get siteCopyFieldHabitatType => 'Jenis habitat';
+
+  @override
+  String get siteCopyFieldHabitatCondition => 'Kondisi habitat';
+
+  @override
+  String get siteCopyFieldHabitatDescription => 'Deskripsi habitat';
+
+  @override
+  String get siteCopyFieldCanopyCover => 'Tutupan kanopi';
+
+  @override
+  String eventEnvironmentLoadError(String error) {
+    return 'Tidak dapat memuat data lingkungan: $error';
+  }
+
+  @override
+  String get eventDayLowest => 'Terendah siang';
+
+  @override
+  String get eventDayHighest => 'Tertinggi siang';
+
+  @override
+  String get eventNightLowest => 'Terendah malam';
+
+  @override
+  String get eventNightHighest => 'Tertinggi malam';
+
+  @override
+  String get eventAverage => 'Rata-rata';
+
+  @override
+  String get eventDewPoint => 'Titik embun';
+
+  @override
+  String get eventEnterLowestTemp => 'Masukkan suhu terendah';
+
+  @override
+  String get eventEnterHighestTemp => 'Masukkan suhu tertinggi';
+
+  @override
+  String get eventEnterAverageHumidity => 'Masukkan kelembapan rata-rata';
+
+  @override
+  String get eventEnterDewPoint => 'Masukkan titik embun';
+
+  @override
+  String get eventCloudCover => 'Tutupan awan (okta)';
+
+  @override
+  String get eventCloudCoverHint => 'Pilih tutupan awan';
+
+  @override
+  String get eventCloudCoverHelper =>
+      'Satu okta mewakili seperdelapan langit yang terlihat.';
+
+  @override
+  String eventInvalidStoredValue(String value) {
+    return '$value — Nilai tersimpan tidak valid';
+  }
+
+  @override
+  String get eventEnterRainfall => 'Masukkan curah hujan';
+
+  @override
+  String get eventEnterAmbientTemp => 'Masukkan suhu lingkungan';
+
+  @override
+  String get eventEnterRelativeHumidity => 'Masukkan kelembapan relatif';
+
+  @override
+  String get eventEnterWaterTemp => 'Masukkan suhu air';
+
+  @override
+  String get eventEnterPh => 'Masukkan pH';
+
+  @override
+  String get eventEnterDissolvedOxygen => 'Masukkan oksigen terlarut';
+
+  @override
+  String get eventEnterOxygenSaturation => 'Masukkan saturasi oksigen terlarut';
+
+  @override
+  String get eventEnterConductivity => 'Masukkan konduktivitas';
+
+  @override
+  String get eventEnterFlowVelocity => 'Masukkan kecepatan aliran';
+
+  @override
+  String get eventEnterSunrise => 'Masukkan waktu matahari terbit';
+
+  @override
+  String get eventEnterSunset => 'Masukkan waktu matahari terbenam';
+
+  @override
+  String get eventMoonPhaseHint => 'Pilih fase bulan';
+
+  @override
+  String eventRecoveryTitle(int count) {
+    return 'Beberapa nilai lingkungan tersimpan perlu diperhatikan ($count)';
+  }
+
+  @override
+  String get eventRecoveryBody =>
+      'Perbaiki atau kosongkan bidang yang disorot. Nilai lain tidak akan diubah.';
+
+  @override
+  String eventSaveValueError(String error) {
+    return 'Tidak dapat menyimpan nilai ini: $error';
+  }
+
+  @override
+  String get eventEnterValidNumber => 'Masukkan angka yang valid.';
+
+  @override
+  String eventValueRange(String minimum, String maximum) {
+    return 'Masukkan nilai dari $minimum hingga $maximum';
+  }
+
+  @override
+  String eventValueMinimum(String minimum) {
+    return 'Masukkan nilai $minimum atau lebih';
+  }
+
+  @override
+  String get eventOkta0 => '0 — Langit cerah';
+
+  @override
+  String get eventOkta1 => '1 — Hingga 1/8 tertutup';
+
+  @override
+  String get eventOkta2 => '2 — 2/8 tertutup';
+
+  @override
+  String get eventOkta3 => '3 — 3/8 tertutup';
+
+  @override
+  String get eventOkta4 => '4 — Setengah tertutup';
+
+  @override
+  String get eventOkta5 => '5 — 5/8 tertutup';
+
+  @override
+  String get eventOkta6 => '6 — 6/8 tertutup';
+
+  @override
+  String get eventOkta7 => '7 — Setidaknya 7/8, tidak mendung total';
+
+  @override
+  String get eventOkta8 => '8 — Mendung total';
+
+  @override
+  String get eventOkta9 => '9 — Langit tertutup';
+
+  @override
+  String get eventMoonNew => 'Bulan baru';
+
+  @override
+  String get eventMoonWaxingCrescent => 'Bulan sabit awal';
+
+  @override
+  String get eventMoonFirstQuarter => 'Kuartal pertama';
+
+  @override
+  String get eventMoonWaxingGibbous => 'Cembung awal';
+
+  @override
+  String get eventMoonFull => 'Bulan purnama';
+
+  @override
+  String get eventMoonWaningGibbous => 'Cembung akhir';
+
+  @override
+  String get eventMoonLastQuarter => 'Kuartal terakhir';
+
+  @override
+  String get eventMoonWaningCrescent => 'Bulan sabit akhir';
+
+  @override
+  String get eventActivity => 'Aktivitas';
+
+  @override
+  String get eventPrimaryActivity => 'Aktivitas utama';
+
+  @override
+  String get eventSelectActivity => 'Pilih aktivitas';
+
+  @override
+  String eventActivitiesLoadError(String error) {
+    return 'Tidak dapat memuat aktivitas utama: $error';
+  }
+
+  @override
+  String get eventActivityNotesHint => 'Masukkan catatan tentang aktivitas';
+
+  @override
+  String get eventAddCollMethod => 'Tambah metode koleksi';
+
+  @override
+  String get eventNoCollMethods => 'Belum ada metode koleksi';
+
+  @override
+  String get eventAddCollMethodTitle => 'Tambah metode koleksi';
+
+  @override
+  String get eventEditCollMethod => 'Sunting metode koleksi';
+
+  @override
+  String get eventCollMethod => 'Metode koleksi';
+
+  @override
+  String get eventCountHint =>
+      'Berapa banyak alat ini yang digunakan (jika ada)?';
+
+  @override
+  String get eventMethodDetails => 'Detail metode';
+
+  @override
+  String get eventBrandModel => 'Merek dan model';
+
+  @override
+  String get eventBrandModelHint => 'Masukkan merek dan model alat (jika ada)';
+
+  @override
+  String get eventSizeHint => 'Masukkan ukuran alat (jika ada)';
+
+  @override
+  String get eventToolNotesHint => 'Masukkan catatan tentang alat (jika ada)';
+
+  @override
+  String get eventSelectMethod => 'Pilih metode';
+
+  @override
+  String get eventIdentity => 'Identitas kegiatan';
+
+  @override
+  String get eventStartDate => 'Tanggal mulai';
+
+  @override
+  String get eventEndDate => 'Tanggal selesai';
+
+  @override
+  String get eventEditId => 'Sunting ID kegiatan';
+
+  @override
+  String get eventIdSuffix => 'Akhiran ID';
+
+  @override
+  String get eventIdSuffixHint => 'Masukkan akhiran ID';
+
+  @override
+  String get eventIdLabel => 'ID kegiatan: ';
+
+  @override
+  String get eventStartTime => 'Waktu mulai';
+
+  @override
+  String get eventEndTime => 'Waktu selesai';
+
+  @override
+  String get eventCreate => 'Buat kegiatan';
+
+  @override
+  String get eventDeleteInUse =>
+      'Gagal menghapus kegiatan. Kegiatan sedang digunakan oleh catatan lain.';
+
+  @override
+  String get eventActions => 'Tindakan kegiatan';
+
+  @override
+  String get eventDuplicate => 'Duplikat kegiatan';
+
+  @override
+  String get eventExport => 'Ekspor kegiatan';
+
+  @override
+  String get eventImport => 'Impor kegiatan';
+
+  @override
+  String get eventDeleteTitle => 'Hapus kegiatan koleksi?';
+
+  @override
+  String get eventDeleteBody =>
+      'Anda juga akan menghapus metode koleksi, personel koleksi, data lingkungan, dan media dalam kegiatan ini.';
+
+  @override
+  String get eventDeleteAllTitle => 'Hapus semua kegiatan koleksi?';
+
+  @override
+  String get eventDeleteAllBody =>
+      'Menghapus semua kegiatan koleksi juga akan menghapus semua metode koleksi, personel koleksi, data lingkungan, dan media terkait dari basis data.';
+
+  @override
+  String get eventPersonnel => 'Personel kegiatan';
+
+  @override
+  String get eventNoPersonnel => 'Belum ada personel';
+
+  @override
+  String get eventUnknownPersonnel => 'Personel tidak dikenal';
+
+  @override
+  String get eventEnterRole => 'Masukkan peran';
+
+  @override
+  String get eventSearch => 'Cari kegiatan';
+
+  @override
+  String get eventRecordTitle => 'Catatan kegiatan koleksi';
+
+  @override
+  String get eventNoneFound => 'Kegiatan koleksi tidak ditemukan';
+
+  @override
+  String exportPresetsLoadError(String error) {
+    return 'Tidak dapat memuat prasetel ekspor: $error';
+  }
+
+  @override
+  String get exportPreset => 'Prasetel ekspor';
+
+  @override
+  String get exportNoPresets =>
+      'Tidak ada prasetel ekspor. Kelola prasetel di pengaturan untuk membuatnya.';
+
+  @override
+  String get exportManagePresetsButton => 'Kelola prasetel';
+
+  @override
+  String get exportPresetHelper =>
+      'Jenis catatan, header, dan pemetaan bidang ditentukan oleh prasetel.';
+
+  @override
+  String get exportPresetDetails => 'Detail prasetel';
+
+  @override
+  String get exportSelectPresetPrompt =>
+      'Pilih prasetel ekspor untuk melihat detail dan pratinjau.';
+
+  @override
+  String exportPresetName(String name) {
+    return 'Prasetel: $name';
+  }
+
+  @override
+  String exportPresetRecord(String type) {
+    return 'Catatan: $type';
+  }
+
+  @override
+  String exportPresetTaxon(String taxon) {
+    return 'Takson: $taxon';
+  }
+
+  @override
+  String exportPresetHeader(String format) {
+    return 'Header: $format';
+  }
+
+  @override
+  String exportSelectedColumns(int count) {
+    return 'Kolom terpilih ($count):';
+  }
+
+  @override
+  String get exportPreviewTable => 'Pratinjau tabel';
+
+  @override
+  String get exportNoFieldsMapped =>
+      'Tidak ada bidang yang dipetakan di prasetel ini.';
+
+  @override
+  String exportNestedFields(String namespace, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bidang',
+    );
+    return '$namespace ($_temp0)';
+  }
+
+  @override
+  String get exportTablePreview => 'Pratinjau tabel';
+
+  @override
+  String get exportNoRecordsForPreset =>
+      'Tidak ada catatan untuk prasetel ini.';
+
+  @override
+  String exportShowingRecords(int start, int end, int total) {
+    return 'Menampilkan $start-$end dari $total catatan';
+  }
+
+  @override
+  String exportPageOf(int page, int total) {
+    return 'Halaman $page dari $total';
+  }
+
+  @override
+  String get exportBundling => 'Membundel catatan';
+
+  @override
+  String get exportBundlingHint =>
+      'Pengemasan menulis catatan, menyalin media, mengompresi bundel, lalu memeriksanya. Biarkan NAHPU tetap terbuka.';
+
+  @override
+  String get exportCreateBundle => 'Buat bundel';
+
+  @override
+  String get exportBundleAnother => 'Bundel lainnya';
+
+  @override
+  String get exportCancelBundleTitle => 'Batalkan bundel?';
+
+  @override
+  String get exportCancelBundleBody =>
+      'Bundel masih ditulis. Keluar sekarang akan membatalkannya dan tidak ada paket yang disimpan.';
+
+  @override
+  String get exportKeepBundling => 'Lanjutkan membundel';
+
+  @override
+  String get exportCancelBundle => 'Batalkan bundel';
+
+  @override
+  String exportCreatedFile(String file) {
+    return '$file dibuat';
+  }
+
+  @override
+  String get exportBundleComplete => 'Bundel selesai!';
+
+  @override
+  String get exportCompleteData => 'Data NAHPU lengkap';
+
+  @override
+  String get exportCompleteDataBody =>
+      'Bundel ini mencakup semua tabel basis data NAHPU, snapshot proyek yang dapat dipulihkan, konfigurasi pengguna, media yang tersedia, dan huruf khusus.';
+
+  @override
+  String get exportFrictionless =>
+      'Ekspor menggunakan format Frictionless Data.';
+
+  @override
+  String get exportRecordedTaxa => 'Takson tercatat';
+
+  @override
+  String get exportSelectedTaxa => 'Takson terpilih';
+
+  @override
+  String get exportNoTaxaRecorded => 'Belum ada takson spesimen yang dicatat.';
+
+  @override
+  String exportTaxonGroupsIncluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kelompok takson tercatat akan disertakan.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exportPackageContents => 'Isi paket';
+
+  @override
+  String get exportSelectTaxonPrompt =>
+      'Pilih setidaknya satu takson tercatat untuk menampilkan isi paket.';
+
+  @override
+  String get exportPackageContentsBody =>
+      'Daftar ini mencerminkan persis apa yang akan dibundel. Bidang dan tabel opsional yang kosong dihilangkan.';
+
+  @override
+  String exportRecordsAndFields(int records, int fields) {
+    String _temp0 = intl.Intl.pluralLogic(
+      records,
+      locale: localeName,
+      other: '$records catatan',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      fields,
+      locale: localeName,
+      other: '$fields bidang',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get exportBackingUp => 'Mencadangkan basis data';
+
+  @override
+  String get exportBackingUpHint =>
+      'Pustaka media yang besar dapat memakan waktu beberapa menit. Biarkan NAHPU tetap terbuka hingga selesai.';
+
+  @override
+  String get exportSaveBackup => 'Simpan cadangan';
+
+  @override
+  String get exportSaveAnother => 'Simpan lainnya';
+
+  @override
+  String get exportCancelBackupTitle => 'Batalkan pencadangan?';
+
+  @override
+  String get exportCancelBackupBody =>
+      'Pencadangan masih berjalan. Keluar sekarang akan membatalkannya dan tidak ada berkas yang disimpan.';
+
+  @override
+  String get exportKeepBackingUp => 'Lanjutkan mencadangkan';
+
+  @override
+  String get exportCancelBackup => 'Batalkan pencadangan';
+
+  @override
+  String get exportBackupArchive => 'Arsip cadangan';
+
+  @override
+  String get exportBackupBody =>
+      'Ini membuat cadangan lengkap basis data NAHPU. Untuk cadangan proyek saja, gunakan Ekspor proyek.';
+
+  @override
+  String get exportBackupDetail =>
+      'Ini menyalin semua proyek dan setiap berkas di data aplikasi NAHPU, baik ditautkan ke proyek maupun tidak. Jalankan sesekali di lapangan saat penggunaan baterai tidak menjadi masalah.';
+
+  @override
+  String get exportWillExport => 'Akan diekspor';
+
+  @override
+  String exportUserConfigsExportedTo(String path) {
+    return 'Konfigurasi pengguna diekspor ke $path';
+  }
+
+  @override
+  String get exportCustomFieldTemplates => 'Templat bidang khusus';
+
+  @override
+  String get exportNoCustomFields => 'Tidak ada bidang khusus';
+
+  @override
+  String get exportNoPrintLayouts =>
+      'Belum ada tata letak cetak. Muat tata letak bawaan, atau buat di Prasetel Dokumen.';
+
+  @override
+  String get exportEnterFileNameFirst =>
+      'Masukkan nama berkas terlebih dahulu.';
+
+  @override
+  String exportShareFailed(String error) {
+    return 'Tidak dapat membagikan ekspor: $error';
+  }
+
+  @override
+  String get exportFormatOptionsTitle => 'Opsi format';
+
+  @override
+  String get exportFormatOptions => 'Opsi format';
+
+  @override
+  String get exportConcatenateMultiEntry => 'Gabungkan catatan multientri';
+
+  @override
+  String get exportFieldNamesOnly => 'Hanya nama bidang untuk header';
+
+  @override
+  String get exportSelectFieldsTitle => 'Pilih bidang';
+
+  @override
+  String get exportClearAll => 'Hapus semua';
+
+  @override
+  String get exportRequired => 'Wajib';
+
+  @override
+  String get dataTableMoreActions => 'Tindakan lainnya';
+
+  @override
+  String dataTableNoMatches(String records) {
+    return 'Tidak ada $records yang cocok dengan pencarian dan filter.';
+  }
+
+  @override
+  String dataTableNoRecordsYet(String records) {
+    return 'Belum ada $records.';
+  }
+
+  @override
+  String dataTableNoRecordsForTaxaYet(String records, String taxa) {
+    return 'Belum ada $records untuk $taxa.';
+  }
+
+  @override
+  String dataTableProjectNoRecordsForTaxa(String records, String taxa) {
+    return 'Proyek ini tidak memiliki $records untuk $taxa.';
+  }
+
+  @override
+  String dataTableProjectNoRecordsYet(String records) {
+    return 'Proyek ini belum memiliki $records.';
+  }
+
+  @override
+  String get dataTableSaved => 'Tersimpan.';
+
+  @override
+  String dataTableLoadError(String records) {
+    return 'Tidak dapat memuat $records.';
+  }
+
+  @override
+  String get dataTableSomeChangesFailed =>
+      'Beberapa perubahan tidak dapat disimpan. Periksa sel yang ditandai.';
+
+  @override
+  String get dataTableNoMoreMatches => 'Tidak ada kecocokan lagi.';
+
+  @override
+  String get dataTableNoEarlierMatches => 'Tidak ada kecocokan sebelumnya.';
+
+  @override
+  String get dataTableCellCannotBeReplaced => 'Sel ini tidak dapat diganti.';
+
+  @override
+  String dataTableReadForReplaceError(String error) {
+    return 'Tidak dapat membaca catatan untuk diganti: $error';
+  }
+
+  @override
+  String get dataTableNothingToReplace => 'Tidak ada yang perlu diganti.';
+
+  @override
+  String get dataTableReplaceAllTitle => 'Ganti semua?';
+
+  @override
+  String dataTableReplaceAllBody(String values, String records) {
+    return 'Ganti $values di $records?';
+  }
+
+  @override
+  String dataTableValueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nilai',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableRecordCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count catatan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableAutoSaveWrites =>
+      'Simpan otomatis langsung menuliskannya.';
+
+  @override
+  String get dataTableWaitForSave => 'Perubahan menunggu Simpan.';
+
+  @override
+  String dataTableReplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nilai diganti.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableSkippedChoices(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nilai tarik-turun dilewati; pilih dari daftarnya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableInvalidValues(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nilai tidak sesuai dengan bidangnya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTablePickDate => 'Pilih tanggal';
+
+  @override
+  String get dataTablePickTime => 'Pilih waktu';
+
+  @override
+  String get dataTableSaveChangesTitle => 'Simpan perubahan Anda?';
+
+  @override
+  String dataTableUnsavedChanges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ada $count perubahan yang belum disimpan di tabel ini.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableFindField => 'Cari bidang';
+
+  @override
+  String dataTableFieldsShown(int count, int total) {
+    return '$count dari $total bidang ditampilkan';
+  }
+
+  @override
+  String get dataTableComputedNotSearchable =>
+      'Dihitung saat ekspor: tidak dapat dicari atau diurutkan';
+
+  @override
+  String get dataTableShowAll => 'Tampilkan semua';
+
+  @override
+  String get dataTableAutoSaveTooltip =>
+      'Simpan setiap perubahan saat Anda menerapkannya. Batalkan dengan Ctrl+Z atau ⌘Z selama tabel ini terbuka.';
+
+  @override
+  String get dataTableAutoSave => 'Simpan otomatis';
+
+  @override
+  String get dataTableDiscardChanges => 'Buang perubahan';
+
+  @override
+  String get dataTableRetrySave => 'Coba simpan lagi';
+
+  @override
+  String get dataTableEditModeOn => 'Mode sunting aktif (Ctrl+E atau ⌘E)';
+
+  @override
+  String get dataTableEditModeOff => 'Mode sunting nonaktif (Ctrl+E atau ⌘E)';
+
+  @override
+  String dataTableCellsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sel perlu diperhatikan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableUnsavedChangeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perubahan belum disimpan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableAllChangesSaved => 'Semua perubahan tersimpan';
+
+  @override
+  String dataTableColumnCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kolom',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableExportSummary(String records, String columns) {
+    return '$records × $columns, dengan pencarian, filter, urutan, dan kolom yang terlihat saat ini.';
+  }
+
+  @override
+  String get dataTableColumnHeaders => 'Header kolom';
+
+  @override
+  String get dataTableDwcOnly => 'Hanya kolom yang dipetakan ke Darwin Core';
+
+  @override
+  String get dataTableDwcOnlyBody =>
+      'Abaikan kolom tanpa istilah Darwin Core. Jika tidak, kolom tetap memakai kunci NAHPU.';
+
+  @override
+  String dataTableReadProgress(int count, int total) {
+    return 'Membaca $count dari $total catatan';
+  }
+
+  @override
+  String dataTableScopeChip(String label, int count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get dataTableClearFilters => 'Hapus filter';
+
+  @override
+  String dataTableBetweenValues(String low, String high) {
+    return '$low dan $high';
+  }
+
+  @override
+  String get dataTableFilterRules => 'Aturan filter';
+
+  @override
+  String get dataTableFilterRulesBody =>
+      'Tampilkan catatan yang cocok dengan semua aturan.';
+
+  @override
+  String get dataTableAddRule => 'Tambah aturan';
+
+  @override
+  String get dataTableEnterValueEveryRule =>
+      'Masukkan nilai untuk setiap aturan.';
+
+  @override
+  String get dataTableEnterDates => 'Masukkan tanggal sebagai YYYY-MM-DD.';
+
+  @override
+  String get dataTableEnterTimes => 'Masukkan waktu sebagai HH:MM.';
+
+  @override
+  String get dataTableChooseListed => 'Pilih salah satu nilai yang tercantum.';
+
+  @override
+  String get dataTableEnterNumber => 'Masukkan angka.';
+
+  @override
+  String get dataTableComputedNotFilterable =>
+      'Dihitung saat ekspor; tidak dapat difilter';
+
+  @override
+  String get dataTableRemoveRule => 'Hapus aturan';
+
+  @override
+  String get dataTableReplacingNeedsEditMode =>
+      'Penggantian memerlukan mode sunting.';
+
+  @override
+  String get dataTableMatchCase => 'Cocokkan huruf besar/kecil';
+
+  @override
+  String get dataTableWholeCell => 'Seluruh sel';
+
+  @override
+  String get dataTablePreviousMatch => 'Kecocokan sebelumnya';
+
+  @override
+  String get dataTableNextMatch => 'Kecocokan berikutnya';
+
+  @override
+  String get dataTableTurnOnEditMode => 'Aktifkan mode sunting';
+
+  @override
+  String get dataTableReplaceAll => 'Ganti semua';
+
+  @override
+  String get dataTableNoMatchesShort => 'Tidak ada kecocokan';
+
+  @override
+  String dataTableFoundCount(int count) {
+    return '$count ditemukan';
+  }
+
+  @override
+  String dataTableMatchOf(int current, int total) {
+    return '$current dari $total';
+  }
+
+  @override
+  String get dataTableAllVisibleColumns => 'Semua kolom yang terlihat';
+
+  @override
+  String dataTableColumnReadOnly(String column) {
+    return '$column hanya-baca di sini.';
+  }
+
+  @override
+  String dataTableSkippedOffList(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nilai yang tidak ada di daftarnya dilewati.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableChangeFishTypeTitle => 'Ubah jenis catatan ikan?';
+
+  @override
+  String dataTableSexClears(String fields) {
+    return 'Ini menghapus $fields yang tidak lagi berlaku untuk jenis kelamin baru.';
+  }
+
+  @override
+  String get dataTableFishTypeChangeBody =>
+      'Beralih antara individu dan lot mengubah pengukuran yang berlaku.';
+
+  @override
+  String dataTableSkippedReadOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sel hanya-baca atau tertaut dilewati.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableCopiedCells(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sel disalin.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableSwitchToEditToPaste =>
+      'Beralih ke mode sunting untuk menempel.';
+
+  @override
+  String dataTablePastedSkipped(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ditempel; $count sel hanya-baca atau tertaut dilewati.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTablePastedCutOff => 'Ditempel; terpotong di tepi halaman.';
+
+  @override
+  String dataTablePastedSkippedAndCutOff(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Ditempel; $count sel hanya-baca atau tertaut dilewati dan terpotong di tepi halaman.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableComputedField =>
+      'Dihitung saat ekspor: tidak dapat dicari, diurutkan, atau difilter.';
+
+  @override
+  String get dataTableLinkedDataHint =>
+      'Data tertaut: klik dua kali atau tekan F2 untuk menyunting.';
+
+  @override
+  String get dataTableReadOnlyHere => 'Hanya-baca di sini.';
+
+  @override
+  String get dataTableOpenForm => 'Buka formulir';
+
+  @override
+  String dataTableLinkCurrent(String value) {
+    return 'Saat ini: $value.';
+  }
+
+  @override
+  String get dataTableLoadChoicesError => 'Tidak dapat memuat pilihan.';
+
+  @override
+  String get dataTableLinkCatalogerNote =>
+      'Nomor lapangan mengikuti katalogis baru. Pengidentifikasi dan preparator juga berubah jika sebelumnya adalah katalogis lama.';
+
+  @override
+  String get dataTableLinkEventNote =>
+      'Metode koleksi dan personel dihapus, dan koordinat mengikuti situs kegiatan baru.';
+
+  @override
+  String get dataTableLinkTaxonNote =>
+      'Ordo, famili, genus, dan epitet semuanya berasal dari takson yang dipilih.';
+
+  @override
+  String dataTableSaveError(String error) {
+    return 'Tidak dapat menyimpan: $error';
+  }
+
+  @override
+  String get dataTableNothingMatches => 'Tidak ada yang cocok.';
+
+  @override
+  String dataTableNotLinked(String noun) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'Catatan ini belum ditautkan ke situs.',
+      'other': 'Catatan ini belum ditautkan ke kegiatan.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableLinkedLoadError(String noun) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'Tidak dapat memuat situs.',
+      'other': 'Tidak dapat memuat kegiatan.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String dataTableLinkShared(String noun, int count) {
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site':
+          'Perubahan berlaku untuk semua catatan yang ditautkan ke situs ini ($count).',
+      'other':
+          'Perubahan berlaku untuk semua catatan yang ditautkan ke kegiatan ini ($count).',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get dataTableSomeChangesNotSaved =>
+      'Beberapa perubahan tidak dapat disimpan.';
+
+  @override
+  String get dataTablePageRangeEmpty => '0 dari 0';
+
+  @override
+  String dataTablePageRange(String first, String last, String total) {
+    return '$first–$last dari $total';
+  }
+
+  @override
+  String get dataTableRowsPerPage => 'Baris per halaman';
+
+  @override
+  String get dataTableFirstPage => 'Halaman pertama';
+
+  @override
+  String get dataTablePreviousPage => 'Halaman sebelumnya';
+
+  @override
+  String get dataTableNextPage => 'Halaman berikutnya';
+
+  @override
+  String get dataTableLastPage => 'Halaman terakhir';
+
+  @override
+  String dataTableSearchIn(String target) {
+    return 'Cari $target';
+  }
+
+  @override
+  String get dataTableRefresh => 'Muat ulang';
+
+  @override
+  String get dataTableAddFieldRules => 'Tambah aturan bidang';
+
+  @override
+  String get dataTableEditFieldRules => 'Sunting aturan bidang';
+
+  @override
+  String get dataTableFilters => 'Filter';
+
+  @override
+  String get dataTableAllVisibleFields => 'Semua bidang yang terlihat';
+
+  @override
+  String get dataTableSearchingAllFields =>
+      'Mencari di semua bidang yang terlihat';
+
+  @override
+  String dataTableSearchingField(String field) {
+    return 'Mencari di $field';
+  }
+
+  @override
+  String get dataTableFilterOpIs => 'adalah';
+
+  @override
+  String get dataTableFilterOpContains => 'berisi';
+
+  @override
+  String get dataTableFilterOpStartsWith => 'diawali';
+
+  @override
+  String get dataTableFilterOpGreaterThan => 'lebih dari';
+
+  @override
+  String get dataTableFilterOpLessThan => 'kurang dari';
+
+  @override
+  String get dataTableFilterOpBetween => 'antara';
+
+  @override
+  String get dataTableFilterOpIsEmpty => 'kosong';
+
+  @override
+  String get dataTableFilterOpIsNotEmpty => 'tidak kosong';
+
+  @override
+  String get dataTableQuickMissingTaxon => 'Tanpa takson';
+
+  @override
+  String get dataTableQuickNoFieldNumber => 'Tanpa nomor lapangan';
+
+  @override
+  String get dataTableQuickNoEvent => 'Tanpa kegiatan';
+
+  @override
+  String get dataTableQuickHasParts => 'Ada bagian';
+
+  @override
+  String get dataTableQuickHasMedia => 'Ada media';
+
+  @override
+  String get dataTableQuickNoTissueId => 'Tanpa ID jaringan';
+
+  @override
+  String get dataTableQuickNoParasiteId => 'Tanpa ID parasit';
+
+  @override
+  String get dataTableQuickNoCoordinates => 'Tanpa koordinat';
+
+  @override
+  String get dataTableQuickNoLocality => 'Tanpa lokalitas';
+
+  @override
+  String get dataTableQuickNoSpecimens => 'Tanpa spesimen';
+
+  @override
+  String get dataTableQuickNoEndDate => 'Tanpa tanggal selesai';
+
+  @override
+  String get dataTableQuickNoSite => 'Tanpa situs';
+
+  @override
+  String dataTableProjectScopeOne(String name) {
+    return 'Proyek: $name';
+  }
+
+  @override
+  String dataTableProjectScopeTwo(String first, String second) {
+    return 'Proyek: $first, $second';
+  }
+
+  @override
+  String dataTableProjectScopeMany(int count) {
+    return '$count proyek';
+  }
+
+  @override
+  String get siteImportFieldGpsUnit => 'Unit GPS';
 }

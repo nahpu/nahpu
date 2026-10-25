@@ -40,8 +40,8 @@ class ParasiteForms extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const TitleForm(
-          text: 'Parasite records',
+        TitleForm(
+          text: context.l10n.parasiteRecords,
           infoTopic: InfoTopic.specimenParasites,
         ),
         SizedBox(height: 450, child: ParasiteList(specimenUuid: specimenUuid)),
@@ -133,7 +133,8 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
                             : const Icon(Icons.bug_report_outlined),
                         title: Text(
                           taxon == null
-                              ? parasite.category ?? 'Unidentified parasite'
+                              ? parasite.category ??
+                                    context.l10n.parasiteUnidentified
                               : getTaxonDisplayName(taxon),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -174,10 +175,10 @@ class _ParasiteListState extends ConsumerState<ParasiteList> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Text('Error: $error'),
+        error: (error, _) => Text(context.l10n.formsErrorDetail('$error')),
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Text('Error: $error'),
+      error: (error, _) => Text(context.l10n.formsErrorDetail('$error')),
     );
   }
 
@@ -208,12 +209,15 @@ class _ParasiteSubtitle extends ConsumerWidget {
     return Text(
       [
         if (individuals.isNotEmpty)
-          'Ind: ${individuals.map(individualShortId).join(', ')}',
+          context.l10n.parasiteIndividuals(
+            individuals.map(individualShortId).join(', '),
+          ),
         if (parasite.parasiteID?.isNotEmpty == true) parasite.parasiteID!,
         if (parasite.category?.isNotEmpty == true) parasite.category!,
         if (parasite.anatomicalLocation?.isNotEmpty == true)
           parasite.anatomicalLocation!,
-        if (parasite.count != null) 'Count: ${parasite.count}',
+        if (parasite.count != null)
+          context.l10n.parasiteCount('${parasite.count}'),
       ].join(listTileSeparator),
       overflow: TextOverflow.ellipsis,
     );
@@ -230,7 +234,7 @@ class _EmptyParasites extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No parasites added'),
+        Text(context.l10n.parasiteNoneAdded),
         const SizedBox(height: 8),
         _AddParasiteButton(specimenUuid: specimenUuid),
       ],
@@ -251,7 +255,7 @@ class _AddParasiteButton extends StatelessWidget {
           builder: (_) => NewParasite(specimenUuid: specimenUuid),
         ),
       ),
-      label: 'Add parasite',
+      label: context.l10n.parasiteAdd,
       icon: Icons.add,
     );
   }
@@ -280,7 +284,7 @@ class _NewParasiteState extends ConsumerState<NewParasite> {
     final controller = _controller;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add parasite'),
+        title: Text(context.l10n.parasiteAdd),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -320,7 +324,7 @@ class EditParasite extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit parasite'),
+        title: Text(context.l10n.parasiteEdit),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -384,7 +388,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             individualIds: widget.controller.individualIds,
           ),
           FormSection(
-            title: 'Parasite details',
+            title: context.l10n.parasiteDetails,
             child: Column(
               children: [
                 _TaxonField(
@@ -395,19 +399,19 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                 ),
                 CommonNumField(
                   controller: widget.controller.countCtr,
-                  labelText: 'Count',
-                  hintText: 'Enter parasite count',
+                  labelText: context.l10n.parasiteCountLabel,
+                  hintText: context.l10n.parasiteCountHint,
                   isLastField: false,
                 ),
                 _ParasiteVocabularyField(
                   controller: widget.controller.categoryCtr,
                   prefKey: parasiteCategoryPrefKey,
-                  labelText: 'Category',
+                  labelText: context.l10n.parasiteCategory,
                 ),
                 _ParasiteVocabularyField(
                   controller: widget.controller.anatomicalLocationCtr,
                   prefKey: parasiteAnatomicalLocationPrefKey,
-                  labelText: 'Anatomical location',
+                  labelText: context.l10n.parasiteAnatomicalLocation,
                   filterSource: widget.controller.categoryCtr,
                   filter: filterAnatomicalLocations,
                 ),
@@ -421,24 +425,24 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
             ),
           ),
           FormSection(
-            title: 'Collection & identification',
+            title: context.l10n.parasiteCollectionIdentification,
             child: Column(
               children: [
                 _ParasitePersonnelField(
                   initialValue: widget.controller.collectorId,
-                  labelText: 'Collector',
-                  hintText: 'Select who collected the parasite',
+                  labelText: context.l10n.parasiteCollector,
+                  hintText: context.l10n.parasiteCollectorHint,
                   onChanged: (value) => widget.controller.collectorId = value,
                 ),
                 _ParasiteVocabularyField(
                   controller: widget.controller.detectionMethodCtr,
                   prefKey: parasiteDetectionMethodPrefKey,
-                  labelText: 'Detection method',
+                  labelText: context.l10n.parasiteDetectionMethod,
                 ),
                 CommonDateField(
                   controller: widget.controller.dateCollectedCtr,
-                  labelText: 'Date collected',
-                  hintText: 'Enter collection date',
+                  labelText: context.l10n.parasiteDateCollected,
+                  hintText: context.l10n.parasiteDateCollectedHint,
                   initialDate: DateTime.now(),
                   lastDate: DateTime.now(),
                   onTap: () {},
@@ -446,22 +450,22 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                 ),
                 CommonTimeField(
                   controller: widget.controller.timeCollectedCtr,
-                  labelText: 'Time collected',
-                  hintText: 'Enter collection time',
+                  labelText: context.l10n.parasiteTimeCollected,
+                  hintText: context.l10n.parasiteTimeCollectedHint,
                   initialTime: TimeOfDay.now(),
                   onTap: () {},
                   onClear: () {},
                 ),
                 _ParasitePersonnelField(
                   initialValue: widget.controller.determinerId,
-                  labelText: 'Determiner',
-                  hintText: 'Select who identified the parasite',
+                  labelText: context.l10n.parasiteDeterminer,
+                  hintText: context.l10n.parasiteDeterminerHint,
                   onChanged: (value) => widget.controller.determinerId = value,
                 ),
                 CommonDateField(
                   controller: widget.controller.dateDeterminedCtr,
-                  labelText: 'Date determined',
-                  hintText: 'Enter identification date',
+                  labelText: context.l10n.parasiteDateDetermined,
+                  hintText: context.l10n.parasiteDateDeterminedHint,
                   initialDate: DateTime.now(),
                   lastDate: DateTime.now(),
                   onTap: () {},
@@ -470,7 +474,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
                 _ParasiteVocabularyField(
                   controller: widget.controller.determinationMethodCtr,
                   prefKey: idMethodPrefKey,
-                  labelText: 'Determination method',
+                  labelText: context.l10n.parasiteDeterminationMethod,
                 ),
               ],
             ),
@@ -540,7 +544,7 @@ class _ParasiteRecordFormState extends ConsumerState<ParasiteRecordForm> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save parasite: $error')),
+        SnackBar(content: Text(context.l10n.parasiteSaveError('$error'))),
       );
     }
   }
@@ -600,14 +604,16 @@ class _TaxonField extends ConsumerWidget {
                   initialValue: taxa.any((taxon) => taxon.id == selectedId)
                       ? selectedId
                       : null,
-                  decoration: const InputDecoration(
-                    labelText: 'Parasite taxon',
-                    hintText: 'Select a registered taxon',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.parasiteTaxon,
+                    hintText: context.l10n.parasiteTaxonHint,
                   ),
                   items: [
-                    const DropdownMenuItem<int?>(
+                    DropdownMenuItem<int?>(
                       value: null,
-                      child: CommonDropdownText(text: 'Not identified'),
+                      child: CommonDropdownText(
+                        text: context.l10n.parasiteNotIdentified,
+                      ),
                     ),
                     ...taxa.map(
                       (taxon) => DropdownMenuItem(
@@ -621,11 +627,12 @@ class _TaxonField extends ConsumerWidget {
                   onChanged: onChanged,
                 ),
                 loading: () => const LinearProgressIndicator(),
-                error: (error, _) => Text('Unable to load taxa: $error'),
+                error: (error, _) =>
+                    Text(context.l10n.parasiteTaxaLoadError('$error')),
               ),
         ),
         IconButton(
-          tooltip: 'Add taxon',
+          tooltip: context.l10n.parasiteAddTaxon,
           icon: const Icon(Icons.add),
           onPressed: () async {
             final id = await Navigator.of(
@@ -664,9 +671,9 @@ class _ParasitePersonnelField extends ConsumerWidget {
       initialValue: knownIds.contains(initialValue) ? initialValue : null,
       decoration: InputDecoration(labelText: labelText, hintText: hintText),
       items: [
-        const DropdownMenuItem<String?>(
+        DropdownMenuItem<String?>(
           value: null,
-          child: CommonDropdownText(text: 'Not assigned'),
+          child: CommonDropdownText(text: context.l10n.parasiteNotAssigned),
         ),
         ...?people?.map(
           (person) => DropdownMenuItem(
@@ -690,23 +697,23 @@ class _AdvancedParasiteFields extends StatelessWidget {
     return Column(
       children: [
         FormSection(
-          title: 'Preparation & preservation',
+          title: context.l10n.parasitePreparationPreservation,
           child: Column(
             children: [
               _ParasiteVocabularyField(
                 controller: controller.preparationMethodCtr,
                 prefKey: parasitePreparationMethodPrefKey,
-                labelText: 'Preparation method',
+                labelText: context.l10n.parasitePreparationMethod,
               ),
               _ParasiteVocabularyField(
                 controller: controller.treatmentCtr,
                 prefKey: parasiteTreatmentPrefKey,
-                labelText: 'Treatment',
+                labelText: context.l10n.parasiteTreatment,
               ),
               CommonDateField(
                 controller: controller.datePreservedCtr,
-                labelText: 'Date preserved',
-                hintText: 'Enter preservation date',
+                labelText: context.l10n.parasiteDatePreserved,
+                hintText: context.l10n.parasiteDatePreservedHint,
                 initialDate: DateTime.now(),
                 lastDate: DateTime.now(),
                 onTap: () {},
@@ -714,8 +721,8 @@ class _AdvancedParasiteFields extends StatelessWidget {
               ),
               CommonTimeField(
                 controller: controller.timePreservedCtr,
-                labelText: 'Time preserved',
-                hintText: 'Enter preservation time',
+                labelText: context.l10n.parasiteTimePreserved,
+                hintText: context.l10n.parasiteTimePreservedHint,
                 initialTime: TimeOfDay.now(),
                 onTap: () {},
                 onClear: () {},
@@ -724,36 +731,36 @@ class _AdvancedParasiteFields extends StatelessWidget {
           ),
         ),
         FormSection(
-          title: 'Curation',
+          title: context.l10n.parasiteCuration,
           child: Column(
             children: [
               _ParasiteVocabularyField(
                 controller: controller.storageCtr,
                 prefKey: parasiteStoragePrefKey,
-                labelText: 'Storage',
+                labelText: context.l10n.parasiteStorage,
               ),
               CommonTextField(
                 controller: controller.storageLocationCtr,
-                labelText: 'Storage location',
-                hintText: 'Enter freezer, cabinet, shelf, or container',
+                labelText: context.l10n.parasiteStorageLocation,
+                hintText: context.l10n.parasiteStorageLocationHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.museumPermanentCtr,
-                labelText: 'Museum permanent',
-                hintText: 'Enter museum name or abbreviation',
+                labelText: context.l10n.parasiteMuseumPermanent,
+                hintText: context.l10n.parasiteMuseumHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.museumLoanCtr,
-                labelText: 'Museum loan',
-                hintText: 'Enter museum name or abbreviation',
+                labelText: context.l10n.parasiteMuseumLoan,
+                hintText: context.l10n.parasiteMuseumHint,
                 isLastField: false,
               ),
               CommonTextField(
                 controller: controller.remarkCtr,
-                labelText: 'Remarks',
-                hintText: 'Enter parasite remarks',
+                labelText: context.l10n.parasiteRemarks,
+                hintText: context.l10n.parasiteRemarksHint,
                 maxLines: 3,
                 isLastField: true,
               ),
@@ -777,9 +784,9 @@ class _AdvancedParasiteDetailsFields extends StatelessWidget {
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: _currentLifeStage,
-          decoration: const InputDecoration(
-            labelText: 'Life stage',
-            hintText: 'Select parasite life stage',
+          decoration: InputDecoration(
+            labelText: context.l10n.parasiteLifeStage,
+            hintText: context.l10n.parasiteLifeStageHint,
           ),
           items:
               includeCurrentVocabularyValue(
@@ -798,9 +805,9 @@ class _AdvancedParasiteDetailsFields extends StatelessWidget {
         DropdownButtonFormField<int?>(
           isExpanded: true,
           initialValue: controller.associationStatus,
-          decoration: const InputDecoration(
-            labelText: 'Association status',
-            hintText: 'Select association status',
+          decoration: InputDecoration(
+            labelText: context.l10n.parasiteAssociationStatus,
+            hintText: context.l10n.parasiteAssociationStatusHint,
           ),
           items: [
             DropDownMenuItems.chooseOneListItem,
@@ -866,7 +873,8 @@ class _ParasiteVocabularyField extends ConsumerWidget {
             );
           },
           loading: () => const CommonProgressIndicator(),
-          error: (error, _) => Text('Unable to load $labelText: $error'),
+          error: (error, _) =>
+              Text(context.l10n.parasiteFieldLoadError(labelText, '$error')),
         );
   }
 }
@@ -896,8 +904,8 @@ class _VocabularyDropdown extends StatelessWidget {
       decoration: InputDecoration(
         labelText: labelText,
         hintText: options.isEmpty
-            ? 'Set options in Specimen settings'
-            : 'Select ${labelText.toLowerCase()}',
+            ? context.l10n.parasiteSetOptionsInSettings
+            : context.l10n.parasiteSelectField(labelText.toLowerCase()),
       ),
       items: options
           .map(
@@ -943,9 +951,12 @@ class _ParasiteIds extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.parasiteIds,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
-            SelectableText('UUID: $parasiteUuid'),
+            SelectableText(context.l10n.parasiteUuid(parasiteUuid)),
             _ParasiteIdField(controller: parasiteIdController),
             SpecimenIndividualSelector(
               specimenUuid: specimenUuid,
@@ -975,31 +986,31 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
         Expanded(
           child: CommonTextField(
             controller: widget.controller,
-            labelText: 'Parasite ID',
-            hintText: 'Enter a user-defined parasite ID',
+            labelText: context.l10n.parasiteId,
+            hintText: context.l10n.parasiteIdHint,
             isLastField: false,
           ),
         ),
         AdaptiveMenuButton<_ParasiteIdAction>(
-          tooltip: 'Parasite ID options',
+          tooltip: context.l10n.parasiteIdOptions,
           onSelected: _handleAction,
           itemBuilder: () => [
             if (systemPlatform == PlatformType.mobile)
-              const AdaptiveMenuItem(
+              AdaptiveMenuItem(
                 value: _ParasiteIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,
-                label: 'Scan QR/Barcode',
+                label: context.l10n.parasiteScanCode,
               ),
             AdaptiveMenuItem(
               value: _ParasiteIdAction.newNumber,
               icon: Icons.add,
-              label: 'New number',
+              label: context.l10n.parasiteNewNumber,
               enabled: widget.controller.text.isEmpty,
             ),
-            const AdaptiveMenuItem(
+            AdaptiveMenuItem(
               value: _ParasiteIdAction.settings,
               icon: Icons.settings_outlined,
-              label: 'Settings',
+              label: context.l10n.parasiteSettings,
               hasDividerBefore: true,
             ),
           ],
@@ -1048,20 +1059,20 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Parasite ID settings'),
+        title: Text(context.l10n.parasiteIdSettings),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CommonTextField(
               controller: prefixController,
-              labelText: 'Prefix',
-              hintText: 'Enter parasite ID prefix',
+              labelText: context.l10n.parasitePrefix,
+              hintText: context.l10n.parasitePrefixHint,
               isLastField: false,
             ),
             CommonNumField(
               controller: numberController,
-              labelText: 'Number',
-              hintText: 'Enter the next parasite ID number',
+              labelText: context.l10n.parasiteNumber,
+              hintText: context.l10n.parasiteNumberHint,
               isLastField: true,
             ),
           ],
@@ -1069,7 +1080,7 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
         actions: [
           SecondaryButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            text: 'Cancel',
+            text: context.l10n.commonCancel,
           ),
           PrimaryButton(
             onPressed: () async {
@@ -1081,7 +1092,7 @@ class _ParasiteIdFieldState extends ConsumerState<_ParasiteIdField> {
               if (dialogContext.mounted) Navigator.of(dialogContext).pop();
               if (mounted) setState(() {});
             },
-            label: 'Save',
+            label: context.l10n.commonSave,
             icon: Icons.save_alt_outlined,
           ),
         ],

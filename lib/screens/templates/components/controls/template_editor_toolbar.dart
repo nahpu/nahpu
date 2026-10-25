@@ -4,6 +4,7 @@ import 'package:nahpu/screens/templates/template_size_selector.dart';
 import 'package:nahpu/screens/templates/template_model.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Command bar for template editing actions and canvas-level view toggles.
 ///
@@ -117,7 +118,7 @@ class TemplateEditorToolbar extends StatelessWidget {
                   children: [
                     const SizedBox(width: 12),
                     Text(
-                      'Template size:',
+                      context.l10n.templateSizeLabel,
                       style: Theme.of(
                         context,
                       ).textTheme.labelLarge?.copyWith(color: scheme.onSurface),
@@ -132,73 +133,79 @@ class TemplateEditorToolbar extends StatelessWidget {
                     const SizedBox(width: 8),
                     _ToolbarIconButton(
                       icon: Icons.text_fields,
-                      tooltip: 'Add text',
+                      tooltip: context.l10n.exportFieldsAddText,
                       onPressed: onAddText,
                     ),
                     const SizedBox(width: 4),
                     _ToolbarIconButton(
                       icon: Icons.image_outlined,
-                      tooltip: 'Add image',
+                      tooltip: context.l10n.templateAddImage,
                       onPressed: onAddImage,
                     ),
                     const SizedBox(width: 4),
                     _ToolbarIconButton(
                       icon: Icons.horizontal_rule,
-                      tooltip: 'Add line',
+                      tooltip: context.l10n.templateAddLine,
                       onPressed: onAddLine,
                     ),
                     const SizedBox(width: 4),
                     _ToolbarIconButton(
                       icon: Icons.crop_square,
-                      tooltip: 'Add shape',
+                      tooltip: context.l10n.templateAddShape,
                       onPressed: onAddShape,
                     ),
                     const SizedBox(width: 16),
                     MirrorToggleButton(
                       isMirrorActive: isPage1 ? mirrorFront : mirrorBack,
                       sideLabel: isDuplex
-                          ? (isPage1 ? 'Front' : 'Back')
-                          : 'Front',
+                          ? (isPage1
+                                ? context.l10n.templateFront
+                                : context.l10n.templateBack)
+                          : context.l10n.templateFront,
                       onToggle: onMirrorToggled,
                     ),
                     const SizedBox(width: 8),
                     _ToolbarIconButton(
-                      tooltip: 'Save template',
+                      tooltip: context.l10n.templateSave,
                       icon: Icons.save_outlined,
                       onPressed: onSaveTemplate,
                     ),
                     const SizedBox(width: 12),
                     _ToolbarIconButton(
-                      tooltip: 'Undo',
+                      tooltip: context.l10n.projectTissueUndo,
                       icon: Icons.undo,
                       onPressed: canUndo ? onUndo : null,
                     ),
                     const SizedBox(width: 4),
                     _ToolbarIconButton(
-                      tooltip: 'Redo',
+                      tooltip: context.l10n.templateRedo,
                       icon: Icons.redo,
                       onPressed: canRedo ? onRedo : null,
                     ),
                     const SizedBox(width: 12),
                     _TemplateEditorIconButton(
                       isActive: isBorderPanelOpen,
-                      tooltip: 'Template border',
+                      tooltip: context.l10n.templateBorder,
                       onPressed: onBorderPanelToggled,
                       icon: Icons.border_outer,
                     ),
                     _TemplateEditorIconButton(
-                      tooltip: 'Elements',
+                      tooltip: context.l10n.templateElements,
                       onPressed: onShowElements,
                       icon: Icons.layers_outlined,
                     ),
                     _TemplateEditorIconButton(
-                      tooltip: showGrid ? 'Hide grid' : 'Show grid',
+                      tooltip: showGrid
+                          ? context.l10n.templateHideGrid
+                          : context.l10n.templateShowGrid,
                       onPressed: onGridToggled,
                       icon: showGrid ? Icons.grid_on : Icons.grid_off,
                     ),
                     _TemplateEditorIconButton(
                       isActive: snapEnabled,
-                      tooltip: snapEnabled ? 'Disable snap' : 'Enable snap',
+                      tooltip: snapEnabled
+                          ? context.l10n.templateDisableSnap
+                          : context.l10n.templateEnableSnap,
                       onPressed: onSnapToggled,
                       icon: snapEnabled
                           ? Icons.center_focus_strong
@@ -207,8 +214,8 @@ class TemplateEditorToolbar extends StatelessWidget {
                     _TemplateEditorIconButton(
                       isActive: canvasMovementLocked,
                       tooltip: canvasMovementLocked
-                          ? 'Unlock canvas movement'
-                          : 'Lock canvas movement',
+                          ? context.l10n.templateUnlockCanvas
+                          : context.l10n.templateLockCanvas,
                       onPressed: onCanvasMovementLockToggled,
                       icon: canvasMovementLocked
                           ? Icons.lock_outline
@@ -216,13 +223,13 @@ class TemplateEditorToolbar extends StatelessWidget {
                     ),
                     if (template.recordType != RecordType.none)
                       _TemplateEditorIconButton(
-                        tooltip: 'Select specimen for text preview',
+                        tooltip: context.l10n.templateSelectPreviewRecord,
                         onPressed: onSelectPreviewSpecimen,
                         icon: Icons.manage_search,
                       ),
                     const SizedBox(width: 8),
                     _TemplateEditorIconButton(
-                      tooltip: 'Template settings',
+                      tooltip: context.l10n.templateSettings,
                       onPressed: onTemplateSettingsPressed,
                       icon: Icons.settings_outlined,
                     ),
@@ -238,14 +245,17 @@ class TemplateEditorToolbar extends StatelessWidget {
 
 /// Tool groups shown one at a time on phone-width screens.
 enum _TemplateToolGroup {
-  add('Add'),
-  page('Page'),
-  view('View'),
-  template('Template');
+  add,
+  page,
+  view,
+  template;
 
-  const _TemplateToolGroup(this.label);
-
-  final String label;
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    _TemplateToolGroup.add => l10n.sharedAdd,
+    _TemplateToolGroup.page => l10n.templateToolPage,
+    _TemplateToolGroup.view => l10n.templateToolView,
+    _TemplateToolGroup.template => l10n.documentBlockTemplate,
+  };
 }
 
 /// Phone-width tools: pick a group, and its few tools fit on screen without
@@ -275,7 +285,10 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
           style: const ButtonStyle(visualDensity: VisualDensity.compact),
           segments: [
             for (final group in _TemplateToolGroup.values)
-              ButtonSegment(value: group, label: Text(group.label)),
+              ButtonSegment(
+                value: group,
+                label: Text(group.localizedLabel(context.l10n)),
+              ),
           ],
           selected: {_group},
           onSelectionChanged: (selection) {
@@ -295,22 +308,22 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
                   _TemplateToolGroup.add => [
                     _ToolbarIconButton(
                       icon: Icons.text_fields,
-                      tooltip: 'Add text',
+                      tooltip: context.l10n.exportFieldsAddText,
                       onPressed: toolbar.onAddText,
                     ),
                     _ToolbarIconButton(
                       icon: Icons.image_outlined,
-                      tooltip: 'Add image',
+                      tooltip: context.l10n.templateAddImage,
                       onPressed: toolbar.onAddImage,
                     ),
                     _ToolbarIconButton(
                       icon: Icons.horizontal_rule,
-                      tooltip: 'Add line',
+                      tooltip: context.l10n.templateAddLine,
                       onPressed: toolbar.onAddLine,
                     ),
                     _ToolbarIconButton(
                       icon: Icons.crop_square,
-                      tooltip: 'Add shape',
+                      tooltip: context.l10n.templateAddShape,
                       onPressed: toolbar.onAddShape,
                     ),
                   ],
@@ -327,28 +340,32 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
                           ? toolbar.mirrorFront
                           : toolbar.mirrorBack,
                       sideLabel: toolbar.isDuplex
-                          ? (toolbar.isPage1 ? 'Front' : 'Back')
-                          : 'Front',
+                          ? (toolbar.isPage1
+                                ? context.l10n.templateFront
+                                : context.l10n.templateBack)
+                          : context.l10n.templateFront,
                       onToggle: toolbar.onMirrorToggled,
                     ),
                     _TemplateEditorIconButton(
                       isActive: toolbar.isBorderPanelOpen,
-                      tooltip: 'Template border',
+                      tooltip: context.l10n.templateBorder,
                       onPressed: toolbar.onBorderPanelToggled,
                       icon: Icons.border_outer,
                     ),
                   ],
                   _TemplateToolGroup.view => [
                     _TemplateEditorIconButton(
-                      tooltip: toolbar.showGrid ? 'Hide grid' : 'Show grid',
+                      tooltip: toolbar.showGrid
+                          ? context.l10n.templateHideGrid
+                          : context.l10n.templateShowGrid,
                       onPressed: toolbar.onGridToggled,
                       icon: toolbar.showGrid ? Icons.grid_on : Icons.grid_off,
                     ),
                     _TemplateEditorIconButton(
                       isActive: toolbar.snapEnabled,
                       tooltip: toolbar.snapEnabled
-                          ? 'Disable snap'
-                          : 'Enable snap',
+                          ? context.l10n.templateDisableSnap
+                          : context.l10n.templateEnableSnap,
                       onPressed: toolbar.onSnapToggled,
                       icon: toolbar.snapEnabled
                           ? Icons.center_focus_strong
@@ -357,8 +374,8 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
                     _TemplateEditorIconButton(
                       isActive: toolbar.canvasMovementLocked,
                       tooltip: toolbar.canvasMovementLocked
-                          ? 'Unlock canvas movement'
-                          : 'Lock canvas movement',
+                          ? context.l10n.templateUnlockCanvas
+                          : context.l10n.templateLockCanvas,
                       onPressed: toolbar.onCanvasMovementLockToggled,
                       icon: toolbar.canvasMovementLocked
                           ? Icons.lock_outline
@@ -366,19 +383,19 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
                     ),
                     if (toolbar.template.recordType != RecordType.none)
                       _TemplateEditorIconButton(
-                        tooltip: 'Select specimen for text preview',
+                        tooltip: context.l10n.templateSelectPreviewRecord,
                         onPressed: toolbar.onSelectPreviewSpecimen,
                         icon: Icons.manage_search,
                       ),
                   ],
                   _TemplateToolGroup.template => [
                     _ToolbarIconButton(
-                      tooltip: 'Save template',
+                      tooltip: context.l10n.templateSave,
                       icon: Icons.save_outlined,
                       onPressed: toolbar.onSaveTemplate,
                     ),
                     _TemplateEditorIconButton(
-                      tooltip: 'Template settings',
+                      tooltip: context.l10n.templateSettings,
                       onPressed: toolbar.onTemplateSettingsPressed,
                       icon: Icons.settings_outlined,
                     ),
@@ -387,17 +404,17 @@ class _CompactToolRowsState extends State<_CompactToolRows> {
               ),
             ),
             _TemplateEditorIconButton(
-              tooltip: 'Elements',
+              tooltip: context.l10n.templateElements,
               onPressed: toolbar.onShowElements,
               icon: Icons.layers_outlined,
             ),
             _TemplateEditorIconButton(
-              tooltip: 'Undo',
+              tooltip: context.l10n.projectTissueUndo,
               icon: Icons.undo,
               onPressed: toolbar.canUndo ? toolbar.onUndo : null,
             ),
             _TemplateEditorIconButton(
-              tooltip: 'Redo',
+              tooltip: context.l10n.templateRedo,
               icon: Icons.redo,
               onPressed: toolbar.canRedo ? toolbar.onRedo : null,
             ),
@@ -419,7 +436,7 @@ class _TemplatePicker extends StatelessWidget {
       initialSelection: toolbar.savedNames.contains(toolbar.template.name)
           ? toolbar.template.name
           : null,
-      label: const Text('Preset template'),
+      label: Text(context.l10n.templatePresetTemplate),
       inputDecorationTheme: const InputDecorationTheme(
         isDense: true,
         border: OutlineInputBorder(),

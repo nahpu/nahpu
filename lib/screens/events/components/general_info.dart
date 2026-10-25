@@ -13,6 +13,7 @@ import 'package:nahpu/services/events/collevent_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/types/geography.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class EventInfoField extends ConsumerStatefulWidget {
   const EventInfoField({
@@ -49,7 +50,7 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
     final siteEntry = ref.watch(siteEntryProvider);
     siteEntry.whenData((siteEntry) => {data = siteEntry});
     return FormCard(
-      title: 'Event Identity',
+      title: context.l10n.eventIdentity,
       isPrimary: true,
       infoTopic: InfoTopic.eventOverview,
       mainAxisSize: MainAxisSize.min,
@@ -87,8 +88,8 @@ class EventInfoFieldState extends ConsumerState<EventInfoField> {
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
               CommonDateField(
-                labelText: 'Start Date',
-                hintText: 'Enter date',
+                labelText: context.l10n.eventStartDate,
+                hintText: context.l10n.narrativeDateHint,
                 controller: widget.collEventCtr.startDateCtr,
                 initialDate: _getInitialStartDate(),
                 lastDate: DateTime.now(),
@@ -161,8 +162,8 @@ class EndDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      labelText: 'End Date',
-      hintText: 'Enter date',
+      labelText: context.l10n.eventEndDate,
+      hintText: context.l10n.narrativeDateHint,
       controller: collEventCtr.endDateCtr,
       initialDate: DateTime.now(),
       lastDate: DateTime.now(),
@@ -211,12 +212,12 @@ class CollEventIdTile extends ConsumerWidget {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text('Edit Event ID'),
+                        title: Text(context.l10n.eventEditId),
                         content: TextFormField(
                           controller: collEventCtr.idSuffixCtr,
                           decoration: InputDecoration(
-                            labelText: 'ID suffix',
-                            hintText: 'Enter ID suffix',
+                            labelText: context.l10n.eventIdSuffix,
+                            hintText: context.l10n.eventIdSuffixHint,
                             suffix: IconButton(
                               icon: const Icon(Icons.clear_rounded),
                               onPressed: () {
@@ -230,7 +231,7 @@ class CollEventIdTile extends ConsumerWidget {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: const Text('Cancel'),
+                            child: Text(context.l10n.commonCancel),
                           ),
                           TextButton(
                             onPressed: () {
@@ -245,7 +246,7 @@ class CollEventIdTile extends ConsumerWidget {
                               ref.invalidate(siteEntryProvider);
                               Navigator.of(context).pop();
                             },
-                            child: const Text('Save'),
+                            child: Text(context.l10n.commonSave),
                           ),
                         ],
                       );
@@ -282,7 +283,7 @@ class EventIDTextState extends ConsumerState<EventIDText> {
               return snapshot.hasData
                   ? RichText(
                       text: TextSpan(
-                        text: 'Event ID: ',
+                        text: context.l10n.eventIdLabel,
                         style: Theme.of(context).textTheme.bodyLarge,
                         children: [
                           TextSpan(
@@ -328,8 +329,8 @@ class EventTimeField extends ConsumerWidget {
       useHorizontalLayout: useHorizontalLayout,
       children: [
         CommonTimeField(
-          labelText: 'Start Time',
-          hintText: 'Enter time',
+          labelText: context.l10n.eventStartTime,
+          hintText: context.l10n.narrativeTimeHint,
           controller: collEventCtr.startTimeCtr,
           initialTime: _getInitialTime(ref),
           onTap: () {
@@ -348,8 +349,8 @@ class EventTimeField extends ConsumerWidget {
           },
         ),
         CommonTimeField(
-          labelText: 'End Time',
-          hintText: 'Enter time',
+          labelText: context.l10n.eventEndTime,
+          hintText: context.l10n.narrativeTimeHint,
           controller: collEventCtr.endTimeCtr,
           initialTime: _getInitialTime(ref),
           onTap: () {

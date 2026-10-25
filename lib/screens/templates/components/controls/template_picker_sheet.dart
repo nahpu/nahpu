@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/shared/layout/master_detail.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Lets the user switch to another saved template.
 ///
@@ -54,15 +55,15 @@ class TemplatePickerSheet extends StatelessWidget {
               NahpuSpacing.md,
             ),
             child: Text(
-              'Templates',
+              context.l10n.presetsTemplates,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           if (savedNames.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(NahpuSpacing.xl),
               child: Text(
-                'No saved templates yet.',
+                context.l10n.templateNoSaved,
                 textAlign: TextAlign.center,
               ),
             )

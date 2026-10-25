@@ -129,8 +129,8 @@ class SpecimenPartFields extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const TitleForm(
-          text: 'Specimen Parts',
+        TitleForm(
+          text: context.l10n.partSpecimenParts,
           infoTopic: InfoTopic.specimenParts,
         ),
         SizedBox(
@@ -306,7 +306,7 @@ class PartListState extends ConsumerState<PartList> {
               );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Text('Error: $err'),
+      error: (err, stack) => Text(context.l10n.formsErrorDetail('$err')),
     );
   }
 
@@ -354,7 +354,7 @@ class AddPartButton extends StatelessWidget {
           ),
         );
       },
-      label: 'Add specimen part',
+      label: context.l10n.partAdd,
       icon: Icons.add,
     );
   }
@@ -370,7 +370,7 @@ class EmptyPart extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('No parts added'),
+        Text(context.l10n.partNoneAdded),
         const SizedBox(height: 8),
         AddPartButton(specimenUuid: specimenUuid),
       ],
@@ -418,8 +418,8 @@ class PartTitle extends StatelessWidget {
         Flexible(
           child: TitlePartText(
             text: name == null || name.isEmpty
-                ? _partText
-                : '$_partText$listTileSeparator$name',
+                ? _partText(context.l10n)
+                : '${_partText(context.l10n)}$listTileSeparator$name',
           ),
         ),
         if (barcodeID.isNotEmpty)
@@ -428,11 +428,11 @@ class PartTitle extends StatelessWidget {
     );
   }
 
-  String get _partText {
+  String _partText(AppLocalizations l10n) {
     final count = partCount;
-    return '${partType ?? 'Unknown part'}'
+    return '${partType ?? l10n.partUnknown}'
         '$listTileSeparator'
-        '${count == null || count.isEmpty ? 'No count' : count}';
+        '${count == null || count.isEmpty ? l10n.partNoCount : count}';
   }
 }
 
@@ -500,22 +500,25 @@ class PartSubTitle extends ConsumerWidget {
         : ref.watch(individualsByPartProvider(partId)).asData?.value ??
               const <SpecimenIndividualData>[];
     return Text(
-      '${_individualText(individuals)}'
+      '${_individualText(context.l10n, individuals)}'
       '${_getTextFirst(part.tissueID)}'
-      '$treatment'
+      '${_treatment(context.l10n)}'
       '${_getText(part.additionalTreatment)}'
       '${_getText(dateStdToDateDisplay(part.dateTaken))}'
       '${_getText(timeStdToTimeDisplay(part.timeTaken))}'
-      '${_getPMI()}'
-      '$remark',
+      '${_getPMI(context.l10n)}'
+      '${_remark(context.l10n)}',
       style: Theme.of(context).textTheme.bodyMedium,
       overflow: TextOverflow.ellipsis,
     );
   }
 
-  String _individualText(List<SpecimenIndividualData> individuals) {
+  String _individualText(
+    AppLocalizations l10n,
+    List<SpecimenIndividualData> individuals,
+  ) {
     if (individuals.isEmpty) return '';
-    return 'Ind: ${individuals.map(individualShortId).join(', ')}'
+    return '${l10n.parasiteIndividuals(individuals.map(individualShortId).join(', '))}'
         '$listTileSeparator';
   }
 
@@ -529,23 +532,23 @@ class PartSubTitle extends ConsumerWidget {
     }
   }
 
-  String get treatment {
+  String _treatment(AppLocalizations l10n) {
     if (part.treatment == null) {
-      return 'None';
+      return l10n.partNoTreatment;
     } else if (part.treatment!.isEmpty) {
-      return 'None';
+      return l10n.partNoTreatment;
     } else {
       return '${part.treatment}';
     }
   }
 
-  String _getPMI() {
+  String _getPMI(AppLocalizations l10n) {
     if (part.pmi == null) {
       return '';
     } else if (part.pmi!.isEmpty) {
       return '';
     } else {
-      return '${listTileSeparator}PMI ${part.pmi}';
+      return '$listTileSeparator${l10n.partPmi(part.pmi!)}';
     }
   }
 
@@ -559,13 +562,13 @@ class PartSubTitle extends ConsumerWidget {
     }
   }
 
-  String get remark {
+  String _remark(AppLocalizations l10n) {
     if (part.remark == null) {
       return '';
     } else if (part.remark!.isEmpty) {
       return '';
     } else {
-      return '${listTileSeparator}has remark';
+      return '$listTileSeparator${l10n.partHasRemark}';
     }
   }
 }
@@ -580,7 +583,7 @@ class NewPart extends StatelessWidget {
     final PartFormCtrModel partCtr = PartFormCtrModel.empty();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add specimen parts'),
+        title: Text(context.l10n.partAddParts),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -610,7 +613,7 @@ class EditPart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit specimen parts'),
+        title: Text(context.l10n.partEditParts),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -673,7 +676,7 @@ class PartFormState extends ConsumerState<PartForm> {
             partCtr: widget.partCtr,
           ),
           FormSection(
-            title: 'Preparation',
+            title: context.l10n.partPreparation,
             child: Column(
               children: [
                 SpecimenTypeField(partCtr: widget.partCtr),
@@ -686,7 +689,7 @@ class PartFormState extends ConsumerState<PartForm> {
             ),
           ),
           FormSection(
-            title: 'Sampling',
+            title: context.l10n.partSampling,
             child: PartSamplingFields(
               visible: _showMore,
               partCtr: widget.partCtr,
@@ -695,7 +698,7 @@ class PartFormState extends ConsumerState<PartForm> {
           Visibility(
             visible: _showMore || _hasCurationData,
             child: FormSection(
-              title: 'Curation',
+              title: context.l10n.parasiteCuration,
               child: PartCurationFields(
                 visible: _showMore,
                 partCtr: widget.partCtr,
@@ -772,7 +775,7 @@ class PartFormState extends ConsumerState<PartForm> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save specimen part: $error')),
+        SnackBar(content: Text(context.l10n.partSaveError('$error'))),
       );
     }
   }
@@ -836,7 +839,7 @@ class SpecimenTreatmentFields extends ConsumerWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (e, s) => Text('Error: $e'),
+          error: (e, s) => Text(context.l10n.formsErrorDetail('$e')),
         );
   }
 }
@@ -850,8 +853,8 @@ class SpecimenCountField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonNumField(
       controller: partCtr.countCtr,
-      labelText: 'Counts',
-      hintText: 'Enter part counts',
+      labelText: context.l10n.partCounts,
+      hintText: context.l10n.partCountsHint,
       isLastField: false,
     );
   }
@@ -872,9 +875,9 @@ class SpecimenTypeField extends ConsumerWidget {
             return DropdownButtonFormField(
               isExpanded: true,
               initialValue: _getValue(),
-              decoration: const InputDecoration(
-                labelText: 'Preparation type',
-                hintText: 'Enter preparation type',
+              decoration: InputDecoration(
+                labelText: context.l10n.partPreparationType,
+                hintText: context.l10n.partPreparationTypeHint,
               ),
               items: options.map((String value) {
                 return DropdownMenuItem<String>(
@@ -893,7 +896,7 @@ class SpecimenTypeField extends ConsumerWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (e, s) => Text('Error: $e'),
+          error: (e, s) => Text(context.l10n.formsErrorDetail('$e')),
         );
   }
 
@@ -921,9 +924,9 @@ class SpecimenTreatmentField extends StatelessWidget {
     return DropdownButtonFormField(
       isExpanded: true,
       initialValue: _getValue(),
-      decoration: const InputDecoration(
-        labelText: 'Treatment',
-        hintText: 'Enter treatment',
+      decoration: InputDecoration(
+        labelText: context.l10n.parasiteTreatment,
+        hintText: context.l10n.partTreatmentHint,
       ),
       items: treatmentList.map((String value) {
         return DropdownMenuItem<String>(
@@ -967,9 +970,9 @@ class AdditionalTreatmentField extends StatelessWidget {
       child: DropdownButtonFormField(
         isExpanded: true,
         initialValue: _getValue(),
-        decoration: const InputDecoration(
-          labelText: 'Additional treatment',
-          hintText: 'Enter additional treatment',
+        decoration: InputDecoration(
+          labelText: context.l10n.partAdditionalTreatment,
+          hintText: context.l10n.partAdditionalTreatmentHint,
         ),
         items: treatmentList.map((String value) {
           return DropdownMenuItem<String>(
@@ -1014,9 +1017,9 @@ class PartSamplingFields extends ConsumerWidget {
           child: DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: partCtr.preparatorCtr,
-            decoration: const InputDecoration(
-              labelText: 'Preparator',
-              hintText: 'If different from voucher preparator',
+            decoration: InputDecoration(
+              labelText: context.l10n.formsSearchPreparator,
+              hintText: context.l10n.partPreparatorHint,
             ),
             items: ref
                 .watch(projectPersonnelProvider)
@@ -1047,8 +1050,8 @@ class PartSamplingFields extends ConsumerWidget {
         Visibility(
           visible: visible || partCtr.dateTakenCtr.text.isNotEmpty,
           child: CommonDateField(
-            labelText: 'Date taken',
-            hintText: 'Enter date',
+            labelText: context.l10n.partDateTaken,
+            hintText: context.l10n.narrativeDateHint,
             controller: partCtr.dateTakenCtr,
             initialDate: DateTime.now(),
             lastDate: DateTime.now(),
@@ -1057,8 +1060,8 @@ class PartSamplingFields extends ConsumerWidget {
           ),
         ),
         CommonTimeField(
-          labelText: 'Time taken',
-          hintText: 'Enter time',
+          labelText: context.l10n.partTimeTaken,
+          hintText: context.l10n.narrativeTimeHint,
           controller: partCtr.timeTakenCtr,
           initialTime: TimeOfDay.now(),
           onTap: () {},
@@ -1067,7 +1070,7 @@ class PartSamplingFields extends ConsumerWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Recommended for fresh tissues',
+            context.l10n.partRecommendedFresh,
             style: Theme.of(context).textTheme.labelSmall,
           ),
         ),
@@ -1103,8 +1106,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.storageCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.storageCtr,
-            labelText: 'Storage type',
-            hintText: 'Enter storage type',
+            labelText: context.l10n.partStorageType,
+            hintText: context.l10n.partStorageTypeHint,
             isLastField: false,
           ),
         ),
@@ -1112,9 +1115,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.storageLocationCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.storageLocationCtr,
-            labelText: 'Storage location',
-            hintText:
-                'It can be cell or jar ID, following your museum convention',
+            labelText: context.l10n.parasiteStorageLocation,
+            hintText: context.l10n.partStorageLocationHint,
             isLastField: false,
           ),
         ),
@@ -1122,8 +1124,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.museumPermanentCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.museumPermanentCtr,
-            labelText: 'Museum permanent',
-            hintText: 'Enter a museum name or abbreviation',
+            labelText: context.l10n.parasiteMuseumPermanent,
+            hintText: context.l10n.partMuseumHint,
             isLastField: false,
           ),
         ),
@@ -1131,8 +1133,8 @@ class PartCurationFields extends StatelessWidget {
           visible: visible || partCtr.museumLoanCtr.text.isNotEmpty,
           child: CommonTextField(
             controller: partCtr.museumLoanCtr,
-            labelText: 'Museum loan',
-            hintText: 'Enter a museum name or abbreviation',
+            labelText: context.l10n.parasiteMuseumLoan,
+            hintText: context.l10n.partMuseumHint,
             isLastField: false,
           ),
         ),
@@ -1141,8 +1143,8 @@ class PartCurationFields extends StatelessWidget {
           child: CommonTextField(
             controller: partCtr.remarkCtr,
             maxLines: 3,
-            labelText: 'Remarks',
-            hintText: 'Enter a remark specific to this part',
+            labelText: context.l10n.specimenRemarks,
+            hintText: context.l10n.partRemarksHint,
             isLastField: true,
           ),
         ),
@@ -1176,7 +1178,10 @@ class PartIdForm extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            Text('IDs', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.parasiteIds,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             TissueIDform(
               specimenUuid: specimenUuid,
               tissueIdCtr: partCtr.tissueIdCtr,
@@ -1213,25 +1218,25 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
         Expanded(
           child: CommonTextField(
             controller: widget.barcodeIdCtr,
-            labelText: 'QR/barcode ID',
-            hintText: 'Enter barcode ID (if applicable)',
+            labelText: context.l10n.partBarcodeId,
+            hintText: context.l10n.partBarcodeIdHint,
             isLastField: false,
           ),
         ),
         AdaptiveMenuButton<_UniqueIdAction>(
-          tooltip: 'QR/barcode ID options',
+          tooltip: context.l10n.partBarcodeIdOptions,
           onSelected: _onSelected,
           itemBuilder: () => [
             if (systemPlatform == PlatformType.mobile)
-              const AdaptiveMenuItem(
+              AdaptiveMenuItem(
                 value: _UniqueIdAction.scan,
                 icon: Icons.qr_code_scanner_outlined,
-                label: 'Scan QR/Barcode',
+                label: context.l10n.parasiteScanCode,
               ),
-            const AdaptiveMenuItem(
+            AdaptiveMenuItem(
               value: _UniqueIdAction.generateUuid,
               icon: Icons.qr_code_2_outlined,
-              label: 'Generate UUID',
+              label: context.l10n.partGenerateUuid,
               hasDividerBefore: true,
             ),
           ],
@@ -1263,7 +1268,7 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
     final barcodeId = barcode.barcodes.first;
     final String? qrData = barcodeId.rawValue;
     if (qrData == null) {
-      _showError('Invalid QR/barcode');
+      _showError(context.l10n.partInvalidBarcode);
       return;
     }
     setState(() {
@@ -1274,10 +1279,7 @@ class _UniqueIDFieldState extends State<UniqueIDField> {
 
   void _generateUuid() {
     if (widget.barcodeIdCtr.text.isNotEmpty) {
-      _showError(
-        'QR/barcode ID already exists. '
-        'Clear the field to generate a new UUID',
-      );
+      _showError(context.l10n.partBarcodeIdExists);
       return;
     }
     setState(() {
@@ -1324,8 +1326,8 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
           child: TextField(
             controller: widget.tissueIdCtr,
             decoration: InputDecoration(
-              labelText: 'Tissue ID',
-              hintText: 'Enter tissue ID',
+              labelText: context.l10n.recordsSpecimenTissueId,
+              hintText: context.l10n.partTissueIdHint,
               suffix: _hasId || widget.tissueIdCtr.text.isNotEmpty
                   ? null
                   : IconButton(
@@ -1365,8 +1367,8 @@ class TissueIDformState extends ConsumerState<TissueIDform> {
       ref: ref,
     ).repeatNumber(widget.specimenUuid);
     if (tissueID == null || tissueID.isEmpty) {
-      if (context.mounted) {
-        _showError('Failed to repeat tissue number');
+      if (mounted) {
+        _showError(context.l10n.partRepeatTissueFailed);
       }
     } else {
       widget.tissueIdCtr.text = tissueID;
@@ -1400,19 +1402,19 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_TissueIdAction>(
-      tooltip: 'Tissue ID options',
+      tooltip: context.l10n.partTissueIdOptions,
       onSelected: _onSelected,
       itemBuilder: () => [
         AdaptiveMenuItem(
           value: _TissueIdAction.newNumber,
           icon: Icons.add,
-          label: 'New number',
+          label: context.l10n.parasiteNewNumber,
           enabled: _hasNoId(),
         ),
-        const AdaptiveMenuItem(
+        AdaptiveMenuItem(
           value: _TissueIdAction.settings,
           icon: Icons.settings_outlined,
-          label: 'Settings',
+          label: context.l10n.parasiteSettings,
           hasDividerBefore: true,
         ),
       ],
@@ -1437,18 +1439,18 @@ class TissueIDMenuState extends ConsumerState<TissueIDMenu> {
     await showAdaptiveSheetDialog<void>(
       context: context,
       builder: (context, isSheet) => AdaptiveSheetDialogBody(
-        title: 'Tissue ID settings',
+        title: context.l10n.partTissueIdSettings,
         showCloseButton: !isSheet,
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            child: Text(context.l10n.commonDone),
           ),
         ],
         child: NumberedIdFields(
           store: TissueIdServices(ref: ref),
           useHorizontalLayout: false,
-          previewLabel: 'Next tissue ID',
+          previewLabel: context.l10n.recordsSpecimenNextTissueId,
         ),
       ),
     );

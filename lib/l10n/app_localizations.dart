@@ -13236,6 +13236,7545 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap an empty cell to jump, or a filled cell to see its tube'**
   String get projectTissueTapCellHint;
+
+  /// No description provided for @parasiteRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite records'**
+  String get parasiteRecords;
+
+  /// No description provided for @parasiteUnidentified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unidentified parasite'**
+  String get parasiteUnidentified;
+
+  /// Short label listing the individuals linked to a parasite.
+  ///
+  /// In en, this message translates to:
+  /// **'Ind: {ids}'**
+  String parasiteIndividuals(String ids);
+
+  /// No description provided for @parasiteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count: {count}'**
+  String parasiteCount(String count);
+
+  /// No description provided for @parasiteNoneAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No parasites added'**
+  String get parasiteNoneAdded;
+
+  /// No description provided for @parasiteAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add parasite'**
+  String get parasiteAdd;
+
+  /// No description provided for @parasiteEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit parasite'**
+  String get parasiteEdit;
+
+  /// No description provided for @parasiteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite details'**
+  String get parasiteDetails;
+
+  /// No description provided for @parasiteCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get parasiteCountLabel;
+
+  /// No description provided for @parasiteCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter parasite count'**
+  String get parasiteCountHint;
+
+  /// No description provided for @parasiteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get parasiteCategory;
+
+  /// No description provided for @parasiteAnatomicalLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anatomical location'**
+  String get parasiteAnatomicalLocation;
+
+  /// No description provided for @parasiteCollectionIdentification.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection & identification'**
+  String get parasiteCollectionIdentification;
+
+  /// No description provided for @parasiteCollector.
+  ///
+  /// In en, this message translates to:
+  /// **'Collector'**
+  String get parasiteCollector;
+
+  /// No description provided for @parasiteCollectorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select who collected the parasite'**
+  String get parasiteCollectorHint;
+
+  /// No description provided for @parasiteDetectionMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Detection method'**
+  String get parasiteDetectionMethod;
+
+  /// No description provided for @parasiteDateCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Date collected'**
+  String get parasiteDateCollected;
+
+  /// No description provided for @parasiteDateCollectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter collection date'**
+  String get parasiteDateCollectedHint;
+
+  /// No description provided for @parasiteTimeCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Time collected'**
+  String get parasiteTimeCollected;
+
+  /// No description provided for @parasiteTimeCollectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter collection time'**
+  String get parasiteTimeCollectedHint;
+
+  /// No description provided for @parasiteDeterminer.
+  ///
+  /// In en, this message translates to:
+  /// **'Determiner'**
+  String get parasiteDeterminer;
+
+  /// No description provided for @parasiteDeterminerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select who identified the parasite'**
+  String get parasiteDeterminerHint;
+
+  /// No description provided for @parasiteDateDetermined.
+  ///
+  /// In en, this message translates to:
+  /// **'Date determined'**
+  String get parasiteDateDetermined;
+
+  /// No description provided for @parasiteDateDeterminedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter identification date'**
+  String get parasiteDateDeterminedHint;
+
+  /// No description provided for @parasiteDeterminationMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Determination method'**
+  String get parasiteDeterminationMethod;
+
+  /// No description provided for @parasiteSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save parasite: {error}'**
+  String parasiteSaveError(String error);
+
+  /// No description provided for @parasiteTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite taxon'**
+  String get parasiteTaxon;
+
+  /// No description provided for @parasiteTaxonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a registered taxon'**
+  String get parasiteTaxonHint;
+
+  /// No description provided for @parasiteNotIdentified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not identified'**
+  String get parasiteNotIdentified;
+
+  /// No description provided for @parasiteTaxaLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load taxa: {error}'**
+  String parasiteTaxaLoadError(String error);
+
+  /// No description provided for @parasiteAddTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Add taxon'**
+  String get parasiteAddTaxon;
+
+  /// No description provided for @parasiteNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Not assigned'**
+  String get parasiteNotAssigned;
+
+  /// No description provided for @parasitePreparationPreservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation & preservation'**
+  String get parasitePreparationPreservation;
+
+  /// No description provided for @parasitePreparationMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation method'**
+  String get parasitePreparationMethod;
+
+  /// No description provided for @parasiteTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment'**
+  String get parasiteTreatment;
+
+  /// No description provided for @parasiteDatePreserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Date preserved'**
+  String get parasiteDatePreserved;
+
+  /// No description provided for @parasiteDatePreservedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter preservation date'**
+  String get parasiteDatePreservedHint;
+
+  /// No description provided for @parasiteTimePreserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Time preserved'**
+  String get parasiteTimePreserved;
+
+  /// No description provided for @parasiteTimePreservedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter preservation time'**
+  String get parasiteTimePreservedHint;
+
+  /// No description provided for @parasiteCuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Curation'**
+  String get parasiteCuration;
+
+  /// No description provided for @parasiteStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get parasiteStorage;
+
+  /// No description provided for @parasiteStorageLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage location'**
+  String get parasiteStorageLocation;
+
+  /// No description provided for @parasiteStorageLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter freezer, cabinet, shelf, or container'**
+  String get parasiteStorageLocationHint;
+
+  /// No description provided for @parasiteMuseumPermanent.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum permanent'**
+  String get parasiteMuseumPermanent;
+
+  /// No description provided for @parasiteMuseumHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter museum name or abbreviation'**
+  String get parasiteMuseumHint;
+
+  /// No description provided for @parasiteMuseumLoan.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum loan'**
+  String get parasiteMuseumLoan;
+
+  /// No description provided for @parasiteRemarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks'**
+  String get parasiteRemarks;
+
+  /// No description provided for @parasiteRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter parasite remarks'**
+  String get parasiteRemarksHint;
+
+  /// No description provided for @parasiteLifeStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Life stage'**
+  String get parasiteLifeStage;
+
+  /// No description provided for @parasiteLifeStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select parasite life stage'**
+  String get parasiteLifeStageHint;
+
+  /// No description provided for @parasiteAssociationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Association status'**
+  String get parasiteAssociationStatus;
+
+  /// No description provided for @parasiteAssociationStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select association status'**
+  String get parasiteAssociationStatusHint;
+
+  /// No description provided for @parasiteFieldLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load {field}: {error}'**
+  String parasiteFieldLoadError(String field, String error);
+
+  /// No description provided for @parasiteSetOptionsInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Set options in Specimen settings'**
+  String get parasiteSetOptionsInSettings;
+
+  /// No description provided for @parasiteSelectField.
+  ///
+  /// In en, this message translates to:
+  /// **'Select {field}'**
+  String parasiteSelectField(String field);
+
+  /// No description provided for @parasiteIds.
+  ///
+  /// In en, this message translates to:
+  /// **'IDs'**
+  String get parasiteIds;
+
+  /// No description provided for @parasiteUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'UUID: {uuid}'**
+  String parasiteUuid(String uuid);
+
+  /// No description provided for @parasiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite ID'**
+  String get parasiteId;
+
+  /// No description provided for @parasiteIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a user-defined parasite ID'**
+  String get parasiteIdHint;
+
+  /// No description provided for @parasiteIdOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite ID options'**
+  String get parasiteIdOptions;
+
+  /// No description provided for @parasiteScanCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR/Barcode'**
+  String get parasiteScanCode;
+
+  /// No description provided for @parasiteNewNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'New number'**
+  String get parasiteNewNumber;
+
+  /// No description provided for @parasiteSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get parasiteSettings;
+
+  /// No description provided for @parasiteIdSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite ID settings'**
+  String get parasiteIdSettings;
+
+  /// No description provided for @parasitePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefix'**
+  String get parasitePrefix;
+
+  /// No description provided for @parasitePrefixHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter parasite ID prefix'**
+  String get parasitePrefixHint;
+
+  /// No description provided for @parasiteNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get parasiteNumber;
+
+  /// No description provided for @parasiteNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the next parasite ID number'**
+  String get parasiteNumberHint;
+
+  /// No description provided for @specimenShowOutlierWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Show outlier warnings'**
+  String get specimenShowOutlierWarnings;
+
+  /// No description provided for @mammalTotalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Total length (mm)'**
+  String get mammalTotalLength;
+
+  /// No description provided for @mammalTotalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter TTL'**
+  String get mammalTotalLengthHint;
+
+  /// No description provided for @mammalTailLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail length (mm)'**
+  String get mammalTailLength;
+
+  /// No description provided for @mammalTailLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter TL'**
+  String get mammalTailLengthHint;
+
+  /// No description provided for @specimenAutoCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically calculated'**
+  String get specimenAutoCalculated;
+
+  /// No description provided for @mammalHeadBodyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Head and body length (mm)'**
+  String get mammalHeadBodyLength;
+
+  /// No description provided for @mammalHeadBodyLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter HBL'**
+  String get mammalHeadBodyLengthHint;
+
+  /// No description provided for @mammalTailHeadBodyRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail/HB length'**
+  String get mammalTailHeadBodyRatio;
+
+  /// No description provided for @mammalTailHeadBodyRatioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter TL/HBL'**
+  String get mammalTailHeadBodyRatioHint;
+
+  /// No description provided for @mammalHindFootLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Hind foot length (mm)'**
+  String get mammalHindFootLength;
+
+  /// No description provided for @mammalHindFootLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter HF length'**
+  String get mammalHindFootLengthHint;
+
+  /// No description provided for @mammalEarLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Ear length (mm)'**
+  String get mammalEarLength;
+
+  /// No description provided for @mammalEarLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ER length'**
+  String get mammalEarLengthHint;
+
+  /// No description provided for @mammalShowBatFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Show bat fields'**
+  String get mammalShowBatFields;
+
+  /// No description provided for @specimenRemarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks'**
+  String get specimenRemarks;
+
+  /// No description provided for @specimenMeasurementRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write notes about the measurements (optional)'**
+  String get specimenMeasurementRemarksHint;
+
+  /// No description provided for @specimenUnusualMeasurement.
+  ///
+  /// In en, this message translates to:
+  /// **'Unusual measurement'**
+  String get specimenUnusualMeasurement;
+
+  /// No description provided for @mammalChangeSexTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change sex?'**
+  String get mammalChangeSexTitle;
+
+  /// No description provided for @mammalChangeSexBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing the sex will clear reproductive data that does not apply to the new selection.'**
+  String get mammalChangeSexBody;
+
+  /// No description provided for @specimenAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get specimenAccuracy;
+
+  /// No description provided for @specimenAccuracyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select measurement accuracy'**
+  String get specimenAccuracyHint;
+
+  /// No description provided for @specimenNoInaccurateSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No inaccurate measurements selected'**
+  String get specimenNoInaccurateSelected;
+
+  /// No description provided for @specimenInaccurateList.
+  ///
+  /// In en, this message translates to:
+  /// **'*Inaccurate: {labels}'**
+  String specimenInaccurateList(String labels);
+
+  /// No description provided for @specimenAccuracyRemarkValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Remark:\n{remark}'**
+  String specimenAccuracyRemarkValue(String remark);
+
+  /// No description provided for @specimenSelectInaccurate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select inaccurate measurements'**
+  String get specimenSelectInaccurate;
+
+  /// No description provided for @specimenInaccurateMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'Inaccurate measurements'**
+  String get specimenInaccurateMeasurements;
+
+  /// No description provided for @specimenSelectEveryInaccurate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select every measurement that is inaccurate.'**
+  String get specimenSelectEveryInaccurate;
+
+  /// No description provided for @specimenSelectAtLeastOneInaccurate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one inaccurate measurement.'**
+  String get specimenSelectAtLeastOneInaccurate;
+
+  /// No description provided for @specimenAccuracyRemark.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy remark'**
+  String get specimenAccuracyRemark;
+
+  /// No description provided for @specimenAccuracyRemarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe why the measurements are inaccurate'**
+  String get specimenAccuracyRemarkHint;
+
+  /// No description provided for @mammalTestes.
+  ///
+  /// In en, this message translates to:
+  /// **'Testes'**
+  String get mammalTestes;
+
+  /// No description provided for @mammalTestisPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get mammalTestisPosition;
+
+  /// No description provided for @mammalTestisPositionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select testis position'**
+  String get mammalTestisPositionHint;
+
+  /// No description provided for @specimenLengthMm.
+  ///
+  /// In en, this message translates to:
+  /// **'Length (mm)'**
+  String get specimenLengthMm;
+
+  /// No description provided for @mammalTestisLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the length of the right testes'**
+  String get mammalTestisLengthHint;
+
+  /// No description provided for @specimenWidthMm.
+  ///
+  /// In en, this message translates to:
+  /// **'Width (mm)'**
+  String get specimenWidthMm;
+
+  /// No description provided for @mammalTestisWidthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the width of the right testes'**
+  String get mammalTestisWidthHint;
+
+  /// No description provided for @mammalEpididymis.
+  ///
+  /// In en, this message translates to:
+  /// **'Epididymis'**
+  String get mammalEpididymis;
+
+  /// No description provided for @mammalEpididymisHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select epididymis appearance'**
+  String get mammalEpididymisHint;
+
+  /// No description provided for @mammalVaginaOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Vagina opening'**
+  String get mammalVaginaOpening;
+
+  /// No description provided for @mammalVaginaOpeningHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select vagina opening'**
+  String get mammalVaginaOpeningHint;
+
+  /// No description provided for @mammalPubicSymphysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Pubic symphysis'**
+  String get mammalPubicSymphysis;
+
+  /// No description provided for @mammalPubicSymphysisHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select pubic symphysis condition'**
+  String get mammalPubicSymphysisHint;
+
+  /// No description provided for @mammalFemaleReproductive.
+  ///
+  /// In en, this message translates to:
+  /// **'Female reproductive attributes'**
+  String get mammalFemaleReproductive;
+
+  /// No description provided for @mammalReproductiveStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reproductive stage'**
+  String get mammalReproductiveStage;
+
+  /// No description provided for @mammalReproductiveStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select reproductive stage'**
+  String get mammalReproductiveStageHint;
+
+  /// No description provided for @mammalMammaeCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Mammae counts (pairs)'**
+  String get mammalMammaeCounts;
+
+  /// No description provided for @mammalMammaeCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Mammae condition'**
+  String get mammalMammaeCondition;
+
+  /// No description provided for @mammalMammaeConditionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select mammae condition'**
+  String get mammalMammaeConditionHint;
+
+  /// No description provided for @mammalEmbryo.
+  ///
+  /// In en, this message translates to:
+  /// **'Embryo'**
+  String get mammalEmbryo;
+
+  /// No description provided for @mammalCrownRumpLength.
+  ///
+  /// In en, this message translates to:
+  /// **'CR length (mm)'**
+  String get mammalCrownRumpLength;
+
+  /// No description provided for @mammalCrownRumpLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter crown-rump length'**
+  String get mammalCrownRumpLengthHint;
+
+  /// No description provided for @mammalPlacentalScars.
+  ///
+  /// In en, this message translates to:
+  /// **'Placental scars'**
+  String get mammalPlacentalScars;
+
+  /// No description provided for @mammalAxillary.
+  ///
+  /// In en, this message translates to:
+  /// **'Axillary'**
+  String get mammalAxillary;
+
+  /// No description provided for @mammalAxillaryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the axillary pair number'**
+  String get mammalAxillaryHint;
+
+  /// No description provided for @mammalAbdominal.
+  ///
+  /// In en, this message translates to:
+  /// **'Abdominal'**
+  String get mammalAbdominal;
+
+  /// No description provided for @mammalAbdominalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the abdominal pair number'**
+  String get mammalAbdominalHint;
+
+  /// No description provided for @mammalInguinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Inguinal'**
+  String get mammalInguinal;
+
+  /// No description provided for @mammalInguinalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the inguinal pair number'**
+  String get mammalInguinalHint;
+
+  /// No description provided for @specimenLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get specimenLeft;
+
+  /// No description provided for @specimenRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get specimenRight;
+
+  /// No description provided for @mammalForearmLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Forearm Length (mm)'**
+  String get mammalForearmLength;
+
+  /// No description provided for @mammalForearmLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter FL length'**
+  String get mammalForearmLengthHint;
+
+  /// No description provided for @mammalTibiaLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Tibia Length (mm)'**
+  String get mammalTibiaLength;
+
+  /// No description provided for @mammalTibiaLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter tibia length'**
+  String get mammalTibiaLengthHint;
+
+  /// No description provided for @mammalEcholocate.
+  ///
+  /// In en, this message translates to:
+  /// **'Echolocate?'**
+  String get mammalEcholocate;
+
+  /// No description provided for @mammalEcholocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Echolocation'**
+  String get mammalEcholocation;
+
+  /// No description provided for @mammalEcholocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select echolocation type'**
+  String get mammalEcholocationHint;
+
+  /// No description provided for @mammalFrequencyMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency Max (kHz)'**
+  String get mammalFrequencyMax;
+
+  /// No description provided for @mammalFrequencyMaxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maximum echolocate frequency'**
+  String get mammalFrequencyMaxHint;
+
+  /// No description provided for @mammalFrequencyMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency Min (kHz)'**
+  String get mammalFrequencyMin;
+
+  /// No description provided for @mammalFrequencyMinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minimum echolocate frequency'**
+  String get mammalFrequencyMinHint;
+
+  /// No description provided for @mammalFrequencyMaxEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency At Max Energy (kHz)'**
+  String get mammalFrequencyMaxEnergy;
+
+  /// No description provided for @mammalFrequencyMaxEnergyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter echolocate frequency at max energy'**
+  String get mammalFrequencyMaxEnergyHint;
+
+  /// No description provided for @mammalEcholocationDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (seconds)'**
+  String get mammalEcholocationDuration;
+
+  /// No description provided for @mammalEcholocationDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter echolocation duration'**
+  String get mammalEcholocationDurationHint;
+
+  /// No description provided for @birdWingspan.
+  ///
+  /// In en, this message translates to:
+  /// **'Wingspan (mm)'**
+  String get birdWingspan;
+
+  /// No description provided for @birdWingspanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter wingspan length'**
+  String get birdWingspanHint;
+
+  /// No description provided for @birdBillColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill color'**
+  String get birdBillColor;
+
+  /// No description provided for @birdBillColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter bill color'**
+  String get birdBillColorHint;
+
+  /// No description provided for @birdMaxillaColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Maxilla color'**
+  String get birdMaxillaColor;
+
+  /// No description provided for @birdMaxillaColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maxilla color'**
+  String get birdMaxillaColorHint;
+
+  /// No description provided for @birdMandibleColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Mandible color'**
+  String get birdMandibleColor;
+
+  /// No description provided for @birdMandibleColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter mandible color'**
+  String get birdMandibleColorHint;
+
+  /// No description provided for @birdIrisColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Iris color'**
+  String get birdIrisColor;
+
+  /// No description provided for @birdIrisColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter iris color'**
+  String get birdIrisColorHint;
+
+  /// No description provided for @birdTarsusColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tarsus color'**
+  String get birdTarsusColor;
+
+  /// No description provided for @birdTarsusColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter tarsus color'**
+  String get birdTarsusColorHint;
+
+  /// No description provided for @birdToeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Toe color'**
+  String get birdToeColor;
+
+  /// No description provided for @birdToeColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter toe color'**
+  String get birdToeColorHint;
+
+  /// No description provided for @birdBroodPatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Brood patch'**
+  String get birdBroodPatch;
+
+  /// No description provided for @birdBursaPresent.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursa present'**
+  String get birdBursaPresent;
+
+  /// No description provided for @birdStomachContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Stomach contents'**
+  String get birdStomachContents;
+
+  /// No description provided for @birdStomachContentsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter stomach contents'**
+  String get birdStomachContentsHint;
+
+  /// No description provided for @birdBursaLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursa length (mm)'**
+  String get birdBursaLength;
+
+  /// No description provided for @birdBursaLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter bursa length'**
+  String get birdBursaLengthHint;
+
+  /// No description provided for @birdBursaWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursa width (mm)'**
+  String get birdBursaWidth;
+
+  /// No description provided for @birdBursaWidthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter bursa width'**
+  String get birdBursaWidthHint;
+
+  /// No description provided for @birdMaleGonads.
+  ///
+  /// In en, this message translates to:
+  /// **'Male gonads'**
+  String get birdMaleGonads;
+
+  /// No description provided for @birdLeftTestisSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Left testis size (mm)'**
+  String get birdLeftTestisSize;
+
+  /// No description provided for @birdSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get birdSize;
+
+  /// Gonad size option for sizes smaller than 1 mm.
+  ///
+  /// In en, this message translates to:
+  /// **'minute'**
+  String get birdMinute;
+
+  /// No description provided for @birdOneMmOrGreater.
+  ///
+  /// In en, this message translates to:
+  /// **'1 mm or greater'**
+  String get birdOneMmOrGreater;
+
+  /// No description provided for @birdLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get birdLength;
+
+  /// No description provided for @specimenEnterLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter length'**
+  String get specimenEnterLength;
+
+  /// No description provided for @birdWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Width'**
+  String get birdWidth;
+
+  /// No description provided for @specimenEnterWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter width'**
+  String get specimenEnterWidth;
+
+  /// No description provided for @birdTestisRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter remarks, e.g. right testis size'**
+  String get birdTestisRemarksHint;
+
+  /// No description provided for @birdFemaleGonads.
+  ///
+  /// In en, this message translates to:
+  /// **'Female gonads'**
+  String get birdFemaleGonads;
+
+  /// No description provided for @birdOvarySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Ovary size'**
+  String get birdOvarySize;
+
+  /// No description provided for @birdAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get birdAppearance;
+
+  /// No description provided for @birdOviduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oviduct'**
+  String get birdOviduct;
+
+  /// No description provided for @birdGonadRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add additional information about the gonads'**
+  String get birdGonadRemarksHint;
+
+  /// No description provided for @birdSkullOssification.
+  ///
+  /// In en, this message translates to:
+  /// **'Skull ossification (%)'**
+  String get birdSkullOssification;
+
+  /// No description provided for @birdSkullOssificationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter percentage'**
+  String get birdSkullOssificationHint;
+
+  /// No description provided for @birdFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get birdFat;
+
+  /// No description provided for @birdLargestOva.
+  ///
+  /// In en, this message translates to:
+  /// **'Diameter of three largest ova (mm)'**
+  String get birdLargestOva;
+
+  /// No description provided for @birdFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'First'**
+  String get birdFirst;
+
+  /// No description provided for @birdEnterSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter size'**
+  String get birdEnterSize;
+
+  /// No description provided for @birdSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'Second'**
+  String get birdSecond;
+
+  /// No description provided for @birdThird.
+  ///
+  /// In en, this message translates to:
+  /// **'Third'**
+  String get birdThird;
+
+  /// No description provided for @birdMolt.
+  ///
+  /// In en, this message translates to:
+  /// **'Molt'**
+  String get birdMolt;
+
+  /// No description provided for @birdWingMolt.
+  ///
+  /// In en, this message translates to:
+  /// **'Wing molt'**
+  String get birdWingMolt;
+
+  /// No description provided for @birdTailMolt.
+  ///
+  /// In en, this message translates to:
+  /// **'Tail molt'**
+  String get birdTailMolt;
+
+  /// No description provided for @birdMoltRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add additional molt information'**
+  String get birdMoltRemarksHint;
+
+  /// No description provided for @birdWingMoltHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter wing molt'**
+  String get birdWingMoltHint;
+
+  /// No description provided for @birdTailMoltHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter tail molt'**
+  String get birdTailMoltHint;
+
+  /// No description provided for @birdBodyMolt.
+  ///
+  /// In en, this message translates to:
+  /// **'Body molt'**
+  String get birdBodyMolt;
+
+  /// No description provided for @specimenNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get specimenNotes;
+
+  /// No description provided for @birdHabitat.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat'**
+  String get birdHabitat;
+
+  /// No description provided for @birdHabitatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add additional information about the habitat'**
+  String get birdHabitatHint;
+
+  /// No description provided for @specimenSpecimen.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen'**
+  String get specimenSpecimen;
+
+  /// No description provided for @specimenRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add additional information about the specimen'**
+  String get specimenRemarksHint;
+
+  /// No description provided for @fishStandardLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard length (mm)'**
+  String get fishStandardLength;
+
+  /// No description provided for @fishStandardLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter standard length'**
+  String get fishStandardLengthHint;
+
+  /// No description provided for @fishTotalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter total length'**
+  String get fishTotalLengthHint;
+
+  /// No description provided for @fishTotalIndividuals.
+  ///
+  /// In en, this message translates to:
+  /// **'Total individuals'**
+  String get fishTotalIndividuals;
+
+  /// No description provided for @fishTotalIndividualsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the number of individuals in the lot'**
+  String get fishTotalIndividualsHint;
+
+  /// No description provided for @fishAutoUpdateRanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-update min and max'**
+  String get fishAutoUpdateRanges;
+
+  /// No description provided for @fishAutoUpdateRangesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the ranges from the individuals measured below'**
+  String get fishAutoUpdateRangesBody;
+
+  /// No description provided for @fishMinStandardLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Min. standard length (mm)'**
+  String get fishMinStandardLength;
+
+  /// No description provided for @fishMinStandardLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minimum standard length'**
+  String get fishMinStandardLengthHint;
+
+  /// No description provided for @fishMaxStandardLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. standard length (mm)'**
+  String get fishMaxStandardLength;
+
+  /// No description provided for @fishMaxStandardLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maximum standard length'**
+  String get fishMaxStandardLengthHint;
+
+  /// No description provided for @fishMinTotalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Min. total length (mm)'**
+  String get fishMinTotalLength;
+
+  /// No description provided for @fishMinTotalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minimum total length'**
+  String get fishMinTotalLengthHint;
+
+  /// No description provided for @fishMaxTotalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. total length (mm)'**
+  String get fishMaxTotalLength;
+
+  /// No description provided for @fishMaxTotalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maximum total length'**
+  String get fishMaxTotalLengthHint;
+
+  /// No description provided for @fishMinWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Min. weight'**
+  String get fishMinWeight;
+
+  /// No description provided for @fishMinWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter minimum weight'**
+  String get fishMinWeightHint;
+
+  /// No description provided for @fishMaxWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Max. weight'**
+  String get fishMaxWeight;
+
+  /// No description provided for @fishMaxWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter maximum weight'**
+  String get fishMaxWeightHint;
+
+  /// No description provided for @fishSpecimenType.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen type'**
+  String get fishSpecimenType;
+
+  /// No description provided for @fishTypeIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get fishTypeIndividual;
+
+  /// No description provided for @fishTypeLot.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot'**
+  String get fishTypeLot;
+
+  /// No description provided for @fishTypeIndividualDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'One fish with its own measurements'**
+  String get fishTypeIndividualDescription;
+
+  /// No description provided for @fishTypeLotDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Many individuals stored together'**
+  String get fishTypeLotDescription;
+
+  /// No description provided for @invertCaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Caste'**
+  String get invertCaste;
+
+  /// No description provided for @invertCasteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select caste'**
+  String get invertCasteHint;
+
+  /// No description provided for @invertEcologicalInteractions.
+  ///
+  /// In en, this message translates to:
+  /// **'Ecological interactions'**
+  String get invertEcologicalInteractions;
+
+  /// No description provided for @invertShowMorphometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Show specimen morphometrics'**
+  String get invertShowMorphometrics;
+
+  /// No description provided for @invertMorphometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen morphometrics'**
+  String get invertMorphometrics;
+
+  /// No description provided for @invertHostOrganism.
+  ///
+  /// In en, this message translates to:
+  /// **'Host organism'**
+  String get invertHostOrganism;
+
+  /// No description provided for @invertHostOrganismHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the associated host taxon'**
+  String get invertHostOrganismHint;
+
+  /// No description provided for @invertHostPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Host part'**
+  String get invertHostPart;
+
+  /// No description provided for @invertHostPartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the occupied host part'**
+  String get invertHostPartHint;
+
+  /// No description provided for @invertHeadWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Head width (mm)'**
+  String get invertHeadWidth;
+
+  /// No description provided for @invertHeadWidthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter head width'**
+  String get invertHeadWidthHint;
+
+  /// No description provided for @invertBodyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Body length (mm)'**
+  String get invertBodyLength;
+
+  /// No description provided for @invertBodyLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter body length'**
+  String get invertBodyLengthHint;
+
+  /// No description provided for @invertUpperWingspan.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper wingspan (mm)'**
+  String get invertUpperWingspan;
+
+  /// No description provided for @invertUpperWingspanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter upper wingspan'**
+  String get invertUpperWingspanHint;
+
+  /// No description provided for @invertLowerWingspan.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower wingspan (mm)'**
+  String get invertLowerWingspan;
+
+  /// No description provided for @invertLowerWingspanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter lower wingspan'**
+  String get invertLowerWingspanHint;
+
+  /// No description provided for @herpSnoutVentLength.
+  ///
+  /// In en, this message translates to:
+  /// **'SVL (cm)'**
+  String get herpSnoutVentLength;
+
+  /// No description provided for @herpSnoutVentLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter snout-vent length'**
+  String get herpSnoutVentLengthHint;
+
+  /// No description provided for @partSpecimenParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen Parts'**
+  String get partSpecimenParts;
+
+  /// No description provided for @partAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add specimen part'**
+  String get partAdd;
+
+  /// No description provided for @partNoneAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No parts added'**
+  String get partNoneAdded;
+
+  /// No description provided for @partUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown part'**
+  String get partUnknown;
+
+  /// No description provided for @partNoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'No count'**
+  String get partNoCount;
+
+  /// Shown when a specimen part has no treatment.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get partNoTreatment;
+
+  /// No description provided for @partHasRemark.
+  ///
+  /// In en, this message translates to:
+  /// **'has remark'**
+  String get partHasRemark;
+
+  /// Post-mortem interval shown in the specimen part subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PMI {pmi}'**
+  String partPmi(String pmi);
+
+  /// No description provided for @partAddParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add specimen parts'**
+  String get partAddParts;
+
+  /// No description provided for @partEditParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit specimen parts'**
+  String get partEditParts;
+
+  /// No description provided for @partPreparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get partPreparation;
+
+  /// No description provided for @partSampling.
+  ///
+  /// In en, this message translates to:
+  /// **'Sampling'**
+  String get partSampling;
+
+  /// No description provided for @partSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save specimen part: {error}'**
+  String partSaveError(String error);
+
+  /// No description provided for @partCounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts'**
+  String get partCounts;
+
+  /// No description provided for @partCountsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter part counts'**
+  String get partCountsHint;
+
+  /// No description provided for @partPreparationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation type'**
+  String get partPreparationType;
+
+  /// No description provided for @partPreparationTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter preparation type'**
+  String get partPreparationTypeHint;
+
+  /// No description provided for @partTreatmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter treatment'**
+  String get partTreatmentHint;
+
+  /// No description provided for @partAdditionalTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional treatment'**
+  String get partAdditionalTreatment;
+
+  /// No description provided for @partAdditionalTreatmentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter additional treatment'**
+  String get partAdditionalTreatmentHint;
+
+  /// No description provided for @partPreparatorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If different from voucher preparator'**
+  String get partPreparatorHint;
+
+  /// No description provided for @partDateTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Date taken'**
+  String get partDateTaken;
+
+  /// No description provided for @partTimeTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Time taken'**
+  String get partTimeTaken;
+
+  /// No description provided for @partRecommendedFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended for fresh tissues'**
+  String get partRecommendedFresh;
+
+  /// No description provided for @partStorageType.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage type'**
+  String get partStorageType;
+
+  /// No description provided for @partStorageTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter storage type'**
+  String get partStorageTypeHint;
+
+  /// No description provided for @partStorageLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'It can be cell or jar ID, following your museum convention'**
+  String get partStorageLocationHint;
+
+  /// No description provided for @partMuseumHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a museum name or abbreviation'**
+  String get partMuseumHint;
+
+  /// No description provided for @partRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a remark specific to this part'**
+  String get partRemarksHint;
+
+  /// No description provided for @partBarcodeId.
+  ///
+  /// In en, this message translates to:
+  /// **'QR/barcode ID'**
+  String get partBarcodeId;
+
+  /// No description provided for @partBarcodeIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter barcode ID (if applicable)'**
+  String get partBarcodeIdHint;
+
+  /// No description provided for @partBarcodeIdOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'QR/barcode ID options'**
+  String get partBarcodeIdOptions;
+
+  /// No description provided for @partGenerateUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate UUID'**
+  String get partGenerateUuid;
+
+  /// No description provided for @partInvalidBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR/barcode'**
+  String get partInvalidBarcode;
+
+  /// No description provided for @partBarcodeIdExists.
+  ///
+  /// In en, this message translates to:
+  /// **'QR/barcode ID already exists. Clear the field to generate a new UUID'**
+  String get partBarcodeIdExists;
+
+  /// No description provided for @partTissueIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter tissue ID'**
+  String get partTissueIdHint;
+
+  /// No description provided for @partRepeatTissueFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to repeat tissue number'**
+  String get partRepeatTissueFailed;
+
+  /// No description provided for @partTissueIdOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue ID options'**
+  String get partTissueIdOptions;
+
+  /// No description provided for @partTissueIdSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue ID settings'**
+  String get partTissueIdSettings;
+
+  /// No description provided for @specimenCollectionIdentification.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection & Identification'**
+  String get specimenCollectionIdentification;
+
+  /// No description provided for @specimenTaxaLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading taxa'**
+  String get specimenTaxaLoadError;
+
+  /// No description provided for @specimenIdConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Confidence'**
+  String get specimenIdConfidence;
+
+  /// No description provided for @specimenIdConfidenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a confidence level'**
+  String get specimenIdConfidenceHint;
+
+  /// No description provided for @specimenDeterminerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a determiner (default is cataloger)'**
+  String get specimenDeterminerHint;
+
+  /// No description provided for @specimenIdMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Identification Method'**
+  String get specimenIdMethod;
+
+  /// No description provided for @specimenIdMethodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an identification method'**
+  String get specimenIdMethodHint;
+
+  /// No description provided for @specimenCollectionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection date'**
+  String get specimenCollectionDate;
+
+  /// No description provided for @specimenCollectionTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection time'**
+  String get specimenCollectionTime;
+
+  /// No description provided for @specimenConditionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a condition'**
+  String get specimenConditionHint;
+
+  /// No description provided for @specimenPrepDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Prep. date'**
+  String get specimenPrepDate;
+
+  /// No description provided for @specimenPrepTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Prep. time'**
+  String get specimenPrepTime;
+
+  /// No description provided for @specimenPreparatorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a preparator (default is cataloger)'**
+  String get specimenPreparatorHint;
+
+  /// No description provided for @specimenUuid.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen UUID: {uuid}'**
+  String specimenUuid(String uuid);
+
+  /// No description provided for @specimenMuseumId.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum ID'**
+  String get specimenMuseumId;
+
+  /// No description provided for @specimenMuseumIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter museum ID (if applicable)'**
+  String get specimenMuseumIdHint;
+
+  /// No description provided for @specimenFieldIdValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID: {id}'**
+  String specimenFieldIdValue(String id);
+
+  /// No description provided for @specimenFieldIdLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID: Loading…'**
+  String get specimenFieldIdLoading;
+
+  /// No description provided for @specimenFieldIdUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID: unavailable'**
+  String get specimenFieldIdUnavailable;
+
+  /// No description provided for @specimenFieldIdSelectCataloger.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID: select a cataloger'**
+  String get specimenFieldIdSelectCataloger;
+
+  /// No description provided for @specimenFieldIdCatalogerNotSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID: cataloger is not set up for field numbers'**
+  String get specimenFieldIdCatalogerNotSetUp;
+
+  /// No description provided for @specimenEditFieldId.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit field ID'**
+  String get specimenEditFieldId;
+
+  /// No description provided for @specimenFieldIdPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Personnel'**
+  String get specimenFieldIdPersonnel;
+
+  /// No description provided for @specimenFieldIdProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get specimenFieldIdProject;
+
+  /// No description provided for @specimenFieldIdPersonnelUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a Cataloger with personal field-number registration enabled before assigning a personnel field ID.'**
+  String get specimenFieldIdPersonnelUnavailable;
+
+  /// No description provided for @specimenPersonnelFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Personnel field number'**
+  String get specimenPersonnelFieldNumber;
+
+  /// No description provided for @specimenProjectCatalogNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Project catalog number'**
+  String get specimenProjectCatalogNumber;
+
+  /// No description provided for @specimenFieldIdTypeChangeAck.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand that changing identifier type removes the specimen’s previous field ID and that it may already appear in exports or on specimen labels.'**
+  String get specimenFieldIdTypeChangeAck;
+
+  /// No description provided for @specimenSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get specimenSaving;
+
+  /// No description provided for @fishStandardLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard length'**
+  String get fishStandardLengthShort;
+
+  /// No description provided for @fishTotalLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Total length'**
+  String get fishTotalLengthShort;
+
+  /// No description provided for @fishWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get fishWeight;
+
+  /// No description provided for @fishLotSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot summary'**
+  String get fishLotSummary;
+
+  /// No description provided for @fishMeasuredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} measured'**
+  String fishMeasuredCount(int count);
+
+  /// No description provided for @fishMeasuredOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} individuals measured'**
+  String fishMeasuredOfTotal(int count, int total);
+
+  /// No description provided for @fishNotMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not measured'**
+  String get fishNotMeasured;
+
+  /// No description provided for @fishStandardDeviation.
+  ///
+  /// In en, this message translates to:
+  /// **'± {value} SD'**
+  String fishStandardDeviation(String value);
+
+  /// No description provided for @fishRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range {min}–{max} {unit}'**
+  String fishRange(String min, String max, String unit);
+
+  /// No description provided for @fishIndividuals.
+  ///
+  /// In en, this message translates to:
+  /// **'Individuals'**
+  String get fishIndividuals;
+
+  /// No description provided for @fishIndividualsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load individuals: {error}'**
+  String fishIndividualsLoadError(String error);
+
+  /// No description provided for @fishAddIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Add individual'**
+  String get fishAddIndividual;
+
+  /// No description provided for @fishDeleteIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete individual'**
+  String get fishDeleteIndividual;
+
+  /// No description provided for @fishStandardLengthValue.
+  ///
+  /// In en, this message translates to:
+  /// **'SL {value} mm'**
+  String fishStandardLengthValue(String value);
+
+  /// No description provided for @fishTotalLengthValue.
+  ///
+  /// In en, this message translates to:
+  /// **'TL {value} mm'**
+  String fishTotalLengthValue(String value);
+
+  /// No description provided for @fishNoMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements'**
+  String get fishNoMeasurements;
+
+  /// No description provided for @fishDeleteIndividualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String fishDeleteIndividualTitle(String name);
+
+  /// No description provided for @fishDeleteIndividualBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the individual and unlinks it from any specimen parts and parasites.'**
+  String get fishDeleteIndividualBody;
+
+  /// No description provided for @fishStandardLengthMm.
+  ///
+  /// In en, this message translates to:
+  /// **'SL (mm)'**
+  String get fishStandardLengthMm;
+
+  /// No description provided for @fishTotalLengthMm.
+  ///
+  /// In en, this message translates to:
+  /// **'TL (mm)'**
+  String get fishTotalLengthMm;
+
+  /// No description provided for @fishWeightWithUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight ({unit})'**
+  String fishWeightWithUnit(String unit);
+
+  /// No description provided for @fishEnterWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter weight'**
+  String get fishEnterWeight;
+
+  /// No description provided for @fishIndividualRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes about this individual'**
+  String get fishIndividualRemarksHint;
+
+  /// No description provided for @fishEditIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit individual'**
+  String get fishEditIndividual;
+
+  /// No description provided for @fishEnteredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entered'**
+  String fishEnteredCount(int count);
+
+  /// No description provided for @fishEnteredOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} entered'**
+  String fishEnteredOfTotal(int count, int total);
+
+  /// No description provided for @fishSaveAndAddAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and add another'**
+  String get fishSaveAndAddAnother;
+
+  /// No description provided for @fishMeasurements.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurements'**
+  String get fishMeasurements;
+
+  /// No description provided for @fishTagId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag ID'**
+  String get fishTagId;
+
+  /// No description provided for @fishTagIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter individual or tag ID'**
+  String get fishTagIdHint;
+
+  /// No description provided for @fishAutoNumbered.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-numbered. Edit to override.'**
+  String get fishAutoNumbered;
+
+  /// No description provided for @fishTagIdOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag ID options'**
+  String get fishTagIdOptions;
+
+  /// No description provided for @fishTagIdSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag ID settings'**
+  String get fishTagIdSettings;
+
+  /// No description provided for @specimenCaptureRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture Records'**
+  String get specimenCaptureRecords;
+
+  /// No description provided for @specimenChooseSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a site'**
+  String get specimenChooseSite;
+
+  /// No description provided for @specimenChangeSiteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change site?'**
+  String get specimenChangeSiteTitle;
+
+  /// No description provided for @specimenChangeSiteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Except for capture date and time, all fields in the collecting record section will be empty again.'**
+  String get specimenChangeSiteBody;
+
+  /// No description provided for @specimenChooseEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a collecting event ID'**
+  String get specimenChooseEvent;
+
+  /// No description provided for @specimenChangeEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change collecting event ID?'**
+  String get specimenChangeEventTitle;
+
+  /// No description provided for @specimenChangeEventBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Except for capture date and time, all fields in the collecting record section will be empty again. The coordinate is kept when it belongs to the same site.'**
+  String get specimenChangeEventBody;
+
+  /// No description provided for @specimenChooseMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a method type'**
+  String get specimenChooseMethod;
+
+  /// No description provided for @specimenRelativeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Relative time'**
+  String get specimenRelativeTime;
+
+  /// No description provided for @specimenMethodId.
+  ///
+  /// In en, this message translates to:
+  /// **'Method ID'**
+  String get specimenMethodId;
+
+  /// No description provided for @specimenMethodIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ID, e.g. trap/net number, etc.'**
+  String get specimenMethodIdHint;
+
+  /// No description provided for @specimenCaptureDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture date'**
+  String get specimenCaptureDate;
+
+  /// No description provided for @specimenCoordinateId.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate ID'**
+  String get specimenCoordinateId;
+
+  /// No description provided for @specimenChooseCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a coordinate'**
+  String get specimenChooseCoordinate;
+
+  /// No description provided for @specimenCoordinateExtent.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate extent (m)'**
+  String get specimenCoordinateExtent;
+
+  /// No description provided for @specimenCoordinateExtentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the coordinate extent'**
+  String get specimenCoordinateExtentHint;
+
+  /// No description provided for @specimenExtentInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Extent must be a number greater than zero'**
+  String get specimenExtentInvalid;
+
+  /// No description provided for @specimenCaptureTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture time'**
+  String get specimenCaptureTime;
+
+  /// No description provided for @specimenChoosePerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a person'**
+  String get specimenChoosePerson;
+
+  /// No description provided for @specimenSexHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select specimen sex'**
+  String get specimenSexHint;
+
+  /// No description provided for @specimenLifeStageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select life stage'**
+  String get specimenLifeStageHint;
+
+  /// No description provided for @specimenLifeStagesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load life stages: {error}'**
+  String specimenLifeStagesLoadError(String error);
+
+  /// No description provided for @specimenParasiteDetectionLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load parasite detection: {error}'**
+  String specimenParasiteDetectionLoadError(String error);
+
+  /// No description provided for @specimenParasitesExamined.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites examined'**
+  String get specimenParasitesExamined;
+
+  /// No description provided for @specimenParasitesDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasites detected'**
+  String get specimenParasitesDetected;
+
+  /// No description provided for @specimenDetectionRemarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Detection remarks'**
+  String get specimenDetectionRemarks;
+
+  /// No description provided for @specimenDetectionRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter parasite examination or detection remarks'**
+  String get specimenDetectionRemarksHint;
+
+  /// No description provided for @specimenCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create specimen'**
+  String get specimenCreate;
+
+  /// No description provided for @specimenActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen actions'**
+  String get specimenActions;
+
+  /// No description provided for @specimenDuplicatePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate part'**
+  String get specimenDuplicatePart;
+
+  /// No description provided for @specimenExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export specimen'**
+  String get specimenExport;
+
+  /// No description provided for @specimenImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import specimen'**
+  String get specimenImport;
+
+  /// No description provided for @specimenDuplicatePartError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error duplicating part: {error}'**
+  String specimenDuplicatePartError(String error);
+
+  /// No description provided for @specimenDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete specimen?'**
+  String get specimenDeleteTitle;
+
+  /// No description provided for @specimenDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete this specimen record, all measurements, and specimen parts.\nYou will need to manually update the field number.'**
+  String get specimenDeleteBody;
+
+  /// No description provided for @specimenDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting specimen: {error}'**
+  String specimenDeleteError(String error);
+
+  /// No description provided for @specimenDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all specimens?'**
+  String get specimenDeleteAllTitle;
+
+  /// No description provided for @specimenDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It will remove all specimens records, measurements, and specimen parts'**
+  String get specimenDeleteAllBody;
+
+  /// No description provided for @specimenDeleteAllError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting all specimens: {error}'**
+  String specimenDeleteAllError(String error);
+
+  /// No description provided for @specimenTaxonInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon Info'**
+  String get specimenTaxonInfo;
+
+  /// No description provided for @specimenNoSpeciesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No species selected'**
+  String get specimenNoSpeciesSelected;
+
+  /// No description provided for @specimenTaxonTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Type taxon name and select from list'**
+  String get specimenTaxonTooltip;
+
+  /// No description provided for @specimenTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon'**
+  String get specimenTaxon;
+
+  /// No description provided for @specimenTaxonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type taxon name'**
+  String get specimenTaxonHint;
+
+  /// No description provided for @specimenEnterTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter taxon'**
+  String get specimenEnterTaxon;
+
+  /// No description provided for @specimenNoneSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'None selected'**
+  String get specimenNoneSelected;
+
+  /// No description provided for @specimenRemoveIndividualTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String specimenRemoveIndividualTooltip(String name);
+
+  /// No description provided for @specimenAllIndividualsAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'All individuals added'**
+  String get specimenAllIndividualsAdded;
+
+  /// No description provided for @specimenSelectIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an individual'**
+  String get specimenSelectIndividual;
+
+  /// No description provided for @specimenRemoveIndividualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String specimenRemoveIndividualTitle(String name);
+
+  /// No description provided for @specimenRemoveIndividualBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This record will no longer be linked to individual {name}. The individual itself is kept.'**
+  String specimenRemoveIndividualBody(String name);
+
+  /// No description provided for @specimenRecordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen Records'**
+  String get specimenRecordsTitle;
+
+  /// No description provided for @specimenSearchOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Options'**
+  String get specimenSearchOptions;
+
+  /// No description provided for @specimenRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen Record'**
+  String get specimenRecordTitle;
+
+  /// No description provided for @specimenNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimen found'**
+  String get specimenNoneFound;
+
+  /// No description provided for @specimenWeightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter specimen weight'**
+  String get specimenWeightHint;
+
+  /// No description provided for @specimenChangeWeightUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Change weight unit'**
+  String get specimenChangeWeightUnit;
+
+  /// No description provided for @templateDeleteTextBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete text box'**
+  String get templateDeleteTextBox;
+
+  /// No description provided for @templateHeightMm.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (mm)'**
+  String get templateHeightMm;
+
+  /// No description provided for @templatePictureTypeOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture type options'**
+  String get templatePictureTypeOptions;
+
+  /// No description provided for @templateRotation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotation'**
+  String get templateRotation;
+
+  /// No description provided for @templateQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR Code'**
+  String get templateQrCode;
+
+  /// No description provided for @templateQrSize.
+  ///
+  /// In en, this message translates to:
+  /// **'QR Size (mm)'**
+  String get templateQrSize;
+
+  /// No description provided for @templateContentFormattingOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Content formatting options'**
+  String get templateContentFormattingOptions;
+
+  /// No description provided for @templateShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Shape'**
+  String get templateShape;
+
+  /// No description provided for @templateSquare.
+  ///
+  /// In en, this message translates to:
+  /// **'Square'**
+  String get templateSquare;
+
+  /// No description provided for @templateCircle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get templateCircle;
+
+  /// No description provided for @templateDynamic.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic'**
+  String get templateDynamic;
+
+  /// No description provided for @templateSizePt.
+  ///
+  /// In en, this message translates to:
+  /// **'Size (pt)'**
+  String get templateSizePt;
+
+  /// No description provided for @templateDecreaseFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease font size'**
+  String get templateDecreaseFontSize;
+
+  /// No description provided for @templateIncreaseFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase font size'**
+  String get templateIncreaseFontSize;
+
+  /// No description provided for @templateTextFormattingOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Text formatting options'**
+  String get templateTextFormattingOptions;
+
+  /// No description provided for @templateTextStylingOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Text styling options'**
+  String get templateTextStylingOptions;
+
+  /// No description provided for @templateMaxWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Width (mm)'**
+  String get templateMaxWidth;
+
+  /// No description provided for @templateMaxHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Height (mm)'**
+  String get templateMaxHeight;
+
+  /// No description provided for @templateFont.
+  ///
+  /// In en, this message translates to:
+  /// **'Font'**
+  String get templateFont;
+
+  /// No description provided for @templateFontNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'{font} (not installed)'**
+  String templateFontNotInstalled(String font);
+
+  /// No description provided for @templateUnderline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get templateUnderline;
+
+  /// No description provided for @templateStrikethrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Strikethrough'**
+  String get templateStrikethrough;
+
+  /// No description provided for @templateForeground.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreground'**
+  String get templateForeground;
+
+  /// No description provided for @templateQrForegroundColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select QR foreground color'**
+  String get templateQrForegroundColor;
+
+  /// No description provided for @templateBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get templateBackground;
+
+  /// No description provided for @templateQrBackgroundColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select QR background color'**
+  String get templateQrBackgroundColor;
+
+  /// No description provided for @templateConditionalOutput.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditional output'**
+  String get templateConditionalOutput;
+
+  /// No description provided for @templateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get templateFormat;
+
+  /// No description provided for @templateMapEncodedValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Map encoded values'**
+  String get templateMapEncodedValues;
+
+  /// No description provided for @templateHeaderCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Header Case'**
+  String get templateHeaderCase;
+
+  /// No description provided for @templateUppercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Uppercase'**
+  String get templateUppercase;
+
+  /// No description provided for @templateLowercase.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowercase'**
+  String get templateLowercase;
+
+  /// No description provided for @templateMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing'**
+  String get templateMissing;
+
+  /// No description provided for @templateTextColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text color'**
+  String get templateTextColor;
+
+  /// No description provided for @templateTextBackgroundColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text background color'**
+  String get templateTextBackgroundColor;
+
+  /// No description provided for @templateStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke'**
+  String get templateStroke;
+
+  /// No description provided for @templateTextStrokeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text stroke color'**
+  String get templateTextStrokeColor;
+
+  /// No description provided for @templateStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get templateStyle;
+
+  /// No description provided for @templateRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Radius'**
+  String get templateRadius;
+
+  /// No description provided for @templatePadding.
+  ///
+  /// In en, this message translates to:
+  /// **'Padding'**
+  String get templatePadding;
+
+  /// No description provided for @templateAlignLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Align left'**
+  String get templateAlignLeft;
+
+  /// No description provided for @templateAlignCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Align center'**
+  String get templateAlignCenter;
+
+  /// No description provided for @templateAlignRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Align right'**
+  String get templateAlignRight;
+
+  /// No description provided for @templateClearColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {label}'**
+  String templateClearColor(String label);
+
+  /// No description provided for @templateNoContentPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'No Content Placeholder'**
+  String get templateNoContentPlaceholder;
+
+  /// No description provided for @templateCustomText.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Text'**
+  String get templateCustomText;
+
+  /// No description provided for @templateCustomTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter custom fallback text'**
+  String get templateCustomTextHint;
+
+  /// No description provided for @templateConditionalType.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditional type'**
+  String get templateConditionalType;
+
+  /// No description provided for @templateTargetField.
+  ///
+  /// In en, this message translates to:
+  /// **'Target field'**
+  String get templateTargetField;
+
+  /// No description provided for @templateConditionalTextHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields such as [mammalAttribute::testisWidth] are filled in.'**
+  String get templateConditionalTextHelper;
+
+  /// No description provided for @templateReplacementHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Written when matched; otherwise the original target value is kept. Leave it empty to hide the value.'**
+  String get templateReplacementHelper;
+
+  /// No description provided for @templateTypeNormalText.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal Text'**
+  String get templateTypeNormalText;
+
+  /// No description provided for @templateTypePicture.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture'**
+  String get templateTypePicture;
+
+  /// No description provided for @templateTypeMarkdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Markdown'**
+  String get templateTypeMarkdown;
+
+  /// No description provided for @templateTypeCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates'**
+  String get templateTypeCoordinates;
+
+  /// No description provided for @templateTypeList.
+  ///
+  /// In en, this message translates to:
+  /// **'List Values'**
+  String get templateTypeList;
+
+  /// No description provided for @templateTypeNestedList.
+  ///
+  /// In en, this message translates to:
+  /// **'Nested List'**
+  String get templateTypeNestedList;
+
+  /// No description provided for @templateTypeDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get templateTypeDates;
+
+  /// No description provided for @templateTypeDateTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Date and Time'**
+  String get templateTypeDateTime;
+
+  /// No description provided for @templateTypeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get templateTypeTime;
+
+  /// No description provided for @templateTypeSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get templateTypeSex;
+
+  /// No description provided for @templateTypeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get templateTypeNumber;
+
+  /// No description provided for @templateTypeEncoded.
+  ///
+  /// In en, this message translates to:
+  /// **'Encoded Text'**
+  String get templateTypeEncoded;
+
+  /// No description provided for @templateFormatDefaultMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Default mapping'**
+  String get templateFormatDefaultMapping;
+
+  /// No description provided for @templateFormatCustomMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom mapping...'**
+  String get templateFormatCustomMapping;
+
+  /// No description provided for @templateFormatDecimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal (45.123, -122.543)'**
+  String get templateFormatDecimal;
+
+  /// No description provided for @templateFormatCardinalDecimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardinal Dec (45.123° N, 122.543° W)'**
+  String get templateFormatCardinalDecimal;
+
+  /// No description provided for @templateFormatPipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Pipe separated (A | B | C)'**
+  String get templateFormatPipe;
+
+  /// No description provided for @templateFormatComma.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma separated (A, B, C)'**
+  String get templateFormatComma;
+
+  /// No description provided for @templateFormatSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'Semicolon separated (A; B; C)'**
+  String get templateFormatSemicolon;
+
+  /// No description provided for @templateFormatSlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Slash separated (A / B / C)'**
+  String get templateFormatSlash;
+
+  /// No description provided for @templateFormatNewline.
+  ///
+  /// In en, this message translates to:
+  /// **'New line (A\nB\nC)'**
+  String get templateFormatNewline;
+
+  /// No description provided for @templateFormatBullet.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulleted (• A\n• B)'**
+  String get templateFormatBullet;
+
+  /// No description provided for @templateFormatCustomSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom separator...'**
+  String get templateFormatCustomSeparator;
+
+  /// No description provided for @templateFormatTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get templateFormatTable;
+
+  /// No description provided for @templateFormatCardList.
+  ///
+  /// In en, this message translates to:
+  /// **'Card list'**
+  String get templateFormatCardList;
+
+  /// No description provided for @templateFormatMonthDdYyyy.
+  ///
+  /// In en, this message translates to:
+  /// **'Month DD, YYYY (June 28, 2026)'**
+  String get templateFormatMonthDdYyyy;
+
+  /// No description provided for @templateFormatDdMonthYyyy.
+  ///
+  /// In en, this message translates to:
+  /// **'DD Month YYYY (28 June 2026)'**
+  String get templateFormatDdMonthYyyy;
+
+  /// No description provided for @templateFormatDdMonthAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'DD Month (Abbr) (28 Jun 2026)'**
+  String get templateFormatDdMonthAbbr;
+
+  /// No description provided for @templateFormatYmdSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'YYYY-MM-DD seconds (2026-06-28 14:05:09)'**
+  String get templateFormatYmdSeconds;
+
+  /// No description provided for @templateFormatIsoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'ISO minutes (2026-06-28T14:05)'**
+  String get templateFormatIsoMinutes;
+
+  /// No description provided for @templateFormatIsoSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'ISO seconds (2026-06-28T14:05:09)'**
+  String get templateFormatIsoSeconds;
+
+  /// No description provided for @templateFormatDdMonthYyyyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'DD Month YYYY 24h (28 June 2026 14:05)'**
+  String get templateFormatDdMonthYyyyTime;
+
+  /// No description provided for @templateFormatMonthDdYyyyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Month DD, YYYY 12h (June 28, 2026 2:05 PM)'**
+  String get templateFormatMonthDdYyyyTime;
+
+  /// No description provided for @templateFormatDdMonYyyyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'DD Mon YYYY 24h (28 Jun 2026 14:05)'**
+  String get templateFormatDdMonYyyyTime;
+
+  /// No description provided for @templateFormatMonDdYyyyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)'**
+  String get templateFormatMonDdYyyyTime;
+
+  /// No description provided for @templateFormatTime24.
+  ///
+  /// In en, this message translates to:
+  /// **'Time 24h (14:05)'**
+  String get templateFormatTime24;
+
+  /// No description provided for @templateFormatTime24Seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Time 24h seconds (14:05:09)'**
+  String get templateFormatTime24Seconds;
+
+  /// No description provided for @templateFormatTime12.
+  ///
+  /// In en, this message translates to:
+  /// **'Time 12h (2:05 PM)'**
+  String get templateFormatTime12;
+
+  /// No description provided for @templateFormatTime12Padded.
+  ///
+  /// In en, this message translates to:
+  /// **'Time 12h padded (02:05 PM)'**
+  String get templateFormatTime12Padded;
+
+  /// No description provided for @templateFormatOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get templateFormatOriginal;
+
+  /// No description provided for @templateFormatDecimals0.
+  ///
+  /// In en, this message translates to:
+  /// **'0 decimal places (e.g. 12)'**
+  String get templateFormatDecimals0;
+
+  /// No description provided for @templateFormatDecimals1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 decimal place (e.g. 12.3)'**
+  String get templateFormatDecimals1;
+
+  /// No description provided for @templateFormatDecimals2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 decimal places (e.g. 12.34)'**
+  String get templateFormatDecimals2;
+
+  /// No description provided for @templateFormatDecimals3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 decimal places (e.g. 12.345)'**
+  String get templateFormatDecimals3;
+
+  /// No description provided for @templateFormatNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get templateFormatNormal;
+
+  /// No description provided for @templateFormatCapitalize.
+  ///
+  /// In en, this message translates to:
+  /// **'Capitalize'**
+  String get templateFormatCapitalize;
+
+  /// No description provided for @templateSexSymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'Symbol (♂/♀)'**
+  String get templateSexSymbol;
+
+  /// No description provided for @templateSexLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Letter (M/F)'**
+  String get templateSexLetter;
+
+  /// No description provided for @templateSexText.
+  ///
+  /// In en, this message translates to:
+  /// **'Text (Male/Female)'**
+  String get templateSexText;
+
+  /// No description provided for @templateSexUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get templateSexUnknown;
+
+  /// No description provided for @templateSexNa.
+  ///
+  /// In en, this message translates to:
+  /// **'N/A'**
+  String get templateSexNa;
+
+  /// No description provided for @templateSexNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get templateSexNone;
+
+  /// No description provided for @templateSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Template size:'**
+  String get templateSizeLabel;
+
+  /// No description provided for @templateAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add image'**
+  String get templateAddImage;
+
+  /// No description provided for @templateAddLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Add line'**
+  String get templateAddLine;
+
+  /// No description provided for @templateAddShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shape'**
+  String get templateAddShape;
+
+  /// No description provided for @templateFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get templateFront;
+
+  /// No description provided for @templateBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get templateBack;
+
+  /// No description provided for @templateSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save template'**
+  String get templateSave;
+
+  /// No description provided for @templateRedo.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get templateRedo;
+
+  /// No description provided for @templateBorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Template border'**
+  String get templateBorder;
+
+  /// No description provided for @templateElements.
+  ///
+  /// In en, this message translates to:
+  /// **'Elements'**
+  String get templateElements;
+
+  /// No description provided for @templateHideGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide grid'**
+  String get templateHideGrid;
+
+  /// No description provided for @templateShowGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Show grid'**
+  String get templateShowGrid;
+
+  /// No description provided for @templateDisableSnap.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable snap'**
+  String get templateDisableSnap;
+
+  /// No description provided for @templateEnableSnap.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable snap'**
+  String get templateEnableSnap;
+
+  /// No description provided for @templateUnlockCanvas.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock canvas movement'**
+  String get templateUnlockCanvas;
+
+  /// No description provided for @templateLockCanvas.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock canvas movement'**
+  String get templateLockCanvas;
+
+  /// No description provided for @templateSelectPreviewRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Select specimen for text preview'**
+  String get templateSelectPreviewRecord;
+
+  /// No description provided for @templateSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Template settings'**
+  String get templateSettings;
+
+  /// No description provided for @templateToolPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get templateToolPage;
+
+  /// No description provided for @templateToolView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get templateToolView;
+
+  /// No description provided for @templatePresetTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset template'**
+  String get templatePresetTemplate;
+
+  /// No description provided for @templateMirrorOn.
+  ///
+  /// In en, this message translates to:
+  /// **'{side}: rotated 180° for print (tap to turn off)'**
+  String templateMirrorOn(String side);
+
+  /// No description provided for @templateMirrorOff.
+  ///
+  /// In en, this message translates to:
+  /// **'{side}: tap to rotate template 180° for print'**
+  String templateMirrorOff(String side);
+
+  /// No description provided for @templateOneSided.
+  ///
+  /// In en, this message translates to:
+  /// **'1 sided'**
+  String get templateOneSided;
+
+  /// No description provided for @templateEditSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {side} side'**
+  String templateEditSide(String side);
+
+  /// No description provided for @templateElementsForSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Elements · {side}'**
+  String templateElementsForSide(String side);
+
+  /// No description provided for @templateNoElements.
+  ///
+  /// In en, this message translates to:
+  /// **'No elements on this side yet. Add one from the Add tools.'**
+  String get templateNoElements;
+
+  /// No description provided for @templateHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get templateHidden;
+
+  /// No description provided for @templateLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get templateLocked;
+
+  /// No description provided for @templateNoSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved templates yet.'**
+  String get templateNoSaved;
+
+  /// No description provided for @templateFitToScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit to screen'**
+  String get templateFitToScreen;
+
+  /// No description provided for @templateRemoveImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove image'**
+  String get templateRemoveImage;
+
+  /// No description provided for @templateDragToRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to rotate'**
+  String get templateDragToRotate;
+
+  /// No description provided for @templateRemoveLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove line'**
+  String get templateRemoveLine;
+
+  /// No description provided for @templateDragToMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to move'**
+  String get templateDragToMove;
+
+  /// No description provided for @templateRemoveShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove shape'**
+  String get templateRemoveShape;
+
+  /// No description provided for @templateDeleteImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete image'**
+  String get templateDeleteImage;
+
+  /// No description provided for @templateLineStrokeOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Line stroke options'**
+  String get templateLineStrokeOptions;
+
+  /// No description provided for @templateThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Thickness'**
+  String get templateThickness;
+
+  /// No description provided for @templateColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get templateColor;
+
+  /// No description provided for @templateSelectColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select color'**
+  String get templateSelectColor;
+
+  /// No description provided for @templateDeleteLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete line'**
+  String get templateDeleteLine;
+
+  /// No description provided for @templateDismissToolbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss toolbar'**
+  String get templateDismissToolbar;
+
+  /// No description provided for @templateBorderFillOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Border and fill options'**
+  String get templateBorderFillOptions;
+
+  /// No description provided for @templateSelectStrokeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select stroke color'**
+  String get templateSelectStrokeColor;
+
+  /// No description provided for @templateFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get templateFill;
+
+  /// No description provided for @templateClearFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear fill'**
+  String get templateClearFill;
+
+  /// No description provided for @templateDeleteShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete shape'**
+  String get templateDeleteShape;
+
+  /// No description provided for @templateRectangle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rectangle'**
+  String get templateRectangle;
+
+  /// No description provided for @templateEllipse.
+  ///
+  /// In en, this message translates to:
+  /// **'Ellipse'**
+  String get templateEllipse;
+
+  /// No description provided for @templateTriangle.
+  ///
+  /// In en, this message translates to:
+  /// **'Triangle'**
+  String get templateTriangle;
+
+  /// No description provided for @templatePolygon.
+  ///
+  /// In en, this message translates to:
+  /// **'Polygon'**
+  String get templatePolygon;
+
+  /// No description provided for @templateCorners.
+  ///
+  /// In en, this message translates to:
+  /// **'Corners'**
+  String get templateCorners;
+
+  /// No description provided for @templateSelectFillColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select fill color'**
+  String get templateSelectFillColor;
+
+  /// No description provided for @templateBorderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Border'**
+  String get templateBorderTitle;
+
+  /// No description provided for @templateSelectBorderColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Select border color'**
+  String get templateSelectBorderColor;
+
+  /// No description provided for @templateSelectColorShade.
+  ///
+  /// In en, this message translates to:
+  /// **'Select color shade'**
+  String get templateSelectColorShade;
+
+  /// No description provided for @templateSelectedColorShades.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected color and its shades'**
+  String get templateSelectedColorShades;
+
+  /// No description provided for @templateSendToBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to back'**
+  String get templateSendToBack;
+
+  /// No description provided for @templateSendBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Send backward'**
+  String get templateSendBackward;
+
+  /// No description provided for @templateBringForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring forward'**
+  String get templateBringForward;
+
+  /// No description provided for @templateBringToFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring to front'**
+  String get templateBringToFront;
+
+  /// No description provided for @templateUnlockPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock position'**
+  String get templateUnlockPosition;
+
+  /// No description provided for @templateLockPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock position'**
+  String get templateLockPosition;
+
+  /// No description provided for @templateHideElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide element'**
+  String get templateHideElement;
+
+  /// No description provided for @templateShowElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Show element'**
+  String get templateShowElement;
+
+  /// No description provided for @templateDuplicateElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate element'**
+  String get templateDuplicateElement;
+
+  /// No description provided for @templateCopyElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy element'**
+  String get templateCopyElement;
+
+  /// No description provided for @templatePasteElement.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste element'**
+  String get templatePasteElement;
+
+  /// No description provided for @templateMapEncodedValuesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Define custom labels for [{field}] values:'**
+  String templateMapEncodedValuesBody(String field);
+
+  /// No description provided for @templateFontsNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Fonts not installed'**
+  String get templateFontsNotInstalled;
+
+  /// No description provided for @templateMissingFontOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{templates, plural, =1{This installation does not have 1 font used by the imported template. Choose a replacement.} other{This installation does not have 1 font used by the imported templates. Choose a replacement.}}'**
+  String templateMissingFontOne(int templates);
+
+  /// No description provided for @templateMissingFontMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{templates, plural, =1{This installation does not have {fonts} fonts used by the imported template. Choose a replacement for each.} other{This installation does not have {fonts} fonts used by the imported templates. Choose a replacement for each.}}'**
+  String templateMissingFontMany(int templates, int fonts);
+
+  /// No description provided for @templateInstallOriginalFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Install the original fonts under Documents > Fonts if you need an exact match.'**
+  String get templateInstallOriginalFonts;
+
+  /// No description provided for @templateFontPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview: {font}'**
+  String templateFontPreview(String font);
+
+  /// No description provided for @templateCancelImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel import'**
+  String get templateCancelImport;
+
+  /// No description provided for @templateReplaceAndImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace and import'**
+  String get templateReplaceAndImport;
+
+  /// No description provided for @templateExistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Template exists'**
+  String get templateExistsTitle;
+
+  /// No description provided for @templateExistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A template named \"{name}\" already exists. Replace the saved copy?'**
+  String templateExistsBody(String name);
+
+  /// No description provided for @templateNewName.
+  ///
+  /// In en, this message translates to:
+  /// **'New name'**
+  String get templateNewName;
+
+  /// No description provided for @templateUploadFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload from device'**
+  String get templateUploadFromDevice;
+
+  /// No description provided for @templateUploadFromDeviceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies the file into your template images folder'**
+  String get templateUploadFromDeviceBody;
+
+  /// No description provided for @templateSavedImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved images'**
+  String get templateSavedImages;
+
+  /// No description provided for @templateNoSavedImages.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved images yet - upload one first.'**
+  String get templateNoSavedImages;
+
+  /// No description provided for @templateName.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get templateName;
+
+  /// No description provided for @templateEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get templateEnterName;
+
+  /// No description provided for @templateSaveImportedAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save imported template as'**
+  String get templateSaveImportedAs;
+
+  /// No description provided for @templateMustDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Must differ from \"{name}\"'**
+  String templateMustDiffer(String name);
+
+  /// No description provided for @templateNameExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A template with this name already exists'**
+  String get templateNameExists;
+
+  /// No description provided for @templateRecordTypeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Record type: {type}'**
+  String templateRecordTypeValue(String type);
+
+  /// No description provided for @templateSides.
+  ///
+  /// In en, this message translates to:
+  /// **'Sides'**
+  String get templateSides;
+
+  /// No description provided for @templateOneSidedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a template with a Front side only.'**
+  String get templateOneSidedBody;
+
+  /// No description provided for @templateTwoSided.
+  ///
+  /// In en, this message translates to:
+  /// **'2 sided'**
+  String get templateTwoSided;
+
+  /// No description provided for @templateTwoSidedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create separate Front and Back designs.'**
+  String get templateTwoSidedBody;
+
+  /// No description provided for @templateCreateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new template'**
+  String get templateCreateNew;
+
+  /// No description provided for @templateOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Template Options'**
+  String get templateOptions;
+
+  /// No description provided for @templateSaveAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as...'**
+  String get templateSaveAs;
+
+  /// No description provided for @templateChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose template'**
+  String get templateChoose;
+
+  /// No description provided for @templateUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled template'**
+  String get templateUntitled;
+
+  /// No description provided for @templateInsertField.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert Field'**
+  String get templateInsertField;
+
+  /// No description provided for @templateAllTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'All Taxa'**
+  String get templateAllTaxa;
+
+  /// No description provided for @templateEditCustomText.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Custom Text'**
+  String get templateEditCustomText;
+
+  /// No description provided for @templateTextInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Text Input'**
+  String get templateTextInput;
+
+  /// No description provided for @templateTextInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter text or insert fields...'**
+  String get templateTextInputHint;
+
+  /// No description provided for @templateAvailableSymbols.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Symbols'**
+  String get templateAvailableSymbols;
+
+  /// No description provided for @templateEnterText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter text...'**
+  String get templateEnterText;
+
+  /// No description provided for @templateRenamedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to {name}'**
+  String templateRenamedTo(String name);
+
+  /// No description provided for @templateRenameFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename failed: {error}'**
+  String templateRenameFailed(String error);
+
+  /// No description provided for @templateSavedName.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved template \"{name}\"'**
+  String templateSavedName(String name);
+
+  /// No description provided for @templateSavedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {file}'**
+  String templateSavedFile(String file);
+
+  /// No description provided for @templateReplacementInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Text replacement {index} in \"{text}\" is invalid: {message}'**
+  String templateReplacementInvalid(int index, String text, String message);
+
+  /// No description provided for @templateImportedAndSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported and saved \"{name}\"'**
+  String templateImportedAndSaved(String name);
+
+  /// No description provided for @templateImportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed or file invalid'**
+  String get templateImportFailed;
+
+  /// No description provided for @templateUnsavedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved Changes'**
+  String get templateUnsavedChanges;
+
+  /// No description provided for @templateUnsavedChangesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to save the changes to the template before leaving?'**
+  String get templateUnsavedChangesBody;
+
+  /// No description provided for @templateDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get templateDiscard;
+
+  /// No description provided for @templatePreviewPartSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen Part Selection for Preview'**
+  String get templatePreviewPartSelection;
+
+  /// No description provided for @templatePreviewParasiteSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite Selection for Preview'**
+  String get templatePreviewParasiteSelection;
+
+  /// No description provided for @templatePreviewSpecimenSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Specimen Selection for Preview'**
+  String get templatePreviewSpecimenSelection;
+
+  /// No description provided for @templateSizePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Template Size Preset'**
+  String get templateSizePreset;
+
+  /// No description provided for @templateSizePaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper'**
+  String get templateSizePaper;
+
+  /// No description provided for @templateSizeCryotubes.
+  ///
+  /// In en, this message translates to:
+  /// **'Cryotubes'**
+  String get templateSizeCryotubes;
+
+  /// No description provided for @templateSizeRangeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter value between 10 and 500 mm'**
+  String get templateSizeRangeHelper;
+
+  /// No description provided for @templateSizeEnterWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a width'**
+  String get templateSizeEnterWidth;
+
+  /// No description provided for @templateSizeInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get templateSizeInvalidNumber;
+
+  /// No description provided for @templateSizeOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be between 10 and 500'**
+  String get templateSizeOutOfRange;
+
+  /// No description provided for @templateSizeEnterHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a height'**
+  String get templateSizeEnterHeight;
+
+  /// No description provided for @templateSizeApplyCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Custom Size'**
+  String get templateSizeApplyCustom;
+
+  /// No description provided for @templatePresetLetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Letter'**
+  String get templatePresetLetter;
+
+  /// No description provided for @templatePresetLegal.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get templatePresetLegal;
+
+  /// No description provided for @templatePresetVialSideLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'1.5 - 2.0 mL Vial Side'**
+  String get templatePresetVialSideLarge;
+
+  /// No description provided for @templatePresetVialSideSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'0.5 - 1.0 mL Vial Side'**
+  String get templatePresetVialSideSmall;
+
+  /// No description provided for @templatePresetCapDotSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small Vial Cap Dot'**
+  String get templatePresetCapDotSmall;
+
+  /// No description provided for @templatePresetCapDotLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large Vial Cap Dot'**
+  String get templatePresetCapDotLarge;
+
+  /// No description provided for @templatePresetSelfLaminating.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-Laminating Wrap'**
+  String get templatePresetSelfLaminating;
+
+  /// No description provided for @templatePresetPinnedLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'Invertebrate Pinned (Locality)'**
+  String get templatePresetPinnedLocality;
+
+  /// No description provided for @templatePresetPinnedTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Invertebrate Pinned (Taxon ID)'**
+  String get templatePresetPinnedTaxon;
+
+  /// No description provided for @templatePresetJarInsert.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluid Collection (Jar Insert)'**
+  String get templatePresetJarInsert;
+
+  /// No description provided for @templatePresetVertebrateTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertebrate Specimen Tag (Medium)'**
+  String get templatePresetVertebrateTag;
+
+  /// No description provided for @templatePresetSkullBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Skull Box / Micro-Vial'**
+  String get templatePresetSkullBox;
+
+  /// No description provided for @templatePresetA4Description.
+  ///
+  /// In en, this message translates to:
+  /// **'International standard default for catalogs, reports, and label sheets.'**
+  String get templatePresetA4Description;
+
+  /// No description provided for @templatePresetLetterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'North American standard default for documentation and matrix printing.'**
+  String get templatePresetLetterDescription;
+
+  /// No description provided for @templatePresetLegalDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Extended canvas for long field logs, history sheets, or oversized tables.'**
+  String get templatePresetLegalDescription;
+
+  /// No description provided for @templatePresetA5Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact size ideal for pocket field books and small log inserts.'**
+  String get templatePresetA5Description;
+
+  /// No description provided for @templatePresetA3Description.
+  ///
+  /// In en, this message translates to:
+  /// **'Oversized sheet for map generation, collection drawer layouts, and system grids.'**
+  String get templatePresetA3Description;
+
+  /// No description provided for @templatePresetVialSideLargeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard side-wall label. Fits 3-4 lines of text plus a barcode.'**
+  String get templatePresetVialSideLargeDescription;
+
+  /// No description provided for @templatePresetVialSideSmallDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact side-wall profile for smaller tissue or DNA aliquots.'**
+  String get templatePresetVialSideSmallDescription;
+
+  /// No description provided for @templatePresetCapDotSmallDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Circular top dot fitting 0.5–1.5 mL tube caps for top-down scanning.'**
+  String get templatePresetCapDotSmallDescription;
+
+  /// No description provided for @templatePresetCapDotLargeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Circular top dot fitting 2.0 mL or larger cryovial screw caps.'**
+  String get templatePresetCapDotLargeDescription;
+
+  /// No description provided for @templatePresetSelfLaminatingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Text prints on a 25.4x12.7mm zone; clear tail wraps over to protect against liquid nitrogen.'**
+  String get templatePresetSelfLaminatingDescription;
+
+  /// No description provided for @templatePresetPinnedLocalityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Rigid boundary for pinned insects; fits 5-6 lines of ultra-compact metadata.'**
+  String get templatePresetPinnedLocalityDescription;
+
+  /// No description provided for @templatePresetPinnedTaxonDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Smallest footprint; contains Genus species, author, and determiner info.'**
+  String get templatePresetPinnedTaxonDescription;
+
+  /// No description provided for @templatePresetJarInsertDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed inside wet jars (alcohol/formalin). High legibility through curved glass.'**
+  String get templatePresetJarInsertDescription;
+
+  /// No description provided for @templatePresetVertebrateTagDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard medium-sized vertebrate curation and hang tag.'**
+  String get templatePresetVertebrateTagDescription;
+
+  /// No description provided for @templatePresetSkullBoxDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized for 1-to-2 dram glass vials or small cardboard osteological boxes.'**
+  String get templatePresetSkullBoxDescription;
+
+  /// No description provided for @templateElementImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get templateElementImage;
+
+  /// No description provided for @templateElementImageDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Image · {width} × {height} mm'**
+  String templateElementImageDetail(String width, String height);
+
+  /// No description provided for @templateElementLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Line'**
+  String get templateElementLine;
+
+  /// No description provided for @templateElementEmptyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty text'**
+  String get templateElementEmptyText;
+
+  /// No description provided for @mediaGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get mediaGallery;
+
+  /// No description provided for @mediaActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get mediaActions;
+
+  /// No description provided for @mediaDeleteSelectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected media?'**
+  String get mediaDeleteSelectedTitle;
+
+  /// No description provided for @mediaDeleteSelectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the selected media from all NAHPU records and from disk? This cannot be undone.'**
+  String get mediaDeleteSelectedBody;
+
+  /// No description provided for @mediaSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String mediaSelectedCount(int count);
+
+  /// No description provided for @mediaNoneAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No media added'**
+  String get mediaNoneAdded;
+
+  /// No description provided for @mediaAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add media'**
+  String get mediaAdd;
+
+  /// No description provided for @mediaTakePhotosVideos.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photos/videos'**
+  String get mediaTakePhotosVideos;
+
+  /// No description provided for @mediaRecordAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Record audio'**
+  String get mediaRecordAudio;
+
+  /// No description provided for @mediaAddFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from gallery'**
+  String get mediaAddFromGallery;
+
+  /// No description provided for @mediaAddFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from file'**
+  String get mediaAddFromFile;
+
+  /// No description provided for @mediaUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Media unavailable'**
+  String get mediaUnavailable;
+
+  /// No description provided for @mediaFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'File missing'**
+  String get mediaFileMissing;
+
+  /// No description provided for @mediaImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable'**
+  String get mediaImageUnavailable;
+
+  /// No description provided for @mediaNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No media'**
+  String get mediaNone;
+
+  /// No description provided for @mediaMenuActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Media actions'**
+  String get mediaMenuActions;
+
+  /// No description provided for @mediaShowInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Show info'**
+  String get mediaShowInfo;
+
+  /// No description provided for @mediaEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit media'**
+  String get mediaEdit;
+
+  /// No description provided for @mediaInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Media info'**
+  String get mediaInfo;
+
+  /// No description provided for @mediaDeleteFileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete media file?'**
+  String get mediaDeleteFileTitle;
+
+  /// No description provided for @mediaDeleteFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name} from all NAHPU records and from disk? This cannot be undone.'**
+  String mediaDeleteFileBody(String name);
+
+  /// No description provided for @mediaDeleteThisFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this media file from all NAHPU records and from disk? This cannot be undone.'**
+  String get mediaDeleteThisFileBody;
+
+  /// No description provided for @mediaFileAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'File already exists'**
+  String get mediaFileAlreadyExists;
+
+  /// No description provided for @mediaFileName.
+  ///
+  /// In en, this message translates to:
+  /// **'File name'**
+  String get mediaFileName;
+
+  /// No description provided for @mediaFileNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a file name'**
+  String get mediaFileNameHint;
+
+  /// No description provided for @mediaCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get mediaCaption;
+
+  /// No description provided for @mediaCaptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a caption'**
+  String get mediaCaptionHint;
+
+  /// No description provided for @mediaTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get mediaTag;
+
+  /// No description provided for @mediaTagHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a tag'**
+  String get mediaTagHint;
+
+  /// No description provided for @mediaPhotographer.
+  ///
+  /// In en, this message translates to:
+  /// **'Photographer'**
+  String get mediaPhotographer;
+
+  /// No description provided for @mediaSelectPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select personnel'**
+  String get mediaSelectPersonnel;
+
+  /// No description provided for @mediaClearPhotographer.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear photographer'**
+  String get mediaClearPhotographer;
+
+  /// No description provided for @mediaExportSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected media'**
+  String get mediaExportSelected;
+
+  /// No description provided for @mediaExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting media'**
+  String get mediaExporting;
+
+  /// No description provided for @mediaExportingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Large media selections can take several minutes. Keep NAHPU open until this finishes.'**
+  String get mediaExportingHint;
+
+  /// No description provided for @mediaExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export media'**
+  String get mediaExport;
+
+  /// No description provided for @mediaExportLeaveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The export is still running. Leaving now cancels it and no file will be saved.'**
+  String get mediaExportLeaveBody;
+
+  /// No description provided for @mediaArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Media archive'**
+  String get mediaArchive;
+
+  /// No description provided for @mediaImageFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Image format'**
+  String get mediaImageFormat;
+
+  /// No description provided for @mediaLimitDimensions.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit image dimensions'**
+  String get mediaLimitDimensions;
+
+  /// No description provided for @mediaLimitDimensionsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Constrain the longer side without upscaling'**
+  String get mediaLimitDimensionsBody;
+
+  /// No description provided for @mediaMaxDimension.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum width or height (px)'**
+  String get mediaMaxDimension;
+
+  /// No description provided for @mediaMaxDimensionHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to whichever side is longer.'**
+  String get mediaMaxDimensionHelper;
+
+  /// No description provided for @mediaJpegQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'JPEG quality'**
+  String get mediaJpegQuality;
+
+  /// No description provided for @mediaImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get mediaImages;
+
+  /// No description provided for @mediaAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get mediaAudio;
+
+  /// No description provided for @mediaVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get mediaVideo;
+
+  /// No description provided for @mediaOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get mediaOther;
+
+  /// No description provided for @mediaSourceSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Source size'**
+  String get mediaSourceSize;
+
+  /// No description provided for @mediaExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported'**
+  String get mediaExported;
+
+  /// No description provided for @mediaWarningCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 warning} other{{count} warnings}}'**
+  String mediaWarningCount(int count);
+
+  /// No description provided for @mediaCannotConvert.
+  ///
+  /// In en, this message translates to:
+  /// **'{format} cannot be converted and will remain in its original format.'**
+  String mediaCannotConvert(String format);
+
+  /// No description provided for @mediaPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get mediaPause;
+
+  /// No description provided for @mediaPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get mediaPlay;
+
+  /// No description provided for @mediaPlaybackUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback preview is unavailable: {error}'**
+  String mediaPlaybackUnavailable(String error);
+
+  /// No description provided for @mediaCameraAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is required to take photos and videos.'**
+  String get mediaCameraAccessRequired;
+
+  /// No description provided for @mediaMicrophoneAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is required to record video.'**
+  String get mediaMicrophoneAccessRequired;
+
+  /// No description provided for @mediaCameraError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to use the camera.'**
+  String get mediaCameraError;
+
+  /// No description provided for @mediaPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get mediaPhoto;
+
+  /// No description provided for @mediaSwitchCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get mediaSwitchCamera;
+
+  /// No description provided for @mediaStopRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop recording'**
+  String get mediaStopRecording;
+
+  /// No description provided for @mediaRecordVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Record video'**
+  String get mediaRecordVideo;
+
+  /// No description provided for @mediaRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get mediaRetake;
+
+  /// No description provided for @mediaUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get mediaUse;
+
+  /// No description provided for @mediaDetailFile.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get mediaDetailFile;
+
+  /// No description provided for @mediaCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get mediaCategory;
+
+  /// No description provided for @mediaCaptureEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture and equipment'**
+  String get mediaCaptureEquipment;
+
+  /// No description provided for @mediaTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get mediaTaken;
+
+  /// No description provided for @mediaCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get mediaCamera;
+
+  /// No description provided for @mediaLenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Lenses'**
+  String get mediaLenses;
+
+  /// No description provided for @mediaAdditionalExif.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional EXIF'**
+  String get mediaAdditionalExif;
+
+  /// No description provided for @mediaId.
+  ///
+  /// In en, this message translates to:
+  /// **'Media ID'**
+  String get mediaId;
+
+  /// No description provided for @mediaSecondaryId.
+  ///
+  /// In en, this message translates to:
+  /// **'Secondary ID'**
+  String get mediaSecondaryId;
+
+  /// No description provided for @mediaPhotographerId.
+  ///
+  /// In en, this message translates to:
+  /// **'Photographer ID'**
+  String get mediaPhotographerId;
+
+  /// No description provided for @mediaLinkedInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked information'**
+  String get mediaLinkedInformation;
+
+  /// No description provided for @mediaLinkedInformationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked information is unavailable: {error}'**
+  String mediaLinkedInformationError(String error);
+
+  /// No description provided for @mediaResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get mediaResume;
+
+  /// No description provided for @mediaPausePlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause playback'**
+  String get mediaPausePlayback;
+
+  /// No description provided for @mediaPlayRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Play recording'**
+  String get mediaPlayRecording;
+
+  /// No description provided for @mediaRecordingNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'The audio recording was not saved.'**
+  String get mediaRecordingNotSaved;
+
+  /// No description provided for @mediaImageSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Settings'**
+  String get mediaImageSettings;
+
+  /// No description provided for @mediaOriginalSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Original: {width} × {height} px'**
+  String mediaOriginalSize(int width, int height);
+
+  /// No description provided for @mediaResizeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize image'**
+  String get mediaResizeImage;
+
+  /// No description provided for @mediaAspectLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Aspect ratio is locked'**
+  String get mediaAspectLocked;
+
+  /// No description provided for @mediaWidthPx.
+  ///
+  /// In en, this message translates to:
+  /// **'Width (px)'**
+  String get mediaWidthPx;
+
+  /// No description provided for @mediaMaxValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {value}'**
+  String mediaMaxValue(int value);
+
+  /// No description provided for @mediaHeightPx.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (px)'**
+  String get mediaHeightPx;
+
+  /// No description provided for @mediaSearchMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Search media metadata'**
+  String get mediaSearchMetadata;
+
+  /// No description provided for @mediaGalleryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Media gallery'**
+  String get mediaGalleryTitle;
+
+  /// No description provided for @mediaSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search media'**
+  String get mediaSearch;
+
+  /// No description provided for @mediaDeleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected media'**
+  String get mediaDeleteSelected;
+
+  /// No description provided for @mediaCategoryEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get mediaCategoryEvent;
+
+  /// No description provided for @mediaSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort media'**
+  String get mediaSort;
+
+  /// No description provided for @mediaNoMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching media'**
+  String get mediaNoMatching;
+
+  /// No description provided for @mediaSortAddedNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest added'**
+  String get mediaSortAddedNewest;
+
+  /// No description provided for @mediaSortAddedOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest added'**
+  String get mediaSortAddedOldest;
+
+  /// No description provided for @mediaSortFileNameAsc.
+  ///
+  /// In en, this message translates to:
+  /// **'File name A–Z'**
+  String get mediaSortFileNameAsc;
+
+  /// No description provided for @mediaSortFileNameDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'File name Z–A'**
+  String get mediaSortFileNameDesc;
+
+  /// No description provided for @mediaSortTakenNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date taken, newest'**
+  String get mediaSortTakenNewest;
+
+  /// No description provided for @mediaSortTakenOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date taken, oldest'**
+  String get mediaSortTakenOldest;
+
+  /// No description provided for @mediaHideDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get mediaHideDetails;
+
+  /// No description provided for @mediaShowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get mediaShowDetails;
+
+  /// No description provided for @mediaPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get mediaPrevious;
+
+  /// No description provided for @mediaMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get mediaMute;
+
+  /// No description provided for @mediaUnmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get mediaUnmute;
+
+  /// No description provided for @mediaPlaybackSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get mediaPlaybackSpeed;
+
+  /// No description provided for @mediaExitFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit fullscreen'**
+  String get mediaExitFullscreen;
+
+  /// No description provided for @mediaFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen'**
+  String get mediaFullscreen;
+
+  /// No description provided for @mediaCannotDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot display this {kind} file'**
+  String mediaCannotDisplay(String kind);
+
+  /// No description provided for @mediaBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get mediaBarcode;
+
+  /// No description provided for @mediaScanQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get mediaScanQrCode;
+
+  /// No description provided for @mediaScanBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan barcode'**
+  String get mediaScanBarcode;
+
+  /// No description provided for @mediaAlignQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the QR code within the frame'**
+  String get mediaAlignQrCode;
+
+  /// No description provided for @mediaAlignBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the barcode within the frame'**
+  String get mediaAlignBarcode;
+
+  /// No description provided for @mediaQrTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is too large for a QR code.\nExport it as a file instead.'**
+  String get mediaQrTooLarge;
+
+  /// No description provided for @associatedUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed associated data'**
+  String get associatedUnnamed;
+
+  /// No description provided for @associatedFileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'File unavailable'**
+  String get associatedFileUnavailable;
+
+  /// No description provided for @associatedTypeLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get associatedTypeLink;
+
+  /// No description provided for @associatedUnknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown type'**
+  String get associatedUnknownType;
+
+  /// No description provided for @associatedNoResource.
+  ///
+  /// In en, this message translates to:
+  /// **'No resource'**
+  String get associatedNoResource;
+
+  /// No description provided for @associatedActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Associated data actions'**
+  String get associatedActions;
+
+  /// No description provided for @associatedOpenInDefaultApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in default app'**
+  String get associatedOpenInDefaultApp;
+
+  /// No description provided for @associatedOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get associatedOpenLink;
+
+  /// No description provided for @associatedNoUriToShare.
+  ///
+  /// In en, this message translates to:
+  /// **'No URI to share.'**
+  String get associatedNoUriToShare;
+
+  /// No description provided for @associatedFileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'File not found'**
+  String get associatedFileNotFound;
+
+  /// No description provided for @associatedInvalidUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid URI.'**
+  String get associatedInvalidUri;
+
+  /// No description provided for @associatedCouldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open {uri}'**
+  String associatedCouldNotOpen(String uri);
+
+  /// No description provided for @associatedAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add associated data'**
+  String get associatedAdd;
+
+  /// No description provided for @associatedNoneAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No associated data added'**
+  String get associatedNoneAdded;
+
+  /// No description provided for @associatedEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit associated data'**
+  String get associatedEdit;
+
+  /// No description provided for @associatedDataType.
+  ///
+  /// In en, this message translates to:
+  /// **'Data type'**
+  String get associatedDataType;
+
+  /// No description provided for @associatedDataTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select data type'**
+  String get associatedDataTypeHint;
+
+  /// No description provided for @associatedNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., GenBank or MorphoSource'**
+  String get associatedNameHint;
+
+  /// No description provided for @associatedDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the associated data'**
+  String get associatedDescriptionHint;
+
+  /// No description provided for @associatedResource.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource'**
+  String get associatedResource;
+
+  /// No description provided for @associatedNonMediaFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-media files'**
+  String get associatedNonMediaFiles;
+
+  /// No description provided for @associatedCopyToProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to project'**
+  String get associatedCopyToProject;
+
+  /// No description provided for @associatedLinkOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Link original'**
+  String get associatedLinkOriginal;
+
+  /// No description provided for @associatedLinkOriginalWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The link will stop working if the original file is moved or deleted.'**
+  String get associatedLinkOriginalWarning;
+
+  /// No description provided for @associatedSelectDataType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a data type.'**
+  String get associatedSelectDataType;
+
+  /// No description provided for @associatedEnterValidUri.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid URI.'**
+  String get associatedEnterValidUri;
+
+  /// No description provided for @associatedSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a file.'**
+  String get associatedSelectFile;
+
+  /// No description provided for @associatedNoIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Associated data has no identifier.'**
+  String get associatedNoIdentifier;
+
+  /// No description provided for @associatedInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Associated data info'**
+  String get associatedInfo;
+
+  /// No description provided for @associatedOriginStoragePath.
+  ///
+  /// In en, this message translates to:
+  /// **'Origin storage path'**
+  String get associatedOriginStoragePath;
+
+  /// No description provided for @associatedLinkedOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked original'**
+  String get associatedLinkedOriginal;
+
+  /// No description provided for @associatedProjectCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Project copy'**
+  String get associatedProjectCopy;
+
+  /// No description provided for @associatedAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability'**
+  String get associatedAvailability;
+
+  /// No description provided for @associatedChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get associatedChecking;
+
+  /// Text before the Terms and Conditions link; keep the trailing space.
+  ///
+  /// In en, this message translates to:
+  /// **'Please read the '**
+  String get legalReadThe;
+
+  /// No description provided for @legalTermsAndConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and Conditions'**
+  String get legalTermsAndConditions;
+
+  /// Text between the two legal links; keep the surrounding spaces.
+  ///
+  /// In en, this message translates to:
+  /// **' and the '**
+  String get legalAndThe;
+
+  /// No description provided for @legalPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get legalPrivacyPolicy;
+
+  /// Text after the Privacy Policy link; keep the leading space.
+  ///
+  /// In en, this message translates to:
+  /// **' before you start. Using NAHPU accepts them.'**
+  String get legalBeforeYouStart;
+
+  /// No description provided for @legalTermsTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms and conditions'**
+  String get legalTermsTile;
+
+  /// No description provided for @legalPrivacyTile.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get legalPrivacyTile;
+
+  /// No description provided for @mapCenterOnCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Center map on coordinates'**
+  String get mapCenterOnCoordinates;
+
+  /// No description provided for @mapMoreCount.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String mapMoreCount(int count);
+
+  /// No description provided for @mapTapToZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to zoom in'**
+  String get mapTapToZoomIn;
+
+  /// No description provided for @mapNaturalEarthOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural Earth · offline'**
+  String get mapNaturalEarthOffline;
+
+  /// No description provided for @mapRetryDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the detailed map again'**
+  String get mapRetryDetailed;
+
+  /// No description provided for @siteAddCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Add coordinates'**
+  String get siteAddCoordinates;
+
+  /// No description provided for @siteViewMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View map'**
+  String get siteViewMap;
+
+  /// No description provided for @siteAddSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} selected'**
+  String siteAddSelected(int count);
+
+  /// No description provided for @siteNewCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'New coordinate'**
+  String get siteNewCoordinate;
+
+  /// No description provided for @siteSupportedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported files:'**
+  String get siteSupportedFiles;
+
+  /// No description provided for @siteSupportedFileTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.'**
+  String get siteSupportedFileTypes;
+
+  /// No description provided for @siteSelectCoordinateFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select coordinate file'**
+  String get siteSelectCoordinateFile;
+
+  /// No description provided for @siteRowsSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row skipped} other{{count} rows skipped}}'**
+  String siteRowsSkipped(int count);
+
+  /// No description provided for @siteEditColumnMapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit column mapping'**
+  String get siteEditColumnMapping;
+
+  /// No description provided for @siteChooseAnotherFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another file'**
+  String get siteChooseAnotherFile;
+
+  /// No description provided for @siteCoordinateChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The coordinate changed. Refresh the map to update the preview.'**
+  String get siteCoordinateChanged;
+
+  /// No description provided for @siteEnterValidCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid WGS84 latitude and longitude, then refresh the map.'**
+  String get siteEnterValidCoordinate;
+
+  /// No description provided for @siteRefreshMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh map'**
+  String get siteRefreshMap;
+
+  /// No description provided for @siteEditCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Coordinates'**
+  String get siteEditCoordinates;
+
+  /// No description provided for @siteAddName.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a name'**
+  String get siteAddName;
+
+  /// No description provided for @siteDeviceGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Device GPS'**
+  String get siteDeviceGps;
+
+  /// No description provided for @siteDeviceGpsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use device sensor to autofill coordinates'**
+  String get siteDeviceGpsBody;
+
+  /// No description provided for @siteGetLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Get location'**
+  String get siteGetLocation;
+
+  /// No description provided for @siteCoordinateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate format'**
+  String get siteCoordinateFormat;
+
+  /// No description provided for @siteDecimalDegrees.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal degrees'**
+  String get siteDecimalDegrees;
+
+  /// No description provided for @siteDdm.
+  ///
+  /// In en, this message translates to:
+  /// **'Degrees decimal minutes (DDM)'**
+  String get siteDdm;
+
+  /// No description provided for @siteDms.
+  ///
+  /// In en, this message translates to:
+  /// **'Degrees minutes seconds (DMS)'**
+  String get siteDms;
+
+  /// No description provided for @siteUtm.
+  ///
+  /// In en, this message translates to:
+  /// **'UTM (WGS84)'**
+  String get siteUtm;
+
+  /// No description provided for @siteUtmCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'UTM coordinate'**
+  String get siteUtmCoordinate;
+
+  /// No description provided for @siteDecimalLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal Latitude'**
+  String get siteDecimalLatitude;
+
+  /// No description provided for @siteAddLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a latitude'**
+  String get siteAddLatitude;
+
+  /// No description provided for @siteDecimalLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Decimal Longitude'**
+  String get siteDecimalLongitude;
+
+  /// No description provided for @siteAddLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a longitude'**
+  String get siteAddLongitude;
+
+  /// No description provided for @siteAddElevation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an elevation'**
+  String get siteAddElevation;
+
+  /// No description provided for @siteSpecifyDatum.
+  ///
+  /// In en, this message translates to:
+  /// **'Specify the datum'**
+  String get siteSpecifyDatum;
+
+  /// No description provided for @siteAddUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an uncertainty'**
+  String get siteAddUncertainty;
+
+  /// No description provided for @siteGpsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS Unit'**
+  String get siteGpsUnit;
+
+  /// No description provided for @siteSpecifyGpsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Specify the GPS unit'**
+  String get siteSpecifyGpsUnit;
+
+  /// No description provided for @siteAddNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes (optional)'**
+  String get siteAddNotes;
+
+  /// No description provided for @siteChangeFormatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change coordinate format?'**
+  String get siteChangeFormatTitle;
+
+  /// No description provided for @siteChangeFormatBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing the format clears the entered coordinate values. Name, elevation, datum, uncertainty, GPS unit, and notes are kept.'**
+  String get siteChangeFormatBody;
+
+  /// No description provided for @siteClearAndSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear and switch'**
+  String get siteClearAndSwitch;
+
+  /// No description provided for @siteInvalidVerbatim.
+  ///
+  /// In en, this message translates to:
+  /// **'This verbatim {axis} could not be read and may have been changed outside NAHPU. Re-enter it before saving.\nOriginal: {value}'**
+  String siteInvalidVerbatim(String axis, String value);
+
+  /// No description provided for @siteMissingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'(missing)'**
+  String get siteMissingValue;
+
+  /// No description provided for @siteDegree.
+  ///
+  /// In en, this message translates to:
+  /// **'Degree'**
+  String get siteDegree;
+
+  /// No description provided for @siteMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'Minute'**
+  String get siteMinute;
+
+  /// No description provided for @siteSecond.
+  ///
+  /// In en, this message translates to:
+  /// **'Second'**
+  String get siteSecond;
+
+  /// No description provided for @siteManageCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage coordinates'**
+  String get siteManageCoordinates;
+
+  /// No description provided for @siteCoordinateMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate map'**
+  String get siteCoordinateMap;
+
+  /// No description provided for @siteExportCoordinatesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Export 1 coordinate} other{Export {count} coordinates}}'**
+  String siteExportCoordinatesCount(int count);
+
+  /// No description provided for @siteFormatGeoJson.
+  ///
+  /// In en, this message translates to:
+  /// **'GeoJSON (.geojson)'**
+  String get siteFormatGeoJson;
+
+  /// No description provided for @siteFormatShapefile.
+  ///
+  /// In en, this message translates to:
+  /// **'Shapefile bundle (.zip)'**
+  String get siteFormatShapefile;
+
+  /// No description provided for @siteShowCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Show coordinates'**
+  String get siteShowCoordinates;
+
+  /// No description provided for @siteAllCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'All coordinates'**
+  String get siteAllCoordinates;
+
+  /// No description provided for @siteLoadSitesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load sites: {error}'**
+  String siteLoadSitesError(String error);
+
+  /// No description provided for @siteLoadCoordinatesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load coordinates: {error}'**
+  String siteLoadCoordinatesError(String error);
+
+  /// No description provided for @siteExportSelectedCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Export coordinates ({count})'**
+  String siteExportSelectedCoordinates(int count);
+
+  /// No description provided for @siteNoCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'No coordinates added'**
+  String get siteNoCoordinates;
+
+  /// No description provided for @siteSelectedOfCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total, plural, =1{1 coordinate} other{{total} coordinates}}'**
+  String siteSelectedOfCoordinates(int count, int total);
+
+  /// No description provided for @siteUnnamedCoordinateId.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed coordinate ({id})'**
+  String siteUnnamedCoordinateId(String id);
+
+  /// No description provided for @siteCoordinatesNotShown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 coordinate is not shown because latitude or longitude is missing or invalid.} other{{count} coordinates are not shown because latitude or longitude is missing or invalid.}}'**
+  String siteCoordinatesNotShown(int count);
+
+  /// No description provided for @siteCoordinateActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate actions'**
+  String get siteCoordinateActions;
+
+  /// No description provided for @siteCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get siteCopy;
+
+  /// No description provided for @siteOpenInMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in map'**
+  String get siteOpenInMap;
+
+  /// No description provided for @siteCoordinateDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinate Details'**
+  String get siteCoordinateDetails;
+
+  /// No description provided for @siteCopiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude and Longitude copied to clipboard'**
+  String get siteCopiedToClipboard;
+
+  /// No description provided for @siteNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'No Name'**
+  String get siteNoName;
+
+  /// No description provided for @siteOriginalCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Original coordinate'**
+  String get siteOriginalCoordinate;
+
+  /// No description provided for @siteOriginalFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Original format'**
+  String get siteOriginalFormat;
+
+  /// No description provided for @siteUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertainty'**
+  String get siteUncertainty;
+
+  /// No description provided for @siteUnnamedCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed coordinate'**
+  String get siteUnnamedCoordinate;
+
+  /// No description provided for @siteAddCoordinate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add coordinate'**
+  String get siteAddCoordinate;
+
+  /// No description provided for @siteNoId.
+  ///
+  /// In en, this message translates to:
+  /// **'No ID'**
+  String get siteNoId;
+
+  /// No description provided for @siteColumnsDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'{columns} columns and {rows} data rows detected. NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.'**
+  String siteColumnsDetected(int columns, int rows);
+
+  /// No description provided for @siteColumnsDetectedInWorksheet.
+  ///
+  /// In en, this message translates to:
+  /// **'{columns} columns and {rows} data rows detected in worksheet \"{worksheet}\". NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.'**
+  String siteColumnsDetectedInWorksheet(
+    int columns,
+    int rows,
+    String worksheet,
+  );
+
+  /// No description provided for @siteNotIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not included'**
+  String get siteNotIncluded;
+
+  /// No description provided for @siteHeaderColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'{header} (column {index})'**
+  String siteHeaderColumn(String header, int index);
+
+  /// No description provided for @siteReviewCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'Review coordinates'**
+  String get siteReviewCoordinates;
+
+  /// No description provided for @siteImportFieldNameId.
+  ///
+  /// In en, this message translates to:
+  /// **'Name / ID'**
+  String get siteImportFieldNameId;
+
+  /// No description provided for @siteCopyFromProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from project'**
+  String get siteCopyFromProject;
+
+  /// No description provided for @siteChooseDataToCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose data to copy'**
+  String get siteChooseDataToCopy;
+
+  /// No description provided for @siteSelectSourceProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the project that contains the site to copy.'**
+  String get siteSelectSourceProject;
+
+  /// No description provided for @siteSelectFromProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a site from {project}.'**
+  String siteSelectFromProject(String project);
+
+  /// No description provided for @siteNoSitesInProject.
+  ///
+  /// In en, this message translates to:
+  /// **'No sites found in this project.'**
+  String get siteNoSitesInProject;
+
+  /// No description provided for @siteSelectDataToCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the data to copy into the empty site.'**
+  String get siteSelectDataToCopy;
+
+  /// No description provided for @siteNoCopyableData.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected site has no copyable data.'**
+  String get siteNoCopyableData;
+
+  /// No description provided for @siteNoDataInSource.
+  ///
+  /// In en, this message translates to:
+  /// **'No data in source'**
+  String get siteNoDataInSource;
+
+  /// No description provided for @siteMustBeEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The current site must be empty before copying data. Clear its site information, coordinates, media, and linked data first.'**
+  String get siteMustBeEmptyBody;
+
+  /// No description provided for @siteMustBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Site must be empty'**
+  String get siteMustBeEmpty;
+
+  /// No description provided for @siteNeedAnotherProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Create or import another project before copying site data.'**
+  String get siteNeedAnotherProject;
+
+  /// No description provided for @siteMultipleProjectsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple projects required'**
+  String get siteMultipleProjectsRequired;
+
+  /// No description provided for @siteUnnamedSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed site #{id}'**
+  String siteUnnamedSite(String id);
+
+  /// No description provided for @siteGeographySettingsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load geography settings: {error}'**
+  String siteGeographySettingsError(String error);
+
+  /// No description provided for @siteFindLocalityTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a locality and select a saved one to fill every geography field'**
+  String get siteFindLocalityTooltip;
+
+  /// No description provided for @siteFindLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'Find existing locality'**
+  String get siteFindLocality;
+
+  /// No description provided for @siteFindLocalityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to reuse a saved locality'**
+  String get siteFindLocalityHint;
+
+  /// No description provided for @siteEnterCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a country'**
+  String get siteEnterCountry;
+
+  /// No description provided for @siteEnterIslandGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an island group'**
+  String get siteEnterIslandGroup;
+
+  /// No description provided for @siteEnterStateProvince.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a state/province'**
+  String get siteEnterStateProvince;
+
+  /// No description provided for @siteEnterCounty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a county/parish/district'**
+  String get siteEnterCounty;
+
+  /// No description provided for @siteEnterMunicipality.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a municipality/city/town'**
+  String get siteEnterMunicipality;
+
+  /// No description provided for @sitePreciseLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Locality'**
+  String get sitePreciseLocality;
+
+  /// No description provided for @sitePreciseLocalityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a precise locality lower than municipality'**
+  String get sitePreciseLocalityHint;
+
+  /// No description provided for @siteRemarksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter more info about the site (optional)'**
+  String get siteRemarksHint;
+
+  /// No description provided for @siteHabitatType.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat Type'**
+  String get siteHabitatType;
+
+  /// No description provided for @siteHabitatTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a habitat type'**
+  String get siteHabitatTypeHint;
+
+  /// No description provided for @siteHabitatCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat Condition'**
+  String get siteHabitatCondition;
+
+  /// No description provided for @siteHabitatConditionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'E.g. \"Pristine\", \"Disturbed\", \"etc.\"'**
+  String get siteHabitatConditionHint;
+
+  /// No description provided for @siteHabitatDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat Description'**
+  String get siteHabitatDescription;
+
+  /// No description provided for @siteHabitatDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the site, e.g. \"A camp site in the middle of the forest.\"'**
+  String get siteHabitatDescriptionHint;
+
+  /// No description provided for @siteCanopyCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Canopy Cover'**
+  String get siteCanopyCover;
+
+  /// No description provided for @siteCanopyCoverHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter canopy cover'**
+  String get siteCanopyCoverHint;
+
+  /// No description provided for @siteCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create site'**
+  String get siteCreate;
+
+  /// No description provided for @siteActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Site actions'**
+  String get siteActions;
+
+  /// No description provided for @siteDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate site'**
+  String get siteDuplicate;
+
+  /// No description provided for @siteCopyFromProjectMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from project ...'**
+  String get siteCopyFromProjectMenu;
+
+  /// No description provided for @siteExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export site'**
+  String get siteExport;
+
+  /// No description provided for @siteImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import site'**
+  String get siteImport;
+
+  /// No description provided for @siteCopiedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {fields} and {coordinates} from {site} in {project}.'**
+  String siteCopiedSummary(
+    String fields,
+    String coordinates,
+    String site,
+    String project,
+  );
+
+  /// No description provided for @siteFieldCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 field} other{{count} fields}}'**
+  String siteFieldCount(int count);
+
+  /// No description provided for @siteDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete site?'**
+  String get siteDeleteTitle;
+
+  /// No description provided for @siteDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete all records in this site form'**
+  String get siteDeleteBody;
+
+  /// No description provided for @siteDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all sites?'**
+  String get siteDeleteAllTitle;
+
+  /// No description provided for @siteDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will delete all site records'**
+  String get siteDeleteAllBody;
+
+  /// No description provided for @siteDeleteInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete sites. Being used by other records.'**
+  String get siteDeleteInUse;
+
+  /// No description provided for @siteIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Identity'**
+  String get siteIdentity;
+
+  /// No description provided for @siteIdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a site ID (max. 40 chars), e.g. \"CAMP-01\", \"LINE-1\"'**
+  String get siteIdHint;
+
+  /// No description provided for @siteLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Leader'**
+  String get siteLeader;
+
+  /// No description provided for @siteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Type'**
+  String get siteType;
+
+  /// No description provided for @siteTypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a site type'**
+  String get siteTypeHint;
+
+  /// No description provided for @siteSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search sites'**
+  String get siteSearch;
+
+  /// No description provided for @siteRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Site Record'**
+  String get siteRecordTitle;
+
+  /// No description provided for @siteNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No site found'**
+  String get siteNoneFound;
+
+  /// No description provided for @siteCopyFieldSiteLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Site leader'**
+  String get siteCopyFieldSiteLeader;
+
+  /// No description provided for @siteCopyFieldSiteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Site type'**
+  String get siteCopyFieldSiteType;
+
+  /// No description provided for @siteCopyFieldPreciseLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise locality'**
+  String get siteCopyFieldPreciseLocality;
+
+  /// No description provided for @siteCopyFieldHabitatType.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat type'**
+  String get siteCopyFieldHabitatType;
+
+  /// No description provided for @siteCopyFieldHabitatCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat condition'**
+  String get siteCopyFieldHabitatCondition;
+
+  /// No description provided for @siteCopyFieldHabitatDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitat description'**
+  String get siteCopyFieldHabitatDescription;
+
+  /// No description provided for @siteCopyFieldCanopyCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Canopy cover'**
+  String get siteCopyFieldCanopyCover;
+
+  /// No description provided for @eventEnvironmentLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load environmental data: {error}'**
+  String eventEnvironmentLoadError(String error);
+
+  /// No description provided for @eventDayLowest.
+  ///
+  /// In en, this message translates to:
+  /// **'Day Lowest'**
+  String get eventDayLowest;
+
+  /// No description provided for @eventDayHighest.
+  ///
+  /// In en, this message translates to:
+  /// **'Day Highest'**
+  String get eventDayHighest;
+
+  /// No description provided for @eventNightLowest.
+  ///
+  /// In en, this message translates to:
+  /// **'Night Lowest'**
+  String get eventNightLowest;
+
+  /// No description provided for @eventNightHighest.
+  ///
+  /// In en, this message translates to:
+  /// **'Night Highest'**
+  String get eventNightHighest;
+
+  /// No description provided for @eventAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get eventAverage;
+
+  /// No description provided for @eventDewPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dew Point'**
+  String get eventDewPoint;
+
+  /// No description provided for @eventEnterLowestTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter lowest temperature'**
+  String get eventEnterLowestTemp;
+
+  /// No description provided for @eventEnterHighestTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter highest temperature'**
+  String get eventEnterHighestTemp;
+
+  /// No description provided for @eventEnterAverageHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter average humidity'**
+  String get eventEnterAverageHumidity;
+
+  /// No description provided for @eventEnterDewPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter dew point'**
+  String get eventEnterDewPoint;
+
+  /// No description provided for @eventCloudCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud cover (oktas)'**
+  String get eventCloudCover;
+
+  /// No description provided for @eventCloudCoverHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select cloud cover'**
+  String get eventCloudCoverHint;
+
+  /// No description provided for @eventCloudCoverHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'One okta represents one eighth of the visible sky.'**
+  String get eventCloudCoverHelper;
+
+  /// No description provided for @eventInvalidStoredValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} — Invalid stored value'**
+  String eventInvalidStoredValue(String value);
+
+  /// No description provided for @eventEnterRainfall.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter rainfall'**
+  String get eventEnterRainfall;
+
+  /// No description provided for @eventEnterAmbientTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ambient temperature'**
+  String get eventEnterAmbientTemp;
+
+  /// No description provided for @eventEnterRelativeHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter relative humidity'**
+  String get eventEnterRelativeHumidity;
+
+  /// No description provided for @eventEnterWaterTemp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter water temperature'**
+  String get eventEnterWaterTemp;
+
+  /// No description provided for @eventEnterPh.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter pH'**
+  String get eventEnterPh;
+
+  /// No description provided for @eventEnterDissolvedOxygen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter dissolved oxygen'**
+  String get eventEnterDissolvedOxygen;
+
+  /// No description provided for @eventEnterOxygenSaturation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter dissolved oxygen saturation'**
+  String get eventEnterOxygenSaturation;
+
+  /// No description provided for @eventEnterConductivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter conductivity'**
+  String get eventEnterConductivity;
+
+  /// No description provided for @eventEnterFlowVelocity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter flow velocity'**
+  String get eventEnterFlowVelocity;
+
+  /// No description provided for @eventEnterSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter sunrise time'**
+  String get eventEnterSunrise;
+
+  /// No description provided for @eventEnterSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter sunset time'**
+  String get eventEnterSunset;
+
+  /// No description provided for @eventMoonPhaseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select moon phase'**
+  String get eventMoonPhaseHint;
+
+  /// No description provided for @eventRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some stored environmental values need attention ({count})'**
+  String eventRecoveryTitle(int count);
+
+  /// No description provided for @eventRecoveryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct or clear the highlighted fields. Other values will not be changed.'**
+  String get eventRecoveryBody;
+
+  /// No description provided for @eventSaveValueError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save this value: {error}'**
+  String eventSaveValueError(String error);
+
+  /// No description provided for @eventEnterValidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number.'**
+  String get eventEnterValidNumber;
+
+  /// No description provided for @eventValueRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value from {minimum} to {maximum}'**
+  String eventValueRange(String minimum, String maximum);
+
+  /// No description provided for @eventValueMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value of {minimum} or more'**
+  String eventValueMinimum(String minimum);
+
+  /// No description provided for @eventOkta0.
+  ///
+  /// In en, this message translates to:
+  /// **'0 — Clear sky'**
+  String get eventOkta0;
+
+  /// No description provided for @eventOkta1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 — Up to 1/8 covered'**
+  String get eventOkta1;
+
+  /// No description provided for @eventOkta2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 — 2/8 covered'**
+  String get eventOkta2;
+
+  /// No description provided for @eventOkta3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 — 3/8 covered'**
+  String get eventOkta3;
+
+  /// No description provided for @eventOkta4.
+  ///
+  /// In en, this message translates to:
+  /// **'4 — Half covered'**
+  String get eventOkta4;
+
+  /// No description provided for @eventOkta5.
+  ///
+  /// In en, this message translates to:
+  /// **'5 — 5/8 covered'**
+  String get eventOkta5;
+
+  /// No description provided for @eventOkta6.
+  ///
+  /// In en, this message translates to:
+  /// **'6 — 6/8 covered'**
+  String get eventOkta6;
+
+  /// No description provided for @eventOkta7.
+  ///
+  /// In en, this message translates to:
+  /// **'7 — At least 7/8, not overcast'**
+  String get eventOkta7;
+
+  /// No description provided for @eventOkta8.
+  ///
+  /// In en, this message translates to:
+  /// **'8 — Fully overcast'**
+  String get eventOkta8;
+
+  /// No description provided for @eventOkta9.
+  ///
+  /// In en, this message translates to:
+  /// **'9 — Sky obscured'**
+  String get eventOkta9;
+
+  /// No description provided for @eventMoonNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New Moon'**
+  String get eventMoonNew;
+
+  /// No description provided for @eventMoonWaxingCrescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing Crescent'**
+  String get eventMoonWaxingCrescent;
+
+  /// No description provided for @eventMoonFirstQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'First Quarter'**
+  String get eventMoonFirstQuarter;
+
+  /// No description provided for @eventMoonWaxingGibbous.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing Gibbous'**
+  String get eventMoonWaxingGibbous;
+
+  /// No description provided for @eventMoonFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Moon'**
+  String get eventMoonFull;
+
+  /// No description provided for @eventMoonWaningGibbous.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning Gibbous'**
+  String get eventMoonWaningGibbous;
+
+  /// No description provided for @eventMoonLastQuarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Quarter'**
+  String get eventMoonLastQuarter;
+
+  /// No description provided for @eventMoonWaningCrescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning Crescent'**
+  String get eventMoonWaningCrescent;
+
+  /// No description provided for @eventActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get eventActivity;
+
+  /// No description provided for @eventPrimaryActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary activity'**
+  String get eventPrimaryActivity;
+
+  /// No description provided for @eventSelectActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an activity'**
+  String get eventSelectActivity;
+
+  /// No description provided for @eventActivitiesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load primary activities: {error}'**
+  String eventActivitiesLoadError(String error);
+
+  /// No description provided for @eventActivityNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter notes about the activity'**
+  String get eventActivityNotesHint;
+
+  /// No description provided for @eventAddCollMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add collection method'**
+  String get eventAddCollMethod;
+
+  /// No description provided for @eventNoCollMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'No collection methods added'**
+  String get eventNoCollMethods;
+
+  /// No description provided for @eventAddCollMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Collection Method'**
+  String get eventAddCollMethodTitle;
+
+  /// No description provided for @eventEditCollMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Collection Method'**
+  String get eventEditCollMethod;
+
+  /// No description provided for @eventCollMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection method'**
+  String get eventCollMethod;
+
+  /// No description provided for @eventCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How many of this tool were used (if applicable)?'**
+  String get eventCountHint;
+
+  /// No description provided for @eventMethodDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Method details'**
+  String get eventMethodDetails;
+
+  /// No description provided for @eventBrandModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand and Model'**
+  String get eventBrandModel;
+
+  /// No description provided for @eventBrandModelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter brand and model of the tool (if applicable)'**
+  String get eventBrandModelHint;
+
+  /// No description provided for @eventSizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter size of the tool (if applicable)'**
+  String get eventSizeHint;
+
+  /// No description provided for @eventToolNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter any notes about the tool (if applicable)'**
+  String get eventToolNotesHint;
+
+  /// No description provided for @eventSelectMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a method'**
+  String get eventSelectMethod;
+
+  /// No description provided for @eventIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Identity'**
+  String get eventIdentity;
+
+  /// No description provided for @eventStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get eventStartDate;
+
+  /// No description provided for @eventEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get eventEndDate;
+
+  /// No description provided for @eventEditId.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Event ID'**
+  String get eventEditId;
+
+  /// No description provided for @eventIdSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'ID suffix'**
+  String get eventIdSuffix;
+
+  /// No description provided for @eventIdSuffixHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter ID suffix'**
+  String get eventIdSuffixHint;
+
+  /// No description provided for @eventIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Event ID: '**
+  String get eventIdLabel;
+
+  /// No description provided for @eventStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get eventStartTime;
+
+  /// No description provided for @eventEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End Time'**
+  String get eventEndTime;
+
+  /// No description provided for @eventCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create event'**
+  String get eventCreate;
+
+  /// No description provided for @eventDeleteInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete the events. The events are currently in use by other records.'**
+  String get eventDeleteInUse;
+
+  /// No description provided for @eventActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Event actions'**
+  String get eventActions;
+
+  /// No description provided for @eventDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate event'**
+  String get eventDuplicate;
+
+  /// No description provided for @eventExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export event'**
+  String get eventExport;
+
+  /// No description provided for @eventImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import event'**
+  String get eventImport;
+
+  /// No description provided for @eventDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete collecting event?'**
+  String get eventDeleteTitle;
+
+  /// No description provided for @eventDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You will also delete collection methods, collecting personnel, environmental data, and media in this event.'**
+  String get eventDeleteBody;
+
+  /// No description provided for @eventDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all collecting events?'**
+  String get eventDeleteAllTitle;
+
+  /// No description provided for @eventDeleteAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting all collecting events will also delete all associated collection methods, collecting personnel, environmental data, and media from the database.'**
+  String get eventDeleteAllBody;
+
+  /// No description provided for @eventPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Personnel'**
+  String get eventPersonnel;
+
+  /// No description provided for @eventNoPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'No personnel added'**
+  String get eventNoPersonnel;
+
+  /// No description provided for @eventUnknownPersonnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown personnel'**
+  String get eventUnknownPersonnel;
+
+  /// No description provided for @eventEnterRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a role'**
+  String get eventEnterRole;
+
+  /// No description provided for @eventSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search events'**
+  String get eventSearch;
+
+  /// No description provided for @eventRecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting Event Record'**
+  String get eventRecordTitle;
+
+  /// No description provided for @eventNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No collecting event found'**
+  String get eventNoneFound;
+
+  /// No description provided for @exportPresetsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load export presets: {error}'**
+  String exportPresetsLoadError(String error);
+
+  /// No description provided for @exportPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Export preset'**
+  String get exportPreset;
+
+  /// No description provided for @exportNoPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'No export presets found. Manage presets in settings to create one.'**
+  String get exportNoPresets;
+
+  /// No description provided for @exportManagePresetsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Presets'**
+  String get exportManagePresetsButton;
+
+  /// No description provided for @exportPresetHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Record type, headers, and field mappings are set by the preset.'**
+  String get exportPresetHelper;
+
+  /// No description provided for @exportPresetDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset details'**
+  String get exportPresetDetails;
+
+  /// No description provided for @exportSelectPresetPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an export preset to see details and preview.'**
+  String get exportSelectPresetPrompt;
+
+  /// No description provided for @exportPresetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset: {name}'**
+  String exportPresetName(String name);
+
+  /// No description provided for @exportPresetRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record: {type}'**
+  String exportPresetRecord(String type);
+
+  /// No description provided for @exportPresetTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxon: {taxon}'**
+  String exportPresetTaxon(String taxon);
+
+  /// No description provided for @exportPresetHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Header: {format}'**
+  String exportPresetHeader(String format);
+
+  /// No description provided for @exportSelectedColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected Columns ({count}):'**
+  String exportSelectedColumns(int count);
+
+  /// No description provided for @exportPreviewTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Table'**
+  String get exportPreviewTable;
+
+  /// No description provided for @exportNoFieldsMapped.
+  ///
+  /// In en, this message translates to:
+  /// **'No fields mapped in this preset.'**
+  String get exportNoFieldsMapped;
+
+  /// No description provided for @exportNestedFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{namespace} ({count, plural, =1{1 field} other{{count} fields}})'**
+  String exportNestedFields(String namespace, int count);
+
+  /// No description provided for @exportTablePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Table preview'**
+  String get exportTablePreview;
+
+  /// No description provided for @exportNoRecordsForPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'No records found for this preset.'**
+  String get exportNoRecordsForPreset;
+
+  /// No description provided for @exportShowingRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {start}-{end} of {total} records'**
+  String exportShowingRecords(int start, int end, int total);
+
+  /// No description provided for @exportPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {total}'**
+  String exportPageOf(int page, int total);
+
+  /// No description provided for @exportBundling.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundling records'**
+  String get exportBundling;
+
+  /// No description provided for @exportBundlingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaging writes the records, copies media, compresses the bundle, and then checks it. Keep NAHPU open.'**
+  String get exportBundlingHint;
+
+  /// No description provided for @exportCreateBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create bundle'**
+  String get exportCreateBundle;
+
+  /// No description provided for @exportBundleAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle another'**
+  String get exportBundleAnother;
+
+  /// No description provided for @exportCancelBundleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the bundle?'**
+  String get exportCancelBundleTitle;
+
+  /// No description provided for @exportCancelBundleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The bundle is still being written. Leaving now cancels it and no package will be saved.'**
+  String get exportCancelBundleBody;
+
+  /// No description provided for @exportKeepBundling.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep bundling'**
+  String get exportKeepBundling;
+
+  /// No description provided for @exportCancelBundle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel bundle'**
+  String get exportCancelBundle;
+
+  /// No description provided for @exportCreatedFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {file}'**
+  String exportCreatedFile(String file);
+
+  /// No description provided for @exportBundleComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundle complete!'**
+  String get exportBundleComplete;
+
+  /// No description provided for @exportCompleteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete NAHPU data'**
+  String get exportCompleteData;
+
+  /// No description provided for @exportCompleteDataBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.'**
+  String get exportCompleteDataBody;
+
+  /// No description provided for @exportFrictionless.
+  ///
+  /// In en, this message translates to:
+  /// **'Export is in Frictionless Data Format.'**
+  String get exportFrictionless;
+
+  /// No description provided for @exportRecordedTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded Taxa'**
+  String get exportRecordedTaxa;
+
+  /// No description provided for @exportSelectedTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected taxa'**
+  String get exportSelectedTaxa;
+
+  /// No description provided for @exportNoTaxaRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimen taxa have been recorded yet.'**
+  String get exportNoTaxaRecorded;
+
+  /// No description provided for @exportTaxonGroupsIncluded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recorded taxon group will be included.} other{{count} recorded taxon groups will be included.}}'**
+  String exportTaxonGroupsIncluded(int count);
+
+  /// No description provided for @exportPackageContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Package contents'**
+  String get exportPackageContents;
+
+  /// No description provided for @exportSelectTaxonPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one recorded taxon to list the package contents.'**
+  String get exportSelectTaxonPrompt;
+
+  /// No description provided for @exportPackageContentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The list reflects exactly what will be bundled. Empty optional fields and tables are omitted.'**
+  String get exportPackageContentsBody;
+
+  /// No description provided for @exportRecordsAndFields.
+  ///
+  /// In en, this message translates to:
+  /// **'{records, plural, =1{1 record} other{{records} records}} · {fields, plural, =1{1 field} other{{fields} fields}}'**
+  String exportRecordsAndFields(int records, int fields);
+
+  /// No description provided for @exportBackingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up database'**
+  String get exportBackingUp;
+
+  /// No description provided for @exportBackingUpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Large media libraries can take several minutes. Keep NAHPU open until this finishes.'**
+  String get exportBackingUpHint;
+
+  /// No description provided for @exportSaveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Save backup'**
+  String get exportSaveBackup;
+
+  /// No description provided for @exportSaveAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Save another'**
+  String get exportSaveAnother;
+
+  /// No description provided for @exportCancelBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the backup?'**
+  String get exportCancelBackupTitle;
+
+  /// No description provided for @exportCancelBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup is still running. Leaving now cancels it and no file will be saved.'**
+  String get exportCancelBackupBody;
+
+  /// No description provided for @exportKeepBackingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep backing up'**
+  String get exportKeepBackingUp;
+
+  /// No description provided for @exportCancelBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel backup'**
+  String get exportCancelBackup;
+
+  /// No description provided for @exportBackupArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup archive'**
+  String get exportBackupArchive;
+
+  /// No description provided for @exportBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This creates a full NAHPU database backup. For a project-only backup, use Export project.'**
+  String get exportBackupBody;
+
+  /// No description provided for @exportBackupDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'It copies all projects and every file in NAHPU app data, whether or not a project links to it. Run it occasionally in the field, when battery use is not a concern.'**
+  String get exportBackupDetail;
+
+  /// No description provided for @exportWillExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Will export'**
+  String get exportWillExport;
+
+  /// No description provided for @exportUserConfigsExportedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'User configs exported to {path}'**
+  String exportUserConfigsExportedTo(String path);
+
+  /// No description provided for @exportCustomFieldTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom field templates'**
+  String get exportCustomFieldTemplates;
+
+  /// No description provided for @exportNoCustomFields.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom fields available'**
+  String get exportNoCustomFields;
+
+  /// No description provided for @exportNoPrintLayouts.
+  ///
+  /// In en, this message translates to:
+  /// **'No print layouts yet. Load the default layouts, or create one in Document Presets.'**
+  String get exportNoPrintLayouts;
+
+  /// No description provided for @exportEnterFileNameFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a file name first.'**
+  String get exportEnterFileNameFirst;
+
+  /// No description provided for @exportShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to share export: {error}'**
+  String exportShareFailed(String error);
+
+  /// No description provided for @exportFormatOptionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Format Options'**
+  String get exportFormatOptionsTitle;
+
+  /// No description provided for @exportFormatOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Format options'**
+  String get exportFormatOptions;
+
+  /// No description provided for @exportConcatenateMultiEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Concatenate multi-entry records'**
+  String get exportConcatenateMultiEntry;
+
+  /// No description provided for @exportFieldNamesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Field names only for headers'**
+  String get exportFieldNamesOnly;
+
+  /// No description provided for @exportSelectFieldsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Fields'**
+  String get exportSelectFieldsTitle;
+
+  /// No description provided for @exportClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get exportClearAll;
+
+  /// No description provided for @exportRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get exportRequired;
+
+  /// No description provided for @dataTableMoreActions.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get dataTableMoreActions;
+
+  /// No description provided for @dataTableNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No {records} match your search and filters.'**
+  String dataTableNoMatches(String records);
+
+  /// No description provided for @dataTableNoRecordsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No {records} yet.'**
+  String dataTableNoRecordsYet(String records);
+
+  /// No description provided for @dataTableNoRecordsForTaxaYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No {records} for {taxa} yet.'**
+  String dataTableNoRecordsForTaxaYet(String records, String taxa);
+
+  /// No description provided for @dataTableProjectNoRecordsForTaxa.
+  ///
+  /// In en, this message translates to:
+  /// **'This project has no {records} for {taxa}.'**
+  String dataTableProjectNoRecordsForTaxa(String records, String taxa);
+
+  /// No description provided for @dataTableProjectNoRecordsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'This project has no {records} yet.'**
+  String dataTableProjectNoRecordsYet(String records);
+
+  /// No description provided for @dataTableSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved.'**
+  String get dataTableSaved;
+
+  /// No description provided for @dataTableLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load {records}.'**
+  String dataTableLoadError(String records);
+
+  /// No description provided for @dataTableSomeChangesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes couldn\'t be saved. Check the marked cells.'**
+  String get dataTableSomeChangesFailed;
+
+  /// No description provided for @dataTableNoMoreMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No more matches.'**
+  String get dataTableNoMoreMatches;
+
+  /// No description provided for @dataTableNoEarlierMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No earlier matches.'**
+  String get dataTableNoEarlierMatches;
+
+  /// No description provided for @dataTableCellCannotBeReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'This cell can\'t be replaced.'**
+  String get dataTableCellCannotBeReplaced;
+
+  /// No description provided for @dataTableReadForReplaceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read records to replace: {error}'**
+  String dataTableReadForReplaceError(String error);
+
+  /// No description provided for @dataTableNothingToReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to replace.'**
+  String get dataTableNothingToReplace;
+
+  /// No description provided for @dataTableReplaceAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all?'**
+  String get dataTableReplaceAllTitle;
+
+  /// No description provided for @dataTableReplaceAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace {values} in {records}?'**
+  String dataTableReplaceAllBody(String values, String records);
+
+  /// No description provided for @dataTableValueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 value} other{{count} values}}'**
+  String dataTableValueCount(int count);
+
+  /// No description provided for @dataTableRecordCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 record} other{{count} records}}'**
+  String dataTableRecordCount(int count);
+
+  /// No description provided for @dataTableAutoSaveWrites.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-save writes them right away.'**
+  String get dataTableAutoSaveWrites;
+
+  /// No description provided for @dataTableWaitForSave.
+  ///
+  /// In en, this message translates to:
+  /// **'They wait for Save.'**
+  String get dataTableWaitForSave;
+
+  /// No description provided for @dataTableReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Replaced 1 value.} other{Replaced {count} values.}}'**
+  String dataTableReplaced(int count);
+
+  /// No description provided for @dataTableSkippedChoices.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dropdown value skipped; pick it from its list.} other{{count} dropdown values skipped; pick those from their list.}}'**
+  String dataTableSkippedChoices(int count);
+
+  /// No description provided for @dataTableInvalidValues.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 value wouldn\'t fit its field.} other{{count} values wouldn\'t fit their fields.}}'**
+  String dataTableInvalidValues(int count);
+
+  /// No description provided for @dataTablePickDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get dataTablePickDate;
+
+  /// No description provided for @dataTablePickTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a time'**
+  String get dataTablePickTime;
+
+  /// No description provided for @dataTableSaveChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your changes?'**
+  String get dataTableSaveChangesTitle;
+
+  /// No description provided for @dataTableUnsavedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You have 1 unsaved change in this table.} other{You have {count} unsaved changes in this table.}}'**
+  String dataTableUnsavedChanges(int count);
+
+  /// No description provided for @dataTableFindField.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a field'**
+  String get dataTableFindField;
+
+  /// No description provided for @dataTableFieldsShown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total} fields shown'**
+  String dataTableFieldsShown(int count, int total);
+
+  /// No description provided for @dataTableComputedNotSearchable.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated during export: not searchable or sortable'**
+  String get dataTableComputedNotSearchable;
+
+  /// No description provided for @dataTableShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get dataTableShowAll;
+
+  /// No description provided for @dataTableAutoSaveTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Save each change as you commit it. Undo with Ctrl+Z or ⌘Z while this table is open.'**
+  String get dataTableAutoSaveTooltip;
+
+  /// No description provided for @dataTableAutoSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-save'**
+  String get dataTableAutoSave;
+
+  /// No description provided for @dataTableDiscardChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes'**
+  String get dataTableDiscardChanges;
+
+  /// No description provided for @dataTableRetrySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry save'**
+  String get dataTableRetrySave;
+
+  /// No description provided for @dataTableEditModeOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit mode is on (Ctrl+E or ⌘E)'**
+  String get dataTableEditModeOn;
+
+  /// No description provided for @dataTableEditModeOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit mode is off (Ctrl+E or ⌘E)'**
+  String get dataTableEditModeOff;
+
+  /// No description provided for @dataTableCellsNeedAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 cell needs attention} other{{count} cells need attention}}'**
+  String dataTableCellsNeedAttention(int count);
+
+  /// No description provided for @dataTableUnsavedChangeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 unsaved change} other{{count} unsaved changes}}'**
+  String dataTableUnsavedChangeCount(int count);
+
+  /// No description provided for @dataTableAllChangesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes saved'**
+  String get dataTableAllChangesSaved;
+
+  /// No description provided for @dataTableColumnCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 column} other{{count} columns}}'**
+  String dataTableColumnCount(int count);
+
+  /// No description provided for @dataTableExportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{records} × {columns}, with the current search, filters, sort, and visible columns.'**
+  String dataTableExportSummary(String records, String columns);
+
+  /// No description provided for @dataTableColumnHeaders.
+  ///
+  /// In en, this message translates to:
+  /// **'Column headers'**
+  String get dataTableColumnHeaders;
+
+  /// No description provided for @dataTableDwcOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Darwin Core-mapped columns only'**
+  String get dataTableDwcOnly;
+
+  /// No description provided for @dataTableDwcOnlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave out columns without a Darwin Core term. Otherwise they keep their NAHPU key.'**
+  String get dataTableDwcOnlyBody;
+
+  /// No description provided for @dataTableReadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Read {count} of {total} records'**
+  String dataTableReadProgress(int count, int total);
+
+  /// No description provided for @dataTableScopeChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} ({count})'**
+  String dataTableScopeChip(String label, int count);
+
+  /// No description provided for @dataTableClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get dataTableClearFilters;
+
+  /// No description provided for @dataTableBetweenValues.
+  ///
+  /// In en, this message translates to:
+  /// **'{low} and {high}'**
+  String dataTableBetweenValues(String low, String high);
+
+  /// No description provided for @dataTableFilterRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter rules'**
+  String get dataTableFilterRules;
+
+  /// No description provided for @dataTableFilterRulesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Show records that match every rule.'**
+  String get dataTableFilterRulesBody;
+
+  /// No description provided for @dataTableAddRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add rule'**
+  String get dataTableAddRule;
+
+  /// No description provided for @dataTableEnterValueEveryRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value for every rule.'**
+  String get dataTableEnterValueEveryRule;
+
+  /// No description provided for @dataTableEnterDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter dates as YYYY-MM-DD.'**
+  String get dataTableEnterDates;
+
+  /// No description provided for @dataTableEnterTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter times as HH:MM.'**
+  String get dataTableEnterTimes;
+
+  /// No description provided for @dataTableChooseListed.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one of the listed values.'**
+  String get dataTableChooseListed;
+
+  /// No description provided for @dataTableEnterNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number.'**
+  String get dataTableEnterNumber;
+
+  /// No description provided for @dataTableComputedNotFilterable.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated during export; not filterable'**
+  String get dataTableComputedNotFilterable;
+
+  /// No description provided for @dataTableRemoveRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove rule'**
+  String get dataTableRemoveRule;
+
+  /// No description provided for @dataTableReplacingNeedsEditMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing needs edit mode.'**
+  String get dataTableReplacingNeedsEditMode;
+
+  /// No description provided for @dataTableMatchCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Match case'**
+  String get dataTableMatchCase;
+
+  /// No description provided for @dataTableWholeCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole cell'**
+  String get dataTableWholeCell;
+
+  /// No description provided for @dataTablePreviousMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous match'**
+  String get dataTablePreviousMatch;
+
+  /// No description provided for @dataTableNextMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Next match'**
+  String get dataTableNextMatch;
+
+  /// No description provided for @dataTableTurnOnEditMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on edit mode'**
+  String get dataTableTurnOnEditMode;
+
+  /// No description provided for @dataTableReplaceAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all'**
+  String get dataTableReplaceAll;
+
+  /// No description provided for @dataTableNoMatchesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get dataTableNoMatchesShort;
+
+  /// No description provided for @dataTableFoundCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} found'**
+  String dataTableFoundCount(int count);
+
+  /// No description provided for @dataTableMatchOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String dataTableMatchOf(int current, int total);
+
+  /// No description provided for @dataTableAllVisibleColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'All visible columns'**
+  String get dataTableAllVisibleColumns;
+
+  /// No description provided for @dataTableColumnReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{column} is read-only here.'**
+  String dataTableColumnReadOnly(String column);
+
+  /// No description provided for @dataTableSkippedOffList.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Skipped 1 value that isn\'t in its list.} other{Skipped {count} values that aren\'t in their lists.}}'**
+  String dataTableSkippedOffList(int count);
+
+  /// No description provided for @dataTableChangeFishTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change fish record type?'**
+  String get dataTableChangeFishTypeTitle;
+
+  /// No description provided for @dataTableSexClears.
+  ///
+  /// In en, this message translates to:
+  /// **'This clears {fields} that no longer apply to the new sex.'**
+  String dataTableSexClears(String fields);
+
+  /// No description provided for @dataTableFishTypeChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Switching between an individual and a lot changes which measurements apply.'**
+  String get dataTableFishTypeChangeBody;
+
+  /// No description provided for @dataTableSkippedReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Skipped 1 read-only or linked cell.} other{Skipped {count} read-only or linked cells.}}'**
+  String dataTableSkippedReadOnly(int count);
+
+  /// No description provided for @dataTableCopiedCells.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Copied 1 cell.} other{Copied {count} cells.}}'**
+  String dataTableCopiedCells(int count);
+
+  /// No description provided for @dataTableSwitchToEditToPaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to edit mode to paste.'**
+  String get dataTableSwitchToEditToPaste;
+
+  /// No description provided for @dataTablePastedSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Pasted; skipped 1 read-only or linked cell.} other{Pasted; skipped {count} read-only or linked cells.}}'**
+  String dataTablePastedSkipped(int count);
+
+  /// No description provided for @dataTablePastedCutOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted; cut off at the edge of the page.'**
+  String get dataTablePastedCutOff;
+
+  /// No description provided for @dataTablePastedSkippedAndCutOff.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Pasted; skipped 1 read-only or linked cell and cut off at the edge of the page.} other{Pasted; skipped {count} read-only or linked cells and cut off at the edge of the page.}}'**
+  String dataTablePastedSkippedAndCutOff(int count);
+
+  /// No description provided for @dataTableComputedField.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated during export: not searchable, sortable, or filterable.'**
+  String get dataTableComputedField;
+
+  /// No description provided for @dataTableLinkedDataHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked data: double-click or press F2 to edit.'**
+  String get dataTableLinkedDataHint;
+
+  /// No description provided for @dataTableReadOnlyHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-only here.'**
+  String get dataTableReadOnlyHere;
+
+  /// No description provided for @dataTableOpenForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Open form'**
+  String get dataTableOpenForm;
+
+  /// No description provided for @dataTableLinkCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Now: {value}.'**
+  String dataTableLinkCurrent(String value);
+
+  /// No description provided for @dataTableLoadChoicesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the choices.'**
+  String get dataTableLoadChoicesError;
+
+  /// No description provided for @dataTableLinkCatalogerNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The field number follows the new cataloger. The determiner and preparator change too when they were the previous cataloger.'**
+  String get dataTableLinkCatalogerNote;
+
+  /// No description provided for @dataTableLinkEventNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The collecting method and personnel are cleared, and the coordinate follows the new event\'s site.'**
+  String get dataTableLinkEventNote;
+
+  /// No description provided for @dataTableLinkTaxonNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Order, family, genus, and epithet all come from the chosen taxon.'**
+  String get dataTableLinkTaxonNote;
+
+  /// No description provided for @dataTableSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {error}'**
+  String dataTableSaveError(String error);
+
+  /// No description provided for @dataTableNothingMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches.'**
+  String get dataTableNothingMatches;
+
+  /// No description provided for @dataTableNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{noun, select, site{This record isn\'t linked to a site yet.} other{This record isn\'t linked to an event yet.}}'**
+  String dataTableNotLinked(String noun);
+
+  /// No description provided for @dataTableLinkedLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'{noun, select, site{Couldn\'t load the site.} other{Couldn\'t load the event.}}'**
+  String dataTableLinkedLoadError(String noun);
+
+  /// No description provided for @dataTableLinkShared.
+  ///
+  /// In en, this message translates to:
+  /// **'{noun, select, site{Changes apply to every record linked to this site ({count}).} other{Changes apply to every record linked to this event ({count}).}}'**
+  String dataTableLinkShared(String noun, int count);
+
+  /// No description provided for @dataTableSomeChangesNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes couldn\'t be saved.'**
+  String get dataTableSomeChangesNotSaved;
+
+  /// No description provided for @dataTablePageRangeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'0 of 0'**
+  String get dataTablePageRangeEmpty;
+
+  /// No description provided for @dataTablePageRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{first}–{last} of {total}'**
+  String dataTablePageRange(String first, String last, String total);
+
+  /// No description provided for @dataTableRowsPerPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows per page'**
+  String get dataTableRowsPerPage;
+
+  /// No description provided for @dataTableFirstPage.
+  ///
+  /// In en, this message translates to:
+  /// **'First page'**
+  String get dataTableFirstPage;
+
+  /// No description provided for @dataTablePreviousPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get dataTablePreviousPage;
+
+  /// No description provided for @dataTableNextPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Next page'**
+  String get dataTableNextPage;
+
+  /// No description provided for @dataTableLastPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Last page'**
+  String get dataTableLastPage;
+
+  /// No description provided for @dataTableSearchIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Search {target}'**
+  String dataTableSearchIn(String target);
+
+  /// No description provided for @dataTableRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get dataTableRefresh;
+
+  /// No description provided for @dataTableAddFieldRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Add field rules'**
+  String get dataTableAddFieldRules;
+
+  /// No description provided for @dataTableEditFieldRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit field rules'**
+  String get dataTableEditFieldRules;
+
+  /// No description provided for @dataTableFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get dataTableFilters;
+
+  /// No description provided for @dataTableAllVisibleFields.
+  ///
+  /// In en, this message translates to:
+  /// **'All visible fields'**
+  String get dataTableAllVisibleFields;
+
+  /// No description provided for @dataTableSearchingAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching all visible fields'**
+  String get dataTableSearchingAllFields;
+
+  /// No description provided for @dataTableSearchingField.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching {field}'**
+  String dataTableSearchingField(String field);
+
+  /// No description provided for @dataTableFilterOpIs.
+  ///
+  /// In en, this message translates to:
+  /// **'is'**
+  String get dataTableFilterOpIs;
+
+  /// No description provided for @dataTableFilterOpContains.
+  ///
+  /// In en, this message translates to:
+  /// **'contains'**
+  String get dataTableFilterOpContains;
+
+  /// No description provided for @dataTableFilterOpStartsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'starts with'**
+  String get dataTableFilterOpStartsWith;
+
+  /// No description provided for @dataTableFilterOpGreaterThan.
+  ///
+  /// In en, this message translates to:
+  /// **'greater than'**
+  String get dataTableFilterOpGreaterThan;
+
+  /// No description provided for @dataTableFilterOpLessThan.
+  ///
+  /// In en, this message translates to:
+  /// **'less than'**
+  String get dataTableFilterOpLessThan;
+
+  /// No description provided for @dataTableFilterOpBetween.
+  ///
+  /// In en, this message translates to:
+  /// **'between'**
+  String get dataTableFilterOpBetween;
+
+  /// No description provided for @dataTableFilterOpIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is empty'**
+  String get dataTableFilterOpIsEmpty;
+
+  /// No description provided for @dataTableFilterOpIsNotEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is not empty'**
+  String get dataTableFilterOpIsNotEmpty;
+
+  /// No description provided for @dataTableQuickMissingTaxon.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing taxon'**
+  String get dataTableQuickMissingTaxon;
+
+  /// No description provided for @dataTableQuickNoFieldNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'No field number'**
+  String get dataTableQuickNoFieldNumber;
+
+  /// No description provided for @dataTableQuickNoEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'No event'**
+  String get dataTableQuickNoEvent;
+
+  /// No description provided for @dataTableQuickHasParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Has parts'**
+  String get dataTableQuickHasParts;
+
+  /// No description provided for @dataTableQuickHasMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Has media'**
+  String get dataTableQuickHasMedia;
+
+  /// No description provided for @dataTableQuickNoTissueId.
+  ///
+  /// In en, this message translates to:
+  /// **'No tissue ID'**
+  String get dataTableQuickNoTissueId;
+
+  /// No description provided for @dataTableQuickNoParasiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'No parasite ID'**
+  String get dataTableQuickNoParasiteId;
+
+  /// No description provided for @dataTableQuickNoCoordinates.
+  ///
+  /// In en, this message translates to:
+  /// **'No coordinates'**
+  String get dataTableQuickNoCoordinates;
+
+  /// No description provided for @dataTableQuickNoLocality.
+  ///
+  /// In en, this message translates to:
+  /// **'No locality'**
+  String get dataTableQuickNoLocality;
+
+  /// No description provided for @dataTableQuickNoSpecimens.
+  ///
+  /// In en, this message translates to:
+  /// **'No specimens'**
+  String get dataTableQuickNoSpecimens;
+
+  /// No description provided for @dataTableQuickNoEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No end date'**
+  String get dataTableQuickNoEndDate;
+
+  /// No description provided for @dataTableQuickNoSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get dataTableQuickNoSite;
+
+  /// No description provided for @dataTableProjectScopeOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Project: {name}'**
+  String dataTableProjectScopeOne(String name);
+
+  /// No description provided for @dataTableProjectScopeTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects: {first}, {second}'**
+  String dataTableProjectScopeTwo(String first, String second);
+
+  /// No description provided for @dataTableProjectScopeMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} projects'**
+  String dataTableProjectScopeMany(int count);
+
+  /// No description provided for @siteImportFieldGpsUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS unit'**
+  String get siteImportFieldGpsUnit;
 }
 
 class _AppLocalizationsDelegate

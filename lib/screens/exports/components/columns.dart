@@ -48,18 +48,18 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Select Fields',
+                context.l10n.exportSelectFieldsTitle,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Row(
                 children: [
                   TextButton(
                     onPressed: _selectAll,
-                    child: const Text('Select All'),
+                    child: Text(context.l10n.commonSelectAll),
                   ),
                   TextButton(
                     onPressed: _deselectAll,
-                    child: const Text('Clear All'),
+                    child: Text(context.l10n.exportClearAll),
                   ),
                 ],
               ),
@@ -96,7 +96,9 @@ class _ColumnSelectionListState extends State<ColumnSelectionList> {
                             ? null
                             : (val) => _toggleColumn(col, val),
                         controlAffinity: ListTileControlAffinity.leading,
-                        subtitle: isLocked ? const Text('Required') : null,
+                        subtitle: isLocked
+                            ? Text(context.l10n.exportRequired)
+                            : null,
                       );
                     }).toList(),
                   ),

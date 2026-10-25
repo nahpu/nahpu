@@ -34,9 +34,16 @@ class CoordinateColumnMapping extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          '${data.headers.length} columns and ${data.rows.length} data rows detected'
-          '${worksheet == null ? '' : ' in worksheet "$worksheet"'}. '
-          'NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.',
+          worksheet == null
+              ? context.l10n.siteColumnsDetected(
+                  data.headers.length,
+                  data.rows.length,
+                )
+              : context.l10n.siteColumnsDetectedInWorksheet(
+                  data.headers.length,
+                  data.rows.length,
+                  worksheet,
+                ),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall,
         ),
@@ -47,18 +54,23 @@ class CoordinateColumnMapping extends StatelessWidget {
             initialValue: mapping[field],
             isExpanded: true,
             decoration: InputDecoration(
-              labelText: '${field.label}${field.isRequired ? ' *' : ''}',
+              labelText:
+                  '${field.localizedLabel(context.l10n)}'
+                  '${field.isRequired ? ' *' : ''}',
             ),
             items: [
-              const DropdownMenuItem<int?>(
+              DropdownMenuItem<int?>(
                 value: null,
-                child: CommonDropdownText(text: 'Not included'),
+                child: CommonDropdownText(text: context.l10n.siteNotIncluded),
               ),
               for (var index = 0; index < data.headers.length; index++)
                 DropdownMenuItem<int?>(
                   value: index,
                   child: CommonDropdownText(
-                    text: '${data.headers[index]} (column ${index + 1})',
+                    text: context.l10n.siteHeaderColumn(
+                      data.headers[index],
+                      index + 1,
+                    ),
                   ),
                 ),
             ],
@@ -80,7 +92,7 @@ class CoordinateColumnMapping extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onReview,
             icon: const Icon(Icons.preview_outlined),
-            label: const Text('Review coordinates'),
+            label: Text(context.l10n.siteReviewCoordinates),
           ),
         ),
         const SizedBox(height: 8),
@@ -88,7 +100,7 @@ class CoordinateColumnMapping extends StatelessWidget {
           alignment: Alignment.center,
           child: TextButton(
             onPressed: onChooseAnother,
-            child: const Text('Choose another file'),
+            child: Text(context.l10n.siteChooseAnotherFile),
           ),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class TemplateExistsDialog extends StatelessWidget {
   const TemplateExistsDialog({super.key, required this.templateName});
@@ -8,22 +9,20 @@ class TemplateExistsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Template exists'),
-      content: Text(
-        'A template named "$templateName" already exists. Replace the saved copy?',
-      ),
+      title: Text(context.l10n.templateExistsTitle),
+      content: Text(context.l10n.templateExistsBody(templateName)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('New name'),
+          child: Text(context.l10n.templateNewName),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Replace'),
+          child: Text(context.l10n.databaseReplace),
         ),
       ],
     );

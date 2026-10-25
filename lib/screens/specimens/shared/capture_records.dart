@@ -15,6 +15,7 @@ import 'package:drift/drift.dart' as db;
 import 'package:nahpu/services/sites/coordinate_format.dart';
 import 'package:nahpu/services/sites/site_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class CaptureRecordFields extends ConsumerStatefulWidget {
   const CaptureRecordFields({
@@ -43,7 +44,7 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
   @override
   Widget build(BuildContext context) {
     return FormCard(
-      title: 'Capture Records',
+      title: context.l10n.specimenCaptureRecords,
       infoTopic: InfoTopic.specimenCapture,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -126,7 +127,11 @@ class CaptureRecordFieldsState extends ConsumerState<CaptureRecordFields> {
                   _showMore = !_showMore;
                 });
               },
-              child: Text(_showMore ? 'Show less' : 'Show more'),
+              child: Text(
+                _showMore
+                    ? context.l10n.sharedShowLess
+                    : context.l10n.sharedShowMore,
+              ),
             ),
           ),
         ],
@@ -181,9 +186,9 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
         DropdownButtonFormField<int?>(
           isExpanded: true,
           initialValue: siteIDctr,
-          decoration: const InputDecoration(
-            labelText: 'Site ID',
-            hintText: 'Choose a site',
+          decoration: InputDecoration(
+            labelText: context.l10n.formsSiteId,
+            hintText: context.l10n.specimenChooseSite,
           ),
           items: ref
               .watch(siteInEventProvider)
@@ -211,21 +216,17 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text('Change site?'),
+                    title: Text(context.l10n.specimenChangeSiteTitle),
                     content: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 350),
-                      child: const Text(
-                        'Except for capture date and time,'
-                        ' all fields in the collecting record'
-                        ' section will be empty again.',
-                      ),
+                      child: Text(context.l10n.specimenChangeSiteBody),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text('Cancel'),
+                        child: Text(context.l10n.commonCancel),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -248,9 +249,9 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
         DropdownButtonFormField<int?>(
           isExpanded: true,
           initialValue: widget.specimenCtr.collEventIDCtr,
-          decoration: const InputDecoration(
-            labelText: 'Event ID',
-            hintText: 'Choose a collecting event ID',
+          decoration: InputDecoration(
+            labelText: context.l10n.sharedSortEventId,
+            hintText: context.l10n.specimenChooseEvent,
           ),
           items: ref
               .watch(collEventEntryProvider)
@@ -277,22 +278,17 @@ class EventIdFieldState extends ConsumerState<EventIdField> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text('Change collecting event ID?'),
+                    title: Text(context.l10n.specimenChangeEventTitle),
                     content: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 350),
-                      child: const Text(
-                        'Except for capture date and time,'
-                        ' all fields in the collecting record section'
-                        ' will be empty again. The coordinate is kept'
-                        ' when it belongs to the same site.',
-                      ),
+                      child: Text(context.l10n.specimenChangeEventBody),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text('Cancel'),
+                        child: Text(context.l10n.commonCancel),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -388,9 +384,9 @@ class MethodField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return DropdownButtonFormField<int?>(
       initialValue: specimenCtr.collMethodCtr,
-      decoration: const InputDecoration(
-        labelText: 'Method',
-        hintText: 'Choose a method type',
+      decoration: InputDecoration(
+        labelText: context.l10n.projectStatsMethod,
+        hintText: context.l10n.specimenChooseMethod,
       ),
       items: specimenCtr.collEventIDCtr != null
           ? ref
@@ -467,7 +463,7 @@ class RelativeTimeSwitchState extends ConsumerState<RelativeTimeSwitch> {
   Widget build(BuildContext context) {
     return CommonPadding(
       child: SwitchField(
-        label: 'Relative time',
+        label: context.l10n.specimenRelativeTime,
         value: _isSwitched(widget.specimenCtr.relativeTimeCtr),
         onPressed: (bool value) {
           setState(() {
@@ -506,9 +502,9 @@ class MethodIdField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return TextField(
       controller: specimenCtr.methodIDCtr,
-      decoration: const InputDecoration(
-        labelText: 'Method ID',
-        hintText: 'Enter ID, e.g. trap/net number, etc.',
+      decoration: InputDecoration(
+        labelText: context.l10n.specimenMethodId,
+        hintText: context.l10n.specimenMethodIdHint,
       ),
       textInputAction: TextInputAction.next,
       onChanged: (String? value) {
@@ -539,8 +535,8 @@ class CaptureDate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonDateField(
-      labelText: 'Capture date',
-      hintText: 'Enter date',
+      labelText: context.l10n.specimenCaptureDate,
+      hintText: context.l10n.narrativeDateHint,
       controller: specimenCtr.captureDateCtr,
       initialDate: DateTime.now(),
       lastDate: DateTime.now(),
@@ -583,9 +579,9 @@ class CoordinateFieldState extends ConsumerState<CoordinateField> {
       child: DropdownButtonFormField<int?>(
         isExpanded: true,
         initialValue: widget.specimenCtr.coordinateCtr,
-        decoration: const InputDecoration(
-          labelText: 'Coordinate ID',
-          hintText: 'Choose a coordinate',
+        decoration: InputDecoration(
+          labelText: context.l10n.specimenCoordinateId,
+          hintText: context.l10n.specimenChooseCoordinate,
         ),
         items: widget.specimenCtr.collEventIDCtr != null
             ? ref
@@ -646,8 +642,8 @@ class _CoordinateExtentFieldState extends ConsumerState<CoordinateExtentField> {
     return CommonPadding(
       child: CommonNumField(
         controller: widget.specimenCtr.coordinateExtentCtr,
-        labelText: 'Coordinate extent (m)',
-        hintText: 'Add the coordinate extent',
+        labelText: context.l10n.specimenCoordinateExtent,
+        hintText: context.l10n.specimenCoordinateExtentHint,
         isDouble: true,
         isSigned: false,
         isLastField: false,
@@ -664,9 +660,7 @@ class _CoordinateExtentFieldState extends ConsumerState<CoordinateExtentField> {
           }
           final extent = double.tryParse(rawExtent);
           if (extent == null || !extent.isFinite || extent <= 0) {
-            setState(
-              () => _error = 'Extent must be a number greater than zero',
-            );
+            setState(() => _error = context.l10n.specimenExtentInvalid);
             return;
           }
           if (_error != null) setState(() => _error = null);
@@ -699,9 +693,9 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
   Widget build(BuildContext context) {
     return widget.specimenCtr.relativeTimeCtr == 1
         ? DropdownButtonFormField(
-            decoration: const InputDecoration(
-              labelText: 'Capture time',
-              hintText: 'Enter time',
+            decoration: InputDecoration(
+              labelText: context.l10n.specimenCaptureTime,
+              hintText: context.l10n.narrativeTimeHint,
             ),
             initialValue: widget.specimenCtr.relativeCaptureTimeCtr.text,
             items: relativeTimeList
@@ -727,8 +721,8 @@ class CaptureTimeState extends ConsumerState<CaptureTime> {
             },
           )
         : CommonTimeField(
-            labelText: 'Capture time',
-            hintText: 'Enter time',
+            labelText: context.l10n.specimenCaptureTime,
+            hintText: context.l10n.narrativeTimeHint,
             controller: widget.specimenCtr.captureTimeCtr,
             initialTime: TimeOfDay.now(),
             onTap: () {
@@ -769,9 +763,9 @@ class CollPersonnelField extends ConsumerWidget {
           Expanded(
             child: DropdownButtonFormField<int>(
               initialValue: specimenCtr.collPersonnelCtr,
-              decoration: const InputDecoration(
-                labelText: 'Collector',
-                hintText: 'Choose a person',
+              decoration: InputDecoration(
+                labelText: context.l10n.formsSearchCollector,
+                hintText: context.l10n.specimenChoosePerson,
               ),
               items: specimenCtr.collEventIDCtr != null
                   ? ref
@@ -834,11 +828,13 @@ class PersonnelName extends ConsumerWidget {
             data: (data) {
               return CommonDropdownText(text: data.name ?? '');
             },
-            loading: () => const CommonDropdownText(text: 'Loading...'),
-            error: (error, stack) => const CommonDropdownText(text: 'Error'),
+            loading: () =>
+                CommonDropdownText(text: context.l10n.projectLoading),
+            error: (error, stack) =>
+                CommonDropdownText(text: context.l10n.commonError),
           );
     } catch (e) {
-      return const CommonDropdownText(text: 'Error');
+      return CommonDropdownText(text: context.l10n.commonError);
     }
   }
 }

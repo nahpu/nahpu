@@ -24,6 +24,8 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:path/path.dart' as path;
+import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
 
 const int imageSize = 300;
 
@@ -90,7 +92,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                   TextButton.icon(
                     onPressed: widget.onOpenGallery,
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Gallery'),
+                    label: Text(context.l10n.mediaGallery),
                   ),
                   const SizedBox(width: 8),
                   MediaButton(
@@ -132,7 +134,7 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
                 ? null
                 : TextButton(
                     onPressed: _showSelectedMediaActions,
-                    child: const Text('Actions'),
+                    child: Text(context.l10n.mediaActions),
                   ),
           ),
         ),
@@ -186,20 +188,17 @@ class _MediaViewerState extends ConsumerState<MediaViewer> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete selected media?'),
-        content: const Text(
-          'Delete the selected media from all NAHPU records and from disk? '
-          'This cannot be undone.',
-        ),
+        title: Text(context.l10n.mediaDeleteSelectedTitle),
+        content: Text(context.l10n.mediaDeleteSelectedBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -287,13 +286,13 @@ class _MediaSelectionActionPicker extends StatelessWidget {
             NahpuSpacing.md,
           ),
           child: Text(
-            '$selectedCount selected',
+            context.l10n.mediaSelectedCount(selectedCount),
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
         ListTile(
           leading: const Icon(Icons.file_upload_outlined),
-          title: const Text('Export'),
+          title: Text(context.l10n.commonExport),
           onTap: () => Navigator.of(context).pop(_MediaSelectionAction.export),
         ),
         const Divider(),
@@ -303,7 +302,7 @@ class _MediaSelectionActionPicker extends StatelessWidget {
             color: Theme.of(context).colorScheme.error,
           ),
           title: Text(
-            'Delete',
+            context.l10n.commonDelete,
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
           onTap: () => Navigator.of(context).pop(_MediaSelectionAction.delete),
@@ -318,9 +317,9 @@ class EmptyMedia extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CommonEmptyForm(
+    return CommonEmptyForm(
       iconPath: 'assets/icons/image-gallery.svg',
-      text: 'No media added',
+      text: context.l10n.mediaNoneAdded,
     );
   }
 }
@@ -356,7 +355,7 @@ class MediaButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PrimaryButton(
       onPressed: () => _showImportSourcePicker(context),
-      label: 'Add',
+      label: context.l10n.sharedAdd,
       icon: Icons.add,
     );
   }
@@ -383,7 +382,7 @@ class MediaButton extends StatelessWidget {
         : await showDialog<MediaAddSource>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Add media'),
+              title: Text(context.l10n.mediaAdd),
               contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
               content: SizedBox(
                 width: 400,
@@ -417,7 +416,7 @@ class _MediaAddSourceTile extends StatelessWidget {
     return ListTile(
       onTap: () => Navigator.of(context).pop(source),
       leading: Icon(_icon),
-      title: Text(_label),
+      title: Text(_label(context.l10n)),
     );
   }
 
@@ -428,11 +427,11 @@ class _MediaAddSourceTile extends StatelessWidget {
     MediaAddSource.file => Icons.folder_open_outlined,
   };
 
-  String get _label => switch (source) {
-    MediaAddSource.takeMedia => 'Take photos/videos',
-    MediaAddSource.recordAudio => 'Record audio',
-    MediaAddSource.gallery => 'Add from gallery',
-    MediaAddSource.file => 'Add from file',
+  String _label(AppLocalizations l10n) => switch (source) {
+    MediaAddSource.takeMedia => l10n.mediaTakePhotosVideos,
+    MediaAddSource.recordAudio => l10n.mediaRecordAudio,
+    MediaAddSource.gallery => l10n.mediaAddFromGallery,
+    MediaAddSource.file => l10n.mediaAddFromFile,
   };
 }
 
@@ -531,7 +530,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                       if (snapshot.hasError) {
                         return _MediaTypeFallback(
                           kind: _getMediaKind(),
-                          label: 'Media unavailable',
+                          label: context.l10n.mediaUnavailable,
                         );
                       }
                       if (snapshot.hasData) {
@@ -539,7 +538,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                         if (!mediaAsset.exists) {
                           return _MediaTypeFallback(
                             kind: mediaAsset.kind,
-                            label: 'File missing',
+                            label: context.l10n.mediaFileMissing,
                           );
                         }
                         if (mediaAsset.file != null) {
@@ -552,7 +551,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                             errorBuilder: (context, error, stackTrace) {
                               return _MediaTypeFallback(
                                 kind: mediaAsset.kind,
-                                label: 'Image unavailable',
+                                label: context.l10n.mediaImageUnavailable,
                               );
                             },
                           );
@@ -565,7 +564,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                     future: _getMediaPath(),
                     initialData: null,
                   )
-                : const Center(child: Text('No media')),
+                : Center(child: Text(context.l10n.mediaNone)),
           ),
         ),
         Positioned(
@@ -601,7 +600,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
                         )
                       : Icon(_mediaKindIcon(_getMediaKind())),
                   title: Text(
-                    widget.media.fileName ?? 'No media',
+                    widget.media.fileName ?? context.l10n.mediaNone,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
@@ -693,7 +692,7 @@ class _MediaTypeFallback extends StatelessWidget {
           children: [
             Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 8),
-            Text(label ?? matchMediaKindLabel(kind)),
+            Text(label ?? kind.localizedLabel(context.l10n)),
           ],
         ),
       ),
@@ -716,7 +715,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_MediaMenuAction>(
-      tooltip: 'Media actions',
+      tooltip: context.l10n.mediaMenuActions,
       icon: Icon(
         Icons.more_vert,
         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -727,31 +726,31 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
   }
 
   List<AdaptiveMenuItem<_MediaMenuAction>> _items() => [
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.edit,
       icon: Icons.edit_outlined,
-      label: 'Edit',
+      label: context.l10n.commonEdit,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.info,
       icon: Icons.info_outline,
-      label: 'Show info',
+      label: context.l10n.mediaShowInfo,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.export,
       icon: Icons.file_upload_outlined,
-      label: 'Export',
+      label: context.l10n.commonExport,
       hasDividerBefore: true,
     ),
     AdaptiveMenuItem(
       value: _MediaMenuAction.share,
       icon: Icons.adaptive.share,
-      label: 'Share',
+      label: context.l10n.sharedShare,
     ),
-    const AdaptiveMenuItem(
+    AdaptiveMenuItem(
       value: _MediaMenuAction.delete,
       icon: Icons.delete_outline,
-      label: 'Delete',
+      label: context.l10n.commonDelete,
       isDestructive: true,
       hasDividerBefore: true,
     ),
@@ -803,7 +802,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit media'),
+        title: Text(context.l10n.mediaEdit),
         content: SizedBox(
           width: 560,
           child: MediaEditForm(
@@ -827,7 +826,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
             child: Column(
               children: [
                 Text(
-                  'Media info',
+                  context.l10n.mediaInfo,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Divider(),
@@ -842,7 +841,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Media info'),
+        title: Text(context.l10n.mediaInfo),
         content: SizedBox(
           width: 480,
           height: MediaQuery.sizeOf(context).height * 0.7,
@@ -851,7 +850,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(context.l10n.commonClose),
           ),
         ],
       ),
@@ -899,20 +898,21 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete media file?'),
+        title: Text(context.l10n.mediaDeleteFileTitle),
         content: Text(
-          'Delete ${widget.media.fileName ?? 'this media file'} from all '
-          'NAHPU records and from disk? This cannot be undone.',
+          widget.media.fileName == null
+              ? context.l10n.mediaDeleteThisFileBody
+              : context.l10n.mediaDeleteFileBody(widget.media.fileName!),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
-              'Delete',
+              context.l10n.commonDelete,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
@@ -933,7 +933,7 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: error.toString().contains('File exists')
-            ? const Text('File already exists')
+            ? Text(context.l10n.mediaFileAlreadyExists)
             : Text(error.toString()),
       ),
     );
@@ -990,42 +990,45 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (MediaQuery.sizeOf(context).width < 600) ...[
-            Text('Edit media', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              context.l10n.mediaEdit,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 16),
           ],
           TextField(
             controller: _fileNameController,
             decoration: InputDecoration(
-              labelText: 'File name',
-              hintText: 'Enter a file name',
+              labelText: context.l10n.mediaFileName,
+              hintText: context.l10n.mediaFileNameHint,
               suffixText: path.extension(widget.media.fileName ?? ''),
             ),
           ),
           TextField(
             controller: _captionController,
-            decoration: const InputDecoration(
-              labelText: 'Caption',
-              hintText: 'Enter a caption',
+            decoration: InputDecoration(
+              labelText: context.l10n.mediaCaption,
+              hintText: context.l10n.mediaCaptionHint,
             ),
             maxLines: 3,
           ),
           TextField(
             controller: _tagController,
-            decoration: const InputDecoration(
-              labelText: 'Tag',
-              hintText: 'Enter a tag',
+            decoration: InputDecoration(
+              labelText: context.l10n.mediaTag,
+              hintText: context.l10n.mediaTagHint,
             ),
           ),
           DropdownButtonFormField<String>(
             key: ValueKey(_photographerId),
             initialValue: _photographerId,
             decoration: InputDecoration(
-              labelText: 'Photographer',
-              hintText: 'Select personnel',
+              labelText: context.l10n.mediaPhotographer,
+              hintText: context.l10n.mediaSelectPersonnel,
               suffixIcon: _photographerId == null
                   ? null
                   : IconButton(
-                      tooltip: 'Clear photographer',
+                      tooltip: context.l10n.mediaClearPhotographer,
                       onPressed: () => setState(() => _photographerId = null),
                       icon: const Icon(Icons.clear_rounded),
                     ),
@@ -1048,17 +1051,24 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
           TextFormField(
             initialValue: widget.media.category ?? '',
             enabled: false,
-            decoration: const InputDecoration(labelText: 'Category'),
+            decoration: InputDecoration(
+              labelText: context.l10n.parasiteCategory,
+            ),
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              SecondaryButton(onPressed: widget.onClose, text: 'Cancel'),
+              SecondaryButton(
+                onPressed: widget.onClose,
+                text: context.l10n.commonCancel,
+              ),
               const SizedBox(width: 8),
               PrimaryButton(
                 onPressed: _isSaving ? null : _save,
-                label: _isSaving ? 'Saving' : 'Save',
+                label: _isSaving
+                    ? context.l10n.specimenSaving
+                    : context.l10n.commonSave,
                 icon: Icons.check,
               ),
             ],
@@ -1084,7 +1094,7 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: error.toString().contains('File exists')
-              ? const Text('File already exists')
+              ? Text(context.l10n.mediaFileAlreadyExists)
               : Text(error.toString()),
         ),
       );

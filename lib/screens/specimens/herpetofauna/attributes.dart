@@ -11,6 +11,7 @@ import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class HerpAttributeForms extends ConsumerStatefulWidget {
   const HerpAttributeForms({
@@ -95,8 +96,8 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
             ),
             CommonNumField(
               controller: ctr.svlCtr,
-              labelText: 'SVL (cm)',
-              hintText: 'Enter snout-vent length',
+              labelText: context.l10n.herpSnoutVentLength,
+              hintText: context.l10n.herpSnoutVentLengthHint,
               isDouble: true,
               isLastField: false,
               onChanged: (value) {
@@ -118,8 +119,8 @@ class HerpAttributeFormsState extends ConsumerState<HerpAttributeForms> {
             CommonTextField(
               controller: ctr.remarkCtr,
               maxLines: 6,
-              labelText: 'Remarks',
-              hintText: 'Add additional information about the specimen',
+              labelText: context.l10n.specimenRemarks,
+              hintText: context.l10n.specimenRemarksHint,
               isLastField: false,
               keyboardType: TextInputType.multiline,
               onChanged: (String? value) {

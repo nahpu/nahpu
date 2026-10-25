@@ -10,6 +10,7 @@ import 'package:nahpu/services/export/export_destination.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 /// Writes the export with the chosen settings and returns the file.
 typedef DataTableExportWriter =
@@ -70,12 +71,8 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final records = widget.recordCount == 1
-        ? '1 record'
-        : '${widget.recordCount} records';
-    final columns = widget.columnCount == 1
-        ? '1 column'
-        : '${widget.columnCount} columns';
+    final records = context.l10n.dataTableRecordCount(widget.recordCount);
+    final columns = context.l10n.dataTableColumnCount(widget.columnCount);
     final progress = _progress;
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -92,13 +89,13 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
             children: [
               Expanded(
                 child: Text(
-                  'Export table',
+                  context.l10n.projectStatsExportTable,
                   style: theme.textTheme.headlineSmall,
                 ),
               ),
               if (widget.showCloseButton)
                 IconButton(
-                  tooltip: 'Close',
+                  tooltip: context.l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: _isRunning
                       ? null
@@ -108,8 +105,7 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
           ),
           const SizedBox(height: NahpuSpacing.xs),
           Text(
-            '$records × $columns, with the current search, filters, sort, '
-            'and visible columns.',
+            context.l10n.dataTableExportSummary(records, columns),
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: NahpuSpacing.lg),
@@ -135,7 +131,10 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Column headers', style: theme.textTheme.titleMedium),
+                Text(
+                  context.l10n.dataTableColumnHeaders,
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: NahpuSpacing.lg),
                 SegmentedButton<DataTableExportHeader>(
                   segments: [
@@ -151,11 +150,8 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
                 if (_header == DataTableExportHeader.darwinCore)
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Darwin Core-mapped columns only'),
-                    subtitle: const Text(
-                      'Leave out columns without a Darwin Core term. '
-                      'Otherwise they keep their NAHPU key.',
-                    ),
+                    title: Text(context.l10n.dataTableDwcOnly),
+                    subtitle: Text(context.l10n.dataTableDwcOnlyBody),
                     value: _mappedOnly,
                     onChanged: _isRunning
                         ? null
@@ -171,7 +167,7 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
             ),
             const SizedBox(height: NahpuSpacing.xs),
             Text(
-              'Read ${progress.$1} of ${progress.$2} records',
+              context.l10n.dataTableReadProgress(progress.$1, progress.$2),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -231,15 +227,17 @@ class _DataTableExportDialogState extends State<DataTableExportDialog> {
         SnackBar(
           content: Text(
             _selectedDir != null
-                ? 'Exported to ${output.path}'
-                : 'Export complete',
+                ? context.l10n.sharedExportedTo(output.path)
+                : context.l10n.sharedExportComplete,
           ),
         ),
       );
     } on FormatException catch (error) {
       messenger.showSnackBar(SnackBar(content: Text(error.message)));
     } on Object catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text('Export failed: $error')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(context.l10n.sharedExportFailedError('$error'))),
+      );
     } finally {
       if (mounted) setState(() => _isRunning = false);
     }

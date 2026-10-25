@@ -15,6 +15,7 @@ import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:drift/drift.dart' as db;
 import 'package:nahpu/screens/shared/forms/custom_fields.dart';
 import 'package:nahpu/services/types/custom_field.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 class BirdAttributeForms extends ConsumerStatefulWidget {
   const BirdAttributeForms({
@@ -81,8 +82,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             ),
             CommonNumField(
               controller: ctr.wingspanCtr,
-              labelText: 'Wingspan (mm)',
-              hintText: 'Enter wingspan length',
+              labelText: context.l10n.birdWingspan,
+              hintText: context.l10n.birdWingspanHint,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -101,8 +102,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
         CommonPadding(
           child: CommonTextField(
             controller: ctr.billCtr,
-            labelText: 'Bill color',
-            hintText: 'Enter bill color',
+            labelText: context.l10n.birdBillColor,
+            hintText: context.l10n.birdBillColorHint,
             isLastField: false,
             onChanged: (String? value) {
               if (value != null && value.isNotEmpty) {
@@ -119,8 +120,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           children: [
             CommonTextField(
               controller: ctr.maxillaCtr,
-              labelText: 'Maxilla color',
-              hintText: 'Enter maxilla color',
+              labelText: context.l10n.birdMaxillaColor,
+              hintText: context.l10n.birdMaxillaColorHint,
               isLastField: false,
               onChanged: (value) {
                 SpecimenServices(ref: ref).updateBirdAttribute(
@@ -135,8 +136,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             ),
             CommonTextField(
               controller: ctr.mandibleCtr,
-              labelText: 'Mandible color',
-              hintText: 'Enter mandible color',
+              labelText: context.l10n.birdMandibleColor,
+              hintText: context.l10n.birdMandibleColorHint,
               isLastField: false,
               onChanged: (value) {
                 SpecimenServices(ref: ref).updateBirdAttribute(
@@ -156,8 +157,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           children: [
             CommonTextField(
               controller: ctr.irisCtr,
-              labelText: 'Iris color',
-              hintText: 'Enter iris color',
+              labelText: context.l10n.birdIrisColor,
+              hintText: context.l10n.birdIrisColorHint,
               isLastField: false,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
@@ -170,8 +171,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             ),
             CommonTextField(
               controller: ctr.tarsusCtr,
-              labelText: 'Tarsus color',
-              hintText: 'Enter tarsus color',
+              labelText: context.l10n.birdTarsusColor,
+              hintText: context.l10n.birdTarsusColorHint,
               isLastField: false,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
@@ -184,8 +185,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             ),
             CommonTextField(
               controller: ctr.toeCtr,
-              labelText: 'Toe color',
-              hintText: 'Enter toe color',
+              labelText: context.l10n.birdToeColor,
+              hintText: context.l10n.birdToeColorHint,
               isLastField: true,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
@@ -223,9 +224,9 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           children: [
             DropdownButtonFormField<int?>(
               initialValue: ctr.broodPatchCtr,
-              decoration: const InputDecoration(
-                labelText: 'Brood patch',
-                hintText: 'Choose one',
+              decoration: InputDecoration(
+                labelText: context.l10n.birdBroodPatch,
+                hintText: context.l10n.formsChooseOne,
               ),
               items: DropDownMenuItems.booleanDropDownItems(),
               onChanged: (int? newValue) {
@@ -237,9 +238,9 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
             ),
             DropdownButtonFormField<int?>(
               initialValue: ctr.hasBursaCtr,
-              decoration: const InputDecoration(
-                labelText: 'Bursa present',
-                hintText: 'Choose one',
+              decoration: InputDecoration(
+                labelText: context.l10n.birdBursaPresent,
+                hintText: context.l10n.formsChooseOne,
               ),
               items: DropDownMenuItems.booleanDropDownItems(),
               onChanged: (int? newValue) {
@@ -272,8 +273,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
           child: CommonTextField(
             controller: ctr.stomachContentCtr,
             maxLines: 3,
-            labelText: 'Stomach contents',
-            hintText: 'Enter stomach contents',
+            labelText: context.l10n.birdStomachContents,
+            hintText: context.l10n.birdStomachContentsHint,
             isLastField: false,
             onChanged: (String? value) {
               if (value != null && value.isNotEmpty) {
@@ -337,10 +338,8 @@ class BirdAttributeFormsState extends ConsumerState<BirdAttributeForms> {
       context: context,
       builder: (BuildContext context) {
         return CommonAlertDialog(
-          titleText: 'Change sex?',
-          descText:
-              'Changing the sex will clear reproductive data that does not '
-              'apply to the new selection.',
+          titleText: context.l10n.mammalChangeSexTitle,
+          descText: context.l10n.mammalChangeSexBody,
           confirmFunction: () {
             ctr.clearSexControllers(male: clearMale, female: clearFemale);
             SpecimenServices(ref: ref).clearBirdSexAttributes(
@@ -401,8 +400,8 @@ class BursaFieldState extends ConsumerState<BursaField> {
         children: [
           CommonNumField(
             controller: widget.ctr.bursaLengthCtr,
-            labelText: 'Bursa length (mm)',
-            hintText: 'Enter bursa length',
+            labelText: context.l10n.birdBursaLength,
+            hintText: context.l10n.birdBursaLengthHint,
             isDouble: true,
             isLastField: false,
             onChanged: (String? value) {
@@ -418,8 +417,8 @@ class BursaFieldState extends ConsumerState<BursaField> {
           ),
           CommonNumField(
             controller: widget.ctr.bursaWidthCtr,
-            labelText: 'Bursa width (mm)',
-            hintText: 'Enter bursa width',
+            labelText: context.l10n.birdBursaWidth,
+            hintText: context.l10n.birdBursaWidthHint,
             isDouble: true,
             isLastField: false,
             onChanged: (String? value) {
@@ -476,23 +475,25 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Male gonads'),
+          FormCardSectionLabel(text: context.l10n.birdMaleGonads),
           Text(
-            'Left testis size (mm)',
+            context.l10n.birdLeftTestisSize,
             style: Theme.of(context).textTheme.titleSmall,
           ),
 
           DropdownButtonFormField<bool>(
             initialValue: _showTestisSize,
-            decoration: const InputDecoration(labelText: 'Size'),
-            items: const [
+            decoration: InputDecoration(labelText: context.l10n.birdSize),
+            items: [
               DropdownMenuItem(
                 value: false,
-                child: CommonDropdownText(text: 'minute'),
+                child: CommonDropdownText(text: context.l10n.birdMinute),
               ),
               DropdownMenuItem(
                 value: true,
-                child: CommonDropdownText(text: '1 mm or greater'),
+                child: CommonDropdownText(
+                  text: context.l10n.birdOneMmOrGreater,
+                ),
               ),
             ],
             onChanged: (value) {
@@ -521,8 +522,8 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
               children: [
                 CommonNumField(
                   controller: widget.ctr.testisLengthCtr,
-                  labelText: 'Length',
-                  hintText: 'Enter length',
+                  labelText: context.l10n.birdLength,
+                  hintText: context.l10n.specimenEnterLength,
                   isDouble: true,
                   isLastField: false,
                   onChanged: (String? value) {
@@ -536,8 +537,8 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
                 ),
                 CommonNumField(
                   controller: widget.ctr.testisWidthCtr,
-                  labelText: 'Width',
-                  hintText: 'Enter width',
+                  labelText: context.l10n.birdWidth,
+                  hintText: context.l10n.specimenEnterWidth,
                   isDouble: true,
                   isLastField: false,
                   onChanged: (String? value) {
@@ -557,8 +558,8 @@ class _MaleGonadFormState extends ConsumerState<MaleGonadForm> {
             child: CommonTextField(
               controller: widget.ctr.testisRemarkCtr,
               maxLines: 3,
-              labelText: 'Remarks',
-              hintText: 'Enter remarks, e.g. right testis size',
+              labelText: context.l10n.specimenRemarks,
+              hintText: context.l10n.birdTestisRemarksHint,
               isLastField: false,
               onChanged: (String? value) {
                 if (value != null && value.isNotEmpty) {
@@ -625,15 +626,15 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Female gonads'),
-          const FormCardSectionLabel(text: 'Ovary size'),
+          FormCardSectionLabel(text: context.l10n.birdFemaleGonads),
+          FormCardSectionLabel(text: context.l10n.birdOvarySize),
           AdaptiveLayout(
             useHorizontalLayout: widget.useHorizontalLayout,
             children: [
               CommonNumField(
                 controller: widget.ctr.ovaryLengthCtr,
-                labelText: 'Length (mm)',
-                hintText: 'Enter length',
+                labelText: context.l10n.specimenLengthMm,
+                hintText: context.l10n.specimenEnterLength,
                 isDouble: true,
                 isLastField: false,
                 onChanged: (String? value) {
@@ -649,8 +650,8 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               ),
               CommonNumField(
                 controller: widget.ctr.ovaryWidthCtr,
-                labelText: 'Width (mm)',
-                hintText: 'Enter width',
+                labelText: context.l10n.specimenWidthMm,
+                hintText: context.l10n.specimenEnterWidth,
                 isDouble: true,
                 isLastField: false,
                 onChanged: (String? value) {
@@ -670,7 +671,9 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
             padding: const EdgeInsets.all(4),
             child: DropdownButtonFormField<int?>(
               initialValue: widget.ctr.ovaryAppearanceCtr,
-              decoration: const InputDecoration(labelText: 'Appearance'),
+              decoration: InputDecoration(
+                labelText: context.l10n.birdAppearance,
+              ),
               items: DropDownMenuItems.addChooseOneToList(ovaryApperanceItems),
               onChanged: (int? newValue) {
                 setState(() {
@@ -693,7 +696,7 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
               useHorizontalLayout: widget.useHorizontalLayout,
             ),
           ),
-          const FormCardSectionLabel(text: 'Oviduct'),
+          FormCardSectionLabel(text: context.l10n.birdOviduct),
           OviductForm(
             specimenUuid: widget.specimenUuid,
             ctr: widget.ctr,
@@ -704,8 +707,8 @@ class FemaleGonadFormState extends ConsumerState<FemaleGonadForm> {
             child: CommonTextField(
               controller: widget.ctr.ovaryRemarkCtr,
               maxLines: 3,
-              labelText: 'Remarks',
-              hintText: 'Add additional information about the gonads',
+              labelText: context.l10n.specimenRemarks,
+              hintText: context.l10n.birdGonadRemarksHint,
               isLastField: true,
               onChanged: (String? value) {
                 if (value != null) {
@@ -746,9 +749,9 @@ class SkullOssField extends ConsumerWidget {
 
     return DropdownButtonFormField<int?>(
       initialValue: ctr.skullOssCtr,
-      decoration: const InputDecoration(
-        labelText: 'Skull ossification (%)',
-        hintText: 'Enter percentage',
+      decoration: InputDecoration(
+        labelText: context.l10n.birdSkullOssification,
+        hintText: context.l10n.birdSkullOssificationHint,
       ),
       items: DropDownMenuItems.addChooseOneToList(skullOssItems),
       onChanged: (int? newValue) {
@@ -777,7 +780,7 @@ class FatField extends ConsumerWidget {
 
     return DropdownButtonFormField<int?>(
       initialValue: ctr.fatCtr,
-      decoration: const InputDecoration(labelText: 'Fat'),
+      decoration: InputDecoration(labelText: context.l10n.birdFat),
       items: DropDownMenuItems.addChooseOneToList(fatCategoryItems),
       onChanged: (int? newValue) {
         SpecimenServices(ref: ref).updateBirdAttribute(
@@ -805,14 +808,14 @@ class OvumSizeForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
-        const FormCardSectionLabel(text: 'Diameter of three largest ova (mm)'),
+        FormCardSectionLabel(text: context.l10n.birdLargestOva),
         AdaptiveLayout(
           useHorizontalLayout: useHorizontalLayout,
           children: [
             CommonNumField(
               controller: ctr.firstOvaSizeCtr,
-              labelText: 'First',
-              hintText: 'Enter size',
+              labelText: context.l10n.birdFirst,
+              hintText: context.l10n.birdEnterSize,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -828,8 +831,8 @@ class OvumSizeForm extends ConsumerWidget {
             ),
             CommonNumField(
               controller: ctr.secondOvaSizeCtr,
-              labelText: 'Second',
-              hintText: 'Enter size',
+              labelText: context.l10n.birdSecond,
+              hintText: context.l10n.birdEnterSize,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -845,8 +848,8 @@ class OvumSizeForm extends ConsumerWidget {
             ),
             CommonNumField(
               controller: ctr.thirdOvaSizeCtr,
-              labelText: 'Third',
-              hintText: 'Enter size',
+              labelText: context.l10n.birdThird,
+              hintText: context.l10n.birdEnterSize,
               isDouble: true,
               isLastField: false,
               onChanged: (String? value) {
@@ -906,15 +909,17 @@ class _OviductFormState extends ConsumerState<OviductForm> {
           children: [
             DropdownButtonFormField<bool>(
               initialValue: _showWidthField,
-              decoration: const InputDecoration(labelText: 'Width'),
-              items: const [
+              decoration: InputDecoration(labelText: context.l10n.birdWidth),
+              items: [
                 DropdownMenuItem(
                   value: false,
-                  child: CommonDropdownText(text: 'minute'),
+                  child: CommonDropdownText(text: context.l10n.birdMinute),
                 ),
                 DropdownMenuItem(
                   value: true,
-                  child: CommonDropdownText(text: '1 mm or greater'),
+                  child: CommonDropdownText(
+                    text: context.l10n.birdOneMmOrGreater,
+                  ),
                 ),
               ],
               onChanged: (value) {
@@ -936,8 +941,8 @@ class _OviductFormState extends ConsumerState<OviductForm> {
             if (_showWidthField)
               CommonNumField(
                 controller: widget.ctr.oviductWidthCtr,
-                labelText: 'Width (mm)',
-                hintText: 'Enter width',
+                labelText: context.l10n.specimenWidthMm,
+                hintText: context.l10n.specimenEnterWidth,
                 isDouble: true,
                 isLastField: false,
                 onChanged: (String? value) {
@@ -956,7 +961,9 @@ class _OviductFormState extends ConsumerState<OviductForm> {
           children: [
             DropdownButtonFormField<int?>(
               initialValue: widget.ctr.oviductAppearanceCtr,
-              decoration: const InputDecoration(labelText: 'Appearance'),
+              decoration: InputDecoration(
+                labelText: context.l10n.birdAppearance,
+              ),
               items: DropDownMenuItems.addChooseOneToList(
                 oviductAppearanceItems,
               ),
@@ -1018,11 +1025,11 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
       child: Column(
         children: [
           const CommonDivider(),
-          const FormCardSectionLabel(text: 'Molt'),
+          FormCardSectionLabel(text: context.l10n.birdMolt),
           BodyMoltForm(specimenUuid: widget.specimenUuid, ctr: widget.ctr),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.wingIsMoltCtr,
-            decoration: const InputDecoration(labelText: 'Wing molt'),
+            decoration: InputDecoration(labelText: context.l10n.birdWingMolt),
             items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
               setState(() {
@@ -1045,7 +1052,7 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
           ),
           DropdownButtonFormField<int?>(
             initialValue: widget.ctr.tailIsMoltCtr,
-            decoration: const InputDecoration(labelText: 'Tail molt'),
+            decoration: InputDecoration(labelText: context.l10n.birdTailMolt),
             items: DropDownMenuItems.booleanDropDownItems(),
             onChanged: (int? newValue) {
               setState(() {
@@ -1069,8 +1076,8 @@ class MoltingFormState extends ConsumerState<MoltingForm> {
           CommonTextField(
             controller: widget.ctr.moltRemarkCtr,
             maxLines: 3,
-            labelText: 'Remarks',
-            hintText: 'Add additional molt information',
+            labelText: context.l10n.specimenRemarks,
+            hintText: context.l10n.birdMoltRemarksHint,
             isLastField: true,
             onChanged: (String? value) {
               if (value != null) {
@@ -1103,8 +1110,8 @@ class WingMoltForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTextField(
       controller: ctr.wingMoltCtr,
-      labelText: 'Wing molt',
-      hintText: 'Enter wing molt',
+      labelText: context.l10n.birdWingMolt,
+      hintText: context.l10n.birdWingMoltHint,
       isLastField: false,
       maxLines: 2,
       onChanged: (String? value) {
@@ -1135,8 +1142,8 @@ class TailMoltForm extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CommonTextField(
       controller: ctr.tailMoltCtr,
-      labelText: 'Tail molt',
-      hintText: 'Enter tail molt',
+      labelText: context.l10n.birdTailMolt,
+      hintText: context.l10n.birdTailMoltHint,
       maxLines: 2,
       isLastField: false,
       onChanged: (String? value) {
@@ -1170,7 +1177,7 @@ class BodyMoltForm extends ConsumerWidget {
 
     return DropdownButtonFormField<int?>(
       initialValue: ctr.bodyMoltCtr,
-      decoration: const InputDecoration(labelText: 'Body molt'),
+      decoration: InputDecoration(labelText: context.l10n.birdBodyMolt),
       items: DropDownMenuItems.addChooseOneToList(bodyMoltItems),
       onChanged: (int? newValue) {
         SpecimenServices(ref: ref).updateBirdAttribute(
@@ -1213,12 +1220,12 @@ class Notes extends ConsumerWidget {
       padding: const EdgeInsets.all(4),
       child: Column(
         children: [
-          const FormCardSectionLabel(text: 'Notes'),
+          FormCardSectionLabel(text: context.l10n.specimenNotes),
           CommonTextField(
             controller: ctr.habitatRemarkCtr,
             maxLines: 3,
-            labelText: 'Habitat',
-            hintText: 'Add additional information about the habitat',
+            labelText: context.l10n.birdHabitat,
+            hintText: context.l10n.birdHabitatHint,
             isLastField: true,
             onChanged: (String? value) {
               if (value != null) {
@@ -1232,8 +1239,8 @@ class Notes extends ConsumerWidget {
           CommonTextField(
             controller: ctr.specimenRemarkCtr,
             maxLines: 3,
-            labelText: 'Specimen',
-            hintText: 'Add additional information about the specimen',
+            labelText: context.l10n.specimenSpecimen,
+            hintText: context.l10n.specimenRemarksHint,
             isLastField: true,
             onChanged: (String? value) {
               if (value != null) {

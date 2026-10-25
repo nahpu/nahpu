@@ -2,15 +2,18 @@ import 'package:nahpu/l10n/app_localizations.dart';
 import 'package:nahpu/services/common/utility_services.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
 import 'package:nahpu/services/import/batch/batch_import_models.dart';
+import 'package:nahpu/services/media/media_gallery_services.dart';
 import 'package:nahpu/services/projects/project_transfer_models.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
+import 'package:nahpu/services/types/coordinate_import.dart';
 import 'package:nahpu/services/types/custom_field.dart';
 import 'package:nahpu/services/types/events.dart';
 import 'package:nahpu/services/types/export.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/map_layers.dart';
 import 'package:nahpu/services/types/network_statistics.dart';
 import 'package:nahpu/services/types/project_tools.dart';
@@ -571,3 +574,136 @@ extension TissueEntryModeLocalizedLabel on TissueEntryMode {
     TissueEntryMode.workList => l10n.projectTissueEntryWorkList,
   };
 }
+
+extension FishSpecimenTypeLocalizedLabel on FishSpecimenType {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    FishSpecimenType.individual => l10n.fishTypeIndividual,
+    FishSpecimenType.lot => l10n.fishTypeLot,
+  };
+
+  String localizedDescription(AppLocalizations l10n) => switch (this) {
+    FishSpecimenType.individual => l10n.fishTypeIndividualDescription,
+    FishSpecimenType.lot => l10n.fishTypeLotDescription,
+  };
+}
+
+extension MediaKindLocalizedLabel on MediaKind {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    MediaKind.image => l10n.templateElementImage,
+    MediaKind.audio => l10n.mediaAudio,
+    MediaKind.video => l10n.mediaVideo,
+    MediaKind.other => l10n.mediaOther,
+  };
+}
+
+extension MediaGallerySortLocalizedLabel on MediaGallerySort {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    MediaGallerySort.addedNewest => l10n.mediaSortAddedNewest,
+    MediaGallerySort.addedOldest => l10n.mediaSortAddedOldest,
+    MediaGallerySort.fileNameAscending => l10n.mediaSortFileNameAsc,
+    MediaGallerySort.fileNameDescending => l10n.mediaSortFileNameDesc,
+    MediaGallerySort.takenNewest => l10n.mediaSortTakenNewest,
+    MediaGallerySort.takenOldest => l10n.mediaSortTakenOldest,
+  };
+}
+
+extension CoordinateImportFieldLocalizedLabel on CoordinateImportField {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    CoordinateImportField.nameId => l10n.siteImportFieldNameId,
+    CoordinateImportField.decimalLatitude => l10n.projectStatsColumnLatitude,
+    CoordinateImportField.decimalLongitude => l10n.projectStatsColumnLongitude,
+    CoordinateImportField.elevationInMeter => l10n.projectStatsColumnElevation,
+    CoordinateImportField.gpsUnit => l10n.siteImportFieldGpsUnit,
+    CoordinateImportField.notes => l10n.labelEnvironmentalNotes,
+  };
+}
+
+extension SiteCopyFieldLocalizedLabel on SiteCopyField {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    SiteCopyField.siteId => l10n.formsSiteId,
+    SiteCopyField.leadStaff => l10n.siteCopyFieldSiteLeader,
+    SiteCopyField.siteType => l10n.siteCopyFieldSiteType,
+    SiteCopyField.country => l10n.labelSiteGeographyCountry,
+    SiteCopyField.islandGroup => l10n.labelSiteGeographyIslandGroup,
+    SiteCopyField.stateProvince => l10n.labelSiteGeographyStateProvince,
+    SiteCopyField.county => l10n.labelSiteGeographyCounty,
+    SiteCopyField.municipality => l10n.labelSiteGeographyMunicipality,
+    SiteCopyField.locality => l10n.siteCopyFieldPreciseLocality,
+    SiteCopyField.remark => l10n.parasiteRemarks,
+    SiteCopyField.habitatType => l10n.siteCopyFieldHabitatType,
+    SiteCopyField.habitatCondition => l10n.siteCopyFieldHabitatCondition,
+    SiteCopyField.habitatDescription => l10n.siteCopyFieldHabitatDescription,
+    SiteCopyField.canopyCover => l10n.siteCopyFieldCanopyCover,
+    SiteCopyField.coordinates => l10n.templateTypeCoordinates,
+  };
+}
+
+/// The UI label for a stored moon [phase], one of
+/// [environmentMoonPhaseOptions]. Other values are shown as stored.
+String environmentMoonPhaseLocalizedLabel(AppLocalizations l10n, String phase) {
+  return switch (phase) {
+    'New Moon' => l10n.eventMoonNew,
+    'Waxing Crescent' => l10n.eventMoonWaxingCrescent,
+    'First Quarter' => l10n.eventMoonFirstQuarter,
+    'Waxing Gibbous' => l10n.eventMoonWaxingGibbous,
+    'Full Moon' => l10n.eventMoonFull,
+    'Waning Gibbous' => l10n.eventMoonWaningGibbous,
+    'Last Quarter' => l10n.eventMoonLastQuarter,
+    'Waning Crescent' => l10n.eventMoonWaningCrescent,
+    _ => phase,
+  };
+}
+
+extension FieldScopeLocalizedLabel on FieldScope {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    FieldScope.global => l10n.recordsCustomFieldScopeGlobal,
+    FieldScope.project => l10n.recordsCustomFieldScopeProject,
+  };
+}
+
+extension DataTableFilterOpLocalizedLabel on DataTableFilterOp {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    DataTableFilterOp.equals => l10n.dataTableFilterOpIs,
+    DataTableFilterOp.contains => l10n.dataTableFilterOpContains,
+    DataTableFilterOp.startsWith => l10n.dataTableFilterOpStartsWith,
+    DataTableFilterOp.greaterThan => l10n.dataTableFilterOpGreaterThan,
+    DataTableFilterOp.lessThan => l10n.dataTableFilterOpLessThan,
+    DataTableFilterOp.between => l10n.dataTableFilterOpBetween,
+    DataTableFilterOp.isEmpty => l10n.dataTableFilterOpIsEmpty,
+    DataTableFilterOp.isNotEmpty => l10n.dataTableFilterOpIsNotEmpty,
+  };
+}
+
+extension DataTableQuickFilterLocalizedLabel on DataTableQuickFilter {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    DataTableQuickFilter.missingTaxon ||
+    DataTableQuickFilter.parasiteMissingTaxon =>
+      l10n.dataTableQuickMissingTaxon,
+    DataTableQuickFilter.noFieldNumber => l10n.dataTableQuickNoFieldNumber,
+    DataTableQuickFilter.noEvent => l10n.dataTableQuickNoEvent,
+    DataTableQuickFilter.hasParts => l10n.dataTableQuickHasParts,
+    DataTableQuickFilter.specimenHasMedia ||
+    DataTableQuickFilter.partHasMedia ||
+    DataTableQuickFilter.siteHasMedia ||
+    DataTableQuickFilter.eventHasMedia ||
+    DataTableQuickFilter.narrativeHasMedia => l10n.dataTableQuickHasMedia,
+    DataTableQuickFilter.noTissueId => l10n.dataTableQuickNoTissueId,
+    DataTableQuickFilter.noParasiteId => l10n.dataTableQuickNoParasiteId,
+    DataTableQuickFilter.noCoordinates => l10n.dataTableQuickNoCoordinates,
+    DataTableQuickFilter.noLocality => l10n.dataTableQuickNoLocality,
+    DataTableQuickFilter.noSpecimens => l10n.dataTableQuickNoSpecimens,
+    DataTableQuickFilter.noEndDate => l10n.dataTableQuickNoEndDate,
+    DataTableQuickFilter.noSite => l10n.dataTableQuickNoSite,
+  };
+}
+
+/// Chip label for a data table search limited to the projects named [names]:
+/// up to two by name, more by count.
+String dataTableProjectScopeLocalizedLabel(
+  AppLocalizations l10n,
+  List<String> names,
+) => switch (names) {
+  [final name] => l10n.dataTableProjectScopeOne(name),
+  [final first, final second] => l10n.dataTableProjectScopeTwo(first, second),
+  _ => l10n.dataTableProjectScopeMany(names.length),
+};

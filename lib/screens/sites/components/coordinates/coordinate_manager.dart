@@ -30,11 +30,11 @@ class _CoordinateManagerState extends ConsumerState<CoordinateManager> {
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage coordinates'),
+        title: Text(context.l10n.siteManageCoordinates),
         actions: [
           if (MediaQuery.sizeOf(context).width < 600)
             IconButton(
-              tooltip: 'View map',
+              tooltip: context.l10n.siteViewMap,
               onPressed: openFullScreenMap,
               icon: const Icon(Icons.map_outlined),
             ),
@@ -298,7 +298,7 @@ class _CoordinateManagerFullScreenMapState
 
   @override
   Widget build(BuildContext context) => FullScreenMapPage(
-    title: 'Coordinate map',
+    title: context.l10n.siteCoordinateMap,
     child: Stack(
       fit: StackFit.expand,
       children: [
@@ -438,8 +438,7 @@ class _CoordinateExportOverlayState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Export ${widget.coordinates.length} '
-            '${widget.coordinates.length == 1 ? 'coordinate' : 'coordinates'}',
+            context.l10n.siteExportCoordinatesCount(widget.coordinates.length),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
@@ -486,9 +485,9 @@ class _CoordinateExportOverlayState
   }
 
   String _formatLabel(CoordinateFileFormat value) => switch (value) {
-    CoordinateFileFormat.geoJson => 'GeoJSON (.geojson)',
+    CoordinateFileFormat.geoJson => context.l10n.siteFormatGeoJson,
     CoordinateFileFormat.kml => 'KML (.kml)',
-    CoordinateFileFormat.shapefile => 'Shapefile bundle (.zip)',
+    CoordinateFileFormat.shapefile => context.l10n.siteFormatShapefile,
   };
 
   void _resetExport() {
@@ -525,8 +524,8 @@ class _CoordinateExportOverlayState
             // Only a folder the user chose is worth naming; the fallback is a
             // path they cannot act on.
             _selectedDir != null
-                ? 'Exported to ${file.path}'
-                : 'Export complete',
+                ? context.l10n.sharedExportedTo(file.path)
+                : context.l10n.sharedExportComplete,
           ),
         ),
       );
@@ -558,10 +557,11 @@ class _CoordinateExportOverlayState
   Future<void> _openFolder() async {
     final file = _outputFile;
     if (file == null) return;
+    final l10n = context.l10n;
     try {
       await FilePickerServices().openContainingDirectory(file);
     } catch (error) {
-      _reportActionFailure('open the folder', error);
+      _reportActionFailure(l10n.projectOpenFolderFailed('$error'));
     }
   }
 
@@ -572,18 +572,19 @@ class _CoordinateExportOverlayState
   Future<void> _saveCopy() async {
     final file = _outputFile;
     if (file == null) return;
+    final l10n = context.l10n;
     try {
       await FilePickerServices().saveCopyToDevice(file);
     } catch (error) {
-      _reportActionFailure('save a copy', error);
+      _reportActionFailure(l10n.projectSaveCopyFailed('$error'));
     }
   }
 
-  void _reportActionFailure(String what, Object error) {
+  void _reportActionFailure(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('Unable to $what: $error')));
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -623,7 +624,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .toList(growable: false);
     final siteLabels = {
       for (final site in sites.value ?? const <SiteRecord>[])
-        site.id: _siteLabel(site),
+        site.id: _siteLabel(context.l10n, site),
     };
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -631,7 +632,7 @@ class _CoordinateManagerListPane extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Show coordinates',
+            context.l10n.siteShowCoordinates,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 4),
@@ -643,14 +644,14 @@ class _CoordinateManagerListPane extends StatelessWidget {
                 isDense: true,
               ),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: -1,
-                  child: Text('All coordinates'),
+                  child: Text(context.l10n.siteAllCoordinates),
                 ),
                 for (final site in siteEntries)
                   DropdownMenuItem(
                     value: site.id,
-                    child: Text(_siteLabel(site)),
+                    child: Text(_siteLabel(context.l10n, site)),
                   ),
               ],
               onChanged: (value) {
@@ -658,7 +659,8 @@ class _CoordinateManagerListPane extends StatelessWidget {
               },
             ),
             loading: () => const LinearProgressIndicator(),
-            error: (error, stackTrace) => Text('Unable to load sites: $error'),
+            error: (error, stackTrace) =>
+                Text(context.l10n.siteLoadSitesError('$error')),
           ),
           const SizedBox(height: 8),
           Expanded(
@@ -674,8 +676,9 @@ class _CoordinateManagerListPane extends StatelessWidget {
                 onClearAll: onClearAll,
               ),
               loading: () => const CommonProgressIndicator(),
-              error: (error, stackTrace) =>
-                  Center(child: Text('Unable to load coordinates: $error')),
+              error: (error, stackTrace) => Center(
+                child: Text(context.l10n.siteLoadCoordinatesError('$error')),
+              ),
             ),
           ),
           if (entries.isNotEmpty) ...[
@@ -686,7 +689,11 @@ class _CoordinateManagerListPane extends StatelessWidget {
                   ? null
                   : () => onExportCoordinates(selectedCoordinates),
               icon: const Icon(Icons.file_upload_outlined),
-              label: Text('Export coordinates (${selectedCoordinates.length})'),
+              label: Text(
+                context.l10n.siteExportSelectedCoordinates(
+                  selectedCoordinates.length,
+                ),
+              ),
             ),
           ],
         ],
@@ -701,12 +708,12 @@ class _CoordinateManagerListPane extends StatelessWidget {
         .toList();
   }
 
-  String _siteLabel(SiteRecord site) {
+  String _siteLabel(AppLocalizations l10n, SiteRecord site) {
     final name = site.siteID?.trim();
     if (name != null && name.isNotEmpty) return name;
     final locality = site.locality?.trim();
     if (locality != null && locality.isNotEmpty) return locality;
-    return 'Site ${site.id}';
+    return l10n.sharedSiteLabel('${site.id}');
   }
 }
 
@@ -735,7 +742,7 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (coordinates.isEmpty) {
-      return const Center(child: Text('No coordinates added'));
+      return Center(child: Text(context.l10n.siteNoCoordinates));
     }
     final visibleIds = {
       for (final coordinate in coordinates)
@@ -744,12 +751,12 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
     final allSelected = visibleIds.every(selectedCoordinateIds.contains);
     final hasSelection = visibleIds.any(selectedCoordinateIds.contains);
     final selectedCount = selectedCoordinateIds.intersection(visibleIds).length;
-    final coordinateWord = coordinates.length == 1
-        ? 'coordinate'
-        : 'coordinates';
     final countLabel = selectedCount < coordinates.length
-        ? '$selectedCount of ${coordinates.length} $coordinateWord'
-        : '${coordinates.length} $coordinateWord';
+        ? context.l10n.siteSelectedOfCoordinates(
+            selectedCount,
+            coordinates.length,
+          )
+        : context.l10n.sharedCoordinateCount(coordinates.length);
     return ListView(
       children: [
         Padding(
@@ -764,11 +771,11 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
               ),
               TextButton(
                 onPressed: allSelected ? null : onSelectAll,
-                child: const Text('Select all'),
+                child: Text(context.l10n.commonSelectAll),
               ),
               TextButton(
                 onPressed: hasSelection ? onClearAll : null,
-                child: const Text('Clear all'),
+                child: Text(context.l10n.documentSelectionClearAll),
               ),
             ],
           ),
@@ -820,13 +827,15 @@ class _CoordinateManagerCoordinateList extends StatelessWidget {
                             if (coordinate.siteID != null)
                               Text(
                                 siteLabels[coordinate.siteID] ??
-                                    'Site ${coordinate.siteID}',
+                                    context.l10n.sharedSiteLabel(
+                                      '${coordinate.siteID}',
+                                    ),
                               ),
                             CoordinateSubtitle(coordinate: coordinate),
                           ],
                         ),
                         trailing: IconButton(
-                          tooltip: 'Show QR',
+                          tooltip: context.l10n.homeProjectShowQr,
                           onPressed: () =>
                               showCoordinateQrDialog(context, coordinate),
                           icon: const Icon(Icons.qr_code_outlined),
@@ -878,7 +887,7 @@ class _CoordinateMapPane extends StatelessWidget {
               id: coordinate.id!,
               name: coordinate.nameId?.trim().isNotEmpty == true
                   ? coordinate.nameId!
-                  : 'Unnamed coordinate (${coordinate.id})',
+                  : context.l10n.siteUnnamedCoordinateId('${coordinate.id}'),
               latitude: coordinate.decimalLatitude,
               longitude: coordinate.decimalLongitude,
             ),
@@ -891,8 +900,7 @@ class _CoordinateMapPane extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                '$omitted ${omitted == 1 ? 'coordinate is' : 'coordinates are'} '
-                'not shown because latitude or longitude is missing or invalid.',
+                context.l10n.siteCoordinatesNotShown(omitted),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -912,7 +920,7 @@ class _CoordinateMapPane extends StatelessWidget {
     },
     loading: () => const Center(child: CircularProgressIndicator()),
     error: (error, stackTrace) =>
-        Center(child: Text('Unable to load coordinates: $error')),
+        Center(child: Text(context.l10n.siteLoadCoordinatesError('$error'))),
   );
 }
 

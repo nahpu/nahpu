@@ -10,6 +10,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
 import 'package:nahpu/screens/sites/components/copy_from_project_dialog.dart';
 import 'package:nahpu/services/sites/site_services.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 Future<void> createNewSite(BuildContext context, WidgetRef ref) {
   return SiteServices(ref: ref).createNewSite().then((newId) {
@@ -43,7 +44,7 @@ class NewSiteTextButtonState extends ConsumerState<NewSiteTextButton> {
           }
         }
       },
-      child: const Text('Create site'),
+      child: Text(context.l10n.siteCreate),
     );
   }
 }
@@ -101,7 +102,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_SiteMenuAction>(
-      tooltip: 'Site actions',
+      tooltip: context.l10n.siteActions,
       itemBuilder: _items,
       onSelected: _onSelected,
     );
@@ -110,57 +111,57 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   List<AdaptiveMenuItem<_SiteMenuAction>> _items() {
     final hasSite = widget.siteId != null;
     return [
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SiteMenuAction.create,
         icon: Icons.create_outlined,
-        label: 'Create site',
+        label: context.l10n.siteCreate,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.duplicate,
         icon: Icons.copy_outlined,
-        label: 'Duplicate site',
+        label: context.l10n.siteDuplicate,
         enabled: hasSite,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.copyFromProject,
         icon: Icons.content_copy_outlined,
-        label: 'Copy from project ...',
+        label: context.l10n.siteCopyFromProjectMenu,
         enabled: hasSite,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SiteMenuAction.sort,
         icon: Icons.sort_rounded,
-        label: 'Sort records',
+        label: context.l10n.commonSortRecords,
         hasDividerBefore: true,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.showQr,
         icon: Icons.qr_code_outlined,
-        label: 'Show QR',
+        label: context.l10n.homeProjectShowQr,
         enabled: hasSite,
         hasDividerBefore: true,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.export,
         icon: Icons.file_upload_outlined,
-        label: 'Export site',
+        label: context.l10n.siteExport,
         enabled: hasSite,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SiteMenuAction.scanQr,
         icon: Icons.qr_code_scanner_outlined,
-        label: 'Scan QR',
+        label: context.l10n.sharedPresetScanQr,
         hasDividerBefore: true,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _SiteMenuAction.import,
         icon: Icons.file_download_outlined,
-        label: 'Import site',
+        label: context.l10n.siteImport,
       ),
       AdaptiveMenuItem(
         value: _SiteMenuAction.delete,
         icon: Icons.delete_outline,
-        label: 'Delete record',
+        label: context.l10n.commonDeleteRecord,
         enabled: hasSite,
         isDestructive: true,
         hasDividerBefore: true,
@@ -168,7 +169,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
       AdaptiveMenuItem(
         value: _SiteMenuAction.deleteAll,
         icon: Icons.delete_forever_outlined,
-        label: 'Delete all records',
+        label: context.l10n.commonDeleteAllRecords,
         enabled: hasSite,
         isDestructive: true,
       ),
@@ -228,10 +229,12 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Copied ${result.fieldCount} ${result.fieldCount == 1 ? 'field' : 'fields'} '
-          'and ${result.coordinateCount} '
-          '${result.coordinateCount == 1 ? 'coordinate' : 'coordinates'} '
-          'from ${result.sourceSiteLabel} in ${result.sourceProjectName}.',
+          context.l10n.siteCopiedSummary(
+            context.l10n.siteFieldCount(result.fieldCount),
+            context.l10n.sharedCoordinateCount(result.coordinateCount),
+            result.sourceSiteLabel,
+            result.sourceProjectName,
+          ),
         ),
       ),
     );
@@ -240,8 +243,8 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
   Future<void> _deleteSite() async {
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete site?',
-      deletePrompt: 'You will delete all records in this site form',
+      title: context.l10n.siteDeleteTitle,
+      deletePrompt: context.l10n.siteDeleteBody,
       onDelete: () async {
         if (widget.siteId != null) {
           try {
@@ -264,8 +267,8 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
     final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete all sites?',
-      deletePrompt: 'You will delete all site records',
+      title: context.l10n.siteDeleteAllTitle,
+      deletePrompt: context.l10n.siteDeleteAllBody,
       onDelete: () async {
         try {
           await SiteServices(ref: ref).deleteAllSites(projectUuid);
@@ -289,7 +292,7 @@ class SiteMenuState extends ConsumerState<SiteMenu> {
       SnackBar(
         content: Text(
           errors.contains('SqliteException(787)')
-              ? 'Cannot delete sites. Being used by other records.'
+              ? context.l10n.siteDeleteInUse
               : errors.toString(),
         ),
       ),

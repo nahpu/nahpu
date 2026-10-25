@@ -8,6 +8,7 @@ import 'package:nahpu/services/providers/page_jump.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/record_exchange_actions.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 Future<void> createNewCollEvents(BuildContext context, WidgetRef ref) {
   CollEventServices services = CollEventServices(ref: ref);
@@ -40,7 +41,7 @@ class NewCollEventTextButtonState
           _showError(e.toString());
         }
       },
-      child: const Text('Create event'),
+      child: Text(context.l10n.eventCreate),
     );
   }
 
@@ -49,8 +50,7 @@ class NewCollEventTextButtonState
       SnackBar(
         content: Text(
           errors.contains('SqliteException(787)')
-              ? 'Failed to delete the events.'
-                    ' The events are currently in use by other records.'
+              ? context.l10n.eventDeleteInUse
               : errors.toString(),
         ),
       ),
@@ -97,7 +97,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
   @override
   Widget build(BuildContext context) {
     return AdaptiveMenuButton<_EventMenuAction>(
-      tooltip: 'Event actions',
+      tooltip: context.l10n.eventActions,
       itemBuilder: _items,
       onSelected: _onSelected,
     );
@@ -106,58 +106,58 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
   List<AdaptiveMenuItem<_EventMenuAction>> _items() {
     final hasEvent = widget.collEventId != null;
     return [
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.create,
         icon: Icons.create_outlined,
-        label: 'Create event',
+        label: context.l10n.eventCreate,
       ),
       AdaptiveMenuItem(
         value: _EventMenuAction.duplicate,
         icon: Icons.copy_outlined,
-        label: 'Duplicate event',
+        label: context.l10n.eventDuplicate,
         enabled: hasEvent,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.sort,
         icon: Icons.sort_rounded,
-        label: 'Sort records',
+        label: context.l10n.commonSortRecords,
         hasDividerBefore: true,
       ),
       AdaptiveMenuItem(
         value: _EventMenuAction.showQr,
         icon: Icons.qr_code_outlined,
-        label: 'Show QR',
+        label: context.l10n.homeProjectShowQr,
         enabled: hasEvent,
         hasDividerBefore: true,
       ),
       AdaptiveMenuItem(
         value: _EventMenuAction.export,
         icon: Icons.file_upload_outlined,
-        label: 'Export event',
+        label: context.l10n.eventExport,
         enabled: hasEvent,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.scanQr,
         icon: Icons.qr_code_scanner_outlined,
-        label: 'Scan QR',
+        label: context.l10n.sharedPresetScanQr,
         hasDividerBefore: true,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.import,
         icon: Icons.file_download_outlined,
-        label: 'Import event',
+        label: context.l10n.eventImport,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.delete,
         icon: Icons.delete_outline,
-        label: 'Delete record',
+        label: context.l10n.commonDeleteRecord,
         isDestructive: true,
         hasDividerBefore: true,
       ),
-      const AdaptiveMenuItem(
+      AdaptiveMenuItem(
         value: _EventMenuAction.deleteAll,
         icon: Icons.delete_forever_outlined,
-        label: 'Delete all records',
+        label: context.l10n.commonDeleteAllRecords,
         isDestructive: true,
       ),
     ];
@@ -191,10 +191,8 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
     if (widget.collEventId != null) {
       showDeleteAlertOnMenu(
         context: context,
-        title: 'Delete collecting event?',
-        deletePrompt:
-            'You will also delete collection methods'
-            ', collecting personnel, environmental data, and media in this event.',
+        title: context.l10n.eventDeleteTitle,
+        deletePrompt: context.l10n.eventDeleteBody,
         onDelete: () async {
           try {
             await CollEventServices(
@@ -233,11 +231,8 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
     final projectUuid = ref.read(projectUuidProvider);
     showDeleteAlertOnMenu(
       context: context,
-      title: 'Delete all collecting events?',
-      deletePrompt:
-          'Deleting all collecting events will also delete all associated'
-          ' collection methods, collecting personnel, '
-          'environmental data, and media from the database.',
+      title: context.l10n.eventDeleteAllTitle,
+      deletePrompt: context.l10n.eventDeleteAllBody,
       onDelete: () async {
         try {
           final service = CollEventServices(ref: ref);
@@ -263,8 +258,7 @@ class NarrativeMenuState extends ConsumerState<CollEventMenu> {
       SnackBar(
         content: Text(
           errors.contains('SqliteException(787)')
-              ? 'Failed to delete the events.'
-                    ' The events are currently in use by other records.'
+              ? context.l10n.eventDeleteInUse
               : errors.toString(),
         ),
       ),

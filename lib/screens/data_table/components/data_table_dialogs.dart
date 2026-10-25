@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/data_table/components/data_table_toolbar.dart';
 import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/services/localization/l10n.dart';
 
 enum DataTableUnsavedChoice { save, discard, cancel }
 
@@ -14,27 +15,23 @@ class DataTableUnsavedDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Save your changes?'),
-      content: Text(
-        count == 1
-            ? 'You have 1 unsaved change in this table.'
-            : 'You have $count unsaved changes in this table.',
-      ),
+      title: Text(context.l10n.dataTableSaveChangesTitle),
+      content: Text(context.l10n.dataTableUnsavedChanges(count)),
       actions: [
         TextButton(
           onPressed: () =>
               Navigator.of(context).pop(DataTableUnsavedChoice.cancel),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         TextButton(
           onPressed: () =>
               Navigator.of(context).pop(DataTableUnsavedChoice.discard),
-          child: const Text('Discard'),
+          child: Text(context.l10n.templateDiscard),
         ),
         FilledButton(
           onPressed: () =>
               Navigator.of(context).pop(DataTableUnsavedChoice.save),
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );
@@ -83,7 +80,7 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
       groups.putIfAbsent(column.group, () => []).add(column);
     }
     return AlertDialog(
-      title: const Text('Columns'),
+      title: Text(context.l10n.projectBatchStepColumns),
       content: SizedBox(
         width: NahpuContentWidth.dialog,
         child: Column(
@@ -92,12 +89,15 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
           children: [
             DataTableSearchField(
               controller: _filterController,
-              hint: 'Find a field',
+              hint: context.l10n.dataTableFindField,
               onChanged: (value) => setState(() => _filter = value),
             ),
             const SizedBox(height: NahpuSpacing.md),
             Text(
-              '${_selected.length} of ${widget.columns.length} fields shown',
+              context.l10n.dataTableFieldsShown(
+                _selected.length,
+                widget.columns.length,
+              ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -128,10 +128,9 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
                         value: _selected.contains(column.key),
                         title: Text(column.label),
                         secondary: column.field.isComputed
-                            ? const Tooltip(
+                            ? Tooltip(
                                 message:
-                                    'Calculated during export: not searchable '
-                                    'or sortable',
+                                    context.l10n.dataTableComputedNotSearchable,
                                 child: Icon(
                                   Icons.functions,
                                   size: NahpuControlSize.iconSmall,
@@ -161,17 +160,17 @@ class _ColumnPickerDialogState extends State<ColumnPickerDialog> {
               ..clear()
               ..addAll(widget.defaults),
           ),
-          child: const Text('Defaults'),
+          child: Text(context.l10n.setupPresetDefaults),
         ),
         TextButton(
           onPressed: () => setState(
             () => _selected.addAll(widget.columns.map((column) => column.key)),
           ),
-          child: const Text('Show all'),
+          child: Text(context.l10n.dataTableShowAll),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_selected),
-          child: const Text('Done'),
+          child: Text(context.l10n.commonDone),
         ),
       ],
     );

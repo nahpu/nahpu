@@ -74,7 +74,7 @@ class ExportFormState extends ConsumerState<ExportForm>
         MediaQuery.sizeOf(context).width >= NahpuBreakpoints.compact;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Export records')),
+      appBar: AppBar(title: Text(context.l10n.labelProjectToolExportRecords)),
       body: presetsAsync.when(
         data: (presets) {
           // Synchronize selection with updated map of presets
@@ -176,14 +176,14 @@ class ExportFormState extends ConsumerState<ExportForm>
                   children: [
                     TabBar(
                       controller: _mobileTabController,
-                      tabs: const [
+                      tabs: [
                         Tab(
                           icon: Icon(Icons.settings_outlined),
-                          text: 'Settings',
+                          text: context.l10n.drawerSettings,
                         ),
                         Tab(
                           icon: Icon(Icons.preview_outlined),
-                          text: 'Preview',
+                          text: context.l10n.commonPreview,
                         ),
                       ],
                     ),
@@ -200,8 +200,8 @@ class ExportFormState extends ConsumerState<ExportForm>
               children: [
                 Expanded(child: body),
                 ExportActionBar(
-                  label: 'Export records',
-                  repeatLabel: 'Export another',
+                  label: context.l10n.labelProjectToolExportRecords,
+                  repeatLabel: context.l10n.projectExportAnother,
                   icon: Icons.file_upload_outlined,
                   canExport: _isValid(),
                   isRunning: _isRunning,
@@ -214,7 +214,7 @@ class ExportFormState extends ConsumerState<ExportForm>
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
-            Center(child: Text('Unable to load export presets: $error')),
+            Center(child: Text(context.l10n.exportPresetsLoadError('$error'))),
       ),
     );
   }
@@ -291,7 +291,9 @@ class ExportFormState extends ConsumerState<ExportForm>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to open the folder: $error')),
+          SnackBar(
+            content: Text(context.l10n.projectOpenFolderFailed('$error')),
+          ),
         );
       }
     }
@@ -309,7 +311,7 @@ class ExportFormState extends ConsumerState<ExportForm>
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to save a copy: $error')),
+          SnackBar(content: Text(context.l10n.projectSaveCopyFailed('$error'))),
         );
       }
     }
@@ -322,9 +324,9 @@ class ExportFormState extends ConsumerState<ExportForm>
       await FilePickerServices().shareFile(context, savePath);
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.formsErrorDetail('$error'))),
+        );
       }
     }
   }
@@ -355,7 +357,7 @@ class _PresetPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     if (presets.isEmpty) {
       return FormCard(
-        title: 'Export preset',
+        title: context.l10n.exportPreset,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -363,13 +365,10 @@ class _PresetPicker extends StatelessWidget {
             children: [
               const Icon(Icons.warning_amber_rounded, size: 48),
               const SizedBox(height: 12),
-              const Text(
-                'No export presets found. Manage presets in settings to create one.',
-                textAlign: TextAlign.center,
-              ),
+              Text(context.l10n.exportNoPresets, textAlign: TextAlign.center),
               const SizedBox(height: 20),
               PrimaryButton(
-                label: 'Manage Presets',
+                label: context.l10n.exportManagePresetsButton,
                 icon: Icons.settings_outlined,
                 onPressed: onManagePresets,
               ),
@@ -384,10 +383,9 @@ class _PresetPicker extends StatelessWidget {
         children: [
           DropdownButtonFormField<String>(
             initialValue: selectedPresetName,
-            decoration: const InputDecoration(
-              labelText: 'Export preset',
-              helperText:
-                  'Record type, headers, and field mappings are set by the preset.',
+            decoration: InputDecoration(
+              labelText: context.l10n.exportPreset,
+              helperText: context.l10n.exportPresetHelper,
             ),
             items: presets.keys
                 .map((name) => DropdownMenuItem(value: name, child: Text(name)))
@@ -400,7 +398,7 @@ class _PresetPicker extends StatelessWidget {
             child: TextButton.icon(
               onPressed: onManagePresets,
               icon: const Icon(Icons.settings_outlined, size: 16),
-              label: const Text('Manage presets'),
+              label: Text(context.l10n.documentManagePresets),
             ),
           ),
         ],
@@ -424,14 +422,14 @@ class PresetPreviewPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (selectedPresetName == null || selectedPreset == null) {
-      return const FormCard(
-        title: 'Preset details',
+      return FormCard(
+        title: context.l10n.exportPresetDetails,
         isExpanded: true,
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'Select an export preset to see details and preview.',
+              context.l10n.exportSelectPresetPrompt,
               textAlign: TextAlign.center,
             ),
           ),
@@ -443,7 +441,7 @@ class PresetPreviewPane extends StatelessWidget {
     final isValid = preset.mappings.isNotEmpty;
 
     return FormCard(
-      title: 'Preset: $selectedPresetName',
+      title: context.l10n.exportPresetName(selectedPresetName ?? ''),
       isExpanded: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,7 +457,9 @@ class PresetPreviewPane extends StatelessWidget {
                     children: [
                       Chip(
                         label: Text(
-                          'Record: ${preset.recordType.localizedLabel(context.l10n)}',
+                          context.l10n.exportPresetRecord(
+                            preset.recordType.localizedLabel(context.l10n),
+                          ),
                         ),
                         avatar: const Icon(
                           Icons.description_outlined,
@@ -472,7 +472,11 @@ class PresetPreviewPane extends StatelessWidget {
                       if (preset.recordType == RecordType.specimenRecord)
                         Chip(
                           label: Text(
-                            'Taxon: ${preset.specimenRecordType.name}',
+                            context.l10n.exportPresetTaxon(
+                              preset.specimenRecordType.localizedLabel(
+                                context.l10n,
+                              ),
+                            ),
                           ),
                           avatar: const Icon(Icons.pets_outlined, size: 16),
                           shape: RoundedRectangleBorder(
@@ -480,7 +484,11 @@ class PresetPreviewPane extends StatelessWidget {
                           ),
                         ),
                       Chip(
-                        label: Text('Header: ${preset.headerFormat.name}'),
+                        label: Text(
+                          context.l10n.exportPresetHeader(
+                            preset.headerFormat.name,
+                          ),
+                        ),
                         avatar: const Icon(Icons.title_outlined, size: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -490,7 +498,7 @@ class PresetPreviewPane extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Selected Columns (${preset.mappings.length}):',
+                    context.l10n.exportSelectedColumns(preset.mappings.length),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -499,7 +507,7 @@ class PresetPreviewPane extends StatelessWidget {
                     const SizedBox(height: 24),
                     Center(
                       child: PrimaryButton(
-                        label: 'Preview Table',
+                        label: context.l10n.exportPreviewTable,
                         icon: Icons.table_chart_outlined,
                         onPressed: onSeeTable,
                       ),
@@ -523,13 +531,17 @@ class PresetColumnChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (preset.mappings.isEmpty) {
-      return const Text('No fields mapped in this preset.');
+      return Text(context.l10n.exportNoFieldsMapped);
     }
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: preset.mappings.map((mapping) {
-        final label = _getMappingLabel(mapping, preset.headerFormat);
+        final label = _getMappingLabel(
+          context.l10n,
+          mapping,
+          preset.headerFormat,
+        );
         return Chip(
           label: Text(label),
           shape: RoundedRectangleBorder(
@@ -545,13 +557,17 @@ class PresetColumnChips extends StatelessWidget {
   }
 
   String _getMappingLabel(
+    AppLocalizations l10n,
     ExportFieldMapping mapping,
     ExportHeaderFormat format,
   ) {
     final override = mapping.headerOverride?.trim();
     if (override != null && override.isNotEmpty) return override;
     if (mapping.isNested) {
-      return '${mapping.nestedNamespace} (${mapping.nestedFields.length} fields)';
+      return l10n.exportNestedFields(
+        mapping.nestedNamespace ?? '',
+        mapping.nestedFields.length,
+      );
     }
     final expr = mapping.expression.trim();
     final key = firstExpressionFieldKey(expr) ?? expr;
@@ -627,12 +643,12 @@ class _ExportPresetTablePreviewScreenState
         : _rows.sublist(startIndex, endIndex);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Table preview')),
+      appBar: AppBar(title: Text(context.l10n.exportTablePreview)),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _rows.isEmpty
-            ? const Center(child: Text('No records found for this preset.'))
+            ? Center(child: Text(context.l10n.exportNoRecordsForPreset))
             : Column(
                 children: [
                   Expanded(
@@ -723,7 +739,11 @@ class _ExportPresetTablePreviewScreenState
                     child: Row(
                       children: [
                         Text(
-                          'Showing ${startIndex + 1}-$endIndex of ${_rows.length} records',
+                          context.l10n.exportShowingRecords(
+                            startIndex + 1,
+                            endIndex,
+                            _rows.length,
+                          ),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const Spacer(),
@@ -736,7 +756,12 @@ class _ExportPresetTablePreviewScreenState
                               : null,
                         ),
                         Text(
-                          'Page ${_currentPage + 1} of ${(_rows.isNotEmpty ? (_rows.length / _pageSize).ceil() : 1)}',
+                          context.l10n.exportPageOf(
+                            _currentPage + 1,
+                            _rows.isNotEmpty
+                                ? (_rows.length / _pageSize).ceil()
+                                : 1,
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.chevron_right),
