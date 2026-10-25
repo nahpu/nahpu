@@ -53,12 +53,80 @@ class TissueCell {
   String toString() => 'TissueCell($row, $column)';
 }
 
-/// The shape, numbering, and fill order of a tissue box.
+/// How cell positions and storage locations are written, such as
+/// `Box 1: A1` by default or `Box 1 / A01` customized.
+class TissueLabelFormat {
+  const TissueLabelFormat({
+    this._boxSeparator = defaultBoxSeparator,
+    this._rowColumnSeparator = defaultRowColumnSeparator,
+    this.zeroPad = false,
+  });
+
+  const TissueLabelFormat.standard() : this();
+
+  static const String defaultBoxSeparator = ': ';
+  static const String defaultRowColumnSeparator = '-';
+
+  /// Numbers are padded to at least this many digits with [zeroPad].
+  static const int minPadWidth = 2;
+
+  final String _boxSeparator;
+  final String _rowColumnSeparator;
+
+  /// Pads row, column, and cell numbers with zeros, such as `A01`.
+  final bool zeroPad;
+
+  /// Between the box name and the cell. Blank falls back to `: `.
+  String get boxSeparator =>
+      _boxSeparator.isEmpty ? defaultBoxSeparator : _boxSeparator;
+
+  /// Between row and column in 1-1 numbering. Blank falls back to `-`.
+  String get rowColumnSeparator => _rowColumnSeparator.trim().isEmpty
+      ? defaultRowColumnSeparator
+      : _rowColumnSeparator;
+
+  bool get isStandard => this == const TissueLabelFormat.standard();
+
+  TissueLabelFormat copyWith({
+    String? boxSeparator,
+    String? rowColumnSeparator,
+    bool? zeroPad,
+  }) {
+    return TissueLabelFormat(
+      boxSeparator: boxSeparator ?? _boxSeparator,
+      rowColumnSeparator: rowColumnSeparator ?? _rowColumnSeparator,
+      zeroPad: zeroPad ?? this.zeroPad,
+    );
+  }
+
+  /// [number] padded to the width of [largest], and at least
+  /// [minPadWidth], when [zeroPad] is on.
+  String pad(int number, int largest) {
+    if (!zeroPad) return '$number';
+    final width = '$largest'.length < minPadWidth
+        ? minPadWidth
+        : '$largest'.length;
+    return '$number'.padLeft(width, '0');
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is TissueLabelFormat &&
+      other.boxSeparator == boxSeparator &&
+      other.rowColumnSeparator == rowColumnSeparator &&
+      other.zeroPad == zeroPad;
+
+  @override
+  int get hashCode => Object.hash(boxSeparator, rowColumnSeparator, zeroPad);
+}
+
+/// The shape, numbering, fill order, and label format of a tissue box.
 class TissueBoxLayout {
   const TissueBoxLayout({
     this.size = TissueBoxSize.cells81,
     this.numbering = TissueCellNumbering.alphanumeric,
     this.fillOrder = TissueFillOrder.rowMajor,
+    this.labelFormat = const TissueLabelFormat.standard(),
   });
 
   static const _rowLetters = 'ABCDEFGHIJ';
@@ -66,6 +134,32 @@ class TissueBoxLayout {
   final TissueBoxSize size;
   final TissueCellNumbering numbering;
   final TissueFillOrder fillOrder;
+  final TissueLabelFormat labelFormat;
+
+  TissueBoxLayout copyWith({
+    TissueBoxSize? size,
+    TissueCellNumbering? numbering,
+    TissueFillOrder? fillOrder,
+    TissueLabelFormat? labelFormat,
+  }) {
+    return TissueBoxLayout(
+      size: size ?? this.size,
+      numbering: numbering ?? this.numbering,
+      fillOrder: fillOrder ?? this.fillOrder,
+      labelFormat: labelFormat ?? this.labelFormat,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is TissueBoxLayout &&
+      other.size == size &&
+      other.numbering == numbering &&
+      other.fillOrder == fillOrder &&
+      other.labelFormat == labelFormat;
+
+  @override
+  int get hashCode => Object.hash(size, numbering, fillOrder, labelFormat);
 
   int get side => size.side;
 
@@ -103,15 +197,21 @@ class TissueBoxLayout {
 
   String rowLabel(int row) => numbering == TissueCellNumbering.alphanumeric
       ? _rowLetters[row]
-      : '${row + 1}';
+      : labelFormat.pad(row + 1, side);
 
-  String columnLabel(int column) => '${column + 1}';
+  String columnLabel(int column) => labelFormat.pad(column + 1, side);
 
   String cellLabel(TissueCell cell) => switch (numbering) {
     TissueCellNumbering.alphanumeric =>
       '${rowLabel(cell.row)}${columnLabel(cell.column)}',
-    TissueCellNumbering.sequential => '${indexOf(cell) + 1}',
-    TissueCellNumbering.rowColumn => '${cell.row + 1}-${cell.column + 1}',
+    TissueCellNumbering.sequential => labelFormat.pad(
+      indexOf(cell) + 1,
+      size.capacity,
+    ),
+    TissueCellNumbering.rowColumn =>
+      '${rowLabel(cell.row)}'
+          '${labelFormat.rowColumnSeparator}'
+          '${columnLabel(cell.column)}',
   };
 
   /// Reads a label written by [cellLabel]. Returns null for anything else.
@@ -150,7 +250,7 @@ class TissueBoxLayout {
   }
 
   TissueCell? _parseRowColumn(String text) {
-    final parts = text.split('-');
+    final parts = text.split(labelFormat.rowColumnSeparator.toUpperCase());
     if (parts.length != 2) return null;
     final row = int.tryParse(parts[0]);
     final column = int.tryParse(parts[1]);
@@ -165,9 +265,23 @@ String formatTissueBoxName(String boxLabel, int boxNumber) {
   return label.isEmpty ? '$boxNumber' : '$label $boxNumber';
 }
 
+/// The start of every storage location in [boxName], such as `Box 12: `.
+String tissueLocationPrefix(
+  String boxName, {
+  TissueLabelFormat format = const TissueLabelFormat.standard(),
+}) {
+  return '$boxName${format.boxSeparator}';
+}
+
 /// The storage location written for a tube, such as `Box 12: A1`.
-String formatTissueLocation(String boxLabel, int boxNumber, String cellLabel) {
-  return '${formatTissueBoxName(boxLabel, boxNumber)}: $cellLabel';
+String formatTissueLocation(
+  String boxLabel,
+  int boxNumber,
+  String cellLabel, {
+  TissueLabelFormat format = const TissueLabelFormat.standard(),
+}) {
+  final box = formatTissueBoxName(boxLabel, boxNumber);
+  return '${tissueLocationPrefix(box, format: format)}$cellLabel';
 }
 
 /// The cell [location] points to in the named box, or null when it belongs
@@ -178,7 +292,10 @@ TissueCell? parseTissueLocation(
   required int boxNumber,
   required String location,
 }) {
-  final prefix = '${formatTissueBoxName(boxLabel, boxNumber)}: ';
+  final prefix = tissueLocationPrefix(
+    formatTissueBoxName(boxLabel, boxNumber),
+    format: layout.labelFormat,
+  );
   final text = location.trim();
   if (!text.startsWith(prefix)) return null;
   return layout.parseCellLabel(text.substring(prefix.length));

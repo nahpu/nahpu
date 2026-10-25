@@ -12674,4 +12674,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get siteImportFieldGpsUnit => 'GPS unit';
+
+  @override
+  String get projectTissueCustomLabels => 'Customize cell labels';
+
+  @override
+  String get projectTissueBoxSeparator => 'Box separator';
+
+  @override
+  String get projectTissueRowColumnSeparator => 'Row–column separator';
+
+  @override
+  String get projectTissueZeroPad => 'Pad numbers with zeros';
+
+  @override
+  String projectTissueLabelExample(String example) {
+    return 'Example: $example';
+  }
 }

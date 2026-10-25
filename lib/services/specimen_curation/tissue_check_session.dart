@@ -108,7 +108,10 @@ class TissueCheckSession {
   Future<void> _pending = Future.value();
 
   TissueCheckSettings get settings => _settings;
-  TissueBoxLayout get layout => _settings.layout;
+
+  /// The layout boxes are filled and read with, standard labels unless
+  /// custom labels are on.
+  TissueBoxLayout get layout => _settings.effectiveLayout;
 
   /// Filled cells and the tubes in them, whether placed by this tool or
   /// typed in the part and parasite forms. Usually one tube per cell;
@@ -136,6 +139,7 @@ class TissueCheckSession {
           _settings.boxLabel,
           _settings.boxNumber,
           layout.cellLabel(_next!),
+          format: layout.labelFormat,
         );
 
   /// Reads which cells of the current box are already filled.
@@ -147,9 +151,7 @@ class TissueCheckSession {
     final previous = _settings;
     _settings = settings;
     final reload =
-        settings.layout.size != previous.layout.size ||
-        settings.layout.numbering != previous.layout.numbering ||
-        settings.layout.fillOrder != previous.layout.fillOrder ||
+        settings.effectiveLayout != previous.effectiveLayout ||
         settings.boxName != previous.boxName;
     return _serial(() async {
       await saveSettings(settings);
@@ -426,7 +428,10 @@ class TissueCheckSession {
 
   Future<void> _loadBox() async {
     _occupied.clear();
-    final items = await service.itemsInBox(_settings.boxName);
+    final items = await service.itemsInBox(
+      _settings.boxName,
+      format: layout.labelFormat,
+    );
     for (final item in items) {
       final cell = parseTissueLocation(
         layout,

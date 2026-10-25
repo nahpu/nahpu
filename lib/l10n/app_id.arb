@@ -3495,5 +3495,10 @@
   "dataTableProjectScopeTwo": "Proyek: {first}, {second}",
   "dataTableProjectScopeMany": "{count} proyek",
 
-  "siteImportFieldGpsUnit": "Unit GPS"
+  "siteImportFieldGpsUnit": "Unit GPS",
+  "projectTissueCustomLabels": "Sesuaikan label sel",
+  "projectTissueBoxSeparator": "Pemisah kotak",
+  "projectTissueRowColumnSeparator": "Pemisah baris–kolom",
+  "projectTissueZeroPad": "Isi angka dengan nol",
+  "projectTissueLabelExample": "Contoh: {example}"
 }

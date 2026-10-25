@@ -3495,5 +3495,10 @@
   "dataTableProjectScopeTwo": "Proyectos: {first}, {second}",
   "dataTableProjectScopeMany": "{count} proyectos",
 
-  "siteImportFieldGpsUnit": "Unidad GPS"
+  "siteImportFieldGpsUnit": "Unidad GPS",
+  "projectTissueCustomLabels": "Personalizar etiquetas de celda",
+  "projectTissueBoxSeparator": "Separador de caja",
+  "projectTissueRowColumnSeparator": "Separador fila–columna",
+  "projectTissueZeroPad": "Rellenar números con ceros",
+  "projectTissueLabelExample": "Ejemplo: {example}"
 }

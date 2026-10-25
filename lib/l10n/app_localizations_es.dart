@@ -12872,4 +12872,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siteImportFieldGpsUnit => 'Unidad GPS';
+
+  @override
+  String get projectTissueCustomLabels => 'Personalizar etiquetas de celda';
+
+  @override
+  String get projectTissueBoxSeparator => 'Separador de caja';
+
+  @override
+  String get projectTissueRowColumnSeparator => 'Separador fila–columna';
+
+  @override
+  String get projectTissueZeroPad => 'Rellenar números con ceros';
+
+  @override
+  String projectTissueLabelExample(String example) {
+    return 'Ejemplo: $example';
+  }
 }

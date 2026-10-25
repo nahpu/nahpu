@@ -3,6 +3,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/parasite_queries.dart';
 import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/import/batch/batch_import_index.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
 import 'package:nahpu/services/specimen_curation/tissue_item.dart';
@@ -315,9 +316,12 @@ class TissueCheckService {
   /// The tubes stored in the box named [boxName], parts and parasites
   /// alike, since both fill the same cells. Their locations may come from
   /// this tool or be typed in the part and parasite forms.
-  Future<List<TissueItemRecord>> itemsInBox(String boxName) async {
+  Future<List<TissueItemRecord>> itemsInBox(
+    String boxName, {
+    TissueLabelFormat format = const TissueLabelFormat.standard(),
+  }) async {
     await loadFieldIds();
-    final prefix = '$boxName: ';
+    final prefix = tissueLocationPrefix(boxName, format: format);
     final parts = await SpecimenPartQuery(
       database,
     ).getPartsWithLocationPrefix(projectUuid, prefix);

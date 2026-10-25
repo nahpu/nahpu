@@ -172,6 +172,15 @@ void main() {
       expectReadable(tester, 'details sheet');
     });
 
+    testWidgets('cell label options are readable in the $name theme', (
+      tester,
+    ) async {
+      await pumpScreen(tester, theme);
+      await tester.tap(find.byKey(const ValueKey('tissue-custom-labels')));
+      await tester.pumpAndSettle();
+      expectReadable(tester, 'custom cell labels');
+    });
+
     testWidgets('filter menu is readable in the $name theme', (tester) async {
       await pumpScreen(tester, theme);
       await tester.tap(find.byKey(const ValueKey('tissue-type-filter')));

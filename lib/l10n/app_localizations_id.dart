@@ -12574,4 +12574,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get siteImportFieldGpsUnit => 'Unit GPS';
+
+  @override
+  String get projectTissueCustomLabels => 'Sesuaikan label sel';
+
+  @override
+  String get projectTissueBoxSeparator => 'Pemisah kotak';
+
+  @override
+  String get projectTissueRowColumnSeparator => 'Pemisah baris–kolom';
+
+  @override
+  String get projectTissueZeroPad => 'Isi angka dengan nol';
+
+  @override
+  String projectTissueLabelExample(String example) {
+    return 'Contoh: $example';
+  }
 }

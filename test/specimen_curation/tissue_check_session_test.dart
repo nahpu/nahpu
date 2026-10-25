@@ -411,6 +411,30 @@ void main() {
       expect(session.shortLabelFor(parasite), 'P345');
     });
 
+    test('custom labels write and read their own locations', () async {
+      await _setLocation(database, 'T-2', 'Box 1 / A02');
+      await _setLocation(database, 'QR-1', 'Box 1: A03');
+      final session = createSession(
+        const TissueCheckSettings(
+          value: 'EXM',
+          customLabels: true,
+          layout: TissueBoxLayout(
+            labelFormat: TissueLabelFormat(boxSeparator: ' / ', zeroPad: true),
+          ),
+        ),
+      );
+      await session.load();
+      // QR-1 uses the standard format, so its cell reads as free.
+      expect(session.occupied.keys, [const TissueCell(0, 1)]);
+      expect(session.nextLocation, 'Box 1 / A01');
+      await session.scan('T-1');
+      expect(
+        (await _part(database, session.entries.single.itemId)).storageLocation,
+        'Box 1 / A01',
+      );
+      expect(session.nextLocation, 'Box 1 / A03');
+    });
+
     test('undo restores the part and the cell', () async {
       final session = createSession();
       await session.load();

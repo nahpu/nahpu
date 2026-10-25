@@ -11,6 +11,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -138,22 +139,32 @@ void main() {
     expect(scanFieldHasFocus(tester), isTrue);
   });
 
-  testWidgets('phones stack numbering above fill order', (tester) async {
-    await pumpScreen(tester, size: const Size(420, 2400));
+  const customLabels = TissueCheckSettings(value: 'EXM', customLabels: true);
+
+  testWidgets('phones stack numbering above the box separator', (tester) async {
+    await pumpScreen(
+      tester,
+      size: const Size(420, 2400),
+      settings: customLabels,
+    );
     final numbering = tester.getTopLeft(find.text('Numbering'));
-    final fillOrder = tester.getTopLeft(find.text('Fill order'));
-    expect(fillOrder.dy, greaterThan(numbering.dy));
-    expect(fillOrder.dx, numbering.dx);
+    final separator = tester.getTopLeft(find.text('Box separator'));
+    expect(separator.dy, greaterThan(numbering.dy));
+    expect(separator.dx, numbering.dx);
   });
 
-  testWidgets('wider screens keep numbering and fill order on one row', (
+  testWidgets('wider screens keep numbering and box separator on one row', (
     tester,
   ) async {
-    await pumpScreen(tester, size: const Size(1280, 1600));
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: customLabels,
+    );
     final numbering = tester.getTopLeft(find.text('Numbering'));
-    final fillOrder = tester.getTopLeft(find.text('Fill order'));
-    expect(fillOrder.dy, numbering.dy);
-    expect(fillOrder.dx, greaterThan(numbering.dx));
+    final separator = tester.getTopLeft(find.text('Box separator'));
+    expect(separator.dy, numbering.dy);
+    expect(separator.dx, greaterThan(numbering.dx));
   });
 
   Future<void> addFieldIdParts() async {
@@ -673,4 +684,85 @@ void main() {
       );
     });
   }
+
+  testWidgets('cell label options stay hidden until the toggle is on', (
+    tester,
+  ) async {
+    await pumpScreen(tester, size: const Size(1280, 2000));
+    expect(find.text('Numbering'), findsNothing);
+    expect(find.byKey(const ValueKey('tissue-label-example')), findsNothing);
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('tissue-next-cell'))).data,
+      'A1',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('tissue-custom-labels')));
+    await tester.pumpAndSettle();
+    final example = find.byKey(const ValueKey('tissue-label-example'));
+    expect(tester.widget<Text>(example).data, 'Example: Box 1: A1 … Box 1: I9');
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-box-separator')),
+      ' / ',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tissue-zero-pad')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Text>(example).data,
+      'Example: Box 1 / A01 … Box 1 / I09',
+    );
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('tissue-next-cell'))).data,
+      'A01',
+    );
+    expect(find.byKey(const ValueKey('tissue-cell-A01')), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'T-1043',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    final part = await database.select(database.specimenPart).getSingle();
+    expect(part.storageLocation, 'Box 1 / A01');
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tissue-cell-A01')),
+        matching: find.text('1043'),
+      ),
+      findsOneWidget,
+    );
+
+    // Off again: standard labels, but the custom ones are kept.
+    await tester.tap(find.byKey(const ValueKey('tissue-custom-labels')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tissue-cell-A1')), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    final saved = TissueCheckSettings.decode(
+      prefs.getString(tissueCheckPrefKey),
+    );
+    expect(saved.customLabels, isFalse);
+    expect(saved.layout.labelFormat.boxSeparator, ' / ');
+    expect(saved.layout.labelFormat.zeroPad, isTrue);
+  });
+
+  testWidgets('cell label options fit at 200% text on a phone', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpScreen(
+      tester,
+      size: const Size(420, 5000),
+      settings: const TissueCheckSettings(
+        value: 'EXM',
+        customLabels: true,
+        layout: TissueBoxLayout(numbering: TissueCellNumbering.rowColumn),
+      ),
+    );
+    expect(
+      find.byKey(const ValueKey('tissue-row-column-separator')),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

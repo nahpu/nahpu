@@ -36,10 +36,15 @@ class TissueCheckSettings {
     this.preservations = const {},
     this.includeParasites = false,
     this.parasiteCategories = const {},
+    this.customLabels = false,
   });
 
   final TissueCheckField field;
   final String value;
+
+  /// The box as configured, including a custom numbering and label format
+  /// that apply only while [customLabels] is on. Use [effectiveLayout] to
+  /// fill and read boxes.
   final TissueBoxLayout layout;
   final String boxLabel;
   final int boxNumber;
@@ -60,7 +65,21 @@ class TissueCheckSettings {
   /// any category.
   final Set<String> parasiteCategories;
 
+  /// Whether cell labels use the numbering and format in [layout] instead
+  /// of the standard `Box 1: A1`.
+  final bool customLabels;
+
   String get boxName => formatTissueBoxName(boxLabel, boxNumber);
+
+  /// The layout boxes are filled and read with: [layout] as configured with
+  /// [customLabels] on, or with standard `A1` labels with it off. Turning
+  /// the toggle off keeps the custom values for when it is turned back on.
+  TissueBoxLayout get effectiveLayout => customLabels
+      ? layout
+      : layout.copyWith(
+          numbering: TissueCellNumbering.alphanumeric,
+          labelFormat: const TissueLabelFormat.standard(),
+        );
 
   TissueCheckSettings copyWith({
     TissueCheckField? field,
@@ -74,6 +93,7 @@ class TissueCheckSettings {
     Set<String>? preservations,
     bool? includeParasites,
     Set<String>? parasiteCategories,
+    bool? customLabels,
   }) {
     return TissueCheckSettings(
       field: field ?? this.field,
@@ -87,6 +107,7 @@ class TissueCheckSettings {
       preservations: preservations ?? this.preservations,
       includeParasites: includeParasites ?? this.includeParasites,
       parasiteCategories: parasiteCategories ?? this.parasiteCategories,
+      customLabels: customLabels ?? this.customLabels,
     );
   }
 
@@ -96,6 +117,10 @@ class TissueCheckSettings {
     'size': layout.size.name,
     'numbering': layout.numbering.name,
     'fillOrder': layout.fillOrder.name,
+    'customLabels': customLabels,
+    'boxSeparator': layout.labelFormat.boxSeparator,
+    'rowColumnSeparator': layout.labelFormat.rowColumnSeparator,
+    'zeroPad': layout.labelFormat.zeroPad,
     'boxLabel': boxLabel,
     'boxNumber': boxNumber,
     'overwrite': overwrite,
@@ -114,7 +139,18 @@ class TissueCheckSettings {
       final json = jsonDecode(encoded);
       if (json is! Map<String, dynamic>) return defaults;
       final boxNumber = json['boxNumber'];
+      final numbering = _byName(
+        TissueCellNumbering.values,
+        json['numbering'],
+        defaults.layout.numbering,
+      );
+      const standard = TissueLabelFormat.standard();
+      final customLabels = json['customLabels'];
       return TissueCheckSettings(
+        // Setups saved before the toggle keep a numbering they chose.
+        customLabels: customLabels is bool
+            ? customLabels
+            : numbering != TissueCellNumbering.alphanumeric,
         field: _byName(TissueCheckField.values, json['field'], defaults.field),
         value: json['value'] is String ? json['value'] as String : '',
         layout: TissueBoxLayout(
@@ -123,15 +159,20 @@ class TissueCheckSettings {
             json['size'],
             defaults.layout.size,
           ),
-          numbering: _byName(
-            TissueCellNumbering.values,
-            json['numbering'],
-            defaults.layout.numbering,
-          ),
+          numbering: numbering,
           fillOrder: _byName(
             TissueFillOrder.values,
             json['fillOrder'],
             defaults.layout.fillOrder,
+          ),
+          labelFormat: TissueLabelFormat(
+            boxSeparator: json['boxSeparator'] is String
+                ? json['boxSeparator'] as String
+                : standard.boxSeparator,
+            rowColumnSeparator: json['rowColumnSeparator'] is String
+                ? json['rowColumnSeparator'] as String
+                : standard.rowColumnSeparator,
+            zeroPad: json['zeroPad'] == true,
           ),
         ),
         boxLabel: json['boxLabel'] is String

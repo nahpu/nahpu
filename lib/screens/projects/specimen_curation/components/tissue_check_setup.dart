@@ -174,69 +174,45 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               showSelectedIcon: false,
               onSelectionChanged: (selection) => widget.onChanged(
                 settings.copyWith(
-                  layout: TissueBoxLayout(
-                    size: selection.first,
-                    numbering: layout.numbering,
-                    fillOrder: layout.fillOrder,
-                  ),
+                  layout: layout.copyWith(size: selection.first),
                 ),
               ),
             ),
             const SizedBox(height: NahpuSpacing.xl),
-            TissueSetupPair(
-              first: DropdownButtonFormField<TissueCellNumbering>(
-                initialValue: layout.numbering,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.projectTissueNumbering,
-                ),
-                items: [
-                  for (final numbering in TissueCellNumbering.values)
-                    DropdownMenuItem(
-                      value: numbering,
-                      child: Text(numbering.label),
-                    ),
-                ],
-                onChanged: (numbering) {
-                  if (numbering == null) return;
-                  widget.onChanged(
-                    settings.copyWith(
-                      layout: TissueBoxLayout(
-                        size: layout.size,
-                        numbering: numbering,
-                        fillOrder: layout.fillOrder,
-                      ),
-                    ),
-                  );
-                },
+            DropdownButtonFormField<TissueFillOrder>(
+              initialValue: layout.fillOrder,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: context.l10n.projectTissueFillOrder,
               ),
-              second: DropdownButtonFormField<TissueFillOrder>(
-                initialValue: layout.fillOrder,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.projectTissueFillOrder,
-                ),
-                items: [
-                  for (final order in TissueFillOrder.values)
-                    DropdownMenuItem(
-                      value: order,
-                      child: Text(order.localizedLabel(context.l10n)),
-                    ),
-                ],
-                onChanged: (order) {
-                  if (order == null) return;
-                  widget.onChanged(
-                    settings.copyWith(
-                      layout: TissueBoxLayout(
-                        size: layout.size,
-                        numbering: layout.numbering,
-                        fillOrder: order,
-                      ),
-                    ),
-                  );
-                },
-              ),
+              items: [
+                for (final order in TissueFillOrder.values)
+                  DropdownMenuItem(
+                    value: order,
+                    child: Text(order.localizedLabel(context.l10n)),
+                  ),
+              ],
+              onChanged: (order) {
+                if (order == null) return;
+                widget.onChanged(
+                  settings.copyWith(layout: layout.copyWith(fillOrder: order)),
+                );
+              },
             ),
+            const SizedBox(height: NahpuSpacing.md),
+            SwitchListTile(
+              key: const ValueKey('tissue-custom-labels'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.projectTissueCustomLabels),
+              value: settings.customLabels,
+              onChanged: (custom) =>
+                  widget.onChanged(settings.copyWith(customLabels: custom)),
+            ),
+            if (settings.customLabels)
+              TissueLabelFormatFields(
+                settings: settings,
+                onChanged: widget.onChanged,
+              ),
             const SizedBox(height: NahpuSpacing.xl),
             Row(
               children: [
@@ -292,6 +268,126 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
 
   void _sync(TextEditingController controller, String text) {
     if (controller.text != text) controller.text = text;
+  }
+}
+
+/// The custom cell label settings: numbering, separators, zero padding,
+/// and a preview of the locations they write. Shown while custom labels are
+/// on.
+class TissueLabelFormatFields extends StatefulWidget {
+  const TissueLabelFormatFields({
+    super.key,
+    required this.settings,
+    required this.onChanged,
+  });
+
+  final TissueCheckSettings settings;
+  final ValueChanged<TissueCheckSettings> onChanged;
+
+  @override
+  State<TissueLabelFormatFields> createState() =>
+      _TissueLabelFormatFieldsState();
+}
+
+class _TissueLabelFormatFieldsState extends State<TissueLabelFormatFields> {
+  late final _boxSeparatorCtr = TextEditingController(
+    text: widget.settings.layout.labelFormat.boxSeparator,
+  );
+  late final _rowColumnCtr = TextEditingController(
+    text: widget.settings.layout.labelFormat.rowColumnSeparator,
+  );
+
+  @override
+  void dispose() {
+    _boxSeparatorCtr.dispose();
+    _rowColumnCtr.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final settings = widget.settings;
+    final layout = settings.layout;
+    final format = layout.labelFormat;
+    final effective = settings.effectiveLayout;
+    final cells = effective.orderedCells;
+    String example(TissueCell cell) => formatTissueLocation(
+      settings.boxLabel,
+      settings.boxNumber,
+      effective.cellLabel(cell),
+      format: effective.labelFormat,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TissueSetupPair(
+          first: DropdownButtonFormField<TissueCellNumbering>(
+            initialValue: layout.numbering,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: context.l10n.projectTissueNumbering,
+            ),
+            items: [
+              for (final numbering in TissueCellNumbering.values)
+                DropdownMenuItem(
+                  value: numbering,
+                  child: Text(numbering.label),
+                ),
+            ],
+            onChanged: (numbering) {
+              if (numbering == null) return;
+              _update(layout.copyWith(numbering: numbering));
+            },
+          ),
+          second: TextField(
+            key: const ValueKey('tissue-box-separator'),
+            controller: _boxSeparatorCtr,
+            decoration: InputDecoration(
+              labelText: context.l10n.projectTissueBoxSeparator,
+            ),
+            onChanged: (text) => _update(
+              layout.copyWith(labelFormat: format.copyWith(boxSeparator: text)),
+            ),
+          ),
+        ),
+        if (layout.numbering == TissueCellNumbering.rowColumn) ...[
+          const SizedBox(height: NahpuSpacing.xl),
+          TextField(
+            key: const ValueKey('tissue-row-column-separator'),
+            controller: _rowColumnCtr,
+            decoration: InputDecoration(
+              labelText: context.l10n.projectTissueRowColumnSeparator,
+            ),
+            onChanged: (text) => _update(
+              layout.copyWith(
+                labelFormat: format.copyWith(rowColumnSeparator: text),
+              ),
+            ),
+          ),
+        ],
+        SwitchListTile(
+          key: const ValueKey('tissue-zero-pad'),
+          contentPadding: EdgeInsets.zero,
+          title: Text(context.l10n.projectTissueZeroPad),
+          value: format.zeroPad,
+          onChanged: (zeroPad) => _update(
+            layout.copyWith(labelFormat: format.copyWith(zeroPad: zeroPad)),
+          ),
+        ),
+        Text(
+          context.l10n.projectTissueLabelExample(
+            '${example(cells.first)} … ${example(cells.last)}',
+          ),
+          key: const ValueKey('tissue-label-example'),
+          style: theme.textTheme.bodyMedium,
+        ),
+      ],
+    );
+  }
+
+  void _update(TissueBoxLayout layout) {
+    widget.onChanged(widget.settings.copyWith(layout: layout));
   }
 }
 

@@ -4477,5 +4477,11 @@
   "dataTableProjectScopeMany": "{count} projects",
   "@dataTableProjectScopeMany": {"placeholders": {"count": {"type": "int"}}},
 
-  "siteImportFieldGpsUnit": "GPS unit"
+  "siteImportFieldGpsUnit": "GPS unit",
+  "projectTissueCustomLabels": "Customize cell labels",
+  "projectTissueBoxSeparator": "Box separator",
+  "projectTissueRowColumnSeparator": "Row–column separator",
+  "projectTissueZeroPad": "Pad numbers with zeros",
+  "projectTissueLabelExample": "Example: {example}",
+  "@projectTissueLabelExample": {"placeholders": {"example": {"type": "String", "example": "Box 1: A01 … Box 1: I09"}}}
 }

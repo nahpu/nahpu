@@ -20775,6 +20775,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GPS unit'**
   String get siteImportFieldGpsUnit;
+
+  /// No description provided for @projectTissueCustomLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize cell labels'**
+  String get projectTissueCustomLabels;
+
+  /// No description provided for @projectTissueBoxSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **'Box separator'**
+  String get projectTissueBoxSeparator;
+
+  /// No description provided for @projectTissueRowColumnSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **'Row–column separator'**
+  String get projectTissueRowColumnSeparator;
+
+  /// No description provided for @projectTissueZeroPad.
+  ///
+  /// In en, this message translates to:
+  /// **'Pad numbers with zeros'**
+  String get projectTissueZeroPad;
+
+  /// No description provided for @projectTissueLabelExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: {example}'**
+  String projectTissueLabelExample(String example);
 }
 
 class _AppLocalizationsDelegate

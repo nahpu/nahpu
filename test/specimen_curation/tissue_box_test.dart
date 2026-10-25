@@ -211,4 +211,143 @@ void main() {
       expect(suggestTissueCodes(codes, 'a', limit: 2), hasLength(2));
     });
   });
+
+  group('TissueLabelFormat', () {
+    const padded = TissueLabelFormat(zeroPad: true);
+
+    test('pads to two digits, or to the largest number', () {
+      const alpha = TissueBoxLayout(labelFormat: padded);
+      expect(alpha.cellLabel(const TissueCell(0, 0)), 'A01');
+      expect(alpha.cellLabel(const TissueCell(8, 8)), 'I09');
+      const sequential = TissueBoxLayout(
+        size: TissueBoxSize.cells100,
+        numbering: TissueCellNumbering.sequential,
+        labelFormat: padded,
+      );
+      expect(sequential.cellLabel(const TissueCell(0, 0)), '001');
+      expect(sequential.cellLabel(const TissueCell(9, 9)), '100');
+    });
+
+    test('uses a custom row-column separator', () {
+      const layout = TissueBoxLayout(
+        numbering: TissueCellNumbering.rowColumn,
+        labelFormat: TissueLabelFormat(rowColumnSeparator: '.', zeroPad: true),
+      );
+      expect(layout.cellLabel(const TissueCell(1, 2)), '02.03');
+      expect(layout.parseCellLabel('02.03'), const TissueCell(1, 2));
+      expect(layout.parseCellLabel('2.3'), const TissueCell(1, 2));
+    });
+
+    test('blank separators fall back to the defaults', () {
+      const format = TissueLabelFormat(
+        boxSeparator: '',
+        rowColumnSeparator: ' ',
+      );
+      expect(format.boxSeparator, ': ');
+      expect(format.rowColumnSeparator, '-');
+      expect(format.isStandard, isTrue);
+    });
+
+    test('every cell round-trips in every format', () {
+      for (final size in TissueBoxSize.values) {
+        for (final numbering in TissueCellNumbering.values) {
+          for (final format in [
+            const TissueLabelFormat(),
+            const TissueLabelFormat(rowColumnSeparator: '/', zeroPad: true),
+          ]) {
+            final layout = TissueBoxLayout(
+              size: size,
+              numbering: numbering,
+              labelFormat: format,
+            );
+            for (final cell in layout.orderedCells) {
+              expect(
+                layout.parseCellLabel(layout.cellLabel(cell)),
+                cell,
+                reason: '$size $numbering $cell',
+              );
+            }
+          }
+        }
+      }
+    });
+
+    test('locations use the box separator', () {
+      const layout = TissueBoxLayout(
+        labelFormat: TissueLabelFormat(boxSeparator: ' / ', zeroPad: true),
+      );
+      final location = formatTissueLocation(
+        'Box',
+        1,
+        'A01',
+        format: layout.labelFormat,
+      );
+      expect(location, 'Box 1 / A01');
+      expect(
+        parseTissueLocation(
+          layout,
+          boxLabel: 'Box',
+          boxNumber: 1,
+          location: location,
+        ),
+        const TissueCell(0, 0),
+      );
+      expect(
+        parseTissueLocation(
+          layout,
+          boxLabel: 'Box',
+          boxNumber: 1,
+          location: 'Box 1: A01',
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('custom labels setting', () {
+    test('off uses standard labels and keeps the custom ones', () {
+      const settings = TissueCheckSettings(
+        layout: TissueBoxLayout(
+          numbering: TissueCellNumbering.sequential,
+          labelFormat: TissueLabelFormat(boxSeparator: ' / ', zeroPad: true),
+        ),
+      );
+      expect(
+        settings.effectiveLayout.numbering,
+        TissueCellNumbering.alphanumeric,
+      );
+      expect(settings.effectiveLayout.labelFormat.isStandard, isTrue);
+      final on = settings.copyWith(customLabels: true);
+      expect(on.effectiveLayout.numbering, TissueCellNumbering.sequential);
+      expect(on.effectiveLayout.labelFormat.boxSeparator, ' / ');
+    });
+
+    test('round-trips the format', () {
+      const settings = TissueCheckSettings(
+        customLabels: true,
+        layout: TissueBoxLayout(
+          numbering: TissueCellNumbering.rowColumn,
+          labelFormat: TissueLabelFormat(
+            boxSeparator: ' | ',
+            rowColumnSeparator: '.',
+            zeroPad: true,
+          ),
+        ),
+      );
+      final decoded = TissueCheckSettings.decode(settings.encode());
+      expect(decoded.customLabels, isTrue);
+      expect(decoded.layout, settings.layout);
+    });
+
+    test('older setups with a chosen numbering turn custom labels on', () {
+      expect(
+        TissueCheckSettings.decode('{"numbering":"sequential"}').customLabels,
+        isTrue,
+      );
+      expect(
+        TissueCheckSettings.decode('{"numbering":"alphanumeric"}').customLabels,
+        isFalse,
+      );
+    });
+  });
 }
