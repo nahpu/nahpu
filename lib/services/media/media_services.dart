@@ -199,6 +199,18 @@ class MediaServices extends AppServices {
       }
     });
 
+    final thumbnails = ref.read(mediaThumbnailServicesProvider);
+    for (final media in mediaById.values) {
+      final fileName = media.fileName;
+      final projectUuid = media.projectUuid ?? currentProjectUuid;
+      if (fileName == null || fileName.isEmpty) continue;
+      await thumbnails.deleteFor(
+        projectUuid: projectUuid,
+        category: media.category ?? '',
+        fileName: fileName,
+      );
+    }
+
     final failedPaths = <String>[];
     for (final file in filesByPath.values) {
       try {
@@ -216,6 +228,7 @@ class MediaServices extends AppServices {
   void _invalidateMedia(MediaCategory category) {
     ref.invalidate(projectMediaProvider);
     ref.invalidate(allRecordMediaProvider);
+    ref.invalidate(mediaPreviewProvider);
     switch (category) {
       case MediaCategory.narrative:
         ref.invalidate(narrativeMediaProvider);
@@ -237,6 +250,7 @@ class MediaServices extends AppServices {
   void _invalidateAllMedia() {
     ref.invalidate(projectMediaProvider);
     ref.invalidate(allRecordMediaProvider);
+    ref.invalidate(mediaPreviewProvider);
     ref.invalidate(narrativeMediaProvider);
     ref.invalidate(eventMediaProvider);
     ref.invalidate(siteMediaProvider);

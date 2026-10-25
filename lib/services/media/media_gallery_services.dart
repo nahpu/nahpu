@@ -23,6 +23,31 @@ extension MediaGallerySortLabel on MediaGallerySort {
   };
 }
 
+/// Lower-cased searchable text per media id, built once per media list so
+/// each keystroke only does substring checks.
+class MediaSearchIndex {
+  const MediaSearchIndex._(this._text);
+
+  factory MediaSearchIndex.build(
+    Iterable<MediaData> media, {
+    Map<String, String> personnelNames = const {},
+    Map<String, String> projectNames = const {},
+  }) {
+    return MediaSearchIndex._({
+      for (final item in media)
+        item.primaryId: MediaGalleryServices._searchableText(
+          item,
+          personnelNames,
+          projectNames,
+        ).toLowerCase(),
+    });
+  }
+
+  final Map<int, String> _text;
+
+  String? textFor(int mediaId) => _text[mediaId];
+}
+
 class MediaGalleryServices {
   const MediaGalleryServices();
 
@@ -34,6 +59,7 @@ class MediaGalleryServices {
     String? projectUuid,
     Map<String, String> personnelNames = const {},
     Map<String, String> projectNames = const {},
+    MediaSearchIndex? index,
   }) {
     final tokens = query
         .trim()
@@ -48,18 +74,16 @@ class MediaGalleryServices {
       }
       if (projectUuid != null && item.projectUuid != projectUuid) return false;
       if (tokens.isEmpty) return true;
-      final searchable = _searchableText(
-        item,
-        personnelNames,
-        projectNames,
-      ).toLowerCase();
+      final searchable =
+          index?.textFor(item.primaryId) ??
+          _searchableText(item, personnelNames, projectNames).toLowerCase();
       return tokens.every(searchable.contains);
     }).toList();
     filtered.sort((left, right) => _compare(left, right, sort));
     return filtered;
   }
 
-  String _searchableText(
+  static String _searchableText(
     MediaData media,
     Map<String, String> personnelNames,
     Map<String, String> projectNames,

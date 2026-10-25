@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/personnel.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
 import 'package:nahpu/screens/shared/actions/buttons.dart';
@@ -16,6 +15,7 @@ import 'package:nahpu/screens/shared/media/media_viewer_dialog.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/import/multimedia.dart';
 import 'package:nahpu/services/common/io_services.dart';
+import 'package:nahpu/services/media/media_preview.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/media/media_export_service.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -435,7 +435,7 @@ class _MediaAddSourceTile extends StatelessWidget {
   };
 }
 
-class MediaViewerBuilder extends StatelessWidget {
+class MediaViewerBuilder extends StatefulWidget {
   const MediaViewerBuilder({
     super.key,
     required this.images,
@@ -450,46 +450,62 @@ class MediaViewerBuilder extends StatelessWidget {
   final void Function(int id, bool selected)? onSelectionChanged;
 
   @override
+  State<MediaViewerBuilder> createState() => _MediaViewerBuilderState();
+}
+
+class _MediaViewerBuilderState extends State<MediaViewerBuilder> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    ScrollController scrollController = ScrollController();
     return CommonScrollbar(
-      scrollController: scrollController,
+      scrollController: _scrollController,
       child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: GridView.builder(
-          controller: scrollController,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: getCrossAxisCount(
-              MediaQuery.of(context).size.width,
-              imageSize,
+        padding: const EdgeInsets.all(NahpuSpacing.md),
+        child: LayoutBuilder(
+          builder: (context, constraints) => GridView.builder(
+            controller: _scrollController,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: getCrossAxisCount(
+                constraints.maxWidth,
+                imageSize,
+              ),
+              childAspectRatio: 1,
+              crossAxisSpacing: NahpuSpacing.md,
+              mainAxisSpacing: NahpuSpacing.md,
             ),
-            childAspectRatio: 1,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
+            itemCount: widget.images.length,
+            itemBuilder: (context, index) {
+              final media = widget.images[index];
+              return MediaCard(
+                key: ValueKey(media.primaryId),
+                media: media,
+                isSelecting: widget.isSelecting,
+                isSelected: widget.selectedMedia.contains(media.primaryId),
+                onSelectionChanged: widget.onSelectionChanged,
+                onTap: widget.isSelecting
+                    ? null
+                    : () => showMediaViewerDialog(
+                        context,
+                        mediaList: widget.images,
+                        initialIndex: index,
+                      ),
+              );
+            },
           ),
-          itemCount: images.length,
-          itemBuilder: (context, index) {
-            return MediaCard(
-              media: images[index],
-              isSelecting: isSelecting,
-              isSelected: selectedMedia.contains(images[index].primaryId),
-              onSelectionChanged: onSelectionChanged,
-              onTap: isSelecting
-                  ? null
-                  : () => showMediaViewerDialog(
-                      context,
-                      mediaList: images,
-                      initialIndex: index,
-                    ),
-            );
-          },
         ),
       ),
     );
   }
 }
 
-class MediaCard extends ConsumerStatefulWidget {
+class MediaCard extends StatelessWidget {
   const MediaCard({
     super.key,
     required this.media,
@@ -506,107 +522,64 @@ class MediaCard extends ConsumerStatefulWidget {
   final void Function(int id, bool selected)? onSelectionChanged;
 
   @override
-  MediaCardState createState() => MediaCardState();
-}
-
-class MediaCardState extends ConsumerState<MediaCard> {
-  @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final kind = matchMediaKindFromPath(media.fileName ?? '');
     return Stack(
-      fit: StackFit.loose,
+      fit: StackFit.expand,
       children: [
         GestureDetector(
-          onTap: widget.isSelecting
-              ? () => widget.onSelectionChanged?.call(
-                  widget.media.primaryId,
-                  !widget.isSelected,
-                )
-              : widget.onTap,
+          onTap: isSelecting
+              ? () => onSelectionChanged?.call(media.primaryId, !isSelected)
+              : onTap,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: widget.media.fileName != null
-                ? FutureBuilder<_MediaAssetPreview>(
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return _MediaTypeFallback(
-                          kind: _getMediaKind(),
-                          label: context.l10n.mediaUnavailable,
-                        );
-                      }
-                      if (snapshot.hasData) {
-                        final mediaAsset = snapshot.data!;
-                        if (!mediaAsset.exists) {
-                          return _MediaTypeFallback(
-                            kind: mediaAsset.kind,
-                            label: context.l10n.mediaFileMissing,
-                          );
-                        }
-                        if (mediaAsset.file != null) {
-                          return Image.file(
-                            width: imageSize.toDouble(),
-                            height: imageSize.toDouble(),
-                            cacheWidth: imageSize + 100,
-                            mediaAsset.file!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _MediaTypeFallback(
-                                kind: mediaAsset.kind,
-                                label: context.l10n.mediaImageUnavailable,
-                              );
-                            },
-                          );
-                        }
-                        return _MediaTypeFallback(kind: mediaAsset.kind);
-                      } else {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                    },
-                    future: _getMediaPath(),
-                    initialData: null,
-                  )
-                : Center(child: Text(context.l10n.mediaNone)),
+            borderRadius: BorderRadius.circular(NahpuRadius.lg),
+            child: media.fileName != null
+                ? _MediaCardPreview(media: media)
+                : _MediaTypeFallback(kind: kind, label: context.l10n.mediaNone),
           ),
         ),
         Positioned(
-          left: 0,
-          right: 0,
-          bottom: 8,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(NahpuRadius.md),
-              ),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                color: Theme.of(
-                  context,
-                ).scaffoldBackgroundColor.withAlpha((0.9 * 255).toInt()),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(0),
-                  dense: true,
-                  minVerticalPadding: 12,
-                  leading: widget.isSelecting
-                      ? ListCheckBox(
-                          isDisabled: false,
-                          value: widget.isSelected,
-                          isDense: true,
-                          onChanged: (value) {
-                            widget.onSelectionChanged?.call(
-                              widget.media.primaryId,
-                              value ?? false,
-                            );
-                          },
-                        )
-                      : Icon(_mediaKindIcon(_getMediaKind())),
-                  title: Text(
-                    widget.media.fileName ?? context.l10n.mediaNone,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium,
-                  ),
-                  trailing: widget.isSelecting
-                      ? null
-                      : MediaPopUpMenu(media: widget.media),
+          left: NahpuSpacing.md,
+          right: NahpuSpacing.md,
+          bottom: NahpuSpacing.md,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withAlpha((0.9 * 255).toInt()),
+              borderRadius: BorderRadius.circular(NahpuRadius.md),
+            ),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: NahpuSpacing.lg),
+              child: SizedBox(
+                height: NahpuControlSize.touchTarget,
+                child: Row(
+                  children: [
+                    if (isSelecting)
+                      ListCheckBox(
+                        isDisabled: false,
+                        value: isSelected,
+                        isDense: true,
+                        onChanged: (value) => onSelectionChanged?.call(
+                          media.primaryId,
+                          value ?? false,
+                        ),
+                      )
+                    else
+                      Icon(_mediaKindIcon(kind)),
+                    const SizedBox(width: NahpuSpacing.lg),
+                    Expanded(
+                      child: Text(
+                        media.fileName ?? context.l10n.mediaNone,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ),
+                    if (isSelecting)
+                      const SizedBox(width: NahpuSpacing.md)
+                    else
+                      MediaPopUpMenu(media: media),
+                  ],
                 ),
               ),
             ),
@@ -615,30 +588,58 @@ class MediaCardState extends ConsumerState<MediaCard> {
       ],
     );
   }
+}
 
-  Future<_MediaAssetPreview> _getMediaPath() async {
-    MediaCategory category = matchMediaCategoryString(
-      widget.media.category ?? '',
+class _MediaCardPreview extends ConsumerWidget {
+  const _MediaCardPreview({required this.media});
+
+  final MediaData media;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kind = matchMediaKindFromPath(media.fileName ?? '');
+    final preview = ref.watch(
+      mediaPreviewProvider(MediaPreviewKey.fromMedia(media)),
     );
-    final fileName = widget.media.fileName!;
-    final kind = _getMediaKind();
-    final mediaPath = await ImageServices(
-      ref: ref,
-      category: category,
-    ).getProjectMediaPath(fileName, widget.media.projectUuid ?? '');
-    final exists = await mediaPath.exists();
-
-    return _MediaAssetPreview(
-      file: kind == MediaKind.image ? mediaPath : null,
-      kind: kind,
-      exists: exists,
+    return preview.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
+      loading: () =>
+          _MediaTypeFallback(key: mediaCardLoadingKey, kind: kind, label: ''),
+      error: (_, _) =>
+          _MediaTypeFallback(kind: kind, label: context.l10n.mediaUnavailable),
+      data: (preview) {
+        if (!preview.exists) {
+          return _MediaTypeFallback(
+            kind: preview.kind,
+            label: context.l10n.mediaFileMissing,
+          );
+        }
+        final image = preview.displayImage;
+        if (image == null) return _MediaTypeFallback(kind: preview.kind);
+        // Thumbnails are already small; only full originals need a decode
+        // size. The 1.5 factor keeps landscape originals sharp under
+        // BoxFit.cover, which fills the square tile by its shorter side.
+        final cacheWidth = preview.thumbnail == null
+            ? (imageSize * MediaQuery.devicePixelRatioOf(context) * 1.5).round()
+            : null;
+        return Image.file(
+          image,
+          cacheWidth: cacheWidth,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => _MediaTypeFallback(
+            kind: preview.kind,
+            label: context.l10n.mediaImageUnavailable,
+          ),
+        );
+      },
     );
-  }
-
-  MediaKind _getMediaKind() {
-    return matchMediaKindFromPath(widget.media.fileName ?? '');
   }
 }
+
+/// Marks a media card whose preview is still resolving.
+const mediaCardLoadingKey = ValueKey('media-card-loading');
 
 IconData _mediaKindIcon(MediaKind kind) {
   return switch (kind) {
@@ -649,50 +650,36 @@ IconData _mediaKindIcon(MediaKind kind) {
   };
 }
 
-class _MediaAssetPreview {
-  const _MediaAssetPreview({
-    required this.file,
-    required this.kind,
-    required this.exists,
-  });
-
-  final File? file;
-  final MediaKind kind;
-  final bool exists;
-}
-
 class _MediaTypeFallback extends StatelessWidget {
-  const _MediaTypeFallback({required this.kind, this.label});
+  const _MediaTypeFallback({super.key, required this.kind, this.label});
 
   final MediaKind kind;
   final String? label;
 
   @override
   Widget build(BuildContext context) {
-    IconData icon = Icons.insert_drive_file_outlined;
-    switch (kind) {
-      case MediaKind.audio:
-      case MediaKind.video:
-        icon = Icons.play_circle_outline;
-        break;
-      case MediaKind.image:
-        icon = Icons.image_outlined;
-        break;
-      case MediaKind.other:
-        icon = Icons.insert_drive_file_outlined;
-        break;
-    }
-    return Container(
-      width: imageSize.toDouble(),
-      height: imageSize.toDouble(),
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    final colorScheme = Theme.of(context).colorScheme;
+    final icon = switch (kind) {
+      MediaKind.audio || MediaKind.video => Icons.play_circle_outline,
+      MediaKind.image => Icons.image_outlined,
+      MediaKind.other => Icons.insert_drive_file_outlined,
+    };
+    final text = label ?? kind.localizedLabel(context.l10n);
+    return ColoredBox(
+      color: colorScheme.surfaceContainerHighest,
       child: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 52, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(label ?? kind.localizedLabel(context.l10n)),
+            Icon(
+              icon,
+              size: NahpuControlSize.prominent,
+              color: colorScheme.primary,
+            ),
+            if (text.isNotEmpty) ...[
+              const SizedBox(height: NahpuSpacing.md),
+              Text(text),
+            ],
           ],
         ),
       ),

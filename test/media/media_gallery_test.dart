@@ -18,8 +18,11 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/media/media_gallery_services.dart';
+import 'package:nahpu/services/media/media_preview.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/projects.dart';
+import 'package:nahpu/services/types/file_format.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' as path;
 
@@ -74,6 +77,8 @@ void main() {
       await tester.pump();
       await tester.enterText(find.byType(SearchBar), 'habitat nikon');
       await tester.pump();
+      expect(_cardIds(tester), [2, 1], reason: 'filtering waits for typing');
+      await tester.pump(const Duration(milliseconds: 250));
       expect(_cardIds(tester), [2]);
 
       await tester.tap(find.text('Cancel'));
@@ -147,6 +152,74 @@ void main() {
       await tester.tap(find.byTooltip('All projects'));
       await tester.pump();
       expect(_cardIds(tester), [3, 2, 1]);
+    },
+  );
+
+  _testGalleryWidgets(
+    'selection and search keep scroll offset without re-resolving previews',
+    (tester) async {
+      for (var index = 0; index < 40; index++) {
+        await db
+            .into(db.media)
+            .insert(
+              MediaCompanion(
+                projectUuid: const Value(_projectUuid),
+                category: const Value('site'),
+                fileName: Value('extra$index.dat'),
+              ),
+            );
+      }
+      var resolved = 0;
+      WidgetRef? widgetRef;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            databaseProvider.overrideWithValue(db),
+            mediaPreviewProvider.overrideWith((ref, key) async {
+              resolved++;
+              return MediaPreview(
+                file: File(key.fileName),
+                kind: MediaKind.other,
+                exists: true,
+              );
+            }),
+          ],
+          child: MaterialApp(
+            home: Consumer(
+              builder: (context, ref, child) {
+                widgetRef = ref;
+                return const MediaGalleryScreen(
+                  initialCategory: MediaCategory.all,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      widgetRef!
+          .read(projectUuidProvider.notifier)
+          .updateProjectUuid(_projectUuid);
+      await _flushMediaLoad(tester);
+
+      await tester.drag(find.byType(GridView), const Offset(0, -500));
+      await tester.pump();
+      final scrollable = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(GridView),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      final offset = scrollable.position.pixels;
+      expect(offset, greaterThan(0));
+      final resolvedAfterScroll = resolved;
+
+      await tester.tap(find.text('Select'));
+      await tester.pump();
+      await tester.tap(find.byType(MediaCard).first);
+      await tester.pump();
+      expect(scrollable.position.pixels, offset);
+      expect(resolved, resolvedAfterScroll);
     },
   );
 
@@ -424,7 +497,8 @@ Future<void> _flushMediaLoad(WidgetTester tester) async {
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    if (find.byType(CircularProgressIndicator).evaluate().isEmpty) {
+    if (find.byType(CircularProgressIndicator).evaluate().isEmpty &&
+        find.byKey(mediaCardLoadingKey).evaluate().isEmpty) {
       await tester.pump(const Duration(milliseconds: 300));
       return;
     }

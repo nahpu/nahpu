@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/services/common/io_services.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/media_queries.dart';
+import 'package:nahpu/services/media/media_preview.dart';
+import 'package:nahpu/services/media/media_thumbnail_services.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/file_format.dart';
@@ -22,6 +24,54 @@ final allRecordMediaProvider = FutureProvider.autoDispose<List<MediaData>>((
 ) {
   return MediaDbQuery(ref.read(databaseProvider)).getAllRecordMedia();
 });
+
+/// The NAHPU documents directory; resolved once instead of per media card.
+final nahpuDocumentDirProvider = FutureProvider<Directory>(
+  (ref) => nahpuDocumentDir,
+);
+
+final mediaThumbnailServicesProvider = Provider<MediaThumbnailServices>(
+  (ref) => MediaThumbnailServices(),
+);
+
+const _recordMediaCategories = {'event', 'narrative', 'site', 'specimen'};
+
+/// Resolves a media card's file and thumbnail once, so grid rebuilds do not
+/// repeat file-system work.
+final mediaPreviewProvider = FutureProvider.autoDispose
+    .family<MediaPreview, MediaPreviewKey>((ref, key) async {
+      final kind = matchMediaKindFromPath(key.fileName);
+      final projectUuid = key.projectUuid.isEmpty
+          ? ref.watch(projectUuidProvider)
+          : key.projectUuid;
+      final documentDir = await ref.watch(nahpuDocumentDirProvider.future);
+      final file = File(
+        path.join(
+          documentDir.path,
+          projectUuid,
+          mediaDir,
+          key.category,
+          key.fileName,
+        ),
+      );
+      final exists =
+          _recordMediaCategories.contains(key.category) &&
+          key.fileName.isNotEmpty &&
+          path.basename(key.fileName) == key.fileName &&
+          await file.exists();
+      if (!exists || kind != MediaKind.image) {
+        return MediaPreview(file: file, kind: kind, exists: exists);
+      }
+      final thumbnail = await ref
+          .read(mediaThumbnailServicesProvider)
+          .thumbnailFor(file, projectUuid: projectUuid, category: key.category);
+      return MediaPreview(
+        file: file,
+        kind: kind,
+        exists: true,
+        thumbnail: thumbnail,
+      );
+    });
 
 final projectPreviewImageFilesProvider = FutureProvider.autoDispose
     .family<List<File>, String>((ref, projectUuid) async {

@@ -365,20 +365,26 @@ void main() {
     final cards = find.byType(MediaCard);
     expect(cards, findsNWidgets(expectedIcons.length));
     for (var index = 0; index < expectedIcons.length; index++) {
-      final label = tester.widget<ListTile>(
-        find.descendant(of: cards.at(index), matching: find.byType(ListTile)),
+      expect(
+        find.descendant(
+          of: cards.at(index),
+          matching: find.byIcon(expectedIcons[index]),
+        ),
+        findsWidgets,
       );
-      expect((label.leading! as Icon).icon, expectedIcons[index]);
     }
 
     await tester.tap(find.text('Select'));
     await tester.pump();
 
     for (var index = 0; index < expectedIcons.length; index++) {
-      final label = tester.widget<ListTile>(
-        find.descendant(of: cards.at(index), matching: find.byType(ListTile)),
+      expect(
+        find.descendant(
+          of: cards.at(index),
+          matching: find.byType(ListCheckBox),
+        ),
+        findsOneWidget,
       );
-      expect(label.leading, isA<ListCheckBox>());
     }
   });
 
@@ -746,7 +752,8 @@ Future<void> _flushMediaLoad(WidgetTester tester) async {
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
     await tester.pump(const Duration(milliseconds: 100));
-    if (find.byType(CircularProgressIndicator).evaluate().isEmpty) {
+    if (find.byType(CircularProgressIndicator).evaluate().isEmpty &&
+        find.byKey(mediaCardLoadingKey).evaluate().isEmpty) {
       await tester.pump(const Duration(milliseconds: 300));
       return;
     }

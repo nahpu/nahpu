@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/actions/adaptive_menu.dart';
@@ -81,6 +83,11 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
   bool _isSearching = false;
   bool _isSelecting = false;
 
+  /// Query the grid is filtered by; trails the text field by the debounce.
+  String _query = '';
+  Timer? _searchDebounce;
+  _VisibleMediaCache? _visibleCache;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +98,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -131,7 +139,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
                           icon: const Icon(Icons.clear_rounded),
                         ),
                     ],
-                    onChanged: (_) => _pruneSelectionToVisible(),
+                    onChanged: _onSearchChanged,
                   ),
                 ),
               )
@@ -278,15 +286,48 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
       widget.allProjects ? allPersonnelProvider : projectPersonnelProvider;
 
   List<MediaData> _visibleMedia(List<MediaData> allMedia) {
-    return _galleryServices.filterAndSort(
+    final personnel = ref.read(_personnelProvider).value;
+    final projects = _projects();
+    final cache = _visibleCache;
+    final index =
+        cache != null &&
+            identical(cache.media, allMedia) &&
+            identical(cache.personnel, personnel) &&
+            identical(cache.projects, projects)
+        ? cache.index
+        : MediaSearchIndex.build(
+            allMedia,
+            personnelNames: _personnelNames(),
+            projectNames: _projectNames(),
+          );
+    final filter = (
+      category: _category,
+      query: _query,
+      sort: _sort,
+      projectUuid: _projectUuid,
+    );
+    if (cache != null &&
+        identical(cache.index, index) &&
+        cache.filter == filter) {
+      return cache.result;
+    }
+    final result = _galleryServices.filterAndSort(
       media: allMedia,
       category: _category,
-      query: _searchController.text,
+      query: _query,
       sort: _sort,
       projectUuid: _projectUuid == _allProjects ? null : _projectUuid,
-      personnelNames: _personnelNames(),
-      projectNames: _projectNames(),
+      index: index,
     );
+    _visibleCache = _VisibleMediaCache(
+      media: allMedia,
+      personnel: personnel,
+      projects: projects,
+      index: index,
+      filter: filter,
+      result: result,
+    );
+    return result;
   }
 
   List<ProjectSummary> _projects() {
@@ -311,13 +352,29 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
     _searchFocusNode.requestFocus();
   }
 
+  void _onSearchChanged(String text) {
+    // Rebuild now so the clear button tracks the text; filter after typing
+    // pauses.
+    setState(() {});
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      _query = text;
+      _pruneSelectionToVisible();
+    });
+  }
+
   void _clearSearch() {
+    _searchDebounce?.cancel();
     _searchController.clear();
+    _query = '';
     _pruneSelectionToVisible();
   }
 
   void _cancelSearch() {
+    _searchDebounce?.cancel();
     _searchController.clear();
+    _query = '';
     setState(() => _isSearching = false);
     _pruneSelectionToVisible();
   }
@@ -403,6 +460,32 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
       context,
     ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
+}
+
+typedef _GalleryFilter = ({
+  MediaCategory category,
+  String query,
+  MediaGallerySort sort,
+  String projectUuid,
+});
+
+/// Last filter result plus the inputs it came from.
+class _VisibleMediaCache {
+  const _VisibleMediaCache({
+    required this.media,
+    required this.personnel,
+    required this.projects,
+    required this.index,
+    required this.filter,
+    required this.result,
+  });
+
+  final List<MediaData> media;
+  final List<PersonnelData>? personnel;
+  final List<ProjectSummary> projects;
+  final MediaSearchIndex index;
+  final _GalleryFilter filter;
+  final List<MediaData> result;
 }
 
 class _CategoryFilter extends StatelessWidget {
