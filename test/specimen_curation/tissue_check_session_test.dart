@@ -185,7 +185,17 @@ void main() {
       await (database.update(database.parasite)
             ..where((row) => row.parasiteID.equals('P-STORED')))
           .write(const ParasiteCompanion(storageLocation: Value('Box 1: A2')));
-      expect(await service.locationsInBox('Box 1'), ['Box 1: A2']);
+      final items = await service.itemsInBox('Box 1');
+      expect(items.map((e) => e.code), ['P-STORED']);
+      expect(items.single.isParasite, isTrue);
+    });
+
+    test('box contents match the box name exactly', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      await _setLocation(database, 'T-2', 'Box 10: A1');
+      await _setLocation(database, 'QR-1', '  Box 1: B1');
+      final items = await service.itemsInBox('Box 1');
+      expect(items.map((e) => e.code), unorderedEquals(['T-1', 'QR-1']));
     });
   });
 
@@ -347,6 +357,58 @@ void main() {
       await session.previousBox();
       expect(session.settings.boxNumber, 1);
       expect(saved.last.boxNumber, 1);
+    });
+
+    test('cells filled outside the tool show their tube', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      await (database.update(database.parasite)
+            ..where((row) => row.parasiteID.equals('P-1')))
+          .write(const ParasiteCompanion(storageLocation: Value('Box 1: A2')));
+      final session = createSession();
+      await session.load();
+      final a1 = session.itemsAt(const TissueCell(0, 0)).single;
+      final a2 = session.itemsAt(const TissueCell(0, 1)).single;
+      expect(session.labelFor(a1), 'T-1');
+      expect(session.shortLabelFor(a1), 'T-1');
+      expect(a2.isParasite, isTrue);
+      expect(session.shortLabelFor(a2), 'P-1');
+      expect(session.nextLocation, 'Box 1: A3');
+    });
+
+    test('tubes sharing a hand-typed cell are all listed', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      await _setLocation(database, 'T-2', 'Box 1: A1');
+      final session = createSession();
+      await session.load();
+      expect(session.itemsAt(const TissueCell(0, 0)), hasLength(2));
+      expect(session.filledCount, 1);
+    });
+
+    test('a placed tube shows in its cell until undone', () async {
+      final session = createSession();
+      await session.load();
+      await session.scan('T-1');
+      final cell = session.itemsAt(const TissueCell(0, 0)).single;
+      expect(cell.code, 'T-1');
+      expect(cell.storageLocation, 'Box 1: A1');
+      expect(cell.readField(TissueCheckField.museumPermanent), 'EXM');
+
+      await session.undoLast();
+      expect(session.itemsAt(const TissueCell(0, 0)), isEmpty);
+    });
+
+    test('short labels keep the end of the ID and mark parasites', () async {
+      final session = createSession();
+      final part = (await service.find(TissueQuery('T-STORED'))).records.single;
+      expect(session.shortLabelFor(part), 'ORED');
+      await (database.update(database.parasite)
+            ..where((row) => row.parasiteID.equals('P-1')))
+          .write(const ParasiteCompanion(parasiteID: Value('XYZ-12345')));
+      final parasite = (await service.find(
+        TissueQuery('XYZ-12345'),
+        includeParasites: true,
+      )).records.single;
+      expect(session.shortLabelFor(parasite), 'P345');
     });
 
     test('undo restores the part and the cell', () async {

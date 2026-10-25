@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_camera_scanner.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_cell_inspector.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
+import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -50,6 +52,10 @@ class _SpecimenCurationScreenState
   List<TissueItemRecord>? _workList;
   int _workIndex = 0;
 
+  /// The filled cell shown in the inspector, with the box it belongs to so
+  /// it never shows over another box.
+  ({String box, TissueCell cell})? _inspected;
+
   /// Codes suggested while typing in the scan field.
   List<String> _scanCodes = const [];
 
@@ -77,15 +83,39 @@ class _SpecimenCurationScreenState
     final settings = _session.settings;
     final partTypes = _vocabulary(specimenTypePrefKey);
     final treatments = _treatments(settings.includeParasites, _vocabulary);
+    final inspected = _inspected?.box == settings.boxName
+        ? _inspected!.cell
+        : null;
+    final inspectedItems = inspected == null
+        ? const <TissueItemRecord>[]
+        : _session.itemsAt(inspected);
     final boxCard = TissueBoxCard(
       boxName: settings.boxName,
       layout: _session.layout,
       occupied: _session.occupied,
       next: _session.next,
+      shortLabelFor: _session.shortLabelFor,
+      labelFor: _session.labelFor,
+      inspected: inspectedItems.isEmpty ? null : inspected,
+      onInspect: (cell) => setState(
+        () => _inspected = _inspected?.cell == cell
+            ? null
+            : (box: settings.boxName, cell: cell),
+      ),
+      inspector: inspectedItems.isEmpty
+          ? null
+          : TissueCellInspector(
+              cellLabel: _session.layout.cellLabel(inspected!),
+              items: inspectedItems,
+              labelFor: _session.labelFor,
+              detailFor: _session.detailFor,
+              onDetails: _showDetails,
+              onClose: () => setState(() => _inspected = null),
+            ),
       onCellSelected: _selectCell,
-      onNextBox: () => _run(_session.nextBox),
+      onNextBox: () => _changeBox(_session.nextBox),
       onPreviousBox: settings.boxNumber > 1
-          ? () => _run(_session.previousBox)
+          ? () => _changeBox(_session.previousBox)
           : null,
     );
     final setupCard = TissueCheckSetupCard(
@@ -228,6 +258,41 @@ class _SpecimenCurationScreenState
     };
     return isDesktop ||
         MediaQuery.sizeOf(context).width >= NahpuBreakpoints.desktop;
+  }
+
+  /// Steps to another box and closes the inspector, which belongs to the
+  /// box being left.
+  Future<void> _changeBox(Future<void> Function() step) {
+    setState(() => _inspected = null);
+    return _run(step);
+  }
+
+  Future<void> _showDetails(TissueItemRecord record) async {
+    final open = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => TissueItemDetailsSheet(
+        record: record,
+        label: _session.labelFor(record),
+        fieldId: _session.service.fieldIdOf(record.specimen.uuid),
+        onOpenRecord: () => Navigator.pop(context, true),
+      ),
+    );
+    if (open == true && mounted) await _openRecord(record);
+  }
+
+  /// Opens the tube's specimen, then reads the box back, since the form
+  /// may have moved or relabeled the tube.
+  Future<void> _openRecord(TissueItemRecord record) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SpecimenFormView(specimenUuid: record.specimen.uuid),
+      ),
+    );
+    if (!mounted) return;
+    await _run(_session.load);
+    if (_entryMode == TissueEntryMode.workList) await _reloadWorkList();
   }
 
   void _selectCell(TissueCell cell) {

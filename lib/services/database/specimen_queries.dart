@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/like_pattern.dart';
 import 'package:nahpu/services/database/record_sort_terms.dart';
 import 'package:nahpu/services/types/record_sort.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -954,29 +955,38 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
     ];
   }
 
-  /// Returns the project's part storage locations that start with [prefix].
-  Future<List<String>> getStorageLocationsWithPrefix(
+  /// Returns the project's parts whose storage location starts with
+  /// [prefix], ignoring leading spaces, such as every part in `Box 2: `.
+  Future<List<SpecimenPartProjectRecord>> getPartsWithLocationPrefix(
     String projectUuid,
     String prefix,
   ) async {
     final query =
-        selectOnly(specimenPart).join([
+        select(specimenPart).join([
             innerJoin(
               specimen,
               specimen.uuid.equalsExp(specimenPart.specimenUuid),
-              useColumns: false,
             ),
           ])
-          ..addColumns([specimenPart.storageLocation])
           ..where(
             specimen.projectUuid.equals(projectUuid) &
-                specimenPart.storageLocation.isNotNull(),
-          );
+                specimenPart.storageLocation.like(
+                  '%${escapeLikePattern(prefix)}%',
+                  escapeChar: likeEscapeChar,
+                ),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
     final rows = await query.get();
-    return rows
-        .map((row) => row.read(specimenPart.storageLocation)!)
-        .where((location) => location.trim().startsWith(prefix))
-        .toList(growable: false);
+    return [
+      for (final row in rows)
+        if ((row.readTable(specimenPart).storageLocation ?? '')
+            .trimLeft()
+            .startsWith(prefix))
+          SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+    ];
   }
 
   Future<String?> getLastEnteredTissueID(String uuid) async {

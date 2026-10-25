@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/like_pattern.dart';
 
 part 'parasite_queries.g.dart';
 
@@ -84,28 +85,24 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     return _getProjectParasites(projectUuid, where: specimen.uuid.isIn(uuids));
   }
 
-  /// The project's parasite storage locations that start with [prefix].
-  Future<List<String>> getStorageLocationsWithPrefix(
+  /// The project's parasites whose storage location starts with [prefix],
+  /// ignoring leading spaces.
+  Future<List<ParasiteProjectRecord>> getParasitesWithLocationPrefix(
     String projectUuid,
     String prefix,
   ) async {
-    final query =
-        selectOnly(parasite).join([
-            innerJoin(
-              specimen,
-              specimen.uuid.equalsExp(parasite.specimenUuid),
-              useColumns: false,
-            ),
-          ])
-          ..addColumns([parasite.storageLocation])
-          ..where(
-            specimen.projectUuid.equals(projectUuid) &
-                parasite.storageLocation.isNotNull(),
-          );
-    final rows = await query.get();
-    return rows
-        .map((row) => row.read(parasite.storageLocation)!)
-        .where((location) => location.trim().startsWith(prefix))
+    final records = await _getProjectParasites(
+      projectUuid,
+      where: parasite.storageLocation.like(
+        '%${escapeLikePattern(prefix)}%',
+        escapeChar: likeEscapeChar,
+      ),
+    );
+    return records
+        .where(
+          (e) =>
+              (e.parasite.storageLocation ?? '').trimLeft().startsWith(prefix),
+        )
         .toList(growable: false);
   }
 

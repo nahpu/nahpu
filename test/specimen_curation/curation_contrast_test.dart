@@ -144,6 +144,34 @@ void main() {
       expectReadable(tester, 'work list search');
     });
 
+    testWidgets('inspector and details are readable in the $name theme', (
+      tester,
+    ) async {
+      await (database.update(
+        database.specimenPart,
+      )..where((row) => row.tissueID.equals('T-1044'))).write(
+        const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+      );
+      await (database.update(
+        database.specimenPart,
+      )..where((row) => row.tissueID.equals('T-1045'))).write(
+        const SpecimenPartCompanion(storageLocation: Value('Box 1: A2')),
+      );
+      await (database.update(
+        database.specimenPart,
+      )..where((row) => row.tissueID.equals('T-DUP'))).write(
+        const SpecimenPartCompanion(storageLocation: Value('Box 1: A2')),
+      );
+      await pumpScreen(tester, theme);
+      await tester.tap(find.byKey(const ValueKey('tissue-cell-A2')));
+      await tester.pumpAndSettle();
+      expectReadable(tester, 'shared cell inspector');
+
+      await tester.tap(find.text('Details').first);
+      await tester.pumpAndSettle();
+      expectReadable(tester, 'details sheet');
+    });
+
     testWidgets('filter menu is readable in the $name theme', (tester) async {
       await pumpScreen(tester, theme);
       await tester.tap(find.byKey(const ValueKey('tissue-type-filter')));

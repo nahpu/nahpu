@@ -1,9 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
+import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 import 'package:nahpu/styles/design_tokens.dart';
+import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
 /// The tissue box being filled: its name, fill count, next cell, and grid.
+/// Filled cells name their tube; tapping one shows [inspector] above the
+/// grid.
 class TissueBoxCard extends StatelessWidget {
   const TissueBoxCard({
     super.key,
@@ -13,15 +17,29 @@ class TissueBoxCard extends StatelessWidget {
     required this.next,
     required this.onCellSelected,
     required this.onNextBox,
+    required this.shortLabelFor,
+    required this.labelFor,
     this.onPreviousBox,
+    this.inspected,
+    this.onInspect,
+    this.inspector,
   });
 
   final String boxName;
   final TissueBoxLayout layout;
-  final Map<TissueCell, String?> occupied;
+  final Map<TissueCell, List<TissueItemRecord>> occupied;
   final TissueCell? next;
   final ValueChanged<TissueCell> onCellSelected;
   final VoidCallback onNextBox;
+  final String Function(TissueItemRecord record) shortLabelFor;
+  final String Function(TissueItemRecord record) labelFor;
+
+  /// The filled cell whose tubes [inspector] shows.
+  final TissueCell? inspected;
+  final ValueChanged<TissueCell>? onInspect;
+
+  /// Shown above the grid while a filled cell is inspected.
+  final Widget? inspector;
 
   /// Null disables the previous box button, as on box 1.
   final VoidCallback? onPreviousBox;
@@ -92,11 +110,19 @@ class TissueBoxCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: NahpuSpacing.lg),
+            if (inspector != null) ...[
+              inspector!,
+              const SizedBox(height: NahpuSpacing.md),
+            ],
             TissueBoxGrid(
               layout: layout,
               occupied: occupied,
               next: next,
+              inspected: inspected,
+              shortLabelFor: shortLabelFor,
+              labelFor: labelFor,
               onCellSelected: onCellSelected,
+              onInspect: onInspect,
             ),
             const SizedBox(height: NahpuSpacing.lg),
             Wrap(
@@ -173,13 +199,21 @@ class TissueBoxGrid extends StatelessWidget {
     required this.layout,
     required this.occupied,
     required this.next,
+    required this.shortLabelFor,
+    required this.labelFor,
     required this.onCellSelected,
+    this.inspected,
+    this.onInspect,
   });
 
   final TissueBoxLayout layout;
-  final Map<TissueCell, String?> occupied;
+  final Map<TissueCell, List<TissueItemRecord>> occupied;
   final TissueCell? next;
+  final TissueCell? inspected;
+  final String Function(TissueItemRecord record) shortLabelFor;
+  final String Function(TissueItemRecord record) labelFor;
   final ValueChanged<TissueCell> onCellSelected;
+  final ValueChanged<TissueCell>? onInspect;
 
   @override
   Widget build(BuildContext context) {
@@ -205,20 +239,30 @@ class TissueBoxGrid extends StatelessWidget {
                 children: [
                   Expanded(child: TissueBoxHeader(label: layout.rowLabel(row))),
                   for (var column = 0; column < side; column++)
-                    Expanded(
-                      child: TissueBoxCell(
-                        label: layout.cellLabel(TissueCell(row, column)),
-                        isFilled: occupied.containsKey(TissueCell(row, column)),
-                        tissueLabel: occupied[TissueCell(row, column)],
-                        isNext: next == TissueCell(row, column),
-                        onTap: () => onCellSelected(TissueCell(row, column)),
-                      ),
-                    ),
+                    Expanded(child: _cell(TissueCell(row, column))),
                 ],
               ),
             ),
         ],
       ),
+    );
+  }
+
+  TissueBoxCell _cell(TissueCell cell) {
+    final items = occupied[cell] ?? const <TissueItemRecord>[];
+    return TissueBoxCell(
+      key: ValueKey('tissue-cell-${layout.cellLabel(cell)}'),
+      label: layout.cellLabel(cell),
+      shortLabel: items.isEmpty ? null : shortLabelFor(items.first),
+      fullLabel: items.map(labelFor).join(', '),
+      count: items.length,
+      isNext: next == cell,
+      isSelected: inspected == cell,
+      onTap: items.isEmpty
+          ? () => onCellSelected(cell)
+          : onInspect == null
+          ? null
+          : () => onInspect!(cell),
     );
   }
 }
@@ -244,80 +288,95 @@ class TissueBoxHeader extends StatelessWidget {
   }
 }
 
-/// One tube position. Filled cells show the end of the tissue ID; the next
-/// cell shows its label. Tapping an empty cell makes it the next cell.
+/// One tube position. Filled cells show the end of their tube's ID, with a
+/// count when tubes share the cell; the next cell shows its label. Tapping
+/// an empty cell makes it the next cell; tapping a filled one inspects it.
 class TissueBoxCell extends StatelessWidget {
   const TissueBoxCell({
     super.key,
     required this.label,
-    required this.isFilled,
     required this.isNext,
     required this.onTap,
-    this.tissueLabel,
+    this.shortLabel,
+    this.fullLabel = '',
+    this.count = 0,
+    this.isSelected = false,
   });
 
   final String label;
-  final bool isFilled;
-  final bool isNext;
-  final String? tissueLabel;
-  final VoidCallback onTap;
 
-  static const int _shortLength = 4;
+  /// Null for an empty cell.
+  final String? shortLabel;
+
+  /// Every tube in the cell, for the tooltip and screen readers.
+  final String fullLabel;
+  final int count;
+  final bool isNext;
+  final bool isSelected;
+  final VoidCallback? onTap;
+
+  bool get isFilled => count > 0;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textStyle = Theme.of(context).textTheme.labelSmall;
-    final tissue = tissueLabel;
-    final tooltip = tissue == null ? label : '$label · $tissue';
+    final isShared = count > 1;
+    final description = isFilled ? '$label · $fullLabel' : label;
+    final BorderSide side;
+    if (isSelected) {
+      side = BorderSide(
+        color: colorScheme.onSurface,
+        width: NahpuStroke.regular,
+      );
+    } else if (isNext) {
+      side = BorderSide(color: colorScheme.primary, width: NahpuStroke.regular);
+    } else if (isShared) {
+      side = BorderSide(
+        color: NahpuTheme.warningText(colorScheme),
+        width: NahpuStroke.regular,
+      );
+    } else {
+      side = BorderSide(
+        color: isFilled
+            ? colorScheme.primary.withValues(alpha: 0.4)
+            : colorScheme.outlineVariant,
+        width: NahpuStroke.thin,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.all(NahpuSpacing.xxs),
       child: Tooltip(
-        message: isFilled && tissue == null
-            ? context.l10n.projectTissueCellFilled(label)
-            : tooltip,
+        message: description,
         child: Semantics(
-          button: !isFilled,
-          selected: isNext,
-          label: tooltip,
+          button: onTap != null,
+          selected: isNext || isSelected,
+          label: description,
+          excludeSemantics: true,
           child: Material(
             color: isFilled
                 ? colorScheme.primaryContainer
                 : colorScheme.surfaceContainerHighest,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(NahpuRadius.xs),
-              side: isNext
-                  ? BorderSide(
-                      color: colorScheme.primary,
-                      width: NahpuStroke.regular,
-                    )
-                  : BorderSide(
-                      color: isFilled
-                          ? colorScheme.primary.withValues(alpha: 0.4)
-                          : colorScheme.outlineVariant,
-                      width: NahpuStroke.thin,
-                    ),
+              side: side,
             ),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: isFilled ? null : onTap,
+              onTap: onTap,
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(NahpuSpacing.xxs),
                   child: FittedBox(
                     child: isFilled
-                        ? (tissue == null
-                              ? Icon(
-                                  Icons.check,
-                                  size: NahpuControlSize.iconSmall,
-                                  color: colorScheme.onPrimaryContainer,
-                                )
-                              : Text(
-                                  _shortLabel(tissue),
-                                  style: textStyle?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
-                                ))
+                        ? Text(
+                            isShared
+                                ? '$shortLabel +${count - 1}'
+                                : shortLabel!,
+                            style: textStyle?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          )
                         : isNext
                         ? Text(
                             label,
@@ -338,10 +397,6 @@ class TissueBoxCell extends StatelessWidget {
       ),
     );
   }
-
-  String _shortLabel(String text) => text.length <= _shortLength
-      ? text
-      : text.substring(text.length - _shortLength);
 }
 
 class TissueBoxLegend extends StatelessWidget {
@@ -367,7 +422,7 @@ class TissueBoxLegend extends StatelessWidget {
           borderWidth: NahpuStroke.regular,
         ),
         Text(
-          context.l10n.projectTissueTapEmptyCell,
+          context.l10n.projectTissueTapCellHint,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),

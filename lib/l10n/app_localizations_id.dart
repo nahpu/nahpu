@@ -8048,18 +8048,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectTissueNextBox => 'Kotak berikutnya';
 
   @override
-  String projectTissueCellFilled(String cell) {
-    return '$cell · terisi';
-  }
-
-  @override
   String get projectTissueFilled => 'Terisi';
 
   @override
   String get projectTissueNext => 'Berikutnya';
-
-  @override
-  String get projectTissueTapEmptyCell => 'Ketuk sel kosong untuk melompat';
 
   @override
   String get projectTissueScanTubes => 'Pindai tabung';
@@ -8216,4 +8208,28 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectTissuePreviousBox => 'Kotak sebelumnya';
+
+  @override
+  String get projectTissueDetails => 'Detail';
+
+  @override
+  String get projectTissueOpenRecord => 'Buka catatan';
+
+  @override
+  String projectTissueSharedCell(int count) {
+    return '$count tabung berbagi sel ini';
+  }
+
+  @override
+  String get projectTissueBarcode => 'Kode batang';
+
+  @override
+  String get projectTissueStorageLocation => 'Lokasi penyimpanan';
+
+  @override
+  String get projectTissueCountLabel => 'Jumlah';
+
+  @override
+  String get projectTissueTapCellHint =>
+      'Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya';
 }

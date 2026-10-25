@@ -101,7 +101,7 @@ class TissueCheckSession {
 
   /// Names a parasite without a parasite ID in [labelFor].
   String parasiteLabel = 'Parasite';
-  final Map<TissueCell, String?> _occupied = {};
+  final Map<TissueCell, List<TissueItemRecord>> _occupied = {};
   final List<TissueCheckEntry> _entries = [];
   final List<TissueSkipEntry> _skipped = [];
   TissueCell? _next;
@@ -110,9 +110,15 @@ class TissueCheckSession {
   TissueCheckSettings get settings => _settings;
   TissueBoxLayout get layout => _settings.layout;
 
-  /// Filled cells. The value is the tissue label when it was checked in
-  /// this session, or null when an earlier check filled it.
-  Map<TissueCell, String?> get occupied => Map.unmodifiable(_occupied);
+  /// Filled cells and the tubes in them, whether placed by this tool or
+  /// typed in the part and parasite forms. Usually one tube per cell;
+  /// several when hand-typed locations collide.
+  Map<TissueCell, List<TissueItemRecord>> get occupied =>
+      Map.unmodifiable(_occupied);
+
+  /// The tubes in [cell] of the current box.
+  List<TissueItemRecord> itemsAt(TissueCell cell) =>
+      List.unmodifiable(_occupied[cell] ?? const <TissueItemRecord>[]);
 
   /// This session's checked tubes, newest first.
   List<TissueCheckEntry> get entries => List.unmodifiable(_entries.reversed);
@@ -220,6 +226,32 @@ class TissueCheckSession {
     ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
   }
 
+  /// The specimen side of a tube: its field ID, its part type or Parasite,
+  /// and its treatment.
+  String detailFor(TissueItemRecord record) {
+    return [
+      service.fieldIdOf(record.specimen.uuid),
+      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      record.treatment ?? '',
+    ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
+  }
+
+  /// A label short enough for a box cell: the last four characters of the
+  /// tissue or parasite ID, or else of the field ID. Parasites lead with P
+  /// so they stand apart from parts in the grid.
+  String shortLabelFor(TissueItemRecord record) {
+    final code = record.code?.trim() ?? '';
+    final base = code.isNotEmpty
+        ? code
+        : service.fieldIdOf(record.specimen.uuid);
+    final length = record.isParasite ? 3 : 4;
+    final tail = base.length <= length
+        ? base
+        : base.substring(base.length - length);
+    final hasMarker = tail.toUpperCase().startsWith('P');
+    return record.isParasite && !hasMarker ? 'P$tail' : tail;
+  }
+
   /// The text the work list search looks through: the label, field ID,
   /// barcode, type, and treatment.
   String searchTextFor(TissueItemRecord record) {
@@ -248,11 +280,11 @@ class TissueCheckSession {
       if (entry.boxNumber != _settings.boxNumber) {
         _settings = _settings.copyWith(boxNumber: entry.boxNumber);
         await saveSettings(_settings);
-        await _loadBox();
-      } else {
-        _occupied.remove(entry.cell);
       }
-      _next = entry.cell;
+      await _loadBox();
+      _next = layout.contains(entry.cell) && !_occupied.containsKey(entry.cell)
+          ? entry.cell
+          : _next;
       return TissueScanOutcome(
         TissueScanStatus.undone,
         'Undid ${entry.label} at ${entry.location}',
@@ -374,7 +406,8 @@ class TissueCheckSession {
       ),
     );
     _skipped.removeWhere((e) => e.key == record.key || e.label == code);
-    _occupied[cell] = label;
+    // Reads the box back, so the cell holds the tube as stored now.
+    await _loadBox();
     _next = layout.firstFree(_occupied.keys.toSet(), from: cell);
     return TissueScanOutcome(
       TissueScanStatus.checked,
@@ -393,21 +426,15 @@ class TissueCheckSession {
 
   Future<void> _loadBox() async {
     _occupied.clear();
-    final locations = await service.locationsInBox(_settings.boxName);
-    for (final location in locations) {
+    final items = await service.itemsInBox(_settings.boxName);
+    for (final item in items) {
       final cell = parseTissueLocation(
         layout,
         boxLabel: _settings.boxLabel,
         boxNumber: _settings.boxNumber,
-        location: location,
+        location: item.storageLocation ?? '',
       );
-      if (cell != null) _occupied[cell] = null;
-    }
-    for (final entry in _entries) {
-      if (entry.boxNumber == _settings.boxNumber &&
-          _occupied.containsKey(entry.cell)) {
-        _occupied[entry.cell] = entry.label;
-      }
+      if (cell != null) _occupied.putIfAbsent(cell, () => []).add(item);
     }
     _next = layout.firstFree(_occupied.keys.toSet());
   }

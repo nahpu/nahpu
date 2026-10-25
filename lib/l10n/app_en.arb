@@ -2983,11 +2983,8 @@
   "projectTissueNextCell": "Next cell",
   "projectTissueFull": "Full",
   "projectTissueNextBox": "Next box",
-  "projectTissueCellFilled": "{cell} · filled",
-  "@projectTissueCellFilled": {"placeholders": {"cell": {"type": "String"}}},
   "projectTissueFilled": "Filled",
   "projectTissueNext": "Next",
-  "projectTissueTapEmptyCell": "Tap an empty cell to jump",
   "projectTissueScanTubes": "Scan tubes",
   "projectTissueCameraUnavailable": "Camera scanning is unavailable. Use the scan field instead.",
   "projectTissueCameraError": "Unable to use the camera. Retry or use the scan field.",
@@ -3039,5 +3036,13 @@
   "projectTissueLogSkipped": "Skipped ({count})",
   "@projectTissueLogSkipped": {"placeholders": {"count": {"type": "int"}}},
   "projectTissueLogSkippedEmpty": "Skipped tubes appear here until they are placed.",
-  "projectTissuePreviousBox": "Previous box"
+  "projectTissuePreviousBox": "Previous box",
+  "projectTissueDetails": "Details",
+  "projectTissueOpenRecord": "Open record",
+  "projectTissueSharedCell": "{count} tubes share this cell",
+  "@projectTissueSharedCell": {"placeholders": {"count": {"type": "int"}}},
+  "projectTissueBarcode": "Barcode",
+  "projectTissueStorageLocation": "Storage location",
+  "projectTissueCountLabel": "Count",
+  "projectTissueTapCellHint": "Tap an empty cell to jump, or a filled cell to see its tube"
 }

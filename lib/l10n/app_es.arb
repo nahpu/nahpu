@@ -2158,10 +2158,8 @@
   "projectTissueNextCell": "Siguiente celda",
   "projectTissueFull": "Llena",
   "projectTissueNextBox": "Siguiente caja",
-  "projectTissueCellFilled": "{cell} · ocupada",
   "projectTissueFilled": "Ocupada",
   "projectTissueNext": "Siguiente",
-  "projectTissueTapEmptyCell": "Toque una celda vacía para ir a ella",
   "projectTissueScanTubes": "Escanear tubos",
   "projectTissueCameraUnavailable": "El escaneo con la cámara no está disponible. Use el campo de escaneo.",
   "projectTissueCameraError": "No se pudo usar la cámara. Vuelva a intentarlo o use el campo de escaneo.",
@@ -2206,5 +2204,12 @@
   "projectTissueLogChecked": "Registrados ({count})",
   "projectTissueLogSkipped": "Omitidos ({count})",
   "projectTissueLogSkippedEmpty": "Los tubos omitidos aparecen aquí hasta que se ubican.",
-  "projectTissuePreviousBox": "Caja anterior"
+  "projectTissuePreviousBox": "Caja anterior",
+  "projectTissueDetails": "Detalles",
+  "projectTissueOpenRecord": "Abrir registro",
+  "projectTissueSharedCell": "{count} tubos comparten esta celda",
+  "projectTissueBarcode": "Código de barras",
+  "projectTissueStorageLocation": "Ubicación de almacenamiento",
+  "projectTissueCountLabel": "Cantidad",
+  "projectTissueTapCellHint": "Toque una celda vacía para saltar a ella, o una llena para ver su tubo"
 }

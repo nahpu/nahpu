@@ -2158,10 +2158,8 @@
   "projectTissueNextCell": "Próxima célula",
   "projectTissueFull": "Cheia",
   "projectTissueNextBox": "Próxima caixa",
-  "projectTissueCellFilled": "{cell} · preenchida",
   "projectTissueFilled": "Preenchida",
   "projectTissueNext": "Próxima",
-  "projectTissueTapEmptyCell": "Toque em uma célula vazia para ir até ela",
   "projectTissueScanTubes": "Ler tubos",
   "projectTissueCameraUnavailable": "A leitura pela câmera não está disponível. Use o campo de leitura.",
   "projectTissueCameraError": "Não foi possível usar a câmera. Tente novamente ou use o campo de leitura.",
@@ -2206,5 +2204,12 @@
   "projectTissueLogChecked": "Registrados ({count})",
   "projectTissueLogSkipped": "Ignorados ({count})",
   "projectTissueLogSkippedEmpty": "Os tubos ignorados aparecem aqui até serem colocados.",
-  "projectTissuePreviousBox": "Caixa anterior"
+  "projectTissuePreviousBox": "Caixa anterior",
+  "projectTissueDetails": "Detalhes",
+  "projectTissueOpenRecord": "Abrir registro",
+  "projectTissueSharedCell": "{count} tubos dividem esta célula",
+  "projectTissueBarcode": "Código de barras",
+  "projectTissueStorageLocation": "Local de armazenamento",
+  "projectTissueCountLabel": "Quantidade",
+  "projectTissueTapCellHint": "Toque numa célula vazia para ir até ela, ou numa preenchida para ver o tubo"
 }

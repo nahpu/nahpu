@@ -12913,12 +12913,6 @@ abstract class AppLocalizations {
   /// **'Next box'**
   String get projectTissueNextBox;
 
-  /// No description provided for @projectTissueCellFilled.
-  ///
-  /// In en, this message translates to:
-  /// **'{cell} · filled'**
-  String projectTissueCellFilled(String cell);
-
   /// No description provided for @projectTissueFilled.
   ///
   /// In en, this message translates to:
@@ -12930,12 +12924,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next'**
   String get projectTissueNext;
-
-  /// No description provided for @projectTissueTapEmptyCell.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap an empty cell to jump'**
-  String get projectTissueTapEmptyCell;
 
   /// No description provided for @projectTissueScanTubes.
   ///
@@ -13206,6 +13194,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previous box'**
   String get projectTissuePreviousBox;
+
+  /// No description provided for @projectTissueDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get projectTissueDetails;
+
+  /// No description provided for @projectTissueOpenRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Open record'**
+  String get projectTissueOpenRecord;
+
+  /// No description provided for @projectTissueSharedCell.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} tubes share this cell'**
+  String projectTissueSharedCell(int count);
+
+  /// No description provided for @projectTissueBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get projectTissueBarcode;
+
+  /// No description provided for @projectTissueStorageLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage location'**
+  String get projectTissueStorageLocation;
+
+  /// No description provided for @projectTissueCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get projectTissueCountLabel;
+
+  /// No description provided for @projectTissueTapCellHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an empty cell to jump, or a filled cell to see its tube'**
+  String get projectTissueTapCellHint;
 }
 
 class _AppLocalizationsDelegate

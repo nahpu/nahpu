@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/data_table/data_table_fields.dart';
 import 'package:nahpu/services/data_table/data_table_models.dart';
+import 'package:nahpu/services/database/like_pattern.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/services/types/specimens.dart';
@@ -283,7 +284,7 @@ class DataTablePageQuery {
         // Nothing visible can be searched in SQL, so nothing can match.
         clause.add('0', const []);
       } else {
-        final pattern = '%${_escapeLike(search)}%';
+        final pattern = '%${escapeLikePattern(search)}%';
         clause.add(
           '(${fields.map((f) => "${_asText(f)} LIKE ? ESCAPE '\\'").join(' OR ')})',
           [for (final _ in fields) Variable.withString(pattern)],
@@ -343,11 +344,11 @@ class DataTablePageQuery {
       DataTableFilterOp.isNotEmpty => ('NOT $empty', const []),
       DataTableFilterOp.contains => (
         "$expr LIKE ? ESCAPE '\\'",
-        [Variable.withString('%${_escapeLike(rule.value.trim())}%')],
+        [Variable.withString('%${escapeLikePattern(rule.value.trim())}%')],
       ),
       DataTableFilterOp.startsWith => (
         "$expr LIKE ? ESCAPE '\\'",
-        [Variable.withString('${_escapeLike(rule.value.trim())}%')],
+        [Variable.withString('${escapeLikePattern(rule.value.trim())}%')],
       ),
       DataTableFilterOp.equals =>
         field.valueType == DataTableValueType.text
@@ -542,10 +543,6 @@ String _text(Object? value) {
   }
   return value.toString();
 }
-
-/// Makes `%`, `_`, and `\` match literally in a LIKE pattern.
-String _escapeLike(String value) =>
-    value.replaceAll(r'\', r'\\').replaceAll('%', r'\%').replaceAll('_', r'\_');
 
 double _parseNumber(String raw) {
   final value = double.tryParse(raw.trim());

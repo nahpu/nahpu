@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/specimen_curation.dart';
+import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
@@ -469,7 +470,23 @@ void main() {
     ) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await (database.update(
+        database.specimenPart,
+      )..where((row) => row.tissueID.equals('T-1043'))).write(
+        const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+      );
       await pumpScreen(tester, size: Size(width, 4000));
+      await tester.tap(find.byKey(const ValueKey('tissue-cell-A1')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('tissue-cell-inspector')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Details'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Work list'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -497,5 +514,107 @@ void main() {
       TissueCheckSettings.decode(prefs.getString(tissueCheckPrefKey)).boxNumber,
       1,
     );
+  });
+
+  testWidgets('a filled cell names its tube and opens its details', (
+    tester,
+  ) async {
+    await (database.update(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1043'))).write(
+      const SpecimenPartCompanion(
+        storageLocation: Value('Box 1: B2'),
+        museumPermanent: Value('FMNH'),
+        treatment: Value('ETOH'),
+      ),
+    );
+    await pumpScreen(tester, size: const Size(1280, 1800));
+
+    final cell = find.byKey(const ValueKey('tissue-cell-B2'));
+    expect(
+      find.descendant(of: cell, matching: find.text('1043')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('tissue-cell-inspector')), findsNothing);
+
+    await tester.tap(cell);
+    await tester.pumpAndSettle();
+    final inspector = find.byKey(const ValueKey('tissue-cell-inspector'));
+    expect(
+      find.descendant(of: inspector, matching: find.text('T-1043')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.descendant(of: inspector, matching: find.text('Details')),
+    );
+    await tester.pumpAndSettle();
+    final sheet = find.byKey(const ValueKey('tissue-item-details'));
+    expect(
+      find.descendant(of: sheet, matching: find.text('Box 1: B2')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: sheet, matching: find.text('FMNH')),
+      findsOneWidget,
+    );
+    expect(find.text('Open record'), findsOneWidget);
+
+    // Tapping the cell again closes the inspector.
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    await tester.tap(cell);
+    await tester.pumpAndSettle();
+    expect(inspector, findsNothing);
+  });
+
+  testWidgets('switching boxes closes the inspector', (tester) async {
+    await (database.update(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1043'))).write(
+      const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+    );
+    await pumpScreen(tester, size: const Size(1280, 1800));
+    await tester.tap(find.byKey(const ValueKey('tissue-cell-A1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tissue-cell-inspector')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('tissue-next-box')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tissue-cell-inspector')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('tissue-previous-box')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('tissue-cell-inspector')), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tissue-cell-A1')),
+        matching: find.text('1043'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Open record shows the specimen of the tube', (tester) async {
+    await (database.update(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1043'))).write(
+      const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+    );
+    // The specimen form reads the mammal attributes it shows.
+    await database
+        .into(database.mammalAttribute)
+        .insert(
+          const MammalAttributeCompanion(specimenUuid: Value('specimen-a')),
+        );
+    await pumpScreen(tester, size: const Size(1280, 1800));
+    await tester.tap(find.byKey(const ValueKey('tissue-cell-A1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Details'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open record'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    final form = tester.widget<SpecimenFormView>(find.byType(SpecimenFormView));
+    expect(form.specimenUuid, 'specimen-a');
   });
 }

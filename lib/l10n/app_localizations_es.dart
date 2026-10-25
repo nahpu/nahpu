@@ -8265,19 +8265,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueNextBox => 'Siguiente caja';
 
   @override
-  String projectTissueCellFilled(String cell) {
-    return '$cell · ocupada';
-  }
-
-  @override
   String get projectTissueFilled => 'Ocupada';
 
   @override
   String get projectTissueNext => 'Siguiente';
-
-  @override
-  String get projectTissueTapEmptyCell =>
-      'Toque una celda vacía para ir a ella';
 
   @override
   String get projectTissueScanTubes => 'Escanear tubos';
@@ -8435,4 +8426,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectTissuePreviousBox => 'Caja anterior';
+
+  @override
+  String get projectTissueDetails => 'Detalles';
+
+  @override
+  String get projectTissueOpenRecord => 'Abrir registro';
+
+  @override
+  String projectTissueSharedCell(int count) {
+    return '$count tubos comparten esta celda';
+  }
+
+  @override
+  String get projectTissueBarcode => 'Código de barras';
+
+  @override
+  String get projectTissueStorageLocation => 'Ubicación de almacenamiento';
+
+  @override
+  String get projectTissueCountLabel => 'Cantidad';
+
+  @override
+  String get projectTissueTapCellHint =>
+      'Toque una celda vacía para saltar a ella, o una llena para ver su tubo';
 }

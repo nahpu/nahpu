@@ -312,17 +312,21 @@ class TissueCheckService {
     return _write(kind, id, field, value, location);
   }
 
-  /// The storage locations already written in the box named [boxName], by
-  /// parts and parasites alike, since both fill the same cells.
-  Future<List<String>> locationsInBox(String boxName) async {
+  /// The tubes stored in the box named [boxName], parts and parasites
+  /// alike, since both fill the same cells. Their locations may come from
+  /// this tool or be typed in the part and parasite forms.
+  Future<List<TissueItemRecord>> itemsInBox(String boxName) async {
+    await loadFieldIds();
     final prefix = '$boxName: ';
+    final parts = await SpecimenPartQuery(
+      database,
+    ).getPartsWithLocationPrefix(projectUuid, prefix);
+    final parasites = await ParasiteQuery(
+      database,
+    ).getParasitesWithLocationPrefix(projectUuid, prefix);
     return [
-      ...await SpecimenPartQuery(
-        database,
-      ).getStorageLocationsWithPrefix(projectUuid, prefix),
-      ...await ParasiteQuery(
-        database,
-      ).getStorageLocationsWithPrefix(projectUuid, prefix),
+      ...parts.map(TissueItemRecord.part),
+      ...parasites.map(TissueItemRecord.parasite),
     ];
   }
 

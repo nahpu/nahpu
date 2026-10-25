@@ -2158,10 +2158,8 @@
   "projectTissueNextCell": "Sel berikutnya",
   "projectTissueFull": "Penuh",
   "projectTissueNextBox": "Kotak berikutnya",
-  "projectTissueCellFilled": "{cell} · terisi",
   "projectTissueFilled": "Terisi",
   "projectTissueNext": "Berikutnya",
-  "projectTissueTapEmptyCell": "Ketuk sel kosong untuk melompat",
   "projectTissueScanTubes": "Pindai tabung",
   "projectTissueCameraUnavailable": "Pemindaian kamera tidak tersedia. Gunakan kolom pindai.",
   "projectTissueCameraError": "Tidak dapat menggunakan kamera. Coba lagi atau gunakan kolom pindai.",
@@ -2206,5 +2204,12 @@
   "projectTissueLogChecked": "Tercatat ({count})",
   "projectTissueLogSkipped": "Dilewati ({count})",
   "projectTissueLogSkippedEmpty": "Tabung yang dilewati muncul di sini sampai ditempatkan.",
-  "projectTissuePreviousBox": "Kotak sebelumnya"
+  "projectTissuePreviousBox": "Kotak sebelumnya",
+  "projectTissueDetails": "Detail",
+  "projectTissueOpenRecord": "Buka catatan",
+  "projectTissueSharedCell": "{count} tabung berbagi sel ini",
+  "projectTissueBarcode": "Kode batang",
+  "projectTissueStorageLocation": "Lokasi penyimpanan",
+  "projectTissueCountLabel": "Jumlah",
+  "projectTissueTapCellHint": "Ketuk sel kosong untuk melompat, atau sel terisi untuk melihat tabungnya"
 }
