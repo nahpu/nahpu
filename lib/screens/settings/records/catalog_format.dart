@@ -5,6 +5,7 @@ import 'package:nahpu/services/providers/settings.dart';
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
@@ -49,7 +50,7 @@ class CatalogFmtSelectionState extends ConsumerState<CatalogFmtSelection> {
                         titleBadge: isCatalogFmtBeta(catalogFmt)
                             ? const BetaBadge()
                             : null,
-                        leading: Icon(matchCatFmtToIcon(catalogFmt)),
+                        leading: CatalogFmtIcon(catalogFmt: catalogFmt),
                         trailing: selectedFmt == catalogFmt
                             ? const Icon(Icons.check)
                             : null,

@@ -6,6 +6,7 @@ import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/localization/l10n.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -327,7 +328,10 @@ class SpecimenSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonSettingTile(
       isNavigation: true,
-      icon: matchCatFmtToIcon(catalogFmt, isFilledIcon: false),
+      leading: CatalogFmtIcon(
+        catalogFmt: catalogFmt,
+        color: Theme.of(context).colorScheme.primary,
+      ),
       title: context.l10n.settingsNavSpecimens,
       label: context.l10n.settingsNavSpecimensLabel,
       isSelected: isSelected,

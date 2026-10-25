@@ -9,7 +9,7 @@ import 'package:nahpu/services/providers/sites.dart';
 import 'package:nahpu/services/common/navigation_services.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/services/localization/l10n.dart';
-import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
@@ -709,16 +709,13 @@ class SpecimenIcons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Icon(
-      ref
-          .watch(catalogFmtNotifierProvider)
-          .when(
-            data: (catalogFmt) {
-              return matchCatFmtToIcon(catalogFmt, isFilledIcon: isSelected);
-            },
-            loading: () => Icons.circle_outlined,
-            error: (e, s) => Icons.error_outline,
-          ),
-    );
+    return ref
+        .watch(catalogFmtNotifierProvider)
+        .when(
+          data: (catalogFmt) =>
+              CatalogFmtIcon(catalogFmt: catalogFmt, isFilled: isSelected),
+          loading: () => const Icon(Icons.circle_outlined),
+          error: (e, s) => const Icon(Icons.error_outline),
+        );
   }
 }

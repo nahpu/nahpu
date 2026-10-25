@@ -136,6 +136,7 @@ flutter:
     - assets/illustrations/
     - assets/avatars/
     - assets/icons/
+    - assets/icons/catalog_formats/
     - assets/configs/
     - assets/configs/mammalogy/
     - assets/maps/

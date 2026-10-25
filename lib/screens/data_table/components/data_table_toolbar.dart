@@ -3,7 +3,7 @@ import 'package:nahpu/services/data_table/data_table_services.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'package:nahpu/services/types/specimens.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
 /// One row with record type, taxon group, search, filters, columns, and
@@ -160,7 +160,8 @@ class DataTableMenuButton extends StatelessWidget {
     required this.controller,
   });
 
-  final IconData icon;
+  /// Leading icon, sized by the button.
+  final Widget icon;
   final String label;
   final MenuController controller;
 
@@ -180,7 +181,10 @@ class DataTableMenuButton extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: NahpuControlSize.iconSmall),
+          IconTheme.merge(
+            data: const IconThemeData(size: NahpuControlSize.iconSmall),
+            child: icon,
+          ),
           const SizedBox(width: NahpuSpacing.md),
           Text(label),
           const SizedBox(width: NahpuSpacing.xs),
@@ -217,7 +221,7 @@ class RecordTypeMenu extends StatelessWidget {
           ),
       ],
       builder: (context, controller, _) => DataTableMenuButton(
-        icon: Icons.table_chart_outlined,
+        icon: const Icon(Icons.table_chart_outlined),
         label: type.label,
         controller: controller,
       ),
@@ -350,20 +354,13 @@ class SpecimenTypeMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon(SpecimenRecordType type, {bool filled = false}) {
-      final catalogFmt = dataTableCatalogFmt(type);
-      if (catalogFmt == null) {
-        return filled ? Icons.category : Icons.category_outlined;
-      }
-      return matchCatFmtToIcon(catalogFmt, isFilledIcon: filled);
-    }
-
     return MenuAnchor(
       menuChildren: [
         for (final value in SpecimenRecordType.values)
           MenuItemButton(
-            leadingIcon: Icon(
-              icon(value, filled: value == specimenType),
+            leadingIcon: _SpecimenTypeIcon(
+              type: value,
+              isFilled: value == specimenType,
               size: NahpuControlSize.iconMedium,
             ),
             trailingIcon: value == specimenType
@@ -374,7 +371,7 @@ class SpecimenTypeMenu extends StatelessWidget {
           ),
       ],
       builder: (context, controller, _) => DataTableMenuButton(
-        icon: icon(specimenType),
+        icon: _SpecimenTypeIcon(type: specimenType),
         label: specimenType.localizedLabel(context.l10n),
         controller: controller,
       ),
@@ -505,6 +502,35 @@ class DataTableSearchScopeMenu extends StatelessWidget {
         onPressed: () =>
             controller.isOpen ? controller.close() : controller.open(),
       ),
+    );
+  }
+}
+
+/// The catalog-format glyph for [type], or a generic icon for all taxa.
+class _SpecimenTypeIcon extends StatelessWidget {
+  const _SpecimenTypeIcon({
+    required this.type,
+    this.isFilled = false,
+    this.size,
+  });
+
+  final SpecimenRecordType type;
+  final bool isFilled;
+  final double? size;
+
+  @override
+  Widget build(BuildContext context) {
+    final catalogFmt = dataTableCatalogFmt(type);
+    if (catalogFmt == null) {
+      return Icon(
+        isFilled ? Icons.category : Icons.category_outlined,
+        size: size,
+      );
+    }
+    return CatalogFmtIcon(
+      catalogFmt: catalogFmt,
+      isFilled: isFilled,
+      size: size,
     );
   }
 }

@@ -17,6 +17,7 @@ import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/settings/controlled_vocabulary_services.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
 import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 
@@ -329,8 +330,9 @@ class _CatalogFormatTile extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        leading: Icon(
-          matchCatFmtToIcon(catalogFmt, isFilledIcon: selected),
+        leading: CatalogFmtIcon(
+          catalogFmt: catalogFmt,
+          isFilled: selected,
           color: selected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
         ),
         title: Row(

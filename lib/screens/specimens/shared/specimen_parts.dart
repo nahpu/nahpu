@@ -10,6 +10,7 @@ import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/types/controllers.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/types/parasites.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/services/types/associated_data.dart';
 import 'package:nahpu/services/providers/specimens.dart';
@@ -89,9 +90,7 @@ class PartDataFormState extends ConsumerState<PartDataForm>
         height: 502,
         tabs: [
           Tab(
-            icon: Icon(
-              matchCatFmtToIcon(widget.catalogFmt, isFilledIcon: true),
-            ),
+            icon: CatalogFmtIcon(catalogFmt: widget.catalogFmt, isFilled: true),
           ),
           if (supportsParasites(widget.catalogFmt))
             const Tab(icon: Icon(Icons.bug_report_outlined)),

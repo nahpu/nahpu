@@ -5,6 +5,7 @@ import 'package:nahpu/services/providers/specimens.dart';
 import 'package:nahpu/screens/shared/forms/features.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/specimens/specimen_services.dart';
+import 'package:nahpu/screens/shared/common/catalog_fmt_icon.dart';
 import 'package:nahpu/services/types/specimens.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/forms/fields.dart';
@@ -200,9 +201,9 @@ class SpecimenList extends StatelessWidget {
     );
   }
 
-  Icon _getLeadingIcon(String? taxonGroup) {
+  CatalogFmtIcon _getLeadingIcon(String? taxonGroup) {
     CatalogFmt fmt = matchTaxonGroupToCatFmt(taxonGroup);
-    return Icon(matchCatFmtToIcon(fmt, isFilledIcon: false));
+    return CatalogFmtIcon(catalogFmt: fmt);
   }
 }
 

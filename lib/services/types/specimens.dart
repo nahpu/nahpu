@@ -1,8 +1,5 @@
-import 'package:material_ui/material_ui.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:nahpu/services/types/export.dart';
-import 'nahpu_icons.dart';
 
 enum CatalogFmt {
   mammalogy,
@@ -436,19 +433,24 @@ bool isCatalogFmtBeta(CatalogFmt catalogFmt) {
   }
 }
 
-IconData matchCatFmtToIcon(CatalogFmt catalogFmt, {bool isFilledIcon = false}) {
-  switch (catalogFmt) {
-    case CatalogFmt.ornithology:
-      return isFilledIcon ? NahpuIcons.birdFilled : NahpuIcons.birdOutlined;
-    case CatalogFmt.mammalogy:
-      return isFilledIcon ? NahpuIcons.ratFilled : NahpuIcons.ratOutlined;
-    case CatalogFmt.herpetology:
-      return isFilledIcon ? NahpuIcons.frogFilled : NahpuIcons.frogOutlined;
-    case CatalogFmt.invertebrateZoology:
-      return isFilledIcon ? NahpuIcons.beetleFilled : NahpuIcons.beetleOutlined;
-    case CatalogFmt.ichthyology:
-      return isFilledIcon ? NahpuIcons.fishFilled : NahpuIcons.fishOutlined;
-  }
+/// Holds the catalog-format glyphs, one filled and one outlined per format.
+///
+/// `paleontology_*.svg` is drawn ahead of paleontology support and is not
+/// mapped to a [CatalogFmt] yet.
+const String catalogFmtGlyphDir = 'assets/icons/catalog_formats';
+
+/// The catalog-format glyph, after the catalog formats on the NAHPU website
+/// and fitted to the Material 24dp grid. Render it with `CatalogFmtIcon`.
+String matchCatFmtToGlyphPath(CatalogFmt catalogFmt, {bool isFilled = false}) {
+  final name = switch (catalogFmt) {
+    CatalogFmt.mammalogy => 'mammalogy',
+    CatalogFmt.ornithology => 'ornithology',
+    CatalogFmt.herpetology => 'herpetology',
+    CatalogFmt.invertebrateZoology => 'invertebrate_zoology',
+    CatalogFmt.ichthyology => 'ichthyology',
+  };
+  final variant = isFilled ? 'filled' : 'outlined';
+  return '$catalogFmtGlyphDir/${name}_$variant.svg';
 }
 
 const Map<String, String> partIconPath = {
