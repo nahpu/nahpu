@@ -2194,5 +2194,17 @@
   "projectTissueReady": "Siap. Pindai tabung pertama.",
   "projectTissueWorkListEmpty": "Tidak ada bagian yang belum ditempatkan yang cocok dengan filter jenis jaringan dan pengawetan.",
   "projectTissueRemaining": "Berikutnya · {count} tersisa",
-  "projectTissuePlace": "Tempatkan"
+  "projectTissuePlace": "Tempatkan",
+  "projectTissueIncludeParasites": "Sertakan parasit",
+  "projectTissueWorkListSearch": "Cari daftar kerja",
+  "projectTissueNoMatches": "Tidak ada tabung yang cocok",
+  "projectTissueParasite": "Parasit",
+  "projectTissueParasiteCategory": "Kategori parasit",
+  "projectTissueIdParasiteIdOrBarcode": "ID jaringan, ID parasit, atau kode batang",
+  "projectTissueFieldIdOrParasiteId": "ID lapangan atau ID parasit",
+  "projectTissueSearchByFieldId": "Cari berdasarkan ID lapangan",
+  "projectTissueLogChecked": "Tercatat ({count})",
+  "projectTissueLogSkipped": "Dilewati ({count})",
+  "projectTissueLogSkippedEmpty": "Tabung yang dilewati muncul di sini sampai ditempatkan.",
+  "projectTissuePreviousBox": "Kotak sebelumnya"
 }

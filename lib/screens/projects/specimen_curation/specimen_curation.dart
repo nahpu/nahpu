@@ -7,8 +7,8 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
-import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -20,11 +20,13 @@ import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
-/// Curates specimens by scanning. Tissue mode fills a box: each scanned tube
-/// gets the chosen field value and the next cell as its storage location.
+/// Curates specimens by scanning. Tissue mode fills a box: each scanned tube,
+/// a specimen part or optionally a parasite, gets the chosen field value and
+/// the next cell as its storage location. Still in beta.
 class SpecimenCurationScreen extends ConsumerStatefulWidget {
   const SpecimenCurationScreen({super.key, this.cameraAvailable});
 
@@ -45,8 +47,11 @@ class _SpecimenCurationScreenState
   int _busyCount = 0;
 
   /// The work list, or null while it loads.
-  List<SpecimenPartProjectRecord>? _workList;
+  List<TissueItemRecord>? _workList;
   int _workIndex = 0;
+
+  /// Codes suggested while typing in the scan field.
+  List<String> _scanCodes = const [];
 
   @override
   void initState() {
@@ -64,13 +69,14 @@ class _SpecimenCurationScreenState
     _session.load().whenComplete(() {
       if (mounted) setState(() => _busyCount--);
     });
+    _reloadScanCodes();
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = _session.settings;
     final partTypes = _vocabulary(specimenTypePrefKey);
-    final treatments = _vocabulary(treatmentPrefKey);
+    final treatments = _treatments(settings.includeParasites, _vocabulary);
     final boxCard = TissueBoxCard(
       boxName: settings.boxName,
       layout: _session.layout,
@@ -78,12 +84,18 @@ class _SpecimenCurationScreenState
       next: _session.next,
       onCellSelected: _selectCell,
       onNextBox: () => _run(_session.nextBox),
+      onPreviousBox: settings.boxNumber > 1
+          ? () => _run(_session.previousBox)
+          : null,
     );
     final setupCard = TissueCheckSetupCard(
       settings: settings,
       onChanged: _updateSettings,
       partTypes: partTypes,
       treatments: treatments,
+      parasiteCategories: settings.includeParasites
+          ? _vocabulary(parasiteCategoryPrefKey)
+          : const [],
     );
     final scanCard = TissueScanCard(
       outcome: _outcome,
@@ -96,12 +108,17 @@ class _SpecimenCurationScreenState
           ? _openCamera
           : null,
       identifyBy: settings.identifyBy,
+      suggestions: _scanCodes,
+      onIdentifyByChanged: (identifyBy) =>
+          _updateSettings(settings.copyWith(identifyBy: identifyBy)),
+      includeParasites: settings.includeParasites,
       entryMode: _entryMode,
       onEntryModeChanged: _setEntryMode,
       workList: TissueWorkListPanel(
         records: _workList,
         index: _workIndex,
         labelFor: _session.labelFor,
+        searchTextFor: _session.searchTextFor,
         nextLocation: _session.nextLocation,
         isBusy: _busyCount > 0,
         onPlace: _placeCurrent,
@@ -109,10 +126,27 @@ class _SpecimenCurationScreenState
         onSelect: (index) => setState(() => _workIndex = index),
       ),
     );
-    final logCard = TissueCheckLogCard(entries: _session.entries);
+    final logCard = TissueCheckLogCard(
+      entries: _session.entries,
+      skipped: _session.skipped,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.projectTissueTitle)),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                context.l10n.projectTissueTitle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: NahpuSpacing.sm),
+            const BetaBadge(),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -150,7 +184,7 @@ class _SpecimenCurationScreenState
                         ),
                       ),
                       const SizedBox(height: NahpuSpacing.xl),
-                      if (isWide)
+                      if (isWide) ...[
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -159,12 +193,16 @@ class _SpecimenCurationScreenState
                             Expanded(
                               flex: 20,
                               child: SpecimenCurationColumn(
-                                children: [setupCard, scanCard, logCard],
+                                children: [setupCard, scanCard],
                               ),
                             ),
                           ],
-                        )
-                      else
+                        ),
+                        // The log spans both columns, so long labels and
+                        // the skipped list have room side by side.
+                        const SizedBox(height: NahpuSpacing.xl),
+                        logCard,
+                      ] else
                         SpecimenCurationColumn(
                           children: [boxCard, setupCard, scanCard, logCard],
                         ),
@@ -202,10 +240,16 @@ class _SpecimenCurationScreenState
     setState(() {});
     _run(() => update);
     final filtersChanged =
-        previous.partType != settings.partType ||
-        previous.preservation != settings.preservation;
+        !setEquals(previous.partTypes, settings.partTypes) ||
+        !setEquals(previous.preservations, settings.preservations) ||
+        previous.includeParasites != settings.includeParasites ||
+        !setEquals(previous.parasiteCategories, settings.parasiteCategories);
     if (filtersChanged && _entryMode == TissueEntryMode.workList) {
       _reloadWorkList();
+    }
+    if (previous.identifyBy != settings.identifyBy ||
+        previous.includeParasites != settings.includeParasites) {
+      _reloadScanCodes();
     }
   }
 
@@ -215,9 +259,24 @@ class _SpecimenCurationScreenState
         const [];
   }
 
+  /// Part treatments, plus parasite treatments when parasites are included.
+  List<String> _treatments(
+    bool includeParasites,
+    List<String> Function(String prefKey) vocabulary,
+  ) {
+    final parts = vocabulary(treatmentPrefKey);
+    if (!includeParasites) return parts;
+    return mergeVocabularyOptions(parts, vocabulary(parasiteTreatmentPrefKey));
+  }
+
   void _setEntryMode(TissueEntryMode mode) {
     setState(() => _entryMode = mode);
     if (mode == TissueEntryMode.workList) _reloadWorkList();
+  }
+
+  Future<void> _reloadScanCodes() async {
+    final codes = await _session.scanCodes();
+    if (mounted) setState(() => _scanCodes = codes);
   }
 
   Future<void> _reloadWorkList() async {
@@ -252,13 +311,20 @@ class _SpecimenCurationScreenState
   void _skipCurrent() {
     final count = _workList?.length ?? 0;
     if (count < 2) return;
-    setState(() => _workIndex = (_workIndex + 1) % count);
+    setState(() {
+      _session.skip(_workList![_workIndex]);
+      _workIndex = (_workIndex + 1) % count;
+    });
   }
 
   Future<void> _scan(String code) async {
     _session
       ..partTypes = _vocabularyNow(specimenTypePrefKey)
-      ..treatments = _vocabularyNow(treatmentPrefKey);
+      ..treatments = _treatments(
+        _session.settings.includeParasites,
+        _vocabularyNow,
+      )
+      ..parasiteLabel = context.l10n.projectTissueParasite;
     await _run(() async {
       final outcome = await _session.scan(
         code,
@@ -292,12 +358,12 @@ class _SpecimenCurationScreenState
     }
   }
 
-  Future<SpecimenPartProjectRecord?> _pickPart(
+  Future<TissueItemRecord?> _pickPart(
     String code,
-    List<SpecimenPartProjectRecord> records,
+    List<TissueItemRecord> records,
   ) async {
     if (!mounted) return null;
-    return showDialog<SpecimenPartProjectRecord>(
+    return showDialog<TissueItemRecord>(
       context: context,
       builder: (context) => TissueMatchDialog(
         code: code,
@@ -318,6 +384,8 @@ class _SpecimenCurationScreenState
   void _refreshParts() {
     ref.invalidate(partBySpecimenProvider);
     ref.invalidate(specimenPartEntryProvider);
+    ref.invalidate(parasiteBySpecimenProvider);
+    ref.invalidate(parasiteEntryProvider);
   }
 
   Future<void> _run(Future<void> Function() operation) async {

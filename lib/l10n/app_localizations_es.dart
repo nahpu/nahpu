@@ -8392,4 +8392,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectTissuePlace => 'Ubicar';
+
+  @override
+  String get projectTissueIncludeParasites => 'Incluir parásitos';
+
+  @override
+  String get projectTissueWorkListSearch => 'Buscar en la lista de trabajo';
+
+  @override
+  String get projectTissueNoMatches => 'Ningún tubo coincide';
+
+  @override
+  String get projectTissueParasite => 'Parásito';
+
+  @override
+  String get projectTissueParasiteCategory => 'Categoría de parásito';
+
+  @override
+  String get projectTissueIdParasiteIdOrBarcode =>
+      'ID del tejido, ID del parásito o código de barras';
+
+  @override
+  String get projectTissueFieldIdOrParasiteId =>
+      'ID de campo o ID del parásito';
+
+  @override
+  String get projectTissueSearchByFieldId => 'Buscar por ID de campo';
+
+  @override
+  String projectTissueLogChecked(int count) {
+    return 'Registrados ($count)';
+  }
+
+  @override
+  String projectTissueLogSkipped(int count) {
+    return 'Omitidos ($count)';
+  }
+
+  @override
+  String get projectTissueLogSkippedEmpty =>
+      'Los tubos omitidos aparecen aquí hasta que se ubican.';
+
+  @override
+  String get projectTissuePreviousBox => 'Caja anterior';
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/settings/common.dart';
+import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -37,6 +38,7 @@ class ProjectToolSettings extends ConsumerWidget {
                       icon: tool.icon,
                       title: tool.localizedLabel(l10n),
                       label: tool.localizedDescription(l10n),
+                      titleBadge: tool.isBeta ? const BetaBadge() : null,
                       trailing: Switch(
                         value: enabled.contains(tool),
                         onChanged: (value) => notifier.setEnabled(tool, value),

@@ -2194,5 +2194,17 @@
   "projectTissueReady": "Pronto. Leia o primeiro tubo.",
   "projectTissueWorkListEmpty": "Nenhuma parte sem localização corresponde aos filtros de tipo de tecido e preservação.",
   "projectTissueRemaining": "Próxima · {count} restantes",
-  "projectTissuePlace": "Posicionar"
+  "projectTissuePlace": "Posicionar",
+  "projectTissueIncludeParasites": "Incluir parasitas",
+  "projectTissueWorkListSearch": "Pesquisar na lista de trabalho",
+  "projectTissueNoMatches": "Nenhum tubo corresponde",
+  "projectTissueParasite": "Parasita",
+  "projectTissueParasiteCategory": "Categoria de parasita",
+  "projectTissueIdParasiteIdOrBarcode": "ID do tecido, ID do parasita ou código de barras",
+  "projectTissueFieldIdOrParasiteId": "ID de campo ou ID do parasita",
+  "projectTissueSearchByFieldId": "Pesquisar por ID de campo",
+  "projectTissueLogChecked": "Registrados ({count})",
+  "projectTissueLogSkipped": "Ignorados ({count})",
+  "projectTissueLogSkippedEmpty": "Os tubos ignorados aparecem aqui até serem colocados.",
+  "projectTissuePreviousBox": "Caixa anterior"
 }

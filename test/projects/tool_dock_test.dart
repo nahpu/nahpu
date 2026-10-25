@@ -81,6 +81,35 @@ void main() {
     });
   });
 
+  group('tool list migration', () {
+    test('adds curation once to a list saved before it existed', () async {
+      final container = await createContainer({
+        projectToolsPrefKey: ['dataTable', 'settings'],
+      });
+      expect(container.read(projectToolsProvider), [
+        ProjectTool.dataTable,
+        ProjectTool.specimenCuration,
+        ProjectTool.settings,
+      ]);
+      await Future<void>.delayed(Duration.zero);
+      final prefs = container.read(settingProvider);
+      expect(prefs.getStringList(projectToolsPrefKey), [
+        'dataTable',
+        'specimenCuration',
+        'settings',
+      ]);
+      expect(prefs.getInt(projectToolsVersionPrefKey), ProjectTool.listVersion);
+    });
+
+    test('a later removal of curation sticks', () async {
+      final container = await createContainer({
+        projectToolsPrefKey: ['dataTable'],
+        projectToolsVersionPrefKey: ProjectTool.listVersion,
+      });
+      expect(container.read(projectToolsProvider), [ProjectTool.dataTable]);
+    });
+  });
+
   testWidgets('specimen curation opens its screen', (tester) async {
     Widget? screen;
     await tester.pumpWidget(

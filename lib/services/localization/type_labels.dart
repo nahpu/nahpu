@@ -543,6 +543,18 @@ extension TissueIdentifyByLocalizedLabel on TissueIdentifyBy {
     TissueIdentifyBy.tissueId => l10n.projectTissueIdOrBarcode,
     TissueIdentifyBy.fieldId => l10n.recordsSpecimenFieldId,
   };
+
+  /// The scan field label, naming parasite IDs when parasites are included.
+  String localizedScanLabel(
+    AppLocalizations l10n, {
+    required bool includeParasites,
+  }) {
+    if (!includeParasites) return localizedLabel(l10n);
+    return switch (this) {
+      TissueIdentifyBy.tissueId => l10n.projectTissueIdParasiteIdOrBarcode,
+      TissueIdentifyBy.fieldId => l10n.projectTissueFieldIdOrParasiteId,
+    };
+  }
 }
 
 extension TissueFillOrderLocalizedLabel on TissueFillOrder {

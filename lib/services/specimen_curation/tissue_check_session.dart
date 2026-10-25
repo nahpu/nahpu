@@ -1,8 +1,8 @@
-import 'package:nahpu/services/database/specimen_queries.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
+import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 
 enum TissueScanStatus {
   checked,
@@ -32,7 +32,8 @@ class TissueCheckEntry {
   const TissueCheckEntry({
     required this.code,
     required this.label,
-    required this.partId,
+    required this.kind,
+    required this.itemId,
     required this.field,
     required this.value,
     required this.boxNumber,
@@ -44,9 +45,13 @@ class TissueCheckEntry {
 
   final String code;
 
-  /// The tissue ID, or the field ID with part type and treatment.
+  /// The tissue or parasite ID, or the field ID with part type and
+  /// treatment.
   final String label;
-  final int partId;
+  final TissueItemKind kind;
+
+  /// The part or parasite id, depending on [kind].
+  final int itemId;
   final TissueCheckField field;
   final String value;
   final int boxNumber;
@@ -56,11 +61,21 @@ class TissueCheckEntry {
   final String? previousLocation;
 }
 
-/// Picks one part when a code matches several. Null skips the scan.
+/// A tube passed over during this session: skipped on the work list, or a
+/// scan whose match picker was dismissed. Placing the tube later removes it.
+class TissueSkipEntry {
+  const TissueSkipEntry({required this.label, this.key});
+
+  final String label;
+
+  /// The skipped tube, or null when a scan matched several and none was
+  /// picked.
+  final (TissueItemKind, int)? key;
+}
+
+/// Picks one tube when a code matches several. Null skips the scan.
 typedef TissuePartPicker =
-    Future<SpecimenPartProjectRecord?> Function(
-      List<SpecimenPartProjectRecord> records,
-    );
+    Future<TissueItemRecord?> Function(List<TissueItemRecord> records);
 
 /// Runs one tissue check: matches scans to parts, writes them to the next
 /// free cell, and moves through the box. Scans run one at a time.
@@ -83,8 +98,12 @@ class TissueCheckSession {
   /// Part types and treatments that smart entry recognizes after an ID.
   List<String> partTypes = const [];
   List<String> treatments = const [];
+
+  /// Names a parasite without a parasite ID in [labelFor].
+  String parasiteLabel = 'Parasite';
   final Map<TissueCell, String?> _occupied = {};
   final List<TissueCheckEntry> _entries = [];
+  final List<TissueSkipEntry> _skipped = [];
   TissueCell? _next;
   Future<void> _pending = Future.value();
 
@@ -97,6 +116,9 @@ class TissueCheckSession {
 
   /// This session's checked tubes, newest first.
   List<TissueCheckEntry> get entries => List.unmodifiable(_entries.reversed);
+
+  /// Tubes skipped in this session and not placed since, newest first.
+  List<TissueSkipEntry> get skipped => List.unmodifiable(_skipped.reversed);
 
   TissueCell? get next => _next;
   int get filledCount => _occupied.length;
@@ -136,6 +158,14 @@ class TissueCheckSession {
     }
   }
 
+  /// Moves back one box. Box 1 has none before it.
+  Future<void> previousBox() async {
+    if (_settings.boxNumber <= 1) return;
+    return updateSettings(
+      _settings.copyWith(boxNumber: _settings.boxNumber - 1),
+    );
+  }
+
   Future<void> nextBox() {
     return updateSettings(
       _settings.copyWith(boxNumber: _settings.boxNumber + 1),
@@ -147,32 +177,59 @@ class TissueCheckSession {
   }
 
   /// Places [record] in the next cell without a scan, as the work list does.
-  Future<TissueScanOutcome> place(SpecimenPartProjectRecord record) {
+  Future<TissueScanOutcome> place(TissueItemRecord record) {
     return _serial(() async {
       await service.loadFieldIds();
       return _place(record, labelFor(record));
     });
   }
 
-  /// Unplaced parts that match the type and treatment filters, in field ID
+  /// Notes [record] as skipped on the work list.
+  void skip(TissueItemRecord record) {
+    _addSkip(TissueSkipEntry(label: labelFor(record), key: record.key));
+  }
+
+  /// Unplaced tubes that match the type and treatment filters, in field ID
   /// order.
-  Future<List<SpecimenPartProjectRecord>> workList() {
+  Future<List<TissueItemRecord>> workList() {
     return service.workList(
-      partType: _settings.partType,
-      preservation: _settings.preservation,
+      partTypes: _settings.partTypes,
+      preservations: _settings.preservations,
+      includeParasites: _settings.includeParasites,
+      parasiteCategories: _settings.parasiteCategories,
     );
   }
 
-  /// How a part is named in messages and the log: its tissue ID, or its
-  /// field ID with part type and treatment.
-  String labelFor(SpecimenPartProjectRecord record) {
-    final tissueId = record.part.tissueID?.trim() ?? '';
-    if (tissueId.isNotEmpty) return tissueId;
+  /// The codes the current identify mode can match, for suggestions.
+  Future<List<String>> scanCodes() {
+    return service.scanCodes(
+      identifyBy: _settings.identifyBy,
+      includeParasites: _settings.includeParasites,
+    );
+  }
+
+  /// How a tube is named in messages and the log: its tissue or parasite
+  /// ID, or its field ID with part type, or Parasite, and treatment.
+  String labelFor(TissueItemRecord record) {
+    final code = record.code?.trim() ?? '';
+    if (code.isNotEmpty) return code;
     return [
       service.fieldIdOf(record.specimen.uuid),
-      record.part.type ?? '',
-      record.part.treatment ?? '',
+      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      record.treatment ?? '',
     ].map((e) => e.trim()).where((e) => e.isNotEmpty).join(' · ');
+  }
+
+  /// The text the work list search looks through: the label, field ID,
+  /// barcode, type, and treatment.
+  String searchTextFor(TissueItemRecord record) {
+    return [
+      labelFor(record),
+      service.fieldIdOf(record.specimen.uuid),
+      record.barcode ?? '',
+      (record.isParasite ? parasiteLabel : record.type) ?? '',
+      record.treatment ?? '',
+    ].join(' ');
   }
 
   /// Reverts the most recent check. Returns null when there is none.
@@ -181,7 +238,8 @@ class TissueCheckSession {
       if (_entries.isEmpty) return null;
       final entry = _entries.removeLast();
       await service.revert(
-        entry.partId,
+        entry.kind,
+        entry.itemId,
         field: entry.field,
         value: entry.previousValue,
         location: entry.previousLocation,
@@ -227,10 +285,12 @@ class TissueCheckSession {
     final match = await service.find(
       query,
       identifyBy: _settings.identifyBy,
-      partType: _settings.partType,
-      preservation: _settings.preservation,
+      partTypes: _settings.partTypes,
+      preservations: _settings.preservations,
+      includeParasites: _settings.includeParasites,
+      parasiteCategories: _settings.parasiteCategories,
     );
-    final SpecimenPartProjectRecord? record;
+    final TissueItemRecord? record;
     switch (match.status) {
       case TissueMatchStatus.notFound:
         return TissueScanOutcome(
@@ -243,15 +303,13 @@ class TissueCheckSession {
         record = await pickPart?.call(match.records);
     }
     if (record == null) {
+      _addSkip(TissueSkipEntry(label: code));
       return TissueScanOutcome(TissueScanStatus.skipped, 'Skipped: $code');
     }
     return _place(record, code);
   }
 
-  Future<TissueScanOutcome> _place(
-    SpecimenPartProjectRecord record,
-    String code,
-  ) async {
+  Future<TissueScanOutcome> _place(TissueItemRecord record, String code) async {
     final value = _settings.value.trim();
     if (value.isEmpty) {
       return TissueScanOutcome(
@@ -259,9 +317,8 @@ class TissueCheckSession {
         'Enter a value for ${_settings.field.label} first',
       );
     }
-    final part = record.part;
     final label = labelFor(record).isEmpty ? code : labelFor(record);
-    if (_entries.any((e) => e.partId == part.id)) {
+    if (_entries.any((e) => (e.kind, e.itemId) == record.key)) {
       return TissueScanOutcome(
         TissueScanStatus.duplicate,
         'Already checked: $label',
@@ -283,7 +340,7 @@ class TissueCheckSession {
     final cell = _next!;
     final location = nextLocation!;
     final write = await service.apply(
-      part,
+      record,
       field: _settings.field,
       value: value,
       location: location,
@@ -305,7 +362,8 @@ class TissueCheckSession {
       TissueCheckEntry(
         code: code,
         label: label,
-        partId: part.id!,
+        kind: record.kind,
+        itemId: record.id,
         field: _settings.field,
         value: value,
         boxNumber: _settings.boxNumber,
@@ -315,12 +373,22 @@ class TissueCheckSession {
         previousLocation: write.previousLocation,
       ),
     );
+    _skipped.removeWhere((e) => e.key == record.key || e.label == code);
     _occupied[cell] = label;
     _next = layout.firstFree(_occupied.keys.toSet(), from: cell);
     return TissueScanOutcome(
       TissueScanStatus.checked,
       '$label → $location · ${_settings.field.label} = $value',
     );
+  }
+
+  /// Keeps one skip per tube, moved to the newest position.
+  void _addSkip(TissueSkipEntry entry) {
+    _skipped
+      ..removeWhere(
+        (e) => entry.key != null ? e.key == entry.key : e.label == entry.label,
+      )
+      ..add(entry);
   }
 
   Future<void> _loadBox() async {

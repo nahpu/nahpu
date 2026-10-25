@@ -8174,4 +8174,46 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectTissuePlace => 'Tempatkan';
+
+  @override
+  String get projectTissueIncludeParasites => 'Sertakan parasit';
+
+  @override
+  String get projectTissueWorkListSearch => 'Cari daftar kerja';
+
+  @override
+  String get projectTissueNoMatches => 'Tidak ada tabung yang cocok';
+
+  @override
+  String get projectTissueParasite => 'Parasit';
+
+  @override
+  String get projectTissueParasiteCategory => 'Kategori parasit';
+
+  @override
+  String get projectTissueIdParasiteIdOrBarcode =>
+      'ID jaringan, ID parasit, atau kode batang';
+
+  @override
+  String get projectTissueFieldIdOrParasiteId => 'ID lapangan atau ID parasit';
+
+  @override
+  String get projectTissueSearchByFieldId => 'Cari berdasarkan ID lapangan';
+
+  @override
+  String projectTissueLogChecked(int count) {
+    return 'Tercatat ($count)';
+  }
+
+  @override
+  String projectTissueLogSkipped(int count) {
+    return 'Dilewati ($count)';
+  }
+
+  @override
+  String get projectTissueLogSkippedEmpty =>
+      'Tabung yang dilewati muncul di sini sampai ditempatkan.';
+
+  @override
+  String get projectTissuePreviousBox => 'Kotak sebelumnya';
 }

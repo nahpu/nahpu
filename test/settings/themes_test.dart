@@ -2,8 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/styles/themes.dart';
 
+import '../helpers/text_contrast.dart';
+
 void main() {
-  const canopyTeal = Color(0xFF1B9E77);
+  const canopyForest = Color(0xFF0C7055);
+  const canopyMist = Color(0xFF7FD9BE);
   const mistySage = Color(0xFF4D625B);
   const mossShadow = Color(0xFF1E352F);
 
@@ -13,7 +16,7 @@ void main() {
 
       expect(theme.useMaterial3, isTrue);
       expect(theme.colorScheme.brightness, Brightness.light);
-      expect(theme.colorScheme.primary, canopyTeal);
+      expect(theme.colorScheme.primary, canopyForest);
       expect(theme.colorScheme.secondary, mistySage);
     });
 
@@ -22,9 +25,34 @@ void main() {
 
       expect(theme.useMaterial3, isTrue);
       expect(theme.colorScheme.brightness, Brightness.dark);
-      expect(theme.colorScheme.primary, canopyTeal);
+      expect(theme.colorScheme.primary, canopyMist);
       expect(theme.colorScheme.secondary, mistySage);
       expect(theme.colorScheme.tertiary, mossShadow);
+    });
+
+    test('primary meets WCAG AA as text and under on-primary text', () {
+      for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
+        final scheme = theme.colorScheme;
+        for (final surface in [
+          scheme.surface,
+          scheme.surfaceContainerLow,
+          scheme.surfaceContainerHigh,
+          scheme.surfaceContainerHighest,
+        ]) {
+          expect(
+            contrastRatio(scheme.primary, surface),
+            greaterThanOrEqualTo(wcagTextContrast),
+          );
+        }
+        expect(
+          contrastRatio(scheme.onPrimary, scheme.primary),
+          greaterThanOrEqualTo(wcagTextContrast),
+        );
+        expect(
+          contrastRatio(NahpuTheme.warningText(scheme), scheme.surface),
+          greaterThanOrEqualTo(wcagTextContrast),
+        );
+      }
     });
 
     test('exposes the light surface for the template editor workspace', () {

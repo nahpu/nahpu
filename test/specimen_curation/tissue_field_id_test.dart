@@ -85,8 +85,8 @@ void main() {
       return service.find(
         TissueQuery(id),
         identifyBy: TissueIdentifyBy.fieldId,
-        partType: partType,
-        preservation: preservation,
+        partTypes: {?partType},
+        preservations: {?preservation},
       );
     }
 
@@ -109,16 +109,16 @@ void main() {
     test('type and preservation narrow a specimen to one part', () async {
       expect((await findField('ABC101')).status, TissueMatchStatus.ambiguous);
       final liver = await findField('ABC101', partType: 'liver');
-      expect(liver.records.single.part.type, 'Liver');
+      expect(liver.records.single.type, 'Liver');
       final dmso = await findField('ABC101', preservation: 'DMSO');
-      expect(dmso.records.single.part.type, 'Muscle');
+      expect(dmso.records.single.type, 'Muscle');
     });
 
     test('placed parts stay in ambiguous results', () async {
       final match = await findField('ABC103');
       expect(match.status, TissueMatchStatus.ambiguous);
       expect(
-        match.records.map((e) => e.part.storageLocation),
+        match.records.map((e) => e.storageLocation),
         contains('Box 9: A1'),
       );
     });
@@ -128,7 +128,7 @@ void main() {
         const TissueCheckSettings(
           value: 'EXM',
           identifyBy: TissueIdentifyBy.fieldId,
-          partType: 'Liver',
+          partTypes: {'Liver'},
         ),
       );
       await session.load();
@@ -146,13 +146,13 @@ void main() {
         const TissueCheckSettings(
           value: 'EXM',
           identifyBy: TissueIdentifyBy.fieldId,
-          partType: 'Liver',
+          partTypes: {'Liver'},
         ),
       );
       await session.load();
       await session.scan('ABC101 muscle dmso');
       expect(session.entries.single.label, 'ABC101 · Muscle · DMSO');
-      expect(session.settings.partType, 'Liver');
+      expect(session.settings.partTypes, {'Liver'});
     });
 
     test(
@@ -162,7 +162,7 @@ void main() {
           const TissueCheckSettings(
             value: 'EXM',
             identifyBy: TissueIdentifyBy.fieldId,
-            partType: 'Liver',
+            partTypes: {'Liver'},
           ),
         );
         await session.load();

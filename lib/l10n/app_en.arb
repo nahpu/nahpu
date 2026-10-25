@@ -3025,5 +3025,19 @@
   "projectTissueWorkListEmpty": "No unplaced parts match the tissue type and preservation filters.",
   "projectTissueRemaining": "Next · {count} remaining",
   "@projectTissueRemaining": {"placeholders": {"count": {"type": "int"}}},
-  "projectTissuePlace": "Place"
+  "projectTissuePlace": "Place",
+  "projectTissueIncludeParasites": "Include parasites",
+  "projectTissueWorkListSearch": "Search work list",
+  "projectTissueNoMatches": "No matching tubes",
+  "projectTissueParasite": "Parasite",
+  "projectTissueParasiteCategory": "Parasite category",
+  "projectTissueIdParasiteIdOrBarcode": "Tissue ID, parasite ID, or barcode",
+  "projectTissueFieldIdOrParasiteId": "Field ID or parasite ID",
+  "projectTissueSearchByFieldId": "Search by field ID",
+  "projectTissueLogChecked": "Checked ({count})",
+  "@projectTissueLogChecked": {"placeholders": {"count": {"type": "int"}}},
+  "projectTissueLogSkipped": "Skipped ({count})",
+  "@projectTissueLogSkipped": {"placeholders": {"count": {"type": "int"}}},
+  "projectTissueLogSkippedEmpty": "Skipped tubes appear here until they are placed.",
+  "projectTissuePreviousBox": "Previous box"
 }

@@ -13,6 +13,7 @@ class TissueBoxCard extends StatelessWidget {
     required this.next,
     required this.onCellSelected,
     required this.onNextBox,
+    this.onPreviousBox,
   });
 
   final String boxName;
@@ -21,6 +22,9 @@ class TissueBoxCard extends StatelessWidget {
   final TissueCell? next;
   final ValueChanged<TissueCell> onCellSelected;
   final VoidCallback onNextBox;
+
+  /// Null disables the previous box button, as on box 1.
+  final VoidCallback? onPreviousBox;
 
   @override
   Widget build(BuildContext context) {
@@ -102,16 +106,62 @@ class TissueBoxCard extends StatelessWidget {
               runSpacing: NahpuSpacing.md,
               children: [
                 const TissueBoxLegend(),
-                TextButton.icon(
-                  onPressed: onNextBox,
-                  icon: const Icon(Icons.arrow_forward),
-                  label: Text(context.l10n.projectTissueNextBox),
+                TissueBoxPager(
+                  boxName: boxName,
+                  onPrevious: onPreviousBox,
+                  onNext: onNextBox,
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Steps between boxes, with the current box named between the buttons.
+class TissueBoxPager extends StatelessWidget {
+  const TissueBoxPager({
+    super.key,
+    required this.boxName,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final String boxName;
+
+  /// Null disables the previous button.
+  final VoidCallback? onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          key: const ValueKey('tissue-previous-box'),
+          tooltip: context.l10n.projectTissuePreviousBox,
+          onPressed: onPrevious,
+          icon: const Icon(Icons.chevron_left),
+        ),
+        Flexible(
+          child: Text(
+            boxName,
+            key: const ValueKey('tissue-pager-box'),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+        IconButton(
+          key: const ValueKey('tissue-next-box'),
+          tooltip: context.l10n.projectTissueNextBox,
+          onPressed: onNext,
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
     );
   }
 }
@@ -186,7 +236,7 @@ class TissueBoxHeader extends StatelessWidget {
         child: Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -271,9 +321,11 @@ class TissueBoxCell extends StatelessWidget {
                         : isNext
                         ? Text(
                             label,
+                            // The primary border marks the cell; the label
+                            // stays in on-surface to read on the cell fill.
                             style: textStyle?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w700,
                             ),
                           )
                         : const SizedBox.shrink(),

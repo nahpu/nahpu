@@ -57,6 +57,12 @@ bool matchesTissueFilter(String? value, String? filter) {
   return _normalize(value ?? '') == _normalize(filter);
 }
 
+/// Whether [value] matches any of [filters]. An empty set matches anything.
+bool matchesAnyTissueFilter(String? value, Set<String> filters) {
+  if (filters.isEmpty) return true;
+  return filters.any((filter) => matchesTissueFilter(value, filter));
+}
+
 String? _find(List<String> values, String phrase) {
   for (final value in values) {
     if (_normalize(value) == phrase) return value;
@@ -66,3 +72,34 @@ String? _find(List<String> values, String phrase) {
 
 String _normalize(String text) =>
     text.toLowerCase().split(_separators).where((e) => e.isNotEmpty).join(' ');
+
+/// The [codes] that contain [text], ignoring case, spaces, and
+/// punctuation, with those that start with it first. At most [limit]. None
+/// for blank text, or when the only match is the text itself, so a finished
+/// code shows no suggestions.
+List<String> suggestTissueCodes(
+  List<String> codes,
+  String text, {
+  int limit = 8,
+}) {
+  final query = _compact(text);
+  if (query.isEmpty) return const [];
+  final starts = <String>[];
+  final contains = <String>[];
+  for (final code in codes) {
+    final compact = _compact(code);
+    if (compact.startsWith(query)) {
+      starts.add(code);
+    } else if (compact.contains(query)) {
+      contains.add(code);
+    }
+  }
+  final matches = [...starts, ...contains];
+  if (matches.length == 1 && _compact(matches.single) == query) {
+    return const [];
+  }
+  return matches.take(limit).toList(growable: false);
+}
+
+String _compact(String text) =>
+    text.toLowerCase().replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/specimen_curation.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -193,7 +194,7 @@ void main() {
       settings: const TissueCheckSettings(
         value: 'EXM',
         identifyBy: TissueIdentifyBy.fieldId,
-        partType: 'Muscle',
+        partTypes: {'Muscle'},
       ),
     );
 
@@ -216,7 +217,7 @@ void main() {
     await pumpScreen(
       tester,
       size: const Size(1280, 1600),
-      settings: const TissueCheckSettings(value: 'EXM', partType: 'Liver'),
+      settings: const TissueCheckSettings(value: 'EXM', partTypes: {'Liver'}),
     );
 
     await tester.tap(find.text('Work list'));
@@ -237,6 +238,264 @@ void main() {
         'filters.',
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('marks the page as beta', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 1600));
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Beta')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('type filter keeps several checked values', (tester) async {
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: const TissueCheckSettings(
+        value: 'EXM',
+        partTypes: {'Liver', 'Muscle'},
+      ),
+    );
+    expect(find.text('Liver, Muscle'), findsOneWidget);
+
+    Future<TissueCheckSettings> saved() async {
+      final prefs = await SharedPreferences.getInstance();
+      return TissueCheckSettings.decode(prefs.getString(tissueCheckPrefKey));
+    }
+
+    await tester.tap(find.byKey(const ValueKey('tissue-type-filter')));
+    await tester.pumpAndSettle();
+    final field = find.byKey(const ValueKey('tissue-type-filter'));
+    expect(
+      tester.getSize(find.widgetWithText(CheckboxMenuButton, 'Muscle')).width,
+      moreOrLessEquals(tester.getSize(field).width, epsilon: 1),
+    );
+    await tester.tap(find.widgetWithText(CheckboxMenuButton, 'Muscle'));
+    await tester.pumpAndSettle();
+    expect((await saved()).partTypes, {'Liver'});
+
+    await tester.tap(find.widgetWithText(CheckboxMenuButton, 'Any'));
+    await tester.pumpAndSettle();
+    expect((await saved()).partTypes, isEmpty);
+  });
+
+  testWidgets('include parasites scans a parasite into the box', (
+    tester,
+  ) async {
+    await database
+        .into(database.parasite)
+        .insert(
+          const ParasiteCompanion(
+            specimenUuid: Value('specimen-a'),
+            parasiteID: Value('P-7'),
+            parasiteUuid: Value('parasite-7'),
+          ),
+        );
+    await pumpScreen(tester, size: const Size(1280, 1600));
+
+    expect(
+      find.byKey(const ValueKey('tissue-parasite-category-filter')),
+      findsNothing,
+    );
+    await tester.tap(find.byKey(const ValueKey('tissue-include-parasites')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('tissue-parasite-category-filter')),
+      findsOneWidget,
+    );
+    expect(find.text('Tissue ID, parasite ID, or barcode'), findsWidgets);
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'P-7',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    final parasite = await database.select(database.parasite).getSingle();
+    expect(parasite.museumPermanent, 'EXM');
+    expect(parasite.storageLocation, 'Box 1: A1');
+  });
+
+  testWidgets('work list search places a tube out of order', (tester) async {
+    await addFieldIdParts();
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: const TissueCheckSettings(value: 'EXM'),
+    );
+
+    await tester.tap(find.text('Work list'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-work-list-search')),
+      'muscle',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ABC1 · Muscle · DMSO').last);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('tissue-work-list-current')))
+          .data,
+      'ABC1 · Muscle · DMSO',
+    );
+
+    await tester.tap(find.text('Place'));
+    await tester.pumpAndSettle();
+    final muscle = await (database.select(
+      database.specimenPart,
+    )..where((row) => row.type.equals('Muscle'))).getSingle();
+    expect(muscle.storageLocation, 'Box 1: A1');
+  });
+
+  testWidgets('the field ID toggle sits above the scan field', (tester) async {
+    await addFieldIdParts();
+    await pumpScreen(
+      tester,
+      size: const Size(1280, 1600),
+      settings: const TissueCheckSettings(value: 'EXM', partTypes: {'Muscle'}),
+    );
+
+    expect(find.byType(SegmentedButton<TissueIdentifyBy>), findsNothing);
+    final toggle = find.byKey(const ValueKey('tissue-search-by-field-id'));
+    final input = find.byKey(const ValueKey('tissue-scan-input'));
+    expect(tester.getTopLeft(toggle).dy, lessThan(tester.getTopLeft(input).dy));
+    expect(find.text('Tissue ID or barcode'), findsOneWidget);
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(find.text('Field ID'), findsOneWidget);
+
+    await tester.enterText(input, 'abc 1');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    final muscle = await (database.select(
+      database.specimenPart,
+    )..where((row) => row.type.equals('Muscle'))).getSingle();
+    expect(muscle.storageLocation, 'Box 1: A1');
+  });
+
+  testWidgets('typing shows code suggestions; picking one scans it', (
+    tester,
+  ) async {
+    await database
+        .into(database.specimenPart)
+        .insert(
+          const SpecimenPartCompanion(
+            specimenUuid: Value('specimen-a'),
+            tissueID: Value('T-1099'),
+          ),
+        );
+    await pumpScreen(tester, size: const Size(1280, 1600));
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      't10',
+    );
+    await tester.pumpAndSettle();
+    final suggestions = find.byKey(const ValueKey('tissue-scan-suggestions'));
+    expect(
+      find.descendant(of: suggestions, matching: find.text('T-1043')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: suggestions, matching: find.text('T-1099')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.descendant(of: suggestions, matching: find.text('T-1099')),
+    );
+    await tester.pumpAndSettle();
+    final part = await (database.select(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1099'))).getSingle();
+    expect(part.storageLocation, 'Box 1: A1');
+    expect(suggestions, findsNothing);
+  });
+
+  testWidgets('Enter scans the typed code, not a suggestion', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 1600));
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'T-10',
+    );
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Not found: T-10'), findsOneWidget);
+  });
+
+  testWidgets('the log spans the page on wide screens and lists skips', (
+    tester,
+  ) async {
+    await addFieldIdParts();
+    await pumpScreen(tester, size: const Size(1400, 2000));
+    final log = find.byType(TissueCheckLogCard);
+    final box = find.byType(TissueBoxCard);
+    expect(tester.getTopLeft(log).dx, tester.getTopLeft(box).dx);
+    expect(
+      tester.getSize(log).width,
+      greaterThan(tester.getSize(box).width * 1.5),
+    );
+    // Checked and skipped sit side by side.
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('tissue-log-skipped'))).dy,
+      tester.getTopLeft(find.byKey(const ValueKey('tissue-log-checked'))).dy,
+    );
+
+    await tester.tap(find.text('Work list'));
+    await tester.pumpAndSettle();
+    final first = tester
+        .widget<Text>(find.byKey(const ValueKey('tissue-work-list-current')))
+        .data!;
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+    expect(find.text('Skipped (1)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tissue-log-skipped')),
+        matching: find.text(first),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  for (final width in [420.0, 1400.0]) {
+    testWidgets('text at 200% fits at ${width.toInt()} px wide', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pumpScreen(tester, size: Size(width, 4000));
+      await tester.tap(find.text('Work list'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('the pager steps between boxes', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 1600));
+    final previous = find.byKey(const ValueKey('tissue-previous-box'));
+    final next = find.byKey(const ValueKey('tissue-next-box'));
+    final pagerBox = find.byKey(const ValueKey('tissue-pager-box'));
+    expect(tester.widget<Text>(pagerBox).data, 'Box 1');
+    expect(tester.widget<IconButton>(previous).onPressed, isNull);
+
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(pagerBox).data, 'Box 2');
+    expect(tester.widget<IconButton>(previous).onPressed, isNotNull);
+
+    await tester.tap(previous);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Text>(pagerBox).data, 'Box 1');
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      TissueCheckSettings.decode(prefs.getString(tissueCheckPrefKey)).boxNumber,
+      1,
     );
   });
 }

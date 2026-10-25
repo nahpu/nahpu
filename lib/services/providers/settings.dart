@@ -46,6 +46,9 @@ const String dataTableAutoSavePrefKey = 'dataTableAutoSave';
 /// The tools shown in the project dashboard dock, by [ProjectTool] name.
 const String projectToolsPrefKey = 'projectTools';
 
+/// The [ProjectTool.listVersion] a saved tool list was last migrated to.
+const String projectToolsVersionPrefKey = 'projectToolsVersion';
+
 /// The tissue check setup: target field, value, box layout, and box number.
 const String tissueCheckPrefKey = 'tissueCheck';
 
@@ -132,9 +135,17 @@ final projectToolsProvider =
 
 class ProjectToolsNotifier extends Notifier<List<ProjectTool>> {
   @override
-  List<ProjectTool> build() => ProjectTool.decode(
-    ref.watch(settingProvider).getStringList(projectToolsPrefKey),
-  );
+  List<ProjectTool> build() {
+    final prefs = ref.watch(settingProvider);
+    final saved = prefs.getStringList(projectToolsPrefKey);
+    final tools = ProjectTool.decode(saved);
+    final version = prefs.getInt(projectToolsVersionPrefKey) ?? 0;
+    if (saved == null || version >= ProjectTool.listVersion) return tools;
+    final migrated = ProjectTool.migrate(tools, from: version);
+    // Saves once, so a tool the user turns off later stays off.
+    Future.microtask(() => set(migrated));
+    return migrated;
+  }
 
   Future<void> setEnabled(ProjectTool tool, bool isEnabled) async {
     await set(
@@ -144,9 +155,9 @@ class ProjectToolsNotifier extends Notifier<List<ProjectTool>> {
 
   Future<void> set(Iterable<ProjectTool> tools) async {
     state = ProjectTool.sortTools(tools);
-    await ref
-        .read(settingProvider)
-        .setStringList(projectToolsPrefKey, ProjectTool.encode(state));
+    final prefs = ref.read(settingProvider);
+    await prefs.setStringList(projectToolsPrefKey, ProjectTool.encode(state));
+    await prefs.setInt(projectToolsVersionPrefKey, ProjectTool.listVersion);
   }
 
   Future<void> reset() async {

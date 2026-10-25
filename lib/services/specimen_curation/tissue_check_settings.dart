@@ -32,8 +32,10 @@ class TissueCheckSettings {
     this.boxNumber = 1,
     this.overwrite = false,
     this.identifyBy = TissueIdentifyBy.tissueId,
-    this.partType,
-    this.preservation,
+    this.partTypes = const {},
+    this.preservations = const {},
+    this.includeParasites = false,
+    this.parasiteCategories = const {},
   });
 
   final TissueCheckField field;
@@ -44,11 +46,19 @@ class TissueCheckSettings {
   final bool overwrite;
   final TissueIdentifyBy identifyBy;
 
-  /// The part type to match, such as Liver. Null matches any type.
-  final String? partType;
+  /// The part types to match, such as Liver. Empty matches any type.
+  /// Parasites have no part type, so this never excludes them.
+  final Set<String> partTypes;
 
-  /// The treatment to match, such as ETOH. Null matches any treatment.
-  final String? preservation;
+  /// The treatments to match, such as ETOH. Empty matches any treatment.
+  final Set<String> preservations;
+
+  /// Whether scans and the work list also find parasites.
+  final bool includeParasites;
+
+  /// The parasite categories to match, such as Ectoparasite. Empty matches
+  /// any category.
+  final Set<String> parasiteCategories;
 
   String get boxName => formatTissueBoxName(boxLabel, boxNumber);
 
@@ -60,8 +70,10 @@ class TissueCheckSettings {
     int? boxNumber,
     bool? overwrite,
     TissueIdentifyBy? identifyBy,
-    String? Function()? partType,
-    String? Function()? preservation,
+    Set<String>? partTypes,
+    Set<String>? preservations,
+    bool? includeParasites,
+    Set<String>? parasiteCategories,
   }) {
     return TissueCheckSettings(
       field: field ?? this.field,
@@ -71,8 +83,10 @@ class TissueCheckSettings {
       boxNumber: boxNumber ?? this.boxNumber,
       overwrite: overwrite ?? this.overwrite,
       identifyBy: identifyBy ?? this.identifyBy,
-      partType: partType == null ? this.partType : partType(),
-      preservation: preservation == null ? this.preservation : preservation(),
+      partTypes: partTypes ?? this.partTypes,
+      preservations: preservations ?? this.preservations,
+      includeParasites: includeParasites ?? this.includeParasites,
+      parasiteCategories: parasiteCategories ?? this.parasiteCategories,
     );
   }
 
@@ -86,8 +100,10 @@ class TissueCheckSettings {
     'boxNumber': boxNumber,
     'overwrite': overwrite,
     'identifyBy': identifyBy.name,
-    'partType': partType,
-    'preservation': preservation,
+    'partTypes': partTypes.toList(),
+    'preservations': preservations.toList(),
+    'includeParasites': includeParasites,
+    'parasiteCategories': parasiteCategories.toList(),
   });
 
   /// Reads [encoded], falling back to defaults for missing or unknown values.
@@ -128,18 +144,26 @@ class TissueCheckSettings {
           json['identifyBy'],
           defaults.identifyBy,
         ),
-        partType: _optionalText(json['partType']),
-        preservation: _optionalText(json['preservation']),
+        partTypes: _textSet(json['partTypes'], legacy: json['partType']),
+        preservations: _textSet(
+          json['preservations'],
+          legacy: json['preservation'],
+        ),
+        includeParasites: json['includeParasites'] == true,
+        parasiteCategories: _textSet(json['parasiteCategories']),
       );
     } on FormatException {
       return defaults;
     }
   }
 
-  static String? _optionalText(Object? value) {
-    if (value is! String) return null;
-    final text = value.trim();
-    return text.isEmpty ? null : text;
+  /// Reads a list of values, or the single value older setups saved.
+  static Set<String> _textSet(Object? values, {Object? legacy}) {
+    final items = values is List ? values : [legacy];
+    return {
+      for (final item in items)
+        if (item is String && item.trim().isNotEmpty) item.trim(),
+    };
   }
 
   static T _byName<T extends Enum>(List<T> values, Object? name, T fallback) {

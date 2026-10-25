@@ -8262,4 +8262,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectTissuePlace => 'Place';
+
+  @override
+  String get projectTissueIncludeParasites => 'Include parasites';
+
+  @override
+  String get projectTissueWorkListSearch => 'Search work list';
+
+  @override
+  String get projectTissueNoMatches => 'No matching tubes';
+
+  @override
+  String get projectTissueParasite => 'Parasite';
+
+  @override
+  String get projectTissueParasiteCategory => 'Parasite category';
+
+  @override
+  String get projectTissueIdParasiteIdOrBarcode =>
+      'Tissue ID, parasite ID, or barcode';
+
+  @override
+  String get projectTissueFieldIdOrParasiteId => 'Field ID or parasite ID';
+
+  @override
+  String get projectTissueSearchByFieldId => 'Search by field ID';
+
+  @override
+  String projectTissueLogChecked(int count) {
+    return 'Checked ($count)';
+  }
+
+  @override
+  String projectTissueLogSkipped(int count) {
+    return 'Skipped ($count)';
+  }
+
+  @override
+  String get projectTissueLogSkippedEmpty =>
+      'Skipped tubes appear here until they are placed.';
+
+  @override
+  String get projectTissuePreviousBox => 'Previous box';
 }

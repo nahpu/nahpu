@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
 
 void main() {
   group('TissueBoxLayout', () {
@@ -144,12 +145,70 @@ void main() {
       expect(decoded.overwrite, isTrue);
     });
 
+    test('round-trips filters and the parasite option', () {
+      const settings = TissueCheckSettings(
+        partTypes: {'Liver', 'Muscle'},
+        preservations: {'ETOH'},
+        includeParasites: true,
+        parasiteCategories: {'Ectoparasite'},
+      );
+      final decoded = TissueCheckSettings.decode(settings.encode());
+      expect(decoded.parasiteCategories, {'Ectoparasite'});
+      expect(decoded.partTypes, {'Liver', 'Muscle'});
+      expect(decoded.preservations, {'ETOH'});
+      expect(decoded.includeParasites, isTrue);
+    });
+
+    test('reads the single filters older setups saved', () {
+      final decoded = TissueCheckSettings.decode(
+        '{"partType":"Liver","preservation":" "}',
+      );
+      expect(decoded.partTypes, {'Liver'});
+      expect(decoded.preservations, isEmpty);
+      expect(decoded.includeParasites, isFalse);
+    });
+
     test('falls back to defaults for bad data', () {
       expect(TissueCheckSettings.decode('not json').boxNumber, 1);
       expect(
         TissueCheckSettings.decode('{"field":"gone","boxNumber":-2}').field,
         TissueCheckField.museumPermanent,
       );
+    });
+  });
+
+  group('matchesAnyTissueFilter', () {
+    test('an empty set matches anything', () {
+      expect(matchesAnyTissueFilter(null, const {}), isTrue);
+    });
+
+    test('matches any checked value ignoring case', () {
+      expect(matchesAnyTissueFilter('etoh', {'DMSO', 'ETOH'}), isTrue);
+      expect(matchesAnyTissueFilter('RNA later', {'DMSO', 'ETOH'}), isFalse);
+      expect(matchesAnyTissueFilter(null, {'ETOH'}), isFalse);
+    });
+  });
+
+  group('suggestTissueCodes', () {
+    const codes = ['ABC-101', 'ABC-102', 'T-1', 'T-10', 'XABC-1'];
+
+    test('puts prefix matches first and ignores case and punctuation', () {
+      expect(suggestTissueCodes(codes, 'abc10'), ['ABC-101', 'ABC-102']);
+      expect(suggestTissueCodes(codes, 'abc'), [
+        'ABC-101',
+        'ABC-102',
+        'XABC-1',
+      ]);
+    });
+
+    test('keeps longer codes when the text is a code itself', () {
+      expect(suggestTissueCodes(codes, 'T-1'), ['T-1', 'T-10']);
+      expect(suggestTissueCodes(codes, 't10'), isEmpty);
+    });
+
+    test('blank text and the limit', () {
+      expect(suggestTissueCodes(codes, '  '), isEmpty);
+      expect(suggestTissueCodes(codes, 'a', limit: 2), hasLength(2));
     });
   });
 }

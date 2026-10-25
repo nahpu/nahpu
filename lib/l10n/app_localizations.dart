@@ -13134,6 +13134,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Place'**
   String get projectTissuePlace;
+
+  /// No description provided for @projectTissueIncludeParasites.
+  ///
+  /// In en, this message translates to:
+  /// **'Include parasites'**
+  String get projectTissueIncludeParasites;
+
+  /// No description provided for @projectTissueWorkListSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search work list'**
+  String get projectTissueWorkListSearch;
+
+  /// No description provided for @projectTissueNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching tubes'**
+  String get projectTissueNoMatches;
+
+  /// No description provided for @projectTissueParasite.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite'**
+  String get projectTissueParasite;
+
+  /// No description provided for @projectTissueParasiteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Parasite category'**
+  String get projectTissueParasiteCategory;
+
+  /// No description provided for @projectTissueIdParasiteIdOrBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue ID, parasite ID, or barcode'**
+  String get projectTissueIdParasiteIdOrBarcode;
+
+  /// No description provided for @projectTissueFieldIdOrParasiteId.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID or parasite ID'**
+  String get projectTissueFieldIdOrParasiteId;
+
+  /// No description provided for @projectTissueSearchByFieldId.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by field ID'**
+  String get projectTissueSearchByFieldId;
+
+  /// No description provided for @projectTissueLogChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked ({count})'**
+  String projectTissueLogChecked(int count);
+
+  /// No description provided for @projectTissueLogSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped ({count})'**
+  String projectTissueLogSkipped(int count);
+
+  /// No description provided for @projectTissueLogSkippedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped tubes appear here until they are placed.'**
+  String get projectTissueLogSkippedEmpty;
+
+  /// No description provided for @projectTissuePreviousBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous box'**
+  String get projectTissuePreviousBox;
 }
 
 class _AppLocalizationsDelegate

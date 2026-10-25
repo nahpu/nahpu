@@ -7,6 +7,7 @@ import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_entry.dart';
+import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 
 const _project = 'project-a';
 const _otherProject = 'project-b';
@@ -27,13 +28,13 @@ void main() {
     test('matches barcode IDs before tissue IDs', () async {
       final match = await service.find(TissueQuery('QR-1'));
       expect(match.status, TissueMatchStatus.matched);
-      expect(match.records.single.part.tissueID, 'T-2');
+      expect(match.records.single.code, 'T-2');
     });
 
     test('matches tissue IDs within the project only', () async {
       final match = await service.find(TissueQuery(' T-1 '));
       expect(match.status, TissueMatchStatus.matched);
-      expect(match.records.single.part.specimenUuid, 'specimen-a');
+      expect(match.records.single.specimen.uuid, 'specimen-a');
       expect(
         (await service.find(TissueQuery('T-OTHER'))).status,
         TissueMatchStatus.notFound,
@@ -47,7 +48,7 @@ void main() {
     });
 
     test('writes only the chosen field and the location', () async {
-      final part = (await service.find(TissueQuery('T-1'))).records.single.part;
+      final part = (await service.find(TissueQuery('T-1'))).records.single;
       final write = await service.apply(
         part,
         field: TissueCheckField.museumLoan,
@@ -56,7 +57,7 @@ void main() {
         overwrite: false,
       );
       expect(write.status, TissueWriteStatus.written);
-      final stored = await _part(database, part.id!);
+      final stored = await _part(database, part.id);
       expect(stored.museumLoan, 'EXM');
       expect(stored.museumPermanent, isNull);
       expect(stored.storageLocation, 'Box 1: A1');
@@ -64,9 +65,7 @@ void main() {
     });
 
     test('keeps a stored location unless overwriting', () async {
-      final part = (await service.find(
-        TissueQuery('T-STORED'),
-      )).records.single.part;
+      final part = (await service.find(TissueQuery('T-STORED'))).records.single;
       final write = await service.apply(
         part,
         field: TissueCheckField.museumPermanent,
@@ -75,7 +74,7 @@ void main() {
         overwrite: false,
       );
       expect(write.status, TissueWriteStatus.conflict);
-      expect((await _part(database, part.id!)).storageLocation, 'Shelf 2');
+      expect((await _part(database, part.id)).storageLocation, 'Shelf 2');
 
       final replaced = await service.apply(
         part,
@@ -86,6 +85,107 @@ void main() {
       );
       expect(replaced.status, TissueWriteStatus.written);
       expect(replaced.previousLocation, 'Shelf 2');
+    });
+  });
+
+  group('TissueCheckService parasites', () {
+    test('finds parasites by parasite ID only when included', () async {
+      expect(
+        (await service.find(TissueQuery('P-1'))).status,
+        TissueMatchStatus.notFound,
+      );
+      final match = await service.find(
+        TissueQuery('P-1'),
+        includeParasites: true,
+      );
+      expect(match.status, TissueMatchStatus.matched);
+      expect(match.records.single.isParasite, isTrue);
+      expect(match.records.single.treatment, 'ETOH');
+    });
+
+    test('type filters pass parasites; treatment filters apply', () async {
+      final kept = await service.find(
+        TissueQuery('P-1'),
+        partTypes: {'Liver'},
+        preservations: {'DMSO', 'etoh'},
+        includeParasites: true,
+      );
+      expect(kept.status, TissueMatchStatus.matched);
+      final dropped = await service.find(
+        TissueQuery('P-1'),
+        preservations: {'DMSO'},
+        includeParasites: true,
+      );
+      expect(dropped.status, TissueMatchStatus.notFound);
+    });
+
+    test('field ID mode also matches parasite IDs', () async {
+      final match = await service.find(
+        TissueQuery('P-1'),
+        identifyBy: TissueIdentifyBy.fieldId,
+        includeParasites: true,
+      );
+      expect(match.records.single.code, 'P-1');
+      expect(
+        (await service.find(
+          TissueQuery('P-1'),
+          identifyBy: TissueIdentifyBy.fieldId,
+        )).status,
+        TissueMatchStatus.notFound,
+      );
+    });
+
+    test('the category filter applies to parasites only', () async {
+      await (database.update(database.parasite)
+            ..where((row) => row.parasiteID.equals('P-1')))
+          .write(const ParasiteCompanion(category: Value('Ectoparasite')));
+      Future<List<String?>> codes(Set<String> categories) async {
+        final list = await service.workList(
+          includeParasites: true,
+          parasiteCategories: categories,
+        );
+        return list.map((e) => e.code).toList();
+      }
+
+      expect(await codes({'ectoparasite'}), contains('P-1'));
+      expect(await codes({'ectoparasite'}), contains('T-1'));
+      expect(await codes({'Endoparasite'}), isNot(contains('P-1')));
+    });
+
+    test('suggests tissue IDs and barcodes, or field IDs', () async {
+      expect(await service.scanCodes(), [
+        'QR-1',
+        'T-1',
+        'T-2',
+        'T-DUP',
+        'T-STORED',
+      ]);
+      expect(
+        await service.scanCodes(includeParasites: true),
+        containsAll(['P-1', 'P-STORED']),
+      );
+      expect(
+        await service.scanCodes(includeParasites: true),
+        isNot(contains('P-OTHER')),
+      );
+      expect(
+        await service.scanCodes(identifyBy: TissueIdentifyBy.fieldId),
+        isNot(contains('T-1')),
+      );
+    });
+
+    test('the work list adds unplaced parasites', () async {
+      final parts = await service.workList();
+      expect(parts.where((e) => e.isParasite), isEmpty);
+      final all = await service.workList(includeParasites: true);
+      expect(all.where((e) => e.isParasite).map((e) => e.code), ['P-1']);
+    });
+
+    test('parasite locations fill box cells', () async {
+      await (database.update(database.parasite)
+            ..where((row) => row.parasiteID.equals('P-STORED')))
+          .write(const ParasiteCompanion(storageLocation: Value('Box 1: A2')));
+      expect(await service.locationsInBox('Box 1'), ['Box 1: A2']);
     });
   });
 
@@ -115,7 +215,7 @@ void main() {
       expect(session.nextLocation, 'Box 1: A3');
       final stored = (await service.find(
         TissueQuery('T-1'),
-      )).records.single.part;
+      )).records.single.part!;
       expect(stored.museumPermanent, 'EXM');
       expect(stored.storageLocation, 'Box 1: A2');
     });
@@ -176,6 +276,79 @@ void main() {
       expect(saved.last.boxNumber, 8);
     });
 
+    test('places and undoes parasites', () async {
+      final session = createSession(
+        const TissueCheckSettings(value: 'EXM', includeParasites: true),
+      );
+      await session.load();
+      final outcome = await session.scan('P-1');
+      expect(outcome.status, TissueScanStatus.checked);
+      expect(session.entries.single.kind, TissueItemKind.parasite);
+      var stored = await _parasite(database, 'P-1');
+      expect(stored.museumPermanent, 'EXM');
+      expect(stored.storageLocation, 'Box 1: A1');
+
+      await session.undoLast();
+      stored = await _parasite(database, 'P-1');
+      expect(stored.museumPermanent, isNull);
+      expect(stored.storageLocation, isNull);
+      expect(stored.remark, 'keep');
+    });
+
+    test('a part and a parasite with the same id are not duplicates', () async {
+      final session = createSession(
+        const TissueCheckSettings(value: 'EXM', includeParasites: true),
+      );
+      await session.load();
+      final part = (await service.find(TissueQuery('T-1'))).records.single;
+      final parasite = (await service.find(
+        TissueQuery('P-1'),
+        includeParasites: true,
+      )).records.single;
+      expect((await session.place(part)).status, TissueScanStatus.checked);
+      expect((await session.place(parasite)).status, TissueScanStatus.checked);
+    });
+
+    test('labels a parasite without an ID by field ID and treatment', () async {
+      await (database.update(database.parasite)
+            ..where((row) => row.parasiteID.equals('P-1')))
+          .write(const ParasiteCompanion(parasiteID: Value(null)));
+      final session = createSession(
+        const TissueCheckSettings(includeParasites: true),
+      )..parasiteLabel = 'Parasit';
+      final list = await session.workList();
+      final parasite = list.singleWhere((e) => e.isParasite);
+      expect(session.labelFor(parasite), '1 · Parasit · ETOH');
+    });
+
+    test('skips are logged until the tube is placed', () async {
+      final session = createSession();
+      await session.load();
+      await session.scan('T-DUP', pickPart: (_) async => null);
+      final part = (await service.find(TissueQuery('T-1'))).records.single;
+      session
+        ..skip(part)
+        ..skip(part);
+      expect(session.skipped.map((e) => e.label), ['T-1', 'T-DUP']);
+
+      await session.place(part);
+      expect(session.skipped.map((e) => e.label), ['T-DUP']);
+      await session.scan('T-DUP', pickPart: (records) async => records.first);
+      expect(session.skipped, isEmpty);
+    });
+
+    test('steps back a box but not before box 1', () async {
+      final session = createSession(
+        const TissueCheckSettings(value: 'EXM', boxNumber: 2),
+      );
+      await session.load();
+      await session.previousBox();
+      expect(session.settings.boxNumber, 1);
+      await session.previousBox();
+      expect(session.settings.boxNumber, 1);
+      expect(saved.last.boxNumber, 1);
+    });
+
     test('undo restores the part and the cell', () async {
       final session = createSession();
       await session.load();
@@ -185,7 +358,9 @@ void main() {
       expect(session.entries, isEmpty);
       expect(session.occupied, isEmpty);
       expect(session.nextLocation, 'Box 1: A1');
-      final part = (await service.find(TissueQuery('T-1'))).records.single.part;
+      final part = (await service.find(
+        TissueQuery('T-1'),
+      )).records.single.part!;
       expect(part.museumPermanent, isNull);
       expect(part.storageLocation, isNull);
     });
@@ -237,6 +412,32 @@ Future<void> _seed(Database database) async {
           ),
         );
   }
+
+  final parasites = [
+    ('specimen-a', 'P-1', 'ETOH', null),
+    ('specimen-a', 'P-STORED', 'ETOH', 'Shelf 3'),
+    ('specimen-b', 'P-OTHER', 'ETOH', null),
+  ];
+  for (final (specimen, id, treatment, location) in parasites) {
+    await database
+        .into(database.parasite)
+        .insert(
+          ParasiteCompanion(
+            specimenUuid: Value(specimen),
+            parasiteID: Value(id),
+            parasiteUuid: Value('uuid-$id'),
+            treatment: Value(treatment),
+            storageLocation: Value(location),
+            remark: const Value('keep'),
+          ),
+        );
+  }
+}
+
+Future<ParasiteData> _parasite(Database database, String parasiteId) {
+  return (database.select(
+    database.parasite,
+  )..where((row) => row.parasiteID.equals(parasiteId))).getSingle();
 }
 
 Future<SpecimenPartData> _part(Database database, int id) {

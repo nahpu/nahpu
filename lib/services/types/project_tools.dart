@@ -90,12 +90,26 @@ enum ProjectTool {
   final String label;
   final String description;
 
+  /// Whether the tool is still in beta.
+  bool get isBeta => this == ProjectTool.specimenCuration;
+
   /// The tools shown before the user edits the list, for every taxon group.
   static const List<ProjectTool> defaults = [
     ProjectTool.dataTable,
     ProjectTool.templates,
     ProjectTool.specimenCuration,
   ];
+
+  /// Bumped when a new tool should appear in lists saved before it existed.
+  static const int listVersion = 1;
+
+  /// Adds the tools introduced after list version [from] to a saved list.
+  static List<ProjectTool> migrate(
+    List<ProjectTool> tools, {
+    required int from,
+  }) {
+    return sortTools([...tools, if (from < 1) ProjectTool.specimenCuration]);
+  }
 
   /// Reads a saved tool list. Null means never edited, so [defaults] apply.
   /// Unknown names, such as tools removed in a later version, are skipped.

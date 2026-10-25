@@ -14,6 +14,7 @@ class TissueCheckSetupCard extends StatefulWidget {
     required this.onChanged,
     this.partTypes = const [],
     this.treatments = const [],
+    this.parasiteCategories = const [],
   });
 
   final TissueCheckSettings settings;
@@ -22,6 +23,7 @@ class TissueCheckSetupCard extends StatefulWidget {
   /// The part type and treatment vocabularies the filters offer.
   final List<String> partTypes;
   final List<String> treatments;
+  final List<String> parasiteCategories;
 
   @override
   State<TissueCheckSetupCard> createState() => _TissueCheckSetupCardState();
@@ -69,41 +71,47 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               context.l10n.projectTissueFindTubes,
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: NahpuSpacing.lg),
-            SegmentedButton<TissueIdentifyBy>(
-              segments: [
-                for (final by in TissueIdentifyBy.values)
-                  ButtonSegment(
-                    value: by,
-                    label: Text(by.localizedLabel(context.l10n)),
-                  ),
-              ],
-              selected: {settings.identifyBy},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) => widget.onChanged(
-                settings.copyWith(identifyBy: selection.first),
+            SwitchListTile(
+              key: const ValueKey('tissue-include-parasites'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.projectTissueIncludeParasites),
+              value: settings.includeParasites,
+              onChanged: (include) => widget.onChanged(
+                settings.copyWith(includeParasites: include),
               ),
             ),
-            const SizedBox(height: NahpuSpacing.xl),
+            const SizedBox(height: NahpuSpacing.md),
             TissueSetupPair(
-              first: TissueFilterDropdown(
+              first: TissueFilterChecklist(
                 key: const ValueKey('tissue-type-filter'),
                 label: context.l10n.projectTissueType,
-                value: settings.partType,
+                selected: settings.partTypes,
                 options: widget.partTypes,
-                onChanged: (type) =>
-                    widget.onChanged(settings.copyWith(partType: () => type)),
+                onChanged: (types) =>
+                    widget.onChanged(settings.copyWith(partTypes: types)),
               ),
-              second: TissueFilterDropdown(
+              second: TissueFilterChecklist(
                 key: const ValueKey('tissue-preservation-filter'),
                 label: context.l10n.projectTissuePreservation,
-                value: settings.preservation,
+                selected: settings.preservations,
                 options: widget.treatments,
-                onChanged: (treatment) => widget.onChanged(
-                  settings.copyWith(preservation: () => treatment),
+                onChanged: (treatments) => widget.onChanged(
+                  settings.copyWith(preservations: treatments),
                 ),
               ),
             ),
+            if (settings.includeParasites) ...[
+              const SizedBox(height: NahpuSpacing.xl),
+              TissueFilterChecklist(
+                key: const ValueKey('tissue-parasite-category-filter'),
+                label: context.l10n.projectTissueParasiteCategory,
+                selected: settings.parasiteCategories,
+                options: widget.parasiteCategories,
+                onChanged: (categories) => widget.onChanged(
+                  settings.copyWith(parasiteCategories: categories),
+                ),
+              ),
+            ],
             const SizedBox(height: NahpuSpacing.xxl),
             Text(
               context.l10n.projectTissueUpdateField,
@@ -317,40 +325,82 @@ class TissueSetupPair extends StatelessWidget {
   }
 }
 
-/// A vocabulary filter with an Any choice, shown as null.
-class TissueFilterDropdown extends StatelessWidget {
-  const TissueFilterDropdown({
+/// A vocabulary filter that matches any of the checked values. Nothing
+/// checked matches anything and reads as Any.
+class TissueFilterChecklist extends StatelessWidget {
+  const TissueFilterChecklist({
     super.key,
     required this.label,
-    required this.value,
+    required this.selected,
     required this.options,
     required this.onChanged,
   });
 
   final String label;
-  final String? value;
+  final Set<String> selected;
   final List<String> options;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<Set<String>> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final values = [
       ...options,
-      if (value != null && !options.contains(value)) value!,
+      for (final value in selected)
+        if (!options.contains(value)) value,
     ];
-    return DropdownButtonFormField<String?>(
-      initialValue: value,
-      isExpanded: true,
-      decoration: InputDecoration(labelText: label),
-      items: [
-        DropdownMenuItem<String?>(
-          value: null,
-          child: Text(context.l10n.projectTissueAny),
+    return LayoutBuilder(
+      builder: (context, constraints) => MenuAnchor(
+        style: const MenuStyle(
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(vertical: NahpuSpacing.sm),
+          ),
         ),
-        for (final option in values)
-          DropdownMenuItem<String?>(value: option, child: Text(option)),
-      ],
-      onChanged: onChanged,
+        menuChildren: [
+          // The menu spans the field, so values line up under it.
+          SizedBox(
+            width: constraints.maxWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                CheckboxMenuButton(
+                  value: selected.isEmpty,
+                  closeOnActivate: false,
+                  onChanged: (_) => onChanged(const {}),
+                  child: Text(context.l10n.projectTissueAny),
+                ),
+                for (final value in values)
+                  CheckboxMenuButton(
+                    value: selected.contains(value),
+                    closeOnActivate: false,
+                    onChanged: (isChecked) => onChanged(
+                      isChecked == true
+                          ? {...selected, value}
+                          : ({...selected}..remove(value)),
+                    ),
+                    child: Text(value),
+                  ),
+              ],
+            ),
+          ),
+        ],
+        builder: (context, controller, child) => InkWell(
+          onTap: () =>
+              controller.isOpen ? controller.close() : controller.open(),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: label,
+              suffixIcon: const Icon(Icons.arrow_drop_down),
+            ),
+            child: Text(
+              selected.isEmpty
+                  ? context.l10n.projectTissueAny
+                  : values.where(selected.contains).join(', '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

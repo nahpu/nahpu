@@ -65,6 +65,50 @@ class ParasiteQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  /// The project's parasites whose parasite ID is [code].
+  Future<List<ParasiteProjectRecord>> findParasitesByCode(
+    String projectUuid,
+    String code,
+  ) {
+    return _getProjectParasites(
+      projectUuid,
+      where: parasite.parasiteID.equals(code),
+    );
+  }
+
+  /// The parasites of the specimens in [uuids].
+  Future<List<ParasiteProjectRecord>> getParasitesForSpecimens(
+    String projectUuid,
+    Iterable<String> uuids,
+  ) {
+    return _getProjectParasites(projectUuid, where: specimen.uuid.isIn(uuids));
+  }
+
+  /// The project's parasite storage locations that start with [prefix].
+  Future<List<String>> getStorageLocationsWithPrefix(
+    String projectUuid,
+    String prefix,
+  ) async {
+    final query =
+        selectOnly(parasite).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(parasite.specimenUuid),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([parasite.storageLocation])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                parasite.storageLocation.isNotNull(),
+          );
+    final rows = await query.get();
+    return rows
+        .map((row) => row.read(parasite.storageLocation)!)
+        .where((location) => location.trim().startsWith(prefix))
+        .toList(growable: false);
+  }
+
   Future<List<String>> getDistinctCategories() {
     return _getDistinctValues(parasite.category);
   }
@@ -117,6 +161,27 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     await (delete(
       parasiteDetection,
     )..where((row) => row.specimenUuid.equals(specimenUuid))).go();
+  }
+
+  Future<List<ParasiteProjectRecord>> _getProjectParasites(
+    String projectUuid, {
+    required Expression<bool> where,
+  }) async {
+    final query =
+        select(parasite).join([
+            innerJoin(specimen, specimen.uuid.equalsExp(parasite.specimenUuid)),
+          ])
+          ..where(specimen.projectUuid.equals(projectUuid) & where)
+          ..orderBy([OrderingTerm.asc(parasite.id)]);
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => ParasiteProjectRecord(
+            parasite: row.readTable(parasite),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<List<String>> _getDistinctValues(
