@@ -183,6 +183,14 @@ class RecordExchangeDatabase extends AppServices {
       optionalString(json['verbatimCoordinateSystem']),
     ),
     elevationInMeter: db.Value(optionalDouble(json['elevationInMeter'])),
+    endDecimalLatitude: db.Value(optionalDouble(json['endDecimalLatitude'])),
+    endDecimalLongitude: db.Value(optionalDouble(json['endDecimalLongitude'])),
+    minimumDepthInMeters: db.Value(
+      optionalDouble(json['minimumDepthInMeters']),
+    ),
+    maximumDepthInMeters: db.Value(
+      optionalDouble(json['maximumDepthInMeters']),
+    ),
     datum: db.Value(optionalString(json['datum'])),
     uncertaintyInMeters: db.Value(optionalInt(json['uncertaintyInMeters'])),
     gpsUnit: db.Value(optionalString(json['gpsUnit'])),

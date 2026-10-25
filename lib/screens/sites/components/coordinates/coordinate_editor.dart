@@ -709,6 +709,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
   late CoordinateInputFormat _inputFormat;
   AngularCoordinateValidation? _latitudeValidation;
   AngularCoordinateValidation? _longitudeValidation;
+  AngularCoordinateValidation? _endLatitudeValidation;
+  AngularCoordinateValidation? _endLongitudeValidation;
   int _formatSelectionRevision = 0;
 
   @override
@@ -724,6 +726,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       _setConfiguredDatumDefault();
     } else {
       _updateGPSDescription();
+      _relocateStoredEnd();
     }
   }
 
@@ -735,7 +738,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     super.dispose();
   }
 
-  bool get _showDepthRange => ref
+  bool get _showMarineFields => ref
       .watch(catalogFmtNotifierProvider)
       .maybeWhen(
         data: (catalogFmt) => catalogFmt == CatalogFmt.marineInvertebrates,
@@ -922,6 +925,99 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
                 ),
               ],
             ),
+          if (_showMarineFields) ...[
+            const SizedBox(height: 20),
+            CommonPadding(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'End of sample',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            CommonPadding(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Optional. Leave blank for a single point.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+            if (_inputFormat == CoordinateInputFormat.utm)
+              CommonPadding(
+                child: CommonTextField(
+                  controller: widget.coordCtr.endUtmCtr,
+                  labelText: 'End UTM coordinate',
+                  hintText: '11 N 385153 3768853',
+                  isLastField: false,
+                  onChanged: (_) => _coordinateInputChanged(),
+                ),
+              )
+            else if (_inputFormat == CoordinateInputFormat.decimalDegrees)
+              AdaptiveLayout(
+                useHorizontalLayout: useHorizontalLayout,
+                children: [
+                  CommonNumField(
+                    controller: widget.coordCtr.endLatitudeCtr,
+                    labelText: 'End latitude',
+                    hintText: 'Add an end latitude',
+                    isDouble: true,
+                    isSigned: true,
+                    isLastField: false,
+                    onChanged: (_) => _coordinateInputChanged(),
+                  ),
+                  CommonNumField(
+                    controller: widget.coordCtr.endLongitudeCtr,
+                    labelText: 'End longitude',
+                    hintText: 'Add an end longitude',
+                    isDouble: true,
+                    isSigned: true,
+                    isLastField: false,
+                    onChanged: (_) => _coordinateInputChanged(),
+                  ),
+                ],
+              )
+            else
+              Column(
+                children: [
+                  CommonPadding(
+                    child: _AngularCoordinateFields(
+                      axis: AngularCoordinateAxis.latitude,
+                      title: 'End latitude',
+                      controller: widget.coordCtr.endLatitudeAngularCtr,
+                      includesSeconds:
+                          _inputFormat ==
+                          CoordinateInputFormat.degreesMinutesSeconds,
+                      validation: _endLatitudeValidation,
+                      onChanged: () => _endAngularInputChanged(
+                        AngularCoordinateAxis.latitude,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CommonPadding(
+                    child: _AngularCoordinateFields(
+                      axis: AngularCoordinateAxis.longitude,
+                      title: 'End longitude',
+                      controller: widget.coordCtr.endLongitudeAngularCtr,
+                      includesSeconds:
+                          _inputFormat ==
+                          CoordinateInputFormat.degreesMinutesSeconds,
+                      validation: _endLongitudeValidation,
+                      onChanged: () => _endAngularInputChanged(
+                        AngularCoordinateAxis.longitude,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
           const SizedBox(height: 12),
           CommonPadding(
             child: CommonNumField(
@@ -932,7 +1028,7 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
               isLastField: false,
             ),
           ),
-          if (_showDepthRange) ...[
+          if (_showMarineFields) ...[
             CommonPadding(
               child: CommonNumField(
                 controller: widget.coordCtr.minimumDepthCtr,
@@ -1038,8 +1134,9 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
         builder: (context) => AlertDialog(
           title: const Text('Change coordinate format?'),
           content: const Text(
-            'Changing the format clears the entered coordinate values. '
-            'Name, elevation, depth, datum, uncertainty, GPS unit, and notes are kept.',
+            'Changing the format clears the entered coordinate values, '
+            'including an end position. Name, elevation, depth, datum, '
+            'uncertainty, GPS unit, and notes are kept.',
           ),
           actions: [
             TextButton(
@@ -1066,6 +1163,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       widget.coordCtr.inputFormat = value.name;
       _latitudeValidation = null;
       _longitudeValidation = null;
+      _endLatitudeValidation = null;
+      _endLongitudeValidation = null;
       _dmsLatitude = '';
       _dmsLongitude = '';
       _formatSelectionRevision++;
@@ -1088,6 +1187,17 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       } else {
         _longitudeValidation = null;
         widget.coordCtr.longitudeAngularCtr.invalidStoredValue = null;
+      }
+    });
+    _coordinateInputChanged();
+  }
+
+  void _endAngularInputChanged(AngularCoordinateAxis axis) {
+    setState(() {
+      if (axis == AngularCoordinateAxis.latitude) {
+        _endLatitudeValidation = null;
+      } else {
+        _endLongitudeValidation = null;
       }
     });
     _coordinateInputChanged();
@@ -1278,6 +1388,158 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
     ).updateCoordinate(widget.coordinateId!, form);
   }
 
+  static const _incompleteEndMessage =
+      'Enter both the end latitude and the end longitude, or leave both blank.';
+
+  Future<void> _relocateStoredEnd() async {
+    if (_inputFormat == CoordinateInputFormat.decimalDegrees) return;
+    if (widget.coordCtr.endUtmCtr.text.trim().isNotEmpty ||
+        widget.coordCtr.endLatitudeAngularCtr.hasInput ||
+        widget.coordCtr.endLongitudeAngularCtr.hasInput) {
+      return;
+    }
+    final latitude = double.tryParse(widget.coordCtr.endLatitudeCtr.text);
+    final longitude = double.tryParse(widget.coordCtr.endLongitudeCtr.text);
+    if (latitude == null && longitude == null) return;
+    if (latitude == null || longitude == null) return;
+    try {
+      await _writeStoredEnd(latitude, longitude);
+    } catch (_) {
+      return;
+    }
+  }
+
+  Future<void> _writeStoredEnd(double latitude, double longitude) async {
+    if (_inputFormat == CoordinateInputFormat.utm) {
+      final utm = await ddToUtm(latitude: latitude, longitude: longitude);
+      if (!mounted) return;
+      final hemisphere = utm.hemisphere == CardinalDirection.south ? 'S' : 'N';
+      widget.coordCtr.endUtmCtr.text =
+          '${utm.zone} $hemisphere ${utm.easting} ${utm.northing}';
+    } else {
+      final includesSeconds =
+          _inputFormat == CoordinateInputFormat.degreesMinutesSeconds;
+      await _loadStoredAngularEnd(
+        widget.coordCtr.endLatitudeAngularCtr,
+        latitude,
+        axis: CoordinateAxis.latitude,
+        includesSeconds: includesSeconds,
+      );
+      await _loadStoredAngularEnd(
+        widget.coordCtr.endLongitudeAngularCtr,
+        longitude,
+        axis: CoordinateAxis.longitude,
+        includesSeconds: includesSeconds,
+      );
+      if (!mounted) return;
+    }
+    widget.coordCtr.endLatitudeCtr.clear();
+    widget.coordCtr.endLongitudeCtr.clear();
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadStoredAngularEnd(
+    AngularCoordinateCtrModel controller,
+    double decimal, {
+    required CoordinateAxis axis,
+    required bool includesSeconds,
+  }) async {
+    if (includesSeconds) {
+      final dms = await ddToDms(dd: decimal, axis: axis);
+      controller.load(
+        AngularCoordinateParts(
+          degrees: dms.degrees.toString(),
+          minutes: dms.minutes.toString(),
+          seconds: dms.seconds.toString(),
+          direction: _angularDirection(dms.direction),
+        ),
+      );
+      return;
+    }
+    final ddm = await ddToDdm(dd: decimal, axis: axis);
+    controller.load(
+      AngularCoordinateParts(
+        degrees: ddm.degrees.toString(),
+        minutes: ddm.minutes.toString(),
+        direction: _angularDirection(ddm.direction),
+      ),
+    );
+  }
+
+  AngularCoordinateDirection _angularDirection(CardinalDirection direction) {
+    return switch (direction) {
+      CardinalDirection.north => AngularCoordinateDirection.north,
+      CardinalDirection.south => AngularCoordinateDirection.south,
+      CardinalDirection.east => AngularCoordinateDirection.east,
+      CardinalDirection.west => AngularCoordinateDirection.west,
+    };
+  }
+
+  Future<(double?, double?)> _parseEndInput() async {
+    await _relocateStoredEnd();
+    final controller = widget.coordCtr;
+    if (_inputFormat == CoordinateInputFormat.utm) {
+      final value = controller.endUtmCtr.text.trim();
+      if (value.isEmpty) return (null, null);
+      final parsed = await parseCoordinateInput(
+        format: _inputFormat,
+        primary: value,
+      );
+      return (parsed.decimalLatitude, parsed.decimalLongitude);
+    }
+    if (_inputFormat == CoordinateInputFormat.decimalDegrees) {
+      final latitudeText = controller.endLatitudeCtr.text.trim();
+      final longitudeText = controller.endLongitudeCtr.text.trim();
+      if (latitudeText.isEmpty && longitudeText.isEmpty) return (null, null);
+      final latitude = double.tryParse(latitudeText);
+      final longitude = double.tryParse(longitudeText);
+      if (latitude == null || longitude == null) {
+        throw const FormatException(_incompleteEndMessage);
+      }
+      return (latitude, longitude);
+    }
+
+    final includesSeconds =
+        _inputFormat == CoordinateInputFormat.degreesMinutesSeconds;
+    final latitudeValidation = CoordinateInputPartsCodec.validate(
+      controller.endLatitudeAngularCtr.parts,
+      axis: AngularCoordinateAxis.latitude,
+      includesSeconds: includesSeconds,
+    );
+    final longitudeValidation = CoordinateInputPartsCodec.validate(
+      controller.endLongitudeAngularCtr.parts,
+      axis: AngularCoordinateAxis.longitude,
+      includesSeconds: includesSeconds,
+    );
+    final hasInput =
+        controller.endLatitudeAngularCtr.hasInput ||
+        controller.endLongitudeAngularCtr.hasInput;
+    if (!hasInput) return (null, null);
+    if (mounted) {
+      setState(() {
+        _endLatitudeValidation = latitudeValidation;
+        _endLongitudeValidation = longitudeValidation;
+      });
+    }
+    if (!latitudeValidation.isValid || !longitudeValidation.isValid) {
+      throw const FormatException(_incompleteEndMessage);
+    }
+    final parsed = await parseCoordinateInput(
+      format: _inputFormat,
+      primary: CoordinateInputPartsCodec.compose(
+        controller.endLatitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.latitude,
+        includesSeconds: includesSeconds,
+      ),
+      secondary: CoordinateInputPartsCodec.compose(
+        controller.endLongitudeAngularCtr.parts,
+        axis: AngularCoordinateAxis.longitude,
+        includesSeconds: includesSeconds,
+      ),
+    );
+    return (parsed.decimalLatitude, parsed.decimalLongitude);
+  }
+
   Future<ParsedCoordinateInput> _parseInput() async {
     String primary;
     String? secondary;
@@ -1331,6 +1593,9 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
 
   Future<CoordinateCompanion> _getform() async {
     final parsed = await _parseInput();
+    final end = await _parseEndInput();
+    final endLatitude = end.$1;
+    final endLongitude = end.$2;
     return CoordinateCompanion(
       nameId: db.Value(widget.coordCtr.nameIdCtr.text),
       decimalLatitude: db.Value(parsed.decimalLatitude),
@@ -1342,6 +1607,8 @@ class CoordinateFormsState extends ConsumerState<CoordinateForms> {
       elevationInMeter: db.Value(
         double.tryParse(widget.coordCtr.elevationCtr.text),
       ),
+      endDecimalLatitude: db.Value(endLatitude),
+      endDecimalLongitude: db.Value(endLongitude),
       minimumDepthInMeters: db.Value(
         double.tryParse(widget.coordCtr.minimumDepthCtr.text),
       ),
@@ -1364,6 +1631,7 @@ class _AngularCoordinateFields extends StatelessWidget {
 
   const _AngularCoordinateFields({
     required this.axis,
+    this.title,
     required this.controller,
     required this.includesSeconds,
     required this.validation,
@@ -1371,6 +1639,7 @@ class _AngularCoordinateFields extends StatelessWidget {
   });
 
   final AngularCoordinateAxis axis;
+  final String? title;
   final AngularCoordinateCtrModel controller;
   final bool includesSeconds;
   final AngularCoordinateValidation? validation;
@@ -1408,7 +1677,7 @@ class _AngularCoordinateFields extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            axisLabel,
+            title ?? axisLabel,
             style: Theme.of(
               context,
             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),

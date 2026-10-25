@@ -1645,6 +1645,11 @@ class CoordinateCtrModel {
     required this.utmCtr,
     required this.latitudeAngularCtr,
     required this.longitudeAngularCtr,
+    required this.endLatitudeCtr,
+    required this.endLongitudeCtr,
+    required this.endUtmCtr,
+    required this.endLatitudeAngularCtr,
+    required this.endLongitudeAngularCtr,
     required this.elevationCtr,
     required this.minimumDepthCtr,
     required this.maximumDepthCtr,
@@ -1661,6 +1666,11 @@ class CoordinateCtrModel {
   TextEditingController utmCtr;
   AngularCoordinateCtrModel latitudeAngularCtr;
   AngularCoordinateCtrModel longitudeAngularCtr;
+  TextEditingController endLatitudeCtr;
+  TextEditingController endLongitudeCtr;
+  TextEditingController endUtmCtr;
+  AngularCoordinateCtrModel endLatitudeAngularCtr;
+  AngularCoordinateCtrModel endLongitudeAngularCtr;
   TextEditingController elevationCtr;
   TextEditingController minimumDepthCtr;
   TextEditingController maximumDepthCtr;
@@ -1677,6 +1687,11 @@ class CoordinateCtrModel {
     utmCtr: TextEditingController(),
     latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+    endLatitudeCtr: TextEditingController(),
+    endLongitudeCtr: TextEditingController(),
+    endUtmCtr: TextEditingController(),
+    endLatitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+    endLongitudeAngularCtr: AngularCoordinateCtrModel.empty(),
     elevationCtr: TextEditingController(),
     minimumDepthCtr: TextEditingController(),
     maximumDepthCtr: TextEditingController(),
@@ -1695,6 +1710,15 @@ class CoordinateCtrModel {
       utmCtr: TextEditingController(),
       latitudeAngularCtr: AngularCoordinateCtrModel.empty(),
       longitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      endLatitudeCtr: TextEditingController(
+        text: data.endDecimalLatitude?.toString() ?? '',
+      ),
+      endLongitudeCtr: TextEditingController(
+        text: data.endDecimalLongitude?.toString() ?? '',
+      ),
+      endUtmCtr: TextEditingController(),
+      endLatitudeAngularCtr: AngularCoordinateCtrModel.empty(),
+      endLongitudeAngularCtr: AngularCoordinateCtrModel.empty(),
       elevationCtr: TextEditingController(
         text: data.elevationInMeter?.truncateZero(),
       ),
@@ -1727,7 +1751,15 @@ class CoordinateCtrModel {
       longitudeCtr.text.isNotEmpty ||
       utmCtr.text.isNotEmpty ||
       latitudeAngularCtr.hasInput ||
-      longitudeAngularCtr.hasInput;
+      longitudeAngularCtr.hasInput ||
+      hasEndCoordinateInput;
+
+  bool get hasEndCoordinateInput =>
+      endLatitudeCtr.text.isNotEmpty ||
+      endLongitudeCtr.text.isNotEmpty ||
+      endUtmCtr.text.isNotEmpty ||
+      endLatitudeAngularCtr.hasInput ||
+      endLongitudeAngularCtr.hasInput;
 
   void setCoordinateInputData({
     required double? decimalLatitude,
@@ -1737,7 +1769,7 @@ class CoordinateCtrModel {
     required String? verbatimCoordinates,
     required String? verbatimCoordinateSystem,
   }) {
-    clearCoordinateInput();
+    _clearStartCoordinateInput();
     inputFormat = switch (verbatimCoordinateSystem) {
       'degrees decimal minutes' => 'degreesDecimalMinutes',
       'degrees minutes seconds' => 'degreesMinutesSeconds',
@@ -1770,6 +1802,15 @@ class CoordinateCtrModel {
   }
 
   void clearCoordinateInput() {
+    _clearStartCoordinateInput();
+    endLatitudeCtr.clear();
+    endLongitudeCtr.clear();
+    endUtmCtr.clear();
+    endLatitudeAngularCtr.clear();
+    endLongitudeAngularCtr.clear();
+  }
+
+  void _clearStartCoordinateInput() {
     latitudeCtr.clear();
     longitudeCtr.clear();
     utmCtr.clear();
@@ -1802,6 +1843,11 @@ class CoordinateCtrModel {
     utmCtr.dispose();
     latitudeAngularCtr.dispose();
     longitudeAngularCtr.dispose();
+    endLatitudeCtr.dispose();
+    endLongitudeCtr.dispose();
+    endUtmCtr.dispose();
+    endLatitudeAngularCtr.dispose();
+    endLongitudeAngularCtr.dispose();
     elevationCtr.dispose();
     minimumDepthCtr.dispose();
     maximumDepthCtr.dispose();

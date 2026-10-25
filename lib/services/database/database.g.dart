@@ -5037,6 +5037,28 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
     requiredDuringInsert: false,
     $customConstraints: '',
   );
+  static const VerificationMeta _endDecimalLatitudeMeta =
+      const VerificationMeta('endDecimalLatitude');
+  late final GeneratedColumn<double> endDecimalLatitude =
+      GeneratedColumn<double>(
+        'endDecimalLatitude',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
+  static const VerificationMeta _endDecimalLongitudeMeta =
+      const VerificationMeta('endDecimalLongitude');
+  late final GeneratedColumn<double> endDecimalLongitude =
+      GeneratedColumn<double>(
+        'endDecimalLongitude',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        $customConstraints: '',
+      );
   static const VerificationMeta _verbatimLatitudeMeta = const VerificationMeta(
     'verbatimLatitude',
   );
@@ -5169,6 +5191,8 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
     nameId,
     decimalLatitude,
     decimalLongitude,
+    endDecimalLatitude,
+    endDecimalLongitude,
     verbatimLatitude,
     verbatimLongitude,
     verbatimCoordinates,
@@ -5218,6 +5242,24 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
         decimalLongitude.isAcceptableOrUnknown(
           data['decimalLongitude']!,
           _decimalLongitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('endDecimalLatitude')) {
+      context.handle(
+        _endDecimalLatitudeMeta,
+        endDecimalLatitude.isAcceptableOrUnknown(
+          data['endDecimalLatitude']!,
+          _endDecimalLatitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('endDecimalLongitude')) {
+      context.handle(
+        _endDecimalLongitudeMeta,
+        endDecimalLongitude.isAcceptableOrUnknown(
+          data['endDecimalLongitude']!,
+          _endDecimalLongitudeMeta,
         ),
       );
     }
@@ -5342,6 +5384,14 @@ class Coordinate extends Table with TableInfo<Coordinate, CoordinateData> {
         DriftSqlType.double,
         data['${effectivePrefix}decimalLongitude'],
       ),
+      endDecimalLatitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}endDecimalLatitude'],
+      ),
+      endDecimalLongitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}endDecimalLongitude'],
+      ),
       verbatimLatitude: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}verbatimLatitude'],
@@ -5415,6 +5465,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
   /// users assigned id.
   final double? decimalLatitude;
   final double? decimalLongitude;
+  final double? endDecimalLatitude;
+  final double? endDecimalLongitude;
   final String? verbatimLatitude;
   final String? verbatimLongitude;
   final String? verbatimCoordinates;
@@ -5432,6 +5484,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     this.nameId,
     this.decimalLatitude,
     this.decimalLongitude,
+    this.endDecimalLatitude,
+    this.endDecimalLongitude,
     this.verbatimLatitude,
     this.verbatimLongitude,
     this.verbatimCoordinates,
@@ -5459,6 +5513,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     }
     if (!nullToAbsent || decimalLongitude != null) {
       map['decimalLongitude'] = Variable<double>(decimalLongitude);
+    }
+    if (!nullToAbsent || endDecimalLatitude != null) {
+      map['endDecimalLatitude'] = Variable<double>(endDecimalLatitude);
+    }
+    if (!nullToAbsent || endDecimalLongitude != null) {
+      map['endDecimalLongitude'] = Variable<double>(endDecimalLongitude);
     }
     if (!nullToAbsent || verbatimLatitude != null) {
       map['verbatimLatitude'] = Variable<String>(verbatimLatitude);
@@ -5513,6 +5573,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       decimalLongitude: decimalLongitude == null && nullToAbsent
           ? const Value.absent()
           : Value(decimalLongitude),
+      endDecimalLatitude: endDecimalLatitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDecimalLatitude),
+      endDecimalLongitude: endDecimalLongitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDecimalLongitude),
       verbatimLatitude: verbatimLatitude == null && nullToAbsent
           ? const Value.absent()
           : Value(verbatimLatitude),
@@ -5562,6 +5628,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       nameId: serializer.fromJson<String?>(json['nameId']),
       decimalLatitude: serializer.fromJson<double?>(json['decimalLatitude']),
       decimalLongitude: serializer.fromJson<double?>(json['decimalLongitude']),
+      endDecimalLatitude: serializer.fromJson<double?>(
+        json['endDecimalLatitude'],
+      ),
+      endDecimalLongitude: serializer.fromJson<double?>(
+        json['endDecimalLongitude'],
+      ),
       verbatimLatitude: serializer.fromJson<String?>(json['verbatimLatitude']),
       verbatimLongitude: serializer.fromJson<String?>(
         json['verbatimLongitude'],
@@ -5596,6 +5668,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       'nameId': serializer.toJson<String?>(nameId),
       'decimalLatitude': serializer.toJson<double?>(decimalLatitude),
       'decimalLongitude': serializer.toJson<double?>(decimalLongitude),
+      'endDecimalLatitude': serializer.toJson<double?>(endDecimalLatitude),
+      'endDecimalLongitude': serializer.toJson<double?>(endDecimalLongitude),
       'verbatimLatitude': serializer.toJson<String?>(verbatimLatitude),
       'verbatimLongitude': serializer.toJson<String?>(verbatimLongitude),
       'verbatimCoordinates': serializer.toJson<String?>(verbatimCoordinates),
@@ -5618,6 +5692,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     Value<String?> nameId = const Value.absent(),
     Value<double?> decimalLatitude = const Value.absent(),
     Value<double?> decimalLongitude = const Value.absent(),
+    Value<double?> endDecimalLatitude = const Value.absent(),
+    Value<double?> endDecimalLongitude = const Value.absent(),
     Value<String?> verbatimLatitude = const Value.absent(),
     Value<String?> verbatimLongitude = const Value.absent(),
     Value<String?> verbatimCoordinates = const Value.absent(),
@@ -5639,6 +5715,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     decimalLongitude: decimalLongitude.present
         ? decimalLongitude.value
         : this.decimalLongitude,
+    endDecimalLatitude: endDecimalLatitude.present
+        ? endDecimalLatitude.value
+        : this.endDecimalLatitude,
+    endDecimalLongitude: endDecimalLongitude.present
+        ? endDecimalLongitude.value
+        : this.endDecimalLongitude,
     verbatimLatitude: verbatimLatitude.present
         ? verbatimLatitude.value
         : this.verbatimLatitude,
@@ -5678,6 +5760,12 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
       decimalLongitude: data.decimalLongitude.present
           ? data.decimalLongitude.value
           : this.decimalLongitude,
+      endDecimalLatitude: data.endDecimalLatitude.present
+          ? data.endDecimalLatitude.value
+          : this.endDecimalLatitude,
+      endDecimalLongitude: data.endDecimalLongitude.present
+          ? data.endDecimalLongitude.value
+          : this.endDecimalLongitude,
       verbatimLatitude: data.verbatimLatitude.present
           ? data.verbatimLatitude.value
           : this.verbatimLatitude,
@@ -5716,6 +5804,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
           ..write('nameId: $nameId, ')
           ..write('decimalLatitude: $decimalLatitude, ')
           ..write('decimalLongitude: $decimalLongitude, ')
+          ..write('endDecimalLatitude: $endDecimalLatitude, ')
+          ..write('endDecimalLongitude: $endDecimalLongitude, ')
           ..write('verbatimLatitude: $verbatimLatitude, ')
           ..write('verbatimLongitude: $verbatimLongitude, ')
           ..write('verbatimCoordinates: $verbatimCoordinates, ')
@@ -5738,6 +5828,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
     nameId,
     decimalLatitude,
     decimalLongitude,
+    endDecimalLatitude,
+    endDecimalLongitude,
     verbatimLatitude,
     verbatimLongitude,
     verbatimCoordinates,
@@ -5759,6 +5851,8 @@ class CoordinateData extends DataClass implements Insertable<CoordinateData> {
           other.nameId == this.nameId &&
           other.decimalLatitude == this.decimalLatitude &&
           other.decimalLongitude == this.decimalLongitude &&
+          other.endDecimalLatitude == this.endDecimalLatitude &&
+          other.endDecimalLongitude == this.endDecimalLongitude &&
           other.verbatimLatitude == this.verbatimLatitude &&
           other.verbatimLongitude == this.verbatimLongitude &&
           other.verbatimCoordinates == this.verbatimCoordinates &&
@@ -5778,6 +5872,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
   final Value<String?> nameId;
   final Value<double?> decimalLatitude;
   final Value<double?> decimalLongitude;
+  final Value<double?> endDecimalLatitude;
+  final Value<double?> endDecimalLongitude;
   final Value<String?> verbatimLatitude;
   final Value<String?> verbatimLongitude;
   final Value<String?> verbatimCoordinates;
@@ -5795,6 +5891,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     this.nameId = const Value.absent(),
     this.decimalLatitude = const Value.absent(),
     this.decimalLongitude = const Value.absent(),
+    this.endDecimalLatitude = const Value.absent(),
+    this.endDecimalLongitude = const Value.absent(),
     this.verbatimLatitude = const Value.absent(),
     this.verbatimLongitude = const Value.absent(),
     this.verbatimCoordinates = const Value.absent(),
@@ -5813,6 +5911,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     this.nameId = const Value.absent(),
     this.decimalLatitude = const Value.absent(),
     this.decimalLongitude = const Value.absent(),
+    this.endDecimalLatitude = const Value.absent(),
+    this.endDecimalLongitude = const Value.absent(),
     this.verbatimLatitude = const Value.absent(),
     this.verbatimLongitude = const Value.absent(),
     this.verbatimCoordinates = const Value.absent(),
@@ -5831,6 +5931,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     Expression<String>? nameId,
     Expression<double>? decimalLatitude,
     Expression<double>? decimalLongitude,
+    Expression<double>? endDecimalLatitude,
+    Expression<double>? endDecimalLongitude,
     Expression<String>? verbatimLatitude,
     Expression<String>? verbatimLongitude,
     Expression<String>? verbatimCoordinates,
@@ -5849,6 +5951,9 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
       if (nameId != null) 'nameId': nameId,
       if (decimalLatitude != null) 'decimalLatitude': decimalLatitude,
       if (decimalLongitude != null) 'decimalLongitude': decimalLongitude,
+      if (endDecimalLatitude != null) 'endDecimalLatitude': endDecimalLatitude,
+      if (endDecimalLongitude != null)
+        'endDecimalLongitude': endDecimalLongitude,
       if (verbatimLatitude != null) 'verbatimLatitude': verbatimLatitude,
       if (verbatimLongitude != null) 'verbatimLongitude': verbatimLongitude,
       if (verbatimCoordinates != null)
@@ -5874,6 +5979,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     Value<String?>? nameId,
     Value<double?>? decimalLatitude,
     Value<double?>? decimalLongitude,
+    Value<double?>? endDecimalLatitude,
+    Value<double?>? endDecimalLongitude,
     Value<String?>? verbatimLatitude,
     Value<String?>? verbatimLongitude,
     Value<String?>? verbatimCoordinates,
@@ -5892,6 +5999,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
       nameId: nameId ?? this.nameId,
       decimalLatitude: decimalLatitude ?? this.decimalLatitude,
       decimalLongitude: decimalLongitude ?? this.decimalLongitude,
+      endDecimalLatitude: endDecimalLatitude ?? this.endDecimalLatitude,
+      endDecimalLongitude: endDecimalLongitude ?? this.endDecimalLongitude,
       verbatimLatitude: verbatimLatitude ?? this.verbatimLatitude,
       verbatimLongitude: verbatimLongitude ?? this.verbatimLongitude,
       verbatimCoordinates: verbatimCoordinates ?? this.verbatimCoordinates,
@@ -5922,6 +6031,12 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
     }
     if (decimalLongitude.present) {
       map['decimalLongitude'] = Variable<double>(decimalLongitude.value);
+    }
+    if (endDecimalLatitude.present) {
+      map['endDecimalLatitude'] = Variable<double>(endDecimalLatitude.value);
+    }
+    if (endDecimalLongitude.present) {
+      map['endDecimalLongitude'] = Variable<double>(endDecimalLongitude.value);
     }
     if (verbatimLatitude.present) {
       map['verbatimLatitude'] = Variable<String>(verbatimLatitude.value);
@@ -5975,6 +6090,8 @@ class CoordinateCompanion extends UpdateCompanion<CoordinateData> {
           ..write('nameId: $nameId, ')
           ..write('decimalLatitude: $decimalLatitude, ')
           ..write('decimalLongitude: $decimalLongitude, ')
+          ..write('endDecimalLatitude: $endDecimalLatitude, ')
+          ..write('endDecimalLongitude: $endDecimalLongitude, ')
           ..write('verbatimLatitude: $verbatimLatitude, ')
           ..write('verbatimLongitude: $verbatimLongitude, ')
           ..write('verbatimCoordinates: $verbatimCoordinates, ')
@@ -27934,6 +28051,8 @@ typedef $CoordinateCreateCompanionBuilder =
       Value<String?> nameId,
       Value<double?> decimalLatitude,
       Value<double?> decimalLongitude,
+      Value<double?> endDecimalLatitude,
+      Value<double?> endDecimalLongitude,
       Value<String?> verbatimLatitude,
       Value<String?> verbatimLongitude,
       Value<String?> verbatimCoordinates,
@@ -27953,6 +28072,8 @@ typedef $CoordinateUpdateCompanionBuilder =
       Value<String?> nameId,
       Value<double?> decimalLatitude,
       Value<double?> decimalLongitude,
+      Value<double?> endDecimalLatitude,
+      Value<double?> endDecimalLongitude,
       Value<String?> verbatimLatitude,
       Value<String?> verbatimLongitude,
       Value<String?> verbatimCoordinates,
@@ -27992,6 +28113,16 @@ class $CoordinateFilterComposer extends Composer<_$Database, Coordinate> {
 
   ColumnFilters<double> get decimalLongitude => $composableBuilder(
     column: $table.decimalLongitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get endDecimalLatitude => $composableBuilder(
+    column: $table.endDecimalLatitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get endDecimalLongitude => $composableBuilder(
+    column: $table.endDecimalLongitude,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -28084,6 +28215,16 @@ class $CoordinateOrderingComposer extends Composer<_$Database, Coordinate> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get endDecimalLatitude => $composableBuilder(
+    column: $table.endDecimalLatitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get endDecimalLongitude => $composableBuilder(
+    column: $table.endDecimalLongitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get verbatimLatitude => $composableBuilder(
     column: $table.verbatimLatitude,
     builder: (column) => ColumnOrderings(column),
@@ -28166,6 +28307,16 @@ class $CoordinateAnnotationComposer extends Composer<_$Database, Coordinate> {
 
   GeneratedColumn<double> get decimalLongitude => $composableBuilder(
     column: $table.decimalLongitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get endDecimalLatitude => $composableBuilder(
+    column: $table.endDecimalLatitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get endDecimalLongitude => $composableBuilder(
+    column: $table.endDecimalLongitude,
     builder: (column) => column,
   );
 
@@ -28257,6 +28408,8 @@ class $CoordinateTableManager
                 Value<String?> nameId = const Value.absent(),
                 Value<double?> decimalLatitude = const Value.absent(),
                 Value<double?> decimalLongitude = const Value.absent(),
+                Value<double?> endDecimalLatitude = const Value.absent(),
+                Value<double?> endDecimalLongitude = const Value.absent(),
                 Value<String?> verbatimLatitude = const Value.absent(),
                 Value<String?> verbatimLongitude = const Value.absent(),
                 Value<String?> verbatimCoordinates = const Value.absent(),
@@ -28274,6 +28427,8 @@ class $CoordinateTableManager
                 nameId: nameId,
                 decimalLatitude: decimalLatitude,
                 decimalLongitude: decimalLongitude,
+                endDecimalLatitude: endDecimalLatitude,
+                endDecimalLongitude: endDecimalLongitude,
                 verbatimLatitude: verbatimLatitude,
                 verbatimLongitude: verbatimLongitude,
                 verbatimCoordinates: verbatimCoordinates,
@@ -28293,6 +28448,8 @@ class $CoordinateTableManager
                 Value<String?> nameId = const Value.absent(),
                 Value<double?> decimalLatitude = const Value.absent(),
                 Value<double?> decimalLongitude = const Value.absent(),
+                Value<double?> endDecimalLatitude = const Value.absent(),
+                Value<double?> endDecimalLongitude = const Value.absent(),
                 Value<String?> verbatimLatitude = const Value.absent(),
                 Value<String?> verbatimLongitude = const Value.absent(),
                 Value<String?> verbatimCoordinates = const Value.absent(),
@@ -28310,6 +28467,8 @@ class $CoordinateTableManager
                 nameId: nameId,
                 decimalLatitude: decimalLatitude,
                 decimalLongitude: decimalLongitude,
+                endDecimalLatitude: endDecimalLatitude,
+                endDecimalLongitude: endDecimalLongitude,
                 verbatimLatitude: verbatimLatitude,
                 verbatimLongitude: verbatimLongitude,
                 verbatimCoordinates: verbatimCoordinates,

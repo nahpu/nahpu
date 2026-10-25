@@ -32,9 +32,13 @@ void main() {
 
     expect(find.text('Minimum depth (m)'), findsOneWidget);
     expect(find.text('Maximum depth (m)'), findsOneWidget);
+    expect(find.text('End latitude'), findsOneWidget);
+    expect(find.text('End longitude'), findsOneWidget);
 
     await tester.enterText(_field('Decimal Latitude'), '18.2');
     await tester.enterText(_field('Decimal Longitude'), '-64.7');
+    await tester.enterText(_field('End latitude'), '18.4');
+    await tester.enterText(_field('End longitude'), '-64.5');
     await tester.enterText(_field('Minimum depth (m)'), '12.5');
     await tester.enterText(_field('Maximum depth (m)'), '40');
     // The coordinate parser completes through the Rust bridge, which needs the
@@ -48,6 +52,9 @@ void main() {
     expect(coordinate.minimumDepthInMeters, 12.5);
     expect(coordinate.maximumDepthInMeters, 40);
     expect(coordinate.decimalLatitude, 18.2);
+    expect(coordinate.decimalLongitude, -64.7);
+    expect(coordinate.endDecimalLatitude, 18.4);
+    expect(coordinate.endDecimalLongitude, -64.5);
   });
 
   testWidgets('other catalogs omit the depth range fields', (tester) async {
@@ -57,6 +64,8 @@ void main() {
     expect(find.text('Elevation (m)'), findsOneWidget);
     expect(find.text('Minimum depth (m)'), findsNothing);
     expect(find.text('Maximum depth (m)'), findsNothing);
+    expect(find.text('End latitude'), findsNothing);
+    expect(find.text('End of sample'), findsNothing);
   });
 
   testWidgets('DDM and DMS use numeric component fields without directions', (

@@ -319,8 +319,7 @@ class CoordinateSubtitle extends StatelessWidget {
           ),
           TextSpan(
             style: Theme.of(context).textTheme.labelLarge,
-            text:
-                '${coordinate.decimalLatitude}, ${coordinate.decimalLongitude}',
+            text: _positionLabel(),
           ),
           const TextSpan(text: '  '),
           const WidgetSpan(
@@ -352,6 +351,15 @@ class CoordinateSubtitle extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _positionLabel() {
+    final start =
+        '${coordinate.decimalLatitude}, ${coordinate.decimalLongitude}';
+    final endLatitude = coordinate.endDecimalLatitude;
+    final endLongitude = coordinate.endDecimalLongitude;
+    if (endLatitude == null || endLongitude == null) return start;
+    return '$start to $endLatitude, $endLongitude';
   }
 
   String _getCoordinateUncertainty() {

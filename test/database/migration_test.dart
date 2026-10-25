@@ -928,6 +928,31 @@ void main() {
     },
   );
 
+  test('v24 to v25 adds an optional coordinate end position', () async {
+    final schema = await verifier.schemaAt(24);
+    final raw = schema.rawDatabase;
+    raw.execute("INSERT INTO project (uuid, name) VALUES ('project', 'Test')");
+    raw.execute(
+      "INSERT INTO site (id, projectUuid, siteID) VALUES (1, 'project', 'STA-1')",
+    );
+    raw.execute(
+      'INSERT INTO coordinate '
+      '(id, nameId, decimalLatitude, decimalLongitude, siteID) '
+      "VALUES (1, 'DREDGE-1', 16.96, 54.75, 1)",
+    );
+
+    final db = Database.forMigrationTesting(schema.newConnection());
+    await verifier.migrateAndValidate(db, 25);
+
+    final coordinate = await db.select(db.coordinate).getSingle();
+    expect(coordinate.nameId, 'DREDGE-1');
+    expect(coordinate.decimalLatitude, 16.96);
+    expect(coordinate.decimalLongitude, 54.75);
+    expect(coordinate.endDecimalLatitude, isNull);
+    expect(coordinate.endDecimalLongitude, isNull);
+    await db.close();
+  });
+
   test('v14 to v15 adds columns to the empty parasite table', () async {
     final schema = await verifier.schemaAt(14);
     final raw = schema.rawDatabase;

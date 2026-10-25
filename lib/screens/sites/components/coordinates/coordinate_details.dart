@@ -281,6 +281,23 @@ class CoordinateDetailsState extends ConsumerState<CoordinateDetails> {
                 ? '${widget.coordinate.decimalLongitude} ($_dmsLongitude)'
                 : 'N/A',
           ),
+          if (widget.coordinate.endDecimalLatitude != null ||
+              widget.coordinate.endDecimalLongitude != null) ...[
+            const Divider(height: 16),
+            _buildDetailRow(
+              context,
+              Icons.pin_drop_outlined,
+              'End latitude',
+              widget.coordinate.endDecimalLatitude?.toString() ?? 'N/A',
+            ),
+            const Divider(height: 16),
+            _buildDetailRow(
+              context,
+              Icons.pin_drop_outlined,
+              'End longitude',
+              widget.coordinate.endDecimalLongitude?.toString() ?? 'N/A',
+            ),
+          ],
           if (widget.coordinate.verbatimCoordinateSystem != null) ...[
             const Divider(height: 16),
             _buildDetailRow(
@@ -478,8 +495,20 @@ class _CoordinateDetailMap extends StatelessWidget {
       latitude: coordinate.decimalLatitude,
       longitude: coordinate.decimalLongitude,
     );
+    final endLatitude = coordinate.endDecimalLatitude;
+    final endLongitude = coordinate.endDecimalLongitude;
+    final points = [
+      point,
+      if (endLatitude != null && endLongitude != null)
+        CoordinateMapPoint(
+          id: -(point.id == 0 ? 1 : point.id),
+          name: name.isNotEmpty ? '$name end' : 'End of sample',
+          latitude: endLatitude,
+          longitude: endLongitude,
+        ),
+    ];
     return CoordinateLocationMap(
-      points: [point],
+      points: points,
       selectedPointId: point.id,
       onPointSelected: (_) {},
     );
