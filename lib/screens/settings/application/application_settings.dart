@@ -1,5 +1,6 @@
 import 'package:nahpu/screens/settings/common.dart';
 import 'package:nahpu/screens/settings/application/data_usage.dart';
+import 'package:nahpu/screens/settings/application/theme_preview.dart';
 import 'package:nahpu/screens/settings/settings_destination.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/services/common/platform_services.dart';
@@ -90,8 +91,8 @@ class ApplicationSettings extends ConsumerWidget {
 }
 
 enum _ThemeOption {
-  dark(ThemeMode.dark, Icons.brightness_3_rounded),
   light(ThemeMode.light, Icons.wb_sunny_rounded),
+  dark(ThemeMode.dark, Icons.brightness_3_rounded),
   system(ThemeMode.system, null);
 
   const _ThemeOption(this.mode, this._icon);
@@ -131,24 +132,41 @@ class ThemeSettingState extends ConsumerState<ThemeSettings> {
         sections: [
           CommonSettingSection(
             title: l10n.settingsTheme,
-            isDivided: true,
             children: [
-              for (final option in _ThemeOption.values)
-                CommonSettingTile(
-                  title: option.label(l10n),
-                  icon: option.icon,
-                  trailing: selectedTheme == option.mode
-                      ? const Icon(Icons.check)
-                      : null,
-                  onTap: () {
-                    ref
-                        .read(themeSettingProvider.notifier)
-                        .setTheme(option.mode.name);
-                    // Returns from a pushed page; as the first page in the
-                    // settings pane there is nothing to pop.
-                    Navigator.maybePop(context);
-                  },
+              Padding(
+                padding: const EdgeInsets.all(NahpuSpacing.xl),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: NahpuContentWidth.form,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: NahpuSpacing.md,
+                      children: [
+                        for (final option in _ThemeOption.values)
+                          Expanded(
+                            child: ThemePreviewCard(
+                              mode: option.mode,
+                              label: option.label(l10n),
+                              icon: option.icon,
+                              isSelected: selectedTheme == option.mode,
+                              onTap: () {
+                                ref
+                                    .read(themeSettingProvider.notifier)
+                                    .setTheme(option.mode.name);
+                                // Returns from a pushed page; as the first
+                                // page in the settings pane there is nothing
+                                // to pop.
+                                Navigator.maybePop(context);
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
+              ),
             ],
           ),
         ],

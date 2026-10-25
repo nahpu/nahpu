@@ -1,15 +1,9 @@
-import 'dart:math' as math;
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/styles/themes.dart';
 
-/// WCAG 2.2 AA minimum for body text (1.4.3).
-const _textContrast = 4.5;
-
-/// WCAG 2.2 AA minimum for UI components and graphics (1.4.11).
-const _graphicContrast = 3.0;
+import '../helpers/text_contrast.dart';
 
 void main() {
   for (final theme in [NahpuTheme.lightTheme(), NahpuTheme.darkTheme()]) {
@@ -38,7 +32,7 @@ void main() {
             _expectContrast(
               role.value,
               surface.value,
-              _textContrast,
+              wcagTextContrast,
               '${role.key} on ${surface.key}',
             );
           }
@@ -82,7 +76,7 @@ void main() {
         };
         for (final pair in pairs.entries) {
           final (foreground, background) = pair.value;
-          _expectContrast(foreground, background, _textContrast, pair.key);
+          _expectContrast(foreground, background, wcagTextContrast, pair.key);
         }
       });
 
@@ -98,7 +92,7 @@ void main() {
             _expectContrast(
               graphic.value,
               surface.value,
-              _graphicContrast,
+              wcagLargeTextContrast,
               '${graphic.key} on ${surface.key}',
             );
           }
@@ -115,7 +109,7 @@ void main() {
       final text = background.computeLuminance() > 0.3
           ? Colors.black
           : Colors.white;
-      _expectContrast(text, background, _textContrast, category);
+      _expectContrast(text, background, wcagTextContrast, category);
     }
   });
 }
@@ -126,16 +120,10 @@ void _expectContrast(
   double minimum,
   String reason,
 ) {
-  final ratio = _contrastRatio(foreground, background);
+  final ratio = contrastRatio(foreground, background);
   expect(
     ratio,
     greaterThanOrEqualTo(minimum),
     reason: '$reason is ${ratio.toStringAsFixed(2)}:1',
   );
-}
-
-double _contrastRatio(Color a, Color b) {
-  final lumA = a.computeLuminance();
-  final lumB = b.computeLuminance();
-  return (math.max(lumA, lumB) + 0.05) / (math.min(lumA, lumB) + 0.05);
 }

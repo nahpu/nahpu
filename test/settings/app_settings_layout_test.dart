@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_list.dart';
 import 'package:nahpu/screens/settings/application/application_settings.dart';
+import 'package:nahpu/screens/settings/application/theme_preview.dart';
 import 'package:nahpu/screens/settings/records/catalog_format.dart';
 import 'package:nahpu/screens/settings/settings.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -80,11 +81,12 @@ void main() {
     expect(find.byType(ThemeSettings), findsOneWidget);
     expect(prefs.getString(themeModePrefKey), 'light');
     expect(
-      find.descendant(
-        of: find.widgetWithText(ListTile, 'Light'),
-        matching: find.byIcon(Icons.check),
-      ),
-      findsOneWidget,
+      tester
+          .widget<ThemePreviewCard>(
+            find.widgetWithText(ThemePreviewCard, 'Light'),
+          )
+          .isSelected,
+      isTrue,
     );
 
     await tester.tap(find.text('Taxa'));

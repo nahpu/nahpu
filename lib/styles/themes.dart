@@ -100,6 +100,22 @@ class NahpuTheme {
   static Color focusedMapMarker(ColorScheme colorScheme) =>
       colorScheme.brightness == Brightness.dark ? _canopyMist : _mossShadow;
 
+  /// The sun and moon over the Tropical Mountains theme previews. The gold
+  /// matches the morning haze of the skyline asset.
+  static const _sunGold = Color(0xFFFFD65C);
+  static const _moonMist = Color(0xFFE8F3EE);
+
+  /// The sun in a light sky, the moon and stars in a dark one.
+  static Color skyOrb(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark ? _moonMist : _sunGold;
+
+  /// Sky behind the Tropical Mountains theme previews, top to horizon. The
+  /// light sky pales toward the ridges; the night sky deepens overhead.
+  static List<Color> skyGradient(ColorScheme colorScheme) =>
+      colorScheme.brightness == Brightness.dark
+      ? [colorScheme.surfaceContainerLow, colorScheme.surfaceContainerHighest]
+      : [colorScheme.surfaceContainerHighest, colorScheme.surface];
+
   static ThemeData lightTheme() {
     return ThemeData(
       colorScheme: _lightColorScheme,

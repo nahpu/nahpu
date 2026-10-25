@@ -9,6 +9,8 @@ void main() {
   const canopyMist = Color(0xFF7FD9BE);
   const mistySage = Color(0xFF4D625B);
   const mossShadow = Color(0xFF1E352F);
+  const mistySageLight = Color(0xFFB4CCC3);
+  const mossLight = Color(0xFFA5D0BF);
 
   group('NahpuTheme', () {
     test('uses fixed NAHPU brand colors in the light scheme', () {
@@ -18,6 +20,7 @@ void main() {
       expect(theme.colorScheme.brightness, Brightness.light);
       expect(theme.colorScheme.primary, canopyForest);
       expect(theme.colorScheme.secondary, mistySage);
+      expect(theme.colorScheme.tertiary, mossShadow);
     });
 
     test('uses fixed NAHPU brand colors in the dark scheme', () {
@@ -26,8 +29,8 @@ void main() {
       expect(theme.useMaterial3, isTrue);
       expect(theme.colorScheme.brightness, Brightness.dark);
       expect(theme.colorScheme.primary, canopyMist);
-      expect(theme.colorScheme.secondary, mistySage);
-      expect(theme.colorScheme.tertiary, mossShadow);
+      expect(theme.colorScheme.secondary, mistySageLight);
+      expect(theme.colorScheme.tertiary, mossLight);
     });
 
     test('primary meets WCAG AA as text and under on-primary text', () {
