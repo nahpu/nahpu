@@ -1491,7 +1491,7 @@
   "projectNotProvided": "Tidak diisi",
   "projectUuid": "UUID",
   "projectQrTooltip": "Kode QR proyek. Ketuk untuk melihat penuh.",
-  "projectEditTools": "Sunting alat",
+  "projectEditTools": "Sunting daftar",
   "projectEditToolsTooltip": "Pilih alat yang ditampilkan di sini",
   "projectUtilities": "Utilitas proyek",
   "projectDashboard": "Dasbor proyek",

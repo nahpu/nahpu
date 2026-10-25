@@ -5799,7 +5799,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Código QR del proyecto. Toque para verlo completo.';
 
   @override
-  String get projectEditTools => 'Editar herramientas';
+  String get projectEditTools => 'Editar lista';
 
   @override
   String get projectEditToolsTooltip =>

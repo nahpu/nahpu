@@ -2206,7 +2206,7 @@
   "projectNotProvided": "Not provided",
   "projectUuid": "UUID",
   "projectQrTooltip": "Project QR code. Tap to view full.",
-  "projectEditTools": "Edit tools",
+  "projectEditTools": "Edit list",
   "projectEditToolsTooltip": "Choose the tools shown here",
   "projectUtilities": "Project utilities",
   "projectDashboard": "Project dashboard",

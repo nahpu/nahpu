@@ -5700,7 +5700,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectQrTooltip => 'Project QR code. Tap to view full.';
 
   @override
-  String get projectEditTools => 'Edit tools';
+  String get projectEditTools => 'Edit list';
 
   @override
   String get projectEditToolsTooltip => 'Choose the tools shown here';

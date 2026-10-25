@@ -1491,7 +1491,7 @@
   "projectNotProvided": "No indicado",
   "projectUuid": "UUID",
   "projectQrTooltip": "Código QR del proyecto. Toque para verlo completo.",
-  "projectEditTools": "Editar herramientas",
+  "projectEditTools": "Editar lista",
   "projectEditToolsTooltip": "Elija las herramientas que se muestran aquí",
   "projectUtilities": "Utilidades del proyecto",
   "projectDashboard": "Panel del proyecto",

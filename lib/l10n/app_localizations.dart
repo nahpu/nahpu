@@ -8952,7 +8952,7 @@ abstract class AppLocalizations {
   /// No description provided for @projectEditTools.
   ///
   /// In en, this message translates to:
-  /// **'Edit tools'**
+  /// **'Edit list'**
   String get projectEditTools;
 
   /// No description provided for @projectEditToolsTooltip.

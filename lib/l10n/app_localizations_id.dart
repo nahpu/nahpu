@@ -5630,7 +5630,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectQrTooltip => 'Kode QR proyek. Ketuk untuk melihat penuh.';
 
   @override
-  String get projectEditTools => 'Sunting alat';
+  String get projectEditTools => 'Sunting daftar';
 
   @override
   String get projectEditToolsTooltip => 'Pilih alat yang ditampilkan di sini';
