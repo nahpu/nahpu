@@ -10,7 +10,6 @@ import 'package:nahpu/screens/projects/components/overview.dart';
 import 'package:nahpu/screens/projects/components/tool_dock.dart';
 import 'package:nahpu/screens/projects/personnel/personnel.dart';
 import 'package:nahpu/screens/projects/taxonomy/taxon_registry.dart';
-import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:nahpu/screens/shared/layout/layout.dart';
 import 'package:nahpu/services/common/platform_services.dart';
 import 'package:nahpu/styles/catalog_pages.dart';
@@ -100,13 +99,6 @@ class TopPanel extends ConsumerWidget {
         ProjectOverview(
           projectUuid: projectUuid,
           useHorizontalLayout: useHorizontalLayout,
-          onEdit: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => EditProject(projectUuid: projectUuid),
-              ),
-            );
-          },
         ),
         PersonnelViewer(isExpanded: useHorizontalLayout),
       ],

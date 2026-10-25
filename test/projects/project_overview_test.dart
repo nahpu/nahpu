@@ -11,6 +11,7 @@ import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
 import 'package:nahpu/services/providers/database.dart';
+import 'package:nahpu/services/providers/projects.dart';
 
 const _project = ProjectData(
   uuid: 'project-uuid',
@@ -69,7 +70,6 @@ void main() {
                     child: ProjectOverview(
                       projectUuid: 'project-uuid',
                       useHorizontalLayout: true,
-                      onEdit: () {},
                     ),
                   ),
                 )
@@ -77,7 +77,6 @@ void main() {
                   child: ProjectOverview(
                     projectUuid: 'project-uuid',
                     useHorizontalLayout: false,
-                    onEdit: () {},
                   ),
                 ),
         ),
@@ -165,6 +164,41 @@ void main() {
     expect(qrRect.center.dx, closeTo(identityRect.center.dx, 1));
     expect(qrRect.bottom, lessThan(identityRect.top));
     expect(tester.takeException(), equals(null));
+  });
+
+  test('project QR payload provider matches the exchange encoder', () async {
+    final container = ProviderContainer(
+      overrides: [databaseProvider.overrideWithValue(database)],
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      container.read(projectQrPayloadProvider('project-uuid')),
+      equals(null),
+    );
+    await container.read(projectInfoProvider('project-uuid').future);
+
+    final payload = container.read(projectQrPayloadProvider('project-uuid'));
+    expect(payload, ProjectExchangeService.encodeQr(_project));
+    expect(container.read(projectQrPayloadProvider('project-uuid')), payload);
+  });
+
+  testWidgets('project overview renders the QR behind a repaint boundary', (
+    tester,
+  ) async {
+    await tester.pumpWidget(overview(useHorizontalLayout: false));
+    await tester.pumpAndSettle();
+
+    final qr = find.byType(ProjectQrIcon);
+    expect(qr, findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.descendant(of: qr, matching: find.byType(RepaintBoundary)),
+        matching: find.byType(QrCodeViewer),
+      ),
+      findsOneWidget,
+    );
+    _expectQrPayload(tester);
   });
 
   testWidgets('project overview QR opens the full-size dialog', (tester) async {

@@ -314,7 +314,7 @@ class ProjectQrIcon extends StatelessWidget {
         child: SizedBox(
           width: 112,
           height: 112,
-          child: QrCodeViewer(data: data, maxSize: 112),
+          child: RepaintBoundary(child: QrCodeViewer(data: data, maxSize: 112)),
         ),
         onTap: () {
           showDialog(

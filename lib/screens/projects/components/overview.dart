@@ -2,7 +2,7 @@ import 'package:nahpu/screens/projects/components/project_info.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
-import 'package:nahpu/services/record_exchange/project_exchange_service.dart';
+import 'package:nahpu/screens/projects/edit_project.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -13,12 +13,10 @@ class ProjectOverview extends ConsumerWidget {
     super.key,
     required this.projectUuid,
     required this.useHorizontalLayout,
-    this.onEdit,
   });
 
   final String projectUuid;
   final bool useHorizontalLayout;
-  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,12 +30,10 @@ class ProjectOverview extends ConsumerWidget {
           .watch(projectInfoProvider(projectUuid))
           .when(
             data: (data) {
-              final qrData = data == null
-                  ? null
-                  : ProjectExchangeService.encodeQr(data);
+              final qrData = ref.watch(projectQrPayloadProvider(projectUuid));
               final actions = ProjectInfoActions(
                 projectData: data,
-                onEdit: onEdit,
+                onEdit: () => _openEditProject(context),
               );
               if (useHorizontalLayout) {
                 return Column(
@@ -70,6 +66,14 @@ class ProjectOverview extends ConsumerWidget {
             loading: () => const CommonProgressIndicator(),
             error: (error, stack) => Text(error.toString()),
           ),
+    );
+  }
+
+  void _openEditProject(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditProject(projectUuid: projectUuid),
+      ),
     );
   }
 
