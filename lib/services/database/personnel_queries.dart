@@ -165,19 +165,18 @@ class PersonnelQuery extends DatabaseAccessor<Database>
     )..where((t) => t.projectUuid.equals(projectUuid))).go();
   }
 
-  Future<List<PersonnelData>> getPersonnelByProjectUuid(
-    String projectUuid,
-  ) async {
-    List<PersonnelListData> personnelByProject = await (select(
-      personnelList,
-    )..where((t) => t.projectUuid.equals(projectUuid))).get();
-    List<PersonnelData> personnelData = [];
-    for (PersonnelListData personnel in personnelByProject) {
-      if (personnel.personnelUuid != null) {
-        personnelData.add(await getPersonnelByUuid(personnel.personnelUuid!));
-      }
-    }
-    return personnelData;
+  /// Project personnel in the order they were added to the project.
+  Future<List<PersonnelData>> getPersonnelByProjectUuid(String projectUuid) {
+    final query =
+        select(personnelList).join([
+            innerJoin(
+              personnel,
+              personnel.uuid.equalsExp(personnelList.personnelUuid),
+            ),
+          ])
+          ..where(personnelList.projectUuid.equals(projectUuid))
+          ..orderBy([OrderingTerm.asc(personnelList.rowId)]);
+    return query.map((row) => row.readTable(personnel)).get();
   }
 
   Future<List<PersonnelData>> getAllPersonnel() {
