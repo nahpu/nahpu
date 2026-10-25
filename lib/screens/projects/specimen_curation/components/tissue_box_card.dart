@@ -6,8 +6,8 @@ import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
 /// The tissue box being filled: its name, fill count, next cell, and grid.
-/// Filled cells name their tube; tapping one shows [inspector] above the
-/// grid.
+/// Filled cells name their tube; tapping one shows [inspector] below the
+/// grid, above the box pager.
 class TissueBoxCard extends StatelessWidget {
   const TissueBoxCard({
     super.key,
@@ -38,7 +38,7 @@ class TissueBoxCard extends StatelessWidget {
   final TissueCell? inspected;
   final ValueChanged<TissueCell>? onInspect;
 
-  /// Shown above the grid while a filled cell is inspected.
+  /// Shown below the grid while a filled cell is inspected.
   final Widget? inspector;
 
   /// Null disables the previous box button, as on box 1.
@@ -110,10 +110,6 @@ class TissueBoxCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: NahpuSpacing.lg),
-            if (inspector != null) ...[
-              inspector!,
-              const SizedBox(height: NahpuSpacing.md),
-            ],
             TissueBoxGrid(
               layout: layout,
               occupied: occupied,
@@ -124,6 +120,11 @@ class TissueBoxCard extends StatelessWidget {
               onCellSelected: onCellSelected,
               onInspect: onInspect,
             ),
+            // Below the grid, so opening it never shifts the cells.
+            if (inspector != null) ...[
+              const SizedBox(height: NahpuSpacing.lg),
+              inspector!,
+            ],
             const SizedBox(height: NahpuSpacing.lg),
             Wrap(
               alignment: WrapAlignment.spaceBetween,

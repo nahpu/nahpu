@@ -9,6 +9,7 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -268,14 +269,13 @@ class _SpecimenCurationScreenState
   }
 
   Future<void> _showDetails(TissueItemRecord record) async {
-    final open = await showModalBottomSheet<bool>(
+    final open = await showAdaptiveSheetDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => TissueItemDetailsSheet(
+      builder: (context, isSheet) => TissueItemDetails(
         record: record,
         label: _session.labelFor(record),
         fieldId: _session.service.fieldIdOf(record.specimen.uuid),
+        isSheet: isSheet,
         onOpenRecord: () => Navigator.pop(context, true),
       ),
     );

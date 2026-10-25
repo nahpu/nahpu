@@ -617,4 +617,60 @@ void main() {
     final form = tester.widget<SpecimenFormView>(find.byType(SpecimenFormView));
     expect(form.specimenUuid, 'specimen-a');
   });
+
+  testWidgets('the inspector sits between the grid and the box pager', (
+    tester,
+  ) async {
+    await (database.update(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1043'))).write(
+      const SpecimenPartCompanion(storageLocation: Value('Box 1: I9')),
+    );
+    await pumpScreen(tester, size: const Size(1280, 1800));
+    final lastCell = find.byKey(const ValueKey('tissue-cell-I9'));
+    final before = tester.getTopLeft(lastCell);
+    await tester.tap(lastCell);
+    await tester.pumpAndSettle();
+
+    final inspector = find.byKey(const ValueKey('tissue-cell-inspector'));
+    final pager = find.byKey(const ValueKey('tissue-pager-box'));
+    expect(tester.getTopLeft(lastCell), before);
+    expect(
+      tester.getTopLeft(inspector).dy,
+      greaterThan(tester.getBottomLeft(lastCell).dy),
+    );
+    expect(
+      tester.getBottomLeft(inspector).dy,
+      lessThan(tester.getTopLeft(pager).dy),
+    );
+  });
+
+  for (final (name, size, isSheet) in [
+    ('a bottom sheet on phones', const Size(420, 2400), true),
+    ('a dialog on wide screens', const Size(1280, 1800), false),
+  ]) {
+    testWidgets('tube details show as $name', (tester) async {
+      await (database.update(
+        database.specimenPart,
+      )..where((row) => row.tissueID.equals('T-1043'))).write(
+        const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+      );
+      await pumpScreen(tester, size: size);
+      await tester.tap(find.byKey(const ValueKey('tissue-cell-A1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Details'));
+      await tester.pumpAndSettle();
+
+      final details = find.byKey(const ValueKey('tissue-item-details'));
+      expect(details, findsOneWidget);
+      expect(
+        find.ancestor(of: details, matching: find.byType(BottomSheet)),
+        isSheet ? findsOneWidget : findsNothing,
+      );
+      expect(
+        find.ancestor(of: details, matching: find.byType(Dialog)),
+        isSheet ? findsNothing : findsOneWidget,
+      );
+    });
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
@@ -6,7 +7,7 @@ import 'package:nahpu/services/specimen_curation/tissue_item.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/styles/themes.dart';
 
-/// What a tapped filled cell holds, shown above the box grid: each tube's
+/// What a tapped filled cell holds, shown below the box grid: each tube's
 /// label, its specimen details, and a button for all of its fields.
 class TissueCellInspector extends StatelessWidget {
   const TissueCellInspector({
@@ -107,24 +108,29 @@ class TissueCellInspector extends StatelessWidget {
 }
 
 /// Every curation field of one tube, with a way to its specimen record.
-class TissueItemDetailsSheet extends StatelessWidget {
-  const TissueItemDetailsSheet({
+/// Shown with [showAdaptiveSheetDialog]: a bottom sheet on phones, a dialog
+/// on wider screens.
+class TissueItemDetails extends StatelessWidget {
+  const TissueItemDetails({
     super.key,
     required this.record,
     required this.label,
     required this.fieldId,
+    required this.isSheet,
     required this.onOpenRecord,
   });
 
   final TissueItemRecord record;
   final String label;
   final String fieldId;
+
+  /// A bottom sheet closes with its drag handle, so it shows no close button.
+  final bool isSheet;
   final VoidCallback onOpenRecord;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
     final rows = <(String, String?)>[
       (
         record.isParasite
@@ -144,32 +150,24 @@ class TissueItemDetailsSheet extends StatelessWidget {
       for (final field in TissueCheckField.values)
         (field.localizedLabel(l10n), record.readField(field)),
     ];
-    return SafeArea(
-      child: SingleChildScrollView(
-        key: const ValueKey('tissue-item-details'),
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(label, style: theme.textTheme.titleLarge),
-            if (record.isParasite)
-              Text(
-                l10n.projectTissueParasite,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            const SizedBox(height: NahpuSpacing.lg),
-            for (final (name, value) in rows)
-              TissueDetailRow(name: name, value: value),
-            const SizedBox(height: NahpuSpacing.xl),
-            FilledButton.icon(
-              onPressed: onOpenRecord,
-              icon: const Icon(Icons.open_in_new),
-              label: Text(l10n.projectTissueOpenRecord),
-            ),
-          ],
+    return AdaptiveSheetDialogBody(
+      key: const ValueKey('tissue-item-details'),
+      title: label,
+      description: record.isParasite ? l10n.projectTissueParasite : null,
+      showCloseButton: !isSheet,
+      actions: [
+        FilledButton.icon(
+          onPressed: onOpenRecord,
+          icon: const Icon(Icons.open_in_new),
+          label: Text(l10n.projectTissueOpenRecord),
         ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (name, value) in rows)
+            TissueDetailRow(name: name, value: value),
+        ],
       ),
     );
   }
