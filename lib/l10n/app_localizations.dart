@@ -216,6 +216,18 @@ abstract class AppLocalizations {
   /// **'Search records'**
   String get homeSearchRecords;
 
+  /// Home screen menu holding the actions that do not fit in the row.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get homeMoreActions;
+
+  /// Short home screen label for the media gallery across every project.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get homeGallery;
+
   /// No description provided for @homeSearchReset.
   ///
   /// In en, this message translates to:

@@ -9,34 +9,76 @@ import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
-/// App bar search across every project. Opens the search sheet, then the
-/// data table with the search and filters picked there.
-class GlobalSearchButton extends StatelessWidget {
-  const GlobalSearchButton({super.key});
+/// Search across every project, shaped like a search field. Opens the
+/// search sheet, then the data table with the search and filters picked
+/// there.
+class HomeSearchBar extends StatelessWidget {
+  const HomeSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('home-global-search'),
-      tooltip: context.l10n.homeSearchRecords,
-      icon: const Icon(Icons.search),
-      onPressed: () => _search(context),
-    );
-  }
-
-  Future<void> _search(BuildContext context) async {
-    final request = await showAdaptiveSheetDialog<DataTableSearchRequest>(
-      context: context,
-      builder: (context, isSheet) => GlobalSearchSheet(isSheet: isSheet),
-    );
-    if (request == null || !context.mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            DataTableScreen(allProjects: true, initialSearch: request),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final label = context.l10n.homeSearchRecords;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        key: const ValueKey('home-global-search'),
+        color: colors.surfaceContainerHighest,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => showGlobalSearch(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: NahpuControlSize.touchTarget,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.xl),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search,
+                    size: NahpuControlSize.icon,
+                    color: colors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: NahpuSpacing.lg),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+/// Opens the search sheet, then the data table across every project with
+/// the search picked there.
+Future<void> showGlobalSearch(BuildContext context) async {
+  final request = await showAdaptiveSheetDialog<DataTableSearchRequest>(
+    context: context,
+    builder: (context, isSheet) => GlobalSearchSheet(isSheet: isSheet),
+  );
+  if (request == null || !context.mounted) return;
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) =>
+          DataTableScreen(allProjects: true, initialSearch: request),
+    ),
+  );
 }
 
 /// Search text with the record type, field, project, and filter options it

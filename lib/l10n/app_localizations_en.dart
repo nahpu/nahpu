@@ -68,6 +68,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSearchRecords => 'Search records';
 
   @override
+  String get homeMoreActions => 'More';
+
+  @override
+  String get homeGallery => 'Gallery';
+
+  @override
   String get homeSearchReset => 'Reset';
 
   @override

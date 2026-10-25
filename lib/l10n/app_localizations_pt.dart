@@ -69,6 +69,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeSearchRecords => 'Pesquisar registros';
 
   @override
+  String get homeMoreActions => 'Mais';
+
+  @override
+  String get homeGallery => 'Galeria';
+
+  @override
   String get homeSearchReset => 'Redefinir';
 
   @override

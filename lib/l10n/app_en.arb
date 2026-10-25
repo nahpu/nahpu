@@ -26,6 +26,10 @@
   "@homeSetupNahpu": {"description": "Name of the setup wizard, used as a button and menu label."},
   "homeStatistics": "Statistics",
   "homeSearchRecords": "Search records",
+  "homeMoreActions": "More",
+  "@homeMoreActions": {"description": "Home screen menu holding the actions that do not fit in the row."},
+  "homeGallery": "Gallery",
+  "@homeGallery": {"description": "Short home screen label for the media gallery across every project."},
 
   "homeSearchReset": "Reset",
   "homeSearchShowResults": "Show results",

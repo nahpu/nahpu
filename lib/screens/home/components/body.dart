@@ -293,9 +293,12 @@ class ProjectGridView extends StatelessWidget {
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth < NahpuBreakpoints.compact
+          final width = constraints.maxWidth;
+          final crossAxisCount = width < NahpuBreakpoints.compact
               ? 1
-              : 2;
+              : width < NahpuBreakpoints.desktop
+              ? 2
+              : 3;
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,

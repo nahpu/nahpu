@@ -70,9 +70,7 @@ void main() {
             );
           }),
         ],
-        child: MaterialApp(
-          home: Scaffold(appBar: AppBar(actions: const [GlobalSearchButton()])),
-        ),
+        child: MaterialApp(home: Scaffold(body: HomeSearchBar())),
       ),
     );
     await tester.tap(find.byKey(const ValueKey('home-global-search')));
@@ -84,7 +82,13 @@ void main() {
   ) async {
     await pumpSearch(tester);
 
-    expect(find.text('Search records'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(GlobalSearchSheet),
+        matching: find.text('Search records'),
+      ),
+      findsOneWidget,
+    );
     await tester.enterText(
       find.byKey(const ValueKey('global-search-field')),
       ' Maxomys ',

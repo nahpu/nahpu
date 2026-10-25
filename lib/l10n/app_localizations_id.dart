@@ -68,6 +68,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeSearchRecords => 'Cari catatan';
 
   @override
+  String get homeMoreActions => 'Lainnya';
+
+  @override
+  String get homeGallery => 'Galeri';
+
+  @override
   String get homeSearchReset => 'Atur ulang';
 
   @override
