@@ -81,12 +81,7 @@ final eventMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, eventId) async {
       final database = ref.read(databaseProvider);
       final links = await CollEventQuery(database).getEventMedia(eventId);
-      final mediaQuery = MediaDbQuery(database);
-      final media = <MediaData>[];
-      for (final link in links) {
-        if (link.mediaId case final mediaId?) {
-          media.add(await mediaQuery.getMedia(mediaId));
-        }
-      }
-      return media;
+      return MediaDbQuery(
+        database,
+      ).getMediaByIds([for (final link in links) ?link.mediaId]);
     });

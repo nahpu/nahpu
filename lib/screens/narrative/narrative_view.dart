@@ -185,17 +185,46 @@ class NarrativePages extends StatelessWidget {
       controller: pageNav.pageController,
       itemCount: narrativeEntries.length,
       itemBuilder: (context, index) {
-        final narrativeCtr = narrativeFormController(narrativeEntries[index]);
+        final narrative = narrativeEntries[index];
         return PageViewer(
           pageNav: pageNav,
           isNavButtonVisible: isNavButtonVisible,
-          child: NarrativeForm(
-            narrativeId: narrativeEntries[index].id,
-            narrativeCtr: narrativeCtr,
+          child: _NarrativePage(
+            key: ValueKey(narrative.id),
+            narrative: narrative,
           ),
         );
       },
       onPageChanged: onPageChanged,
+    );
+  }
+}
+
+/// Holds one page's form controllers across rebuilds, so typed text survives
+/// and controllers are created once. [NarrativeForm] disposes them.
+class _NarrativePage extends StatefulWidget {
+  const _NarrativePage({super.key, required this.narrative});
+
+  final NarrativeData narrative;
+
+  @override
+  State<_NarrativePage> createState() => _NarrativePageState();
+}
+
+class _NarrativePageState extends State<_NarrativePage> {
+  late final NarrativeFormCtrModel _narrativeCtr;
+
+  @override
+  void initState() {
+    super.initState();
+    _narrativeCtr = narrativeFormController(widget.narrative);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NarrativeForm(
+      narrativeId: widget.narrative.id,
+      narrativeCtr: _narrativeCtr,
     );
   }
 }

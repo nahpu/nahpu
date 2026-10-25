@@ -112,16 +112,10 @@ final parasiteEntryProvider =
 final specimenMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, String>((ref, specimenUuid) async {
       final database = ref.read(databaseProvider);
-      List<SpecimenMediaData> mediaList = await SpecimenQuery(
+      final links = await SpecimenQuery(
         database,
       ).getSpecimenMedia(specimenUuid);
-      List<MediaData> mediaDataList = [];
-      for (SpecimenMediaData media in mediaList) {
-        if (media.mediaId != null) {
-          mediaDataList.add(
-            await MediaDbQuery(database).getMedia(media.mediaId!),
-          );
-        }
-      }
-      return mediaDataList;
+      return MediaDbQuery(
+        database,
+      ).getMediaByIds([for (final link in links) ?link.mediaId]);
     });

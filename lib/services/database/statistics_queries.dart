@@ -665,12 +665,20 @@ $projectDates
         ? 'NULL AS series_label'
         : '$series AS series_label';
     final groupColumns = series == null ? 'label' : 'label, series_label';
+    // The attribute CTE unions six tables, so only sex and life-stage
+    // groupings pay for it.
+    final usesAttributes = [
+      label,
+      ?series,
+      ...conditions,
+    ].any((part) => part.contains('normalized_attributes'));
     var sql =
         '''
-      WITH $_attributeCte,
+      WITH ${usesAttributes ? '$_attributeCte,' : ''}
       grouped AS (
         SELECT $label AS label, $seriesColumn, $count AS count
         FROM $_specimenFrom
+        ${usesAttributes ? _attributeJoin : ''}
         WHERE ${conditions.join(' AND ')}
         GROUP BY $groupColumns
         HAVING $count > 0
@@ -690,7 +698,7 @@ $projectDates
     return _StatisticsSql(
       sql: sql,
       variables: variables,
-      tables: _specimenTables,
+      tables: usesAttributes ? _specimenTables : _specimenBaseTables,
     );
   }
 
@@ -791,6 +799,7 @@ $projectDates
         WITH $_attributeCte
         SELECT specimen.uuid AS k
         FROM $_specimenFrom
+        $_attributeJoin
         WHERE ${conditions.join(' AND ')}
         ORDER BY specimen.rowid
       ''';
@@ -817,6 +826,10 @@ $projectDates
         LEFT JOIN site
           ON site.id = coalesce(collEvent.siteID, specimenCoordinate.siteID)
         LEFT JOIN collMethod ON collMethod.id = specimen.collMethodID
+  ''';
+
+  /// Joins sex and life stage; needs [_attributeCte] in the `WITH` clause.
+  static const _attributeJoin = '''
         LEFT JOIN normalized_attributes
           ON normalized_attributes.specimenUuid = specimen.uuid
   ''';
@@ -854,13 +867,17 @@ $projectDates
     db.media,
   };
 
-  Set<ResultSetImplementation> get _specimenTables => {
+  Set<ResultSetImplementation> get _specimenBaseTables => {
     db.specimen,
     db.taxonomy,
     db.collEvent,
     db.coordinate,
     db.site,
     db.collMethod,
+  };
+
+  Set<ResultSetImplementation> get _specimenTables => {
+    ..._specimenBaseTables,
     ..._attributeTables,
   };
 

@@ -353,6 +353,64 @@ void main() {
     ]);
   });
 
+  test('attribute data joins only for sex and life-stage requests', () async {
+    await db.batch((batch) {
+      batch.insertAll(db.mammalAttribute, const [
+        MammalAttributeCompanion(
+          specimenUuid: Value('a-1'),
+          sex: Value(0),
+          lifeStage: Value('Adult'),
+        ),
+        MammalAttributeCompanion(
+          specimenUuid: Value('a-unknown'),
+          sex: Value(1),
+          lifeStage: Value('Juvenile'),
+        ),
+      ]);
+    });
+    final sites = await query
+        .watchFilterOptions('project-a', StatisticFilterKind.site)
+        .first;
+    Future<List<(String, int)>> counts(StatisticRequest request) async {
+      final rows = await query.watchStatistics(request).first;
+      return rows.map((row) => (row.label, row.count)).toList();
+    }
+
+    expect(
+      await counts(
+        const StatisticRequest(
+          projectUuid: 'project-a',
+          measure: StatisticMeasure.specimens,
+          group: StatisticGroup.species,
+        ),
+      ),
+      [
+        ('Myotis lucifugus', 2),
+        ('Eptesicus fuscus', 1),
+        ('Unidentified species', 1),
+      ],
+    );
+    final siteSex = StatisticRequest(
+      projectUuid: 'project-a',
+      measure: StatisticMeasure.specimens,
+      group: StatisticGroup.sex,
+      siteId: sites.single.id,
+    );
+    expect(await counts(siteSex), [('Not recorded', 2), ('Male', 1)]);
+    expect(
+      await counts(
+        StatisticRequest(
+          projectUuid: 'project-a',
+          measure: StatisticMeasure.specimens,
+          group: StatisticGroup.lifeStage,
+          siteId: sites.single.id,
+        ),
+      ),
+      [('Not recorded', 2), ('Adult', 1)],
+    );
+    expect(await query.groupRecordKeys(siteSex, label: 'Male'), ['a-1']);
+  });
+
   test('sampled elevation only includes sites with specimen records', () async {
     final unusedSite = await db
         .into(db.site)

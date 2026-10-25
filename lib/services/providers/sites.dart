@@ -104,32 +104,28 @@ final coordinateByEventProvider = FutureProvider.family
 final siteMediaProvider = FutureProvider.family
     .autoDispose<List<MediaData>, int>((ref, siteId) async {
       final database = ref.read(databaseProvider);
-      List<SiteMediaData> mediaList = await SiteQuery(
+      final links = await SiteQuery(database).getSiteMedia(siteId);
+      return MediaDbQuery(
         database,
-      ).getSiteMedia(siteId);
-      List<MediaData> mediaDataList = [];
-      for (SiteMediaData media in mediaList) {
-        if (media.mediaId != null) {
-          mediaDataList.add(
-            await MediaDbQuery(database).getMedia(media.mediaId!),
-          );
-        }
-      }
-      return mediaDataList;
+      ).getMediaByIds([for (final link in links) ?link.mediaId]);
     });
+
+/// One site with its geography, or null when [siteId] is null. Mirrors
+/// `SiteServices.getSite`, which needs a `WidgetRef`.
+final siteByIdProvider = FutureProvider.family.autoDispose<SiteRecord?, int?>((
+  ref,
+  siteId,
+) async {
+  if (siteId == null) return null;
+  return SiteQuery(ref.read(databaseProvider)).getSiteById(siteId);
+});
 
 final siteInEventProvider = FutureProvider.autoDispose<List<SiteRecord>>((
   ref,
 ) async {
   final database = ref.read(databaseProvider);
-  List<int?> siteList = await CollEventQuery(
+  final siteIds = await CollEventQuery(
     database,
   ).getAllDistinctSites(ref.read(projectUuidProvider));
-  List<SiteRecord> siteDataList = [];
-  for (int? siteId in siteList) {
-    if (siteId != null) {
-      siteDataList.add(await SiteQuery(database).getSiteById(siteId));
-    }
-  }
-  return siteDataList;
+  return SiteQuery(database).getSitesByIds(siteIds.nonNulls.toList());
 });

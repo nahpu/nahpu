@@ -57,6 +57,17 @@ class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
     return (select(media)..where((t) => t.primaryId.equals(id))).getSingle();
   }
 
+  /// Media rows for [ids] in one query, in input order; missing ids are
+  /// skipped.
+  Future<List<MediaData>> getMediaByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final rows = await (select(
+      media,
+    )..where((t) => t.primaryId.isIn(ids))).get();
+    final byId = {for (final row in rows) row.primaryId: row};
+    return [for (final id in ids) ?byId[id]];
+  }
+
   Future<void> deleteMedia(int id) {
     return (delete(media)..where((t) => t.primaryId.equals(id))).go();
   }

@@ -415,32 +415,20 @@ class MethodField extends ConsumerWidget {
   }
 }
 
-class CollEventIDText extends ConsumerStatefulWidget {
+class CollEventIDText extends ConsumerWidget {
   const CollEventIDText({super.key, required this.collEventData});
 
   final CollEventData collEventData;
 
   @override
-  CollEventIDTextState createState() => CollEventIDTextState();
-}
-
-class CollEventIDTextState extends ConsumerState<CollEventIDText> {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return CommonDropdownText(text: snapshot.data as String);
-        } else {
-          return const SizedBox.shrink();
-        }
-      },
-      future: _getCollEventID(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final site = ref.watch(siteByIdProvider(collEventData.siteID));
+    return site.when(
+      data: (site) =>
+          CommonDropdownText(text: formatCollEventId(collEventData, site)),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
-  }
-
-  Future<String> _getCollEventID() async {
-    return CollEventServices(ref: ref).getCollEventID(widget.collEventData);
   }
 }
 
