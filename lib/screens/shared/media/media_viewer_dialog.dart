@@ -423,7 +423,7 @@ class MediaViewerDialogState extends ConsumerState<MediaViewerDialog> {
       file = await ImageServices(
         ref: ref,
         category: category,
-      ).getMediaPath(fileName);
+      ).getProjectMediaPath(fileName, media.projectUuid ?? '');
       exists = await file.exists();
     } catch (e) {
       exists = false;

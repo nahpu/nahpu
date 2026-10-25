@@ -45,7 +45,7 @@ class MediaDetailsViewState extends ConsumerState<MediaDetailsView> {
   Widget build(BuildContext context) {
     final media = widget.media;
     final photographer = ref
-        .watch(projectPersonnelProvider)
+        .watch(personnelByProjectProvider(media.projectUuid ?? ''))
         .whenOrNull(
           data: (people) => people
               .where((person) => person.uuid == widget.media.personnelId)

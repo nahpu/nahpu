@@ -31,7 +31,9 @@ class MediaGalleryServices {
     required MediaCategory category,
     required String query,
     required MediaGallerySort sort,
+    String? projectUuid,
     Map<String, String> personnelNames = const {},
+    Map<String, String> projectNames = const {},
   }) {
     final tokens = query
         .trim()
@@ -44,18 +46,28 @@ class MediaGalleryServices {
           item.category != matchMediaCategory(category)) {
         return false;
       }
+      if (projectUuid != null && item.projectUuid != projectUuid) return false;
       if (tokens.isEmpty) return true;
-      final searchable = _searchableText(item, personnelNames).toLowerCase();
+      final searchable = _searchableText(
+        item,
+        personnelNames,
+        projectNames,
+      ).toLowerCase();
       return tokens.every(searchable.contains);
     }).toList();
     filtered.sort((left, right) => _compare(left, right, sort));
     return filtered;
   }
 
-  String _searchableText(MediaData media, Map<String, String> personnelNames) {
+  String _searchableText(
+    MediaData media,
+    Map<String, String> personnelNames,
+    Map<String, String> projectNames,
+  ) {
     return <Object?>[
       media.primaryId,
       media.projectUuid,
+      projectNames[media.projectUuid],
       media.secondaryId,
       media.category,
       media.tag,

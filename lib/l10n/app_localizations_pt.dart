@@ -184,6 +184,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get drawerDatabaseStatistics => 'Estatísticas do banco de dados';
 
   @override
+  String get drawerMediaGallery => 'Galeria de mídias';
+
+  @override
   String get drawerBackupDatabase => 'Fazer backup do banco de dados';
 
   @override
@@ -10912,6 +10915,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get mediaGalleryTitle => 'Galeria de mídias';
+
+  @override
+  String get mediaGalleryAllProjectsTitle => 'Todas as mídias';
+
+  @override
+  String get mediaFilterProject => 'Filtrar por projeto';
+
+  @override
+  String get mediaAllProjects => 'Todos os projetos';
 
   @override
   String get mediaSearch => 'Pesquisar mídias';

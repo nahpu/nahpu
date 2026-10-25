@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nahpu/screens/shared/common/tropical_mountains.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/layout/panel.dart';
+import 'package:nahpu/screens/shared/media/media_gallery.dart';
 import 'package:nahpu/services/database/database.dart' show kSchemaVersion;
 import 'package:nahpu/services/providers/app_info.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -85,6 +86,12 @@ class HomeMenuDrawer extends StatelessWidget {
               ),
             );
           },
+        ),
+        ListTile(
+          key: const ValueKey('home-drawer-media-gallery'),
+          leading: const Icon(Icons.photo_library_outlined),
+          title: Text(context.l10n.drawerMediaGallery),
+          onTap: () => showGlobalMediaGallery(context),
         ),
         const CommonLineDivider(),
         ListTile(

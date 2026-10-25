@@ -24,6 +24,7 @@ import 'package:nahpu/services/types/import.dart';
 import 'package:path/path.dart' as path;
 
 const _projectUuid = 'project-media-gallery';
+const _otherProjectUuid = 'project-media-gallery-other';
 final _mediaBytes = utf8.encode('test media');
 
 void main() {
@@ -89,6 +90,63 @@ void main() {
       );
       await tester.pump();
       expect(_cardIds(tester), [1, 2]);
+    },
+  );
+
+  _testGalleryWidgets(
+    'global gallery shows every project and filters by project',
+    (tester) async {
+      await ProjectQuery(db).createProject(
+        const ProjectCompanion(
+          uuid: Value(_otherProjectUuid),
+          name: Value('Other project'),
+        ),
+      );
+      await db
+          .into(db.media)
+          .insert(
+            const MediaCompanion(
+              projectUuid: Value(_otherProjectUuid),
+              category: Value('event'),
+              fileName: Value('event1.dat'),
+            ),
+          );
+      _writeMediaFile(tempAppDir, 'event', 'event1.dat', _otherProjectUuid);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [databaseProvider.overrideWithValue(db)],
+          child: const MaterialApp(
+            home: MediaGalleryScreen(
+              initialCategory: MediaCategory.all,
+              allProjects: true,
+            ),
+          ),
+        ),
+      );
+      await _flushMediaLoad(tester);
+
+      expect(find.text('All media'), findsOneWidget);
+      expect(_cardIds(tester), [3, 2, 1]);
+
+      await tester.tap(find.byTooltip('Filter by project'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is CheckedPopupMenuItem<String> &&
+              widget.value == _otherProjectUuid,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_cardIds(tester), [3]);
+      expect(find.widgetWithText(InputChip, 'Other project'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('All projects'));
+      await tester.pump();
+      expect(_cardIds(tester), [3, 2, 1]);
     },
   );
 
@@ -311,12 +369,17 @@ Future<void> _seedMedia(Database db, Directory appDir) async {
   _writeMediaFile(appDir, 'site', 'site2.dat');
 }
 
-void _writeMediaFile(Directory appDir, String category, String fileName) {
+void _writeMediaFile(
+  Directory appDir,
+  String category,
+  String fileName, [
+  String projectUuid = _projectUuid,
+]) {
   File(
       path.join(
         appDir.path,
         nahpuAppDir,
-        _projectUuid,
+        projectUuid,
         mediaDir,
         category,
         fileName,

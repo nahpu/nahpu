@@ -22,6 +22,18 @@ final projectPersonnelProvider =
       return personnelData;
     });
 
+/// Personnel for a given project; falls back to the open project when the
+/// UUID is empty.
+final personnelByProjectProvider = FutureProvider.family
+    .autoDispose<List<PersonnelData>, String>((ref, projectUuid) {
+      final uuid = projectUuid.isEmpty
+          ? ref.watch(projectUuidProvider)
+          : projectUuid;
+      return PersonnelQuery(
+        ref.read(databaseProvider),
+      ).getPersonnelByProjectUuid(uuid);
+    });
+
 final personnelNameProvider = FutureProvider.family
     .autoDispose<PersonnelData, String>((ref, uuid) {
       final person = PersonnelQuery(

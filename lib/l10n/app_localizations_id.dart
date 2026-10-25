@@ -183,6 +183,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get drawerDatabaseStatistics => 'Statistik basis data';
 
   @override
+  String get drawerMediaGallery => 'Galeri media';
+
+  @override
   String get drawerBackupDatabase => 'Cadangkan basis data';
 
   @override
@@ -10702,6 +10705,15 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get mediaGalleryTitle => 'Galeri media';
+
+  @override
+  String get mediaGalleryAllProjectsTitle => 'Semua media';
+
+  @override
+  String get mediaFilterProject => 'Saring berdasarkan proyek';
+
+  @override
+  String get mediaAllProjects => 'Semua proyek';
 
   @override
   String get mediaSearch => 'Cari media';

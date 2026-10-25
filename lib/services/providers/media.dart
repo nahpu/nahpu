@@ -17,6 +17,12 @@ final projectMediaProvider = FutureProvider.autoDispose<List<MediaData>>((ref) {
   ).getRecordMediaByProject(projectUuid);
 });
 
+final allRecordMediaProvider = FutureProvider.autoDispose<List<MediaData>>((
+  ref,
+) {
+  return MediaDbQuery(ref.read(databaseProvider)).getAllRecordMedia();
+});
+
 final projectPreviewImageFilesProvider = FutureProvider.autoDispose
     .family<List<File>, String>((ref, projectUuid) async {
       if (projectUuid.isEmpty) return const <File>[];

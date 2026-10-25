@@ -625,7 +625,7 @@ class MediaCardState extends ConsumerState<MediaCard> {
     final mediaPath = await ImageServices(
       ref: ref,
       category: category,
-    ).getMediaPath(fileName);
+    ).getProjectMediaPath(fileName, widget.media.projectUuid ?? '');
     final exists = await mediaPath.exists();
 
     return _MediaAssetPreview(
@@ -859,10 +859,11 @@ class MediaPopUpMenuState extends ConsumerState<MediaPopUpMenu> {
 
   Future<void> _shareFile() async {
     final category = matchMediaCategoryString(widget.media.category ?? '');
-    final mediaPath = await ImageServices(
-      ref: ref,
-      category: category,
-    ).getMediaPath(widget.media.fileName ?? '');
+    final mediaPath = await ImageServices(ref: ref, category: category)
+        .getProjectMediaPath(
+          widget.media.fileName ?? '',
+          widget.media.projectUuid ?? '',
+        );
     if (mounted) {
       await FilePickerServices().shareFile(context, mediaPath);
     }
@@ -980,7 +981,11 @@ class _MediaEditFormState extends ConsumerState<MediaEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    final people = ref.watch(projectPersonnelProvider).value ?? const [];
+    final people =
+        ref
+            .watch(personnelByProjectProvider(widget.media.projectUuid ?? ''))
+            .value ??
+        const [];
     final hasSelectedPerson = people.any(
       (person) => person.uuid == _photographerId,
     );

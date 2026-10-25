@@ -8,14 +8,19 @@ import 'package:nahpu/screens/shared/forms/forms.dart';
 import 'package:nahpu/screens/shared/media/media.dart';
 import 'package:nahpu/screens/shared/media/media_batch_export.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/project_queries.dart';
 import 'package:nahpu/services/media/media_gallery_services.dart';
 import 'package:nahpu/services/media/media_services.dart';
 import 'package:nahpu/services/providers/media.dart';
 import 'package:nahpu/services/providers/personnel.dart';
+import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/types/import.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
+
+/// Project filter value that shows media from every project.
+const _allProjects = '';
 
 const _galleryCategories = [
   MediaCategory.all,
@@ -37,10 +42,29 @@ Future<void> showMediaGallery(
   );
 }
 
+/// Opens the gallery with media from every project.
+Future<void> showGlobalMediaGallery(BuildContext context) {
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) => const MediaGalleryScreen(
+        initialCategory: MediaCategory.all,
+        allProjects: true,
+      ),
+    ),
+  );
+}
+
 class MediaGalleryScreen extends ConsumerStatefulWidget {
-  const MediaGalleryScreen({super.key, required this.initialCategory});
+  const MediaGalleryScreen({
+    super.key,
+    required this.initialCategory,
+    this.allProjects = false,
+  });
 
   final MediaCategory initialCategory;
+
+  /// Shows media from every project instead of only the open project.
+  final bool allProjects;
 
   @override
   ConsumerState<MediaGalleryScreen> createState() => _MediaGalleryScreenState();
@@ -53,6 +77,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
   final _galleryServices = const MediaGalleryServices();
   late MediaCategory _category;
   MediaGallerySort _sort = MediaGallerySort.addedNewest;
+  String _projectUuid = _allProjects;
   bool _isSearching = false;
   bool _isSelecting = false;
 
@@ -73,8 +98,9 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(projectPersonnelProvider);
-    ref.listen(projectMediaProvider, (_, next) {
+    ref.watch(_personnelProvider);
+    if (widget.allProjects) ref.watch(projectListProvider);
+    ref.listen(_mediaProvider, (_, next) {
       next.whenData((media) {
         final availableIds = media.map((item) => item.primaryId).toSet();
         if (_selectedMedia.any((id) => !availableIds.contains(id)) && mounted) {
@@ -85,22 +111,35 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: _isSearching ? NahpuSpacing.md : null,
         title: _isSearching
-            ? CommonSearchBar(
-                controller: _searchController,
-                focusNode: _searchFocusNode,
-                hintText: context.l10n.mediaSearchMetadata,
-                trailing: [
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      tooltip: context.l10n.documentSelectionClearSearch,
-                      onPressed: _clearSearch,
-                      icon: const Icon(Icons.clear_rounded),
-                    ),
-                ],
-                onChanged: (_) => _pruneSelectionToVisible(),
+            ? Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: NahpuContentWidth.form,
+                  ),
+                  child: CommonSearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    hintText: context.l10n.mediaSearchMetadata,
+                    trailing: [
+                      if (_searchController.text.isNotEmpty)
+                        IconButton(
+                          tooltip: context.l10n.documentSelectionClearSearch,
+                          onPressed: _clearSearch,
+                          icon: const Icon(Icons.clear_rounded),
+                        ),
+                    ],
+                    onChanged: (_) => _pruneSelectionToVisible(),
+                  ),
+                ),
               )
-            : Text(context.l10n.mediaGalleryTitle),
+            : Text(
+                widget.allProjects
+                    ? context.l10n.mediaGalleryAllProjectsTitle
+                    : context.l10n.mediaGalleryTitle,
+              ),
         actions: [
           if (!_isSearching)
             IconButton(
@@ -113,12 +152,18 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
               onPressed: _cancelSearch,
               child: Text(context.l10n.commonCancel),
             ),
+          if (!_isSearching && widget.allProjects)
+            _ProjectMenu(
+              value: _projectUuid,
+              projects: _projects(),
+              onSelected: _setProject,
+            ),
           if (!_isSearching) _SortMenu(value: _sort, onSelected: _setSort),
         ],
       ),
       body: SafeArea(
         child: ref
-            .watch(projectMediaProvider)
+            .watch(_mediaProvider)
             .when(
               data: _buildGallery,
               loading: () => const CommonProgressIndicator(),
@@ -129,20 +174,20 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
   }
 
   Widget _buildGallery(List<MediaData> allMedia) {
-    final personnelNames = _personnelNames();
-    final visibleMedia = _galleryServices.filterAndSort(
-      media: allMedia,
-      category: _category,
-      query: _searchController.text,
-      sort: _sort,
-      personnelNames: personnelNames,
-    );
+    final visibleMedia = _visibleMedia(allMedia);
     final visibleIds = visibleMedia.map((media) => media.primaryId).toSet();
     final selectedVisible = _selectedMedia.intersection(visibleIds);
 
     return Column(
       children: [
-        _CategoryFilter(selected: _category, onSelected: _setCategory),
+        _CategoryFilter(
+          selected: _category,
+          onSelected: _setCategory,
+          projectName: _projectUuid == _allProjects
+              ? null
+              : _projectNames()[_projectUuid] ?? _projectUuid,
+          onProjectCleared: () => _setProject(_allProjects),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: NahpuSpacing.sm),
           child: SelectItemsInterface(
@@ -226,8 +271,35 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
     );
   }
 
+  FutureProvider<List<MediaData>> get _mediaProvider =>
+      widget.allProjects ? allRecordMediaProvider : projectMediaProvider;
+
+  FutureProvider<List<PersonnelData>> get _personnelProvider =>
+      widget.allProjects ? allPersonnelProvider : projectPersonnelProvider;
+
+  List<MediaData> _visibleMedia(List<MediaData> allMedia) {
+    return _galleryServices.filterAndSort(
+      media: allMedia,
+      category: _category,
+      query: _searchController.text,
+      sort: _sort,
+      projectUuid: _projectUuid == _allProjects ? null : _projectUuid,
+      personnelNames: _personnelNames(),
+      projectNames: _projectNames(),
+    );
+  }
+
+  List<ProjectSummary> _projects() {
+    if (!widget.allProjects) return const [];
+    return ref.read(projectListProvider).value ?? const [];
+  }
+
+  Map<String, String> _projectNames() {
+    return {for (final project in _projects()) project.uuid: project.name};
+  }
+
   Map<String, String> _personnelNames() {
-    final personnel = ref.read(projectPersonnelProvider).value ?? const [];
+    final personnel = ref.read(_personnelProvider).value ?? const [];
     return {
       for (final person in personnel)
         if (person.name?.trim().isNotEmpty ?? false) person.uuid: person.name!,
@@ -255,21 +327,18 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
     _pruneSelectionToVisible();
   }
 
+  void _setProject(String projectUuid) {
+    setState(() => _projectUuid = projectUuid);
+    _pruneSelectionToVisible();
+  }
+
   void _setSort(MediaGallerySort sort) => setState(() => _sort = sort);
 
   void _pruneSelectionToVisible() {
-    final allMedia =
-        ref.read(projectMediaProvider).value ?? const <MediaData>[];
-    final visibleIds = _galleryServices
-        .filterAndSort(
-          media: allMedia,
-          category: _category,
-          query: _searchController.text,
-          sort: _sort,
-          personnelNames: _personnelNames(),
-        )
-        .map((media) => media.primaryId)
-        .toSet();
+    final allMedia = ref.read(_mediaProvider).value ?? const <MediaData>[];
+    final visibleIds = _visibleMedia(
+      allMedia,
+    ).map((media) => media.primaryId).toSet();
     setState(() => _selectedMedia.retainAll(visibleIds));
   }
 
@@ -337,10 +406,19 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen> {
 }
 
 class _CategoryFilter extends StatelessWidget {
-  const _CategoryFilter({required this.selected, required this.onSelected});
+  const _CategoryFilter({
+    required this.selected,
+    required this.onSelected,
+    required this.projectName,
+    required this.onProjectCleared,
+  });
 
   final MediaCategory selected;
   final ValueChanged<MediaCategory> onSelected;
+
+  /// Active project filter, shown as a removable chip when not null.
+  final String? projectName;
+  final VoidCallback onProjectCleared;
 
   @override
   Widget build(BuildContext context) {
@@ -354,6 +432,19 @@ class _CategoryFilter extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (projectName != null)
+            Padding(
+              padding: const EdgeInsets.only(right: NahpuSpacing.sm),
+              child: InputChip(
+                avatar: const Icon(Icons.folder_outlined),
+                label: Text(projectName!),
+                selected: true,
+                showCheckmark: false,
+                onPressed: onProjectCleared,
+                onDeleted: onProjectCleared,
+                deleteButtonTooltipMessage: context.l10n.mediaAllProjects,
+              ),
+            ),
           for (final category in _galleryCategories)
             Padding(
               padding: const EdgeInsets.only(right: NahpuSpacing.sm),
@@ -398,6 +489,42 @@ class _SortMenu extends StatelessWidget {
             value: sort,
             label: sort.localizedLabel(context.l10n),
             checked: sort == value,
+          ),
+      ],
+    );
+  }
+}
+
+class _ProjectMenu extends StatelessWidget {
+  const _ProjectMenu({
+    required this.value,
+    required this.projects,
+    required this.onSelected,
+  });
+
+  final String value;
+  final List<ProjectSummary> projects;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveMenuButton<String>(
+      tooltip: context.l10n.mediaFilterProject,
+      initialValue: value,
+      icon: Icon(value == _allProjects ? Icons.folder_outlined : Icons.folder),
+      onSelected: onSelected,
+      itemBuilder: () => [
+        AdaptiveMenuItem(
+          value: _allProjects,
+          label: context.l10n.mediaAllProjects,
+          checked: value == _allProjects,
+        ),
+        for (final project in projects)
+          AdaptiveMenuItem(
+            value: project.uuid,
+            label: project.name,
+            checked: project.uuid == value,
+            hasDividerBefore: project == projects.first,
           ),
       ],
     );

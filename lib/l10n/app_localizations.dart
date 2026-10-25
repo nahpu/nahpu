@@ -414,6 +414,12 @@ abstract class AppLocalizations {
   /// **'Database statistics'**
   String get drawerDatabaseStatistics;
 
+  /// No description provided for @drawerMediaGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Media gallery'**
+  String get drawerMediaGallery;
+
   /// No description provided for @drawerBackupDatabase.
   ///
   /// In en, this message translates to:
@@ -17760,6 +17766,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Media gallery'**
   String get mediaGalleryTitle;
+
+  /// No description provided for @mediaGalleryAllProjectsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All media'**
+  String get mediaGalleryAllProjectsTitle;
+
+  /// No description provided for @mediaFilterProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by project'**
+  String get mediaFilterProject;
+
+  /// No description provided for @mediaAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'All projects'**
+  String get mediaAllProjects;
 
   /// No description provided for @mediaSearch.
   ///

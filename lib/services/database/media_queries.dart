@@ -3,6 +3,8 @@ import 'package:nahpu/services/database/database.dart';
 
 part 'media_queries.g.dart';
 
+const _recordMediaCategories = ['event', 'narrative', 'site', 'specimen'];
+
 @DriftAccessor(include: {'tables.drift'})
 class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
   MediaDbQuery(super.db);
@@ -30,11 +32,17 @@ class MediaDbQuery extends DatabaseAccessor<Database> with _$MediaDbQueryMixin {
     )..where((t) => t.projectUuid.equals(projectUuid))).get();
   }
 
+  Future<List<MediaData>> getAllRecordMedia() {
+    return (select(
+      media,
+    )..where((t) => t.category.isIn(_recordMediaCategories))).get();
+  }
+
   Future<List<MediaData>> getRecordMediaByProject(String projectUuid) {
     return (select(media)..where(
           (t) =>
               t.projectUuid.equals(projectUuid) &
-              t.category.isIn(const ['event', 'narrative', 'site', 'specimen']),
+              t.category.isIn(_recordMediaCategories),
         ))
         .get();
   }

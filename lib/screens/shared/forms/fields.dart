@@ -209,12 +209,19 @@ class CommonSearchBar extends StatelessWidget {
       focusNode: focusNode,
       leading: const Icon(Icons.search),
       padding: const WidgetStatePropertyAll<EdgeInsets>(
-        EdgeInsets.symmetric(horizontal: 8.0),
+        EdgeInsets.symmetric(horizontal: NahpuSpacing.md),
       ),
-      constraints: constraints,
-      elevation: WidgetStateProperty.all(0),
+      constraints:
+          constraints ??
+          const BoxConstraints(
+            minHeight: NahpuControlSize.control,
+            maxHeight: NahpuControlSize.control,
+          ),
+      elevation: const WidgetStatePropertyAll(NahpuElevation.none),
       hintText: hintText,
-      backgroundColor: WidgetStateProperty.all(Colors.grey.withAlpha(48)),
+      backgroundColor: WidgetStatePropertyAll(
+        Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
       trailing: trailing,
       onChanged: onChanged,
     );
