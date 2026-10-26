@@ -64,7 +64,8 @@ import 'app_localizations_pt.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -72,7 +73,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,19 +86,20 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
     Locale('id'),
-    Locale('pt')
+    Locale('pt'),
   ];
 
   /// Badge on features that are still in beta.
@@ -1285,7 +1288,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 file was written to {archive} ({size}).} other{{count} files were written to {archive} ({size}).}}'**
-  String settingsDataUsageArchiveWritten(int count, String archive, String size);
+  String settingsDataUsageArchiveWritten(
+    int count,
+    String archive,
+    String size,
+  );
 
   /// No description provided for @settingsDataUsageRemoveOriginalsBody.
   ///
@@ -2683,7 +2690,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Files app/On my Devices/{appDir}/{backupDir}/{fileName}'**
-  String databaseIosBackupPath(String appDir, String backupDir, String fileName);
+  String databaseIosBackupPath(
+    String appDir,
+    String backupDir,
+    String fileName,
+  );
 
   /// No description provided for @transferCustomFieldsQrTitle.
   ///
@@ -3415,7 +3426,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{layoutName}: {count, plural, =1{block} other{blocks}} {blocks}'**
-  String presetsTemplateUsageBlocks(String layoutName, int count, String blocks);
+  String presetsTemplateUsageBlocks(
+    String layoutName,
+    int count,
+    String blocks,
+  );
 
   /// No description provided for @presetsTemplateNoReplacement.
   ///
@@ -4891,7 +4906,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'If {conditions} → \"{text}\", otherwise \"{otherwise}\"'**
-  String exportFieldsSummaryIfOtherwise(String conditions, String text, String otherwise);
+  String exportFieldsSummaryIfOtherwise(
+    String conditions,
+    String text,
+    String otherwise,
+  );
 
   /// No description provided for @exportFieldsSummaryEquals.
   ///
@@ -6181,7 +6200,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Includes {partCount, plural, =1{1 part} other{{partCount} parts}}, {associatedCount, plural, =1{1 associated record} other{{associatedCount} associated records}}, and {mediaCount, plural, =1{1 media file} other{{mediaCount} media files}}.'**
-  String sharedSpecimenImportSummary(int partCount, int associatedCount, int mediaCount);
+  String sharedSpecimenImportSummary(
+    int partCount,
+    int associatedCount,
+    int mediaCount,
+  );
 
   /// No description provided for @sharedSiteQrCode.
   ///
@@ -6925,7 +6948,12 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Showing {shown} of {total, plural, =1{1 part} other{{total} parts}} · Selected {selected} ({hidden} hidden)'**
-  String documentPartsSummaryHidden(int shown, int total, int selected, int hidden);
+  String documentPartsSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  );
 
   /// No description provided for @documentPartsEmpty.
   ///
@@ -6961,7 +6989,12 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Showing {shown} of {total, plural, =1{1 parasite} other{{total} parasites}} · Selected {selected} ({hidden} hidden)'**
-  String documentParasitesSummaryHidden(int shown, int total, int selected, int hidden);
+  String documentParasitesSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  );
 
   /// No description provided for @documentParasitesEmpty.
   ///
@@ -8521,7 +8554,10 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Imported {count, plural, =1{1 preset} other{{count} presets}} and {templateCount, plural, =1{1 template} other{{templateCount} templates}}'**
-  String serviceMessagePresetsAndTemplatesImported(int count, int templateCount);
+  String serviceMessagePresetsAndTemplatesImported(
+    int count,
+    int templateCount,
+  );
 
   /// Note in the preset export dialog.
   ///
@@ -11905,7 +11941,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{measure} by {category} and {breakdown}'**
-  String projectStatsTitleWithBreakdown(String measure, String category, String breakdown);
+  String projectStatsTitleWithBreakdown(
+    String measure,
+    String category,
+    String breakdown,
+  );
 
   /// No description provided for @projectStatsTitleAtSite.
   ///
@@ -18907,7 +18947,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{columns} columns and {rows} data rows detected in worksheet \"{worksheet}\". NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.'**
-  String siteColumnsDetectedInWorksheet(int columns, int rows, String worksheet);
+  String siteColumnsDetectedInWorksheet(
+    int columns,
+    int rows,
+    String worksheet,
+  );
 
   /// No description provided for @siteNotIncluded.
   ///
@@ -19171,7 +19215,12 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Copied {fields} and {coordinates} from {site} in {project}.'**
-  String siteCopiedSummary(String fields, String coordinates, String site, String project);
+  String siteCopiedSummary(
+    String fields,
+    String coordinates,
+    String site,
+    String project,
+  );
 
   /// No description provided for @siteFieldCount.
   ///
@@ -21094,7 +21143,8 @@ abstract class AppLocalizations {
   String projectTissueLabelExample(String example);
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -21103,27 +21153,30 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'es', 'id', 'pt'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'es', 'id', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'es': return AppLocalizationsEs();
-    case 'id': return AppLocalizationsId();
-    case 'pt': return AppLocalizationsPt();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'id':
+      return AppLocalizationsId();
+    case 'pt':
+      return AppLocalizationsPt();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

@@ -39,10 +39,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonDeleteAllRecords => 'Eliminar todos los registros';
 
   @override
-  String get homeDatabaseErrorTitle => 'No se pudo abrir la base de datos de NAHPU.';
+  String get homeDatabaseErrorTitle =>
+      'No se pudo abrir la base de datos de NAHPU.';
 
   @override
-  String get homeDatabaseErrorBody => 'Sus datos no se eliminaron. Vuelva a intentar la migración de la base de datos o reinicie NAHPU.';
+  String get homeDatabaseErrorBody =>
+      'Sus datos no se eliminaron. Vuelva a intentar la migración de la base de datos o reinicie NAHPU.';
 
   @override
   String get homeExistingProjects => 'Proyectos existentes';
@@ -54,7 +56,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeNoProjectsBody => 'Cree o importe un proyecto para comenzar.';
 
   @override
-  String get homeSetupHint => '¿Es nuevo en NAHPU? Ejecute Configurar NAHPU para elegir el formato de catálogo, los identificadores, los vocabularios y los ajustes de exportación.';
+  String get homeSetupHint =>
+      '¿Es nuevo en NAHPU? Ejecute Configurar NAHPU para elegir el formato de catálogo, los identificadores, los vocabularios y los ajustes de exportación.';
 
   @override
   String get homeSetupNahpu => 'Configurar NAHPU';
@@ -78,7 +81,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeSearchShowResults => 'Mostrar resultados';
 
   @override
-  String get homeSearchHint => 'Número de campo, taxón, sitio o cualquier valor';
+  String get homeSearchHint =>
+      'Número de campo, taxón, sitio o cualquier valor';
 
   @override
   String get homeSearchRecordType => 'Tipo de registro';
@@ -133,7 +137,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeProjectQrCode => 'Código QR del proyecto';
 
   @override
-  String get homeProjectQrDescription => 'Escanee este código al crear un proyecto nuevo para transferir la información del proyecto.';
+  String get homeProjectQrDescription =>
+      'Escanee este código al crear un proyecto nuevo para transferir la información del proyecto.';
 
   @override
   String aboutTitle(String appName) {
@@ -141,7 +146,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get aboutTagline => 'Repensando los inventarios de biodiversidad en la era digital';
+  String get aboutTagline =>
+      'Repensando los inventarios de biodiversidad en la era digital';
 
   @override
   String get aboutLicenses => 'Licencias';
@@ -158,7 +164,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aboutCodename => 'Nombre en clave';
 
   @override
-  String get aboutCodenameNote => 'De la primera prueba de campo real de NAHPU en el monte Gede, Java Occidental, Indonesia.';
+  String get aboutCodenameNote =>
+      'De la primera prueba de campo real de NAHPU en el monte Gede, Java Occidental, Indonesia.';
 
   @override
   String get aboutDatabaseSchema => 'Esquema de la base de datos';
@@ -228,7 +235,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsTools => 'Herramientas';
 
   @override
-  String get settingsToolsLabel => 'Elija las herramientas que se muestran en el panel del proyecto';
+  String get settingsToolsLabel =>
+      'Elija las herramientas que se muestran en el panel del proyecto';
 
   @override
   String get settingsLanguage => 'Idioma';
@@ -242,7 +250,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsLanguageBetaNote => 'El soporte de idiomas está en beta. Algunas pantallas siguen en inglés y las traducciones pueden ser borradores automáticos.';
+  String get settingsLanguageBetaNote =>
+      'El soporte de idiomas está en beta. Algunas pantallas siguen en inglés y las traducciones pueden ser borradores automáticos.';
 
   @override
   String get settingsLanguageHelpTranslate => 'Ayude a traducir NAHPU';
@@ -254,7 +263,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsRegionalFormatMatchLanguage => 'Igual que el idioma';
 
   @override
-  String get settingsRegionalFormatNote => 'Solo cambia cómo se muestran las fechas y los números. Los registros guardados y las exportaciones mantienen los formatos estándar.';
+  String get settingsRegionalFormatNote =>
+      'Solo cambia cómo se muestran las fechas y los números. Los registros guardados y las exportaciones mantienen los formatos estándar.';
 
   @override
   String settingsRegionalFormatPreview(String date, String number) {
@@ -278,7 +288,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get docsLoadError => 'No se pudo cargar esta documentación.';
 
   @override
-  String get docsOnlineLinks => 'Estos enlaces abren la documentación de NAHPU y requieren conexión a internet.';
+  String get docsOnlineLinks =>
+      'Estos enlaces abren la documentación de NAHPU y requieren conexión a internet.';
 
   @override
   String get docsAsideNote => 'Nota';
@@ -338,7 +349,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get narrativeDeleteAllTitle => '¿Eliminar todas las narrativas?';
 
   @override
-  String get narrativeDeleteAllPrompt => 'Eliminará todas las narrativas de este proyecto';
+  String get narrativeDeleteAllPrompt =>
+      'Eliminará todas las narrativas de este proyecto';
 
   @override
   String narrativeDeleteError(String error) {
@@ -355,7 +367,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get narrativeTextHint => 'Escriba la narrativa (admite Markdown)';
 
   @override
-  String get narrativeTextEmpty => 'Sin narrativa. Use el botón Editar de arriba para empezar a escribir.';
+  String get narrativeTextEmpty =>
+      'Sin narrativa. Use el botón Editar de arriba para empezar a escribir.';
 
   @override
   String get narrativeDate => 'Fecha';
@@ -408,25 +421,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsNavSites => 'Sitios';
 
   @override
-  String get settingsNavSitesLabel => 'Administre tipos de sitio, tipos de hábitat y datums de coordenadas';
+  String get settingsNavSitesLabel =>
+      'Administre tipos de sitio, tipos de hábitat y datums de coordenadas';
 
   @override
   String get settingsNavEvents => 'Eventos';
 
   @override
-  String get settingsNavEventsLabel => 'Administre actividades, métodos de colecta, funciones del personal y campos ambientales';
+  String get settingsNavEventsLabel =>
+      'Administre actividades, métodos de colecta, funciones del personal y campos ambientales';
 
   @override
   String get settingsNavSpecimens => 'Especímenes';
 
   @override
-  String get settingsNavSpecimensLabel => 'Administre la configuración de campos y de ID de tejidos, y los vocabularios controlados de los formularios de especímenes';
+  String get settingsNavSpecimensLabel =>
+      'Administre la configuración de campos y de ID de tejidos, y los vocabularios controlados de los formularios de especímenes';
 
   @override
   String get settingsNavCustomFields => 'Campos personalizados';
 
   @override
-  String get settingsNavCustomFieldsLabel => 'Administre campos para sitios, datos ambientales, especímenes, partes y parásitos';
+  String get settingsNavCustomFieldsLabel =>
+      'Administre campos para sitios, datos ambientales, especímenes, partes y parásitos';
 
   @override
   String get settingsNavDatabase => 'Base de datos';
@@ -441,16 +458,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsNavPersonnel => 'Personal';
 
   @override
-  String get settingsNavPersonnelLabel => 'Administre los registros del personal';
+  String get settingsNavPersonnelLabel =>
+      'Administre los registros del personal';
 
   @override
-  String get settingsNavBackupDatabaseLabel => 'Copia de seguridad completa de todos los registros y la configuración';
+  String get settingsNavBackupDatabaseLabel =>
+      'Copia de seguridad completa de todos los registros y la configuración';
 
   @override
   String get settingsNavReplaceDatabase => 'Reemplazar base de datos';
 
   @override
-  String get settingsNavReplaceDatabaseLabel => 'Reemplace la base de datos actual por otro archivo de base de datos';
+  String get settingsNavReplaceDatabaseLabel =>
+      'Reemplace la base de datos actual por otro archivo de base de datos';
 
   @override
   String get settingsNavExports => 'Exportaciones';
@@ -459,19 +479,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsNavTabularData => 'Datos tabulares';
 
   @override
-  String get settingsNavTabularDataLabel => 'Administre los ajustes predefinidos para exportar en formatos tabulares';
+  String get settingsNavTabularDataLabel =>
+      'Administre los ajustes predefinidos para exportar en formatos tabulares';
 
   @override
   String get settingsNavDocuments => 'Documentos';
 
   @override
-  String get settingsNavDocumentsLabel => 'Administre los ajustes predefinidos para exportar documentos';
+  String get settingsNavDocumentsLabel =>
+      'Administre los ajustes predefinidos para exportar documentos';
 
   @override
   String get settingsNavTemplateEditor => 'Editor de plantillas';
 
   @override
-  String get settingsNavTemplateEditorLabel => 'Cree y edite plantillas de documentos';
+  String get settingsNavTemplateEditorLabel =>
+      'Cree y edite plantillas de documentos';
 
   @override
   String get settingsCommonSetCaseFormat => 'Elegir mayúsculas y minúsculas';
@@ -534,13 +557,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsSelectionArchiveFormat => 'Formato del archivo comprimido';
 
   @override
-  String get settingsSelectionNoFolder => 'Para exportar una selección se necesita una carpeta donde escribir, y este dispositivo no la ofrece. Aun así, puede eliminar los archivos seleccionados después de revisarlos.';
+  String get settingsSelectionNoFolder =>
+      'Para exportar una selección se necesita una carpeta donde escribir, y este dispositivo no la ofrece. Aun así, puede eliminar los archivos seleccionados después de revisarlos.';
 
   @override
-  String get settingsSelectionExportNote => 'Al exportar, estos archivos se guardan en un único archivo comprimido y luego se ofrece quitar los originales. Al eliminar, se quitan de inmediato y no se puede deshacer.';
+  String get settingsSelectionExportNote =>
+      'Al exportar, estos archivos se guardan en un único archivo comprimido y luego se ofrece quitar los originales. Al eliminar, se quitan de inmediato y no se puede deshacer.';
 
   @override
-  String get settingsSelectionDeleteNote => 'Al eliminar, los archivos seleccionados se quitan de inmediato y no se puede deshacer.';
+  String get settingsSelectionDeleteNote =>
+      'Al eliminar, los archivos seleccionados se quitan de inmediato y no se puede deshacer.';
 
   @override
   String get settingsSelectionDeletePermanently => 'Eliminar definitivamente';
@@ -568,7 +594,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsMapNoCustomLayers => 'No se ha importado ninguna capa personalizada.';
+  String get settingsMapNoCustomLayers =>
+      'No se ha importado ninguna capa personalizada.';
 
   @override
   String get settingsMapImportCustomLayer => 'Importar capa personalizada';
@@ -585,10 +612,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsMapShowLayer => 'Mostrar capa';
 
   @override
-  String get settingsMapLayerUnavailableOnDesktop => 'Esta capa no está disponible en escritorio';
+  String get settingsMapLayerUnavailableOnDesktop =>
+      'Esta capa no está disponible en escritorio';
 
   @override
-  String get settingsMapLayerTypeUnavailableOnDesktop => 'Este tipo de capa no está disponible en escritorio.';
+  String get settingsMapLayerTypeUnavailableOnDesktop =>
+      'Este tipo de capa no está disponible en escritorio.';
 
   @override
   String get settingsMapOpacity => 'Opacidad';
@@ -597,7 +626,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsMapUseTerrain => 'Usar para el terreno 3D';
 
   @override
-  String get settingsMapHillshadeNote => 'El sombreado del relieve sigue visible cuando el terreno está desactivado.';
+  String get settingsMapHillshadeNote =>
+      'El sombreado del relieve sigue visible cuando el terreno está desactivado.';
 
   @override
   String get settingsMapLayerOrder => 'Orden de las capas';
@@ -620,16 +650,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsMapSupportedFormatsDesktop => 'En escritorio admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles ráster.';
+  String get settingsMapSupportedFormatsDesktop =>
+      'En escritorio admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles ráster.';
 
   @override
-  String get settingsMapSupportedFormats => 'Admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles.';
+  String get settingsMapSupportedFormats =>
+      'Admite GeoJSON, Shapefiles WGS84 comprimidos en ZIP y PMTiles.';
 
   @override
   String get settingsDataUsage => 'Uso de datos';
 
   @override
-  String get settingsDataUsageLabel => 'Explore y limpie la carpeta de la aplicación';
+  String get settingsDataUsageLabel =>
+      'Explore y limpie la carpeta de la aplicación';
 
   @override
   String get settingsDataUsageRescan => 'Volver a analizar';
@@ -653,7 +686,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsDataUsageReclaimable => 'Recuperable';
 
   @override
-  String get settingsDataUsageReclaimableLabel => 'Archivos sin vincular que se pueden quitar';
+  String get settingsDataUsageReclaimableLabel =>
+      'Archivos sin vincular que se pueden quitar';
 
   @override
   String get settingsDataUsageNone => 'Ninguno';
@@ -662,7 +696,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsDataUsageRemoveOriginalsTitle => '¿Quitar los originales?';
 
   @override
-  String settingsDataUsageArchiveWritten(int count, String archive, String size) {
+  String settingsDataUsageArchiveWritten(
+    int count,
+    String archive,
+    String size,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -673,7 +711,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageRemoveOriginalsBody => 'Quitarlos de NAHPU libera el espacio. El archivo comprimido conserva su copia, y esto no se puede deshacer.';
+  String get settingsDataUsageRemoveOriginalsBody =>
+      'Quitarlos de NAHPU libera el espacio. El archivo comprimido conserva su copia, y esto no se puede deshacer.';
 
   @override
   String settingsDataUsageExportedTo(String path) {
@@ -699,7 +738,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageRemoveFolderTitle => '¿Quitar esta carpeta vacía?';
+  String get settingsDataUsageRemoveFolderTitle =>
+      '¿Quitar esta carpeta vacía?';
 
   @override
   String settingsDataUsageRemoveFolderBody(String name) {
@@ -728,7 +768,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageDeleteSelectionBody => 'Estos archivos no están vinculados a ningún registro. Esto no se puede deshacer.';
+  String get settingsDataUsageDeleteSelectionBody =>
+      'Estos archivos no están vinculados a ningún registro. Esto no se puede deshacer.';
 
   @override
   String get settingsDataUsageCollapseAll => 'Contraer todo';
@@ -751,16 +792,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageScanError => 'No se pudo leer la carpeta de la aplicación';
+  String get settingsDataUsageScanError =>
+      'No se pudo leer la carpeta de la aplicación';
 
   @override
   String get settingsDataUsagePruneTitle => 'Quitar archivos sin vincular';
 
   @override
-  String get settingsDataUsagePruneDescription => 'Archivos que ya no usa ningún registro, como restos de multimedia eliminada o de importaciones canceladas. No se ven afectados los archivos vinculados, las bases de datos y sus copias de seguridad, las fuentes personalizadas, las capas del mapa ni los archivos fuera de las carpetas que administra NAHPU.';
+  String get settingsDataUsagePruneDescription =>
+      'Archivos que ya no usa ningún registro, como restos de multimedia eliminada o de importaciones canceladas. No se ven afectados los archivos vinculados, las bases de datos y sus copias de seguridad, las fuentes personalizadas, las capas del mapa ni los archivos fuera de las carpetas que administra NAHPU.';
 
   @override
-  String get settingsDataUsageNothingToReclaim => 'No hay espacio que recuperar.';
+  String get settingsDataUsageNothingToReclaim =>
+      'No hay espacio que recuperar.';
 
   @override
   String settingsDataUsagePruneButton(int count, String size) {
@@ -805,7 +849,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Se conservaron $count archivos porque cambiaron durante el análisis.',
+      other:
+          'Se conservaron $count archivos porque cambiaron durante el análisis.',
       one: 'Se conservó 1 archivo porque cambió durante el análisis.',
     );
     return '$_temp0';
@@ -821,10 +866,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCatalogMeasurementRecords => 'Registros de medidas';
 
   @override
-  String get recordsCatalogAlwaysShowBatFields => 'Mostrar siempre los campos de murciélagos';
+  String get recordsCatalogAlwaysShowBatFields =>
+      'Mostrar siempre los campos de murciélagos';
 
   @override
-  String get recordsCatalogBatFieldsNote => 'Si se activa, los campos específicos de murciélagos se muestran siempre en los campos de medidas de mamíferos. También puede mostrar u ocultar los campos específicos de murciélagos para cada registro de espécimen en la pantalla del registro de espécimen.';
+  String get recordsCatalogBatFieldsNote =>
+      'Si se activa, los campos específicos de murciélagos se muestran siempre en los campos de medidas de mamíferos. También puede mostrar u ocultar los campos específicos de murciélagos para cada registro de espécimen en la pantalla del registro de espécimen.';
 
   @override
   String get recordsVocabularyCaseFormat => 'Formato de mayúsculas';
@@ -876,10 +923,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsSiteMapLayers => 'Capas del mapa';
 
   @override
-  String get recordsSiteMapLayersLabel => 'Elija una capa base o importe y administre capas personalizadas';
+  String get recordsSiteMapLayersLabel =>
+      'Elija una capa base o importe y administre capas personalizadas';
 
   @override
-  String get recordsCollEventSettings => 'Configuración de eventos de recolección';
+  String get recordsCollEventSettings =>
+      'Configuración de eventos de recolección';
 
   @override
   String get recordsCollEventPrimaryActivities => 'Actividades principales';
@@ -891,7 +940,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCollEventPersonnelRoles => 'Funciones del personal';
 
   @override
-  String get recordsCollEventEnvironmentalDataFields => 'Campos de datos ambientales';
+  String get recordsCollEventEnvironmentalDataFields =>
+      'Campos de datos ambientales';
 
   @override
   String recordsCollEventEnvironmentalDataFieldsLoadError(String error) {
@@ -905,7 +955,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCollEventHumidity => 'Humedad';
 
   @override
-  String get recordsCollEventEnvironmentalMeasurements => 'Mediciones ambientales';
+  String get recordsCollEventEnvironmentalMeasurements =>
+      'Mediciones ambientales';
 
   @override
   String get recordsCollEventAquaticData => 'Datos acuáticos';
@@ -920,10 +971,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsSpecimenCaptureRecords => 'Registros de captura';
 
   @override
-  String get recordsSpecimenAlwaysShowCollector => 'Mostrar siempre el campo de colector';
+  String get recordsSpecimenAlwaysShowCollector =>
+      'Mostrar siempre el campo de colector';
 
   @override
-  String get recordsSpecimenIdentificationMethods => 'Métodos de identificación';
+  String get recordsSpecimenIdentificationMethods =>
+      'Métodos de identificación';
 
   @override
   String get recordsSpecimenLifeStages => 'Etapas de vida';
@@ -957,7 +1010,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsSpecimenSexAdditional => 'Opciones adicionales';
 
   @override
-  String get recordsSpecimenSexRemoveBlockedTitle => 'No se puede quitar el sexo';
+  String get recordsSpecimenSexRemoveBlockedTitle =>
+      'No se puede quitar el sexo';
 
   @override
   String recordsSpecimenSexRemoveBlockedBody(String sex) {
@@ -977,10 +1031,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsSpecimenParasiteDetectionMethods => 'Métodos de detección';
 
   @override
-  String get recordsSpecimenParasitePreparationMethods => 'Métodos de preparación';
+  String get recordsSpecimenParasitePreparationMethods =>
+      'Métodos de preparación';
 
   @override
-  String get recordsSpecimenParasiteAnatomicalLocations => 'Ubicaciones anatómicas';
+  String get recordsSpecimenParasiteAnatomicalLocations =>
+      'Ubicaciones anatómicas';
 
   @override
   String get recordsSpecimenParasiteStorage => 'Almacenamiento';
@@ -1011,19 +1067,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsSpecimenPersonnelId => 'ID del personal';
 
   @override
-  String get recordsSpecimenPersonnelIdDescription => 'El ID consiste en las iniciales de una persona y un número correlativo. Lo configurará al crear personal con la función de catalogador.';
+  String get recordsSpecimenPersonnelIdDescription =>
+      'El ID consiste en las iniciales de una persona y un número correlativo. Lo configurará al crear personal con la función de catalogador.';
 
   @override
   String get recordsSpecimenProjectId => 'ID del proyecto';
 
   @override
-  String get recordsSpecimenProjectIdDescription => 'El proyecto mantiene un único número correlativo con un prefijo y un sufijo compartidos.';
+  String get recordsSpecimenProjectIdDescription =>
+      'El proyecto mantiene un único número correlativo con un prefijo y un sufijo compartidos.';
 
   @override
-  String get recordsSpecimenPersonnelFieldIdNoteTitle => 'Los ID de campo del personal requieren un catalogador';
+  String get recordsSpecimenPersonnelFieldIdNoteTitle =>
+      'Los ID de campo del personal requieren un catalogador';
 
   @override
-  String get recordsSpecimenPersonnelFieldIdNoteBody => 'Agregue una persona con la función de catalogador en el proyecto y asigne un número de campo actual a esa función.';
+  String get recordsSpecimenPersonnelFieldIdNoteBody =>
+      'Agregue una persona con la función de catalogador en el proyecto y asigne un número de campo actual a esa función.';
 
   @override
   String get recordsSpecimenAddPersonnel => 'Agregar personal';
@@ -1048,25 +1108,32 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get recordsSpecimenAutoIncrement => 'Incrementar automáticamente el número de catálogo';
+  String get recordsSpecimenAutoIncrement =>
+      'Incrementar automáticamente el número de catálogo';
 
   @override
-  String get recordsSpecimenSaveFieldIdSettings => 'Guardar la configuración de ID de campo';
+  String get recordsSpecimenSaveFieldIdSettings =>
+      'Guardar la configuración de ID de campo';
 
   @override
-  String get recordsSpecimenFieldIdSettingsSaved => 'Configuración de ID de campo guardada.';
+  String get recordsSpecimenFieldIdSettingsSaved =>
+      'Configuración de ID de campo guardada.';
 
   @override
-  String get recordsSpecimenNoProjectFieldIdTitle => 'Abra un proyecto para configurar los ID de campo del proyecto';
+  String get recordsSpecimenNoProjectFieldIdTitle =>
+      'Abra un proyecto para configurar los ID de campo del proyecto';
 
   @override
-  String get recordsSpecimenNoProjectFieldIdBody => 'El prefijo, el número actual y el sufijo se guardan por proyecto.';
+  String get recordsSpecimenNoProjectFieldIdBody =>
+      'El prefijo, el número actual y el sufijo se guardan por proyecto.';
 
   @override
-  String get recordsSpecimenFieldIdChangeTitle => '¿Cambiar el formato de ID de campo del proyecto?';
+  String get recordsSpecimenFieldIdChangeTitle =>
+      '¿Cambiar el formato de ID de campo del proyecto?';
 
   @override
-  String get recordsSpecimenFieldIdChangeBody => 'Cambiar el prefijo o el sufijo del ID de campo del proyecto modifica los ID existentes del proyecto. Es posible que estos identificadores ya se hayan usado en exportaciones o escrito en etiquetas de especímenes. Verifique los nuevos valores antes de cambiarlos.';
+  String get recordsSpecimenFieldIdChangeBody =>
+      'Cambiar el prefijo o el sufijo del ID de campo del proyecto modifica los ID existentes del proyecto. Es posible que estos identificadores ya se hayan usado en exportaciones o escrito en etiquetas de especímenes. Verifique los nuevos valores antes de cambiarlos.';
 
   @override
   String get recordsSpecimenIUnderstand => 'Entiendo';
@@ -1113,7 +1180,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get recordsCustomFieldImportEmpty => 'Esta configuración de usuario no contiene plantillas de campos personalizados.';
+  String get recordsCustomFieldImportEmpty =>
+      'Esta configuración de usuario no contiene plantillas de campos personalizados.';
 
   @override
   String recordsCustomFieldImported(int count) {
@@ -1140,16 +1208,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCustomFieldExported => 'Campos personalizados exportados';
 
   @override
-  String get recordsCustomFieldQrTooLargeTitle => 'El código QR es demasiado grande';
+  String get recordsCustomFieldQrTooLargeTitle =>
+      'El código QR es demasiado grande';
 
   @override
-  String get recordsCustomFieldQrTooLargeBody => 'Los campos personalizados seleccionados contienen demasiados datos para un solo código QR. Expórtelos como archivo.';
+  String get recordsCustomFieldQrTooLargeBody =>
+      'Los campos personalizados seleccionados contienen demasiados datos para un solo código QR. Expórtelos como archivo.';
 
   @override
   String get recordsCustomFieldExportFile => 'Exportar archivo';
 
   @override
-  String get recordsCustomFieldDiscardLegacyTitle => '¿Descartar los valores heredados?';
+  String get recordsCustomFieldDiscardLegacyTitle =>
+      '¿Descartar los valores heredados?';
 
   @override
   String recordsCustomFieldDiscardLegacyBody(String name) {
@@ -1160,7 +1231,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCustomFieldDiscardValues => 'Descartar valores';
 
   @override
-  String get recordsCustomFieldDeleteTitle => '¿Eliminar el campo personalizado?';
+  String get recordsCustomFieldDeleteTitle =>
+      '¿Eliminar el campo personalizado?';
 
   @override
   String recordsCustomFieldDeleteBody(String name) {
@@ -1214,7 +1286,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCustomFieldDeleteInUse => 'Eliminar (valores en uso)';
 
   @override
-  String get recordsCustomFieldSelectPrompt => 'Seleccione un campo personalizado para editarlo o agregue uno nuevo.';
+  String get recordsCustomFieldSelectPrompt =>
+      'Seleccione un campo personalizado para editarlo o agregue uno nuevo.';
 
   @override
   String get recordsCustomFieldNew => 'Nuevo campo personalizado';
@@ -1251,7 +1324,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCustomFieldDeletionAvailable => 'Disponible';
 
   @override
-  String get recordsCustomFieldDeletionUnavailable => 'No disponible hasta que se borren todos los valores almacenados';
+  String get recordsCustomFieldDeletionUnavailable =>
+      'No disponible hasta que se borren todos los valores almacenados';
 
   @override
   String recordsCustomFieldUsageLoadError(String error) {
@@ -1265,10 +1339,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get recordsCustomFieldDefinitionUuid => 'UUID de la definición';
 
   @override
-  String get recordsCustomFieldSourceTemplateUuid => 'UUID de la plantilla de origen';
+  String get recordsCustomFieldSourceTemplateUuid =>
+      'UUID de la plantilla de origen';
 
   @override
-  String get recordsCustomFieldNotFromTemplate => 'No se importó desde una plantilla';
+  String get recordsCustomFieldNotFromTemplate =>
+      'No se importó desde una plantilla';
 
   @override
   String get recordsCustomFieldTypeText => 'Texto';
@@ -1315,16 +1391,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseReplace => 'Reemplazar';
 
   @override
-  String get databaseRestoreCancelled => 'Restauración cancelada. La base de datos no se reemplazó.';
+  String get databaseRestoreCancelled =>
+      'Restauración cancelada. La base de datos no se reemplazó.';
 
   @override
-  String get databaseRestoreCannotStop => 'La restauración está reemplazando sus datos y no se puede detener ahora.';
+  String get databaseRestoreCannotStop =>
+      'La restauración está reemplazando sus datos y no se puede detener ahora.';
 
   @override
   String get databaseCancelRestoreTitle => '¿Cancelar la restauración?';
 
   @override
-  String get databaseCancelRestoreBody => 'El archivo comprimido aún se está leyendo. Si sale ahora, se cancela la restauración y sus datos actuales no se modifican.';
+  String get databaseCancelRestoreBody =>
+      'El archivo comprimido aún se está leyendo. Si sale ahora, se cancela la restauración y sus datos actuales no se modifican.';
 
   @override
   String get databaseKeepRestoring => 'Continuar restaurando';
@@ -1344,7 +1423,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseReplaceWith => 'Reemplazar con';
 
   @override
-  String get databaseSourceDescription => 'Un archivo de respaldo de NAHPU o un archivo de base de datos SQLite.';
+  String get databaseSourceDescription =>
+      'Un archivo de respaldo de NAHPU o un archivo de base de datos SQLite.';
 
   @override
   String get databaseNoFileSelected => 'Ningún archivo seleccionado';
@@ -1379,16 +1459,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseBeforeReplacing => 'Antes de reemplazar';
 
   @override
-  String get databaseReplaceWarning => 'Esta acción reemplazará todos los registros de NAHPU. Los archivos multimedia o de configuración que coincidan con el archivo de respaldo se sobrescribirán. Esta acción no se puede deshacer.';
+  String get databaseReplaceWarning =>
+      'Esta acción reemplazará todos los registros de NAHPU. Los archivos multimedia o de configuración que coincidan con el archivo de respaldo se sobrescribirán. Esta acción no se puede deshacer.';
 
   @override
   String get databaseBackupFirst => 'Respaldar primero los datos actuales';
 
   @override
-  String get databaseBackupFirstSubtitle => 'Guarda un archivo completo, incluidos los archivos multimedia, en la carpeta de respaldos de NAHPU';
+  String get databaseBackupFirstSubtitle =>
+      'Guarda un archivo completo, incluidos los archivos multimedia, en la carpeta de respaldos de NAHPU';
 
   @override
-  String get databaseNoSafetyBackup => 'Sin respaldo de seguridad. Sus registros y archivos multimedia actuales no se guardan antes de reemplazarlos.';
+  String get databaseNoSafetyBackup =>
+      'Sin respaldo de seguridad. Sus registros y archivos multimedia actuales no se guardan antes de reemplazarlos.';
 
   @override
   String get databaseComparisonTitle => 'Actual y reemplazo';
@@ -1397,7 +1480,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseChooseFileToCompare => 'Elija un archivo para comparar.';
 
   @override
-  String get databaseArchiveIncludesConfigs => 'Este archivo también incluye configuraciones de usuario, que la restauración importa.';
+  String get databaseArchiveIncludesConfigs =>
+      'Este archivo también incluye configuraciones de usuario, que la restauración importa.';
 
   @override
   String get databaseSchemaVersion => 'Versión del esquema';
@@ -1443,13 +1527,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseTableMediaRecords => 'Registros multimedia';
 
   @override
-  String get databaseIssueNotNahpu => 'Este archivo no es una base de datos de NAHPU. Elija un archivo de respaldo o de base de datos de NAHPU.';
+  String get databaseIssueNotNahpu =>
+      'Este archivo no es una base de datos de NAHPU. Elija un archivo de respaldo o de base de datos de NAHPU.';
 
   @override
-  String get databaseIssueNewerSchema => 'Esta base de datos se creó con una versión más reciente de NAHPU. Actualice NAHPU y luego restáurela.';
+  String get databaseIssueNewerSchema =>
+      'Esta base de datos se creó con una versión más reciente de NAHPU. Actualice NAHPU y luego restáurela.';
 
   @override
-  String get databaseIssueUnreadable => 'No se pudo leer esta base de datos. Es posible que el archivo esté dañado.';
+  String get databaseIssueUnreadable =>
+      'No se pudo leer esta base de datos. Es posible que el archivo esté dañado.';
 
   @override
   String get databaseColumnCurrent => 'Actual';
@@ -1464,19 +1551,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseRestoring => 'Restaurando la base de datos';
 
   @override
-  String get databaseRestoreHint => 'Restaurar un respaldo con muchas fotos puede tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+  String get databaseRestoreHint =>
+      'Restaurar un respaldo con muchas fotos puede tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
 
   @override
   String get databaseChooseDatabase => 'Elegir base de datos';
 
   @override
-  String get databaseChooseDatabaseBody => 'Este archivo contiene varios archivos de base de datos en su raíz. Elija la base de datos que desea restaurar.';
+  String get databaseChooseDatabaseBody =>
+      'Este archivo contiene varios archivos de base de datos en su raíz. Elija la base de datos que desea restaurar.';
 
   @override
-  String get databaseConfirmWithBackup => 'Primero se guarda un respaldo completo de sus datos actuales. ¿Desea continuar?';
+  String get databaseConfirmWithBackup =>
+      'Primero se guarda un respaldo completo de sus datos actuales. ¿Desea continuar?';
 
   @override
-  String get databaseConfirmWithoutBackup => 'No se hará ningún respaldo, por lo que sus datos actuales no se podrán recuperar. ¿Desea continuar?';
+  String get databaseConfirmWithoutBackup =>
+      'No se hará ningún respaldo, por lo que sus datos actuales no se podrán recuperar. ¿Desea continuar?';
 
   @override
   String get databaseReplaceSuccess => 'Listo 🎉';
@@ -1491,20 +1582,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get databaseBackToHome => 'Volver al inicio';
 
   @override
-  String databaseIosBackupPath(String appDir, String backupDir, String fileName) {
+  String databaseIosBackupPath(
+    String appDir,
+    String backupDir,
+    String fileName,
+  ) {
     return 'App Archivos/En mi dispositivo/$appDir/$backupDir/$fileName';
   }
 
   @override
-  String get transferCustomFieldsQrTitle => 'Código QR de campos personalizados';
+  String get transferCustomFieldsQrTitle =>
+      'Código QR de campos personalizados';
 
   @override
   String transferCustomFieldsQrDescription(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Escanee este código desde otro dispositivo con NAHPU para importar $count definiciones de campos personalizados.',
-      one: 'Escanee este código desde otro dispositivo con NAHPU para importar 1 definición de campo personalizado.',
+      other:
+          'Escanee este código desde otro dispositivo con NAHPU para importar $count definiciones de campos personalizados.',
+      one:
+          'Escanee este código desde otro dispositivo con NAHPU para importar 1 definición de campo personalizado.',
     );
     return '$_temp0';
   }
@@ -1519,7 +1617,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transferExportFile => 'Exportar archivo';
 
   @override
-  String get transferNoCustomFields => 'No hay campos personalizados disponibles para exportar.';
+  String get transferNoCustomFields =>
+      'No hay campos personalizados disponibles para exportar.';
 
   @override
   String transferSelectedCount(int selected, int total) {
@@ -1553,40 +1652,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transferDestination => 'Destino';
 
   @override
-  String get transferCustomFieldImportNote => 'Las definiciones se verifican antes de importarlas. Las que coinciden por ID de plantilla se actualizan de forma segura; los demás campos no cambian.';
+  String get transferCustomFieldImportNote =>
+      'Las definiciones se verifican antes de importarlas. Las que coinciden por ID de plantilla se actualizan de forma segura; los demás campos no cambian.';
 
   @override
-  String get transferImportSelectedConfigs => 'Importar configuraciones seleccionadas';
+  String get transferImportSelectedConfigs =>
+      'Importar configuraciones seleccionadas';
 
   @override
   String get transferWillImport => 'Se importará';
 
   @override
-  String get transferImportSelectedConfigsConfirm => '¿Importar las configuraciones seleccionadas?';
+  String get transferImportSelectedConfigsConfirm =>
+      '¿Importar las configuraciones seleccionadas?';
 
   @override
-  String get transferConfigsImported => 'Se importaron las configuraciones de usuario seleccionadas.';
+  String get transferConfigsImported =>
+      'Se importaron las configuraciones de usuario seleccionadas.';
 
   @override
-  String get transferImportConfirmationBody => 'Los grupos seleccionados se reemplazarán. Los campos personalizados se emparejan por ID de plantilla y se combinan, por lo que se conservan las definiciones existentes. Los grupos no seleccionados no cambian.';
+  String get transferImportConfirmationBody =>
+      'Los grupos seleccionados se reemplazarán. Los campos personalizados se emparejan por ID de plantilla y se combinan, por lo que se conservan las definiciones existentes. Los grupos no seleccionados no cambian.';
 
   @override
-  String get transferCustomFieldDestination => 'Destino de los campos personalizados';
+  String get transferCustomFieldDestination =>
+      'Destino de los campos personalizados';
 
   @override
-  String get transferSectionUserConfigs => 'Vocabularios controlados y configuración';
+  String get transferSectionUserConfigs =>
+      'Vocabularios controlados y configuración';
 
   @override
-  String get transferSectionRecordExportPresets => 'Ajustes predefinidos de exportación tabular';
+  String get transferSectionRecordExportPresets =>
+      'Ajustes predefinidos de exportación tabular';
 
   @override
   String get transferSectionTemplatePresets => 'Plantillas de documentos';
 
   @override
-  String get transferSectionDocumentLayouts => 'Ajustes predefinidos de diseño de documentos';
+  String get transferSectionDocumentLayouts =>
+      'Ajustes predefinidos de diseño de documentos';
 
   @override
-  String get transferSectionTemplateTablePreview => 'Columnas de vista previa de la tabla de plantillas';
+  String get transferSectionTemplateTablePreview =>
+      'Columnas de vista previa de la tabla de plantillas';
 
   @override
   String get transferSectionCustomFields => 'Campos personalizados';
@@ -1595,10 +1704,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transferConfigSections => 'Secciones de configuración';
 
   @override
-  String get transferChooseFileToPreview => 'Elija un archivo de configuración de usuario para ver una vista previa de su contenido.';
+  String get transferChooseFileToPreview =>
+      'Elija un archivo de configuración de usuario para ver una vista previa de su contenido.';
 
   @override
-  String get transferSelectAtLeastOneSection => 'Seleccione al menos una sección de configuración.';
+  String get transferSelectAtLeastOneSection =>
+      'Seleccione al menos una sección de configuración.';
 
   @override
   String transferEntryCount(int count) {
@@ -1682,37 +1793,45 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupWelcomeTitle => 'Configure NAHPU';
 
   @override
-  String get setupWelcomeMessage => 'NAHPU registra especímenes según sus propias convenciones. Aquí se configura el formato del número de catálogo y los vocabularios controlados para sitios, eventos y especímenes.';
+  String get setupWelcomeMessage =>
+      'NAHPU registra especímenes según sus propias convenciones. Aquí se configura el formato del número de catálogo y los vocabularios controlados para sitios, eventos y especímenes.';
 
   @override
   String get setupWelcomeCatalogFormat => 'El grupo taxonómico que cataloga.';
 
   @override
-  String get setupWelcomeIdentifiers => 'Cómo se forman los números de campo y de tejido.';
+  String get setupWelcomeIdentifiers =>
+      'Cómo se forman los números de campo y de tejido.';
 
   @override
   String get setupControlledVocabularies => 'Vocabularios controlados';
 
   @override
-  String get setupWelcomeVocabularies => 'Los vocabularios para sitios, eventos y especímenes.';
+  String get setupWelcomeVocabularies =>
+      'Los vocabularios para sitios, eventos y especímenes.';
 
   @override
-  String get setupWelcomeExportPresets => 'Diseños de impresión y ajustes tabulares incluidos para las exportaciones.';
+  String get setupWelcomeExportPresets =>
+      'Diseños de impresión y ajustes tabulares incluidos para las exportaciones.';
 
   @override
-  String get setupWelcomeNotPermanent => 'Esto toma unos minutos y nada aquí es permanente. Puede cambiar cada respuesta más adelante en Configuración o al ejecutar este asistente de nuevo.';
+  String get setupWelcomeNotPermanent =>
+      'Esto toma unos minutos y nada aquí es permanente. Puede cambiar cada respuesta más adelante en Configuración o al ejecutar este asistente de nuevo.';
 
   @override
   String get setupImportTitle => '¿Ya tiene la configuración de su equipo?';
 
   @override
-  String get setupImportMessage => 'Un equipo solo necesita configurar esto una vez. Si su equipo ya configuró NAHPU, importe su archivo de configuraciones de usuario y podrá omitir el resto de este asistente. Al final puede exportar la suya para el resto del equipo.';
+  String get setupImportMessage =>
+      'Un equipo solo necesita configurar esto una vez. Si su equipo ya configuró NAHPU, importe su archivo de configuraciones de usuario y podrá omitir el resto de este asistente. Al final puede exportar la suya para el resto del equipo.';
 
   @override
-  String get setupCatalogFormatMessage => 'El formato determina qué campos de medidas aparecen en los registros de especímenes.';
+  String get setupCatalogFormatMessage =>
+      'El formato determina qué campos de medidas aparecen en los registros de especímenes.';
 
   @override
-  String get setupCatalogFormatNote => 'Puede cambiar el formato de catálogo en cualquier momento, y un mismo proyecto puede contener registros en más de un formato. Elija el formato que usará con más frecuencia.';
+  String get setupCatalogFormatNote =>
+      'Puede cambiar el formato de catálogo en cualquier momento, y un mismo proyecto puede contener registros en más de un formato. Elija el formato que usará con más frecuencia.';
 
   @override
   String setupCatalogFormatLoadError(String error) {
@@ -1723,16 +1842,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupFieldIdsTitle => 'ID de campo de especímenes';
 
   @override
-  String get setupFieldIdsMessage => 'Elija su estrategia de ID de campo. Completará la configuración de ID al crear un proyecto nuevo.';
+  String get setupFieldIdsMessage =>
+      'Elija su estrategia de ID de campo. Completará la configuración de ID al crear un proyecto nuevo.';
 
   @override
-  String get setupIdentifiersNote => 'Esta configuración de identificadores puede cambiarse para otro proyecto. Puede ajustarla en Configuración > Catálogos.';
+  String get setupIdentifiersNote =>
+      'Esta configuración de identificadores puede cambiarse para otro proyecto. Puede ajustarla en Configuración > Catálogos.';
 
   @override
   String get setupTissueIdsTitle => 'ID de tejidos';
 
   @override
-  String get setupTissueIdsMessage => 'Algunas colecciones numeran los tejidos por separado del espécimen. Configúrelo aquí si su colección lo usa. Si no establece un ID de tejido, NAHPU usa automáticamente el ID de campo del espécimen.';
+  String get setupTissueIdsMessage =>
+      'Algunas colecciones numeran los tejidos por separado del espécimen. Configúrelo aquí si su colección lo usa. Si no establece un ID de tejido, NAHPU usa automáticamente el ID de campo del espécimen.';
 
   @override
   String get setupUseSeparateTissueId => 'Usar un ID de tejido independiente';
@@ -1744,7 +1866,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupSitesTitle => 'Vocabularios de sitios';
 
   @override
-  String get setupSitesMessage => 'Los vocabularios controlados para los formularios de sitios y coordenadas. Agregue sus propios términos, elimine los que no usará o deje los valores predeterminados. Puede actualizar estas listas más adelante en Configuración > Sitios.';
+  String get setupSitesMessage =>
+      'Los vocabularios controlados para los formularios de sitios y coordenadas. Agregue sus propios términos, elimine los que no usará o deje los valores predeterminados. Puede actualizar estas listas más adelante en Configuración > Sitios.';
 
   @override
   String get setupSiteTypes => 'Tipos de sitio';
@@ -1759,7 +1882,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupEventsTitle => 'Vocabularios de eventos de recolecta';
 
   @override
-  String get setupEventsMessage => 'Los vocabularios controlados para los eventos de recolecta. Puede actualizar estas listas más adelante en Configuración > Eventos.';
+  String get setupEventsMessage =>
+      'Los vocabularios controlados para los eventos de recolecta. Puede actualizar estas listas más adelante en Configuración > Eventos.';
 
   @override
   String get setupPrimaryActivities => 'Actividades principales';
@@ -1774,7 +1898,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupSpecimensTitle => 'Vocabularios de especímenes';
 
   @override
-  String get setupSpecimensMessage => 'Los vocabularios controlados para los registros de especímenes. Puede actualizar estas listas más adelante en Configuración > Especímenes.';
+  String get setupSpecimensMessage =>
+      'Los vocabularios controlados para los registros de especímenes. Puede actualizar estas listas más adelante en Configuración > Especímenes.';
 
   @override
   String get setupIdentificationMethods => 'Métodos de identificación';
@@ -1792,7 +1917,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupConditions => 'Condiciones';
 
   @override
-  String get setupParasitesMessage => 'NAHPU incluye un formulario de parásitos independiente para asociar registros de parásitos con especímenes. El interruptor de abajo le permite configurar los vocabularios controlados para los registros de parásitos.';
+  String get setupParasitesMessage =>
+      'NAHPU incluye un formulario de parásitos independiente para asociar registros de parásitos con especímenes. El interruptor de abajo le permite configurar los vocabularios controlados para los registros de parásitos.';
 
   @override
   String get setupCollectsParasites => 'Recolectaré parásitos';
@@ -1816,7 +1942,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupFinishTitle => 'Todo está configurado';
 
   @override
-  String get setupFinishMessage => 'NAHPU usará estas convenciones para los registros nuevos.';
+  String get setupFinishMessage =>
+      'NAHPU usará estas convenciones para los registros nuevos.';
 
   @override
   String get setupNotSet => 'Sin definir';
@@ -1849,19 +1976,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get setupShareTitle => 'Comparta esta configuración con su equipo';
 
   @override
-  String get setupShareMessage => 'Su equipo solo necesita hacer esto una vez. Exporte estas configuraciones de usuario y compártalas con los miembros de su equipo o colaboradores para que todos trabajen con los mismos vocabularios y ajustes.';
+  String get setupShareMessage =>
+      'Su equipo solo necesita hacer esto una vez. Exporte estas configuraciones de usuario y compártalas con los miembros de su equipo o colaboradores para que todos trabajen con los mismos vocabularios y ajustes.';
 
   @override
-  String get setupFinishNote => 'Nada aquí es definitivo. Cambie cualquier ajuste en Configuración o vuelva a ejecutar Configurar NAHPU desde el menú.';
+  String get setupFinishNote =>
+      'Nada aquí es definitivo. Cambie cualquier ajuste en Configuración o vuelva a ejecutar Configurar NAHPU desde el menú.';
 
   @override
-  String get setupExportPresetsMessage => 'Estos son los ajustes predeterminados para exportar registros. Los diseños de impresión se usan para etiquetas, marbetes y libretas de campo. Los ajustes tabulares se usan para hojas de cálculo. Puede administrar o crear sus propios ajustes en el menú Configuración.';
+  String get setupExportPresetsMessage =>
+      'Estos son los ajustes predeterminados para exportar registros. Los diseños de impresión se usan para etiquetas, marbetes y libretas de campo. Los ajustes tabulares se usan para hojas de cálculo. Puede administrar o crear sus propios ajustes en el menú Configuración.';
 
   @override
   String get setupPresetDefaults => 'Predeterminados';
 
   @override
-  String get setupPresetDefaultsMessage => 'Ajustes adecuados para cualquier formato de catálogo.';
+  String get setupPresetDefaultsMessage =>
+      'Ajustes adecuados para cualquier formato de catálogo.';
 
   @override
   String setupPresetsForFormat(String catalogFormat) {
@@ -1869,7 +2000,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get setupPresetsForFormatMessage => 'Ajustes opcionales creados para este formato de catálogo.';
+  String get setupPresetsForFormatMessage =>
+      'Ajustes opcionales creados para este formato de catálogo.';
 
   @override
   String get setupAddSelectedPresets => 'Agregar ajustes seleccionados';
@@ -1907,7 +2039,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsTemplateUnusedDelete => 'Esta plantilla no se usa y se eliminará de forma permanente.';
+  String get presetsTemplateUnusedDelete =>
+      'Esta plantilla no se usa y se eliminará de forma permanente.';
 
   @override
   String presetsTemplateInUse(int blockCount, int layoutCount) {
@@ -1927,7 +2060,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String presetsTemplateUsageBlocks(String layoutName, int count, String blocks) {
+  String presetsTemplateUsageBlocks(
+    String layoutName,
+    int count,
+    String blocks,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -1938,19 +2075,23 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsTemplateNoReplacement => 'Cree otra plantilla con el mismo tipo de registro o cambie los bloques de diseño afectados antes de eliminar esta.';
+  String get presetsTemplateNoReplacement =>
+      'Cree otra plantilla con el mismo tipo de registro o cambie los bloques de diseño afectados antes de eliminar esta.';
 
   @override
   String get presetsTemplateReplacement => 'Plantilla de reemplazo';
 
   @override
-  String get presetsTemplateReplacementNote => 'El tamaño de página, los márgenes, la cuadrícula y el relleno no cambiarán. Revise los diseños de impresión afectados después del reemplazo.';
+  String get presetsTemplateReplacementNote =>
+      'El tamaño de página, los márgenes, la cuadrícula y el relleno no cambiarán. Revise los diseños de impresión afectados después del reemplazo.';
 
   @override
-  String get presetsTemplateEmpty => 'Aún no hay plantillas. Las plantillas definen el contenido que se coloca en los bloques de los diseños de impresión.';
+  String get presetsTemplateEmpty =>
+      'Aún no hay plantillas. Las plantillas definen el contenido que se coloca en los bloques de los diseños de impresión.';
 
   @override
-  String get presetsTemplateNoMatch => 'Ninguna plantilla coincide con su búsqueda.';
+  String get presetsTemplateNoMatch =>
+      'Ninguna plantilla coincide con su búsqueda.';
 
   @override
   String get presetsTemplateNoneToExport => 'No hay plantillas para exportar';
@@ -2102,7 +2243,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsFontDeleteBody => 'Los archivos de la fuente se quitan de esta instalación. Las plantillas que la usan en otros lugares no cambian.';
+  String get presetsFontDeleteBody =>
+      'Los archivos de la fuente se quitan de esta instalación. Las plantillas que la usan en otros lugares no cambian.';
 
   @override
   String get presetsFontSearch => 'Buscar fuentes';
@@ -2114,7 +2256,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsFontFind => 'Buscar fuentes en línea';
 
   @override
-  String get presetsFontLicenseNote => 'Descargue una fuente en su navegador y luego instale aquí el archivo .ttf u .otf. Usted es responsable de la licencia de cualquier fuente que instale.';
+  String get presetsFontLicenseNote =>
+      'Descargue una fuente en su navegador y luego instale aquí el archivo .ttf u .otf. Usted es responsable de la licencia de cualquier fuente que instale.';
 
   @override
   String get presetsFontNoMatch => 'Ninguna fuente coincide con su búsqueda';
@@ -2192,7 +2335,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsNoneToExport => 'No hay ajustes predefinidos para exportar';
 
   @override
-  String get presetsExportTabularTitle => 'Exportar ajustes predefinidos tabulares';
+  String get presetsExportTabularTitle =>
+      'Exportar ajustes predefinidos tabulares';
 
   @override
   String presetsTabularCount(int count) {
@@ -2211,7 +2355,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsTabularTitle => 'Ajustes predefinidos de exportación tabular';
+  String get presetsTabularTitle =>
+      'Ajustes predefinidos de exportación tabular';
 
   @override
   String get presetsTabPresets => 'Ajustes predefinidos';
@@ -2223,7 +2368,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsSelectPresets => 'Seleccionar ajustes predefinidos';
 
   @override
-  String get presetsTabularEmpty => 'Aún no hay ajustes predefinidos tabulares. Cree o importe uno, o agregue los ajustes predefinidos de su formato de catálogo en Configurar NAHPU.';
+  String get presetsTabularEmpty =>
+      'Aún no hay ajustes predefinidos tabulares. Cree o importe uno, o agregue los ajustes predefinidos de su formato de catálogo en Configurar NAHPU.';
 
   @override
   String presetsMappingSummary(int count, String recordType) {
@@ -2253,7 +2399,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsSelectToEdit => 'Seleccione un ajuste predefinido para editarlo';
+  String get presetsSelectToEdit =>
+      'Seleccione un ajuste predefinido para editarlo';
 
   @override
   String get presetsNotFound => 'No se encontró el ajuste predefinido';
@@ -2268,19 +2415,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsName => 'Nombre del ajuste predefinido';
 
   @override
-  String get presetsNameExists => 'Ya existe un ajuste predefinido con este nombre';
+  String get presetsNameExists =>
+      'Ya existe un ajuste predefinido con este nombre';
 
   @override
   String get presetsNameEmpty => 'El nombre no puede estar vacío';
 
   @override
-  String get presetsNameInvalidChars => 'Solo se permiten letras, números, guiones bajos y guiones';
+  String get presetsNameInvalidChars =>
+      'Solo se permiten letras, números, guiones bajos y guiones';
 
   @override
   String get presetsPreviewEmptyTitle => 'No hay datos para la vista previa';
 
   @override
-  String get presetsPreviewEmptyBody => 'Ningún registro coincidió con los filtros seleccionados o no hay asignaciones.';
+  String get presetsPreviewEmptyBody =>
+      'Ningún registro coincidió con los filtros seleccionados o no hay asignaciones.';
 
   @override
   String presetsPreviewFailed(String error) {
@@ -2293,7 +2443,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsNameRequired => 'El nombre del ajuste predefinido no puede estar vacío.';
+  String get presetsNameRequired =>
+      'El nombre del ajuste predefinido no puede estar vacío.';
 
   @override
   String presetsNameTaken(String name) {
@@ -2322,7 +2473,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsEditFields => 'Editar campos';
 
   @override
-  String get presetsPreviewExportTable => 'Vista previa de la tabla de exportación';
+  String get presetsPreviewExportTable =>
+      'Vista previa de la tabla de exportación';
 
   @override
   String get presetsSaving => 'Guardando…';
@@ -2340,7 +2492,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsHeaderFormat => 'Formato de encabezado generado';
 
   @override
-  String get presetsHeaderNahpuNamespace => 'Espacio de nombres de NAHPU (nahpu:table.field)';
+  String get presetsHeaderNahpuNamespace =>
+      'Espacio de nombres de NAHPU (nahpu:table.field)';
 
   @override
   String presetsPreviewSites(int count) {
@@ -2417,25 +2570,31 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get presetsDocumentEmpty => 'Aún no hay diseños de impresión. Cree o importe uno, o cargue los diseños predeterminados.';
+  String get presetsDocumentEmpty =>
+      'Aún no hay diseños de impresión. Cree o importe uno, o cargue los diseños predeterminados.';
 
   @override
   String get presetsIncompatible => 'Ajuste predefinido incompatible';
 
   @override
-  String get presetsIncompatibleBody => 'Este ajuste predefinido no es compatible con la versión actual.';
+  String get presetsIncompatibleBody =>
+      'Este ajuste predefinido no es compatible con la versión actual.';
 
   @override
-  String get presetsPreviewNoRecords => 'No hay registros de vista previa para este tipo';
+  String get presetsPreviewNoRecords =>
+      'No hay registros de vista previa para este tipo';
 
   @override
-  String get presetsPreviewSelectSpecimenParts => 'Seleccione partes de espécimen para la vista previa';
+  String get presetsPreviewSelectSpecimenParts =>
+      'Seleccione partes de espécimen para la vista previa';
 
   @override
-  String get presetsPreviewSelectParasites => 'Seleccione parásitos para la vista previa';
+  String get presetsPreviewSelectParasites =>
+      'Seleccione parásitos para la vista previa';
 
   @override
-  String get presetsPreviewSelectSpecimens => 'Seleccione espécimenes para la vista previa';
+  String get presetsPreviewSelectSpecimens =>
+      'Seleccione espécimenes para la vista previa';
 
   @override
   String get presetsTableColumns => 'Columnas de la tabla';
@@ -2456,7 +2615,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsNoPreviewTitle => 'Sin datos para la vista previa';
 
   @override
-  String get exportFieldsNoPreviewBody => 'Ningún registro coincide con los filtros seleccionados o las asignaciones están vacías.';
+  String get exportFieldsNoPreviewBody =>
+      'Ningún registro coincide con los filtros seleccionados o las asignaciones están vacías.';
 
   @override
   String exportFieldsPreviewFailed(String error) {
@@ -2525,7 +2685,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get exportFieldsCardDarwinCoreSeparator => 'Una columna · separador \" | \" de Darwin Core';
+  String get exportFieldsCardDarwinCoreSeparator =>
+      'Una columna · separador \" | \" de Darwin Core';
 
   @override
   String exportFieldsCardSeparator(String separator) {
@@ -2577,13 +2738,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsSourceField => 'Campo de origen';
 
   @override
-  String get exportFieldsSourceFieldHelper => 'Elija el campo de NAHPU que proporciona esta columna.';
+  String get exportFieldsSourceFieldHelper =>
+      'Elija el campo de NAHPU que proporciona esta columna.';
 
   @override
-  String get exportFieldsColumnNameOptional => 'Nombre de la columna (opcional)';
+  String get exportFieldsColumnNameOptional =>
+      'Nombre de la columna (opcional)';
 
   @override
-  String get exportFieldsColumnNameOptionalHelper => 'Déjelo en blanco para usar el nombre del campo de origen.';
+  String get exportFieldsColumnNameOptionalHelper =>
+      'Déjelo en blanco para usar el nombre del campo de origen.';
 
   @override
   String get exportFieldsListOutput => 'Salida de la lista';
@@ -2594,7 +2758,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get exportFieldsDarwinCoreListSeparator => 'Los valores de lista de Darwin Core se separan con \" | \".';
+  String get exportFieldsDarwinCoreListSeparator =>
+      'Los valores de lista de Darwin Core se separan con \" | \".';
 
   @override
   String get exportFieldsSeparator => 'Separador';
@@ -2648,25 +2813,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsReplacementText => 'Texto de reemplazo';
 
   @override
-  String get exportFieldsReplacementTextHelper => 'Se escribe cuando se cumple la condición; de lo contrario, se conserva el valor original.';
+  String get exportFieldsReplacementTextHelper =>
+      'Se escribe cuando se cumple la condición; de lo contrario, se conserva el valor original.';
 
   @override
   String get exportFieldsColumnName => 'Nombre de la columna';
 
   @override
-  String get exportFieldsColumnNameHelper => 'Asigne un nombre a la columna de salida que contiene el valor personalizado.';
+  String get exportFieldsColumnNameHelper =>
+      'Asigne un nombre a la columna de salida que contiene el valor personalizado.';
 
   @override
   String get exportFieldsRelatedRecords => 'Registros relacionados';
 
   @override
-  String get exportFieldsRelatedRecordsHelper => 'Seleccione el grupo de registros repetidos que desea exportar.';
+  String get exportFieldsRelatedRecordsHelper =>
+      'Seleccione el grupo de registros repetidos que desea exportar.';
 
   @override
-  String get exportFieldsSelectedChildFields => 'Campos secundarios seleccionados';
+  String get exportFieldsSelectedChildFields =>
+      'Campos secundarios seleccionados';
 
   @override
-  String get exportFieldsSelectChildFieldHint => 'Seleccione al menos un campo secundario a continuación.';
+  String get exportFieldsSelectChildFieldHint =>
+      'Seleccione al menos un campo secundario a continuación.';
 
   @override
   String get exportFieldsMoveUp => 'Subir';
@@ -2681,22 +2851,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsChooseChildFields => 'Elegir campos secundarios';
 
   @override
-  String get exportFieldsColumnPrefixOptional => 'Prefijo de columna (opcional)';
+  String get exportFieldsColumnPrefixOptional =>
+      'Prefijo de columna (opcional)';
 
   @override
   String get exportFieldsNestedOutput => 'Salida anidada';
 
   @override
-  String get exportFieldsNestedOneColumnHint => 'Combina todos los registros secundarios en una sola celda.';
+  String get exportFieldsNestedOneColumnHint =>
+      'Combina todos los registros secundarios en una sola celda.';
 
   @override
-  String get exportFieldsNestedIndexedHint => 'Crea un grupo de columnas para cada registro.';
+  String get exportFieldsNestedIndexedHint =>
+      'Crea un grupo de columnas para cada registro.';
 
   @override
-  String get exportFieldsNestedRepeatedHint => 'Crea una fila de exportación por cada registro secundario.';
+  String get exportFieldsNestedRepeatedHint =>
+      'Crea una fila de exportación por cada registro secundario.';
 
   @override
-  String get exportFieldsNestedRepeatedTaken => 'Otra asignación ya expande las filas de exportación.';
+  String get exportFieldsNestedRepeatedTaken =>
+      'Otra asignación ya expande las filas de exportación.';
 
   @override
   String get exportFieldsFieldSeparator => 'Separador de campos';
@@ -2714,7 +2889,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsRawFormatOption => 'Opción de formato sin procesar';
 
   @override
-  String get exportFieldsRawFormatOptionHelper => 'Por ejemplo: enum, dms o custom_map:0=No.';
+  String get exportFieldsRawFormatOptionHelper =>
+      'Por ejemplo: enum, dms o custom_map:0=No.';
 
   @override
   String get exportFieldsEmptyValue => 'Valor vacío';
@@ -2726,10 +2902,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsEmptyCustomText => 'Texto personalizado';
 
   @override
-  String get exportFieldsCustomEmptyText => 'Texto personalizado para valores vacíos';
+  String get exportFieldsCustomEmptyText =>
+      'Texto personalizado para valores vacíos';
 
   @override
-  String get exportFieldsRawNamespace => 'Espacio de nombres sin procesar de registros relacionados';
+  String get exportFieldsRawNamespace =>
+      'Espacio de nombres sin procesar de registros relacionados';
 
   @override
   String exportFieldsErrorReplacement(int number, String error) {
@@ -2737,55 +2915,69 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get exportFieldsErrorChooseGroup => 'Elija un grupo de registros relacionados.';
+  String get exportFieldsErrorChooseGroup =>
+      'Elija un grupo de registros relacionados.';
 
   @override
-  String get exportFieldsErrorChooseChild => 'Elija al menos un campo secundario.';
+  String get exportFieldsErrorChooseChild =>
+      'Elija al menos un campo secundario.';
 
   @override
-  String get exportFieldsErrorSeparatorsEmpty => 'Los separadores de campos y de registros no pueden estar vacíos.';
+  String get exportFieldsErrorSeparatorsEmpty =>
+      'Los separadores de campos y de registros no pueden estar vacíos.';
 
   @override
-  String get exportFieldsErrorMultiFieldHeader => 'Defina un encabezado personalizado para una asignación concatenada de varios campos.';
+  String get exportFieldsErrorMultiFieldHeader =>
+      'Defina un encabezado personalizado para una asignación concatenada de varios campos.';
 
   @override
-  String get exportFieldsErrorAddSegment => 'Agregue al menos un campo o segmento de texto.';
+  String get exportFieldsErrorAddSegment =>
+      'Agregue al menos un campo o segmento de texto.';
 
   @override
   String get exportFieldsErrorChooseSource => 'Elija un campo de origen.';
 
   @override
-  String get exportFieldsErrorCompositeHeader => 'Defina un encabezado personalizado para una asignación compuesta.';
+  String get exportFieldsErrorCompositeHeader =>
+      'Defina un encabezado personalizado para una asignación compuesta.';
 
   @override
-  String get exportFieldsErrorIndexedSingleSource => 'Las listas indexadas requieren exactamente un campo de origen.';
+  String get exportFieldsErrorIndexedSingleSource =>
+      'Las listas indexadas requieren exactamente un campo de origen.';
 
   @override
-  String get exportFieldsErrorConditionalSingleSource => 'La salida condicional requiere exactamente un campo de origen.';
+  String get exportFieldsErrorConditionalSingleSource =>
+      'La salida condicional requiere exactamente un campo de origen.';
 
   @override
   String get exportFieldsErrorAddCondition => 'Agregue al menos una condición.';
 
   @override
-  String get exportFieldsErrorReplacementText => 'Ingrese el texto de reemplazo.';
+  String get exportFieldsErrorReplacementText =>
+      'Ingrese el texto de reemplazo.';
 
   @override
-  String get exportFieldsErrorControllingField => 'Elija un campo de control para cada condición de corchetes.';
+  String get exportFieldsErrorControllingField =>
+      'Elija un campo de control para cada condición de corchetes.';
 
   @override
-  String get exportFieldsErrorComparisonValue => 'Ingrese un valor de comparación para cada condición de corchetes.';
+  String get exportFieldsErrorComparisonValue =>
+      'Ingrese un valor de comparación para cada condición de corchetes.';
 
   @override
-  String get exportFieldsErrorSelfDependency => 'Un campo condicional no puede depender de sí mismo.';
+  String get exportFieldsErrorSelfDependency =>
+      'Un campo condicional no puede depender de sí mismo.';
 
   @override
   String get exportFieldsCustomValue => 'Valor personalizado';
 
   @override
-  String get exportFieldsCustomValueHelp => 'Los campos y el texto se escriben de izquierda a derecha. Agregue tantos segmentos como necesite.';
+  String get exportFieldsCustomValueHelp =>
+      'Los campos y el texto se escriben de izquierda a derecha. Agregue tantos segmentos como necesite.';
 
   @override
-  String get exportFieldsCustomValueEmpty => 'Agregue un campo o texto para comenzar.';
+  String get exportFieldsCustomValueEmpty =>
+      'Agregue un campo o texto para comenzar.';
 
   @override
   String get exportFieldsTextOrSeparator => 'Texto o separador';
@@ -2837,7 +3029,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsTextOtherwise => 'Texto en caso contrario (opcional)';
 
   @override
-  String get exportFieldsTextOtherwiseHelper => 'Déjelo vacío para no escribir nada.';
+  String get exportFieldsTextOtherwiseHelper =>
+      'Déjelo vacío para no escribir nada.';
 
   @override
   String get exportFieldsSummaryOr => 'o';
@@ -2851,7 +3044,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String exportFieldsSummaryIfOtherwise(String conditions, String text, String otherwise) {
+  String exportFieldsSummaryIfOtherwise(
+    String conditions,
+    String text,
+    String otherwise,
+  ) {
     return 'Si $conditions → \"$text\"; si no, \"$otherwise\"';
   }
 
@@ -2887,7 +3084,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsFieldConditions => 'Condiciones de campo';
 
   @override
-  String get exportFieldsConditionsHelp => 'Compara los valores almacenados sin procesar. Los valores de control en blanco nunca coinciden.';
+  String get exportFieldsConditionsHelp =>
+      'Compara los valores almacenados sin procesar. Los valores de control en blanco nunca coinciden.';
 
   @override
   String get exportFieldsMatchLogic => 'Lógica de coincidencia';
@@ -2947,10 +3145,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFieldsOutputExample => 'Ejemplo de salida';
 
   @override
-  String get exportFieldsOutputExampleEmpty => 'Complete la asignación para ver la forma de su salida.';
+  String get exportFieldsOutputExampleEmpty =>
+      'Complete la asignación para ver la forma de su salida.';
 
   @override
-  String get exportFieldsOutputExampleRows => 'Cada registro secundario crea otra fila de exportación.';
+  String get exportFieldsOutputExampleRows =>
+      'Cada registro secundario crea otra fila de exportación.';
 
   @override
   String get exportFieldsCustomizeNested => 'Personalizar asignación anidada';
@@ -3014,7 +3214,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get formsMatchOverrideAll => 'Reemplazar todo';
 
   @override
-  String get formsMatchHelp => 'Use esta opción cuando reciba registros de alguien cuyos vocabularios controlados no tiene.';
+  String get formsMatchHelp =>
+      'Use esta opción cuando reciba registros de alguien cuyos vocabularios controlados no tiene.';
 
   @override
   String formsMatchAppendDescription(String plural) {
@@ -3066,7 +3267,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get formsVocabIdentificationMethod => 'método de identificación';
 
   @override
-  String get formsVocabIdentificationMethodPlural => 'métodos de identificación';
+  String get formsVocabIdentificationMethodPlural =>
+      'métodos de identificación';
 
   @override
   String get formsVocabLifeStage => 'etapa de vida';
@@ -3129,7 +3331,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get formsNextNumber => 'Siguiente número';
 
   @override
-  String get formsNumberedIdNoPreview => 'Defina un siguiente número para numerar automáticamente · Se conservan los ceros iniciales';
+  String get formsNumberedIdNoPreview =>
+      'Defina un siguiente número para numerar automáticamente · Se conservan los ceros iniciales';
 
   @override
   String formsNumberedIdPreview(String label, String preview) {
@@ -3218,7 +3421,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get formsPresetName => 'Nombre del ajuste predefinido';
 
   @override
-  String get formsPresetUpdateHelper => 'Seleccione Actualizar para guardar el nombre y la descripción';
+  String get formsPresetUpdateHelper =>
+      'Seleccione Actualizar para guardar el nombre y la descripción';
 
   @override
   String get formsPresetUpdate => 'Actualizar';
@@ -3244,27 +3448,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String sharedPresetCreateTooltip(String kind) {
-    String _temp0 = intl.Intl.selectLogic(
-      kind,
-      {
-        'template': 'Crear nueva plantilla',
-        'customField': 'Crear nuevo campo personalizado',
-        'other': 'Crear nuevo ajuste predefinido',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Crear nueva plantilla',
+      'customField': 'Crear nuevo campo personalizado',
+      'other': 'Crear nuevo ajuste predefinido',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedPresetOptions(String kind) {
-    String _temp0 = intl.Intl.selectLogic(
-      kind,
-      {
-        'template': 'Opciones de plantilla',
-        'customField': 'Opciones de campo personalizado',
-        'other': 'Opciones de ajuste predefinido',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Opciones de plantilla',
+      'customField': 'Opciones de campo personalizado',
+      'other': 'Opciones de ajuste predefinido',
+    });
     return '$_temp0';
   }
 
@@ -3276,27 +3474,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String sharedPresetExportSelected(String kind) {
-    String _temp0 = intl.Intl.selectLogic(
-      kind,
-      {
-        'template': 'Exportar esta plantilla',
-        'customField': 'Exportar este campo personalizado',
-        'other': 'Exportar este ajuste predefinido',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Exportar esta plantilla',
+      'customField': 'Exportar este campo personalizado',
+      'other': 'Exportar este ajuste predefinido',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedPresetExportAll(String kind) {
-    String _temp0 = intl.Intl.selectLogic(
-      kind,
-      {
-        'template': 'Exportar todas las plantillas',
-        'customField': 'Exportar todos los campos personalizados',
-        'other': 'Exportar todos los ajustes predefinidos',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(kind, {
+      'template': 'Exportar todas las plantillas',
+      'customField': 'Exportar todos los campos personalizados',
+      'other': 'Exportar todos los ajustes predefinidos',
+    });
     return '$_temp0';
   }
 
@@ -3339,7 +3531,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedDeleteSelectedTitle => 'Eliminar elementos seleccionados';
 
   @override
-  String get sharedDeleteSelectedBody => '¿Está seguro de que desea eliminar los elementos seleccionados?';
+  String get sharedDeleteSelectedBody =>
+      '¿Está seguro de que desea eliminar los elementos seleccionados?';
 
   @override
   String get sharedTryAgain => 'Intentar de nuevo';
@@ -3390,7 +3583,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get sharedExportCancelledBody => 'No se guardó ningún archivo. No se modificó nada en este dispositivo.';
+  String get sharedExportCancelledBody =>
+      'No se guardó ningún archivo. No se modificó nada en este dispositivo.';
 
   @override
   String sharedExportStoppedAt(String step) {
@@ -3416,10 +3610,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedHideSaveLocation => 'Ocultar ubicación de guardado';
 
   @override
-  String get sharedExportTemporaryNote => 'Comparta este archivo ahora para conservarlo. NAHPU lo elimina cuando vuelve a exportar.';
+  String get sharedExportTemporaryNote =>
+      'Comparta este archivo ahora para conservarlo. NAHPU lo elimina cuando vuelve a exportar.';
 
   @override
-  String get sharedExportAppStorageNote => 'Guardado en el almacenamiento de la aplicación NAHPU. Elija una carpeta la próxima vez para guardar directamente en ella.';
+  String get sharedExportAppStorageNote =>
+      'Guardado en el almacenamiento de la aplicación NAHPU. Elija una carpeta la próxima vez para guardar directamente en ella.';
 
   @override
   String sharedExportFinishedIn(String duration) {
@@ -3446,19 +3642,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedQrExportImage => 'Exportar código QR como imagen';
 
   @override
-  String get sharedQrImageTooLarge => 'Estos datos son demasiado grandes para una imagen de código QR.';
+  String get sharedQrImageTooLarge =>
+      'Estos datos son demasiado grandes para una imagen de código QR.';
 
   @override
-  String get sharedLoadDefaultsDescription => 'Elija los ajustes predefinidos incluidos que desea agregar. Los ajustes predefinidos que ya tiene no se modifican.';
+  String get sharedLoadDefaultsDescription =>
+      'Elija los ajustes predefinidos incluidos que desea agregar. Los ajustes predefinidos que ya tiene no se modifican.';
 
   @override
-  String get sharedLoadDefaultsNone => 'No hay ajustes predefinidos de este tipo.';
+  String get sharedLoadDefaultsNone =>
+      'No hay ajustes predefinidos de este tipo.';
 
   @override
   String get sharedLoadDefaultsGenericTitle => 'Predeterminados';
 
   @override
-  String get sharedLoadDefaultsGenericMessage => 'Ajustes predefinidos adecuados para cualquier formato de catálogo.';
+  String get sharedLoadDefaultsGenericMessage =>
+      'Ajustes predefinidos adecuados para cualquier formato de catálogo.';
 
   @override
   String sharedLoadDefaultsForFormat(String format) {
@@ -3466,10 +3666,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get sharedLoadDefaultsForFormatMessage => 'Ajustes predefinidos opcionales creados para este formato de catálogo.';
+  String get sharedLoadDefaultsForFormatMessage =>
+      'Ajustes predefinidos opcionales creados para este formato de catálogo.';
 
   @override
-  String get sharedLoadDefaultsLayoutsNote => 'Los diseños incluyen las plantillas con las que se imprimen.';
+  String get sharedLoadDefaultsLayoutsNote =>
+      'Los diseños incluyen las plantillas con las que se imprimen.';
 
   @override
   String get sharedLoadSelected => 'Cargar seleccionados';
@@ -3512,7 +3714,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedExportProjectInfo => 'Exportar información del proyecto';
 
   @override
-  String get sharedExportProjectInfoDescription => 'Exporte la información de este proyecto como JSON.';
+  String get sharedExportProjectInfoDescription =>
+      'Exporte la información de este proyecto como JSON.';
 
   @override
   String get sharedSortOrder => 'Orden';
@@ -3561,66 +3764,51 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String sharedImportRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(
-      type,
-      {
-        'site': 'Importar sitio',
-        'event': 'Importar evento',
-        'other': 'Importar espécimen',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Importar sitio',
+      'event': 'Importar evento',
+      'other': 'Importar espécimen',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedCreateNewRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(
-      type,
-      {
-        'site': 'Crear nuevo sitio',
-        'event': 'Crear nuevo evento',
-        'other': 'Crear nuevo espécimen',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Crear nuevo sitio',
+      'event': 'Crear nuevo evento',
+      'other': 'Crear nuevo espécimen',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedUpdateExistingRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(
-      type,
-      {
-        'site': 'Actualizar un sitio existente',
-        'event': 'Actualizar un evento existente',
-        'other': 'Actualizar un espécimen existente',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Actualizar un sitio existente',
+      'event': 'Actualizar un evento existente',
+      'other': 'Actualizar un espécimen existente',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedExportRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(
-      type,
-      {
-        'site': 'Exportar sitio',
-        'event': 'Exportar evento',
-        'other': 'Exportar espécimen',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Exportar sitio',
+      'event': 'Exportar evento',
+      'other': 'Exportar espécimen',
+    });
     return '$_temp0';
   }
 
   @override
   String sharedExportRecordJson(String type) {
-    String _temp0 = intl.Intl.selectLogic(
-      type,
-      {
-        'site': 'Exporte este registro de sitio como JSON.',
-        'event': 'Exporte este registro de evento como JSON.',
-        'other': 'Exporte este registro de espécimen como JSON.',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(type, {
+      'site': 'Exporte este registro de sitio como JSON.',
+      'event': 'Exporte este registro de evento como JSON.',
+      'other': 'Exporte este registro de espécimen como JSON.',
+    });
     return '$_temp0';
   }
 
@@ -3629,8 +3817,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Este registro incluye $count archivos multimedia vinculados, que se incluirán en el archivo comprimido.',
-      one: 'Este registro incluye 1 archivo multimedia vinculado, que se incluirá en el archivo comprimido.',
+      other:
+          'Este registro incluye $count archivos multimedia vinculados, que se incluirán en el archivo comprimido.',
+      one:
+          'Este registro incluye 1 archivo multimedia vinculado, que se incluirá en el archivo comprimido.',
     );
     return '$_temp0';
   }
@@ -3650,7 +3840,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedChooseEventSite => 'Elegir sitio del evento';
 
   @override
-  String get sharedChooseEventSiteDescription => 'Este evento incluye un sitio vinculado. Elija un sitio existente o cree el sitio incluido como un sitio nuevo.';
+  String get sharedChooseEventSiteDescription =>
+      'Este evento incluye un sitio vinculado. Elija un sitio existente o cree el sitio incluido como un sitio nuevo.';
 
   @override
   String get sharedCreateEmbeddedSite => 'Crear sitio incluido';
@@ -3752,7 +3943,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedRecordLabel => 'Registro';
 
   @override
-  String sharedSpecimenImportSummary(int partCount, int associatedCount, int mediaCount) {
+  String sharedSpecimenImportSummary(
+    int partCount,
+    int associatedCount,
+    int mediaCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       partCount,
       locale: localeName,
@@ -3793,10 +3988,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedQrNoData => 'El código QR no contiene datos.';
 
   @override
-  String get sharedRecordQrTooLargeBody => 'Este registro contiene demasiados datos para un código QR. Expórtelo como JSON para transferir el registro completo.';
+  String get sharedRecordQrTooLargeBody =>
+      'Este registro contiene demasiados datos para un código QR. Expórtelo como JSON para transferir el registro completo.';
 
   @override
-  String get sharedRecordQrDescription => 'Escanee este código desde otro dispositivo con NAHPU para importar el registro.';
+  String get sharedRecordQrDescription =>
+      'Escanee este código desde otro dispositivo con NAHPU para importar el registro.';
 
   @override
   String sharedRecordExchangeFailed(String error) {
@@ -3826,7 +4023,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedAppendDate => 'Añadir la fecha actual';
 
   @override
-  String get sharedAppendDateDescription => 'Añade -yyyy-mm-dd al nombre del archivo';
+  String get sharedAppendDateDescription =>
+      'Añade -yyyy-mm-dd al nombre del archivo';
 
   @override
   String get sharedSaveTo => 'Guardar en';
@@ -3838,19 +4036,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sharedClearDirectory => 'Borrar directorio';
 
   @override
-  String get sharedNoFolderChosen => 'No se eligió ninguna carpeta. La exportación se guarda en el almacenamiento de la aplicación NAHPU; examine para elegir otra carpeta.';
+  String get sharedNoFolderChosen =>
+      'No se eligió ninguna carpeta. La exportación se guarda en el almacenamiento de la aplicación NAHPU; examine para elegir otra carpeta.';
 
   @override
   String get sharedShareAfterExport => 'Compartir después de exportar';
 
   @override
-  String get sharedTemporaryExportNote => 'NAHPU conserva el archivo solo hasta la próxima exportación. Compártalo para guardar una copia en Archivos, enviarlo a otra aplicación o ponerlo en una carpeta en la nube.';
+  String get sharedTemporaryExportNote =>
+      'NAHPU conserva el archivo solo hasta la próxima exportación. Compártalo para guardar una copia en Archivos, enviarlo a otra aplicación o ponerlo en una carpeta en la nube.';
 
   @override
-  String get sharedEntireDatabaseContents => 'Contenido completo de la base de datos';
+  String get sharedEntireDatabaseContents =>
+      'Contenido completo de la base de datos';
 
   @override
-  String get sharedBackupSizeBeforeCompression => 'Tamaño de la copia de seguridad antes de comprimir';
+  String get sharedBackupSizeBeforeCompression =>
+      'Tamaño de la copia de seguridad antes de comprimir';
 
   @override
   String sharedWizardStepChip(int number, String label) {
@@ -3937,7 +4139,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get textReplaceErrorEmptyPattern => 'El texto a buscar no puede estar vacío.';
+  String get textReplaceErrorEmptyPattern =>
+      'El texto a buscar no puede estar vacío.';
 
   @override
   String textReplaceErrorInvalidRegex(String detail) {
@@ -3951,7 +4154,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get textReplaceTitle => 'Reemplazar texto';
 
   @override
-  String get textReplaceSubtitle => 'Se aplican en orden después de dar formato al valor.';
+  String get textReplaceSubtitle =>
+      'Se aplican en orden después de dar formato al valor.';
 
   @override
   String get textReplaceDialogTitle => 'Buscar y reemplazar';
@@ -3984,16 +4188,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get textReplaceRemove => 'Quitar reemplazo';
 
   @override
-  String get textReplaceRegexHelp => 'Use \$0 para la coincidencia completa, \$1…\$n para los grupos y \$\$ para \$.';
+  String get textReplaceRegexHelp =>
+      'Use \$0 para la coincidencia completa, \$1…\$n para los grupos y \$\$ para \$.';
 
   @override
-  String get documentFontSampleA => 'El durián es el rey de las frutas y el mangostán es la reina. Al parecer, nunca es buena idea comerlos al mismo tiempo. Definitivamente no debí comer 12 duriones y una docena de mangostanes de una sentada en el campo.';
+  String get documentFontSampleA =>
+      'El durián es el rey de las frutas y el mangostán es la reina. Al parecer, nunca es buena idea comerlos al mismo tiempo. Definitivamente no debí comer 12 duriones y una docena de mangostanes de una sentada en el campo.';
 
   @override
-  String get documentFontSampleB => 'Solo hay un lugar en el norte de Sumatra donde orangutanes, rinocerontes, elefantes y tigres comparten el mismo hábitat natural. ¿Adivina el nombre del parque nacional?';
+  String get documentFontSampleB =>
+      'Solo hay un lugar en el norte de Sumatra donde orangutanes, rinocerontes, elefantes y tigres comparten el mismo hábitat natural. ¿Adivina el nombre del parque nacional?';
 
   @override
-  String get documentFontSampleC => '¿Se siente creativo o inspirado? Envíe al responsable del proyecto sus ideas, un dato interesante sobre biodiversidad, un chiste de campo o un relato breve que valga la pena leer, o publíquelo en github.com/nahpu/nahpu/issues, y podría aparecer aquí mismo. La elección de una fuente no debería depender de un veloz murciélago hindú que comía feliz cardillo y kiwi.';
+  String get documentFontSampleC =>
+      '¿Se siente creativo o inspirado? Envíe al responsable del proyecto sus ideas, un dato interesante sobre biodiversidad, un chiste de campo o un relato breve que valga la pena leer, o publíquelo en github.com/nahpu/nahpu/issues, y podría aparecer aquí mismo. La elección de una fuente no debería depender de un veloz murciélago hindú que comía feliz cardillo y kiwi.';
 
   @override
   String get documentFontBold => 'Negrita';
@@ -4008,7 +4216,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fieldEditorType => 'Tipo';
 
   @override
-  String get fieldEditorCatalogApplicability => 'Formatos de catálogo aplicables';
+  String get fieldEditorCatalogApplicability =>
+      'Formatos de catálogo aplicables';
 
   @override
   String fieldEditorCurrentCatalogOnly(String catalog) {
@@ -4045,10 +4254,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fieldEditorDwcField => 'Campo DWC';
 
   @override
-  String get fieldEditorDwcAllowConflict => 'Entiendo que habrá valores duplicados';
+  String get fieldEditorDwcAllowConflict =>
+      'Entiendo que habrá valores duplicados';
 
   @override
-  String get fieldEditorDwcAllowConflictNote => 'Los valores escalares en conflicto se unirán con “ | ”.';
+  String get fieldEditorDwcAllowConflictNote =>
+      'Los valores escalares en conflicto se unirán con “ | ”.';
 
   @override
   String get fieldEditorEditTitle => 'Editar campo personalizado';
@@ -4068,7 +4279,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentFileBundleFormat => 'Formato del paquete';
 
   @override
-  String get documentFileDwcDpZipNote => 'ZIP se ofrece por compatibilidad. TAR.GZ es la opción de DwC-DP conforme al estándar.';
+  String get documentFileDwcDpZipNote =>
+      'ZIP se ofrece por compatibilidad. TAR.GZ es la opción de DwC-DP conforme al estándar.';
 
   @override
   String get documentFileFormatCsv => 'Separado por comas (.csv)';
@@ -4091,7 +4303,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPreviewUnavailable => 'No hay vista previa disponible.';
 
   @override
-  String get documentPreviewNotGenerated => 'La vista previa no se ha generado.';
+  String get documentPreviewNotGenerated =>
+      'La vista previa no se ha generado.';
 
   @override
   String get documentPreviewNoLayout => 'No se ha cargado ningún diseño.';
@@ -4103,7 +4316,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPreviewGenerate => 'Generar vista previa';
 
   @override
-  String get documentPreviewOptionsChanged => 'Las opciones de vista previa cambiaron';
+  String get documentPreviewOptionsChanged =>
+      'Las opciones de vista previa cambiaron';
 
   @override
   String documentPreviewPageOf(int current, int total) {
@@ -4128,13 +4342,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPartFilterTitle => 'Filtrar partes de especímenes';
 
   @override
-  String get documentPartFilterNote => 'Los filtros solo cambian la lista. Las partes seleccionadas siguen incluidas en la exportación hasta que cambie la selección.';
+  String get documentPartFilterNote =>
+      'Los filtros solo cambian la lista. Las partes seleccionadas siguen incluidas en la exportación hasta que cambie la selección.';
 
   @override
   String get documentPartFilterTypes => 'Tipos de parte';
 
   @override
-  String get documentPartFilterTypesHint => 'Deje todas sin marcar para incluir todos los tipos.';
+  String get documentPartFilterTypesHint =>
+      'Deje todas sin marcar para incluir todos los tipos.';
 
   @override
   String get documentPartFilterNumberRange => 'Intervalo de números';
@@ -4152,16 +4368,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPartFilterTo => 'Hasta';
 
   @override
-  String get documentPartFilterRangeHint => 'Incluye ambos extremos. Deje un extremo en blanco para no tener límite.';
+  String get documentPartFilterRangeHint =>
+      'Incluye ambos extremos. Deje un extremo en blanco para no tener límite.';
 
   @override
   String get documentPartFilterReset => 'Restablecer filtros';
 
   @override
-  String get documentPartFilterInvalidNumber => 'Escriba un número entero no negativo.';
+  String get documentPartFilterInvalidNumber =>
+      'Escriba un número entero no negativo.';
 
   @override
-  String get documentPartFilterFromAfterTo => '“Desde” debe ser menor o igual que “Hasta”.';
+  String get documentPartFilterFromAfterTo =>
+      '“Desde” debe ser menor o igual que “Hasta”.';
 
   @override
   String documentPartsLoadError(String error) {
@@ -4172,7 +4391,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPartsSearch => 'Buscar partes o números de especímenes';
 
   @override
-  String get documentPartFilterActive => 'Filtrar partes de especímenes (activo)';
+  String get documentPartFilterActive =>
+      'Filtrar partes de especímenes (activo)';
 
   @override
   String documentPartsSummary(int shown, int total, int selected) {
@@ -4186,7 +4406,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String documentPartsSummaryHidden(int shown, int total, int selected, int hidden) {
+  String documentPartsSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
@@ -4210,7 +4435,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get documentParasitesSearch => 'Buscar parásitos o números de especímenes';
+  String get documentParasitesSearch =>
+      'Buscar parásitos o números de especímenes';
 
   @override
   String documentParasitesSummary(int shown, int total, int selected) {
@@ -4224,7 +4450,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String documentParasitesSummaryHidden(int shown, int total, int selected, int hidden) {
+  String documentParasitesSummaryHidden(
+    int shown,
+    int total,
+    int selected,
+    int hidden,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
@@ -4266,7 +4497,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentSelectionClearAll => 'Borrar todo';
 
   @override
-  String get documentSpecimenSearch => 'Buscar n.º de campo, colector, especie...';
+  String get documentSpecimenSearch =>
+      'Buscar n.º de campo, colector, especie...';
 
   @override
   String documentSpecimenCollectedRange(String start, String end) {
@@ -4293,28 +4525,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentSpecimenSelectTitle => 'Seleccionar especímenes';
 
   @override
-  String get documentSelectSitePreview => 'Seleccionar sitio para la vista previa';
+  String get documentSelectSitePreview =>
+      'Seleccionar sitio para la vista previa';
 
   @override
-  String get documentSelectSitesPreview => 'Seleccionar sitios para la vista previa';
+  String get documentSelectSitesPreview =>
+      'Seleccionar sitios para la vista previa';
 
   @override
   String get documentSelectSites => 'Seleccionar sitios';
 
   @override
-  String get documentSelectEventPreview => 'Seleccionar evento para la vista previa';
+  String get documentSelectEventPreview =>
+      'Seleccionar evento para la vista previa';
 
   @override
-  String get documentSelectEventsPreview => 'Seleccionar eventos para la vista previa';
+  String get documentSelectEventsPreview =>
+      'Seleccionar eventos para la vista previa';
 
   @override
   String get documentSelectEvents => 'Seleccionar eventos';
 
   @override
-  String get documentSelectNarrativePreview => 'Seleccionar narrativa para la vista previa';
+  String get documentSelectNarrativePreview =>
+      'Seleccionar narrativa para la vista previa';
 
   @override
-  String get documentSelectNarrativesPreview => 'Seleccionar narrativas para la vista previa';
+  String get documentSelectNarrativesPreview =>
+      'Seleccionar narrativas para la vista previa';
 
   @override
   String get documentSelectNarratives => 'Seleccionar narrativas';
@@ -4477,7 +4715,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentPageBreakAfter => 'Salto de página después';
 
   @override
-  String get documentPageBreakAfterHint => 'Insertar un salto de página después de este bloque';
+  String get documentPageBreakAfterHint =>
+      'Insertar un salto de página después de este bloque';
 
   @override
   String get documentCurrentProjectSelection => 'Selección del proyecto actual';
@@ -4489,7 +4728,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentSelectionSpecimens => 'Selección de especímenes';
 
   @override
-  String get documentSelectionSpecimenParts => 'Selección de partes de especímenes';
+  String get documentSelectionSpecimenParts =>
+      'Selección de partes de especímenes';
 
   @override
   String get documentSelectionParasites => 'Selección de parásitos';
@@ -4513,7 +4753,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentSortDescending => 'Descendente';
 
   @override
-  String get documentSortFieldsLoadError => 'No se pudieron cargar los campos de ordenación';
+  String get documentSortFieldsLoadError =>
+      'No se pudieron cargar los campos de ordenación';
 
   @override
   String get documentSortOriginalOrder => 'Orden original';
@@ -4550,7 +4791,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get documentLayoutProfile => 'Perfil de diseño';
 
   @override
-  String get documentLayoutProfileHelper => 'El perfil define la configuración de página y los bloques de plantilla.';
+  String get documentLayoutProfileHelper =>
+      'El perfil define la configuración de página y los bloques de plantilla.';
 
   @override
   String get documentManagePresets => 'Administrar ajustes predefinidos';
@@ -4589,7 +4831,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelCatalogFormatHerpetology => 'Herpetología';
 
   @override
-  String get labelCatalogFormatInvertebrateZoology => 'Zoología de invertebrados';
+  String get labelCatalogFormatInvertebrateZoology =>
+      'Zoología de invertebrados';
 
   @override
   String get labelCatalogFormatIchthyology => 'Ictiología';
@@ -4631,61 +4874,72 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelProjectToolDataTable => 'Tabla de datos';
 
   @override
-  String get labelProjectToolDataTableDescription => 'Explore, ordene y busque los registros del proyecto';
+  String get labelProjectToolDataTableDescription =>
+      'Explore, ordene y busque los registros del proyecto';
 
   @override
   String get labelProjectToolTemplates => 'Plantillas';
 
   @override
-  String get labelProjectToolTemplatesDescription => 'Cree y edite plantillas de documentos';
+  String get labelProjectToolTemplatesDescription =>
+      'Cree y edite plantillas de documentos';
 
   @override
   String get labelProjectToolMergeProject => 'Combinar proyecto';
 
   @override
-  String get labelProjectToolMergeProjectDescription => 'Combine otro proyecto con este';
+  String get labelProjectToolMergeProjectDescription =>
+      'Combine otro proyecto con este';
 
   @override
   String get labelProjectToolExportProject => 'Exportar proyecto';
 
   @override
-  String get labelProjectToolExportProjectDescription => 'Exporte este proyecto para transferirlo';
+  String get labelProjectToolExportProjectDescription =>
+      'Exporte este proyecto para transferirlo';
 
   @override
   String get labelProjectToolBatchImport => 'Importación por lotes';
 
   @override
-  String get labelProjectToolBatchImportDescription => 'Importe o actualice registros desde una hoja de cálculo';
+  String get labelProjectToolBatchImportDescription =>
+      'Importe o actualice registros desde una hoja de cálculo';
 
   @override
   String get labelProjectToolCuration => 'Curaduría';
 
   @override
-  String get labelProjectToolCurationDescription => 'Curaduría de especímenes: escanee tejidos en cajas de almacenamiento';
+  String get labelProjectToolCurationDescription =>
+      'Curaduría de especímenes: escanee tejidos en cajas de almacenamiento';
 
   @override
   String get labelProjectToolBundleRecords => 'Empaquetar registros';
 
   @override
-  String get labelProjectToolBundleRecordsDescription => 'Empaquete los registros con sus archivos multimedia';
+  String get labelProjectToolBundleRecordsDescription =>
+      'Empaquete los registros con sus archivos multimedia';
 
   @override
   String get labelProjectToolExportRecords => 'Exportar registros';
 
   @override
-  String get labelProjectToolExportRecordsDescription => 'Exporte registros como datos tabulares';
+  String get labelProjectToolExportRecordsDescription =>
+      'Exporte registros como datos tabulares';
 
   @override
   String get labelProjectToolExportDocuments => 'Exportar documentos';
 
   @override
-  String get labelProjectToolExportDocumentsDescription => 'Exporte registros como documentos';
+  String get labelProjectToolExportDocumentsDescription =>
+      'Exporte registros como documentos';
 
   @override
-  String get labelProjectToolBackupDatabaseDescription => 'Respalde la base de datos de la aplicación';
+  String get labelProjectToolBackupDatabaseDescription =>
+      'Respalde la base de datos de la aplicación';
 
   @override
-  String get labelProjectToolSettingsDescription => 'Abra la configuración de la aplicación';
+  String get labelProjectToolSettingsDescription =>
+      'Abra la configuración de la aplicación';
 
   @override
   String get labelProjectToolExportConfigs => 'Exportar configuraciones';
@@ -4703,28 +4957,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelBasemapAutomatic => 'Automático';
 
   @override
-  String get labelBasemapAutomaticDescription => 'Positron en modo claro y Oscuro en modo oscuro';
+  String get labelBasemapAutomaticDescription =>
+      'Positron en modo claro y Oscuro en modo oscuro';
 
   @override
   String get labelBasemapNaturalEarthOffline => 'Natural Earth (sin conexión)';
 
   @override
-  String get labelBasemapNaturalEarthOfflineDescription => 'Límites de países incluidos que funcionan sin acceso a internet';
+  String get labelBasemapNaturalEarthOfflineDescription =>
+      'Límites de países incluidos que funcionan sin acceso a internet';
 
   @override
-  String get labelBasemapPositronDescription => 'Mapa claro, minimalista y de bajo contraste';
+  String get labelBasemapPositronDescription =>
+      'Mapa claro, minimalista y de bajo contraste';
 
   @override
-  String get labelBasemapBrightDescription => 'Mapa detallado con colores vivos';
+  String get labelBasemapBrightDescription =>
+      'Mapa detallado con colores vivos';
 
   @override
-  String get labelBasemapLibertyDescription => 'Mapa detallado con colores equilibrados';
+  String get labelBasemapLibertyDescription =>
+      'Mapa detallado con colores equilibrados';
 
   @override
   String get labelBasemapDark => 'Oscuro';
 
   @override
-  String get labelBasemapDarkDescription => 'Mapa oscuro para entornos con poca luz';
+  String get labelBasemapDarkDescription =>
+      'Mapa oscuro para entornos con poca luz';
 
   @override
   String get labelMapLayerKindRasterTiles => 'Teselas ráster';
@@ -4775,7 +5035,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelEnvironmentalLowestNightTemp => 'Temperatura mínima nocturna';
 
   @override
-  String get labelEnvironmentalHighestNightTemp => 'Temperatura máxima nocturna';
+  String get labelEnvironmentalHighestNightTemp =>
+      'Temperatura máxima nocturna';
 
   @override
   String get labelEnvironmentalAverageHumidity => 'Humedad promedio';
@@ -4802,7 +5063,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelEnvironmentalDissolvedOxygen => 'Oxígeno disuelto';
 
   @override
-  String get labelEnvironmentalDissolvedOxygenSaturation => 'Saturación de oxígeno disuelto';
+  String get labelEnvironmentalDissolvedOxygenSaturation =>
+      'Saturación de oxígeno disuelto';
 
   @override
   String get labelEnvironmentalConductivity => 'Conductividad';
@@ -4879,7 +5141,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelTableAssociatedData => 'Datos asociados';
 
   @override
-  String get labelTableSpecimenAssociatedData => 'Datos asociados del espécimen';
+  String get labelTableSpecimenAssociatedData =>
+      'Datos asociados del espécimen';
 
   @override
   String get labelTableSiteAssociatedData => 'Datos asociados del sitio';
@@ -4930,13 +5193,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get labelTableSpecimenIndividual => 'Individuo del espécimen';
 
   @override
-  String get labelTableSpecimenPartIndividual => 'Individuo de la parte del espécimen';
+  String get labelTableSpecimenPartIndividual =>
+      'Individuo de la parte del espécimen';
 
   @override
   String get labelTableParasiteIndividual => 'Individuo parásito';
 
   @override
-  String get labelTableCustomFieldDefinition => 'Definición de campo personalizado';
+  String get labelTableCustomFieldDefinition =>
+      'Definición de campo personalizado';
 
   @override
   String get labelTableCustomFieldValue => 'Valor de campo personalizado';
@@ -5000,51 +5265,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fileExplorerLockDatabase => 'Base de datos de la aplicación';
 
   @override
-  String get fileExplorerLockDatabaseSidecar => 'Archivo de trabajo de la base de datos';
+  String get fileExplorerLockDatabaseSidecar =>
+      'Archivo de trabajo de la base de datos';
 
   @override
   String get fileExplorerLockBackup => 'Copia de seguridad de la base de datos';
 
   @override
-  String get fileExplorerLockUserConfig => 'Fuentes y capas de mapa personalizadas';
+  String get fileExplorerLockUserConfig =>
+      'Fuentes y capas de mapa personalizadas';
 
   @override
   String get fileExplorerLockTemplateMedia => 'Multimedia global de plantillas';
 
   @override
-  String get fileExplorerLockMediaRecord => 'Vinculado a un registro multimedia';
+  String get fileExplorerLockMediaRecord =>
+      'Vinculado a un registro multimedia';
 
   @override
-  String get fileExplorerLockPersonnelPhoto => 'Vinculado a una foto de personal';
+  String get fileExplorerLockPersonnelPhoto =>
+      'Vinculado a una foto de personal';
 
   @override
   String get fileExplorerLockAssociatedData => 'Vinculado a datos asociados';
 
   @override
-  String get fileExplorerLockUnresolvedReference => 'Un registro apunta aquí, pero no se pudo leer';
+  String get fileExplorerLockUnresolvedReference =>
+      'Un registro apunta aquí, pero no se pudo leer';
 
   @override
-  String get fileExplorerLockRecentlyModified => 'Modificado hace un momento; es posible que aún se esté copiando';
+  String get fileExplorerLockRecentlyModified =>
+      'Modificado hace un momento; es posible que aún se esté copiando';
 
   @override
-  String get fileExplorerLockUnmanagedLocation => 'No está en una carpeta que NAHPU administre';
+  String get fileExplorerLockUnmanagedLocation =>
+      'No está en una carpeta que NAHPU administre';
 
   @override
-  String get fileExplorerLockUnknownProject => 'Carpeta de un proyecto que no está en la base de datos';
+  String get fileExplorerLockUnknownProject =>
+      'Carpeta de un proyecto que no está en la base de datos';
 
   @override
   String fileExplorerPruneBlockedUnresolved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'No se pudieron leer $count registros de datos asociados, por lo que algunos archivos no se pueden comprobar. La eliminación de archivos está desactivada hasta que se resuelva.',
-      one: 'No se pudo leer 1 registro de datos asociados, por lo que algunos archivos no se pueden comprobar. La eliminación de archivos está desactivada hasta que se resuelva.',
+      other:
+          'No se pudieron leer $count registros de datos asociados, por lo que algunos archivos no se pueden comprobar. La eliminación de archivos está desactivada hasta que se resuelva.',
+      one:
+          'No se pudo leer 1 registro de datos asociados, por lo que algunos archivos no se pueden comprobar. La eliminación de archivos está desactivada hasta que se resuelva.',
     );
     return '$_temp0';
   }
 
   @override
-  String get fileExplorerPruneBlockedEmptyIndex => 'La base de datos no indica ningún archivo vinculado, lo que suele significar que aún se está abriendo. Vuelva a abrir esta pantalla antes de eliminar algo.';
+  String get fileExplorerPruneBlockedEmptyIndex =>
+      'La base de datos no indica ningún archivo vinculado, lo que suele significar que aún se está abriendo. Vuelva a abrir esta pantalla antes de eliminar algo.';
 
   @override
   String get progressPrepareBackup => 'Preparar copia de seguridad';
@@ -5100,13 +5376,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get serviceMessageNoDefaultPresets => 'No hay ajustes predefinidos de este tipo';
+  String get serviceMessageNoDefaultPresets =>
+      'No hay ajustes predefinidos de este tipo';
 
   @override
-  String get serviceMessageDefaultPresetsLoaded => 'Los ajustes predefinidos ya están cargados';
+  String get serviceMessageDefaultPresetsLoaded =>
+      'Los ajustes predefinidos ya están cargados';
 
   @override
-  String serviceMessagePresetsAndTemplatesImported(int count, int templateCount) {
+  String serviceMessagePresetsAndTemplatesImported(
+    int count,
+    int templateCount,
+  ) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -5127,8 +5408,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count plantillas usan imágenes, que se referencian por nombre en lugar de guardarse en el archivo. En otra instalación será necesario agregar esas imágenes de nuevo.',
-      one: '1 plantilla usa imágenes, que se referencian por nombre en lugar de guardarse en el archivo. En otra instalación será necesario agregar esas imágenes de nuevo.',
+      other:
+          '$count plantillas usan imágenes, que se referencian por nombre en lugar de guardarse en el archivo. En otra instalación será necesario agregar esas imágenes de nuevo.',
+      one:
+          '1 plantilla usa imágenes, que se referencian por nombre en lugar de guardarse en el archivo. En otra instalación será necesario agregar esas imágenes de nuevo.',
     );
     return '$_temp0';
   }
@@ -5226,7 +5509,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Está seguro de que desea eliminar las coordenadas seleccionadas?',
+      other:
+          '¿Está seguro de que desea eliminar las coordenadas seleccionadas?',
       one: '¿Está seguro de que desea eliminar la coordenada seleccionada?',
     );
     return '$_temp0';
@@ -5259,8 +5543,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Está seguro de que desea eliminar los métodos de colecta seleccionados?',
-      one: '¿Está seguro de que desea eliminar el método de colecta seleccionado?',
+      other:
+          '¿Está seguro de que desea eliminar los métodos de colecta seleccionados?',
+      one:
+          '¿Está seguro de que desea eliminar el método de colecta seleccionado?',
     );
     return '$_temp0';
   }
@@ -5325,8 +5611,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '¿Está seguro de que desea eliminar las partes del espécimen seleccionadas?',
-      one: '¿Está seguro de que desea eliminar la parte del espécimen seleccionada?',
+      other:
+          '¿Está seguro de que desea eliminar las partes del espécimen seleccionadas?',
+      one:
+          '¿Está seguro de que desea eliminar la parte del espécimen seleccionada?',
     );
     return '$_temp0';
   }
@@ -5346,7 +5634,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteAssociatedDataTitle => 'Quitar datos asociados';
 
   @override
-  String get deleteAssociatedDataBody => '¿Quitar los datos asociados seleccionados de este registro? Los datos compartidos con otros registros se conservarán.';
+  String get deleteAssociatedDataBody =>
+      '¿Quitar los datos asociados seleccionados de este registro? Los datos compartidos con otros registros se conservarán.';
 
   @override
   String removeProjectPersonnelCount(int count) {
@@ -5363,7 +5652,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get removeProjectPersonnelTitle => 'Quitar personal';
 
   @override
-  String get removeProjectPersonnelBody => '¿Está seguro de que desea quitar del proyecto al personal seleccionado?';
+  String get removeProjectPersonnelBody =>
+      '¿Está seguro de que desea quitar del proyecto al personal seleccionado?';
 
   @override
   String removeEventPersonnelCount(int count) {
@@ -5380,7 +5670,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get removeEventPersonnelTitle => 'Quitar personal del evento';
 
   @override
-  String get removeEventPersonnelBody => '¿Está seguro de que desea quitar de este evento al personal seleccionado?';
+  String get removeEventPersonnelBody =>
+      '¿Está seguro de que desea quitar de este evento al personal seleccionado?';
 
   @override
   String get projectDeleteProject => 'Eliminar proyecto';
@@ -5389,7 +5680,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectDeleteProjectTitle => '¿Eliminar proyecto?';
 
   @override
-  String get projectDeleteProjectPrompt => 'Eliminará este proyecto y sus datos relacionados. Esta acción no se puede deshacer.';
+  String get projectDeleteProjectPrompt =>
+      'Eliminará este proyecto y sus datos relacionados. Esta acción no se puede deshacer.';
 
   @override
   String get projectNoProject => 'Ningún proyecto';
@@ -5420,19 +5712,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectDescriptionLabel => 'Descripción del proyecto';
 
   @override
-  String get projectDescriptionHint => 'Ingrese una breve descripción del proyecto';
+  String get projectDescriptionHint =>
+      'Ingrese una breve descripción del proyecto';
 
   @override
   String get projectPrincipalInvestigator => 'Investigador principal';
 
   @override
-  String get projectPrincipalInvestigatorHint => 'Ingrese el investigador principal';
+  String get projectPrincipalInvestigatorHint =>
+      'Ingrese el investigador principal';
 
   @override
   String get projectAccession => 'Número de acceso';
 
   @override
-  String get projectAccessionHint => 'Ingrese un número de acceso institucional';
+  String get projectAccessionHint =>
+      'Ingrese un número de acceso institucional';
 
   @override
   String get projectPlaceAndTime => 'Lugar y hora';
@@ -5444,7 +5739,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectLocationHint => 'Ingrese la ubicación general del proyecto';
 
   @override
-  String get projectTimeZoneNote => 'NAHPU guarda las fechas y horas de colecta tal como se ingresan en la hora local de campo. La zona horaria del proyecto registra ese contexto para que los datos intercambiados se interpreten de forma coherente en sistemas de gestión de colecciones de terceros y otras herramientas.';
+  String get projectTimeZoneNote =>
+      'NAHPU guarda las fechas y horas de colecta tal como se ingresan en la hora local de campo. La zona horaria del proyecto registra ese contexto para que los datos intercambiados se interpreten de forma coherente en sistemas de gestión de colecciones de terceros y otras herramientas.';
 
   @override
   String get projectDates => 'Fechas del proyecto';
@@ -5508,13 +5804,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectUuid => 'UUID';
 
   @override
-  String get projectQrTooltip => 'Código QR del proyecto. Toque para verlo completo.';
+  String get projectQrTooltip =>
+      'Código QR del proyecto. Toque para verlo completo.';
 
   @override
   String get projectEditTools => 'Editar lista';
 
   @override
-  String get projectEditToolsTooltip => 'Elija las herramientas que se muestran aquí';
+  String get projectEditToolsTooltip =>
+      'Elija las herramientas que se muestran aquí';
 
   @override
   String get projectUtilities => 'Utilidades del proyecto';
@@ -5541,7 +5839,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectPersonnelSelectExisting => 'Seleccionar existente';
 
   @override
-  String get projectPersonnelSelectFromDatabase => 'Seleccionar de la base de datos';
+  String get projectPersonnelSelectFromDatabase =>
+      'Seleccionar de la base de datos';
 
   @override
   String get projectPersonnelAddNew => 'Agregar nuevo';
@@ -5571,7 +5870,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectPersonnelNoneFound => 'No se encontró personal.';
 
   @override
-  String get projectPersonnelSelectToView => 'Seleccione personal para ver los detalles';
+  String get projectPersonnelSelectToView =>
+      'Seleccione personal para ver los detalles';
 
   @override
   String get projectPersonnelSearch => 'Buscar personal';
@@ -5580,7 +5880,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectPersonnelUnnamed => 'Personal sin nombre';
 
   @override
-  String get projectPersonnelAssigned => 'Este personal está asignado a un proyecto';
+  String get projectPersonnelAssigned =>
+      'Este personal está asignado a un proyecto';
 
   @override
   String projectPersonnelDeleted(int deleted) {
@@ -5627,7 +5928,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'No se pudieron quitar $count personas porque las usan registros del proyecto.',
+      other:
+          'No se pudieron quitar $count personas porque las usan registros del proyecto.',
       one: 'No se pudo quitar 1 persona porque la usan registros del proyecto.',
     );
     return '$_temp0';
@@ -5649,7 +5951,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectPersonnelOrcid => 'ORCID iD';
 
   @override
-  String get projectPersonnelOrcidInvalid => 'Ingrese un ORCID iD válido con guiones';
+  String get projectPersonnelOrcidInvalid =>
+      'Ingrese un ORCID iD válido con guiones';
 
   @override
   String get projectPersonnelCurrentFieldNumber => 'Número de campo actual';
@@ -5679,16 +5982,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectPersonnelSpecimenCare => 'Cuidado de especímenes';
 
   @override
-  String get projectPersonnelSpecimenCareRole => 'Función en el cuidado de especímenes';
+  String get projectPersonnelSpecimenCareRole =>
+      'Función en el cuidado de especímenes';
 
   @override
   String get projectPersonnelRegisterFieldNumber => 'Registrar número de campo';
 
   @override
-  String get projectPersonnelRegisterPersonalFieldNumber => 'Registrar número de campo personal';
+  String get projectPersonnelRegisterPersonalFieldNumber =>
+      'Registrar número de campo personal';
 
   @override
-  String get projectPersonnelRegisterFieldNumberNote => 'Las iniciales y el número del catalogador se usarán para generar el ID de campo del espécimen.';
+  String get projectPersonnelRegisterFieldNumberNote =>
+      'Las iniciales y el número del catalogador se usarán para generar el ID de campo del espécimen.';
 
   @override
   String get projectEnabled => 'Activado';
@@ -5744,10 +6050,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonRankLabel => 'Rango taxonómico';
 
   @override
-  String get projectTaxonRankHint => 'Seleccione el rango que representa este registro';
+  String get projectTaxonRankHint =>
+      'Seleccione el rango que representa este registro';
 
   @override
-  String get projectTaxonRankRequired => 'Seleccione un rango e ingrese su nombre.';
+  String get projectTaxonRankRequired =>
+      'Seleccione un rango e ingrese su nombre.';
 
   @override
   String projectTaxonEnterValue(String field) {
@@ -5800,7 +6108,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonCommonNameHint => 'Ingrese un nombre común';
 
   @override
-  String get projectTaxonRedListLabel => 'Categoría de la Lista Roja de la UICN';
+  String get projectTaxonRedListLabel =>
+      'Categoría de la Lista Roja de la UICN';
 
   @override
   String get projectTaxonRedListHint => 'p. ej., En peligro, Vulnerable, etc.';
@@ -5812,10 +6121,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonCitesStatus => 'Estado CITES';
 
   @override
-  String get projectTaxonCitesHint => 'p. ej., Apéndice I, Apéndice II, No CITES, etc.';
+  String get projectTaxonCitesHint =>
+      'p. ej., Apéndice I, Apéndice II, No CITES, etc.';
 
   @override
-  String get projectTaxonCountryStatusLabel => 'Estado de conservación en el país';
+  String get projectTaxonCountryStatusLabel =>
+      'Estado de conservación en el país';
 
   @override
   String get projectTaxonCountryStatusHint => 'p. ej., Protegida, común, etc.';
@@ -5853,13 +6164,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonQrTooltip => 'Código QR del taxón. Toque para verlo completo.';
+  String get projectTaxonQrTooltip =>
+      'Código QR del taxón. Toque para verlo completo.';
 
   @override
   String get projectTaxonQrCode => 'Código QR del taxón';
 
   @override
-  String get projectTaxonQrDescription => 'Escanee este código en NAHPU para importar este taxón.';
+  String get projectTaxonQrDescription =>
+      'Escanee este código en NAHPU para importar este taxón.';
 
   @override
   String get projectTaxonRegistry => 'Registro de taxones';
@@ -5870,7 +6183,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonEmpty => 'No se encontraron taxones.\nAgregue o importe taxones para comenzar a registrar capturas.';
+  String get projectTaxonEmpty =>
+      'No se encontraron taxones.\nAgregue o importe taxones para comenzar a registrar capturas.';
 
   @override
   String get projectTaxonMetricOrders => 'órdenes';
@@ -5937,13 +6251,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonScanMultiple => 'Escanear varios taxones';
 
   @override
-  String get projectCameraDenied => 'Se denegó el acceso a la cámara. Permita el acceso a la cámara en la configuración del dispositivo y vuelva a intentarlo.';
+  String get projectCameraDenied =>
+      'Se denegó el acceso a la cámara. Permita el acceso a la cámara en la configuración del dispositivo y vuelva a intentarlo.';
 
   @override
-  String get projectTaxonCameraUnavailable => 'El escaneo con la cámara no está disponible. Vuelva a intentarlo o importe un archivo.';
+  String get projectTaxonCameraUnavailable =>
+      'El escaneo con la cámara no está disponible. Vuelva a intentarlo o importe un archivo.';
 
   @override
-  String get projectTaxonCameraError => 'No se pudo usar la cámara. Vuelva a intentarlo o importe un archivo.';
+  String get projectTaxonCameraError =>
+      'No se pudo usar la cámara. Vuelva a intentarlo o importe un archivo.';
 
   @override
   String projectTaxonReadyCount(int count) {
@@ -5957,7 +6274,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonScanPrompt => 'Escanee un código QR de taxón de NAHPU.';
+  String get projectTaxonScanPrompt =>
+      'Escanee un código QR de taxón de NAHPU.';
 
   @override
   String get projectRetryCamera => 'Reintentar la cámara';
@@ -5969,7 +6287,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonNoneFound => 'No se encontraron taxones';
 
   @override
-  String get projectTaxonSelectToView => 'Seleccione un taxón para ver los detalles';
+  String get projectTaxonSelectToView =>
+      'Seleccione un taxón para ver los detalles';
 
   @override
   String projectTaxonSearchIn(String category) {
@@ -6041,7 +6360,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonReview => 'Revisar taxones';
 
   @override
-  String get projectTaxonPreviewEmpty => 'Seleccione un archivo o escanee un QR de taxón para ver la importación.';
+  String get projectTaxonPreviewEmpty =>
+      'Seleccione un archivo o escanee un QR de taxón para ver la importación.';
 
   @override
   String projectTaxonReviewSummary(int registered, int duplicates) {
@@ -6060,7 +6380,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonSelectSharedClass => 'Seleccione la clase común a todas las filas';
+  String get projectTaxonSelectSharedClass =>
+      'Seleccione la clase común a todas las filas';
 
   @override
   String get projectTaxonClassForAllRows => 'Clase para todas las filas';
@@ -6105,7 +6426,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectCustomDelimiterRequired => 'Ingrese un delimitador personalizado para continuar.';
+  String get projectCustomDelimiterRequired =>
+      'Ingrese un delimitador personalizado para continuar.';
 
   @override
   String get projectParser => 'Analizador';
@@ -6117,7 +6439,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectCustomDelimiter => 'Delimitador personalizado';
 
   @override
-  String get projectCustomDelimiterHint => 'Ingrese el texto sin formato (ejemplo: | o \\t)';
+  String get projectCustomDelimiterHint =>
+      'Ingrese el texto sin formato (ejemplo: | o \\t)';
 
   @override
   String get projectRetryParse => 'Reintentar el análisis';
@@ -6126,13 +6449,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTaxonSupportedInputs => 'Entradas compatibles:';
 
   @override
-  String get projectTaxonSupportedFormats => 'CSV (.csv), TSV (.tsv), Excel (.xlsx), QR de taxón de NAHPU';
+  String get projectTaxonSupportedFormats =>
+      'CSV (.csv), TSV (.tsv), Excel (.xlsx), QR de taxón de NAHPU';
 
   @override
   String get projectReadingFile => 'Leyendo archivo…';
 
   @override
-  String get projectQrUnavailable => 'El escaneo de QR no está disponible en esta plataforma.';
+  String get projectQrUnavailable =>
+      'El escaneo de QR no está disponible en esta plataforma.';
 
   @override
   String get projectClearImport => 'Borrar importación';
@@ -6147,10 +6472,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardReview => 'Revisión';
 
   @override
-  String get projectWizardCreateOnce => 'Cree una vez para todos los dispositivos';
+  String get projectWizardCreateOnce =>
+      'Cree una vez para todos los dispositivos';
 
   @override
-  String get projectWizardCreateOnceBody => 'Cree un proyecto nuevo solo en el primer dispositivo. Use QR/Importar JSON para transferir la información y la identidad del proyecto.';
+  String get projectWizardCreateOnceBody =>
+      'Cree un proyecto nuevo solo en el primer dispositivo. Use QR/Importar JSON para transferir la información y la identidad del proyecto.';
 
   @override
   String get projectWizardCreateNew => 'Crear proyecto nuevo';
@@ -6159,7 +6486,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectScanQr => 'Escanear QR del proyecto';
 
   @override
-  String get projectWizardMainTaxonBody => 'Elija el taxón principal para adaptar los formularios de especímenes y los valores predeterminados de NAHPU en este dispositivo. Un proyecto puede contener varios grupos taxonómicos, y puede cambiar el taxón principal más tarde en Configuración.';
+  String get projectWizardMainTaxonBody =>
+      'Elija el taxón principal para adaptar los formularios de especímenes y los valores predeterminados de NAHPU en este dispositivo. Un proyecto puede contener varios grupos taxonómicos, y puede cambiar el taxón principal más tarde en Configuración.';
 
   @override
   String get projectWizardFieldIdsTitle => 'Configurar los ID de campo';
@@ -6170,13 +6498,16 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectWizardFieldIdsBody => 'Elija cómo se generan los ID de campo de los especímenes. Puede cambiarlo más tarde en Configuración > Catálogos > Especímenes.';
+  String get projectWizardFieldIdsBody =>
+      'Elija cómo se generan los ID de campo de los especímenes. Puede cambiarlo más tarde en Configuración > Catálogos > Especímenes.';
 
   @override
-  String get projectWizardCatalogerRequired => 'Se requiere un catalogador registrado';
+  String get projectWizardCatalogerRequired =>
+      'Se requiere un catalogador registrado';
 
   @override
-  String get projectWizardCatalogerRequiredBody => 'A continuación, elija un catalogador elegible o cree uno con iniciales y un número de campo personal actual.';
+  String get projectWizardCatalogerRequiredBody =>
+      'A continuación, elija un catalogador elegible o cree uno con iniciales y un número de campo personal actual.';
 
   @override
   String projectWizardPrefixHint(String example) {
@@ -6193,7 +6524,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardCurrentNumberRequired => 'Ingrese un número actual';
 
   @override
-  String get projectWizardAutoIncrementCatalog => 'Incrementar automáticamente el número de catálogo';
+  String get projectWizardAutoIncrementCatalog =>
+      'Incrementar automáticamente el número de catálogo';
 
   @override
   String projectWizardPersonnelLoadError(String error) {
@@ -6207,31 +6539,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardChooseCataloger => 'Elegir un catalogador';
 
   @override
-  String get projectWizardNoCatalogerBody => 'No hay ningún catalogador registrado disponible. Cree uno ahora; la función y el registro del número de campo personal se completan automáticamente.';
+  String get projectWizardNoCatalogerBody =>
+      'No hay ningún catalogador registrado disponible. Cree uno ahora; la función y el registro del número de campo personal se completan automáticamente.';
 
   @override
-  String get projectWizardCreateAnotherCatalogerBody => 'Cree otro catalogador. La función y el registro del número de campo personal se completan automáticamente.';
+  String get projectWizardCreateAnotherCatalogerBody =>
+      'Cree otro catalogador. La función y el registro del número de campo personal se completan automáticamente.';
 
   @override
-  String get projectWizardChooseCatalogerBody => 'Elija el catalogador cuyas iniciales y número de campo actual se usarán en los ID de campo del personal.';
+  String get projectWizardChooseCatalogerBody =>
+      'Elija el catalogador cuyas iniciales y número de campo actual se usarán en los ID de campo del personal.';
 
   @override
   String get projectWizardCatalogerLabel => 'Catalogador*';
 
   @override
-  String get projectWizardCatalogerNameHint => 'Ingrese el nombre del catalogador';
+  String get projectWizardCatalogerNameHint =>
+      'Ingrese el nombre del catalogador';
 
   @override
   String get projectWizardCurrentFieldNumberLabel => 'Número de campo actual*';
 
   @override
-  String get projectWizardCurrentFieldNumberHint => 'Ingrese el siguiente número de campo personal';
+  String get projectWizardCurrentFieldNumberHint =>
+      'Ingrese el siguiente número de campo personal';
 
   @override
-  String get projectWizardCatalogerRoleSet => 'Función en el cuidado de especímenes: Catalogador';
+  String get projectWizardCatalogerRoleSet =>
+      'Función en el cuidado de especímenes: Catalogador';
 
   @override
-  String get projectWizardFieldNumberEnabled => 'Registro del número de campo personal activado';
+  String get projectWizardFieldNumberEnabled =>
+      'Registro del número de campo personal activado';
 
   @override
   String get projectWizardReviewImported => 'Revisar proyecto importado';
@@ -6240,7 +6579,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardReviewProject => 'Revisar proyecto';
 
   @override
-  String get projectWizardImportNote => 'Esta transferencia de información del proyecto conserva el UUID de origen. No incluye registros, personal, taxones ni la configuración del dispositivo.';
+  String get projectWizardImportNote =>
+      'Esta transferencia de información del proyecto conserva el UUID de origen. No incluye registros, personal, taxones ni la configuración del dispositivo.';
 
   @override
   String get projectName => 'Nombre del proyecto';
@@ -6252,7 +6592,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectFieldIdSuffix => 'Sufijo del ID de campo';
 
   @override
-  String get projectWizardExistingCataloger => 'Catalogador existente seleccionado';
+  String get projectWizardExistingCataloger =>
+      'Catalogador existente seleccionado';
 
   @override
   String get projectWizardNotConfigured => 'No configurado';
@@ -6279,7 +6620,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardTaxonomyReadiness => 'Preparación de la taxonomía';
 
   @override
-  String get projectWizardTaxaCountUnavailable => 'El conteo de taxones disponibles no está disponible.';
+  String get projectWizardTaxaCountUnavailable =>
+      'El conteo de taxones disponibles no está disponible.';
 
   @override
   String projectWizardAvailableTaxa(int count) {
@@ -6290,7 +6632,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardNoTaxa => 'No hay taxones disponibles';
 
   @override
-  String get projectWizardNoTaxaBody => 'Agregue o importe taxones en el Registro de taxones antes de crear un nuevo registro de espécimen.';
+  String get projectWizardNoTaxaBody =>
+      'Agregue o importe taxones en el Registro de taxones antes de crear un nuevo registro de espécimen.';
 
   @override
   String get projectWizardSkip => 'Omitir';
@@ -6299,7 +6642,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardCreating => 'Creando…';
 
   @override
-  String get projectWizardCatalogerNameRequired => 'El nombre del catalogador es obligatorio';
+  String get projectWizardCatalogerNameRequired =>
+      'El nombre del catalogador es obligatorio';
 
   @override
   String get projectWizardNameTooShort => 'El nombre es demasiado corto';
@@ -6311,10 +6655,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectWizardInitialsRequired => 'Las iniciales son obligatorias';
 
   @override
-  String get projectWizardInitialsTooShort => 'Las iniciales son demasiado cortas';
+  String get projectWizardInitialsTooShort =>
+      'Las iniciales son demasiado cortas';
 
   @override
-  String get projectWizardFieldNumberRequired => 'El número de campo actual es obligatorio';
+  String get projectWizardFieldNumberRequired =>
+      'El número de campo actual es obligatorio';
 
   @override
   String get projectWizardInvalidFieldNumber => 'Número de campo no válido';
@@ -6338,7 +6684,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectNameExists => 'Ya existe un proyecto con ese nombre';
 
   @override
-  String get projectUuidExists => 'Ya existe un proyecto con este UUID en este dispositivo.';
+  String get projectUuidExists =>
+      'Ya existe un proyecto con este UUID en este dispositivo.';
 
   @override
   String projectCreateFailed(String error) {
@@ -6357,7 +6704,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectImportInfoJson => 'Importar JSON de información del proyecto';
+  String get projectImportInfoJson =>
+      'Importar JSON de información del proyecto';
 
   @override
   String get projectTransferProjectInfo => 'Información del proyecto';
@@ -6396,7 +6744,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectExporting => 'Exportando proyecto';
 
   @override
-  String get projectExportingHint => 'Los proyectos con muchas fotos pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+  String get projectExportingHint =>
+      'Los proyectos con muchas fotos pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
 
   @override
   String get projectExportAnother => 'Exportar otro';
@@ -6405,7 +6754,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectExportCancelTitle => '¿Cancelar la exportación?';
 
   @override
-  String get projectExportCancelBody => 'La exportación sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
+  String get projectExportCancelBody =>
+      'La exportación sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
 
   @override
   String get projectExportKeepExporting => 'Seguir exportando';
@@ -6427,13 +6777,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectExportArchiveTitle => 'Archivo de respaldo y transferencia';
 
   @override
-  String get projectExportArchiveBody => 'Use este archivo como respaldo del proyecto o para transferirlo a otro dispositivo y combinarlo allí.';
+  String get projectExportArchiveBody =>
+      'Use este archivo como respaldo del proyecto o para transferirlo a otro dispositivo y combinarlo allí.';
 
   @override
   String get projectExportLight => 'Exportación ligera';
 
   @override
-  String get projectExportLightBody => 'Exporte el proyecto sin archivos multimedia para cargas con internet limitado. Use TAR.GZ o ZIP para un respaldo completo del proyecto.';
+  String get projectExportLightBody =>
+      'Exporte el proyecto sin archivos multimedia para cargas con internet limitado. Use TAR.GZ o ZIP para un respaldo completo del proyecto.';
 
   @override
   String get projectExportArchiveContents => 'Contenido del archivo';
@@ -6468,22 +6820,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferResult => 'Resultado';
 
   @override
-  String get projectTransferChooseFirst => 'Elija primero una transferencia de proyecto';
+  String get projectTransferChooseFirst =>
+      'Elija primero una transferencia de proyecto';
 
   @override
-  String get projectTransferChooseFirstBody => 'Vuelva a Archivo y seguridad para seleccionar un archivo.';
+  String get projectTransferChooseFirstBody =>
+      'Vuelva a Archivo y seguridad para seleccionar un archivo.';
 
   @override
-  String get projectTransferChooseTitle => 'Elija una transferencia de proyecto de NAHPU';
+  String get projectTransferChooseTitle =>
+      'Elija una transferencia de proyecto de NAHPU';
 
   @override
-  String get projectTransferChooseBody => 'Las transferencias de proyecto pueden ser JSON.GZ, ZIP o TAR.GZ. JSON.GZ solo contiene registros. ZIP y TAR.GZ incluyen multimedia.';
+  String get projectTransferChooseBody =>
+      'Las transferencias de proyecto pueden ser JSON.GZ, ZIP o TAR.GZ. JSON.GZ solo contiene registros. ZIP y TAR.GZ incluyen multimedia.';
 
   @override
   String get projectTransferReadingArchive => 'Leyendo archivo';
 
   @override
-  String get projectTransferReadingArchiveHint => 'Las transferencias con multimedia pueden tardar varios minutos en descomprimirse. Mantenga NAHPU abierto.';
+  String get projectTransferReadingArchiveHint =>
+      'Las transferencias con multimedia pueden tardar varios minutos en descomprimirse. Mantenga NAHPU abierto.';
 
   @override
   String get projectTransferChooseArchive => 'Elegir archivo';
@@ -6498,16 +6855,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferBackupBeforeMerge => 'Respalde antes de combinar';
 
   @override
-  String get projectTransferBackupBody => 'Un respaldo de la base de datos le da un punto de recuperación si los cambios importados no son los esperados.';
+  String get projectTransferBackupBody =>
+      'Un respaldo de la base de datos le da un punto de recuperación si los cambios importados no son los esperados.';
 
   @override
   String get projectTransferBackupNow => 'Respaldar ahora';
 
   @override
-  String get projectTransferBackupAckImport => 'Entiendo que debo tener un respaldo antes de importar.';
+  String get projectTransferBackupAckImport =>
+      'Entiendo que debo tener un respaldo antes de importar.';
 
   @override
-  String get projectTransferBackupAckMerge => 'Entiendo que debo tener un respaldo antes de combinar.';
+  String get projectTransferBackupAckMerge =>
+      'Entiendo que debo tener un respaldo antes de combinar.';
 
   @override
   String get projectTransferNewIdentity => 'Nueva identidad del proyecto';
@@ -6521,7 +6881,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferDestinationName => 'Nombre del proyecto de destino';
 
   @override
-  String get projectTransferDestinationNameHelper => 'Asigna el nombre del nuevo proyecto en este dispositivo. El archivo no cambia.';
+  String get projectTransferDestinationNameHelper =>
+      'Asigna el nombre del nuevo proyecto en este dispositivo. El archivo no cambia.';
 
   @override
   String projectTransferNameConflict(String name) {
@@ -6532,7 +6893,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferAlreadyExists => 'Este proyecto ya existe';
 
   @override
-  String get projectTransferAlreadyExistsBody => 'Los UUID coincidentes identifican el mismo proyecto. La importación está bloqueada. Combine este archivo con el proyecto existente.';
+  String get projectTransferAlreadyExistsBody =>
+      'Los UUID coincidentes identifican el mismo proyecto. La importación está bloqueada. Combine este archivo con el proyecto existente.';
 
   @override
   String get projectTransferOpenMerge => 'Abrir Combinar proyecto';
@@ -6546,10 +6908,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTransferForceMerge => 'Forzar la combinación con el proyecto activo';
+  String get projectTransferForceMerge =>
+      'Forzar la combinación con el proyecto activo';
 
   @override
-  String get projectTransferForceMergeBody => 'Los registros importados del proyecto usarán el UUID del proyecto activo. Los conflictos seguirán requiriendo las opciones que se muestran después.';
+  String get projectTransferForceMergeBody =>
+      'Los registros importados del proyecto usarán el UUID del proyecto activo. Los conflictos seguirán requiriendo las opciones que se muestran después.';
 
   @override
   String projectTransferTypeToConfirm(String name) {
@@ -6563,7 +6927,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectCatalogNumberSuffix => 'Sufijo del número de catálogo';
 
   @override
-  String get projectTransferProjectInfoBody => 'Los valores actuales se mantienen de forma predeterminada. Seleccione valores importados individuales cuando quiera reemplazarlos.';
+  String get projectTransferProjectInfoBody =>
+      'Los valores actuales se mantienen de forma predeterminada. Seleccione valores importados individuales cuando quiera reemplazarlos.';
 
   @override
   String get projectTransferKeepAllCurrent => 'Mantener todos los actuales';
@@ -6572,10 +6937,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferUseAllImported => 'Usar todos los importados';
 
   @override
-  String get projectTransferReviewMatches => 'Revise las coincidencias antes de continuar. «Mantener actual» vincula las dependencias importadas al registro existente sin reemplazarlo.';
+  String get projectTransferReviewMatches =>
+      'Revise las coincidencias antes de continuar. «Mantener actual» vincula las dependencias importadas al registro existente sin reemplazarlo.';
 
   @override
-  String get projectTransferBulkTooltip => 'Aplicar una opción a todos los registros coincidentes';
+  String get projectTransferBulkTooltip =>
+      'Aplicar una opción a todos los registros coincidentes';
 
   @override
   String projectTransferActionForAll(String action) {
@@ -6601,10 +6968,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferNoConflicts => 'Sin conflictos';
 
   @override
-  String get projectTransferNoConflictsBody => 'Todos los registros de esta sección se pueden importar como nuevos.';
+  String get projectTransferNoConflictsBody =>
+      'Todos los registros de esta sección se pueden importar como nuevos.';
 
   @override
-  String get projectTransferReviewBody => 'Todavía no se ha escrito nada. Los cambios en la base de datos se confirmarán juntos; un error los revierte todos.';
+  String get projectTransferReviewBody =>
+      'Todavía no se ha escrito nada. Los cambios en la base de datos se confirmarán juntos; un error los revierte todos.';
 
   @override
   String get projectTransferSourceProject => 'Proyecto de origen';
@@ -6621,7 +6990,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTransferForceMergeUuid => 'Forzar la combinación con el UUID activo';
+  String get projectTransferForceMergeUuid =>
+      'Forzar la combinación con el UUID activo';
 
   @override
   String get projectTransferMatchingUuid => 'UUID del proyecto coincidente';
@@ -6633,7 +7003,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferMediaFiles => 'Archivos multimedia';
 
   @override
-  String get projectTransferResolveConflicts => 'Resuelva los conflictos antes de combinar';
+  String get projectTransferResolveConflicts =>
+      'Resuelva los conflictos antes de combinar';
 
   @override
   String projectTransferDuplicateIdentifiers(String sections) {
@@ -6650,10 +7021,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferMergeUnfinished => 'La combinación no terminó';
 
   @override
-  String get projectTransferImportRetry => 'Vuelva a Revisar e importar e inténtelo de nuevo.';
+  String get projectTransferImportRetry =>
+      'Vuelva a Revisar e importar e inténtelo de nuevo.';
 
   @override
-  String get projectTransferMergeRetry => 'Vuelva a Revisar y combinar e inténtelo de nuevo.';
+  String get projectTransferMergeRetry =>
+      'Vuelva a Revisar y combinar e inténtelo de nuevo.';
 
   @override
   String get projectTransferImported => 'Proyecto importado';
@@ -6692,7 +7065,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTransferChooseAction => 'Elija una acción';
 
   @override
-  String get projectTransferChooseActionToContinue => 'Elija una acción para continuar';
+  String get projectTransferChooseActionToContinue =>
+      'Elija una acción para continuar';
 
   @override
   String get projectTransferNotSet => 'Sin definir';
@@ -6731,7 +7105,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchKeyCatalogNumber => 'Número de catálogo';
 
   @override
-  String get projectBatchKeyCatalogerFieldNumber => 'Catalogador y número de campo';
+  String get projectBatchKeyCatalogerFieldNumber =>
+      'Catalogador y número de campo';
 
   @override
   String get projectBatchKeyTissueId => 'ID del tejido';
@@ -6794,19 +7169,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchStepGroups => 'Grupos';
 
   @override
-  String get projectBatchUnsupportedFile => 'Elija un archivo CSV, TSV o Excel.';
+  String get projectBatchUnsupportedFile =>
+      'Elija un archivo CSV, TSV o Excel.';
 
   @override
   String get projectBatchModeTitle => '¿Qué desea hacer?';
 
   @override
-  String get projectBatchModeBody => 'Traiga registros desde un archivo CSV, TSV o Excel. Las columnas pueden usar términos Darwin Core o sus propios nombres.';
+  String get projectBatchModeBody =>
+      'Traiga registros desde un archivo CSV, TSV o Excel. Las columnas pueden usar términos Darwin Core o sus propios nombres.';
 
   @override
-  String get projectBatchModeCreateBody => 'Agregue un registro por fila. Los taxones, el personal, los sitios y los eventos se vinculan cuando ya están en el proyecto.';
+  String get projectBatchModeCreateBody =>
+      'Agregue un registro por fila. Los taxones, el personal, los sitios y los eventos se vinculan cuando ya están en el proyecto.';
 
   @override
-  String get projectBatchModeUpdateBody => 'Asocie cada fila a un registro mediante una columna clave, como el número de catálogo, y escriba las demás columnas. Las celdas vacías no se modifican.';
+  String get projectBatchModeUpdateBody =>
+      'Asocie cada fila a un registro mediante una columna clave, como el número de catálogo, y escriba las demás columnas. Las celdas vacías no se modifican.';
 
   @override
   String get projectBatchRecords => 'Registros';
@@ -6815,13 +7194,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchLinkedRecords => 'Registros vinculados';
 
   @override
-  String get projectBatchLinkedRecordsBody => 'Cada fila puede describir un sitio, su evento de colecta, un espécimen y una parte. Las filas se agrupan en sitios y eventos, que puede revisar antes de importar.';
+  String get projectBatchLinkedRecordsBody =>
+      'Cada fila puede describir un sitio, su evento de colecta, un espécimen y una parte. Las filas se agrupan en sitios y eventos, que puede revisar antes de importar.';
 
   @override
   String get projectBatchChooseFile => 'Elija un archivo';
 
   @override
-  String get projectBatchChooseFileBody => 'La primera fila debe contener los nombres de las columnas. Cada fila posterior es un registro.';
+  String get projectBatchChooseFileBody =>
+      'La primera fila debe contener los nombres de las columnas. Cada fila posterior es un registro.';
 
   @override
   String get projectBatchSheet => 'Hoja';
@@ -6860,7 +7241,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectBatchKeyColumnBody => 'Las filas actualizan el registro con el mismo valor.';
+  String get projectBatchKeyColumnBody =>
+      'Las filas actualizan el registro con el mismo valor.';
 
   @override
   String get projectBatchMatchRecordsBy => 'Asociar registros por';
@@ -6905,7 +7287,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchNoMatchingRecords => 'No hay registros coincidentes.';
 
   @override
-  String get projectBatchNoOtherGroup => 'No hay otro grupo con el cual combinar.';
+  String get projectBatchNoOtherGroup =>
+      'No hay otro grupo con el cual combinar.';
 
   @override
   String get projectBatchMoveToNewGroup => 'Mover a un grupo nuevo';
@@ -6914,7 +7297,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchCheckGroups => 'Revisar grupos';
 
   @override
-  String get projectBatchCheckGroupsBody => 'Las filas que describen el mismo sitio o evento se agrupan. Vincule un grupo a un registro del proyecto, combine grupos que sean el mismo lugar o visita, o separe filas.';
+  String get projectBatchCheckGroupsBody =>
+      'Las filas que describen el mismo sitio o evento se agrupan. Vincule un grupo a un registro del proyecto, combine grupos que sean el mismo lugar o visita, o separe filas.';
 
   @override
   String projectBatchSitesCount(int count) {
@@ -6935,10 +7319,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchNoSiteColumns => 'Ninguna columna describe un sitio.';
 
   @override
-  String get projectBatchNoEventColumns => 'Ninguna columna describe un evento.';
+  String get projectBatchNoEventColumns =>
+      'Ninguna columna describe un evento.';
 
   @override
-  String get projectBatchNoSpecimenColumns => 'Ninguna columna describe un espécimen.';
+  String get projectBatchNoSpecimenColumns =>
+      'Ninguna columna describe un espécimen.';
 
   @override
   String get projectBatchNewSite => 'Sitio nuevo';
@@ -7065,7 +7451,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectBatchSplitRows => 'Separar filas…';
 
   @override
-  String get projectBatchLinkedReviewBody => 'Primero se escriben los sitios, luego sus eventos y después los especímenes y sus partes.';
+  String get projectBatchLinkedReviewBody =>
+      'Primero se escriben los sitios, luego sus eventos y después los especímenes y sus partes.';
 
   @override
   String projectBatchSitesSummary(int created, int linked) {
@@ -7098,10 +7485,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectBatchImportSpecimensMissingLinks => 'Importar especímenes con vínculos faltantes';
+  String get projectBatchImportSpecimensMissingLinks =>
+      'Importar especímenes con vínculos faltantes';
 
   @override
-  String get projectBatchImportSpecimensMissingLinksBody => 'El taxón o la persona queda vacío. Agréguelo primero al proyecto para vincularlo.';
+  String get projectBatchImportSpecimensMissingLinksBody =>
+      'El taxón o la persona queda vacío. Agréguelo primero al proyecto para vincularlo.';
 
   @override
   String projectBatchWritingRecords(int done, int total) {
@@ -7166,7 +7555,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectBatchOpenSpecimenTable => 'Abrir la tabla de registros de especímenes';
+  String get projectBatchOpenSpecimenTable =>
+      'Abrir la tabla de registros de especímenes';
 
   @override
   String projectBatchUpdatedRecords(int count, String records) {
@@ -7214,10 +7604,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectBatchImportRowsMissingLinks => 'Importar filas con vínculos faltantes';
+  String get projectBatchImportRowsMissingLinks =>
+      'Importar filas con vínculos faltantes';
 
   @override
-  String get projectBatchImportRowsMissingLinksBody => 'El taxón, la persona, el sitio o el evento queda vacío. Agréguelo primero al proyecto para vincularlo.';
+  String get projectBatchImportRowsMissingLinksBody =>
+      'El taxón, la persona, el sitio o el evento queda vacío. Agréguelo primero al proyecto para vincularlo.';
 
   @override
   String get projectStatsPartQuantity => 'Cantidad de partes';
@@ -7264,7 +7656,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String projectStatsTitleWithBreakdown(String measure, String category, String breakdown) {
+  String projectStatsTitleWithBreakdown(
+    String measure,
+    String category,
+    String breakdown,
+  ) {
     return '$measure por $category y $breakdown';
   }
 
@@ -7282,16 +7678,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsCoordinatesBySpecies => 'Coordenadas por especie';
 
   @override
-  String get projectStatsSpatialSpecimensTitle => 'Conteo de especímenes por coordenadas del sitio';
+  String get projectStatsSpatialSpecimensTitle =>
+      'Conteo de especímenes por coordenadas del sitio';
 
   @override
-  String get projectStatsSpatialSpeciesTitle => 'Conteo de especies por coordenadas del sitio';
+  String get projectStatsSpatialSpeciesTitle =>
+      'Conteo de especies por coordenadas del sitio';
 
   @override
-  String get projectStatsSpatialFamiliesTitle => 'Conteo de familias por coordenadas del sitio';
+  String get projectStatsSpatialFamiliesTitle =>
+      'Conteo de familias por coordenadas del sitio';
 
   @override
-  String get projectStatsSpatialSelectedSpeciesTitle => 'Conteo de la especie seleccionada por coordenadas';
+  String get projectStatsSpatialSelectedSpeciesTitle =>
+      'Conteo de la especie seleccionada por coordenadas';
 
   @override
   String get projectStatsCountSpecimens => 'especímenes';
@@ -7453,7 +7853,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsPartQuantityByType => 'Cantidad de partes por tipo';
 
   @override
-  String get projectStatsPartQuantityByTreatment => 'Cantidad de partes por tratamiento';
+  String get projectStatsPartQuantityByTreatment =>
+      'Cantidad de partes por tratamiento';
 
   @override
   String get projectStatsCounts => 'Conteos';
@@ -7468,7 +7869,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsNetworkTitle => 'Registros vinculados por especímenes';
 
   @override
-  String get projectStatsNetworkHint => 'Toca un registro para ver qué se vincula con él.';
+  String get projectStatsNetworkHint =>
+      'Toca un registro para ver qué se vincula con él.';
 
   @override
   String get projectStatsNetworkRadial => 'Radial';
@@ -7511,7 +7913,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectStatsNetworkEmpty => 'Aún no hay especímenes para vincular.';
+  String get projectStatsNetworkEmpty =>
+      'Aún no hay especímenes para vincular.';
 
   @override
   String projectStatsNetworkMore(int count) {
@@ -7629,16 +8032,20 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectStatsNoSpecimenCoords => 'No hay especímenes asignados a las coordenadas del proyecto.';
+  String get projectStatsNoSpecimenCoords =>
+      'No hay especímenes asignados a las coordenadas del proyecto.';
 
   @override
-  String get projectStatsNoSpeciesCoords => 'No hay especies asociadas a las coordenadas del proyecto.';
+  String get projectStatsNoSpeciesCoords =>
+      'No hay especies asociadas a las coordenadas del proyecto.';
 
   @override
-  String get projectStatsNoFamilyCoords => 'No hay familias asociadas a las coordenadas del proyecto.';
+  String get projectStatsNoFamilyCoords =>
+      'No hay familias asociadas a las coordenadas del proyecto.';
 
   @override
-  String get projectStatsNoSelectedSpeciesCoords => 'No hay especímenes de la especie seleccionada asignados a las coordenadas del proyecto.';
+  String get projectStatsNoSelectedSpeciesCoords =>
+      'No hay especímenes de la especie seleccionada asignados a las coordenadas del proyecto.';
 
   @override
   String projectStatsNoSpeciesCoordsFor(String species) {
@@ -7689,7 +8096,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsTopCategory => 'Categoría principal';
 
   @override
-  String get projectStatsTopCategoryShare => 'Proporción de la categoría principal';
+  String get projectStatsTopCategoryShare =>
+      'Proporción de la categoría principal';
 
   @override
   String projectStatsTotalCount(String value) {
@@ -7700,7 +8108,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsElevation => 'Elevación';
 
   @override
-  String get projectStatsSelectSpeciesPrompt => 'Seleccione una especie para ver la abundancia por coordenada.';
+  String get projectStatsSelectSpeciesPrompt =>
+      'Seleccione una especie para ver la abundancia por coordenada.';
 
   @override
   String get projectStatsCollapseLegend => 'Contraer la leyenda del mapa';
@@ -7712,18 +8121,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsLegend => 'Leyenda';
 
   @override
-  String get projectStatsLegendCircle => 'Cada círculo representa\nuna coordenada';
+  String get projectStatsLegendCircle =>
+      'Cada círculo representa\nuna coordenada';
 
   @override
-  String get projectStatsLegendGrouped => 'Sitios agrupados,\nacerque para separar';
+  String get projectStatsLegendGrouped =>
+      'Sitios agrupados,\nacerque para separar';
 
   @override
   String projectStatsUnmappedRecords(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count registros aparecen en la tabla, pero no se pueden mapear porque falta la latitud o la longitud o no es válida.',
-      one: '1 registro aparece en la tabla, pero no se puede mapear porque falta la latitud o la longitud o no es válida.',
+      other:
+          '$count registros aparecen en la tabla, pero no se pueden mapear porque falta la latitud o la longitud o no es válida.',
+      one:
+          '1 registro aparece en la tabla, pero no se puede mapear porque falta la latitud o la longitud o no es válida.',
     );
     return '$_temp0';
   }
@@ -7738,10 +8151,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsViewFullScreen => 'Ver el mapa en pantalla completa';
 
   @override
-  String get projectStatsNaturalEarthError => 'No se pudo cargar el mapa sin conexión Natural Earth.';
+  String get projectStatsNaturalEarthError =>
+      'No se pudo cargar el mapa sin conexión Natural Earth.';
 
   @override
-  String get projectStatsNoValidCoordinates => 'No hay coordenadas válidas para mapear.';
+  String get projectStatsNoValidCoordinates =>
+      'No hay coordenadas válidas para mapear.';
 
   @override
   String projectStatsMapPrepareError(String error) {
@@ -7814,10 +8229,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsViewRecords => 'Ver registros';
 
   @override
-  String get projectStatsExportStatisticsTable => 'Exportar tabla de estadísticas';
+  String get projectStatsExportStatisticsTable =>
+      'Exportar tabla de estadísticas';
 
   @override
-  String get projectStatsExportSpatialTable => 'Exportar tabla de estadísticas espaciales';
+  String get projectStatsExportSpatialTable =>
+      'Exportar tabla de estadísticas espaciales';
 
   @override
   String projectStatsExportError(String error) {
@@ -7883,10 +8300,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueScanTubes => 'Escanear tubos';
 
   @override
-  String get projectTissueCameraUnavailable => 'El escaneo con la cámara no está disponible. Use el campo de escaneo.';
+  String get projectTissueCameraUnavailable =>
+      'El escaneo con la cámara no está disponible. Use el campo de escaneo.';
 
   @override
-  String get projectTissueCameraError => 'No se pudo usar la cámara. Vuelva a intentarlo o use el campo de escaneo.';
+  String get projectTissueCameraError =>
+      'No se pudo usar la cámara. Vuelva a intentarlo o use el campo de escaneo.';
 
   @override
   String get projectTissueSessionLog => 'Registro de la sesión';
@@ -7897,7 +8316,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTissueSessionLogEmpty => 'Los tubos revisados aparecen aquí.';
+  String get projectTissueSessionLogEmpty =>
+      'Los tubos revisados aparecen aquí.';
 
   @override
   String projectTissueSeveralMatches(String code) {
@@ -7957,7 +8377,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueOverwrite => 'Sobrescribir valores existentes';
 
   @override
-  String get projectTissueOverwriteBody => 'Reemplaza una ubicación guardada o un valor de campo distinto';
+  String get projectTissueOverwriteBody =>
+      'Reemplaza una ubicación guardada o un valor de campo distinto';
 
   @override
   String get projectTissueTabBox => 'Caja';
@@ -7971,19 +8392,23 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTissueFindTubesBody => 'Qué tubos coinciden con el escaneo y la lista de trabajo.';
+  String get projectTissueFindTubesBody =>
+      'Qué tubos coinciden con el escaneo y la lista de trabajo.';
 
   @override
-  String get projectTissueUpdateFieldBody => 'Se escribe en cada tubo que coloque.';
+  String get projectTissueUpdateFieldBody =>
+      'Se escribe en cada tubo que coloque.';
 
   @override
-  String get projectTissueBoxSectionBody => 'Tamaño, orden de llenado y la caja que se llena.';
+  String get projectTissueBoxSectionBody =>
+      'Tamaño, orden de llenado y la caja que se llena.';
 
   @override
   String get projectTissueAdvanced => 'Etiquetas y sobrescritura';
 
   @override
-  String get projectTissueAdvancedBody => 'Formato de etiquetas de celda y cómo se tratan los valores guardados.';
+  String get projectTissueAdvancedBody =>
+      'Formato de etiquetas de celda y cómo se tratan los valores guardados.';
 
   @override
   String get projectTissueExportLog => 'Exportar registro';
@@ -8051,7 +8476,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueLogColumns => 'Columnas';
 
   @override
-  String get projectTissueLogColumnsBody => 'Las columnas de curación siempre van primero. Agregue después campos de partes, especímenes y registros vinculados.';
+  String get projectTissueLogColumnsBody =>
+      'Las columnas de curación siempre van primero. Agregue después campos de partes, especímenes y registros vinculados.';
 
   @override
   String get projectTissueLogAddColumns => 'Agregar columnas';
@@ -8060,7 +8486,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueLogAddedColumns => 'Columnas agregadas';
 
   @override
-  String get projectTissueLogNoAddedColumns => 'Sin columnas agregadas. La exportación solo tiene las columnas de curación.';
+  String get projectTissueLogNoAddedColumns =>
+      'Sin columnas agregadas. La exportación solo tiene las columnas de curación.';
 
   @override
   String get projectTissueLogHeaderStyle => 'Encabezados de columnas agregadas';
@@ -8097,8 +8524,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'El próximo tubo que escanee o coloque irá a $cell. $labels pierden su ubicación y vuelven a la lista de trabajo. Deshacer los devuelve.',
-      one: 'El próximo tubo que escanee o coloque irá a $cell. $labels pierde su ubicación y vuelve a la lista de trabajo. Deshacer lo devuelve.',
+      other:
+          'El próximo tubo que escanee o coloque irá a $cell. $labels pierden su ubicación y vuelven a la lista de trabajo. Deshacer los devuelve.',
+      one:
+          'El próximo tubo que escanee o coloque irá a $cell. $labels pierde su ubicación y vuelve a la lista de trabajo. Deshacer lo devuelve.',
     );
     return '$_temp0';
   }
@@ -8135,7 +8564,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueReady => 'Listo. Escanee el primer tubo.';
 
   @override
-  String get projectTissueWorkListEmpty => 'Ninguna parte sin ubicar coincide con los filtros de tipo de tejido y preservación.';
+  String get projectTissueWorkListEmpty =>
+      'Ninguna parte sin ubicar coincide con los filtros de tipo de tejido y preservación.';
 
   @override
   String projectTissueRemaining(int count) {
@@ -8161,10 +8591,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueParasiteCategory => 'Categoría de parásito';
 
   @override
-  String get projectTissueIdParasiteIdOrBarcode => 'ID del tejido, ID del parásito o código de barras';
+  String get projectTissueIdParasiteIdOrBarcode =>
+      'ID del tejido, ID del parásito o código de barras';
 
   @override
-  String get projectTissueFieldIdOrParasiteId => 'ID de campo o ID del parásito';
+  String get projectTissueFieldIdOrParasiteId =>
+      'ID de campo o ID del parásito';
 
   @override
   String get projectTissueSearchByFieldId => 'Buscar por ID de campo';
@@ -8180,7 +8612,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get projectTissueLogSkippedEmpty => 'Los tubos omitidos aparecen aquí hasta que se ubican.';
+  String get projectTissueLogSkippedEmpty =>
+      'Los tubos omitidos aparecen aquí hasta que se ubican.';
 
   @override
   String get projectTissuePreviousBox => 'Caja anterior';
@@ -8206,7 +8639,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectTissueCountLabel => 'Cantidad';
 
   @override
-  String get projectTissueTapCellHint => 'Toque una celda vacía para saltar a ella, o una llena para ver su tubo';
+  String get projectTissueTapCellHint =>
+      'Toque una celda vacía para saltar a ella, o una llena para ver su tubo';
 
   @override
   String get parasiteRecords => 'Registros de parásitos';
@@ -8276,7 +8710,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get parasiteDeterminer => 'Determinador';
 
   @override
-  String get parasiteDeterminerHint => 'Seleccione quién identificó el parásito';
+  String get parasiteDeterminerHint =>
+      'Seleccione quién identificó el parásito';
 
   @override
   String get parasiteDateDetermined => 'Fecha de determinación';
@@ -8343,13 +8778,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get parasiteStorageLocation => 'Ubicación de almacenamiento';
 
   @override
-  String get parasiteStorageLocationHint => 'Ingrese el congelador, gabinete, estante o contenedor';
+  String get parasiteStorageLocationHint =>
+      'Ingrese el congelador, gabinete, estante o contenedor';
 
   @override
   String get parasiteMuseumPermanent => 'Colección permanente del museo';
 
   @override
-  String get parasiteMuseumHint => 'Ingrese el nombre o la abreviatura del museo';
+  String get parasiteMuseumHint =>
+      'Ingrese el nombre o la abreviatura del museo';
 
   @override
   String get parasiteMuseumLoan => 'Préstamo del museo';
@@ -8364,13 +8801,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get parasiteLifeStage => 'Etapa de vida';
 
   @override
-  String get parasiteLifeStageHint => 'Seleccione la etapa de vida del parásito';
+  String get parasiteLifeStageHint =>
+      'Seleccione la etapa de vida del parásito';
 
   @override
   String get parasiteAssociationStatus => 'Estado de la asociación';
 
   @override
-  String get parasiteAssociationStatusHint => 'Seleccione el estado de la asociación';
+  String get parasiteAssociationStatusHint =>
+      'Seleccione el estado de la asociación';
 
   @override
   String parasiteFieldLoadError(String field, String error) {
@@ -8378,7 +8817,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get parasiteSetOptionsInSettings => 'Configure las opciones en la configuración de especímenes';
+  String get parasiteSetOptionsInSettings =>
+      'Configure las opciones en la configuración de especímenes';
 
   @override
   String parasiteSelectField(String field) {
@@ -8397,7 +8837,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get parasiteId => 'ID del parásito';
 
   @override
-  String get parasiteIdHint => 'Ingrese un ID de parásito definido por el usuario';
+  String get parasiteIdHint =>
+      'Ingrese un ID de parásito definido por el usuario';
 
   @override
   String get parasiteIdOptions => 'Opciones del ID del parásito';
@@ -8424,10 +8865,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get parasiteNumber => 'Número';
 
   @override
-  String get parasiteNumberHint => 'Ingrese el siguiente número de ID del parásito';
+  String get parasiteNumberHint =>
+      'Ingrese el siguiente número de ID del parásito';
 
   @override
-  String get specimenShowOutlierWarnings => 'Mostrar advertencias de valores atípicos';
+  String get specimenShowOutlierWarnings =>
+      'Mostrar advertencias de valores atípicos';
 
   @override
   String get mammalTotalLength => 'Longitud total (mm)';
@@ -8475,7 +8918,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenRemarks => 'Observaciones';
 
   @override
-  String get specimenMeasurementRemarksHint => 'Escriba notas sobre las medidas (opcional)';
+  String get specimenMeasurementRemarksHint =>
+      'Escriba notas sobre las medidas (opcional)';
 
   @override
   String get specimenUnusualMeasurement => 'Medida inusual';
@@ -8484,7 +8928,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mammalChangeSexTitle => '¿Cambiar el sexo?';
 
   @override
-  String get mammalChangeSexBody => 'Cambiar el sexo borrará los datos reproductivos que no correspondan a la nueva selección.';
+  String get mammalChangeSexBody =>
+      'Cambiar el sexo borrará los datos reproductivos que no correspondan a la nueva selección.';
 
   @override
   String get specimenAccuracy => 'Precisión';
@@ -8493,7 +8938,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenAccuracyHint => 'Seleccione la precisión de la medida';
 
   @override
-  String get specimenNoInaccurateSelected => 'No se seleccionaron medidas imprecisas';
+  String get specimenNoInaccurateSelected =>
+      'No se seleccionaron medidas imprecisas';
 
   @override
   String specimenInaccurateList(String labels) {
@@ -8512,16 +8958,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenInaccurateMeasurements => 'Medidas imprecisas';
 
   @override
-  String get specimenSelectEveryInaccurate => 'Seleccione cada medida que sea imprecisa.';
+  String get specimenSelectEveryInaccurate =>
+      'Seleccione cada medida que sea imprecisa.';
 
   @override
-  String get specimenSelectAtLeastOneInaccurate => 'Seleccione al menos una medida imprecisa.';
+  String get specimenSelectAtLeastOneInaccurate =>
+      'Seleccione al menos una medida imprecisa.';
 
   @override
   String get specimenAccuracyRemark => 'Observación de precisión';
 
   @override
-  String get specimenAccuracyRemarkHint => 'Describa por qué las medidas son imprecisas';
+  String get specimenAccuracyRemarkHint =>
+      'Describa por qué las medidas son imprecisas';
 
   @override
   String get mammalTestes => 'Testículos';
@@ -8536,7 +8985,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenLengthMm => 'Longitud (mm)';
 
   @override
-  String get mammalTestisLengthHint => 'Ingrese la longitud del testículo derecho';
+  String get mammalTestisLengthHint =>
+      'Ingrese la longitud del testículo derecho';
 
   @override
   String get specimenWidthMm => 'Ancho (mm)';
@@ -8560,7 +9010,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mammalPubicSymphysis => 'Sínfisis púbica';
 
   @override
-  String get mammalPubicSymphysisHint => 'Seleccione la condición de la sínfisis púbica';
+  String get mammalPubicSymphysisHint =>
+      'Seleccione la condición de la sínfisis púbica';
 
   @override
   String get mammalFemaleReproductive => 'Atributos reproductivos de la hembra';
@@ -8578,7 +9029,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mammalMammaeCondition => 'Condición de las mamas';
 
   @override
-  String get mammalMammaeConditionHint => 'Seleccione la condición de las mamas';
+  String get mammalMammaeConditionHint =>
+      'Seleccione la condición de las mamas';
 
   @override
   String get mammalEmbryo => 'Embrión';
@@ -8587,7 +9039,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mammalCrownRumpLength => 'Longitud CR (mm)';
 
   @override
-  String get mammalCrownRumpLengthHint => 'Ingrese la longitud corona-rabadilla';
+  String get mammalCrownRumpLengthHint =>
+      'Ingrese la longitud corona-rabadilla';
 
   @override
   String get mammalPlacentalScars => 'Cicatrices placentarias';
@@ -8641,25 +9094,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mammalFrequencyMax => 'Frecuencia máxima (kHz)';
 
   @override
-  String get mammalFrequencyMaxHint => 'Ingrese la frecuencia máxima de ecolocalización';
+  String get mammalFrequencyMaxHint =>
+      'Ingrese la frecuencia máxima de ecolocalización';
 
   @override
   String get mammalFrequencyMin => 'Frecuencia mínima (kHz)';
 
   @override
-  String get mammalFrequencyMinHint => 'Ingrese la frecuencia mínima de ecolocalización';
+  String get mammalFrequencyMinHint =>
+      'Ingrese la frecuencia mínima de ecolocalización';
 
   @override
   String get mammalFrequencyMaxEnergy => 'Frecuencia de máxima energía (kHz)';
 
   @override
-  String get mammalFrequencyMaxEnergyHint => 'Ingrese la frecuencia de ecolocalización de máxima energía';
+  String get mammalFrequencyMaxEnergyHint =>
+      'Ingrese la frecuencia de ecolocalización de máxima energía';
 
   @override
   String get mammalEcholocationDuration => 'Duración (segundos)';
 
   @override
-  String get mammalEcholocationDurationHint => 'Ingrese la duración de la ecolocalización';
+  String get mammalEcholocationDurationHint =>
+      'Ingrese la duración de la ecolocalización';
 
   @override
   String get birdWingspan => 'Envergadura (mm)';
@@ -8755,7 +9212,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenEnterWidth => 'Ingrese el ancho';
 
   @override
-  String get birdTestisRemarksHint => 'Ingrese observaciones, p. ej., tamaño del testículo derecho';
+  String get birdTestisRemarksHint =>
+      'Ingrese observaciones, p. ej., tamaño del testículo derecho';
 
   @override
   String get birdFemaleGonads => 'Gónadas femeninas';
@@ -8770,7 +9228,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get birdOviduct => 'Oviducto';
 
   @override
-  String get birdGonadRemarksHint => 'Agregue información adicional sobre las gónadas';
+  String get birdGonadRemarksHint =>
+      'Agregue información adicional sobre las gónadas';
 
   @override
   String get birdSkullOssification => 'Osificación del cráneo (%)';
@@ -8806,7 +9265,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get birdTailMolt => 'Muda de cola';
 
   @override
-  String get birdMoltRemarksHint => 'Agregue información adicional sobre la muda';
+  String get birdMoltRemarksHint =>
+      'Agregue información adicional sobre la muda';
 
   @override
   String get birdWingMoltHint => 'Ingrese la muda de alas';
@@ -8824,13 +9284,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get birdHabitat => 'Hábitat';
 
   @override
-  String get birdHabitatHint => 'Agregue información adicional sobre el hábitat';
+  String get birdHabitatHint =>
+      'Agregue información adicional sobre el hábitat';
 
   @override
   String get specimenSpecimen => 'Espécimen';
 
   @override
-  String get specimenRemarksHint => 'Agregue información adicional sobre el espécimen';
+  String get specimenRemarksHint =>
+      'Agregue información adicional sobre el espécimen';
 
   @override
   String get fishStandardLength => 'Longitud estándar (mm)';
@@ -8845,13 +9307,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fishTotalIndividuals => 'Total de individuos';
 
   @override
-  String get fishTotalIndividualsHint => 'Ingrese el número de individuos del lote';
+  String get fishTotalIndividualsHint =>
+      'Ingrese el número de individuos del lote';
 
   @override
   String get fishAutoUpdateRanges => 'Actualizar mín. y máx. automáticamente';
 
   @override
-  String get fishAutoUpdateRangesBody => 'Completar los rangos con los individuos medidos abajo';
+  String get fishAutoUpdateRangesBody =>
+      'Completar los rangos con los individuos medidos abajo';
 
   @override
   String get fishMinStandardLength => 'Longitud estándar mín. (mm)';
@@ -9026,7 +9490,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get partAdditionalTreatmentHint => 'Ingrese el tratamiento adicional';
 
   @override
-  String get partPreparatorHint => 'Si es diferente del preparador del ejemplar de referencia';
+  String get partPreparatorHint =>
+      'Si es diferente del preparador del ejemplar de referencia';
 
   @override
   String get partDateTaken => 'Fecha de toma';
@@ -9044,19 +9509,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get partStorageTypeHint => 'Ingrese el tipo de almacenamiento';
 
   @override
-  String get partStorageLocationHint => 'Puede ser el ID de celda o frasco, según la convención de su museo';
+  String get partStorageLocationHint =>
+      'Puede ser el ID de celda o frasco, según la convención de su museo';
 
   @override
   String get partMuseumHint => 'Ingrese un nombre o abreviatura de museo';
 
   @override
-  String get partRemarksHint => 'Ingrese una observación específica para esta parte';
+  String get partRemarksHint =>
+      'Ingrese una observación específica para esta parte';
 
   @override
   String get partBarcodeId => 'ID de QR/código de barras';
 
   @override
-  String get partBarcodeIdHint => 'Ingrese el ID del código de barras (si corresponde)';
+  String get partBarcodeIdHint =>
+      'Ingrese el ID del código de barras (si corresponde)';
 
   @override
   String get partBarcodeIdOptions => 'Opciones del ID de QR/código de barras';
@@ -9068,7 +9536,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get partInvalidBarcode => 'QR/código de barras no válido';
 
   @override
-  String get partBarcodeIdExists => 'El ID de QR/código de barras ya existe. Borre el campo para generar un UUID nuevo';
+  String get partBarcodeIdExists =>
+      'El ID de QR/código de barras ya existe. Borre el campo para generar un UUID nuevo';
 
   @override
   String get partTissueIdHint => 'Ingrese el ID del tejido';
@@ -9095,7 +9564,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenIdConfidenceHint => 'Elija un nivel de confianza';
 
   @override
-  String get specimenDeterminerHint => 'Elija un determinador (por defecto, el catalogador)';
+  String get specimenDeterminerHint =>
+      'Elija un determinador (por defecto, el catalogador)';
 
   @override
   String get specimenIdMethod => 'Método de identificación';
@@ -9119,7 +9589,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenPrepTime => 'Hora de prep.';
 
   @override
-  String get specimenPreparatorHint => 'Elija un preparador (por defecto, el catalogador)';
+  String get specimenPreparatorHint =>
+      'Elija un preparador (por defecto, el catalogador)';
 
   @override
   String specimenUuid(String uuid) {
@@ -9144,10 +9615,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenFieldIdUnavailable => 'ID de campo: no disponible';
 
   @override
-  String get specimenFieldIdSelectCataloger => 'ID de campo: seleccione un catalogador';
+  String get specimenFieldIdSelectCataloger =>
+      'ID de campo: seleccione un catalogador';
 
   @override
-  String get specimenFieldIdCatalogerNotSetUp => 'ID de campo: el catalogador no está configurado para números de campo';
+  String get specimenFieldIdCatalogerNotSetUp =>
+      'ID de campo: el catalogador no está configurado para números de campo';
 
   @override
   String get specimenEditFieldId => 'Editar ID de campo';
@@ -9159,7 +9632,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenFieldIdProject => 'Proyecto';
 
   @override
-  String get specimenFieldIdPersonnelUnavailable => 'Seleccione un catalogador con el registro de números de campo personales activado antes de asignar un ID de campo personal.';
+  String get specimenFieldIdPersonnelUnavailable =>
+      'Seleccione un catalogador con el registro de números de campo personales activado antes de asignar un ID de campo personal.';
 
   @override
   String get specimenPersonnelFieldNumber => 'Número de campo personal';
@@ -9168,7 +9642,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenProjectCatalogNumber => 'Número de catálogo del proyecto';
 
   @override
-  String get specimenFieldIdTypeChangeAck => 'Entiendo que cambiar el tipo de identificador elimina el ID de campo anterior del espécimen y que puede aparecer ya en exportaciones o en etiquetas de especímenes.';
+  String get specimenFieldIdTypeChangeAck =>
+      'Entiendo que cambiar el tipo de identificador elimina el ID de campo anterior del espécimen y que puede aparecer ya en exportaciones o en etiquetas de especímenes.';
 
   @override
   String get specimenSaving => 'Guardando…';
@@ -9241,7 +9716,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get fishDeleteIndividualBody => 'Esto elimina el individuo y lo desvincula de todas las partes del espécimen y parásitos.';
+  String get fishDeleteIndividualBody =>
+      'Esto elimina el individuo y lo desvincula de todas las partes del espécimen y parásitos.';
 
   @override
   String get fishStandardLengthMm => 'LE (mm)';
@@ -9286,7 +9762,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fishTagIdHint => 'Ingrese el ID del individuo o de la etiqueta';
 
   @override
-  String get fishAutoNumbered => 'Numerado automáticamente. Edítelo para cambiarlo.';
+  String get fishAutoNumbered =>
+      'Numerado automáticamente. Edítelo para cambiarlo.';
 
   @override
   String get fishTagIdOptions => 'Opciones del ID de etiqueta';
@@ -9304,16 +9781,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenChangeSiteTitle => '¿Cambiar el sitio?';
 
   @override
-  String get specimenChangeSiteBody => 'Excepto la fecha y la hora de captura, todos los campos de la sección del registro de colecta se vaciarán de nuevo.';
+  String get specimenChangeSiteBody =>
+      'Excepto la fecha y la hora de captura, todos los campos de la sección del registro de colecta se vaciarán de nuevo.';
 
   @override
   String get specimenChooseEvent => 'Elija un ID de evento de colecta';
 
   @override
-  String get specimenChangeEventTitle => '¿Cambiar el ID del evento de colecta?';
+  String get specimenChangeEventTitle =>
+      '¿Cambiar el ID del evento de colecta?';
 
   @override
-  String get specimenChangeEventBody => 'Excepto la fecha y la hora de captura, todos los campos de la sección del registro de colecta se vaciarán de nuevo. La coordenada se conserva si pertenece al mismo sitio.';
+  String get specimenChangeEventBody =>
+      'Excepto la fecha y la hora de captura, todos los campos de la sección del registro de colecta se vaciarán de nuevo. La coordenada se conserva si pertenece al mismo sitio.';
 
   @override
   String get specimenChooseMethod => 'Elija un tipo de método';
@@ -9325,7 +9805,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenMethodId => 'ID del método';
 
   @override
-  String get specimenMethodIdHint => 'Ingrese el ID, p. ej., número de trampa/red, etc.';
+  String get specimenMethodIdHint =>
+      'Ingrese el ID, p. ej., número de trampa/red, etc.';
 
   @override
   String get specimenCaptureDate => 'Fecha de captura';
@@ -9340,10 +9821,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenCoordinateExtent => 'Extensión de la coordenada (m)';
 
   @override
-  String get specimenCoordinateExtentHint => 'Agregue la extensión de la coordenada';
+  String get specimenCoordinateExtentHint =>
+      'Agregue la extensión de la coordenada';
 
   @override
-  String get specimenExtentInvalid => 'La extensión debe ser un número mayor que cero';
+  String get specimenExtentInvalid =>
+      'La extensión debe ser un número mayor que cero';
 
   @override
   String get specimenCaptureTime => 'Hora de captura';
@@ -9377,7 +9860,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenDetectionRemarks => 'Observaciones de detección';
 
   @override
-  String get specimenDetectionRemarksHint => 'Ingrese observaciones sobre el examen o la detección de parásitos';
+  String get specimenDetectionRemarksHint =>
+      'Ingrese observaciones sobre el examen o la detección de parásitos';
 
   @override
   String get specimenCreate => 'Crear espécimen';
@@ -9403,7 +9887,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenDeleteTitle => '¿Eliminar espécimen?';
 
   @override
-  String get specimenDeleteBody => 'Eliminará este registro de espécimen, todas las medidas y las partes del espécimen.\nDeberá actualizar manualmente el número de campo.';
+  String get specimenDeleteBody =>
+      'Eliminará este registro de espécimen, todas las medidas y las partes del espécimen.\nDeberá actualizar manualmente el número de campo.';
 
   @override
   String specimenDeleteError(String error) {
@@ -9414,7 +9899,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenDeleteAllTitle => '¿Eliminar todos los especímenes?';
 
   @override
-  String get specimenDeleteAllBody => 'Se eliminarán todos los registros de especímenes, las medidas y las partes de especímenes';
+  String get specimenDeleteAllBody =>
+      'Se eliminarán todos los registros de especímenes, las medidas y las partes de especímenes';
 
   @override
   String specimenDeleteAllError(String error) {
@@ -9428,7 +9914,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get specimenNoSpeciesSelected => 'No se seleccionó ninguna especie';
 
   @override
-  String get specimenTaxonTooltip => 'Escriba el nombre del taxón y selecciónelo de la lista';
+  String get specimenTaxonTooltip =>
+      'Escriba el nombre del taxón y selecciónelo de la lista';
 
   @override
   String get specimenTaxon => 'Taxón';
@@ -9500,7 +9987,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateQrSize => 'Tamaño del QR (mm)';
 
   @override
-  String get templateContentFormattingOptions => 'Opciones de formato del contenido';
+  String get templateContentFormattingOptions =>
+      'Opciones de formato del contenido';
 
   @override
   String get templateShape => 'Forma';
@@ -9553,7 +10041,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateForeground => 'Primer plano';
 
   @override
-  String get templateQrForegroundColor => 'Seleccione el color de primer plano del QR';
+  String get templateQrForegroundColor =>
+      'Seleccione el color de primer plano del QR';
 
   @override
   String get templateBackground => 'Fondo';
@@ -9586,13 +10075,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateTextColor => 'Seleccione el color del texto';
 
   @override
-  String get templateTextBackgroundColor => 'Seleccione el color de fondo del texto';
+  String get templateTextBackgroundColor =>
+      'Seleccione el color de fondo del texto';
 
   @override
   String get templateStroke => 'Trazo';
 
   @override
-  String get templateTextStrokeColor => 'Seleccione el color del trazo del texto';
+  String get templateTextStrokeColor =>
+      'Seleccione el color del trazo del texto';
 
   @override
   String get templateStyle => 'Estilo';
@@ -9624,7 +10115,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateCustomText => 'Texto personalizado';
 
   @override
-  String get templateCustomTextHint => 'Ingrese el texto alternativo personalizado';
+  String get templateCustomTextHint =>
+      'Ingrese el texto alternativo personalizado';
 
   @override
   String get templateConditionalType => 'Tipo condicional';
@@ -9633,10 +10125,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateTargetField => 'Campo objetivo';
 
   @override
-  String get templateConditionalTextHelper => 'Los campos como [mammalAttribute::testisWidth] se completan.';
+  String get templateConditionalTextHelper =>
+      'Los campos como [mammalAttribute::testisWidth] se completan.';
 
   @override
-  String get templateReplacementHelper => 'Se escribe cuando hay coincidencia; de lo contrario, se conserva el valor original. Déjelo vacío para ocultar el valor.';
+  String get templateReplacementHelper =>
+      'Se escribe cuando hay coincidencia; de lo contrario, se conserva el valor original. Déjelo vacío para ocultar el valor.';
 
   @override
   String get templateTypeNormalText => 'Texto normal';
@@ -9684,7 +10178,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateFormatDecimal => 'Decimal (45.123, -122.543)';
 
   @override
-  String get templateFormatCardinalDecimal => 'Decimal cardinal (45.123° N, 122.543° O)';
+  String get templateFormatCardinalDecimal =>
+      'Decimal cardinal (45.123° N, 122.543° O)';
 
   @override
   String get templateFormatPipe => 'Separado por barras verticales (A | B | C)';
@@ -9723,7 +10218,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateFormatDdMonthAbbr => 'DD Mes (abrev.) (28 jun 2026)';
 
   @override
-  String get templateFormatYmdSeconds => 'AAAA-MM-DD segundos (2026-06-28 14:05:09)';
+  String get templateFormatYmdSeconds =>
+      'AAAA-MM-DD segundos (2026-06-28 14:05:09)';
 
   @override
   String get templateFormatIsoMinutes => 'ISO minutos (2026-06-28T14:05)';
@@ -9732,16 +10228,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateFormatIsoSeconds => 'ISO segundos (2026-06-28T14:05:09)';
 
   @override
-  String get templateFormatDdMonthYyyyTime => 'DD Mes AAAA 24 h (28 junio 2026 14:05)';
+  String get templateFormatDdMonthYyyyTime =>
+      'DD Mes AAAA 24 h (28 junio 2026 14:05)';
 
   @override
-  String get templateFormatMonthDdYyyyTime => 'Mes DD, AAAA 12 h (junio 28, 2026 2:05 PM)';
+  String get templateFormatMonthDdYyyyTime =>
+      'Mes DD, AAAA 12 h (junio 28, 2026 2:05 PM)';
 
   @override
-  String get templateFormatDdMonYyyyTime => 'DD Mes AAAA 24 h (28 jun 2026 14:05)';
+  String get templateFormatDdMonYyyyTime =>
+      'DD Mes AAAA 24 h (28 jun 2026 14:05)';
 
   @override
-  String get templateFormatMonDdYyyyTime => 'Mes DD, AAAA 12 h (jun 28, 2026 2:05 PM)';
+  String get templateFormatMonDdYyyyTime =>
+      'Mes DD, AAAA 12 h (jun 28, 2026 2:05 PM)';
 
   @override
   String get templateFormatTime24 => 'Hora 24 h (14:05)';
@@ -9753,7 +10253,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateFormatTime12 => 'Hora 12 h (2:05 PM)';
 
   @override
-  String get templateFormatTime12Padded => 'Hora 12 h con cero inicial (02:05 PM)';
+  String get templateFormatTime12Padded =>
+      'Hora 12 h con cero inicial (02:05 PM)';
 
   @override
   String get templateFormatOriginal => 'Original';
@@ -9843,7 +10344,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateLockCanvas => 'Bloquear el movimiento del lienzo';
 
   @override
-  String get templateSelectPreviewRecord => 'Seleccionar espécimen para la vista previa del texto';
+  String get templateSelectPreviewRecord =>
+      'Seleccionar espécimen para la vista previa del texto';
 
   @override
   String get templateSettings => 'Configuración de la plantilla';
@@ -9881,7 +10383,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get templateNoElements => 'Aún no hay elementos en este lado. Agregue uno con las herramientas de Agregar.';
+  String get templateNoElements =>
+      'Aún no hay elementos en este lado. Agregue uno con las herramientas de Agregar.';
 
   @override
   String get templateHidden => 'Oculto';
@@ -10022,8 +10525,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       templates,
       locale: localeName,
-      other: 'Esta instalación no tiene 1 fuente usada por las plantillas importadas. Elija un reemplazo.',
-      one: 'Esta instalación no tiene 1 fuente usada por la plantilla importada. Elija un reemplazo.',
+      other:
+          'Esta instalación no tiene 1 fuente usada por las plantillas importadas. Elija un reemplazo.',
+      one:
+          'Esta instalación no tiene 1 fuente usada por la plantilla importada. Elija un reemplazo.',
     );
     return '$_temp0';
   }
@@ -10033,14 +10538,17 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       templates,
       locale: localeName,
-      other: 'Esta instalación no tiene $fonts fuentes usadas por las plantillas importadas. Elija un reemplazo para cada una.',
-      one: 'Esta instalación no tiene $fonts fuentes usadas por la plantilla importada. Elija un reemplazo para cada una.',
+      other:
+          'Esta instalación no tiene $fonts fuentes usadas por las plantillas importadas. Elija un reemplazo para cada una.',
+      one:
+          'Esta instalación no tiene $fonts fuentes usadas por la plantilla importada. Elija un reemplazo para cada una.',
     );
     return '$_temp0';
   }
 
   @override
-  String get templateInstallOriginalFonts => 'Instale las fuentes originales en Documentos > Fuentes si necesita una coincidencia exacta.';
+  String get templateInstallOriginalFonts =>
+      'Instale las fuentes originales en Documentos > Fuentes si necesita una coincidencia exacta.';
 
   @override
   String templateFontPreview(String font) {
@@ -10068,13 +10576,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateUploadFromDevice => 'Subir desde el dispositivo';
 
   @override
-  String get templateUploadFromDeviceBody => 'Copia el archivo en su carpeta de imágenes de plantillas';
+  String get templateUploadFromDeviceBody =>
+      'Copia el archivo en su carpeta de imágenes de plantillas';
 
   @override
   String get templateSavedImages => 'Imágenes guardadas';
 
   @override
-  String get templateNoSavedImages => 'Aún no hay imágenes guardadas; suba una primero.';
+  String get templateNoSavedImages =>
+      'Aún no hay imágenes guardadas; suba una primero.';
 
   @override
   String get templateName => 'Nombre de la plantilla';
@@ -10108,7 +10618,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templateTwoSided => '2 caras';
 
   @override
-  String get templateTwoSidedBody => 'Cree diseños separados para el anverso y el reverso.';
+  String get templateTwoSidedBody =>
+      'Cree diseños separados para el anverso y el reverso.';
 
   @override
   String get templateCreateNew => 'Crear plantilla nueva';
@@ -10177,25 +10688,30 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get templateImportFailed => 'La importación falló o el archivo no es válido';
+  String get templateImportFailed =>
+      'La importación falló o el archivo no es válido';
 
   @override
   String get templateUnsavedChanges => 'Cambios sin guardar';
 
   @override
-  String get templateUnsavedChangesBody => '¿Desea guardar los cambios de la plantilla antes de salir?';
+  String get templateUnsavedChangesBody =>
+      '¿Desea guardar los cambios de la plantilla antes de salir?';
 
   @override
   String get templateDiscard => 'Descartar';
 
   @override
-  String get templatePreviewPartSelection => 'Selección de parte del espécimen para la vista previa';
+  String get templatePreviewPartSelection =>
+      'Selección de parte del espécimen para la vista previa';
 
   @override
-  String get templatePreviewParasiteSelection => 'Selección de parásito para la vista previa';
+  String get templatePreviewParasiteSelection =>
+      'Selección de parásito para la vista previa';
 
   @override
-  String get templatePreviewSpecimenSelection => 'Selección de espécimen para la vista previa';
+  String get templatePreviewSpecimenSelection =>
+      'Selección de espécimen para la vista previa';
 
   @override
   String get templateSizePreset => 'Tamaño predefinido de la plantilla';
@@ -10246,64 +10762,83 @@ class AppLocalizationsEs extends AppLocalizations {
   String get templatePresetSelfLaminating => 'Envoltura autolaminante';
 
   @override
-  String get templatePresetPinnedLocality => 'Invertebrado montado en alfiler (localidad)';
+  String get templatePresetPinnedLocality =>
+      'Invertebrado montado en alfiler (localidad)';
 
   @override
-  String get templatePresetPinnedTaxon => 'Invertebrado montado en alfiler (ID del taxón)';
+  String get templatePresetPinnedTaxon =>
+      'Invertebrado montado en alfiler (ID del taxón)';
 
   @override
-  String get templatePresetJarInsert => 'Colección en fluido (inserto de frasco)';
+  String get templatePresetJarInsert =>
+      'Colección en fluido (inserto de frasco)';
 
   @override
-  String get templatePresetVertebrateTag => 'Etiqueta de espécimen vertebrado (mediana)';
+  String get templatePresetVertebrateTag =>
+      'Etiqueta de espécimen vertebrado (mediana)';
 
   @override
   String get templatePresetSkullBox => 'Caja de cráneo / microvial';
 
   @override
-  String get templatePresetA4Description => 'Estándar internacional predeterminado para catálogos, informes y hojas de etiquetas.';
+  String get templatePresetA4Description =>
+      'Estándar internacional predeterminado para catálogos, informes y hojas de etiquetas.';
 
   @override
-  String get templatePresetLetterDescription => 'Estándar norteamericano predeterminado para documentación e impresión matricial.';
+  String get templatePresetLetterDescription =>
+      'Estándar norteamericano predeterminado para documentación e impresión matricial.';
 
   @override
-  String get templatePresetLegalDescription => 'Lienzo extendido para bitácoras de campo largas, hojas de historial o tablas grandes.';
+  String get templatePresetLegalDescription =>
+      'Lienzo extendido para bitácoras de campo largas, hojas de historial o tablas grandes.';
 
   @override
-  String get templatePresetA5Description => 'Tamaño compacto ideal para libretas de campo de bolsillo e insertos pequeños.';
+  String get templatePresetA5Description =>
+      'Tamaño compacto ideal para libretas de campo de bolsillo e insertos pequeños.';
 
   @override
-  String get templatePresetA3Description => 'Hoja grande para mapas, diseños de cajones de colección y cuadrículas del sistema.';
+  String get templatePresetA3Description =>
+      'Hoja grande para mapas, diseños de cajones de colección y cuadrículas del sistema.';
 
   @override
-  String get templatePresetVialSideLargeDescription => 'Etiqueta lateral estándar. Caben 3-4 líneas de texto y un código de barras.';
+  String get templatePresetVialSideLargeDescription =>
+      'Etiqueta lateral estándar. Caben 3-4 líneas de texto y un código de barras.';
 
   @override
-  String get templatePresetVialSideSmallDescription => 'Perfil lateral compacto para alícuotas pequeñas de tejido o ADN.';
+  String get templatePresetVialSideSmallDescription =>
+      'Perfil lateral compacto para alícuotas pequeñas de tejido o ADN.';
 
   @override
-  String get templatePresetCapDotSmallDescription => 'Punto circular superior para tapas de tubos de 0.5–1.5 mL, para escaneo desde arriba.';
+  String get templatePresetCapDotSmallDescription =>
+      'Punto circular superior para tapas de tubos de 0.5–1.5 mL, para escaneo desde arriba.';
 
   @override
-  String get templatePresetCapDotLargeDescription => 'Punto circular superior para tapas roscadas de criovial de 2.0 mL o más.';
+  String get templatePresetCapDotLargeDescription =>
+      'Punto circular superior para tapas roscadas de criovial de 2.0 mL o más.';
 
   @override
-  String get templatePresetSelfLaminatingDescription => 'El texto se imprime en una zona de 25.4x12.7 mm; la cola transparente lo envuelve y protege del nitrógeno líquido.';
+  String get templatePresetSelfLaminatingDescription =>
+      'El texto se imprime en una zona de 25.4x12.7 mm; la cola transparente lo envuelve y protege del nitrógeno líquido.';
 
   @override
-  String get templatePresetPinnedLocalityDescription => 'Límite rígido para insectos montados en alfiler; caben 5-6 líneas de metadatos muy compactos.';
+  String get templatePresetPinnedLocalityDescription =>
+      'Límite rígido para insectos montados en alfiler; caben 5-6 líneas de metadatos muy compactos.';
 
   @override
-  String get templatePresetPinnedTaxonDescription => 'Tamaño mínimo; contiene género y especie, autor y datos del determinador.';
+  String get templatePresetPinnedTaxonDescription =>
+      'Tamaño mínimo; contiene género y especie, autor y datos del determinador.';
 
   @override
-  String get templatePresetJarInsertDescription => 'Se coloca dentro de frascos húmedos (alcohol/formol). Alta legibilidad a través del vidrio curvo.';
+  String get templatePresetJarInsertDescription =>
+      'Se coloca dentro de frascos húmedos (alcohol/formol). Alta legibilidad a través del vidrio curvo.';
 
   @override
-  String get templatePresetVertebrateTagDescription => 'Etiqueta colgante estándar de tamaño mediano para curaduría de vertebrados.';
+  String get templatePresetVertebrateTagDescription =>
+      'Etiqueta colgante estándar de tamaño mediano para curaduría de vertebrados.';
 
   @override
-  String get templatePresetSkullBoxDescription => 'Optimizada para viales de vidrio de 1 a 2 dracmas o cajas osteológicas pequeñas de cartón.';
+  String get templatePresetSkullBoxDescription =>
+      'Optimizada para viales de vidrio de 1 a 2 dracmas o cajas osteológicas pequeñas de cartón.';
 
   @override
   String get templateElementImage => 'Imagen';
@@ -10326,10 +10861,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mediaActions => 'Acciones';
 
   @override
-  String get mediaDeleteSelectedTitle => '¿Eliminar los archivos multimedia seleccionados?';
+  String get mediaDeleteSelectedTitle =>
+      '¿Eliminar los archivos multimedia seleccionados?';
 
   @override
-  String get mediaDeleteSelectedBody => '¿Eliminar los archivos multimedia seleccionados de todos los registros de NAHPU y del disco? Esta acción no se puede deshacer.';
+  String get mediaDeleteSelectedBody =>
+      '¿Eliminar los archivos multimedia seleccionados de todos los registros de NAHPU y del disco? Esta acción no se puede deshacer.';
 
   @override
   String mediaSelectedCount(int count) {
@@ -10387,7 +10924,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get mediaDeleteThisFileBody => '¿Eliminar este archivo multimedia de todos los registros de NAHPU y del disco? Esta acción no se puede deshacer.';
+  String get mediaDeleteThisFileBody =>
+      '¿Eliminar este archivo multimedia de todos los registros de NAHPU y del disco? Esta acción no se puede deshacer.';
 
   @override
   String get mediaFileAlreadyExists => 'El archivo ya existe';
@@ -10426,13 +10964,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mediaExporting => 'Exportando multimedia';
 
   @override
-  String get mediaExportingHint => 'Las selecciones grandes pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+  String get mediaExportingHint =>
+      'Las selecciones grandes pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
 
   @override
   String get mediaExport => 'Exportar multimedia';
 
   @override
-  String get mediaExportLeaveBody => 'La exportación sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
+  String get mediaExportLeaveBody =>
+      'La exportación sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
 
   @override
   String get mediaArchive => 'Archivo de multimedia';
@@ -10501,10 +11041,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get mediaCameraAccessRequired => 'Se requiere acceso a la cámara para tomar fotos y videos.';
+  String get mediaCameraAccessRequired =>
+      'Se requiere acceso a la cámara para tomar fotos y videos.';
 
   @override
-  String get mediaMicrophoneAccessRequired => 'Se requiere acceso al micrófono para grabar video.';
+  String get mediaMicrophoneAccessRequired =>
+      'Se requiere acceso al micrófono para grabar video.';
 
   @override
   String get mediaCameraError => 'No se pudo usar la cámara.';
@@ -10695,7 +11237,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mediaAlignBarcode => 'Alinee el código de barras dentro del marco';
 
   @override
-  String get mediaQrTooLarge => 'Los datos son demasiado grandes para un código QR.\nExpórtelos como archivo.';
+  String get mediaQrTooLarge =>
+      'Los datos son demasiado grandes para un código QR.\nExpórtelos como archivo.';
 
   @override
   String get associatedUnnamed => 'Datos asociados sin nombre';
@@ -10716,7 +11259,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get associatedActions => 'Acciones de datos asociados';
 
   @override
-  String get associatedOpenInDefaultApp => 'Abrir en la aplicación predeterminada';
+  String get associatedOpenInDefaultApp =>
+      'Abrir en la aplicación predeterminada';
 
   @override
   String get associatedOpenLink => 'Abrir enlace';
@@ -10769,7 +11313,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get associatedLinkOriginal => 'Vincular original';
 
   @override
-  String get associatedLinkOriginalWarning => 'El vínculo dejará de funcionar si el archivo original se mueve o elimina.';
+  String get associatedLinkOriginalWarning =>
+      'El vínculo dejará de funcionar si el archivo original se mueve o elimina.';
 
   @override
   String get associatedSelectDataType => 'Seleccione un tipo de datos.';
@@ -10781,7 +11326,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get associatedSelectFile => 'Seleccione un archivo.';
 
   @override
-  String get associatedNoIdentifier => 'Los datos asociados no tienen identificador.';
+  String get associatedNoIdentifier =>
+      'Los datos asociados no tienen identificador.';
 
   @override
   String get associatedInfo => 'Información de los datos asociados';
@@ -10814,7 +11360,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get legalPrivacyPolicy => 'Política de privacidad';
 
   @override
-  String get legalBeforeYouStart => ' antes de comenzar. Al usar NAHPU, los acepta.';
+  String get legalBeforeYouStart =>
+      ' antes de comenzar. Al usar NAHPU, los acepta.';
 
   @override
   String get legalTermsTile => 'Términos y condiciones';
@@ -10857,7 +11404,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteSupportedFiles => 'Archivos compatibles:';
 
   @override
-  String get siteSupportedFileTypes => 'CSV, TSV, Excel, GeoJSON/JSON, KML, Shapefile comprimido y GPX.';
+  String get siteSupportedFileTypes =>
+      'CSV, TSV, Excel, GeoJSON/JSON, KML, Shapefile comprimido y GPX.';
 
   @override
   String get siteSelectCoordinateFile => 'Seleccionar archivo de coordenadas';
@@ -10880,10 +11428,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteChooseAnotherFile => 'Elegir otro archivo';
 
   @override
-  String get siteCoordinateChanged => 'La coordenada cambió. Actualice el mapa para ver la vista previa.';
+  String get siteCoordinateChanged =>
+      'La coordenada cambió. Actualice el mapa para ver la vista previa.';
 
   @override
-  String get siteEnterValidCoordinate => 'Ingrese una latitud y longitud WGS84 válidas y actualice el mapa.';
+  String get siteEnterValidCoordinate =>
+      'Ingrese una latitud y longitud WGS84 válidas y actualice el mapa.';
 
   @override
   String get siteRefreshMap => 'Actualizar mapa';
@@ -10898,7 +11448,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteDeviceGps => 'GPS del dispositivo';
 
   @override
-  String get siteDeviceGpsBody => 'Use el sensor del dispositivo para completar las coordenadas';
+  String get siteDeviceGpsBody =>
+      'Use el sensor del dispositivo para completar las coordenadas';
 
   @override
   String get siteGetLocation => 'Obtener ubicación';
@@ -10955,7 +11506,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteChangeFormatTitle => '¿Cambiar el formato de coordenadas?';
 
   @override
-  String get siteChangeFormatBody => 'Cambiar el formato borra los valores de coordenadas ingresados. Se conservan el nombre, la elevación, el datum, la incertidumbre, la unidad GPS y las notas.';
+  String get siteChangeFormatBody =>
+      'Cambiar el formato borra los valores de coordenadas ingresados. Se conservan el nombre, la elevación, el datum, la incertidumbre, la unidad GPS y las notas.';
 
   @override
   String get siteClearAndSwitch => 'Borrar y cambiar';
@@ -11045,8 +11597,10 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count coordenadas no se muestran porque falta la latitud o la longitud o no es válida.',
-      one: '1 coordenada no se muestra porque falta la latitud o la longitud o no es válida.',
+      other:
+          '$count coordenadas no se muestran porque falta la latitud o la longitud o no es válida.',
+      one:
+          '1 coordenada no se muestra porque falta la latitud o la longitud o no es válida.',
     );
     return '$_temp0';
   }
@@ -11064,7 +11618,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteCoordinateDetails => 'Detalles de la coordenada';
 
   @override
-  String get siteCopiedToClipboard => 'Latitud y longitud copiadas al portapapeles';
+  String get siteCopiedToClipboard =>
+      'Latitud y longitud copiadas al portapapeles';
 
   @override
   String get siteNoName => 'Sin nombre';
@@ -11093,7 +11648,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String siteColumnsDetectedInWorksheet(int columns, int rows, String worksheet) {
+  String siteColumnsDetectedInWorksheet(
+    int columns,
+    int rows,
+    String worksheet,
+  ) {
     return 'Se detectaron $columns columnas y $rows filas de datos en la hoja \"$worksheet\". NAHPU dedujo las coincidencias de abajo. La latitud y la longitud son obligatorias; los demás campos son opcionales.';
   }
 
@@ -11118,7 +11677,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteChooseDataToCopy => 'Elegir datos para copiar';
 
   @override
-  String get siteSelectSourceProject => 'Seleccione el proyecto que contiene el sitio que desea copiar.';
+  String get siteSelectSourceProject =>
+      'Seleccione el proyecto que contiene el sitio que desea copiar.';
 
   @override
   String siteSelectFromProject(String project) {
@@ -11126,25 +11686,30 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get siteNoSitesInProject => 'No se encontraron sitios en este proyecto.';
+  String get siteNoSitesInProject =>
+      'No se encontraron sitios en este proyecto.';
 
   @override
-  String get siteSelectDataToCopy => 'Seleccione los datos que desea copiar en el sitio vacío.';
+  String get siteSelectDataToCopy =>
+      'Seleccione los datos que desea copiar en el sitio vacío.';
 
   @override
-  String get siteNoCopyableData => 'El sitio seleccionado no tiene datos que se puedan copiar.';
+  String get siteNoCopyableData =>
+      'El sitio seleccionado no tiene datos que se puedan copiar.';
 
   @override
   String get siteNoDataInSource => 'Sin datos en el origen';
 
   @override
-  String get siteMustBeEmptyBody => 'El sitio actual debe estar vacío antes de copiar datos. Primero borre su información, coordenadas, multimedia y datos vinculados.';
+  String get siteMustBeEmptyBody =>
+      'El sitio actual debe estar vacío antes de copiar datos. Primero borre su información, coordenadas, multimedia y datos vinculados.';
 
   @override
   String get siteMustBeEmpty => 'El sitio debe estar vacío';
 
   @override
-  String get siteNeedAnotherProject => 'Cree o importe otro proyecto antes de copiar datos del sitio.';
+  String get siteNeedAnotherProject =>
+      'Cree o importe otro proyecto antes de copiar datos del sitio.';
 
   @override
   String get siteMultipleProjectsRequired => 'Se requieren varios proyectos';
@@ -11160,13 +11725,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get siteFindLocalityTooltip => 'Escriba una localidad y seleccione una guardada para completar todos los campos geográficos';
+  String get siteFindLocalityTooltip =>
+      'Escriba una localidad y seleccione una guardada para completar todos los campos geográficos';
 
   @override
   String get siteFindLocality => 'Buscar una localidad existente';
 
   @override
-  String get siteFindLocalityHint => 'Escriba para reutilizar una localidad guardada';
+  String get siteFindLocalityHint =>
+      'Escriba para reutilizar una localidad guardada';
 
   @override
   String get siteEnterCountry => 'Ingrese un país';
@@ -11187,10 +11754,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sitePreciseLocality => 'Localidad precisa';
 
   @override
-  String get sitePreciseLocalityHint => 'Ingrese una localidad precisa de nivel inferior al municipio';
+  String get sitePreciseLocalityHint =>
+      'Ingrese una localidad precisa de nivel inferior al municipio';
 
   @override
-  String get siteRemarksHint => 'Ingrese más información sobre el sitio (opcional)';
+  String get siteRemarksHint =>
+      'Ingrese más información sobre el sitio (opcional)';
 
   @override
   String get siteHabitatType => 'Tipo de hábitat';
@@ -11202,13 +11771,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteHabitatCondition => 'Condición del hábitat';
 
   @override
-  String get siteHabitatConditionHint => 'P. ej., \"Prístino\", \"Perturbado\", etc.';
+  String get siteHabitatConditionHint =>
+      'P. ej., \"Prístino\", \"Perturbado\", etc.';
 
   @override
   String get siteHabitatDescription => 'Descripción del hábitat';
 
   @override
-  String get siteHabitatDescriptionHint => 'Describa el sitio, p. ej., \"Un campamento en medio del bosque\".';
+  String get siteHabitatDescriptionHint =>
+      'Describa el sitio, p. ej., \"Un campamento en medio del bosque\".';
 
   @override
   String get siteCanopyCover => 'Cobertura del dosel';
@@ -11235,7 +11806,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteImport => 'Importar sitio';
 
   @override
-  String siteCopiedSummary(String fields, String coordinates, String site, String project) {
+  String siteCopiedSummary(
+    String fields,
+    String coordinates,
+    String site,
+    String project,
+  ) {
     return 'Se copiaron $fields y $coordinates de $site en $project.';
   }
 
@@ -11254,7 +11830,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteDeleteTitle => '¿Eliminar sitio?';
 
   @override
-  String get siteDeleteBody => 'Eliminará todos los registros de este formulario de sitio';
+  String get siteDeleteBody =>
+      'Eliminará todos los registros de este formulario de sitio';
 
   @override
   String get siteDeleteAllTitle => '¿Eliminar todos los sitios?';
@@ -11263,13 +11840,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteDeleteAllBody => 'Eliminará todos los registros de sitios';
 
   @override
-  String get siteDeleteInUse => 'No se pueden eliminar los sitios. Otros registros los usan.';
+  String get siteDeleteInUse =>
+      'No se pueden eliminar los sitios. Otros registros los usan.';
 
   @override
   String get siteIdentity => 'Identidad del sitio';
 
   @override
-  String get siteIdHint => 'Ingrese un ID de sitio (máx. 40 caracteres), p. ej., \"CAMP-01\", \"LINE-1\"';
+  String get siteIdHint =>
+      'Ingrese un ID de sitio (máx. 40 caracteres), p. ej., \"CAMP-01\", \"LINE-1\"';
 
   @override
   String get siteLeader => 'Responsable del sitio';
@@ -11352,7 +11931,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventCloudCoverHint => 'Seleccione la nubosidad';
 
   @override
-  String get eventCloudCoverHelper => 'Una octa representa un octavo del cielo visible.';
+  String get eventCloudCoverHelper =>
+      'Una octa representa un octavo del cielo visible.';
 
   @override
   String eventInvalidStoredValue(String value) {
@@ -11378,7 +11958,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventEnterDissolvedOxygen => 'Ingrese el oxígeno disuelto';
 
   @override
-  String get eventEnterOxygenSaturation => 'Ingrese la saturación de oxígeno disuelto';
+  String get eventEnterOxygenSaturation =>
+      'Ingrese la saturación de oxígeno disuelto';
 
   @override
   String get eventEnterConductivity => 'Ingrese la conductividad';
@@ -11401,7 +11982,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get eventRecoveryBody => 'Corrija o borre los campos resaltados. Los demás valores no se modificarán.';
+  String get eventRecoveryBody =>
+      'Corrija o borre los campos resaltados. Los demás valores no se modificarán.';
 
   @override
   String eventSaveValueError(String error) {
@@ -11508,7 +12090,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventCollMethod => 'Método de colecta';
 
   @override
-  String get eventCountHint => '¿Cuántas unidades de esta herramienta se usaron (si corresponde)?';
+  String get eventCountHint =>
+      '¿Cuántas unidades de esta herramienta se usaron (si corresponde)?';
 
   @override
   String get eventMethodDetails => 'Detalles del método';
@@ -11517,13 +12100,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventBrandModel => 'Marca y modelo';
 
   @override
-  String get eventBrandModelHint => 'Ingrese la marca y el modelo de la herramienta (si corresponde)';
+  String get eventBrandModelHint =>
+      'Ingrese la marca y el modelo de la herramienta (si corresponde)';
 
   @override
-  String get eventSizeHint => 'Ingrese el tamaño de la herramienta (si corresponde)';
+  String get eventSizeHint =>
+      'Ingrese el tamaño de la herramienta (si corresponde)';
 
   @override
-  String get eventToolNotesHint => 'Ingrese notas sobre la herramienta (si corresponde)';
+  String get eventToolNotesHint =>
+      'Ingrese notas sobre la herramienta (si corresponde)';
 
   @override
   String get eventSelectMethod => 'Seleccione un método';
@@ -11559,7 +12145,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventCreate => 'Crear evento';
 
   @override
-  String get eventDeleteInUse => 'No se pudieron eliminar los eventos. Otros registros los están usando.';
+  String get eventDeleteInUse =>
+      'No se pudieron eliminar los eventos. Otros registros los están usando.';
 
   @override
   String get eventActions => 'Acciones del evento';
@@ -11577,13 +12164,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventDeleteTitle => '¿Eliminar el evento de colecta?';
 
   @override
-  String get eventDeleteBody => 'También eliminará los métodos de colecta, el personal de colecta, los datos ambientales y la multimedia de este evento.';
+  String get eventDeleteBody =>
+      'También eliminará los métodos de colecta, el personal de colecta, los datos ambientales y la multimedia de este evento.';
 
   @override
   String get eventDeleteAllTitle => '¿Eliminar todos los eventos de colecta?';
 
   @override
-  String get eventDeleteAllBody => 'Al eliminar todos los eventos de colecta también se eliminarán de la base de datos los métodos de colecta, el personal de colecta, los datos ambientales y la multimedia asociados.';
+  String get eventDeleteAllBody =>
+      'Al eliminar todos los eventos de colecta también se eliminarán de la base de datos los métodos de colecta, el personal de colecta, los datos ambientales y la multimedia asociados.';
 
   @override
   String get eventPersonnel => 'Personal del evento';
@@ -11615,19 +12204,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportPreset => 'Ajuste de exportación';
 
   @override
-  String get exportNoPresets => 'No se encontraron ajustes de exportación. Administre los ajustes en la configuración para crear uno.';
+  String get exportNoPresets =>
+      'No se encontraron ajustes de exportación. Administre los ajustes en la configuración para crear uno.';
 
   @override
   String get exportManagePresetsButton => 'Administrar ajustes';
 
   @override
-  String get exportPresetHelper => 'El tipo de registro, los encabezados y las asignaciones de campos los define el ajuste.';
+  String get exportPresetHelper =>
+      'El tipo de registro, los encabezados y las asignaciones de campos los define el ajuste.';
 
   @override
   String get exportPresetDetails => 'Detalles del ajuste';
 
   @override
-  String get exportSelectPresetPrompt => 'Seleccione un ajuste de exportación para ver los detalles y la vista previa.';
+  String get exportSelectPresetPrompt =>
+      'Seleccione un ajuste de exportación para ver los detalles y la vista previa.';
 
   @override
   String exportPresetName(String name) {
@@ -11675,7 +12267,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportTablePreview => 'Vista previa de la tabla';
 
   @override
-  String get exportNoRecordsForPreset => 'No se encontraron registros para este ajuste.';
+  String get exportNoRecordsForPreset =>
+      'No se encontraron registros para este ajuste.';
 
   @override
   String exportShowingRecords(int start, int end, int total) {
@@ -11691,7 +12284,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportBundling => 'Empaquetando registros';
 
   @override
-  String get exportBundlingHint => 'El empaquetado escribe los registros, copia la multimedia, comprime el paquete y luego lo verifica. Mantenga NAHPU abierto.';
+  String get exportBundlingHint =>
+      'El empaquetado escribe los registros, copia la multimedia, comprime el paquete y luego lo verifica. Mantenga NAHPU abierto.';
 
   @override
   String get exportCreateBundle => 'Crear paquete';
@@ -11703,7 +12297,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportCancelBundleTitle => '¿Cancelar el paquete?';
 
   @override
-  String get exportCancelBundleBody => 'El paquete aún se está escribiendo. Si sale ahora, se cancelará y no se guardará ningún paquete.';
+  String get exportCancelBundleBody =>
+      'El paquete aún se está escribiendo. Si sale ahora, se cancelará y no se guardará ningún paquete.';
 
   @override
   String get exportKeepBundling => 'Seguir empaquetando';
@@ -11723,10 +12318,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportCompleteData => 'Datos completos de NAHPU';
 
   @override
-  String get exportCompleteDataBody => 'Este paquete incluye todas las tablas de la base de datos de NAHPU, una instantánea restaurable del proyecto, las configuraciones del usuario, la multimedia disponible y las fuentes personalizadas.';
+  String get exportCompleteDataBody =>
+      'Este paquete incluye todas las tablas de la base de datos de NAHPU, una instantánea restaurable del proyecto, las configuraciones del usuario, la multimedia disponible y las fuentes personalizadas.';
 
   @override
-  String get exportFrictionless => 'La exportación está en formato Frictionless Data.';
+  String get exportFrictionless =>
+      'La exportación está en formato Frictionless Data.';
 
   @override
   String get exportRecordedTaxa => 'Taxones registrados';
@@ -11735,7 +12332,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportSelectedTaxa => 'Taxones seleccionados';
 
   @override
-  String get exportNoTaxaRecorded => 'Aún no se han registrado taxones de especímenes.';
+  String get exportNoTaxaRecorded =>
+      'Aún no se han registrado taxones de especímenes.';
 
   @override
   String exportTaxonGroupsIncluded(int count) {
@@ -11752,10 +12350,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportPackageContents => 'Contenido del paquete';
 
   @override
-  String get exportSelectTaxonPrompt => 'Seleccione al menos un taxón registrado para ver el contenido del paquete.';
+  String get exportSelectTaxonPrompt =>
+      'Seleccione al menos un taxón registrado para ver el contenido del paquete.';
 
   @override
-  String get exportPackageContentsBody => 'La lista refleja exactamente lo que se empaquetará. Se omiten los campos y tablas opcionales vacíos.';
+  String get exportPackageContentsBody =>
+      'La lista refleja exactamente lo que se empaquetará. Se omiten los campos y tablas opcionales vacíos.';
 
   @override
   String exportRecordsAndFields(int records, int fields) {
@@ -11778,7 +12378,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportBackingUp => 'Respaldando la base de datos';
 
   @override
-  String get exportBackingUpHint => 'Las bibliotecas multimedia grandes pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
+  String get exportBackingUpHint =>
+      'Las bibliotecas multimedia grandes pueden tardar varios minutos. Mantenga NAHPU abierto hasta que termine.';
 
   @override
   String get exportSaveBackup => 'Guardar respaldo';
@@ -11790,7 +12391,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportCancelBackupTitle => '¿Cancelar el respaldo?';
 
   @override
-  String get exportCancelBackupBody => 'El respaldo sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
+  String get exportCancelBackupBody =>
+      'El respaldo sigue en curso. Si sale ahora, se cancelará y no se guardará ningún archivo.';
 
   @override
   String get exportKeepBackingUp => 'Seguir respaldando';
@@ -11802,10 +12404,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportBackupArchive => 'Archivo de respaldo';
 
   @override
-  String get exportBackupBody => 'Esto crea un respaldo completo de la base de datos de NAHPU. Para respaldar solo un proyecto, use Exportar proyecto.';
+  String get exportBackupBody =>
+      'Esto crea un respaldo completo de la base de datos de NAHPU. Para respaldar solo un proyecto, use Exportar proyecto.';
 
   @override
-  String get exportBackupDetail => 'Copia todos los proyectos y cada archivo de los datos de NAHPU, esté o no vinculado a un proyecto. Ejecútelo de vez en cuando en el campo, cuando el consumo de batería no sea un problema.';
+  String get exportBackupDetail =>
+      'Copia todos los proyectos y cada archivo de los datos de NAHPU, esté o no vinculado a un proyecto. Ejecútelo de vez en cuando en el campo, cuando el consumo de batería no sea un problema.';
 
   @override
   String get exportWillExport => 'Se exportará';
@@ -11816,16 +12420,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get exportCustomFieldTemplates => 'Plantillas de campos personalizados';
+  String get exportCustomFieldTemplates =>
+      'Plantillas de campos personalizados';
 
   @override
   String get exportNoCustomFields => 'No hay campos personalizados disponibles';
 
   @override
-  String get exportNoPrintLayouts => 'Aún no hay diseños de impresión. Cargue los diseños predeterminados o cree uno en Ajustes de documentos.';
+  String get exportNoPrintLayouts =>
+      'Aún no hay diseños de impresión. Cargue los diseños predeterminados o cree uno en Ajustes de documentos.';
 
   @override
-  String get exportEnterFileNameFirst => 'Primero ingrese un nombre de archivo.';
+  String get exportEnterFileNameFirst =>
+      'Primero ingrese un nombre de archivo.';
 
   @override
   String exportShareFailed(String error) {
@@ -11839,7 +12446,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportFormatOptions => 'Opciones de formato';
 
   @override
-  String get exportConcatenateMultiEntry => 'Concatenar registros de varias entradas';
+  String get exportConcatenateMultiEntry =>
+      'Concatenar registros de varias entradas';
 
   @override
   String get exportFieldNamesOnly => 'Solo nombres de campo en los encabezados';
@@ -11890,7 +12498,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableSomeChangesFailed => 'Algunos cambios no se pudieron guardar. Revise las celdas marcadas.';
+  String get dataTableSomeChangesFailed =>
+      'Algunos cambios no se pudieron guardar. Revise las celdas marcadas.';
 
   @override
   String get dataTableNoMoreMatches => 'No hay más coincidencias.';
@@ -11899,7 +12508,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableNoEarlierMatches => 'No hay coincidencias anteriores.';
 
   @override
-  String get dataTableCellCannotBeReplaced => 'Esta celda no se puede reemplazar.';
+  String get dataTableCellCannotBeReplaced =>
+      'Esta celda no se puede reemplazar.';
 
   @override
   String dataTableReadForReplaceError(String error) {
@@ -11940,7 +12550,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableAutoSaveWrites => 'El guardado automático los escribe de inmediato.';
+  String get dataTableAutoSaveWrites =>
+      'El guardado automático los escribe de inmediato.';
 
   @override
   String get dataTableWaitForSave => 'Esperan a que pulse Guardar.';
@@ -12007,13 +12618,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableComputedNotSearchable => 'Se calcula durante la exportación: no se puede buscar ni ordenar';
+  String get dataTableComputedNotSearchable =>
+      'Se calcula durante la exportación: no se puede buscar ni ordenar';
 
   @override
   String get dataTableShowAll => 'Mostrar todo';
 
   @override
-  String get dataTableAutoSaveTooltip => 'Guarda cada cambio al confirmarlo. Deshaga con Ctrl+Z o ⌘Z mientras la tabla esté abierta.';
+  String get dataTableAutoSaveTooltip =>
+      'Guarda cada cambio al confirmarlo. Deshaga con Ctrl+Z o ⌘Z mientras la tabla esté abierta.';
 
   @override
   String get dataTableAutoSave => 'Guardado automático';
@@ -12025,10 +12638,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableRetrySave => 'Reintentar guardado';
 
   @override
-  String get dataTableEditModeOn => 'El modo de edición está activado (Ctrl+E o ⌘E)';
+  String get dataTableEditModeOn =>
+      'El modo de edición está activado (Ctrl+E o ⌘E)';
 
   @override
-  String get dataTableEditModeOff => 'El modo de edición está desactivado (Ctrl+E o ⌘E)';
+  String get dataTableEditModeOff =>
+      'El modo de edición está desactivado (Ctrl+E o ⌘E)';
 
   @override
   String dataTableCellsNeedAttention(int count) {
@@ -12078,7 +12693,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableDwcOnly => 'Solo columnas asignadas a Darwin Core';
 
   @override
-  String get dataTableDwcOnlyBody => 'Omite las columnas sin un término de Darwin Core. De lo contrario, conservan su clave de NAHPU.';
+  String get dataTableDwcOnlyBody =>
+      'Omite las columnas sin un término de Darwin Core. De lo contrario, conservan su clave de NAHPU.';
 
   @override
   String dataTableReadProgress(int count, int total) {
@@ -12102,13 +12718,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableFilterRules => 'Reglas de filtro';
 
   @override
-  String get dataTableFilterRulesBody => 'Muestra los registros que cumplen todas las reglas.';
+  String get dataTableFilterRulesBody =>
+      'Muestra los registros que cumplen todas las reglas.';
 
   @override
   String get dataTableAddRule => 'Agregar regla';
 
   @override
-  String get dataTableEnterValueEveryRule => 'Ingrese un valor para cada regla.';
+  String get dataTableEnterValueEveryRule =>
+      'Ingrese un valor para cada regla.';
 
   @override
   String get dataTableEnterDates => 'Ingrese las fechas como AAAA-MM-DD.';
@@ -12123,13 +12741,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableEnterNumber => 'Ingrese un número.';
 
   @override
-  String get dataTableComputedNotFilterable => 'Se calcula durante la exportación; no se puede filtrar';
+  String get dataTableComputedNotFilterable =>
+      'Se calcula durante la exportación; no se puede filtrar';
 
   @override
   String get dataTableRemoveRule => 'Quitar regla';
 
   @override
-  String get dataTableReplacingNeedsEditMode => 'Para reemplazar se necesita el modo de edición.';
+  String get dataTableReplacingNeedsEditMode =>
+      'Para reemplazar se necesita el modo de edición.';
 
   @override
   String get dataTableMatchCase => 'Coincidir mayúsculas';
@@ -12182,7 +12802,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableChangeFishTypeTitle => '¿Cambiar el tipo de registro de pez?';
+  String get dataTableChangeFishTypeTitle =>
+      '¿Cambiar el tipo de registro de pez?';
 
   @override
   String dataTableSexClears(String fields) {
@@ -12190,7 +12811,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableFishTypeChangeBody => 'Cambiar entre individuo y lote modifica las medidas que se aplican.';
+  String get dataTableFishTypeChangeBody =>
+      'Cambiar entre individuo y lote modifica las medidas que se aplican.';
 
   @override
   String dataTableSkippedReadOnly(int count) {
@@ -12215,7 +12837,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTableSwitchToEditToPaste => 'Cambie al modo de edición para pegar.';
+  String get dataTableSwitchToEditToPaste =>
+      'Cambie al modo de edición para pegar.';
 
   @override
   String dataTablePastedSkipped(int count) {
@@ -12229,24 +12852,29 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get dataTablePastedCutOff => 'Pegado; se recortó en el borde de la página.';
+  String get dataTablePastedCutOff =>
+      'Pegado; se recortó en el borde de la página.';
 
   @override
   String dataTablePastedSkippedAndCutOff(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Pegado; se omitieron $count celdas de solo lectura o vinculadas y se recortó en el borde de la página.',
-      one: 'Pegado; se omitió 1 celda de solo lectura o vinculada y se recortó en el borde de la página.',
+      other:
+          'Pegado; se omitieron $count celdas de solo lectura o vinculadas y se recortó en el borde de la página.',
+      one:
+          'Pegado; se omitió 1 celda de solo lectura o vinculada y se recortó en el borde de la página.',
     );
     return '$_temp0';
   }
 
   @override
-  String get dataTableComputedField => 'Se calcula durante la exportación: no se puede buscar, ordenar ni filtrar.';
+  String get dataTableComputedField =>
+      'Se calcula durante la exportación: no se puede buscar, ordenar ni filtrar.';
 
   @override
-  String get dataTableLinkedDataHint => 'Datos vinculados: haga doble clic o presione F2 para editar.';
+  String get dataTableLinkedDataHint =>
+      'Datos vinculados: haga doble clic o presione F2 para editar.';
 
   @override
   String get dataTableReadOnlyHere => 'Solo lectura aquí.';
@@ -12263,13 +12891,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableLoadChoicesError => 'No se pudieron cargar las opciones.';
 
   @override
-  String get dataTableLinkCatalogerNote => 'El número de campo sigue al nuevo catalogador. El determinador y el preparador también cambian si eran el catalogador anterior.';
+  String get dataTableLinkCatalogerNote =>
+      'El número de campo sigue al nuevo catalogador. El determinador y el preparador también cambian si eran el catalogador anterior.';
 
   @override
-  String get dataTableLinkEventNote => 'Se borran el método de colecta y el personal, y la coordenada sigue al sitio del nuevo evento.';
+  String get dataTableLinkEventNote =>
+      'Se borran el método de colecta y el personal, y la coordenada sigue al sitio del nuevo evento.';
 
   @override
-  String get dataTableLinkTaxonNote => 'El orden, la familia, el género y el epíteto provienen del taxón elegido.';
+  String get dataTableLinkTaxonNote =>
+      'El orden, la familia, el género y el epíteto provienen del taxón elegido.';
 
   @override
   String dataTableSaveError(String error) {
@@ -12281,42 +12912,36 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dataTableNotLinked(String noun) {
-    String _temp0 = intl.Intl.selectLogic(
-      noun,
-      {
-        'site': 'Este registro aún no está vinculado a un sitio.',
-        'other': 'Este registro aún no está vinculado a un evento.',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'Este registro aún no está vinculado a un sitio.',
+      'other': 'Este registro aún no está vinculado a un evento.',
+    });
     return '$_temp0';
   }
 
   @override
   String dataTableLinkedLoadError(String noun) {
-    String _temp0 = intl.Intl.selectLogic(
-      noun,
-      {
-        'site': 'No se pudo cargar el sitio.',
-        'other': 'No se pudo cargar el evento.',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site': 'No se pudo cargar el sitio.',
+      'other': 'No se pudo cargar el evento.',
+    });
     return '$_temp0';
   }
 
   @override
   String dataTableLinkShared(String noun, int count) {
-    String _temp0 = intl.Intl.selectLogic(
-      noun,
-      {
-        'site': 'Los cambios se aplican a todos los registros vinculados a este sitio ($count).',
-        'other': 'Los cambios se aplican a todos los registros vinculados a este evento ($count).',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(noun, {
+      'site':
+          'Los cambios se aplican a todos los registros vinculados a este sitio ($count).',
+      'other':
+          'Los cambios se aplican a todos los registros vinculados a este evento ($count).',
+    });
     return '$_temp0';
   }
 
   @override
-  String get dataTableSomeChangesNotSaved => 'Algunos cambios no se pudieron guardar.';
+  String get dataTableSomeChangesNotSaved =>
+      'Algunos cambios no se pudieron guardar.';
 
   @override
   String get dataTablePageRangeEmpty => '0 de 0';
@@ -12362,7 +12987,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataTableAllVisibleFields => 'Todos los campos visibles';
 
   @override
-  String get dataTableSearchingAllFields => 'Buscando en todos los campos visibles';
+  String get dataTableSearchingAllFields =>
+      'Buscando en todos los campos visibles';
 
   @override
   String dataTableSearchingField(String field) {
