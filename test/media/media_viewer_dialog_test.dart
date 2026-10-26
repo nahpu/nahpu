@@ -285,6 +285,7 @@ void main() {
 
     expect(find.byType(MediaViewerDialog), findsOneWidget);
     expect(find.text('1 / 2'), findsOneWidget);
+    await _drainFileIo(tester);
   });
 
   testWidgets('narrow media menu uses sheets and separates edit from info', (
@@ -338,6 +339,7 @@ void main() {
     expect(find.text('Size'), findsOneWidget);
     expect(find.text('${_pngBytes.length} B'), findsOneWidget);
     expect(find.byType(FormSection), findsNWidgets(4));
+    await _drainFileIo(tester);
   });
 
   testWidgets('media labels show type icons and switch to checkboxes', (
@@ -739,6 +741,21 @@ Future<void> _openDialog(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 300));
   await _flushMediaLoad(tester);
+}
+
+/// Unmounts the tree and lets pending file reads close their handles, so
+/// Windows can delete the temp directory in tearDown.
+///
+/// Reads started in the fake-async test zone only advance while frames are
+/// pumped, so an image load begun late in a test would otherwise stay open.
+Future<void> _drainFileIo(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  for (int i = 0; i < 10; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+  }
 }
 
 /// Lets the dialog finish its real async file IO (path lookup, existence
