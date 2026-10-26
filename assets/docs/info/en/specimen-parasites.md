@@ -11,4 +11,4 @@ Keep the host association and parasite identifiers consistent with the sample la
 
 ## Learn more
 
-- [Specimen Records](https://nahpu.app/en/usages/specimens/#specimen-parts)
+- [Specimen Records](https://nahpu.app/en/usages/specimens/parts/)

@@ -11,4 +11,4 @@ Mantenha a associação com o hospedeiro e os identificadores de parasitas consi
 
 ## Saiba mais
 
-- [Registros de Espécimes](https://nahpu.app/pt/usages/specimens/#specimen-parts)
+- [Registros de Espécimes](https://nahpu.app/pt/usages/specimens/parts/)
