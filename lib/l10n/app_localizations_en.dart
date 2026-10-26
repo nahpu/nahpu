@@ -8235,6 +8235,35 @@ class AppLocalizationsEn extends AppLocalizations {
       'Replace a stored location or a different field value';
 
   @override
+  String get projectTissueTabBox => 'Box';
+
+  @override
+  String get projectTissueTabSetup => 'Setup';
+
+  @override
+  String projectTissueTabLog(int count) {
+    return 'Log ($count)';
+  }
+
+  @override
+  String get projectTissueFindTubesBody =>
+      'Which tubes the scan and work list match.';
+
+  @override
+  String get projectTissueUpdateFieldBody => 'Written to each tube you place.';
+
+  @override
+  String get projectTissueBoxSectionBody =>
+      'Size, fill order, and the box being filled.';
+
+  @override
+  String get projectTissueAdvanced => 'Labels and overwrite';
+
+  @override
+  String get projectTissueAdvancedBody =>
+      'Cell label format and how stored values are handled.';
+
+  @override
   String get projectTissueAny => 'Any';
 
   @override

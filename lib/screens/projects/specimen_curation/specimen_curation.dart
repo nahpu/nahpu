@@ -6,6 +6,7 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_camer
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_cell_inspector.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_curation_layout.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
@@ -81,6 +82,7 @@ class _SpecimenCurationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final width = TissueCurationWidth.of(MediaQuery.sizeOf(context).width);
     final settings = _session.settings;
     final partTypes = _vocabulary(specimenTypePrefKey);
     final treatments = _treatments(settings.includeParasites, _vocabulary);
@@ -119,7 +121,7 @@ class _SpecimenCurationScreenState
           ? () => _changeBox(_session.previousBox)
           : null,
     );
-    final setupCard = TissueCheckSetupCard(
+    final setupPanel = TissueCheckSetupPanel(
       settings: settings,
       onChanged: _updateSettings,
       partTypes: partTypes,
@@ -135,6 +137,8 @@ class _SpecimenCurationScreenState
       onScan: _scan,
       onUndo: _undo,
       autofocus: _shouldAutofocus(context),
+      suggestionsAbove: width == TissueCurationWidth.phone,
+      framed: width != TissueCurationWidth.phone,
       onOpenCamera: widget.cameraAvailable ?? supportsCameraScanning
           ? _openCamera
           : null,
@@ -157,9 +161,29 @@ class _SpecimenCurationScreenState
         onSelect: (index) => setState(() => _workIndex = index),
       ),
     );
-    final logCard = TissueCheckLogCard(
+    final logPanel = TissueCheckLogPanel(
       entries: _session.entries,
       skipped: _session.skipped,
+      // Tabs name the log; only its own column needs a heading.
+      showTitle: width == TissueCurationWidth.extraWide,
+    );
+    final logCount = _session.entries.length + _session.skipped.length;
+    final modeSelector = Align(
+      alignment: Alignment.centerLeft,
+      child: SegmentedButton<SpecimenCurationMode>(
+        segments: [
+          for (final mode in SpecimenCurationMode.values)
+            ButtonSegment(
+              value: mode,
+              label: Text(mode.label),
+              icon: const Icon(Icons.science_outlined),
+            ),
+        ],
+        selected: {_mode},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) =>
+            setState(() => _mode = selection.first),
+      ),
     );
 
     return Scaffold(
@@ -179,71 +203,26 @@ class _SpecimenCurationScreenState
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= NahpuBreakpoints.desktop;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                NahpuSpacing.xl,
-                NahpuPageMargin.top,
-                NahpuSpacing.xl,
-                NahpuPageMargin.bottom,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: NahpuContentWidth.settings,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: SegmentedButton<SpecimenCurationMode>(
-                          segments: [
-                            for (final mode in SpecimenCurationMode.values)
-                              ButtonSegment(
-                                value: mode,
-                                label: Text(mode.label),
-                                icon: const Icon(Icons.science_outlined),
-                              ),
-                          ],
-                          selected: {_mode},
-                          showSelectedIcon: false,
-                          onSelectionChanged: (selection) =>
-                              setState(() => _mode = selection.first),
-                        ),
-                      ),
-                      const SizedBox(height: NahpuSpacing.xl),
-                      if (isWide) ...[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(flex: 23, child: boxCard),
-                            const SizedBox(width: NahpuSpacing.xl),
-                            Expanded(
-                              flex: 20,
-                              child: SpecimenCurationColumn(
-                                children: [setupCard, scanCard],
-                              ),
-                            ),
-                          ],
-                        ),
-                        // The log spans both columns, so long labels and
-                        // the skipped list have room side by side.
-                        const SizedBox(height: NahpuSpacing.xl),
-                        logCard,
-                      ] else
-                        SpecimenCurationColumn(
-                          children: [boxCard, setupCard, scanCard, logCard],
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
+        child: switch (width) {
+          TissueCurationWidth.phone => TissueCurationPhoneLayout(
+            header: modeSelector,
+            box: boxCard,
+            setup: setupPanel,
+            log: logPanel,
+            logCount: logCount,
+            scan: scanCard,
+          ),
+          TissueCurationWidth.wide ||
+          TissueCurationWidth.extraWide => TissueCurationWideLayout(
+            header: modeSelector,
+            box: boxCard,
+            setup: setupPanel,
+            log: logPanel,
+            logCount: logCount,
+            scan: scanCard,
+            logColumn: width == TissueCurationWidth.extraWide,
+          ),
+        },
       ),
     );
   }
@@ -460,25 +439,5 @@ class _SpecimenCurationScreenState
     } finally {
       if (mounted) setState(() => _busyCount--);
     }
-  }
-}
-
-/// Stacks the tissue check cards with even spacing.
-class SpecimenCurationColumn extends StatelessWidget {
-  const SpecimenCurationColumn({super.key, required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (index, child) in children.indexed) ...[
-          if (index > 0) const SizedBox(height: NahpuSpacing.xl),
-          child,
-        ],
-      ],
-    );
   }
 }

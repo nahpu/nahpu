@@ -13087,6 +13087,54 @@ abstract class AppLocalizations {
   /// **'Replace a stored location or a different field value'**
   String get projectTissueOverwriteBody;
 
+  /// No description provided for @projectTissueTabBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Box'**
+  String get projectTissueTabBox;
+
+  /// No description provided for @projectTissueTabSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get projectTissueTabSetup;
+
+  /// No description provided for @projectTissueTabLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log ({count})'**
+  String projectTissueTabLog(int count);
+
+  /// No description provided for @projectTissueFindTubesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Which tubes the scan and work list match.'**
+  String get projectTissueFindTubesBody;
+
+  /// No description provided for @projectTissueUpdateFieldBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Written to each tube you place.'**
+  String get projectTissueUpdateFieldBody;
+
+  /// No description provided for @projectTissueBoxSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Size, fill order, and the box being filled.'**
+  String get projectTissueBoxSectionBody;
+
+  /// No description provided for @projectTissueAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels and overwrite'**
+  String get projectTissueAdvanced;
+
+  /// No description provided for @projectTissueAdvancedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell label format and how stored values are handled.'**
+  String get projectTissueAdvancedBody;
+
   /// No description provided for @projectTissueAny.
   ///
   /// In en, this message translates to:

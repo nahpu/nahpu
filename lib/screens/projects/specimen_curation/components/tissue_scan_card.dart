@@ -28,6 +28,8 @@ class TissueScanCard extends StatefulWidget {
     this.entryMode = TissueEntryMode.scan,
     this.onEntryModeChanged,
     this.workList,
+    this.suggestionsAbove = false,
+    this.framed = true,
   });
 
   final TissueScanOutcome? outcome;
@@ -63,6 +65,14 @@ class TissueScanCard extends StatefulWidget {
   /// Shown in place of the scan field in work list mode.
   final Widget? workList;
 
+  /// Opens code suggestions above the field, as when the card is pinned to
+  /// the bottom of a phone screen.
+  final bool suggestionsAbove;
+
+  /// False drops the card and its padding, as in the phone scan dock that
+  /// already sets it apart.
+  final bool framed;
+
   @override
   State<TissueScanCard> createState() => _TissueScanCardState();
 }
@@ -81,127 +91,135 @@ class _TissueScanCardState extends State<TissueScanCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.onEntryModeChanged == null)
+          Text(
+            context.l10n.projectTissueScanTube,
+            style: theme.textTheme.titleSmall,
+          )
+        else
+          SegmentedButton<TissueEntryMode>(
+            segments: [
+              for (final mode in TissueEntryMode.values)
+                ButtonSegment(
+                  value: mode,
+                  label: Text(mode.localizedLabel(context.l10n)),
+                ),
+            ],
+            selected: {widget.entryMode},
+            showSelectedIcon: false,
+            onSelectionChanged: (selection) =>
+                widget.onEntryModeChanged!(selection.first),
+          ),
+        const SizedBox(height: NahpuSpacing.lg),
+        if (widget.entryMode == TissueEntryMode.workList &&
+            widget.workList != null)
+          widget.workList!
+        else ...[
+          if (widget.onIdentifyByChanged != null)
+            SwitchListTile(
+              key: const ValueKey('tissue-search-by-field-id'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.projectTissueSearchByFieldId),
+              value: widget.identifyBy == TissueIdentifyBy.fieldId,
+              onChanged: (byFieldId) => widget.onIdentifyByChanged!(
+                byFieldId
+                    ? TissueIdentifyBy.fieldId
+                    : TissueIdentifyBy.tissueId,
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: RawAutocomplete<String>(
+                  textEditingController: _controller,
+                  focusNode: _focusNode,
+                  optionsBuilder: (value) =>
+                      suggestTissueCodes(widget.suggestions, value.text),
+                  onSelected: _submit,
+                  optionsViewOpenDirection: widget.suggestionsAbove
+                      ? OptionsViewOpenDirection.up
+                      : OptionsViewOpenDirection.down,
+                  optionsViewBuilder: (context, onSelected, options) =>
+                      TissueCodeSuggestions(
+                        options: options.toList(),
+                        onSelected: onSelected,
+                        alignment: widget.suggestionsAbove
+                            ? Alignment.bottomLeft
+                            : Alignment.topLeft,
+                      ),
+                  fieldViewBuilder:
+                      (
+                        context,
+                        controller,
+                        focusNode,
+                        onFieldSubmitted,
+                      ) => TextField(
+                        key: const ValueKey('tissue-scan-input'),
+                        controller: controller,
+                        focusNode: focusNode,
+                        autofocus: widget.autofocus,
+                        textInputAction: TextInputAction.done,
+                        decoration: InputDecoration(
+                          labelText: widget.identifyBy.localizedScanLabel(
+                            context.l10n,
+                            includeParasites: widget.includeParasites,
+                          ),
+                          hintText: switch (widget.identifyBy) {
+                            TissueIdentifyBy.tissueId =>
+                              context.l10n.projectTissueScanHint,
+                            TissueIdentifyBy.fieldId => 'ABC123 liver etoh',
+                          },
+                          prefixIcon: const Icon(Icons.qr_code_scanner),
+                        ),
+                        // Enter scans the typed text as is, so a scanner's
+                        // code is never swapped for a suggestion.
+                        onSubmitted: _submit,
+                        // Keeps focus on Enter, so back-to-back scans are not
+                        // lost while the field would refocus.
+                        onEditingComplete: () {},
+                      ),
+                ),
+              ),
+              if (widget.onOpenCamera != null) ...[
+                const SizedBox(width: NahpuSpacing.md),
+                IconButton.outlined(
+                  tooltip: context.l10n.projectTissueScanWithCamera,
+                  onPressed: widget.onOpenCamera,
+                  icon: const Icon(Icons.photo_camera_outlined),
+                ),
+              ],
+            ],
+          ),
+        ],
+        const SizedBox(height: NahpuSpacing.md),
+        Row(
+          children: [
+            Expanded(child: TissueScanFeedback(outcome: widget.outcome)),
+            if (widget.isBusy)
+              const SizedBox.square(
+                dimension: NahpuControlSize.iconSmall,
+                child: CircularProgressIndicator(
+                  strokeWidth: NahpuStroke.regular,
+                ),
+              ),
+            TextButton.icon(
+              onPressed: widget.canUndo ? widget.onUndo : null,
+              icon: const Icon(Icons.undo),
+              label: Text(context.l10n.projectTissueUndo),
+            ),
+          ],
+        ),
+      ],
+    );
+    if (!widget.framed) return content;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(NahpuSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (widget.onEntryModeChanged == null)
-              Text(
-                context.l10n.projectTissueScanTube,
-                style: theme.textTheme.titleSmall,
-              )
-            else
-              SegmentedButton<TissueEntryMode>(
-                segments: [
-                  for (final mode in TissueEntryMode.values)
-                    ButtonSegment(
-                      value: mode,
-                      label: Text(mode.localizedLabel(context.l10n)),
-                    ),
-                ],
-                selected: {widget.entryMode},
-                showSelectedIcon: false,
-                onSelectionChanged: (selection) =>
-                    widget.onEntryModeChanged!(selection.first),
-              ),
-            const SizedBox(height: NahpuSpacing.lg),
-            if (widget.entryMode == TissueEntryMode.workList &&
-                widget.workList != null)
-              widget.workList!
-            else ...[
-              if (widget.onIdentifyByChanged != null)
-                SwitchListTile(
-                  key: const ValueKey('tissue-search-by-field-id'),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(context.l10n.projectTissueSearchByFieldId),
-                  value: widget.identifyBy == TissueIdentifyBy.fieldId,
-                  onChanged: (byFieldId) => widget.onIdentifyByChanged!(
-                    byFieldId
-                        ? TissueIdentifyBy.fieldId
-                        : TissueIdentifyBy.tissueId,
-                  ),
-                ),
-              Row(
-                children: [
-                  Expanded(
-                    child: RawAutocomplete<String>(
-                      textEditingController: _controller,
-                      focusNode: _focusNode,
-                      optionsBuilder: (value) =>
-                          suggestTissueCodes(widget.suggestions, value.text),
-                      onSelected: _submit,
-                      optionsViewBuilder: (context, onSelected, options) =>
-                          TissueCodeSuggestions(
-                            options: options.toList(),
-                            onSelected: onSelected,
-                          ),
-                      fieldViewBuilder:
-                          (
-                            context,
-                            controller,
-                            focusNode,
-                            onFieldSubmitted,
-                          ) => TextField(
-                            key: const ValueKey('tissue-scan-input'),
-                            controller: controller,
-                            focusNode: focusNode,
-                            autofocus: widget.autofocus,
-                            textInputAction: TextInputAction.done,
-                            decoration: InputDecoration(
-                              labelText: widget.identifyBy.localizedScanLabel(
-                                context.l10n,
-                                includeParasites: widget.includeParasites,
-                              ),
-                              hintText: switch (widget.identifyBy) {
-                                TissueIdentifyBy.tissueId =>
-                                  context.l10n.projectTissueScanHint,
-                                TissueIdentifyBy.fieldId => 'ABC123 liver etoh',
-                              },
-                              prefixIcon: const Icon(Icons.qr_code_scanner),
-                            ),
-                            // Enter scans the typed text as is, so a scanner's
-                            // code is never swapped for a suggestion.
-                            onSubmitted: _submit,
-                            // Keeps focus on Enter, so back-to-back scans are not
-                            // lost while the field would refocus.
-                            onEditingComplete: () {},
-                          ),
-                    ),
-                  ),
-                  if (widget.onOpenCamera != null) ...[
-                    const SizedBox(width: NahpuSpacing.md),
-                    IconButton.outlined(
-                      tooltip: context.l10n.projectTissueScanWithCamera,
-                      onPressed: widget.onOpenCamera,
-                      icon: const Icon(Icons.photo_camera_outlined),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-            const SizedBox(height: NahpuSpacing.md),
-            Row(
-              children: [
-                Expanded(child: TissueScanFeedback(outcome: widget.outcome)),
-                if (widget.isBusy)
-                  const SizedBox.square(
-                    dimension: NahpuControlSize.iconSmall,
-                    child: CircularProgressIndicator(
-                      strokeWidth: NahpuStroke.regular,
-                    ),
-                  ),
-                TextButton.icon(
-                  onPressed: widget.canUndo ? widget.onUndo : null,
-                  icon: const Icon(Icons.undo),
-                  label: Text(context.l10n.projectTissueUndo),
-                ),
-              ],
-            ),
-          ],
-        ),
+        child: content,
       ),
     );
   }
@@ -221,6 +239,7 @@ class TissueCodeSuggestions extends StatelessWidget {
     super.key,
     required this.options,
     required this.onSelected,
+    this.alignment = Alignment.topLeft,
   });
 
   /// Shown rows before the list scrolls.
@@ -229,11 +248,14 @@ class TissueCodeSuggestions extends StatelessWidget {
   final List<String> options;
   final ValueChanged<String> onSelected;
 
+  /// Bottom left when the list opens above the field.
+  final Alignment alignment;
+
   @override
   Widget build(BuildContext context) {
     final highlighted = AutocompleteHighlightedOption.of(context);
     return Align(
-      alignment: Alignment.topLeft,
+      alignment: alignment,
       child: Material(
         elevation: NahpuElevation.medium,
         borderRadius: BorderRadius.circular(NahpuRadius.sm),

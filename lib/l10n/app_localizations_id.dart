@@ -8147,6 +8147,36 @@ class AppLocalizationsId extends AppLocalizations {
       'Ganti lokasi tersimpan atau nilai bidang yang berbeda';
 
   @override
+  String get projectTissueTabBox => 'Kotak';
+
+  @override
+  String get projectTissueTabSetup => 'Pengaturan';
+
+  @override
+  String projectTissueTabLog(int count) {
+    return 'Log ($count)';
+  }
+
+  @override
+  String get projectTissueFindTubesBody =>
+      'Tabung yang dicocokkan oleh pemindaian dan daftar kerja.';
+
+  @override
+  String get projectTissueUpdateFieldBody =>
+      'Ditulis ke setiap tabung yang ditempatkan.';
+
+  @override
+  String get projectTissueBoxSectionBody =>
+      'Ukuran, urutan pengisian, dan kotak yang sedang diisi.';
+
+  @override
+  String get projectTissueAdvanced => 'Label dan penimpaan';
+
+  @override
+  String get projectTissueAdvancedBody =>
+      'Format label sel dan penanganan nilai yang tersimpan.';
+
+  @override
   String get projectTissueAny => 'Apa saja';
 
   @override

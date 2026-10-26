@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_box_card.dart';
-import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/specimen_curation.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
 import 'package:nahpu/services/database/database.dart';
@@ -78,6 +77,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Phones keep the setup in its own tab.
+  Future<void> openPhoneSetup(WidgetTester tester) async {
+    await tester.tap(find.text('Setup'));
+    await tester.pumpAndSettle();
+  }
+
+  /// Laptops and phones keep the session log in a tab.
+  Future<void> openLog(WidgetTester tester) async {
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Tab && (widget.text?.startsWith('Log (') ?? false),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('a scanned tube fills the next cell and is logged', (
     tester,
   ) async {
@@ -94,6 +110,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1 / 81 filled'), findsOneWidget);
+    await openLog(tester);
     expect(find.text('Box 1: A1'), findsOneWidget);
     expect(find.text('1043'), findsOneWidget);
     final part = await database.select(database.specimenPart).getSingle();
@@ -103,8 +120,16 @@ void main() {
 
   testWidgets('switches to a 100-tube box', (tester) async {
     await pumpScreen(tester, size: const Size(600, 2400));
+    await openPhoneSetup(tester);
 
     await tester.tap(find.text('100 (10×10)'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('tissue-phone-tabs')),
+        matching: find.text('Box'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(TissueBoxCell), findsNWidgets(100));
@@ -147,6 +172,7 @@ void main() {
       size: const Size(420, 2400),
       settings: customLabels,
     );
+    await openPhoneSetup(tester);
     final numbering = tester.getTopLeft(find.text('Numbering'));
     final separator = tester.getTopLeft(find.text('Box separator'));
     expect(separator.dy, greaterThan(numbering.dy));
@@ -217,6 +243,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
+    await openLog(tester);
     expect(find.text('ABC1 · Muscle · DMSO'), findsOneWidget);
     final muscle = await (database.select(
       database.specimenPart,
@@ -440,23 +467,22 @@ void main() {
     expect(find.textContaining('Not found: T-10'), findsOneWidget);
   });
 
-  testWidgets('the log spans the page on wide screens and lists skips', (
+  testWidgets('wide desktops give the log its own column and list skips', (
     tester,
   ) async {
     await addFieldIdParts();
-    await pumpScreen(tester, size: const Size(1400, 2000));
-    final log = find.byType(TissueCheckLogCard);
-    final box = find.byType(TissueBoxCard);
-    expect(tester.getTopLeft(log).dx, tester.getTopLeft(box).dx);
+    await pumpScreen(tester, size: const Size(1600, 1000));
+    final column = find.byKey(const ValueKey('tissue-log-column'));
+    final inspector = find.byKey(const ValueKey('tissue-inspector'));
     expect(
-      tester.getSize(log).width,
-      greaterThan(tester.getSize(box).width * 1.5),
+      tester.getTopLeft(column).dx,
+      greaterThan(tester.getTopRight(inspector).dx),
     );
-    // Checked and skipped sit side by side.
     expect(
-      tester.getTopLeft(find.byKey(const ValueKey('tissue-log-skipped'))).dy,
-      tester.getTopLeft(find.byKey(const ValueKey('tissue-log-checked'))).dy,
+      tester.getTopRight(inspector).dx,
+      greaterThan(tester.getTopRight(find.byType(TissueBoxCard)).dx),
     );
+    expect(find.text('Session log'), findsOneWidget);
 
     await tester.tap(find.text('Work list'));
     await tester.pumpAndSettle();
@@ -473,6 +499,65 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('tall windows cut every column to the box height', (
+    tester,
+  ) async {
+    await pumpScreen(tester, size: const Size(1720, 1300));
+    final boxBottom = tester.getBottomLeft(find.byType(TissueBoxCard)).dy;
+    final inspector = find.byKey(const ValueKey('tissue-inspector'));
+    final column = find.byKey(const ValueKey('tissue-log-column'));
+    expect(tester.getBottomLeft(inspector).dy, boxBottom);
+    expect(tester.getBottomLeft(column).dy, boxBottom);
+    expect(boxBottom, lessThan(1300 - 100));
+  });
+
+  testWidgets('laptops show the log as an inspector tab', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 800));
+    expect(find.byKey(const ValueKey('tissue-log-column')), findsNothing);
+    expect(find.text('Checked (0)'), findsNothing);
+
+    await openLog(tester);
+    expect(find.text('Checked (0)'), findsOneWidget);
+    expect(find.text('Skipped (0)'), findsOneWidget);
+  });
+
+  testWidgets('a growing setup scrolls inside the inspector', (tester) async {
+    await pumpScreen(tester, size: const Size(1280, 800));
+    final box = find.byType(TissueBoxCard);
+    final inspector = find.byKey(const ValueKey('tissue-inspector'));
+    final boxRect = tester.getRect(box);
+    final inspectorRect = tester.getRect(inspector);
+
+    final toggle = find.byKey(const ValueKey('tissue-custom-labels'));
+    await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tissue-include-parasites')));
+    await tester.pumpAndSettle();
+
+    expect(tester.getRect(box), boxRect);
+    expect(tester.getRect(inspector), inspectorRect);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('phones pin the scan card below every tab', (tester) async {
+    await pumpScreen(tester, size: const Size(420, 900));
+    final dock = find.byKey(const ValueKey('tissue-scan-dock'));
+    final scan = find.byKey(const ValueKey('tissue-scan-input'));
+    expect(find.descendant(of: dock, matching: scan), findsOneWidget);
+    expect(tester.getBottomLeft(dock).dy, 900);
+    expect(find.byType(TissueBoxCell), findsWidgets);
+
+    await openPhoneSetup(tester);
+    expect(find.byKey(const ValueKey('tissue-setup-find')), findsOneWidget);
+    expect(find.descendant(of: dock, matching: scan), findsOneWidget);
+
+    await openLog(tester);
+    expect(find.text('Checked (0)'), findsOneWidget);
+    expect(find.descendant(of: dock, matching: scan), findsOneWidget);
   });
 
   for (final width in [420.0, 1400.0]) {
@@ -696,6 +781,11 @@ void main() {
       'A1',
     );
 
+    // The setup scrolls inside the inspector, cut to the box's height.
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('tissue-custom-labels')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('tissue-custom-labels')));
     await tester.pumpAndSettle();
     final example = find.byKey(const ValueKey('tissue-label-example'));
@@ -759,6 +849,7 @@ void main() {
         layout: TissueBoxLayout(numbering: TissueCellNumbering.rowColumn),
       ),
     );
+    await openPhoneSetup(tester);
     expect(
       find.byKey(const ValueKey('tissue-row-column-separator')),
       findsOneWidget,

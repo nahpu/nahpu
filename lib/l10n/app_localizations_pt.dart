@@ -8328,6 +8328,35 @@ class AppLocalizationsPt extends AppLocalizations {
       'Substitui uma localização armazenada ou um valor de campo diferente';
 
   @override
+  String get projectTissueTabBox => 'Caixa';
+
+  @override
+  String get projectTissueTabSetup => 'Configuração';
+
+  @override
+  String projectTissueTabLog(int count) {
+    return 'Registro ($count)';
+  }
+
+  @override
+  String get projectTissueFindTubesBody =>
+      'Quais tubos o escaneamento e a lista de trabalho encontram.';
+
+  @override
+  String get projectTissueUpdateFieldBody => 'Gravado em cada tubo colocado.';
+
+  @override
+  String get projectTissueBoxSectionBody =>
+      'Tamanho, ordem de preenchimento e a caixa sendo preenchida.';
+
+  @override
+  String get projectTissueAdvanced => 'Rótulos e substituição';
+
+  @override
+  String get projectTissueAdvancedBody =>
+      'Formato dos rótulos das células e como tratar valores guardados.';
+
+  @override
   String get projectTissueAny => 'Qualquer';
 
   @override

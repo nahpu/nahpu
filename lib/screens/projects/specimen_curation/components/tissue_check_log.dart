@@ -5,17 +5,21 @@ import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/styles/themes.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
-/// The tubes checked and skipped in this session, newest first. Wide cards
-/// show the two lists side by side.
-class TissueCheckLogCard extends StatelessWidget {
-  const TissueCheckLogCard({
+/// The tubes checked and skipped in this session, newest first. It has no
+/// card of its own; wide panels show the two lists side by side.
+class TissueCheckLogPanel extends StatelessWidget {
+  const TissueCheckLogPanel({
     super.key,
     required this.entries,
     this.skipped = const [],
+    this.showTitle = true,
   });
 
   final List<TissueCheckEntry> entries;
   final List<TissueSkipEntry> skipped;
+
+  /// False drops the Session log heading, as under a tab that names it.
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -32,43 +36,39 @@ class TissueCheckLogCard extends StatelessWidget {
       emptyText: context.l10n.projectTissueLogSkippedEmpty,
       children: [for (final entry in skipped) TissueSkipLogRow(entry: entry)],
     );
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              context.l10n.projectTissueSessionLog,
-              style: theme.textTheme.titleSmall,
-            ),
-            const SizedBox(height: NahpuSpacing.md),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < NahpuBreakpoints.compact) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      checkedSection,
-                      const SizedBox(height: NahpuSpacing.xl),
-                      skippedSection,
-                    ],
-                  );
-                }
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: checkedSection),
-                    const SizedBox(width: NahpuSpacing.xxl),
-                    Expanded(child: skippedSection),
-                  ],
-                );
-              },
-            ),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (showTitle) ...[
+          Text(
+            context.l10n.projectTissueSessionLog,
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: NahpuSpacing.md),
+        ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < NahpuBreakpoints.compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  checkedSection,
+                  const SizedBox(height: NahpuSpacing.xl),
+                  skippedSection,
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: checkedSection),
+                const SizedBox(width: NahpuSpacing.xxl),
+                Expanded(child: skippedSection),
+              ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

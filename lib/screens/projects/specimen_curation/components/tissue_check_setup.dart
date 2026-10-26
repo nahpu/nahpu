@@ -6,9 +6,11 @@ import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/type_labels.dart';
 
-/// Which field a check writes, the value it writes, and the box layout.
-class TissueCheckSetupCard extends StatefulWidget {
-  const TissueCheckSetupCard({
+/// Which tubes a check finds, the field it writes, the box it fills, and
+/// how cell labels and stored values are handled, in titled sections. It has
+/// no card of its own, so the inspector or a tab can host it.
+class TissueCheckSetupPanel extends StatefulWidget {
+  const TissueCheckSetupPanel({
     super.key,
     required this.settings,
     required this.onChanged,
@@ -26,10 +28,10 @@ class TissueCheckSetupCard extends StatefulWidget {
   final List<String> parasiteCategories;
 
   @override
-  State<TissueCheckSetupCard> createState() => _TissueCheckSetupCardState();
+  State<TissueCheckSetupPanel> createState() => _TissueCheckSetupPanelState();
 }
 
-class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
+class _TissueCheckSetupPanelState extends State<TissueCheckSetupPanel> {
   late final _valueCtr = TextEditingController(text: widget.settings.value);
   late final _boxLabelCtr = TextEditingController(
     text: widget.settings.boxLabel,
@@ -39,7 +41,7 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
   );
 
   @override
-  void didUpdateWidget(covariant TissueCheckSetupCard oldWidget) {
+  void didUpdateWidget(covariant TissueCheckSetupPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     _sync(_valueCtr, widget.settings.value);
     _sync(_boxLabelCtr, widget.settings.boxLabel);
@@ -60,17 +62,16 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
   Widget build(BuildContext context) {
     final settings = widget.settings;
     final layout = settings.layout;
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(NahpuSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TissueSetupSection(
+          key: const ValueKey('tissue-setup-find'),
+          divided: false,
+          icon: Icons.search,
+          title: context.l10n.projectTissueFindTubes,
+          description: context.l10n.projectTissueFindTubesBody,
           children: [
-            Text(
-              context.l10n.projectTissueFindTubes,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
             SwitchListTile(
               key: const ValueKey('tissue-include-parasites'),
               contentPadding: EdgeInsets.zero,
@@ -112,54 +113,53 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                 ),
               ),
             ],
-            const SizedBox(height: NahpuSpacing.xxl),
-            Text(
-              context.l10n.projectTissueUpdateField,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: NahpuSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: DropdownButtonFormField<TissueCheckField>(
-                    initialValue: settings.field,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.projectTissueField,
-                    ),
-                    items: [
-                      for (final field in TissueCheckField.values)
-                        DropdownMenuItem(
-                          value: field,
-                          child: Text(field.localizedLabel(context.l10n)),
-                        ),
-                    ],
-                    onChanged: (field) {
-                      if (field != null) {
-                        widget.onChanged(settings.copyWith(field: field));
-                      }
-                    },
-                  ),
+          ],
+        ),
+        TissueSetupSection(
+          key: const ValueKey('tissue-setup-update'),
+          icon: Icons.edit_note,
+          title: context.l10n.projectTissueUpdateField,
+          description: context.l10n.projectTissueUpdateFieldBody,
+          children: [
+            TissueSetupPair(
+              first: DropdownButtonFormField<TissueCheckField>(
+                initialValue: settings.field,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueField,
                 ),
-                const SizedBox(width: NahpuSpacing.md),
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    key: const ValueKey('tissue-check-value'),
-                    controller: _valueCtr,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.projectTissueValue,
-                      hintText: context.l10n.projectTissueMuseumCode,
+                items: [
+                  for (final field in TissueCheckField.values)
+                    DropdownMenuItem(
+                      value: field,
+                      child: Text(field.localizedLabel(context.l10n)),
                     ),
-                    onChanged: (value) => widget.onChanged(
-                      widget.settings.copyWith(value: value),
-                    ),
-                  ),
+                ],
+                onChanged: (field) {
+                  if (field != null) {
+                    widget.onChanged(settings.copyWith(field: field));
+                  }
+                },
+              ),
+              second: TextField(
+                key: const ValueKey('tissue-check-value'),
+                controller: _valueCtr,
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueValue,
+                  hintText: context.l10n.projectTissueMuseumCode,
                 ),
-              ],
+                onChanged: (value) =>
+                    widget.onChanged(widget.settings.copyWith(value: value)),
+              ),
             ),
-            const SizedBox(height: NahpuSpacing.xl),
+          ],
+        ),
+        TissueSetupSection(
+          key: const ValueKey('tissue-setup-box'),
+          icon: Icons.inventory_2_outlined,
+          title: context.l10n.projectTissueTabBox,
+          description: context.l10n.projectTissueBoxSectionBody,
+          children: [
             Text(
               context.l10n.projectTissueBoxSize,
               style: Theme.of(context).textTheme.labelMedium,
@@ -199,7 +199,42 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
                 );
               },
             ),
-            const SizedBox(height: NahpuSpacing.md),
+            const SizedBox(height: NahpuSpacing.xl),
+            TissueSetupPair(
+              first: TextField(
+                controller: _boxLabelCtr,
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueBoxLabel,
+                  hintText: context.l10n.projectTissueBoxHint,
+                ),
+                onChanged: (label) =>
+                    widget.onChanged(widget.settings.copyWith(boxLabel: label)),
+              ),
+              second: TextField(
+                controller: _boxNumberCtr,
+                decoration: InputDecoration(
+                  labelText: context.l10n.projectTissueBoxNumber,
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (text) {
+                  final number = int.tryParse(text);
+                  if (number != null && number > 0) {
+                    widget.onChanged(
+                      widget.settings.copyWith(boxNumber: number),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        TissueSetupSection(
+          key: const ValueKey('tissue-setup-advanced'),
+          icon: Icons.tune,
+          title: context.l10n.projectTissueAdvanced,
+          description: context.l10n.projectTissueAdvancedBody,
+          children: [
             SwitchListTile(
               key: const ValueKey('tissue-custom-labels'),
               contentPadding: EdgeInsets.zero,
@@ -208,50 +243,13 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
               onChanged: (custom) =>
                   widget.onChanged(settings.copyWith(customLabels: custom)),
             ),
-            if (settings.customLabels)
+            if (settings.customLabels) ...[
               TissueLabelFormatFields(
                 settings: settings,
                 onChanged: widget.onChanged,
               ),
-            const SizedBox(height: NahpuSpacing.xl),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _boxLabelCtr,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.projectTissueBoxLabel,
-                      hintText: context.l10n.projectTissueBoxHint,
-                    ),
-                    onChanged: (label) => widget.onChanged(
-                      widget.settings.copyWith(boxLabel: label),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: NahpuSpacing.md),
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _boxNumberCtr,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.projectTissueBoxNumber,
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (text) {
-                      final number = int.tryParse(text);
-                      if (number != null && number > 0) {
-                        widget.onChanged(
-                          widget.settings.copyWith(boxNumber: number),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: NahpuSpacing.md),
+              const SizedBox(height: NahpuSpacing.md),
+            ],
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(context.l10n.projectTissueOverwrite),
@@ -262,7 +260,7 @@ class _TissueCheckSetupCardState extends State<TissueCheckSetupCard> {
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -388,6 +386,76 @@ class _TissueLabelFormatFieldsState extends State<TissueLabelFormatFields> {
 
   void _update(TissueBoxLayout layout) {
     widget.onChanged(widget.settings.copyWith(layout: layout));
+  }
+}
+
+/// A titled group of setup fields, divided from the group above it.
+class TissueSetupSection extends StatelessWidget {
+  const TissueSetupSection({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.children,
+    this.divided = true,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final List<Widget> children;
+
+  /// False drops the rule above, as on the first section.
+  final bool divided;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: divided
+            ? Border(top: BorderSide(color: theme.colorScheme.outlineVariant))
+            : null,
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: divided ? NahpuSpacing.xl : 0,
+          bottom: NahpuSpacing.xl,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  size: NahpuControlSize.iconMedium,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: NahpuSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: theme.textTheme.titleSmall),
+                      Text(
+                        description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: NahpuSpacing.lg),
+            ...children,
+          ],
+        ),
+      ),
+    );
   }
 }
 

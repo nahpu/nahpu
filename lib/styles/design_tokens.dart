@@ -57,6 +57,9 @@ abstract final class NahpuBreakpoints {
   /// Laptop-sized and wider: enough room for the project rail to show its
   /// labels without crowding the page beside it.
   static const double laptop = 1280;
+
+  /// Wide desktops: room for a third column beside two working panes.
+  static const double wide = 1440;
 }
 
 /// Scroll tuning for the record forms.
@@ -139,4 +142,23 @@ abstract final class NahpuContentWidth {
 
   /// Details beside a statistics plot, such as the selected network node.
   static const double statisticsDetails = 280;
+
+  /// Tissue curation workbench: the box, its setup, and the session log.
+  static const double curation = 1680;
+}
+
+/// Geometry for the tissue curation workbench on wide screens.
+abstract final class NahpuCurationLayout {
+  /// Shortest the workbench gets before the page scrolls instead.
+  static const double minHeight = 640;
+
+  /// Box card height beyond its square grid: header, progress, legend, and
+  /// pager, with room for the legend to wrap on narrow boxes.
+  static const double boxChrome = 180;
+
+  /// Narrowest the box grid gets beside the inspector.
+  static const double minBoxWidth = 360;
+
+  /// Session log column on wide desktops.
+  static const double logWidth = 360;
 }
