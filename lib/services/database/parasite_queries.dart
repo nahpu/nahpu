@@ -85,6 +85,14 @@ class ParasiteQuery extends DatabaseAccessor<Database>
     return _getProjectParasites(projectUuid, where: specimen.uuid.isIn(uuids));
   }
 
+  /// The project's parasites whose ids are in [ids].
+  Future<List<ParasiteProjectRecord>> getParasitesByIds(
+    String projectUuid,
+    Iterable<int> ids,
+  ) {
+    return _getProjectParasites(projectUuid, where: parasite.id.isIn(ids));
+  }
+
   /// The project's parasites whose storage location starts with [prefix],
   /// ignoring leading spaces.
   Future<List<ParasiteProjectRecord>> getParasitesWithLocationPrefix(

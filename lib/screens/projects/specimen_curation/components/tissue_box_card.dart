@@ -23,6 +23,7 @@ class TissueBoxCard extends StatelessWidget {
     this.inspected,
     this.onInspect,
     this.inspector,
+    this.replacing,
   });
 
   final String boxName;
@@ -37,6 +38,10 @@ class TissueBoxCard extends StatelessWidget {
   /// The filled cell whose tubes [inspector] shows.
   final TissueCell? inspected;
   final ValueChanged<TissueCell>? onInspect;
+
+  /// The tubes the next cell replaces, when it is a filled cell chosen to
+  /// replace them.
+  final String? replacing;
 
   /// Shown below the grid while a filled cell is inspected.
   final Widget? inspector;
@@ -88,14 +93,33 @@ class TissueBoxCard extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    Text(
-                      next == null
-                          ? context.l10n.projectTissueFull
-                          : layout.cellLabel(next!),
-                      key: const ValueKey('tissue-next-cell'),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
+                    // The replace note sits beside the label, so the
+                    // header keeps its height and the grid stays put.
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        if (replacing case final labels?) ...[
+                          Text(
+                            context.l10n.projectTissueReplacing(labels),
+                            key: const ValueKey('tissue-next-replacing'),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: NahpuTheme.warningText(theme.colorScheme),
+                            ),
+                          ),
+                          const SizedBox(width: NahpuSpacing.md),
+                        ],
+                        Text(
+                          next == null
+                              ? context.l10n.projectTissueFull
+                              : layout.cellLabel(next!),
+                          key: const ValueKey('tissue-next-cell'),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

@@ -13,6 +13,7 @@ class TissueCheckLogPanel extends StatelessWidget {
     required this.entries,
     this.skipped = const [],
     this.showTitle = true,
+    this.onExport,
   });
 
   final List<TissueCheckEntry> entries;
@@ -20,6 +21,9 @@ class TissueCheckLogPanel extends StatelessWidget {
 
   /// False drops the Session log heading, as under a tab that names it.
   final bool showTitle;
+
+  /// Opens the export. Null disables the button, as while the log is empty.
+  final VoidCallback? onExport;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +43,25 @@ class TissueCheckLogPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showTitle) ...[
-          Text(
-            context.l10n.projectTissueSessionLog,
-            style: theme.textTheme.titleSmall,
-          ),
-          const SizedBox(height: NahpuSpacing.md),
-        ],
+        Row(
+          children: [
+            Expanded(
+              child: showTitle
+                  ? Text(
+                      context.l10n.projectTissueSessionLog,
+                      style: theme.textTheme.titleSmall,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            TextButton.icon(
+              key: const ValueKey('tissue-log-export'),
+              onPressed: onExport,
+              icon: const Icon(Icons.file_download_outlined),
+              label: Text(context.l10n.projectTissueExportLog),
+            ),
+          ],
+        ),
+        const SizedBox(height: NahpuSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth < NahpuBreakpoints.compact) {
@@ -138,10 +154,23 @@ class TissueCheckLogRow extends StatelessWidget {
           ),
           const SizedBox(width: NahpuSpacing.md),
           Expanded(
-            child: Text(
-              entry.label,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (entry.displaced.isNotEmpty)
+                  Text(
+                    context.l10n.projectTissueReplacedLog(
+                      entry.displaced.map((e) => e.label).join(', '),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    style: secondary,
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: NahpuSpacing.md),

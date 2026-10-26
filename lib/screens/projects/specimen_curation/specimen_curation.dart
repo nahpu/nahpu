@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -7,12 +9,17 @@ import 'package:nahpu/screens/projects/specimen_curation/components/tissue_cell_
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_log.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_check_setup.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_curation_layout.dart';
+import 'package:nahpu/screens/projects/specimen_curation/components/tissue_log_export_dialog.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_scan_card.dart';
 import 'package:nahpu/screens/projects/specimen_curation/components/tissue_work_list.dart';
 import 'package:nahpu/screens/shared/common/common.dart';
 import 'package:nahpu/screens/shared/dialogs/adaptive_sheet_dialog.dart';
 import 'package:nahpu/screens/shared/media/qr.dart';
 import 'package:nahpu/screens/specimens/specimen_view.dart';
+import 'package:nahpu/services/export/document_writer.dart';
+import 'package:nahpu/services/export/export_field_catalog.dart';
+import 'package:nahpu/services/localization/type_labels.dart';
+import 'package:nahpu/services/providers/custom_fields.dart';
 import 'package:nahpu/services/providers/database.dart';
 import 'package:nahpu/services/providers/projects.dart';
 import 'package:nahpu/services/providers/settings.dart';
@@ -25,6 +32,8 @@ import 'package:nahpu/services/specimen_curation/tissue_check_service.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_session.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
 import 'package:nahpu/services/specimen_curation/tissue_item.dart';
+import 'package:nahpu/services/specimen_curation/tissue_log_export.dart';
+import 'package:nahpu/services/types/export.dart';
 import 'package:nahpu/styles/design_tokens.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 
@@ -100,6 +109,12 @@ class _SpecimenCurationScreenState
       shortLabelFor: _session.shortLabelFor,
       labelFor: _session.labelFor,
       inspected: inspectedItems.isEmpty ? null : inspected,
+      replacing: _session.replaceTarget == null
+          ? null
+          : _session
+                .itemsAt(_session.replaceTarget!)
+                .map(_session.labelFor)
+                .join(', '),
       onInspect: (cell) => setState(
         () => _inspected = _inspected?.cell == cell
             ? null
@@ -114,6 +129,9 @@ class _SpecimenCurationScreenState
               detailFor: _session.detailFor,
               onDetails: _showDetails,
               onClose: () => setState(() => _inspected = null),
+              onReplace: _session.replaceTarget == inspected
+                  ? null
+                  : () => _confirmReplace(inspected, inspectedItems),
             ),
       onCellSelected: _selectCell,
       onNextBox: () => _changeBox(_session.nextBox),
@@ -166,6 +184,9 @@ class _SpecimenCurationScreenState
       skipped: _session.skipped,
       // Tabs name the log; only its own column needs a heading.
       showTitle: width == TissueCurationWidth.extraWide,
+      onExport: _session.entries.isEmpty && _session.skipped.isEmpty
+          ? null
+          : _openLogExport,
     );
     final logCount = _session.entries.length + _session.skipped.length;
     final modeSelector = Align(
@@ -274,6 +295,119 @@ class _SpecimenCurationScreenState
     if (_entryMode == TissueEntryMode.workList) await _reloadWorkList();
   }
 
+  Future<void> _openLogExport() async {
+    final definitions = await ref.read(
+      allCustomFieldDefinitionsProvider.future,
+    );
+    if (!mounted) return;
+    String? customFieldName(String key) =>
+        exportCustomFieldLabel(key, definitions);
+    final settings = _session.settings;
+    await showAdaptiveSheetDialog<void>(
+      context: context,
+      builder: (context, isSheet) => TissueLogExportDialog(
+        checkedCount: _session.entries.length,
+        skippedCount: _session.skipped.length,
+        defaultFileStem: 'tissue_log_${settings.boxName}',
+        fieldGroups: tissueLogFieldGroups(
+          ref.read(databaseProvider),
+          definitions,
+        ),
+        columns: settings.logColumns,
+        header: settings.logHeader,
+        customFieldName: customFieldName,
+        showCloseButton: !isSheet,
+        onColumnsChanged: (columns, header) => _updateSettings(
+          _session.settings.copyWith(logColumns: columns, logHeader: header),
+        ),
+        onExport:
+            ({
+              required format,
+              required fileStem,
+              required directory,
+              required columns,
+              required header,
+            }) => _exportLog(
+              format: format,
+              fileStem: fileStem,
+              directory: directory,
+              columns: columns,
+              header: header,
+              customFieldName: customFieldName,
+            ),
+      ),
+    );
+  }
+
+  Future<File> _exportLog({
+    required ExportFmt format,
+    required String fileStem,
+    required Directory? directory,
+    required List<String> columns,
+    required TissueLogHeader header,
+    required String? Function(String key) customFieldName,
+  }) {
+    final l10n = context.l10n;
+    final database = ref.read(databaseProvider);
+    return TissueLogExportService(
+      recordsFor: _session.service.recordsFor,
+      fieldIdOf: _session.service.fieldIdOf,
+      valuesFor: (record) => switch (record.kind) {
+        TissueItemKind.part => documentFieldValuesForSpecimenPart(
+          database,
+          record.partRecord!,
+          ref,
+        ),
+        TissueItemKind.parasite => documentFieldValuesForParasite(
+          database,
+          record.parasiteRecord!,
+          ref,
+        ),
+      },
+    ).write(
+      entries: _session.entries,
+      skipped: _session.skipped,
+      labels: TissueLogLabels(
+        column: (column) => column.localizedLabel(l10n),
+        field: (field) => field.localizedLabel(l10n),
+        checked: l10n.projectTissueLogStatusChecked,
+        skipped: l10n.projectTissueLogStatusSkipped,
+        part: l10n.projectTissuePart,
+        parasite: l10n.projectTissueParasite,
+        customFieldName: customFieldName,
+      ),
+      format: format,
+      fileStem: fileStem,
+      directory: directory,
+      customColumns: columns,
+      header: header,
+    );
+  }
+
+  Future<void> _confirmReplace(
+    TissueCell cell,
+    List<TissueItemRecord> items,
+  ) async {
+    final cellLabel = _session.layout.cellLabel(cell);
+    final confirmed = await showAdaptiveConfirmation(
+      context: context,
+      title: context.l10n.projectTissueReplaceTitle(cellLabel),
+      message: context.l10n.projectTissueReplaceMessage(
+        items.length,
+        cellLabel,
+        items.map(_session.labelFor).join(', '),
+      ),
+      confirmLabel: context.l10n.projectTissueReplace,
+      confirmIcon: Icons.swap_horiz,
+      isDestructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    setState(() {
+      _session.replaceCell(cell);
+      _inspected = null;
+    });
+  }
+
   void _selectCell(TissueCell cell) {
     setState(() => _session.selectCell(cell));
   }
@@ -350,6 +484,11 @@ class _SpecimenCurationScreenState
         }
       });
     });
+    // Replaced tubes are unplaced again, so the list may hold them now.
+    final last = _session.entries.firstOrNull;
+    if (mounted && last != null && last.displaced.isNotEmpty) {
+      await _reloadWorkList();
+    }
   }
 
   void _skipCurrent() {

@@ -41,6 +41,7 @@ class TissueCheckEntry {
     required this.location,
     this.previousValue,
     this.previousLocation,
+    this.displaced = const [],
   });
 
   final String code;
@@ -59,6 +60,25 @@ class TissueCheckEntry {
   final String location;
   final String? previousValue;
   final String? previousLocation;
+
+  /// Tubes this one replaced in its cell, whose locations were cleared.
+  final List<TissueDisplacedTube> displaced;
+}
+
+/// A tube moved out of a cell when another tube replaced it, with the
+/// location it had so undo can put it back.
+class TissueDisplacedTube {
+  const TissueDisplacedTube({
+    required this.kind,
+    required this.itemId,
+    required this.label,
+    required this.location,
+  });
+
+  final TissueItemKind kind;
+  final int itemId;
+  final String label;
+  final String? location;
 }
 
 /// A tube passed over during this session: skipped on the work list, or a
@@ -105,6 +125,10 @@ class TissueCheckSession {
   final List<TissueCheckEntry> _entries = [];
   final List<TissueSkipEntry> _skipped = [];
   TissueCell? _next;
+
+  /// A filled cell chosen as the next one; placing there moves its tubes
+  /// out.
+  TissueCell? _replaceCell;
   Future<void> _pending = Future.value();
 
   TissueCheckSettings get settings => _settings;
@@ -130,6 +154,9 @@ class TissueCheckSession {
   List<TissueSkipEntry> get skipped => List.unmodifiable(_skipped.reversed);
 
   TissueCell? get next => _next;
+
+  /// The filled cell the next tube replaces, or null.
+  TissueCell? get replaceTarget => _replaceCell;
   int get filledCount => _occupied.length;
   bool get isFull => _next == null;
 
@@ -163,6 +190,16 @@ class TissueCheckSession {
   void selectCell(TissueCell cell) {
     if (layout.contains(cell) && !_occupied.containsKey(cell)) {
       _next = cell;
+      _replaceCell = null;
+    }
+  }
+
+  /// Makes the filled [cell] the next cell. The next tube placed goes in
+  /// it, and the tubes there lose their location until undo.
+  void replaceCell(TissueCell cell) {
+    if (layout.contains(cell) && _occupied.containsKey(cell)) {
+      _next = cell;
+      _replaceCell = cell;
     }
   }
 
@@ -278,6 +315,9 @@ class TissueCheckSession {
         value: entry.previousValue,
         location: entry.previousLocation,
       );
+      for (final tube in entry.displaced) {
+        await service.setLocation(tube.kind, tube.itemId, tube.location);
+      }
       onWrite?.call();
       if (entry.boxNumber != _settings.boxNumber) {
         _settings = _settings.copyWith(boxNumber: entry.boxNumber);
@@ -390,6 +430,9 @@ class TissueCheckSession {
                   '"${write.previousValue}". Turn on overwrite to replace it.',
       );
     }
+    final displaced = cell == _replaceCell
+        ? await _moveOut(cell, keep: record.key)
+        : const <TissueDisplacedTube>[];
     onWrite?.call();
 
     _entries.add(
@@ -405,16 +448,42 @@ class TissueCheckSession {
         location: location,
         previousValue: write.previousValue,
         previousLocation: write.previousLocation,
+        displaced: displaced,
       ),
     );
     _skipped.removeWhere((e) => e.key == record.key || e.label == code);
     // Reads the box back, so the cell holds the tube as stored now.
     await _loadBox();
     _next = layout.firstFree(_occupied.keys.toSet(), from: cell);
+    final replaced = displaced.isEmpty
+        ? ''
+        : ' · replaced ${displaced.map((e) => e.label).join(', ')}';
     return TissueScanOutcome(
       TissueScanStatus.checked,
-      '$label → $location · ${_settings.field.label} = $value',
+      '$label → $location · ${_settings.field.label} = $value$replaced',
     );
+  }
+
+  /// Clears the location of every tube in [cell] but the one being placed,
+  /// [keep], and returns what they held for undo.
+  Future<List<TissueDisplacedTube>> _moveOut(
+    TissueCell cell, {
+    required (TissueItemKind, int) keep,
+  }) async {
+    final displaced = [
+      for (final item in _occupied[cell] ?? const <TissueItemRecord>[])
+        if (item.key != keep)
+          TissueDisplacedTube(
+            kind: item.kind,
+            itemId: item.id,
+            label: labelFor(item),
+            location: item.storageLocation,
+          ),
+    ];
+    for (final tube in displaced) {
+      await service.setLocation(tube.kind, tube.itemId, null);
+    }
+    return displaced;
   }
 
   /// Keeps one skip per tube, moved to the newest position.
@@ -428,6 +497,7 @@ class TissueCheckSession {
 
   Future<void> _loadBox() async {
     _occupied.clear();
+    _replaceCell = null;
     final items = await service.itemsInBox(
       _settings.boxName,
       format: layout.labelFormat,

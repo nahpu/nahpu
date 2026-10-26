@@ -313,6 +313,21 @@ class TissueCheckService {
     return _write(kind, id, field, value, location);
   }
 
+  /// Writes only the storage location, as when a tube is moved out of a
+  /// cell another tube replaces it in. Null clears it.
+  Future<void> setLocation(TissueItemKind kind, int id, String? location) {
+    return switch (kind) {
+      TissueItemKind.part => SpecimenPartQuery(database).updateSpecimenPart(
+        id,
+        SpecimenPartCompanion(storageLocation: db.Value(location)),
+      ),
+      TissueItemKind.parasite => ParasiteQuery(database).updateParasite(
+        id,
+        ParasiteCompanion(storageLocation: db.Value(location)),
+      ),
+    };
+  }
+
   /// The tubes stored in the box named [boxName], parts and parasites
   /// alike, since both fill the same cells. Their locations may come from
   /// this tool or be typed in the part and parasite forms.
@@ -332,6 +347,37 @@ class TissueCheckService {
       ...parts.map(TissueItemRecord.part),
       ...parasites.map(TissueItemRecord.parasite),
     ];
+  }
+
+  /// The tubes [keys] point to, read fresh so they carry this session's
+  /// writes. Tubes deleted since they were logged are left out.
+  Future<Map<(TissueItemKind, int), TissueItemRecord>> recordsFor(
+    Iterable<(TissueItemKind, int)> keys,
+  ) async {
+    await loadFieldIds();
+    final partIds = {
+      for (final (kind, id) in keys)
+        if (kind == TissueItemKind.part) id,
+    };
+    final parasiteIds = {
+      for (final (kind, id) in keys)
+        if (kind == TissueItemKind.parasite) id,
+    };
+    final parts = partIds.isEmpty
+        ? const <SpecimenPartProjectRecord>[]
+        : await SpecimenPartQuery(database).getPartsByIds(projectUuid, partIds);
+    final parasites = parasiteIds.isEmpty
+        ? const <ParasiteProjectRecord>[]
+        : await ParasiteQuery(
+            database,
+          ).getParasitesByIds(projectUuid, parasiteIds);
+    return {
+      for (final record in [
+        ...parts.map(TissueItemRecord.part),
+        ...parasites.map(TissueItemRecord.parasite),
+      ])
+        record.key: record,
+    };
   }
 
   Future<void> _write(

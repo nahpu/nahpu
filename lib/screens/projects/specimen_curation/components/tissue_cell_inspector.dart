@@ -18,6 +18,7 @@ class TissueCellInspector extends StatelessWidget {
     required this.detailFor,
     required this.onDetails,
     required this.onClose,
+    this.onReplace,
   });
 
   final String cellLabel;
@@ -28,6 +29,10 @@ class TissueCellInspector extends StatelessWidget {
   final String Function(TissueItemRecord record) detailFor;
   final ValueChanged<TissueItemRecord> onDetails;
   final VoidCallback onClose;
+
+  /// Makes this cell the next one after a confirmation, replacing its
+  /// tubes. Null hides the button.
+  final VoidCallback? onReplace;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +104,23 @@ class TissueCellInspector extends StatelessWidget {
                     child: Text(context.l10n.projectTissueDetails),
                   ),
                 ],
+              ),
+            if (onReplace != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const ValueKey('tissue-cell-replace'),
+                  // No leading padding, so the icon lines up with the
+                  // cell label and tube rows above.
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsetsDirectional.only(
+                      end: NahpuSpacing.lg,
+                    ),
+                  ),
+                  onPressed: onReplace,
+                  icon: const Icon(Icons.swap_horiz),
+                  label: Text(context.l10n.projectTissueReplace),
+                ),
               ),
           ],
         ),

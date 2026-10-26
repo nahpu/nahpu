@@ -230,6 +230,69 @@ void main() {
       expect(stored.storageLocation, 'Box 1: A2');
     });
 
+    test('a replaced cell takes the next tube and frees the old one', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      final session = createSession();
+      await session.load();
+      session.replaceCell(const TissueCell(0, 0));
+      expect(session.nextLocation, 'Box 1: A1');
+      expect(session.replaceTarget, const TissueCell(0, 0));
+
+      final outcome = await session.scan('T-2');
+      expect(outcome.status, TissueScanStatus.checked);
+      expect(outcome.message, contains('replaced T-1'));
+      expect((await _part(database, 2)).storageLocation, 'Box 1: A1');
+      expect((await _part(database, 1)).storageLocation, isNull);
+      expect(session.entries.single.displaced.single.label, 'T-1');
+      expect(session.replaceTarget, isNull);
+      expect(session.nextLocation, 'Box 1: A2');
+
+      await session.undoLast();
+      expect((await _part(database, 1)).storageLocation, 'Box 1: A1');
+      expect((await _part(database, 2)).storageLocation, isNull);
+      expect(session.itemsAt(const TissueCell(0, 0)).single.code, 'T-1');
+    });
+
+    test('replacing ignores empty cells and clears on a new box', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      final session = createSession();
+      await session.load();
+      session.replaceCell(const TissueCell(0, 1));
+      expect(session.replaceTarget, isNull);
+
+      session.replaceCell(const TissueCell(0, 0));
+      session.selectCell(const TissueCell(0, 2));
+      expect(session.replaceTarget, isNull);
+
+      session.replaceCell(const TissueCell(0, 0));
+      await session.nextBox();
+      expect(session.replaceTarget, isNull);
+    });
+
+    test('placing the tube already in the cell frees nothing', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      final session = createSession(
+        const TissueCheckSettings(value: 'EXM', overwrite: true),
+      );
+      await session.load();
+      session.replaceCell(const TissueCell(0, 0));
+      final outcome = await session.scan('T-1');
+      expect(outcome.status, TissueScanStatus.checked);
+      expect(session.entries.single.displaced, isEmpty);
+      expect((await _part(database, 1)).storageLocation, 'Box 1: A1');
+    });
+
+    test('a conflict leaves the replaced tube in its cell', () async {
+      await _setLocation(database, 'T-1', 'Box 1: A1');
+      final session = createSession();
+      await session.load();
+      session.replaceCell(const TissueCell(0, 0));
+      final outcome = await session.scan('T-STORED');
+      expect(outcome.status, TissueScanStatus.conflict);
+      expect((await _part(database, 1)).storageLocation, 'Box 1: A1');
+      expect(session.replaceTarget, const TissueCell(0, 0));
+    });
+
     test('does not use a cell for unknown or repeated codes', () async {
       final session = createSession();
       await session.load();

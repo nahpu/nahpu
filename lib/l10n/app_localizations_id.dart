@@ -8177,6 +8177,139 @@ class AppLocalizationsId extends AppLocalizations {
       'Format label sel dan penanganan nilai yang tersimpan.';
 
   @override
+  String get projectTissueExportLog => 'Ekspor log';
+
+  @override
+  String get projectTissueExportLogTitle => 'Ekspor log sesi';
+
+  @override
+  String projectTissueExportSummary(int checked, int skipped) {
+    return '$checked diperiksa, $skipped dilewati';
+  }
+
+  @override
+  String get projectTissueLogStatusChecked => 'Diperiksa';
+
+  @override
+  String get projectTissueLogStatusSkipped => 'Dilewati';
+
+  @override
+  String get projectTissuePart => 'Bagian';
+
+  @override
+  String get projectTissueColStatus => 'Status';
+
+  @override
+  String get projectTissueColOrder => 'Urutan';
+
+  @override
+  String get projectTissueColFieldId => 'ID lapangan';
+
+  @override
+  String get projectTissueColTubeId => 'ID tabung';
+
+  @override
+  String get projectTissueColKind => 'Jenis';
+
+  @override
+  String get projectTissueColType => 'Tipe';
+
+  @override
+  String get projectTissueColTreatment => 'Perlakuan';
+
+  @override
+  String get projectTissueColField => 'Kolom diperbarui';
+
+  @override
+  String get projectTissueColValue => 'Nilai';
+
+  @override
+  String get projectTissueColLocation => 'Lokasi';
+
+  @override
+  String get projectTissueColBox => 'Kotak';
+
+  @override
+  String get projectTissueColCell => 'Sel';
+
+  @override
+  String get projectTissueColPreviousValue => 'Nilai sebelumnya';
+
+  @override
+  String get projectTissueColPreviousLocation => 'Lokasi sebelumnya';
+
+  @override
+  String get projectTissueLogColumns => 'Kolom';
+
+  @override
+  String get projectTissueLogColumnsBody =>
+      'Kolom kurasi selalu di depan. Tambahkan kolom bagian, spesimen, dan rekaman terkait setelahnya.';
+
+  @override
+  String get projectTissueLogAddColumns => 'Tambah kolom';
+
+  @override
+  String get projectTissueLogAddedColumns => 'Kolom tambahan';
+
+  @override
+  String get projectTissueLogNoAddedColumns =>
+      'Tidak ada kolom tambahan. Ekspor hanya berisi kolom kurasi.';
+
+  @override
+  String get projectTissueLogHeaderStyle => 'Judul kolom tambahan';
+
+  @override
+  String get projectTissueLogHeaderFieldName => 'Nama kolom';
+
+  @override
+  String get projectTissueLogHeaderKey => 'Kunci NAHPU';
+
+  @override
+  String get projectTissueLogChooseColumns => 'Pilih kolom';
+
+  @override
+  String projectTissueLogRemoveColumn(String name) {
+    return 'Hapus $name';
+  }
+
+  @override
+  String projectTissueLogSelectedCount(int count) {
+    return '$count dipilih';
+  }
+
+  @override
+  String get projectTissueReplace => 'Ganti';
+
+  @override
+  String projectTissueReplaceTitle(String cell) {
+    return 'Ganti $cell?';
+  }
+
+  @override
+  String projectTissueReplaceMessage(int count, String cell, String labels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Tabung berikutnya yang dipindai atau ditempatkan masuk ke $cell. $labels kehilangan lokasinya dan kembali ke daftar kerja. Urungkan untuk mengembalikannya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectTissueReplacing(String labels) {
+    return 'Mengganti $labels';
+  }
+
+  @override
+  String projectTissueReplacedLog(String labels) {
+    return 'Mengganti $labels';
+  }
+
+  @override
+  String get projectTissueColReplaced => 'Diganti';
+
+  @override
   String get projectTissueAny => 'Apa saja';
 
   @override

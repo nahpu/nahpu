@@ -8264,6 +8264,141 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cell label format and how stored values are handled.';
 
   @override
+  String get projectTissueExportLog => 'Export log';
+
+  @override
+  String get projectTissueExportLogTitle => 'Export session log';
+
+  @override
+  String projectTissueExportSummary(int checked, int skipped) {
+    return '$checked checked, $skipped skipped';
+  }
+
+  @override
+  String get projectTissueLogStatusChecked => 'Checked';
+
+  @override
+  String get projectTissueLogStatusSkipped => 'Skipped';
+
+  @override
+  String get projectTissuePart => 'Part';
+
+  @override
+  String get projectTissueColStatus => 'Status';
+
+  @override
+  String get projectTissueColOrder => 'Order';
+
+  @override
+  String get projectTissueColFieldId => 'Field ID';
+
+  @override
+  String get projectTissueColTubeId => 'Tube ID';
+
+  @override
+  String get projectTissueColKind => 'Kind';
+
+  @override
+  String get projectTissueColType => 'Type';
+
+  @override
+  String get projectTissueColTreatment => 'Treatment';
+
+  @override
+  String get projectTissueColField => 'Updated field';
+
+  @override
+  String get projectTissueColValue => 'Value';
+
+  @override
+  String get projectTissueColLocation => 'Location';
+
+  @override
+  String get projectTissueColBox => 'Box';
+
+  @override
+  String get projectTissueColCell => 'Cell';
+
+  @override
+  String get projectTissueColPreviousValue => 'Previous value';
+
+  @override
+  String get projectTissueColPreviousLocation => 'Previous location';
+
+  @override
+  String get projectTissueLogColumns => 'Columns';
+
+  @override
+  String get projectTissueLogColumnsBody =>
+      'Curation columns always come first. Add part, specimen, and linked record fields after them.';
+
+  @override
+  String get projectTissueLogAddColumns => 'Add columns';
+
+  @override
+  String get projectTissueLogAddedColumns => 'Added columns';
+
+  @override
+  String get projectTissueLogNoAddedColumns =>
+      'No added columns. The export has the curation columns only.';
+
+  @override
+  String get projectTissueLogHeaderStyle => 'Added column headers';
+
+  @override
+  String get projectTissueLogHeaderFieldName => 'Field names';
+
+  @override
+  String get projectTissueLogHeaderKey => 'NAHPU keys';
+
+  @override
+  String get projectTissueLogChooseColumns => 'Choose columns';
+
+  @override
+  String projectTissueLogRemoveColumn(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String projectTissueLogSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get projectTissueReplace => 'Replace';
+
+  @override
+  String projectTissueReplaceTitle(String cell) {
+    return 'Replace $cell?';
+  }
+
+  @override
+  String projectTissueReplaceMessage(int count, String cell, String labels) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'The next tube you scan or place goes into $cell. $labels lose their location and return to the work list. Undo puts them back.',
+      one:
+          'The next tube you scan or place goes into $cell. $labels loses its location and returns to the work list. Undo puts it back.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String projectTissueReplacing(String labels) {
+    return 'Replaces $labels';
+  }
+
+  @override
+  String projectTissueReplacedLog(String labels) {
+    return 'Replaced $labels';
+  }
+
+  @override
+  String get projectTissueColReplaced => 'Replaced';
+
+  @override
   String get projectTissueAny => 'Any';
 
   @override

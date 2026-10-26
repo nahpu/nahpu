@@ -935,6 +935,35 @@ class SpecimenPartQuery extends DatabaseAccessor<Database>
         .toList(growable: false);
   }
 
+  /// Returns the project's parts whose ids are in [ids].
+  Future<List<SpecimenPartProjectRecord>> getPartsByIds(
+    String projectUuid,
+    Iterable<int> ids,
+  ) async {
+    final query =
+        select(specimenPart).join([
+            innerJoin(
+              specimen,
+              specimen.uuid.equalsExp(specimenPart.specimenUuid),
+            ),
+          ])
+          ..where(
+            specimen.projectUuid.equals(projectUuid) &
+                specimenPart.id.isIn(ids),
+          )
+          ..orderBy([OrderingTerm.asc(specimenPart.id)]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => SpecimenPartProjectRecord(
+            part: row.readTable(specimenPart),
+            specimen: row.readTable(specimen),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   /// Returns what each project specimen's field ID is built from.
   Future<List<SpecimenFieldIdRow>> getFieldIdRows(String projectUuid) async {
     final rows = await customSelect(

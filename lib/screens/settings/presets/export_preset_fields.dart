@@ -9,6 +9,7 @@ import 'package:nahpu/services/localization/type_labels.dart';
 import 'package:nahpu/services/specimens/conditional_brackets.dart';
 import 'package:nahpu/services/database/database.dart';
 import 'package:nahpu/services/export/preset_record_exporter.dart';
+import 'package:nahpu/services/export/export_field_catalog.dart';
 import 'package:nahpu/services/export/export_header_resolver.dart';
 import 'package:nahpu/services/export/list_value_formatter.dart';
 import 'package:nahpu/services/providers/database.dart';
@@ -17,8 +18,6 @@ import 'package:nahpu/services/export/text_replacements.dart';
 import 'package:nahpu/services/localization/l10n.dart';
 import 'package:nahpu/services/localization/text_replacement_labels.dart';
 import 'package:nahpu/services/providers/custom_fields.dart';
-import 'package:nahpu/services/types/custom_field.dart';
-import 'package:nahpu/services/types/specimens.dart';
 
 class ExportPresetFieldsScreen extends ConsumerStatefulWidget {
   const ExportPresetFieldsScreen({
@@ -52,7 +51,7 @@ class _ExportPresetFieldsScreenState
     final customDefinitions =
         ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
     final canAddNested = _nestedFieldGroups(
-      _availableFieldGroups(
+      exportFieldGroups(
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
@@ -216,7 +215,7 @@ class _ExportPresetFieldsScreenState
       'specimenPart',
     ];
     final groups = _nestedFieldGroups(
-      _availableFieldGroups(
+      exportFieldGroups(
         ref.read(databaseProvider),
         _preset.recordType,
         _preset.specimenRecordType,
@@ -524,7 +523,7 @@ class _AvailableFieldsSectionState
                   dense: true,
                   childrenPadding: EdgeInsets.zero,
                   children: fields.map((field) {
-                    final customLabel = _customFieldLabel(
+                    final customLabel = exportCustomFieldLabel(
                       field,
                       customDefinitions,
                     );
@@ -563,174 +562,13 @@ class _AvailableFieldsSectionState
   Map<String, List<String>> _getAllGroups(
     List<CustomFieldDefinitionData> customDefinitions,
   ) {
-    return _availableFieldGroups(
+    return exportFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,
       customDefinitions,
     );
   }
-}
-
-Map<String, List<String>> _availableFieldGroups(
-  Database db,
-  RecordType recordType,
-  SpecimenRecordType specimenRecordType, [
-  List<CustomFieldDefinitionData> customDefinitions = const [],
-]) {
-  final Map<String, List<String>> groups = {};
-  final Set<String> allowedTables;
-  switch (recordType) {
-    case RecordType.none:
-      allowedTables = {'personnel', 'project'};
-      break;
-    case RecordType.narrative:
-      allowedTables = {'narrative', 'site', 'geography', 'personnel'};
-      break;
-    case RecordType.site:
-      allowedTables = {
-        'site',
-        'geography',
-        'siteAttribute',
-        'personnel',
-        'coordinate',
-      };
-      break;
-    case RecordType.collEvent:
-      allowedTables = {
-        'collEvent',
-        'site',
-        'geography',
-        'siteAttribute',
-        'environment',
-        'coordinate',
-        'collMethod',
-        'collPersonnel',
-      };
-      break;
-    case RecordType.specimenRecord:
-    case RecordType.specimenParts:
-    case RecordType.parasites:
-      allowedTables = {
-        'specimen',
-        'taxonomy',
-        'personnel',
-        'project',
-        'collEvent',
-        'collMethod',
-        'collPersonnel',
-        'site',
-        'geography',
-        'siteAttribute',
-        'coordinate',
-        'environment',
-        'mammalAttribute',
-        'birdAttribute',
-        'herpAttribute',
-        'invertebrateAttribute',
-        'fishAttribute',
-        'fossilAttribute',
-        'specimenPart',
-      };
-      if (recordType == RecordType.parasites) {
-        allowedTables
-          ..remove('specimenPart')
-          ..addAll({'parasite', 'parasiteDetection'});
-      }
-      if (specimenRecordType == SpecimenRecordType.mammals) {
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.birds) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.herpetofauna) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('invertebrateAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.invertebrates) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('fishAttribute');
-      } else if (specimenRecordType == SpecimenRecordType.fishes) {
-        allowedTables.remove('mammalAttribute');
-        allowedTables.remove('birdAttribute');
-        allowedTables.remove('herpAttribute');
-        allowedTables.remove('invertebrateAttribute');
-      }
-      break;
-  }
-
-  for (var table in db.allTables) {
-    final tableName = table.actualTableName;
-    if (allowedTables.contains(tableName)) {
-      groups[tableName] = table.$columns
-          .map<String>((c) => '$tableName::${c.name}')
-          .toList();
-    }
-  }
-  for (final definition in customDefinitions) {
-    final namespace = switch (definition.placement) {
-      FieldUISection.siteAttribute => 'customSite',
-      FieldUISection.environmentalData => 'customEnvironment',
-      FieldUISection.specimenAttribute => 'customSpecimen',
-      FieldUISection.specimenPart => 'customSpecimenPart',
-      FieldUISection.parasite => 'customParasite',
-    };
-    final isAvailable = switch (recordType) {
-      RecordType.site || RecordType.narrative => namespace == 'customSite',
-      RecordType.collEvent =>
-        namespace == 'customSite' || namespace == 'customEnvironment',
-      RecordType.specimenRecord ||
-      RecordType.specimenParts ||
-      RecordType.parasites => true,
-      RecordType.none => false,
-    };
-    if (!isAvailable ||
-        !_matchesSpecimenRecordType(definition, specimenRecordType)) {
-      continue;
-    }
-    groups
-        .putIfAbsent(namespace, () => <String>[])
-        .add('$namespace::${definition.uuid}');
-  }
-  return groups;
-}
-
-bool _matchesSpecimenRecordType(
-  CustomFieldDefinitionData definition,
-  SpecimenRecordType recordType,
-) {
-  final catalog = definition.applicableCatalog;
-  if (catalog == null || !definition.placement.isSpecimenRelated) {
-    return true;
-  }
-  return switch (recordType) {
-    SpecimenRecordType.birds => catalog == CatalogFmt.ornithology,
-    SpecimenRecordType.mammals => catalog == CatalogFmt.mammalogy,
-    SpecimenRecordType.herpetofauna => catalog == CatalogFmt.herpetology,
-    SpecimenRecordType.invertebrates =>
-      catalog == CatalogFmt.invertebrateZoology,
-    SpecimenRecordType.fishes => catalog == CatalogFmt.ichthyology,
-    SpecimenRecordType.allTaxa => true,
-  };
-}
-
-String? _customFieldLabel(
-  String key,
-  List<CustomFieldDefinitionData> definitions,
-) {
-  if (!key.startsWith('custom')) return null;
-  final uuid = key.split('::').last;
-  return definitions
-      .where((definition) => definition.uuid == uuid)
-      .map((definition) => definition.name)
-      .firstOrNull;
 }
 
 Map<String, List<String>> _nestedFieldGroups(Map<String, List<String>> groups) {
@@ -1109,7 +947,7 @@ class _ExportMappingCard extends StatelessWidget {
     final columnName = exportMappingColumnName(
       mapping,
       headerFormat,
-      customLabel: (key) => _customFieldLabel(key, customDefinitions),
+      customLabel: (key) => exportCustomFieldLabel(key, customDefinitions),
     );
     final displayName = columnName.isEmpty
         ? l10n.exportFieldsUnnamed
@@ -1322,7 +1160,7 @@ class _MappingCustomizerFormState
   Widget build(BuildContext context) {
     final customDefinitions =
         ref.watch(allCustomFieldDefinitionsProvider).value ?? const [];
-    final groups = _availableFieldGroups(
+    final groups = exportFieldGroups(
       ref.read(databaseProvider),
       widget.recordType,
       widget.specimenRecordType,

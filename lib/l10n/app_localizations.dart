@@ -13135,6 +13135,228 @@ abstract class AppLocalizations {
   /// **'Cell label format and how stored values are handled.'**
   String get projectTissueAdvancedBody;
 
+  /// No description provided for @projectTissueExportLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Export log'**
+  String get projectTissueExportLog;
+
+  /// No description provided for @projectTissueExportLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export session log'**
+  String get projectTissueExportLogTitle;
+
+  /// No description provided for @projectTissueExportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{checked} checked, {skipped} skipped'**
+  String projectTissueExportSummary(int checked, int skipped);
+
+  /// No description provided for @projectTissueLogStatusChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get projectTissueLogStatusChecked;
+
+  /// No description provided for @projectTissueLogStatusSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get projectTissueLogStatusSkipped;
+
+  /// No description provided for @projectTissuePart.
+  ///
+  /// In en, this message translates to:
+  /// **'Part'**
+  String get projectTissuePart;
+
+  /// No description provided for @projectTissueColStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get projectTissueColStatus;
+
+  /// No description provided for @projectTissueColOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get projectTissueColOrder;
+
+  /// No description provided for @projectTissueColFieldId.
+  ///
+  /// In en, this message translates to:
+  /// **'Field ID'**
+  String get projectTissueColFieldId;
+
+  /// No description provided for @projectTissueColTubeId.
+  ///
+  /// In en, this message translates to:
+  /// **'Tube ID'**
+  String get projectTissueColTubeId;
+
+  /// No description provided for @projectTissueColKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get projectTissueColKind;
+
+  /// No description provided for @projectTissueColType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get projectTissueColType;
+
+  /// No description provided for @projectTissueColTreatment.
+  ///
+  /// In en, this message translates to:
+  /// **'Treatment'**
+  String get projectTissueColTreatment;
+
+  /// No description provided for @projectTissueColField.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated field'**
+  String get projectTissueColField;
+
+  /// No description provided for @projectTissueColValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get projectTissueColValue;
+
+  /// No description provided for @projectTissueColLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get projectTissueColLocation;
+
+  /// No description provided for @projectTissueColBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Box'**
+  String get projectTissueColBox;
+
+  /// No description provided for @projectTissueColCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell'**
+  String get projectTissueColCell;
+
+  /// No description provided for @projectTissueColPreviousValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous value'**
+  String get projectTissueColPreviousValue;
+
+  /// No description provided for @projectTissueColPreviousLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous location'**
+  String get projectTissueColPreviousLocation;
+
+  /// No description provided for @projectTissueLogColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get projectTissueLogColumns;
+
+  /// No description provided for @projectTissueLogColumnsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Curation columns always come first. Add part, specimen, and linked record fields after them.'**
+  String get projectTissueLogColumnsBody;
+
+  /// No description provided for @projectTissueLogAddColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Add columns'**
+  String get projectTissueLogAddColumns;
+
+  /// No description provided for @projectTissueLogAddedColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Added columns'**
+  String get projectTissueLogAddedColumns;
+
+  /// No description provided for @projectTissueLogNoAddedColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'No added columns. The export has the curation columns only.'**
+  String get projectTissueLogNoAddedColumns;
+
+  /// No description provided for @projectTissueLogHeaderStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Added column headers'**
+  String get projectTissueLogHeaderStyle;
+
+  /// No description provided for @projectTissueLogHeaderFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Field names'**
+  String get projectTissueLogHeaderFieldName;
+
+  /// No description provided for @projectTissueLogHeaderKey.
+  ///
+  /// In en, this message translates to:
+  /// **'NAHPU keys'**
+  String get projectTissueLogHeaderKey;
+
+  /// No description provided for @projectTissueLogChooseColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose columns'**
+  String get projectTissueLogChooseColumns;
+
+  /// No description provided for @projectTissueLogRemoveColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String projectTissueLogRemoveColumn(String name);
+
+  /// No description provided for @projectTissueLogSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String projectTissueLogSelectedCount(int count);
+
+  /// No description provided for @projectTissueReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get projectTissueReplace;
+
+  /// No description provided for @projectTissueReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace {cell}?'**
+  String projectTissueReplaceTitle(String cell);
+
+  /// No description provided for @projectTissueReplaceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The next tube you scan or place goes into {cell}. {labels} loses its location and returns to the work list. Undo puts it back.} other{The next tube you scan or place goes into {cell}. {labels} lose their location and return to the work list. Undo puts them back.}}'**
+  String projectTissueReplaceMessage(int count, String cell, String labels);
+
+  /// No description provided for @projectTissueReplacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces {labels}'**
+  String projectTissueReplacing(String labels);
+
+  /// No description provided for @projectTissueReplacedLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced {labels}'**
+  String projectTissueReplacedLog(String labels);
+
+  /// No description provided for @projectTissueColReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaced'**
+  String get projectTissueColReplaced;
+
   /// No description provided for @projectTissueAny.
   ///
   /// In en, this message translates to:

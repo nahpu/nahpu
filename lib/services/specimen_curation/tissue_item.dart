@@ -32,6 +32,16 @@ class TissueItemRecord {
 
   bool get isParasite => kind == TissueItemKind.parasite;
 
+  /// Set when [kind] is [TissueItemKind.part], for part export lookups.
+  SpecimenPartProjectRecord? get partRecord => part == null
+      ? null
+      : SpecimenPartProjectRecord(part: part!, specimen: specimen);
+
+  /// Set when [kind] is [TissueItemKind.parasite].
+  ParasiteProjectRecord? get parasiteRecord => parasite == null
+      ? null
+      : ParasiteProjectRecord(parasite: parasite!, specimen: specimen);
+
   /// The database id within its table.
   int get id => (part?.id ?? parasite?.id)!;
 

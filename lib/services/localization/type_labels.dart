@@ -8,6 +8,7 @@ import 'package:nahpu/services/projects/taxonomy_services.dart';
 import 'package:nahpu/services/specimen_curation/specimen_curation_mode.dart';
 import 'package:nahpu/services/specimen_curation/tissue_box.dart';
 import 'package:nahpu/services/specimen_curation/tissue_check_settings.dart';
+import 'package:nahpu/services/specimen_curation/tissue_log_export.dart';
 import 'package:nahpu/services/templates/print_specimen_table_columns.dart';
 import 'package:nahpu/services/types/coordinate_import.dart';
 import 'package:nahpu/services/types/custom_field.dart';
@@ -36,6 +37,33 @@ extension CatalogFmtLocalizedLabel on CatalogFmt {
     CatalogFmt.invertebrateZoology =>
       l10n.labelCatalogFormatInvertebrateZoology,
     CatalogFmt.ichthyology => l10n.labelCatalogFormatIchthyology,
+  };
+}
+
+extension TissueLogColumnLocalizedLabel on TissueLogColumn {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueLogColumn.status => l10n.projectTissueColStatus,
+    TissueLogColumn.order => l10n.projectTissueColOrder,
+    TissueLogColumn.fieldId => l10n.projectTissueColFieldId,
+    TissueLogColumn.tubeId => l10n.projectTissueColTubeId,
+    TissueLogColumn.kind => l10n.projectTissueColKind,
+    TissueLogColumn.type => l10n.projectTissueColType,
+    TissueLogColumn.treatment => l10n.projectTissueColTreatment,
+    TissueLogColumn.field => l10n.projectTissueColField,
+    TissueLogColumn.value => l10n.projectTissueColValue,
+    TissueLogColumn.location => l10n.projectTissueColLocation,
+    TissueLogColumn.box => l10n.projectTissueColBox,
+    TissueLogColumn.cell => l10n.projectTissueColCell,
+    TissueLogColumn.previousValue => l10n.projectTissueColPreviousValue,
+    TissueLogColumn.previousLocation => l10n.projectTissueColPreviousLocation,
+    TissueLogColumn.replaced => l10n.projectTissueColReplaced,
+  };
+}
+
+extension TissueLogHeaderLocalizedLabel on TissueLogHeader {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    TissueLogHeader.fieldName => l10n.projectTissueLogHeaderFieldName,
+    TissueLogHeader.nahpuKey => l10n.projectTissueLogHeaderKey,
   };
 }
 

@@ -513,6 +513,87 @@ void main() {
     expect(boxBottom, lessThan(1300 - 100));
   });
 
+  testWidgets('a filled cell can be replaced after confirming', (tester) async {
+    await (database.update(
+      database.specimenPart,
+    )..where((row) => row.tissueID.equals('T-1043'))).write(
+      const SpecimenPartCompanion(storageLocation: Value('Box 1: A1')),
+    );
+    await database
+        .into(database.specimenPart)
+        .insert(
+          const SpecimenPartCompanion(
+            specimenUuid: Value('specimen-a'),
+            tissueID: Value('T-2000'),
+          ),
+        );
+    await pumpScreen(tester, size: const Size(1600, 1100));
+    Text nextCell() =>
+        tester.widget<Text>(find.byKey(const ValueKey('tissue-next-cell')));
+    expect(nextCell().data, 'A2');
+
+    // Cancelling keeps the next cell.
+    await tester.tap(find.byKey(const ValueKey('tissue-cell-A1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tissue-cell-replace')));
+    await tester.pumpAndSettle();
+    expect(find.text('Replace A1?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(nextCell().data, 'A2');
+
+    await tester.tap(find.byKey(const ValueKey('tissue-cell-replace')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(FilledButton),
+        matching: find.text('Replace'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(nextCell().data, 'A1');
+    expect(find.text('Replaces T-1043'), findsOneWidget);
+    expect(find.byKey(const ValueKey('tissue-cell-inspector')), findsNothing);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'T-2000',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    final parts = await database.select(database.specimenPart).get();
+    String? locationOf(String tissue) =>
+        parts.singleWhere((part) => part.tissueID == tissue).storageLocation;
+    expect(locationOf('T-2000'), 'Box 1: A1');
+    expect(locationOf('T-1043'), isNull);
+    expect(find.byKey(const ValueKey('tissue-next-replacing')), findsNothing);
+    expect(find.text('Replaced T-1043'), findsOneWidget);
+  });
+
+  testWidgets('the log exports once it has a tube', (tester) async {
+    await pumpScreen(tester, size: const Size(1600, 1000));
+    final export = find.byKey(const ValueKey('tissue-log-export'));
+    expect(tester.widget<TextButton>(export).onPressed, isNull);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('tissue-scan-input')),
+      'T-1043',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextButton>(export).onPressed, isNotNull);
+
+    await tester.tap(export);
+    await tester.pumpAndSettle();
+    expect(find.text('Export session log'), findsOneWidget);
+    expect(find.text('1 checked, 0 skipped'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('tissue-log-curation-columns')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('laptops show the log as an inspector tab', (tester) async {
     await pumpScreen(tester, size: const Size(1280, 800));
     expect(find.byKey(const ValueKey('tissue-log-column')), findsNothing);

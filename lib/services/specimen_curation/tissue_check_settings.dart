@@ -22,6 +22,15 @@ enum TissueIdentifyBy {
   final String label;
 }
 
+/// How a log export names the columns added after the curation ones.
+enum TissueLogHeader {
+  /// The field name, or a custom field's name, such as `remark`.
+  fieldName,
+
+  /// The NAHPU export key, such as `specimenPart::remark`.
+  nahpuKey,
+}
+
 /// The tissue check setup, kept on this device between sessions.
 class TissueCheckSettings {
   const TissueCheckSettings({
@@ -37,6 +46,8 @@ class TissueCheckSettings {
     this.includeParasites = false,
     this.parasiteCategories = const {},
     this.customLabels = false,
+    this.logColumns = const [],
+    this.logHeader = TissueLogHeader.fieldName,
   });
 
   final TissueCheckField field;
@@ -69,6 +80,11 @@ class TissueCheckSettings {
   /// of the standard `Box 1: A1`.
   final bool customLabels;
 
+  /// Columns a log export adds after the curation ones, as specimen part
+  /// export keys such as `specimen::catalogNumber`, in order.
+  final List<String> logColumns;
+  final TissueLogHeader logHeader;
+
   String get boxName => formatTissueBoxName(boxLabel, boxNumber);
 
   /// The layout boxes are filled and read with: [layout] as configured with
@@ -94,6 +110,8 @@ class TissueCheckSettings {
     bool? includeParasites,
     Set<String>? parasiteCategories,
     bool? customLabels,
+    List<String>? logColumns,
+    TissueLogHeader? logHeader,
   }) {
     return TissueCheckSettings(
       field: field ?? this.field,
@@ -108,6 +126,8 @@ class TissueCheckSettings {
       includeParasites: includeParasites ?? this.includeParasites,
       parasiteCategories: parasiteCategories ?? this.parasiteCategories,
       customLabels: customLabels ?? this.customLabels,
+      logColumns: logColumns ?? this.logColumns,
+      logHeader: logHeader ?? this.logHeader,
     );
   }
 
@@ -129,6 +149,8 @@ class TissueCheckSettings {
     'preservations': preservations.toList(),
     'includeParasites': includeParasites,
     'parasiteCategories': parasiteCategories.toList(),
+    'logColumns': logColumns,
+    'logHeader': logHeader.name,
   });
 
   /// Reads [encoded], falling back to defaults for missing or unknown values.
@@ -192,6 +214,12 @@ class TissueCheckSettings {
         ),
         includeParasites: json['includeParasites'] == true,
         parasiteCategories: _textSet(json['parasiteCategories']),
+        logColumns: [..._textSet(json['logColumns'])],
+        logHeader: _byName(
+          TissueLogHeader.values,
+          json['logHeader'],
+          defaults.logHeader,
+        ),
       );
     } on FormatException {
       return defaults;
