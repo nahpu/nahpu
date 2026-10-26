@@ -623,7 +623,11 @@ class _StatisticFullScreenState extends ConsumerState<StatisticFullScreen> {
                           if (_detailSection == _DetailSection.network)
                             NetworkStatisticsPanel(
                               projectUuid: projectUuid,
-                              projectName: projectName,
+                              // [projectName] is the export file name stem,
+                              // so the network title gets a readable name.
+                              projectName: widget.allProjects
+                                  ? context.l10n.projectStatsNetworkAllProjects
+                                  : projectName,
                               height: _exploreStatisticsCardHeight,
                               sectionSwitch: _DetailSectionSwitch(
                                 selected: _detailSection,

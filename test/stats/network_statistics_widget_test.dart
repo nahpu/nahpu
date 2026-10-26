@@ -230,11 +230,222 @@ void main() {
       isTrue,
     );
     expect(find.byType(NetworkCanvas), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('statistics-network-options-rail')),
+      findsOneWidget,
+      reason: 'full screen starts with the options folded',
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-exit-full-screen')),
+    );
+    await _settle(tester);
+    expect(find.byType(NetworkStatisticsFullScreen), findsNothing);
+  });
+
+  testWidgets('the options fold into a rail to widen the network', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final pane = find.byKey(const ValueKey('statistics-network-options-pane'));
+    final rail = find.byKey(const ValueKey('statistics-network-options-rail'));
+    expect(pane, findsOneWidget);
+    final canvasWidth = tester.getSize(find.byType(NetworkCanvas)).width;
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-options-collapse')),
+    );
+    await _settle(tester);
+    expect(pane, findsNothing);
+    expect(rail, findsOneWidget);
+    expect(
+      tester.getSize(find.byType(NetworkCanvas)).width,
+      greaterThan(canvasWidth),
+    );
+
+    await tester.tap(find.byTooltip('Layered'));
+    await _settle(tester);
+    expect(
+      container.read(networkViewProvider('project-a')).layout,
+      NetworkLayout.layered,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-options-expand')),
+    );
+    await _settle(tester);
+    expect(pane, findsOneWidget);
+  });
+
+  testWidgets('on a narrow screen a tapped record opens in the bottom sheet', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester, size: const Size(390, 844));
+    final sheet = find.byKey(const ValueKey('statistics-network-sheet'));
+    final details = find.byKey(
+      const ValueKey('statistics-network-node-details'),
+    );
+    expect(sheet, findsOneWidget);
+    expect(details, findsNothing);
+    final folded = tester.getSize(sheet).height;
+
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    final myotis = layout.nodes.firstWhere(
+      (node) => node.label == 'Myotis lucifugus',
+    );
+    await _tapNode(tester, myotis);
+    await tester.pumpAndSettle();
+
+    expect(find.descendant(of: sheet, matching: details), findsOneWidget);
+    expect(tester.getSize(sheet).height, greaterThan(folded));
+
+    await tester.tap(
+      find.descendant(of: sheet, matching: find.text('Options')),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.byKey(
+          const ValueKey('statistics-network-layout-control'),
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('on a wide screen the tools sit above the details', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    await _tapNode(
+      tester,
+      layout.nodes.firstWhere((node) => node.label == 'Myotis lucifugus'),
+    );
+
+    final card = tester.getRect(
+      find.byKey(const ValueKey('statistics-network-content')),
+    );
+    final tools = tester.getRect(
+      find.byKey(const ValueKey('statistics-network-full-screen')),
+    );
+    final details = tester.getRect(
+      find.byKey(const ValueKey('statistics-network-node-details')),
+    );
+    expect(
+      tools.top - card.top,
+      lessThan(100),
+      reason: 'the tools stay in sight at the top of a tall card',
+    );
+    expect(tools.bottom, lessThan(details.top));
+  });
+
+  testWidgets('a narrow full screen opens with the selected record shown', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester, size: const Size(390, 844));
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    await _tapNode(
+      tester,
+      layout.nodes.firstWhere((node) => node.label == 'Myotis lucifugus'),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-full-screen')),
+    );
+    await _settle(tester);
+    await tester.pumpAndSettle();
+
+    final fullScreen = find.byType(NetworkStatisticsFullScreen);
+    final sheet = find.descendant(
+      of: fullScreen,
+      matching: find.byKey(const ValueKey('statistics-network-sheet')),
+    );
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.byKey(const ValueKey('statistics-network-node-details')),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(sheet).height,
+      greaterThan(844 * 0.4),
+      reason: 'the sheet rises to show the record picked before',
+    );
+
+    await tester.tap(
+      find.descendant(
+        of: fullScreen,
+        matching: find.byTooltip('Exit full screen'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(fullScreen, findsNothing);
+  });
+
+  testWidgets('the fit leaves room for controls over the canvas', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+
+    Future<Rect> fitted(EdgeInsets insets) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: NetworkCanvas(
+                key: UniqueKey(),
+                layout: layout,
+                selected: null,
+                labels: NetworkCanvasLabels(
+                  columnLabel: (_) => '',
+                  overflowLabel: (_) => '',
+                ),
+                onNodeTap: (_) {},
+                fitSignal: 0,
+                fitInsets: insets,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      final points = [
+        for (final node in layout.nodes) _screenPosition(tester, node.center),
+      ];
+      return points
+          .skip(1)
+          .fold<Rect>(
+            Rect.fromPoints(points.first, points.first),
+            (rect, point) =>
+                rect.expandToInclude(Rect.fromPoints(point, point)),
+          );
+    }
+
+    final canvasLeft = (1200 - 800) / 2;
+    final plain = await fitted(EdgeInsets.zero);
+    final inset = await fitted(const EdgeInsets.only(left: 400));
+    expect(inset.left, greaterThan(plain.left));
+    expect(
+      inset.left,
+      greaterThanOrEqualTo(canvasLeft + 400),
+      reason: 'no node is fitted under the controls on the left',
+    );
   });
 }
 
-Future<ProviderContainer> _pumpPanel(WidgetTester tester) async {
-  tester.view.physicalSize = const Size(1200, 1600);
+Future<ProviderContainer> _pumpPanel(
+  WidgetTester tester, {
+  Size size = const Size(1200, 1600),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);

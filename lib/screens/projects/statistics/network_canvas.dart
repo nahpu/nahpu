@@ -37,6 +37,7 @@ class NetworkCanvas extends StatefulWidget {
     required this.labels,
     required this.onNodeTap,
     required this.fitSignal,
+    this.fitInsets = EdgeInsets.zero,
   });
 
   final NetworkLayoutResult layout;
@@ -48,6 +49,10 @@ class NetworkCanvas extends StatefulWidget {
 
   /// Fits the network to the view whenever this value changes.
   final Object fitSignal;
+
+  /// Room kept clear around the fitted network for controls laid over the
+  /// canvas.
+  final EdgeInsets fitInsets;
 
   @override
   State<NetworkCanvas> createState() => _NetworkCanvasState();
@@ -112,7 +117,11 @@ class _NetworkCanvasState extends State<NetworkCanvas>
           _needsFit = false;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
-            _transform.value = _fitMatrix(widget.layout.size, _viewport);
+            _transform.value = _fitMatrix(
+              widget.layout.size,
+              _viewport,
+              widget.fitInsets,
+            );
           });
         }
         return ClipRect(
@@ -207,15 +216,18 @@ class _NetworkCanvasState extends State<NetworkCanvas>
     math.max(layout.height, viewport.height),
   );
 
-  static Matrix4 _fitMatrix(Size content, Size viewport) {
+  static Matrix4 _fitMatrix(Size content, Size viewport, EdgeInsets insets) {
     if (content.isEmpty || viewport.isEmpty || !viewport.isFinite) {
       return Matrix4.identity();
     }
+    // Controls too big for the view leave the whole view to the network.
+    final clear = insets.deflateRect(Offset.zero & viewport);
+    final area = clear.isEmpty ? Offset.zero & viewport : clear;
     final scale = math
-        .min(viewport.width / content.width, viewport.height / content.height)
+        .min(area.width / content.width, area.height / content.height)
         .clamp(0.05, 1.0);
-    final dx = (viewport.width - content.width * scale) / 2;
-    final dy = (viewport.height - content.height * scale) / 2;
+    final dx = area.left + (area.width - content.width * scale) / 2;
+    final dy = area.top + (area.height - content.height * scale) / 2;
     return Matrix4.identity()
       ..translateByDouble(dx, dy, 0, 1)
       ..scaleByDouble(scale, scale, 1, 1);

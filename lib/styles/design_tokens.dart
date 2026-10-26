@@ -143,6 +143,9 @@ abstract final class NahpuContentWidth {
   /// Details beside a statistics plot, such as the selected network node.
   static const double statisticsDetails = 280;
 
+  /// Options pane beside the statistics network on wide screens.
+  static const double statisticsOptions = 280;
+
   /// Tissue curation workbench: the box, its setup, and the session log.
   static const double curation = 1680;
 }

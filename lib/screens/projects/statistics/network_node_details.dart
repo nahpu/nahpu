@@ -42,85 +42,73 @@ class NetworkNodeDetails extends StatelessWidget {
         layout == NetworkLayout.radial &&
         node.parent != null &&
         node.parent!.id.isNotEmpty;
-    return Container(
+    // The caller frames and scrolls the details: a floating card on wide
+    // screens, a bottom sheet on narrow ones.
+    return Column(
       key: const ValueKey('statistics-network-node-details'),
-      padding: const EdgeInsets.all(NahpuSpacing.lg),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(NahpuRadius.md),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: NahpuControlSize.indicator,
-                  height: NahpuControlSize.indicator,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: NahpuSpacing.md),
-                Expanded(
-                  child: Text(
-                    node.key.column.localizedLabel(l10n),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.projectStatsClearSelection,
-                  onPressed: onClear,
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ],
+            Container(
+              width: NahpuControlSize.indicator,
+              height: NahpuControlSize.indicator,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
-            const SizedBox(height: NahpuSpacing.xs),
-            Text(
-              node.kind == NetworkNodeKind.overflow
-                  ? l10n.projectStatsNetworkMore(node.hiddenRecords)
-                  : node.label,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: NahpuSpacing.xs),
-            Text(
-              isShared
-                  ? l10n.projectStatsNetworkShared(node.count)
-                  : l10n.projectStatsNetworkSpecimens(node.count),
-              style: theme.textTheme.bodyMedium,
-            ),
-            if (facts case final facts?) ...[
-              const SizedBox(height: NahpuSpacing.md),
-              NetworkRecordFacts(facts: facts),
-            ],
-            if (onToggleLinks != null) ...[
-              const SizedBox(height: NahpuSpacing.lg),
-              FilledButton.tonalIcon(
-                onPressed: onToggleLinks,
-                icon: Icon(
-                  isExpanded ? Icons.unfold_less_rounded : Icons.hub_outlined,
-                ),
-                label: Text(
-                  isExpanded
-                      ? l10n.projectStatsNetworkHideLinks
-                      : l10n.projectStatsNetworkShowLinks,
+            const SizedBox(width: NahpuSpacing.md),
+            Expanded(
+              child: Text(
+                node.key.column.localizedLabel(l10n),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-            ],
+            ),
+            IconButton(
+              tooltip: l10n.projectStatsClearSelection,
+              onPressed: onClear,
+              icon: const Icon(Icons.close_rounded),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: NahpuSpacing.xs),
+        Text(
+          node.kind == NetworkNodeKind.overflow
+              ? l10n.projectStatsNetworkMore(node.hiddenRecords)
+              : node.label,
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: NahpuSpacing.xs),
+        Text(
+          isShared
+              ? l10n.projectStatsNetworkShared(node.count)
+              : l10n.projectStatsNetworkSpecimens(node.count),
+          style: theme.textTheme.bodyMedium,
+        ),
+        if (facts case final facts?) ...[
+          const SizedBox(height: NahpuSpacing.md),
+          NetworkRecordFacts(facts: facts),
+        ],
+        if (onToggleLinks != null) ...[
+          const SizedBox(height: NahpuSpacing.lg),
+          FilledButton.tonalIcon(
+            onPressed: onToggleLinks,
+            icon: Icon(
+              isExpanded ? Icons.unfold_less_rounded : Icons.hub_outlined,
+            ),
+            label: Text(
+              isExpanded
+                  ? l10n.projectStatsNetworkHideLinks
+                  : l10n.projectStatsNetworkShowLinks,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
 
-/// Color key for the record types on screen.
 /// Label and value rows describing one site or specimen. Fields with no
 /// value are left out.
 class NetworkRecordFacts extends StatelessWidget {
@@ -184,6 +172,7 @@ class NetworkRecordFacts extends StatelessWidget {
   }
 }
 
+/// Color key for the record types on screen.
 class NetworkLegend extends StatelessWidget {
   const NetworkLegend({super.key, required this.types});
 

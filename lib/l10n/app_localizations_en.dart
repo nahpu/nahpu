@@ -7863,6 +7863,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsNetworkLegend => 'Record types';
 
   @override
+  String get projectStatsNetworkAllProjects => 'All projects';
+
+  @override
+  String get projectStatsNetworkOptions => 'Options';
+
+  @override
+  String get projectStatsNetworkShowOptions => 'Show options';
+
+  @override
+  String get projectStatsNetworkHideOptions => 'Hide options';
+
+  @override
+  String get projectStatsNetworkDetails => 'Details';
+
+  @override
+  String get projectStatsNetworkExitFullScreen => 'Exit full screen';
+
+  @override
+  String projectStatsNetworkSummaryRadial(String layout, String type) {
+    return '$layout · from $type';
+  }
+
+  @override
+  String projectStatsNetworkSummaryLayered(String layout, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count columns',
+      one: '1 column',
+    );
+    return '$layout · $_temp0';
+  }
+
+  @override
   String get projectStatsNoData => 'No data to display';
 
   @override

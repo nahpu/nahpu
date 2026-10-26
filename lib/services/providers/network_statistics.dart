@@ -96,6 +96,14 @@ class NetworkViewState {
       if (linkedTypes.contains(type)) type,
   ];
 
+  /// Record types on screen in the current layout, for the legend.
+  List<NetworkNodeType> get shownTypes => switch (layout) {
+    NetworkLayout.radial => radialTypes,
+    NetworkLayout.layered => {
+      for (final column in columns) column.type,
+    }.toList(),
+  };
+
   /// Record types opened when a record of [type] is expanded.
   List<NetworkNodeType> expandedTypes(NetworkNodeType type) => [
     for (final other in radialTypes)

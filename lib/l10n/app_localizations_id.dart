@@ -7779,6 +7779,34 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsNetworkLegend => 'Jenis catatan';
 
   @override
+  String get projectStatsNetworkAllProjects => 'Semua proyek';
+
+  @override
+  String get projectStatsNetworkOptions => 'Opsi';
+
+  @override
+  String get projectStatsNetworkShowOptions => 'Tampilkan opsi';
+
+  @override
+  String get projectStatsNetworkHideOptions => 'Sembunyikan opsi';
+
+  @override
+  String get projectStatsNetworkDetails => 'Detail';
+
+  @override
+  String get projectStatsNetworkExitFullScreen => 'Keluar dari layar penuh';
+
+  @override
+  String projectStatsNetworkSummaryRadial(String layout, String type) {
+    return '$layout · dari $type';
+  }
+
+  @override
+  String projectStatsNetworkSummaryLayered(String layout, int count) {
+    return '$layout · $count kolom';
+  }
+
+  @override
   String get projectStatsNoData => 'Tidak ada data untuk ditampilkan';
 
   @override

@@ -7952,6 +7952,40 @@ class AppLocalizationsPt extends AppLocalizations {
   String get projectStatsNetworkLegend => 'Tipos de registro';
 
   @override
+  String get projectStatsNetworkAllProjects => 'Todos os projetos';
+
+  @override
+  String get projectStatsNetworkOptions => 'Opções';
+
+  @override
+  String get projectStatsNetworkShowOptions => 'Mostrar opções';
+
+  @override
+  String get projectStatsNetworkHideOptions => 'Ocultar opções';
+
+  @override
+  String get projectStatsNetworkDetails => 'Detalhes';
+
+  @override
+  String get projectStatsNetworkExitFullScreen => 'Sair da tela cheia';
+
+  @override
+  String projectStatsNetworkSummaryRadial(String layout, String type) {
+    return '$layout · a partir de $type';
+  }
+
+  @override
+  String projectStatsNetworkSummaryLayered(String layout, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count colunas',
+      one: '1 coluna',
+    );
+    return '$layout · $_temp0';
+  }
+
+  @override
   String get projectStatsNoData => 'Nenhum dado para exibir';
 
   @override

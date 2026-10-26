@@ -12499,6 +12499,54 @@ abstract class AppLocalizations {
   /// **'Record types'**
   String get projectStatsNetworkLegend;
 
+  /// No description provided for @projectStatsNetworkAllProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'All projects'**
+  String get projectStatsNetworkAllProjects;
+
+  /// No description provided for @projectStatsNetworkOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get projectStatsNetworkOptions;
+
+  /// No description provided for @projectStatsNetworkShowOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show options'**
+  String get projectStatsNetworkShowOptions;
+
+  /// No description provided for @projectStatsNetworkHideOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide options'**
+  String get projectStatsNetworkHideOptions;
+
+  /// No description provided for @projectStatsNetworkDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get projectStatsNetworkDetails;
+
+  /// No description provided for @projectStatsNetworkExitFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit full screen'**
+  String get projectStatsNetworkExitFullScreen;
+
+  /// No description provided for @projectStatsNetworkSummaryRadial.
+  ///
+  /// In en, this message translates to:
+  /// **'{layout} · from {type}'**
+  String projectStatsNetworkSummaryRadial(String layout, String type);
+
+  /// No description provided for @projectStatsNetworkSummaryLayered.
+  ///
+  /// In en, this message translates to:
+  /// **'{layout} · {count, plural, =1{1 column} other{{count} columns}}'**
+  String projectStatsNetworkSummaryLayered(String layout, int count);
+
   /// No description provided for @projectStatsNoData.
   ///
   /// In en, this message translates to:
