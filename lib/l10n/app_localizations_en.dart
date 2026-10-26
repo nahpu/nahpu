@@ -42,8 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeDatabaseErrorTitle => 'Unable to open the NAHPU database.';
 
   @override
-  String get homeDatabaseErrorBody =>
-      'Your data was not deleted. Retry the database migration or restart NAHPU.';
+  String get homeDatabaseErrorBody => 'Your data was not deleted. Retry the database migration or restart NAHPU.';
 
   @override
   String get homeExistingProjects => 'Existing projects';
@@ -55,8 +54,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNoProjectsBody => 'Create or import a project to get started.';
 
   @override
-  String get homeSetupHint =>
-      'New to NAHPU? Run Setup NAHPU to choose your catalog format, identifiers, vocabularies, and export presets.';
+  String get homeSetupHint => 'New to NAHPU? Run Setup NAHPU to choose your catalog format, identifiers, vocabularies, and export presets.';
 
   @override
   String get homeSetupNahpu => 'Setup NAHPU';
@@ -135,8 +133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeProjectQrCode => 'Project QR code';
 
   @override
-  String get homeProjectQrDescription =>
-      'Scan this code when creating a new project to transfer project information.';
+  String get homeProjectQrDescription => 'Scan this code when creating a new project to transfer project information.';
 
   @override
   String aboutTitle(String appName) {
@@ -144,8 +141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get aboutTagline =>
-      'Rethinking biodiversity inventories in the digital age';
+  String get aboutTagline => 'Rethinking biodiversity inventories in the digital age';
 
   @override
   String get aboutLicenses => 'Licenses';
@@ -162,8 +158,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutCodename => 'Codename';
 
   @override
-  String get aboutCodenameNote =>
-      'From NAHPU’s first real-world field test on Mt. Gede, West Java, Indonesia.';
+  String get aboutCodenameNote => 'From NAHPU’s first real-world field test on Mt. Gede, West Java, Indonesia.';
 
   @override
   String get aboutDatabaseSchema => 'Database schema';
@@ -233,8 +228,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTools => 'Tools';
 
   @override
-  String get settingsToolsLabel =>
-      'Choose the tools shown on the project dashboard';
+  String get settingsToolsLabel => 'Choose the tools shown on the project dashboard';
 
   @override
   String get settingsLanguage => 'Language';
@@ -248,8 +242,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsLanguageBetaNote =>
-      'Language support is in beta. Some screens are still in English, and translations may be machine drafts.';
+  String get settingsLanguageBetaNote => 'Language support is in beta. Some screens are still in English, and translations may be machine drafts.';
 
   @override
   String get settingsLanguageHelpTranslate => 'Help translate NAHPU';
@@ -261,8 +254,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRegionalFormatMatchLanguage => 'Match language';
 
   @override
-  String get settingsRegionalFormatNote =>
-      'Changes only how dates and numbers are shown. Saved records and exports keep standard formats.';
+  String get settingsRegionalFormatNote => 'Changes only how dates and numbers are shown. Saved records and exports keep standard formats.';
 
   @override
   String settingsRegionalFormatPreview(String date, String number) {
@@ -286,8 +278,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get docsLoadError => 'Unable to load this documentation.';
 
   @override
-  String get docsOnlineLinks =>
-      'These links open the NAHPU documentation and need an internet connection.';
+  String get docsOnlineLinks => 'These links open the NAHPU documentation and need an internet connection.';
 
   @override
   String get docsAsideNote => 'Note';
@@ -347,8 +338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get narrativeDeleteAllTitle => 'Delete all narrative?';
 
   @override
-  String get narrativeDeleteAllPrompt =>
-      'You will delete all narrative in this project';
+  String get narrativeDeleteAllPrompt => 'You will delete all narrative in this project';
 
   @override
   String narrativeDeleteError(String error) {
@@ -365,8 +355,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get narrativeTextHint => 'Enter narrative (Markdown supported)';
 
   @override
-  String get narrativeTextEmpty =>
-      'No narrative. Use the Edit button above to start writing.';
+  String get narrativeTextEmpty => 'No narrative. Use the Edit button above to start writing.';
 
   @override
   String get narrativeDate => 'Date';
@@ -419,29 +408,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNavSites => 'Sites';
 
   @override
-  String get settingsNavSitesLabel =>
-      'Manage site types, habitat types, and coordinate datums';
+  String get settingsNavSitesLabel => 'Manage site types, habitat types, and coordinate datums';
 
   @override
   String get settingsNavEvents => 'Events';
 
   @override
-  String get settingsNavEventsLabel =>
-      'Manage activities, collection methods, personnel roles, and environmental fields';
+  String get settingsNavEventsLabel => 'Manage activities, collection methods, personnel roles, and environmental fields';
 
   @override
   String get settingsNavSpecimens => 'Specimens';
 
   @override
-  String get settingsNavSpecimensLabel =>
-      'Manage field, tissue ID settings, and controlled vocabularies for specimen forms';
+  String get settingsNavSpecimensLabel => 'Manage field, tissue ID settings, and controlled vocabularies for specimen forms';
 
   @override
   String get settingsNavCustomFields => 'Custom fields';
 
   @override
-  String get settingsNavCustomFieldsLabel =>
-      'Manage fields for sites, environmental data, specimens, parts, and parasites';
+  String get settingsNavCustomFieldsLabel => 'Manage fields for sites, environmental data, specimens, parts, and parasites';
 
   @override
   String get settingsNavDatabase => 'Database';
@@ -459,15 +444,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNavPersonnelLabel => 'Manage personnel records';
 
   @override
-  String get settingsNavBackupDatabaseLabel =>
-      'Full database backup of all records and settings';
+  String get settingsNavBackupDatabaseLabel => 'Full database backup of all records and settings';
 
   @override
   String get settingsNavReplaceDatabase => 'Replace database';
 
   @override
-  String get settingsNavReplaceDatabaseLabel =>
-      'Replace current database with another database file';
+  String get settingsNavReplaceDatabaseLabel => 'Replace current database with another database file';
 
   @override
   String get settingsNavExports => 'Exports';
@@ -476,22 +459,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNavTabularData => 'Tabular Data';
 
   @override
-  String get settingsNavTabularDataLabel =>
-      'Manage presets for exporting in tabular formats';
+  String get settingsNavTabularDataLabel => 'Manage presets for exporting in tabular formats';
 
   @override
   String get settingsNavDocuments => 'Documents';
 
   @override
-  String get settingsNavDocumentsLabel =>
-      'Manage presets for exporting documents';
+  String get settingsNavDocumentsLabel => 'Manage presets for exporting documents';
 
   @override
   String get settingsNavTemplateEditor => 'Template Editor';
 
   @override
-  String get settingsNavTemplateEditorLabel =>
-      'Create and edit document templates';
+  String get settingsNavTemplateEditorLabel => 'Create and edit document templates';
 
   @override
   String get settingsCommonSetCaseFormat => 'Set case format';
@@ -553,16 +533,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSelectionArchiveFormat => 'Archive format';
 
   @override
-  String get settingsSelectionNoFolder =>
-      'Exporting a selection needs a folder to write to, which this device cannot offer. You can still delete the selected files after reviewing them.';
+  String get settingsSelectionNoFolder => 'Exporting a selection needs a folder to write to, which this device cannot offer. You can still delete the selected files after reviewing them.';
 
   @override
-  String get settingsSelectionExportNote =>
-      'Exporting writes these files to one compressed archive, then offers to remove the originals. Deleting removes them straight away and cannot be undone.';
+  String get settingsSelectionExportNote => 'Exporting writes these files to one compressed archive, then offers to remove the originals. Deleting removes them straight away and cannot be undone.';
 
   @override
-  String get settingsSelectionDeleteNote =>
-      'Deleting removes the selected files straight away and cannot be undone.';
+  String get settingsSelectionDeleteNote => 'Deleting removes the selected files straight away and cannot be undone.';
 
   @override
   String get settingsSelectionDeletePermanently => 'Delete permanently';
@@ -590,8 +567,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsMapNoCustomLayers =>
-      'No custom layers have been imported.';
+  String get settingsMapNoCustomLayers => 'No custom layers have been imported.';
 
   @override
   String get settingsMapImportCustomLayer => 'Import custom layer';
@@ -608,12 +584,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapShowLayer => 'Show layer';
 
   @override
-  String get settingsMapLayerUnavailableOnDesktop =>
-      'This layer is unavailable on desktop';
+  String get settingsMapLayerUnavailableOnDesktop => 'This layer is unavailable on desktop';
 
   @override
-  String get settingsMapLayerTypeUnavailableOnDesktop =>
-      'This layer type is unavailable on desktop.';
+  String get settingsMapLayerTypeUnavailableOnDesktop => 'This layer type is unavailable on desktop.';
 
   @override
   String get settingsMapOpacity => 'Opacity';
@@ -622,8 +596,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsMapUseTerrain => 'Use for 3D terrain';
 
   @override
-  String get settingsMapHillshadeNote =>
-      'Hillshade remains visible when terrain is off.';
+  String get settingsMapHillshadeNote => 'Hillshade remains visible when terrain is off.';
 
   @override
   String get settingsMapLayerOrder => 'Layer order';
@@ -646,19 +619,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsMapSupportedFormatsDesktop =>
-      'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on desktop.';
+  String get settingsMapSupportedFormatsDesktop => 'Supports GeoJSON, zipped WGS84 Shapefiles, and raster PMTiles on desktop.';
 
   @override
-  String get settingsMapSupportedFormats =>
-      'Supports GeoJSON, zipped WGS84 Shapefiles, and PMTiles.';
+  String get settingsMapSupportedFormats => 'Supports GeoJSON, zipped WGS84 Shapefiles, and PMTiles.';
 
   @override
   String get settingsDataUsage => 'Data usage';
 
   @override
-  String get settingsDataUsageLabel =>
-      'Browse and clean up the application folder';
+  String get settingsDataUsageLabel => 'Browse and clean up the application folder';
 
   @override
   String get settingsDataUsageRescan => 'Rescan';
@@ -682,8 +652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDataUsageReclaimable => 'Reclaimable';
 
   @override
-  String get settingsDataUsageReclaimableLabel =>
-      'Unlinked files that can be removed';
+  String get settingsDataUsageReclaimableLabel => 'Unlinked files that can be removed';
 
   @override
   String get settingsDataUsageNone => 'None';
@@ -692,11 +661,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDataUsageRemoveOriginalsTitle => 'Remove the originals?';
 
   @override
-  String settingsDataUsageArchiveWritten(
-    int count,
-    String archive,
-    String size,
-  ) {
+  String settingsDataUsageArchiveWritten(int count, String archive, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -707,8 +672,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageRemoveOriginalsBody =>
-      'Removing them from NAHPU frees the space. The archive keeps your copy, and this cannot be undone.';
+  String get settingsDataUsageRemoveOriginalsBody => 'Removing them from NAHPU frees the space. The archive keeps your copy, and this cannot be undone.';
 
   @override
   String settingsDataUsageExportedTo(String path) {
@@ -763,8 +727,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageDeleteSelectionBody =>
-      'These files are not linked to any record. This cannot be undone.';
+  String get settingsDataUsageDeleteSelectionBody => 'These files are not linked to any record. This cannot be undone.';
 
   @override
   String get settingsDataUsageCollapseAll => 'Collapse all';
@@ -787,15 +750,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsDataUsageScanError =>
-      'Could not read the application folder';
+  String get settingsDataUsageScanError => 'Could not read the application folder';
 
   @override
   String get settingsDataUsagePruneTitle => 'Remove unlinked files';
 
   @override
-  String get settingsDataUsagePruneDescription =>
-      'Files no longer used by any record, such as leftovers from deleted media or cancelled imports. Linked files, databases and backups, custom fonts, map layers, and files outside NAHPU-managed folders are not affected.';
+  String get settingsDataUsagePruneDescription => 'Files no longer used by any record, such as leftovers from deleted media or cancelled imports. Linked files, databases and backups, custom fonts, map layers, and files outside NAHPU-managed folders are not affected.';
 
   @override
   String get settingsDataUsageNothingToReclaim => 'Nothing to reclaim.';
@@ -862,8 +823,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCatalogAlwaysShowBatFields => 'Always show bat fields';
 
   @override
-  String get recordsCatalogBatFieldsNote =>
-      'If enabled, fields specific to bats are always shown in the mammal measurement fields. You can also choose to toggle the visibility of bat-specific fields for each specimen record in the specimen record screen.';
+  String get recordsCatalogBatFieldsNote => 'If enabled, fields specific to bats are always shown in the mammal measurement fields. You can also choose to toggle the visibility of bat-specific fields for each specimen record in the specimen record screen.';
 
   @override
   String get recordsVocabularyCaseFormat => 'Case format';
@@ -915,8 +875,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsSiteMapLayers => 'Map layers';
 
   @override
-  String get recordsSiteMapLayersLabel =>
-      'Choose a base layer or import and manage custom layers';
+  String get recordsSiteMapLayersLabel => 'Choose a base layer or import and manage custom layers';
 
   @override
   String get recordsCollEventSettings => 'Collection event settings';
@@ -931,8 +890,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCollEventPersonnelRoles => 'Personnel Roles';
 
   @override
-  String get recordsCollEventEnvironmentalDataFields =>
-      'Environmental data fields';
+  String get recordsCollEventEnvironmentalDataFields => 'Environmental data fields';
 
   @override
   String recordsCollEventEnvironmentalDataFieldsLoadError(String error) {
@@ -946,8 +904,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCollEventHumidity => 'Humidity';
 
   @override
-  String get recordsCollEventEnvironmentalMeasurements =>
-      'Environmental measurements';
+  String get recordsCollEventEnvironmentalMeasurements => 'Environmental measurements';
 
   @override
   String get recordsCollEventAquaticData => 'Aquatic Data';
@@ -962,8 +919,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsSpecimenCaptureRecords => 'Capture records';
 
   @override
-  String get recordsSpecimenAlwaysShowCollector =>
-      'Always show collector field';
+  String get recordsSpecimenAlwaysShowCollector => 'Always show collector field';
 
   @override
   String get recordsSpecimenIdentificationMethods => 'Identification Methods';
@@ -1023,8 +979,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsSpecimenParasitePreparationMethods => 'Preparation Methods';
 
   @override
-  String get recordsSpecimenParasiteAnatomicalLocations =>
-      'Anatomical Locations';
+  String get recordsSpecimenParasiteAnatomicalLocations => 'Anatomical Locations';
 
   @override
   String get recordsSpecimenParasiteStorage => 'Storage';
@@ -1055,23 +1010,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsSpecimenPersonnelId => 'Personnel ID';
 
   @override
-  String get recordsSpecimenPersonnelIdDescription =>
-      'The ID is a person\'s initials and running number. You will set it when creating personnel with a cataloger role.';
+  String get recordsSpecimenPersonnelIdDescription => 'The ID is a person\'s initials and running number. You will set it when creating personnel with a cataloger role.';
 
   @override
   String get recordsSpecimenProjectId => 'Project ID';
 
   @override
-  String get recordsSpecimenProjectIdDescription =>
-      'The project keeps one running number with a shared prefix and suffix.';
+  String get recordsSpecimenProjectIdDescription => 'The project keeps one running number with a shared prefix and suffix.';
 
   @override
-  String get recordsSpecimenPersonnelFieldIdNoteTitle =>
-      'Personnel field IDs require a cataloger';
+  String get recordsSpecimenPersonnelFieldIdNoteTitle => 'Personnel field IDs require a cataloger';
 
   @override
-  String get recordsSpecimenPersonnelFieldIdNoteBody =>
-      'Add a person with the Cataloger role in the project and assign a current field number to that role.';
+  String get recordsSpecimenPersonnelFieldIdNoteBody => 'Add a person with the Cataloger role in the project and assign a current field number to that role.';
 
   @override
   String get recordsSpecimenAddPersonnel => 'Add personnel';
@@ -1105,20 +1056,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsSpecimenFieldIdSettingsSaved => 'Field ID settings saved.';
 
   @override
-  String get recordsSpecimenNoProjectFieldIdTitle =>
-      'Open a project to set project field IDs';
+  String get recordsSpecimenNoProjectFieldIdTitle => 'Open a project to set project field IDs';
 
   @override
-  String get recordsSpecimenNoProjectFieldIdBody =>
-      'The prefix, current number, and suffix are saved per project.';
+  String get recordsSpecimenNoProjectFieldIdBody => 'The prefix, current number, and suffix are saved per project.';
 
   @override
-  String get recordsSpecimenFieldIdChangeTitle =>
-      'Change project field ID format?';
+  String get recordsSpecimenFieldIdChangeTitle => 'Change project field ID format?';
 
   @override
-  String get recordsSpecimenFieldIdChangeBody =>
-      'Changing the project field ID prefix or suffix changes existing project IDs. These identifiers may already have been used in exports or written on specimen labels. Double-check the new values before changing them.';
+  String get recordsSpecimenFieldIdChangeBody => 'Changing the project field ID prefix or suffix changes existing project IDs. These identifiers may already have been used in exports or written on specimen labels. Double-check the new values before changing them.';
 
   @override
   String get recordsSpecimenIUnderstand => 'I understand';
@@ -1165,8 +1112,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recordsCustomFieldImportEmpty =>
-      'This user-config payload has no custom field templates.';
+  String get recordsCustomFieldImportEmpty => 'This user-config payload has no custom field templates.';
 
   @override
   String recordsCustomFieldImported(int count) {
@@ -1196,8 +1142,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCustomFieldQrTooLargeTitle => 'QR code is too large';
 
   @override
-  String get recordsCustomFieldQrTooLargeBody =>
-      'The selected custom fields contain too much data for one QR code. Export them as a file instead.';
+  String get recordsCustomFieldQrTooLargeBody => 'The selected custom fields contain too much data for one QR code. Export them as a file instead.';
 
   @override
   String get recordsCustomFieldExportFile => 'Export file';
@@ -1268,8 +1213,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCustomFieldDeleteInUse => 'Delete (values in use)';
 
   @override
-  String get recordsCustomFieldSelectPrompt =>
-      'Select a custom field to edit, or add a new one.';
+  String get recordsCustomFieldSelectPrompt => 'Select a custom field to edit, or add a new one.';
 
   @override
   String get recordsCustomFieldNew => 'New custom field';
@@ -1306,8 +1250,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCustomFieldDeletionAvailable => 'Available';
 
   @override
-  String get recordsCustomFieldDeletionUnavailable =>
-      'Unavailable until all stored values are cleared';
+  String get recordsCustomFieldDeletionUnavailable => 'Unavailable until all stored values are cleared';
 
   @override
   String recordsCustomFieldUsageLoadError(String error) {
@@ -1324,8 +1267,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recordsCustomFieldSourceTemplateUuid => 'Source template UUID';
 
   @override
-  String get recordsCustomFieldNotFromTemplate =>
-      'Not imported from a template';
+  String get recordsCustomFieldNotFromTemplate => 'Not imported from a template';
 
   @override
   String get recordsCustomFieldTypeText => 'Text';
@@ -1372,19 +1314,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseReplace => 'Replace';
 
   @override
-  String get databaseRestoreCancelled =>
-      'Restore cancelled. The database was not replaced.';
+  String get databaseRestoreCancelled => 'Restore cancelled. The database was not replaced.';
 
   @override
-  String get databaseRestoreCannotStop =>
-      'The restore is replacing your data and cannot be stopped now.';
+  String get databaseRestoreCannotStop => 'The restore is replacing your data and cannot be stopped now.';
 
   @override
   String get databaseCancelRestoreTitle => 'Cancel the restore?';
 
   @override
-  String get databaseCancelRestoreBody =>
-      'The archive is still being read. Leaving now cancels the restore and your current data is left untouched.';
+  String get databaseCancelRestoreBody => 'The archive is still being read. Leaving now cancels the restore and your current data is left untouched.';
 
   @override
   String get databaseKeepRestoring => 'Keep restoring';
@@ -1404,8 +1343,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseReplaceWith => 'Replace with';
 
   @override
-  String get databaseSourceDescription =>
-      'A NAHPU backup archive or a SQLite database file.';
+  String get databaseSourceDescription => 'A NAHPU backup archive or a SQLite database file.';
 
   @override
   String get databaseNoFileSelected => 'No file selected';
@@ -1440,19 +1378,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseBeforeReplacing => 'Before replacing';
 
   @override
-  String get databaseReplaceWarning =>
-      'This action will replace every record in NAHPU. Media or config files that match the archive will be overwritten. This cannot be undone.';
+  String get databaseReplaceWarning => 'This action will replace every record in NAHPU. Media or config files that match the archive will be overwritten. This cannot be undone.';
 
   @override
   String get databaseBackupFirst => 'Back up current data first';
 
   @override
-  String get databaseBackupFirstSubtitle =>
-      'Saves a full archive, including media, to the NAHPU backup folder';
+  String get databaseBackupFirstSubtitle => 'Saves a full archive, including media, to the NAHPU backup folder';
 
   @override
-  String get databaseNoSafetyBackup =>
-      'No safety backup. Your current records and media are not saved before they are replaced.';
+  String get databaseNoSafetyBackup => 'No safety backup. Your current records and media are not saved before they are replaced.';
 
   @override
   String get databaseComparisonTitle => 'Current and replacement';
@@ -1461,8 +1396,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseChooseFileToCompare => 'Choose a file to compare.';
 
   @override
-  String get databaseArchiveIncludesConfigs =>
-      'This archive also includes user configs, which the restore imports.';
+  String get databaseArchiveIncludesConfigs => 'This archive also includes user configs, which the restore imports.';
 
   @override
   String get databaseSchemaVersion => 'Schema version';
@@ -1508,16 +1442,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseTableMediaRecords => 'Media records';
 
   @override
-  String get databaseIssueNotNahpu =>
-      'This file is not a NAHPU database. Choose a NAHPU backup archive or database file.';
+  String get databaseIssueNotNahpu => 'This file is not a NAHPU database. Choose a NAHPU backup archive or database file.';
 
   @override
-  String get databaseIssueNewerSchema =>
-      'This database was made by a newer version of NAHPU. Update NAHPU, then restore it.';
+  String get databaseIssueNewerSchema => 'This database was made by a newer version of NAHPU. Update NAHPU, then restore it.';
 
   @override
-  String get databaseIssueUnreadable =>
-      'This database could not be read. The file may be damaged.';
+  String get databaseIssueUnreadable => 'This database could not be read. The file may be damaged.';
 
   @override
   String get databaseColumnCurrent => 'Current';
@@ -1532,23 +1463,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseRestoring => 'Restoring database';
 
   @override
-  String get databaseRestoreHint =>
-      'Restoring a backup with many photos can take several minutes. Keep NAHPU open until this finishes.';
+  String get databaseRestoreHint => 'Restoring a backup with many photos can take several minutes. Keep NAHPU open until this finishes.';
 
   @override
   String get databaseChooseDatabase => 'Choose database';
 
   @override
-  String get databaseChooseDatabaseBody =>
-      'This archive contains multiple database files at its root. Choose the database to restore.';
+  String get databaseChooseDatabaseBody => 'This archive contains multiple database files at its root. Choose the database to restore.';
 
   @override
-  String get databaseConfirmWithBackup =>
-      'A full backup of your current data is saved first. Continue?';
+  String get databaseConfirmWithBackup => 'A full backup of your current data is saved first. Continue?';
 
   @override
-  String get databaseConfirmWithoutBackup =>
-      'No backup will be made, so your current data cannot be recovered. Continue?';
+  String get databaseConfirmWithoutBackup => 'No backup will be made, so your current data cannot be recovered. Continue?';
 
   @override
   String get databaseReplaceSuccess => 'Success 🎉';
@@ -1563,11 +1490,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get databaseBackToHome => 'Back to Home';
 
   @override
-  String databaseIosBackupPath(
-    String appDir,
-    String backupDir,
-    String fileName,
-  ) {
+  String databaseIosBackupPath(String appDir, String backupDir, String fileName) {
     return 'Files app/On my Devices/$appDir/$backupDir/$fileName';
   }
 
@@ -1579,10 +1502,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'Scan this code from another NAHPU device to import $count custom field definitions.',
-      one:
-          'Scan this code from another NAHPU device to import 1 custom field definition.',
+      other: 'Scan this code from another NAHPU device to import $count custom field definitions.',
+      one: 'Scan this code from another NAHPU device to import 1 custom field definition.',
     );
     return '$_temp0';
   }
@@ -1597,8 +1518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferExportFile => 'Export file';
 
   @override
-  String get transferNoCustomFields =>
-      'No custom fields are available to export.';
+  String get transferNoCustomFields => 'No custom fields are available to export.';
 
   @override
   String transferSelectedCount(int selected, int total) {
@@ -1632,8 +1552,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferDestination => 'Destination';
 
   @override
-  String get transferCustomFieldImportNote =>
-      'Definitions are preflighted before import. Matching template IDs are updated safely; unrelated fields remain unchanged.';
+  String get transferCustomFieldImportNote => 'Definitions are preflighted before import. Matching template IDs are updated safely; unrelated fields remain unchanged.';
 
   @override
   String get transferImportSelectedConfigs => 'Import selected configs';
@@ -1648,15 +1567,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferConfigsImported => 'Selected user configs were imported.';
 
   @override
-  String get transferImportConfirmationBody =>
-      'The selected groups will be replaced. Custom fields are matched by template ID and merged, so existing definitions are kept. Unselected groups remain unchanged.';
+  String get transferImportConfirmationBody => 'The selected groups will be replaced. Custom fields are matched by template ID and merged, so existing definitions are kept. Unselected groups remain unchanged.';
 
   @override
   String get transferCustomFieldDestination => 'Custom field destination';
 
   @override
-  String get transferSectionUserConfigs =>
-      'Controlled vocabularies and settings';
+  String get transferSectionUserConfigs => 'Controlled vocabularies and settings';
 
   @override
   String get transferSectionRecordExportPresets => 'Tabular export presets';
@@ -1668,8 +1585,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferSectionDocumentLayouts => 'Document layout presets';
 
   @override
-  String get transferSectionTemplateTablePreview =>
-      'Template table preview columns';
+  String get transferSectionTemplateTablePreview => 'Template table preview columns';
 
   @override
   String get transferSectionCustomFields => 'Custom fields';
@@ -1678,12 +1594,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferConfigSections => 'Config sections';
 
   @override
-  String get transferChooseFileToPreview =>
-      'Choose a user-config file to preview its contents.';
+  String get transferChooseFileToPreview => 'Choose a user-config file to preview its contents.';
 
   @override
-  String get transferSelectAtLeastOneSection =>
-      'Select at least one config section.';
+  String get transferSelectAtLeastOneSection => 'Select at least one config section.';
 
   @override
   String transferEntryCount(int count) {
@@ -1767,45 +1681,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupWelcomeTitle => 'Set up NAHPU';
 
   @override
-  String get setupWelcomeMessage =>
-      'NAHPU records specimens using your own conventions. This sets the catalog number format, and the controlled vocabularies for sites, events, and specimens.';
+  String get setupWelcomeMessage => 'NAHPU records specimens using your own conventions. This sets the catalog number format, and the controlled vocabularies for sites, events, and specimens.';
 
   @override
   String get setupWelcomeCatalogFormat => 'The taxon group you catalog.';
 
   @override
-  String get setupWelcomeIdentifiers =>
-      'How field numbers and tissue numbers are formed.';
+  String get setupWelcomeIdentifiers => 'How field numbers and tissue numbers are formed.';
 
   @override
   String get setupControlledVocabularies => 'Controlled vocabularies';
 
   @override
-  String get setupWelcomeVocabularies =>
-      'The vocabularies for sites, events, and specimens.';
+  String get setupWelcomeVocabularies => 'The vocabularies for sites, events, and specimens.';
 
   @override
-  String get setupWelcomeExportPresets =>
-      'Bundled print layouts and tabular presets for exports.';
+  String get setupWelcomeExportPresets => 'Bundled print layouts and tabular presets for exports.';
 
   @override
-  String get setupWelcomeNotPermanent =>
-      'This takes a few minutes and nothing here is permanent. Every answer can be changed later in Settings, or by running this wizard again.';
+  String get setupWelcomeNotPermanent => 'This takes a few minutes and nothing here is permanent. Every answer can be changed later in Settings, or by running this wizard again.';
 
   @override
   String get setupImportTitle => 'Already have settings from your team?';
 
   @override
-  String get setupImportMessage =>
-      'A team only needs to set this up once. If your team has already configured NAHPU, import their user configs file and you can skip the rest of this wizard. You can export yours for everyone else at the end.';
+  String get setupImportMessage => 'A team only needs to set this up once. If your team has already configured NAHPU, import their user configs file and you can skip the rest of this wizard. You can export yours for everyone else at the end.';
 
   @override
-  String get setupCatalogFormatMessage =>
-      'The format decides which measurement fields appear on specimen records.';
+  String get setupCatalogFormatMessage => 'The format decides which measurement fields appear on specimen records.';
 
   @override
-  String get setupCatalogFormatNote =>
-      'You can change the catalog format at any time, and a single project can hold records in more than one format. Pick the format you will use most often.';
+  String get setupCatalogFormatNote => 'You can change the catalog format at any time, and a single project can hold records in more than one format. Pick the format you will use most often.';
 
   @override
   String setupCatalogFormatLoadError(String error) {
@@ -1816,19 +1722,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupFieldIdsTitle => 'Specimen field IDs';
 
   @override
-  String get setupFieldIdsMessage =>
-      'Choose your field ID strategy. You will complete ID setup when creating a new project.';
+  String get setupFieldIdsMessage => 'Choose your field ID strategy. You will complete ID setup when creating a new project.';
 
   @override
-  String get setupIdentifiersNote =>
-      'These identifier settings can be changed for a different project. You can set them under Settings > Catalogs.';
+  String get setupIdentifiersNote => 'These identifier settings can be changed for a different project. You can set them under Settings > Catalogs.';
 
   @override
   String get setupTissueIdsTitle => 'Tissue IDs';
 
   @override
-  String get setupTissueIdsMessage =>
-      'Some collections number tissues separately from the specimen. Set here if your collection uses it. NAHPU automatically uses the specimen field id as default if you don\'t set tissue id.';
+  String get setupTissueIdsMessage => 'Some collections number tissues separately from the specimen. Set here if your collection uses it. NAHPU automatically uses the specimen field id as default if you don\'t set tissue id.';
 
   @override
   String get setupUseSeparateTissueId => 'Use a separate tissue ID';
@@ -1840,8 +1743,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupSitesTitle => 'Site vocabularies';
 
   @override
-  String get setupSitesMessage =>
-      'The controlled vocabularies for site and coordinate forms. Add your own terms, remove any you will not use, or leave the defaults alone. You can update these lists later in the Settings > Sites.';
+  String get setupSitesMessage => 'The controlled vocabularies for site and coordinate forms. Add your own terms, remove any you will not use, or leave the defaults alone. You can update these lists later in the Settings > Sites.';
 
   @override
   String get setupSiteTypes => 'Site types';
@@ -1856,8 +1758,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupEventsTitle => 'Collecting event vocabularies';
 
   @override
-  String get setupEventsMessage =>
-      'The controlled vocabularies for collecting events. You can update these lists later in the Settings > Events.';
+  String get setupEventsMessage => 'The controlled vocabularies for collecting events. You can update these lists later in the Settings > Events.';
 
   @override
   String get setupPrimaryActivities => 'Primary activities';
@@ -1872,8 +1773,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupSpecimensTitle => 'Specimen vocabularies';
 
   @override
-  String get setupSpecimensMessage =>
-      'The controlled vocabularies for specimen records. You can update these lists later in the Settings > Specimens.';
+  String get setupSpecimensMessage => 'The controlled vocabularies for specimen records. You can update these lists later in the Settings > Specimens.';
 
   @override
   String get setupIdentificationMethods => 'Identification methods';
@@ -1891,8 +1791,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupConditions => 'Conditions';
 
   @override
-  String get setupParasitesMessage =>
-      'NAHPU features a separate parasite form to associate parasite records with specimens. The toggle below allows you to setup controlled vocabularies for parasite records.';
+  String get setupParasitesMessage => 'NAHPU features a separate parasite form to associate parasite records with specimens. The toggle below allows you to setup controlled vocabularies for parasite records.';
 
   @override
   String get setupCollectsParasites => 'I will collect parasites';
@@ -1916,8 +1815,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupFinishTitle => 'You are set up';
 
   @override
-  String get setupFinishMessage =>
-      'NAHPU will use these conventions for new records.';
+  String get setupFinishMessage => 'NAHPU will use these conventions for new records.';
 
   @override
   String get setupNotSet => 'Not set';
@@ -1950,23 +1848,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupShareTitle => 'Share this setup with your team';
 
   @override
-  String get setupShareMessage =>
-      'Your team only needs to do this once. Export these user configs and share with your team members/collaborators to ensure everyone works with the same vocabularies and settings.';
+  String get setupShareMessage => 'Your team only needs to do this once. Export these user configs and share with your team members/collaborators to ensure everyone works with the same vocabularies and settings.';
 
   @override
-  String get setupFinishNote =>
-      'Nothing here is locked in. Change any individual setting under Settings, or run Setup NAHPU again from the menu.';
+  String get setupFinishNote => 'Nothing here is locked in. Change any individual setting under Settings, or run Setup NAHPU again from the menu.';
 
   @override
-  String get setupExportPresetsMessage =>
-      'These are default presets for exporting records. Print layouts will be used for labels, tags, and field booklets. Tabular presets will be used for spreadsheets. You can manage or create your own presets in the Settings menu.';
+  String get setupExportPresetsMessage => 'These are default presets for exporting records. Print layouts will be used for labels, tags, and field booklets. Tabular presets will be used for spreadsheets. You can manage or create your own presets in the Settings menu.';
 
   @override
   String get setupPresetDefaults => 'Defaults';
 
   @override
-  String get setupPresetDefaultsMessage =>
-      'Presets that suit any catalog format.';
+  String get setupPresetDefaultsMessage => 'Presets that suit any catalog format.';
 
   @override
   String setupPresetsForFormat(String catalogFormat) {
@@ -1974,8 +1868,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupPresetsForFormatMessage =>
-      'Optional presets written for this catalog format.';
+  String get setupPresetsForFormatMessage => 'Optional presets written for this catalog format.';
 
   @override
   String get setupAddSelectedPresets => 'Add selected presets';
@@ -2013,8 +1906,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get presetsTemplateUnusedDelete =>
-      'This template is unused and will be permanently removed.';
+  String get presetsTemplateUnusedDelete => 'This template is unused and will be permanently removed.';
 
   @override
   String presetsTemplateInUse(int blockCount, int layoutCount) {
@@ -2034,11 +1926,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String presetsTemplateUsageBlocks(
-    String layoutName,
-    int count,
-    String blocks,
-  ) {
+  String presetsTemplateUsageBlocks(String layoutName, int count, String blocks) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -2049,19 +1937,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get presetsTemplateNoReplacement =>
-      'Create another template with the same record type, or change the affected layout blocks before deleting this one.';
+  String get presetsTemplateNoReplacement => 'Create another template with the same record type, or change the affected layout blocks before deleting this one.';
 
   @override
   String get presetsTemplateReplacement => 'Replacement template';
 
   @override
-  String get presetsTemplateReplacementNote =>
-      'Page size, margins, grid, and padding will stay unchanged. Review the affected print layouts after replacement.';
+  String get presetsTemplateReplacementNote => 'Page size, margins, grid, and padding will stay unchanged. Review the affected print layouts after replacement.';
 
   @override
-  String get presetsTemplateEmpty =>
-      'No templates yet. Templates define the content placed in print-layout blocks.';
+  String get presetsTemplateEmpty => 'No templates yet. Templates define the content placed in print-layout blocks.';
 
   @override
   String get presetsTemplateNoMatch => 'No templates match your search.';
@@ -2216,8 +2101,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get presetsFontDeleteBody =>
-      'The font files are removed from this installation. Templates that use it elsewhere are not changed.';
+  String get presetsFontDeleteBody => 'The font files are removed from this installation. Templates that use it elsewhere are not changed.';
 
   @override
   String get presetsFontSearch => 'Search fonts';
@@ -2229,8 +2113,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetsFontFind => 'Find fonts';
 
   @override
-  String get presetsFontLicenseNote =>
-      'Download a font in your browser, then install the .ttf or .otf file here. You are responsible for the license of any font you install.';
+  String get presetsFontLicenseNote => 'Download a font in your browser, then install the .ttf or .otf file here. You are responsible for the license of any font you install.';
 
   @override
   String get presetsFontNoMatch => 'No fonts match your search';
@@ -2339,8 +2222,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetsSelectPresets => 'Select Presets';
 
   @override
-  String get presetsTabularEmpty =>
-      'No tabular presets yet. Create or import one, or add the presets for your catalog format in Setup NAHPU.';
+  String get presetsTabularEmpty => 'No tabular presets yet. Create or import one, or add the presets for your catalog format in Setup NAHPU.';
 
   @override
   String presetsMappingSummary(int count, String recordType) {
@@ -2391,15 +2273,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetsNameEmpty => 'Name cannot be empty';
 
   @override
-  String get presetsNameInvalidChars =>
-      'Only alphanumeric, underscores, and dashes allowed';
+  String get presetsNameInvalidChars => 'Only alphanumeric, underscores, and dashes allowed';
 
   @override
   String get presetsPreviewEmptyTitle => 'No Preview Data';
 
   @override
-  String get presetsPreviewEmptyBody =>
-      'No records matched the selected filters, or mappings are empty.';
+  String get presetsPreviewEmptyBody => 'No records matched the selected filters, or mappings are empty.';
 
   @override
   String presetsPreviewFailed(String error) {
@@ -2459,8 +2339,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetsHeaderFormat => 'Generated header format';
 
   @override
-  String get presetsHeaderNahpuNamespace =>
-      'NAHPU namespace (nahpu:table.field)';
+  String get presetsHeaderNahpuNamespace => 'NAHPU namespace (nahpu:table.field)';
 
   @override
   String presetsPreviewSites(int count) {
@@ -2537,22 +2416,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get presetsDocumentEmpty =>
-      'No print layouts yet. Create or import one, or load the default layouts.';
+  String get presetsDocumentEmpty => 'No print layouts yet. Create or import one, or load the default layouts.';
 
   @override
   String get presetsIncompatible => 'Incompatible preset';
 
   @override
-  String get presetsIncompatibleBody =>
-      'This preset is not compatible with the current version.';
+  String get presetsIncompatibleBody => 'This preset is not compatible with the current version.';
 
   @override
   String get presetsPreviewNoRecords => 'No preview records for this type';
 
   @override
-  String get presetsPreviewSelectSpecimenParts =>
-      'Select specimen parts for preview';
+  String get presetsPreviewSelectSpecimenParts => 'Select specimen parts for preview';
 
   @override
   String get presetsPreviewSelectParasites => 'Select parasites for preview';
@@ -2579,8 +2455,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsNoPreviewTitle => 'No Preview Data';
 
   @override
-  String get exportFieldsNoPreviewBody =>
-      'No records matched the selected filters, or mappings are empty.';
+  String get exportFieldsNoPreviewBody => 'No records matched the selected filters, or mappings are empty.';
 
   @override
   String exportFieldsPreviewFailed(String error) {
@@ -2649,8 +2524,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get exportFieldsCardDarwinCoreSeparator =>
-      'One column · Darwin Core \" | \" separator';
+  String get exportFieldsCardDarwinCoreSeparator => 'One column · Darwin Core \" | \" separator';
 
   @override
   String exportFieldsCardSeparator(String separator) {
@@ -2702,15 +2576,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsSourceField => 'Source field';
 
   @override
-  String get exportFieldsSourceFieldHelper =>
-      'Choose the NAHPU field that supplies this column.';
+  String get exportFieldsSourceFieldHelper => 'Choose the NAHPU field that supplies this column.';
 
   @override
   String get exportFieldsColumnNameOptional => 'Column name (optional)';
 
   @override
-  String get exportFieldsColumnNameOptionalHelper =>
-      'Leave blank to use the source field name.';
+  String get exportFieldsColumnNameOptionalHelper => 'Leave blank to use the source field name.';
 
   @override
   String get exportFieldsListOutput => 'List output';
@@ -2721,8 +2593,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get exportFieldsDarwinCoreListSeparator =>
-      'Darwin Core list values are separated with \" | \".';
+  String get exportFieldsDarwinCoreListSeparator => 'Darwin Core list values are separated with \" | \".';
 
   @override
   String get exportFieldsSeparator => 'Separator';
@@ -2776,29 +2647,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsReplacementText => 'Replacement text';
 
   @override
-  String get exportFieldsReplacementTextHelper =>
-      'Written when the condition matches; otherwise the original value is kept.';
+  String get exportFieldsReplacementTextHelper => 'Written when the condition matches; otherwise the original value is kept.';
 
   @override
   String get exportFieldsColumnName => 'Column name';
 
   @override
-  String get exportFieldsColumnNameHelper =>
-      'Name the output column containing the custom value.';
+  String get exportFieldsColumnNameHelper => 'Name the output column containing the custom value.';
 
   @override
   String get exportFieldsRelatedRecords => 'Related records';
 
   @override
-  String get exportFieldsRelatedRecordsHelper =>
-      'Select the repeated record group to export.';
+  String get exportFieldsRelatedRecordsHelper => 'Select the repeated record group to export.';
 
   @override
   String get exportFieldsSelectedChildFields => 'Selected child fields';
 
   @override
-  String get exportFieldsSelectChildFieldHint =>
-      'Select at least one child field below.';
+  String get exportFieldsSelectChildFieldHint => 'Select at least one child field below.';
 
   @override
   String get exportFieldsMoveUp => 'Move up';
@@ -2819,20 +2686,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsNestedOutput => 'Nested output';
 
   @override
-  String get exportFieldsNestedOneColumnHint =>
-      'Combine all child records into one cell.';
+  String get exportFieldsNestedOneColumnHint => 'Combine all child records into one cell.';
 
   @override
-  String get exportFieldsNestedIndexedHint =>
-      'Create a group of columns for each record.';
+  String get exportFieldsNestedIndexedHint => 'Create a group of columns for each record.';
 
   @override
-  String get exportFieldsNestedRepeatedHint =>
-      'Create one export row per child record.';
+  String get exportFieldsNestedRepeatedHint => 'Create one export row per child record.';
 
   @override
-  String get exportFieldsNestedRepeatedTaken =>
-      'Another mapping already expands export rows.';
+  String get exportFieldsNestedRepeatedTaken => 'Another mapping already expands export rows.';
 
   @override
   String get exportFieldsFieldSeparator => 'Field separator';
@@ -2850,8 +2713,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsRawFormatOption => 'Raw format option';
 
   @override
-  String get exportFieldsRawFormatOptionHelper =>
-      'For example: enum, dms, or custom_map:0=No.';
+  String get exportFieldsRawFormatOptionHelper => 'For example: enum, dms, or custom_map:0=No.';
 
   @override
   String get exportFieldsEmptyValue => 'Empty value';
@@ -2880,31 +2742,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsErrorChooseChild => 'Choose at least one child field.';
 
   @override
-  String get exportFieldsErrorSeparatorsEmpty =>
-      'Field and record separators cannot be empty.';
+  String get exportFieldsErrorSeparatorsEmpty => 'Field and record separators cannot be empty.';
 
   @override
-  String get exportFieldsErrorMultiFieldHeader =>
-      'Set a custom header for a multi-field concatenated mapping.';
+  String get exportFieldsErrorMultiFieldHeader => 'Set a custom header for a multi-field concatenated mapping.';
 
   @override
-  String get exportFieldsErrorAddSegment =>
-      'Add at least one field or text segment.';
+  String get exportFieldsErrorAddSegment => 'Add at least one field or text segment.';
 
   @override
   String get exportFieldsErrorChooseSource => 'Choose a source field.';
 
   @override
-  String get exportFieldsErrorCompositeHeader =>
-      'Set a custom header for a composite mapping.';
+  String get exportFieldsErrorCompositeHeader => 'Set a custom header for a composite mapping.';
 
   @override
-  String get exportFieldsErrorIndexedSingleSource =>
-      'Indexed lists require exactly one source field.';
+  String get exportFieldsErrorIndexedSingleSource => 'Indexed lists require exactly one source field.';
 
   @override
-  String get exportFieldsErrorConditionalSingleSource =>
-      'Conditional output requires exactly one source field.';
+  String get exportFieldsErrorConditionalSingleSource => 'Conditional output requires exactly one source field.';
 
   @override
   String get exportFieldsErrorAddCondition => 'Add at least one condition.';
@@ -2913,23 +2769,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsErrorReplacementText => 'Enter replacement text.';
 
   @override
-  String get exportFieldsErrorControllingField =>
-      'Choose a controlling field for every bracket condition.';
+  String get exportFieldsErrorControllingField => 'Choose a controlling field for every bracket condition.';
 
   @override
-  String get exportFieldsErrorComparisonValue =>
-      'Enter a comparison value for every bracket condition.';
+  String get exportFieldsErrorComparisonValue => 'Enter a comparison value for every bracket condition.';
 
   @override
-  String get exportFieldsErrorSelfDependency =>
-      'A conditional field cannot depend on itself.';
+  String get exportFieldsErrorSelfDependency => 'A conditional field cannot depend on itself.';
 
   @override
   String get exportFieldsCustomValue => 'Custom value';
 
   @override
-  String get exportFieldsCustomValueHelp =>
-      'Fields and text are emitted left to right. Add as many segments as needed.';
+  String get exportFieldsCustomValueHelp => 'Fields and text are emitted left to right. Add as many segments as needed.';
 
   @override
   String get exportFieldsCustomValueEmpty => 'Add a field or text to begin.';
@@ -2984,8 +2836,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsTextOtherwise => 'Text otherwise (optional)';
 
   @override
-  String get exportFieldsTextOtherwiseHelper =>
-      'Leave it empty to write nothing.';
+  String get exportFieldsTextOtherwiseHelper => 'Leave it empty to write nothing.';
 
   @override
   String get exportFieldsSummaryOr => 'or';
@@ -2999,11 +2850,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String exportFieldsSummaryIfOtherwise(
-    String conditions,
-    String text,
-    String otherwise,
-  ) {
+  String exportFieldsSummaryIfOtherwise(String conditions, String text, String otherwise) {
     return 'If $conditions → \"$text\", otherwise \"$otherwise\"';
   }
 
@@ -3039,8 +2886,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsFieldConditions => 'Field conditions';
 
   @override
-  String get exportFieldsConditionsHelp =>
-      'Compare raw stored values. Blank controlling values never match.';
+  String get exportFieldsConditionsHelp => 'Compare raw stored values. Blank controlling values never match.';
 
   @override
   String get exportFieldsMatchLogic => 'Match logic';
@@ -3100,12 +2946,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportFieldsOutputExample => 'Output example';
 
   @override
-  String get exportFieldsOutputExampleEmpty =>
-      'Complete the mapping to see its output shape.';
+  String get exportFieldsOutputExampleEmpty => 'Complete the mapping to see its output shape.';
 
   @override
-  String get exportFieldsOutputExampleRows =>
-      'Each child record creates another export row.';
+  String get exportFieldsOutputExampleRows => 'Each child record creates another export row.';
 
   @override
   String get exportFieldsCustomizeNested => 'Customize Nested Mapping';
@@ -3169,8 +3013,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formsMatchOverrideAll => 'Override all';
 
   @override
-  String get formsMatchHelp =>
-      'Use this when records arrive from someone whose controlled vocabularies you do not have.';
+  String get formsMatchHelp => 'Use this when records arrive from someone whose controlled vocabularies you do not have.';
 
   @override
   String formsMatchAppendDescription(String plural) {
@@ -3285,8 +3128,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formsNextNumber => 'Next number';
 
   @override
-  String get formsNumberedIdNoPreview =>
-      'Set a next number to auto-number · Leading zeros are kept';
+  String get formsNumberedIdNoPreview => 'Set a next number to auto-number · Leading zeros are kept';
 
   @override
   String formsNumberedIdPreview(String label, String preview) {
@@ -3375,8 +3217,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formsPresetName => 'Preset name';
 
   @override
-  String get formsPresetUpdateHelper =>
-      'Select Update to save the name and description';
+  String get formsPresetUpdateHelper => 'Select Update to save the name and description';
 
   @override
   String get formsPresetUpdate => 'Update';
@@ -3402,21 +3243,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sharedPresetCreateTooltip(String kind) {
-    String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Create new template',
-      'customField': 'Create new custom field',
-      'other': 'Create new preset',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      kind,
+      {
+        'template': 'Create new template',
+        'customField': 'Create new custom field',
+        'other': 'Create new preset',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedPresetOptions(String kind) {
-    String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Template options',
-      'customField': 'Custom field options',
-      'other': 'Preset options',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      kind,
+      {
+        'template': 'Template options',
+        'customField': 'Custom field options',
+        'other': 'Preset options',
+      },
+    );
     return '$_temp0';
   }
 
@@ -3428,21 +3275,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sharedPresetExportSelected(String kind) {
-    String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Export this template',
-      'customField': 'Export this custom field',
-      'other': 'Export this preset',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      kind,
+      {
+        'template': 'Export this template',
+        'customField': 'Export this custom field',
+        'other': 'Export this preset',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedPresetExportAll(String kind) {
-    String _temp0 = intl.Intl.selectLogic(kind, {
-      'template': 'Export all templates',
-      'customField': 'Export all custom fields',
-      'other': 'Export all presets',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      kind,
+      {
+        'template': 'Export all templates',
+        'customField': 'Export all custom fields',
+        'other': 'Export all presets',
+      },
+    );
     return '$_temp0';
   }
 
@@ -3485,8 +3338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedDeleteSelectedTitle => 'Delete selected items';
 
   @override
-  String get sharedDeleteSelectedBody =>
-      'Are you sure you want to delete the selected items?';
+  String get sharedDeleteSelectedBody => 'Are you sure you want to delete the selected items?';
 
   @override
   String get sharedTryAgain => 'Try again';
@@ -3537,8 +3389,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sharedExportCancelledBody =>
-      'No file was saved. Nothing on this device was changed.';
+  String get sharedExportCancelledBody => 'No file was saved. Nothing on this device was changed.';
 
   @override
   String sharedExportStoppedAt(String step) {
@@ -3564,12 +3415,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedHideSaveLocation => 'Hide save location';
 
   @override
-  String get sharedExportTemporaryNote =>
-      'Share this file now to keep it. NAHPU removes it when you export again.';
+  String get sharedExportTemporaryNote => 'Share this file now to keep it. NAHPU removes it when you export again.';
 
   @override
-  String get sharedExportAppStorageNote =>
-      'Saved in NAHPU app storage. Choose a folder next time to save straight to it.';
+  String get sharedExportAppStorageNote => 'Saved in NAHPU app storage. Choose a folder next time to save straight to it.';
 
   @override
   String sharedExportFinishedIn(String duration) {
@@ -3596,12 +3445,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedQrExportImage => 'Export QR code as an image';
 
   @override
-  String get sharedQrImageTooLarge =>
-      'This data is too large for a QR code image.';
+  String get sharedQrImageTooLarge => 'This data is too large for a QR code image.';
 
   @override
-  String get sharedLoadDefaultsDescription =>
-      'Choose the bundled presets to add. Presets you already have are left unchanged.';
+  String get sharedLoadDefaultsDescription => 'Choose the bundled presets to add. Presets you already have are left unchanged.';
 
   @override
   String get sharedLoadDefaultsNone => 'No default presets of this type.';
@@ -3610,8 +3457,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLoadDefaultsGenericTitle => 'Defaults';
 
   @override
-  String get sharedLoadDefaultsGenericMessage =>
-      'Presets that suit any catalog format.';
+  String get sharedLoadDefaultsGenericMessage => 'Presets that suit any catalog format.';
 
   @override
   String sharedLoadDefaultsForFormat(String format) {
@@ -3619,12 +3465,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sharedLoadDefaultsForFormatMessage =>
-      'Optional presets written for this catalog format.';
+  String get sharedLoadDefaultsForFormatMessage => 'Optional presets written for this catalog format.';
 
   @override
-  String get sharedLoadDefaultsLayoutsNote =>
-      'Layouts bring the templates they print with.';
+  String get sharedLoadDefaultsLayoutsNote => 'Layouts bring the templates they print with.';
 
   @override
   String get sharedLoadSelected => 'Load selected';
@@ -3667,8 +3511,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedExportProjectInfo => 'Export project info';
 
   @override
-  String get sharedExportProjectInfoDescription =>
-      'Export this project information as JSON.';
+  String get sharedExportProjectInfoDescription => 'Export this project information as JSON.';
 
   @override
   String get sharedSortOrder => 'Order';
@@ -3717,51 +3560,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String sharedImportRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(type, {
-      'site': 'Import site',
-      'event': 'Import event',
-      'other': 'Import specimen',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      type,
+      {
+        'site': 'Import site',
+        'event': 'Import event',
+        'other': 'Import specimen',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedCreateNewRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(type, {
-      'site': 'Create new site',
-      'event': 'Create new event',
-      'other': 'Create new specimen',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      type,
+      {
+        'site': 'Create new site',
+        'event': 'Create new event',
+        'other': 'Create new specimen',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedUpdateExistingRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(type, {
-      'site': 'Update an existing site',
-      'event': 'Update an existing event',
-      'other': 'Update an existing specimen',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      type,
+      {
+        'site': 'Update an existing site',
+        'event': 'Update an existing event',
+        'other': 'Update an existing specimen',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedExportRecordType(String type) {
-    String _temp0 = intl.Intl.selectLogic(type, {
-      'site': 'Export site',
-      'event': 'Export event',
-      'other': 'Export specimen',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      type,
+      {
+        'site': 'Export site',
+        'event': 'Export event',
+        'other': 'Export specimen',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String sharedExportRecordJson(String type) {
-    String _temp0 = intl.Intl.selectLogic(type, {
-      'site': 'Export this site record as JSON.',
-      'event': 'Export this event record as JSON.',
-      'other': 'Export this specimen record as JSON.',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      type,
+      {
+        'site': 'Export this site record as JSON.',
+        'event': 'Export this event record as JSON.',
+        'other': 'Export this specimen record as JSON.',
+      },
+    );
     return '$_temp0';
   }
 
@@ -3770,10 +3628,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'This record includes $count linked media files, which will be included in the archive.',
-      one:
-          'This record includes 1 linked media file, which will be included in the archive.',
+      other: 'This record includes $count linked media files, which will be included in the archive.',
+      one: 'This record includes 1 linked media file, which will be included in the archive.',
     );
     return '$_temp0';
   }
@@ -3793,8 +3649,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedChooseEventSite => 'Choose event site';
 
   @override
-  String get sharedChooseEventSiteDescription =>
-      'This event includes a linked site. Choose an existing site or create the embedded site as a new site.';
+  String get sharedChooseEventSiteDescription => 'This event includes a linked site. Choose an existing site or create the embedded site as a new site.';
 
   @override
   String get sharedCreateEmbeddedSite => 'Create embedded site';
@@ -3896,11 +3751,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedRecordLabel => 'Record';
 
   @override
-  String sharedSpecimenImportSummary(
-    int partCount,
-    int associatedCount,
-    int mediaCount,
-  ) {
+  String sharedSpecimenImportSummary(int partCount, int associatedCount, int mediaCount) {
     String _temp0 = intl.Intl.pluralLogic(
       partCount,
       locale: localeName,
@@ -3941,12 +3792,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedQrNoData => 'The QR code has no data.';
 
   @override
-  String get sharedRecordQrTooLargeBody =>
-      'This record contains too much data for a QR code. Export it as JSON to transfer the complete record instead.';
+  String get sharedRecordQrTooLargeBody => 'This record contains too much data for a QR code. Export it as JSON to transfer the complete record instead.';
 
   @override
-  String get sharedRecordQrDescription =>
-      'Scan this code from another NAHPU device to import the record.';
+  String get sharedRecordQrDescription => 'Scan this code from another NAHPU device to import the record.';
 
   @override
   String sharedRecordExchangeFailed(String error) {
@@ -3988,22 +3837,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedClearDirectory => 'Clear directory';
 
   @override
-  String get sharedNoFolderChosen =>
-      'No folder chosen. The export goes to NAHPU app storage — browse to a folder to put it somewhere you choose.';
+  String get sharedNoFolderChosen => 'No folder chosen. The export goes to NAHPU app storage — browse to a folder to put it somewhere you choose.';
 
   @override
   String get sharedShareAfterExport => 'Share after export';
 
   @override
-  String get sharedTemporaryExportNote =>
-      'NAHPU keeps the file only until your next export. Share it to save a copy in Files, send it to another app, or put it in a cloud folder.';
+  String get sharedTemporaryExportNote => 'NAHPU keeps the file only until your next export. Share it to save a copy in Files, send it to another app, or put it in a cloud folder.';
 
   @override
   String get sharedEntireDatabaseContents => 'Entire database contents';
 
   @override
-  String get sharedBackupSizeBeforeCompression =>
-      'Backup size before compression';
+  String get sharedBackupSizeBeforeCompression => 'Backup size before compression';
 
   @override
   String sharedWizardStepChip(int number, String label) {
@@ -4137,20 +3983,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get textReplaceRemove => 'Remove replacement';
 
   @override
-  String get textReplaceRegexHelp =>
-      'Use \$0 for the full match, \$1…\$n for groups, and \$\$ for \$.';
+  String get textReplaceRegexHelp => 'Use \$0 for the full match, \$1…\$n for groups, and \$\$ for \$.';
 
   @override
-  String get documentFontSampleA =>
-      'Durians are the king of fruits, and mangosteen is the queen of fruit. Apparently, it is never a good idea to eat them at the same time. I definitely should not have eaten 12 durians and a dozen mangosteens in one sitting out in the fields.';
+  String get documentFontSampleA => 'Durians are the king of fruits, and mangosteen is the queen of fruit. Apparently, it is never a good idea to eat them at the same time. I definitely should not have eaten 12 durians and a dozen mangosteens in one sitting out in the fields.';
 
   @override
-  String get documentFontSampleB =>
-      'There is only one place in northern Sumatra where orangutans, rhinos, elephants, and tigers share the same natural habitat. Guess the name of the National Park?';
+  String get documentFontSampleB => 'There is only one place in northern Sumatra where orangutans, rhinos, elephants, and tigers share the same natural habitat. Guess the name of the National Park?';
 
   @override
-  String get documentFontSampleC =>
-      'Feeling creative or inspired? Send the maintainer your thoughts, an interesting biodiversity fact, a field joke, or a short story worth reading, or post it at github.com/nahpu/nahpu/issues, and it may show up right here. A font choice should not be decided by a quick brown fox jumping over a lazy dog.';
+  String get documentFontSampleC => 'Feeling creative or inspired? Send the maintainer your thoughts, an interesting biodiversity fact, a field joke, or a short story worth reading, or post it at github.com/nahpu/nahpu/issues, and it may show up right here. A font choice should not be decided by a quick brown fox jumping over a lazy dog.';
 
   @override
   String get documentFontBold => 'Bold';
@@ -4205,8 +4047,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldEditorDwcAllowConflict => 'I understand duplicate values';
 
   @override
-  String get fieldEditorDwcAllowConflictNote =>
-      'Conflicting scalar values will be joined with “ | ”.';
+  String get fieldEditorDwcAllowConflictNote => 'Conflicting scalar values will be joined with “ | ”.';
 
   @override
   String get fieldEditorEditTitle => 'Edit custom field';
@@ -4226,8 +4067,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentFileBundleFormat => 'Bundle format';
 
   @override
-  String get documentFileDwcDpZipNote =>
-      'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.';
+  String get documentFileDwcDpZipNote => 'ZIP is provided for compatibility. TAR.GZ is the standards-oriented DwC-DP option.';
 
   @override
   String get documentFileFormatCsv => 'Comma-separated (.csv)';
@@ -4287,15 +4127,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentPartFilterTitle => 'Filter specimen parts';
 
   @override
-  String get documentPartFilterNote =>
-      'Filters change the list only. Selected parts remain included in the export until you change the selection.';
+  String get documentPartFilterNote => 'Filters change the list only. Selected parts remain included in the export until you change the selection.';
 
   @override
   String get documentPartFilterTypes => 'Part types';
 
   @override
-  String get documentPartFilterTypesHint =>
-      'Leave all unchecked to include every type.';
+  String get documentPartFilterTypesHint => 'Leave all unchecked to include every type.';
 
   @override
   String get documentPartFilterNumberRange => 'Number range';
@@ -4313,19 +4151,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentPartFilterTo => 'To';
 
   @override
-  String get documentPartFilterRangeHint =>
-      'Includes both endpoints. Leave either end blank for no limit.';
+  String get documentPartFilterRangeHint => 'Includes both endpoints. Leave either end blank for no limit.';
 
   @override
   String get documentPartFilterReset => 'Reset filters';
 
   @override
-  String get documentPartFilterInvalidNumber =>
-      'Enter a non-negative whole number.';
+  String get documentPartFilterInvalidNumber => 'Enter a non-negative whole number.';
 
   @override
-  String get documentPartFilterFromAfterTo =>
-      'From must be less than or equal to To.';
+  String get documentPartFilterFromAfterTo => 'From must be less than or equal to To.';
 
   @override
   String documentPartsLoadError(String error) {
@@ -4350,12 +4185,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String documentPartsSummaryHidden(
-    int shown,
-    int total,
-    int selected,
-    int hidden,
-  ) {
+  String documentPartsSummaryHidden(int shown, int total, int selected, int hidden) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
@@ -4393,12 +4223,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String documentParasitesSummaryHidden(
-    int shown,
-    int total,
-    int selected,
-    int hidden,
-  ) {
+  String documentParasitesSummaryHidden(int shown, int total, int selected, int hidden) {
     String _temp0 = intl.Intl.pluralLogic(
       total,
       locale: localeName,
@@ -4724,8 +4549,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentLayoutProfile => 'Layout profile';
 
   @override
-  String get documentLayoutProfileHelper =>
-      'Page settings and template blocks are set by the profile.';
+  String get documentLayoutProfileHelper => 'Page settings and template blocks are set by the profile.';
 
   @override
   String get documentManagePresets => 'Manage presets';
@@ -4806,68 +4630,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelProjectToolDataTable => 'Data table';
 
   @override
-  String get labelProjectToolDataTableDescription =>
-      'Browse, sort, and search project records';
+  String get labelProjectToolDataTableDescription => 'Browse, sort, and search project records';
 
   @override
   String get labelProjectToolTemplates => 'Templates';
 
   @override
-  String get labelProjectToolTemplatesDescription =>
-      'Create and edit document templates';
+  String get labelProjectToolTemplatesDescription => 'Create and edit document templates';
 
   @override
   String get labelProjectToolMergeProject => 'Merge project';
 
   @override
-  String get labelProjectToolMergeProjectDescription =>
-      'Merge another project into this one';
+  String get labelProjectToolMergeProjectDescription => 'Merge another project into this one';
 
   @override
   String get labelProjectToolExportProject => 'Export project';
 
   @override
-  String get labelProjectToolExportProjectDescription =>
-      'Export this project for transfer';
+  String get labelProjectToolExportProjectDescription => 'Export this project for transfer';
 
   @override
   String get labelProjectToolBatchImport => 'Batch import';
 
   @override
-  String get labelProjectToolBatchImportDescription =>
-      'Import or update records from a spreadsheet';
+  String get labelProjectToolBatchImportDescription => 'Import or update records from a spreadsheet';
 
   @override
   String get labelProjectToolCuration => 'Curation';
 
   @override
-  String get labelProjectToolCurationDescription =>
-      'Specimen curation: scan tissues into storage boxes';
+  String get labelProjectToolCurationDescription => 'Specimen curation: scan tissues into storage boxes';
 
   @override
   String get labelProjectToolBundleRecords => 'Bundle records';
 
   @override
-  String get labelProjectToolBundleRecordsDescription =>
-      'Bundle records with their media';
+  String get labelProjectToolBundleRecordsDescription => 'Bundle records with their media';
 
   @override
   String get labelProjectToolExportRecords => 'Export records';
 
   @override
-  String get labelProjectToolExportRecordsDescription =>
-      'Export records as tabular data';
+  String get labelProjectToolExportRecordsDescription => 'Export records as tabular data';
 
   @override
   String get labelProjectToolExportDocuments => 'Export documents';
 
   @override
-  String get labelProjectToolExportDocumentsDescription =>
-      'Export records as documents';
+  String get labelProjectToolExportDocumentsDescription => 'Export records as documents';
 
   @override
-  String get labelProjectToolBackupDatabaseDescription =>
-      'Back up the application database';
+  String get labelProjectToolBackupDatabaseDescription => 'Back up the application database';
 
   @override
   String get labelProjectToolSettingsDescription => 'Open application settings';
@@ -4888,26 +4702,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelBasemapAutomatic => 'Automatic';
 
   @override
-  String get labelBasemapAutomaticDescription =>
-      'Positron in light mode and Dark in dark mode';
+  String get labelBasemapAutomaticDescription => 'Positron in light mode and Dark in dark mode';
 
   @override
   String get labelBasemapNaturalEarthOffline => 'Natural Earth (Offline)';
 
   @override
-  String get labelBasemapNaturalEarthOfflineDescription =>
-      'Bundled country boundaries that work without internet access';
+  String get labelBasemapNaturalEarthOfflineDescription => 'Bundled country boundaries that work without internet access';
 
   @override
-  String get labelBasemapPositronDescription =>
-      'Minimal, low-contrast light map';
+  String get labelBasemapPositronDescription => 'Minimal, low-contrast light map';
 
   @override
   String get labelBasemapBrightDescription => 'Detailed map with bright colors';
 
   @override
-  String get labelBasemapLibertyDescription =>
-      'Detailed map with balanced colors';
+  String get labelBasemapLibertyDescription => 'Detailed map with balanced colors';
 
   @override
   String get labelBasemapDark => 'Dark';
@@ -4991,8 +4801,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelEnvironmentalDissolvedOxygen => 'Dissolved oxygen';
 
   @override
-  String get labelEnvironmentalDissolvedOxygenSaturation =>
-      'Dissolved oxygen saturation';
+  String get labelEnvironmentalDissolvedOxygenSaturation => 'Dissolved oxygen saturation';
 
   @override
   String get labelEnvironmentalConductivity => 'Conductivity';
@@ -5211,37 +5020,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fileExplorerLockAssociatedData => 'Linked to associated data';
 
   @override
-  String get fileExplorerLockUnresolvedReference =>
-      'A record points here but could not be read';
+  String get fileExplorerLockUnresolvedReference => 'A record points here but could not be read';
 
   @override
-  String get fileExplorerLockRecentlyModified =>
-      'Changed just now, may still be copying';
+  String get fileExplorerLockRecentlyModified => 'Changed just now, may still be copying';
 
   @override
-  String get fileExplorerLockUnmanagedLocation =>
-      'Not in a folder NAHPU manages';
+  String get fileExplorerLockUnmanagedLocation => 'Not in a folder NAHPU manages';
 
   @override
-  String get fileExplorerLockUnknownProject =>
-      'Folder of a project not in the database';
+  String get fileExplorerLockUnknownProject => 'Folder of a project not in the database';
 
   @override
   String fileExplorerPruneBlockedUnresolved(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count associated data records could not be read, so some files cannot be checked. Removing files is disabled until that is resolved.',
-      one:
-          '1 associated data record could not be read, so some files cannot be checked. Removing files is disabled until that is resolved.',
+      other: '$count associated data records could not be read, so some files cannot be checked. Removing files is disabled until that is resolved.',
+      one: '1 associated data record could not be read, so some files cannot be checked. Removing files is disabled until that is resolved.',
     );
     return '$_temp0';
   }
 
   @override
-  String get fileExplorerPruneBlockedEmptyIndex =>
-      'The database reports no linked files at all, which usually means it is still opening. Reopen this screen before removing anything.';
+  String get fileExplorerPruneBlockedEmptyIndex => 'The database reports no linked files at all, which usually means it is still opening. Reopen this screen before removing anything.';
 
   @override
   String get progressPrepareBackup => 'Prepare backup';
@@ -5297,18 +5099,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get serviceMessageNoDefaultPresets =>
-      'No default presets of this type';
+  String get serviceMessageNoDefaultPresets => 'No default presets of this type';
 
   @override
-  String get serviceMessageDefaultPresetsLoaded =>
-      'Default presets are already loaded';
+  String get serviceMessageDefaultPresetsLoaded => 'Default presets are already loaded';
 
   @override
-  String serviceMessagePresetsAndTemplatesImported(
-    int count,
-    int templateCount,
-  ) {
+  String serviceMessagePresetsAndTemplatesImported(int count, int templateCount) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -5329,10 +5126,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count templates use images, which are referenced by name rather than stored in the file. On another installation those images have to be added again.',
-      one:
-          '1 template uses images, which are referenced by name rather than stored in the file. On another installation those images have to be added again.',
+      other: '$count templates use images, which are referenced by name rather than stored in the file. On another installation those images have to be added again.',
+      one: '1 template uses images, which are referenced by name rather than stored in the file. On another installation those images have to be added again.',
     );
     return '$_temp0';
   }
@@ -5550,8 +5345,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAssociatedDataTitle => 'Remove associated data';
 
   @override
-  String get deleteAssociatedDataBody =>
-      'Remove the selected associated data from this record? Data shared with other records will be preserved.';
+  String get deleteAssociatedDataBody => 'Remove the selected associated data from this record? Data shared with other records will be preserved.';
 
   @override
   String removeProjectPersonnelCount(int count) {
@@ -5562,8 +5356,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeProjectPersonnelTitle => 'Remove personnel';
 
   @override
-  String get removeProjectPersonnelBody =>
-      'Are you sure you want to remove the selected personnel from the project?';
+  String get removeProjectPersonnelBody => 'Are you sure you want to remove the selected personnel from the project?';
 
   @override
   String removeEventPersonnelCount(int count) {
@@ -5574,8 +5367,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeEventPersonnelTitle => 'Remove event personnel';
 
   @override
-  String get removeEventPersonnelBody =>
-      'Are you sure you want to remove the selected personnel from this event?';
+  String get removeEventPersonnelBody => 'Are you sure you want to remove the selected personnel from this event?';
 
   @override
   String get projectDeleteProject => 'Delete project';
@@ -5584,8 +5376,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectDeleteProjectTitle => 'Delete project?';
 
   @override
-  String get projectDeleteProjectPrompt =>
-      'You will delete this project and its related data. This cannot be undone.';
+  String get projectDeleteProjectPrompt => 'You will delete this project and its related data. This cannot be undone.';
 
   @override
   String get projectNoProject => 'No project';
@@ -5622,8 +5413,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectPrincipalInvestigator => 'Principal investigator';
 
   @override
-  String get projectPrincipalInvestigatorHint =>
-      'Enter the principal investigator';
+  String get projectPrincipalInvestigatorHint => 'Enter the principal investigator';
 
   @override
   String get projectAccession => 'Accession';
@@ -5641,8 +5431,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectLocationHint => 'Enter the general project location';
 
   @override
-  String get projectTimeZoneNote =>
-      'NAHPU stores collection dates and times as entered in local field time. The project time zone records that context so exchanged data can be interpreted consistently by third-party collection management systems and other tools.';
+  String get projectTimeZoneNote => 'NAHPU stores collection dates and times as entered in local field time. The project time zone records that context so exchanged data can be interpreted consistently by third-party collection management systems and other tools.';
 
   @override
   String get projectDates => 'Project dates';
@@ -5778,8 +5567,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectPersonnelUnnamed => 'Unnamed personnel';
 
   @override
-  String get projectPersonnelAssigned =>
-      'Personnel is currently assigned to a project';
+  String get projectPersonnelAssigned => 'Personnel is currently assigned to a project';
 
   @override
   String projectPersonnelDeleted(int deleted) {
@@ -5826,10 +5614,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count personnel could not be removed because they are used by project records.',
-      one:
-          '1 personnel could not be removed because they are used by project records.',
+      other: '$count personnel could not be removed because they are used by project records.',
+      one: '1 personnel could not be removed because they are used by project records.',
     );
     return '$_temp0';
   }
@@ -5850,8 +5636,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectPersonnelOrcid => 'ORCID iD';
 
   @override
-  String get projectPersonnelOrcidInvalid =>
-      'Enter a valid hyphenated ORCID iD';
+  String get projectPersonnelOrcidInvalid => 'Enter a valid hyphenated ORCID iD';
 
   @override
   String get projectPersonnelCurrentFieldNumber => 'Current field number';
@@ -5887,12 +5672,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectPersonnelRegisterFieldNumber => 'Register field number';
 
   @override
-  String get projectPersonnelRegisterPersonalFieldNumber =>
-      'Register personal field number';
+  String get projectPersonnelRegisterPersonalFieldNumber => 'Register personal field number';
 
   @override
-  String get projectPersonnelRegisterFieldNumberNote =>
-      'Initials and cataloger number will be used to generate specimen field ID.';
+  String get projectPersonnelRegisterFieldNumberNote => 'Initials and cataloger number will be used to generate specimen field ID.';
 
   @override
   String get projectEnabled => 'Enabled';
@@ -5948,8 +5731,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonRankLabel => 'Taxon rank';
 
   @override
-  String get projectTaxonRankHint =>
-      'Select the rank represented by this record';
+  String get projectTaxonRankHint => 'Select the rank represented by this record';
 
   @override
   String get projectTaxonRankRequired => 'Select a rank and enter its name.';
@@ -6017,8 +5799,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonCitesStatus => 'CITES status';
 
   @override
-  String get projectTaxonCitesHint =>
-      'e.g. Appendix I, Appendix II, Non-CITES, etc.';
+  String get projectTaxonCitesHint => 'e.g. Appendix I, Appendix II, Non-CITES, etc.';
 
   @override
   String get projectTaxonCountryStatusLabel => 'Country conservation status';
@@ -6065,8 +5846,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonQrCode => 'Taxon QR code';
 
   @override
-  String get projectTaxonQrDescription =>
-      'Scan this code in NAHPU to import this taxon.';
+  String get projectTaxonQrDescription => 'Scan this code in NAHPU to import this taxon.';
 
   @override
   String get projectTaxonRegistry => 'Taxon registry';
@@ -6077,8 +5857,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonEmpty =>
-      'No taxon found.\nAdd or import taxa to start recording captures.';
+  String get projectTaxonEmpty => 'No taxon found.\nAdd or import taxa to start recording captures.';
 
   @override
   String get projectTaxonMetricOrders => 'orders';
@@ -6145,16 +5924,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonScanMultiple => 'Scan multiple taxa';
 
   @override
-  String get projectCameraDenied =>
-      'Camera access is denied. Allow camera access in device settings, then retry.';
+  String get projectCameraDenied => 'Camera access is denied. Allow camera access in device settings, then retry.';
 
   @override
-  String get projectTaxonCameraUnavailable =>
-      'Camera scanning is unavailable. Retry or use file import.';
+  String get projectTaxonCameraUnavailable => 'Camera scanning is unavailable. Retry or use file import.';
 
   @override
-  String get projectTaxonCameraError =>
-      'Unable to use the camera. Retry or use file import.';
+  String get projectTaxonCameraError => 'Unable to use the camera. Retry or use file import.';
 
   @override
   String projectTaxonReadyCount(int count) {
@@ -6252,8 +6028,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonReview => 'Review taxa';
 
   @override
-  String get projectTaxonPreviewEmpty =>
-      'Select a file or scan a taxon QR to preview imports.';
+  String get projectTaxonPreviewEmpty => 'Select a file or scan a taxon QR to preview imports.';
 
   @override
   String projectTaxonReviewSummary(int registered, int duplicates) {
@@ -6272,8 +6047,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectTaxonSelectSharedClass =>
-      'Select the class shared by all rows';
+  String get projectTaxonSelectSharedClass => 'Select the class shared by all rows';
 
   @override
   String get projectTaxonClassForAllRows => 'Class for all rows';
@@ -6318,8 +6092,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectCustomDelimiterRequired =>
-      'Enter a custom delimiter to continue.';
+  String get projectCustomDelimiterRequired => 'Enter a custom delimiter to continue.';
 
   @override
   String get projectParser => 'Parser';
@@ -6340,15 +6113,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTaxonSupportedInputs => 'Supported inputs:';
 
   @override
-  String get projectTaxonSupportedFormats =>
-      'CSV (.csv), TSV (.tsv), Excel (.xlsx), NAHPU taxon QR';
+  String get projectTaxonSupportedFormats => 'CSV (.csv), TSV (.tsv), Excel (.xlsx), NAHPU taxon QR';
 
   @override
   String get projectReadingFile => 'Reading file…';
 
   @override
-  String get projectQrUnavailable =>
-      'QR scanning is unavailable on this platform.';
+  String get projectQrUnavailable => 'QR scanning is unavailable on this platform.';
 
   @override
   String get projectClearImport => 'Clear import';
@@ -6366,8 +6137,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardCreateOnce => 'Create once for all devices';
 
   @override
-  String get projectWizardCreateOnceBody =>
-      'Create a new project only for the first device. Use QR/Import JSON to transfer project info and its identity.';
+  String get projectWizardCreateOnceBody => 'Create a new project only for the first device. Use QR/Import JSON to transfer project info and its identity.';
 
   @override
   String get projectWizardCreateNew => 'Create new project';
@@ -6376,8 +6146,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectScanQr => 'Scan project QR';
 
   @override
-  String get projectWizardMainTaxonBody =>
-      'Choose the main taxon to tailor NAHPU’s specimen forms and defaults on this device. A project can contain multiple taxon groups, and you can change the main taxon later in Settings.';
+  String get projectWizardMainTaxonBody => 'Choose the main taxon to tailor NAHPU’s specimen forms and defaults on this device. A project can contain multiple taxon groups, and you can change the main taxon later in Settings.';
 
   @override
   String get projectWizardFieldIdsTitle => 'Set up field IDs';
@@ -6388,16 +6157,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectWizardFieldIdsBody =>
-      'Choose how specimen field IDs are generated. You can change this later in Settings > Catalogs > Specimens.';
+  String get projectWizardFieldIdsBody => 'Choose how specimen field IDs are generated. You can change this later in Settings > Catalogs > Specimens.';
 
   @override
-  String get projectWizardCatalogerRequired =>
-      'A registered cataloger is required';
+  String get projectWizardCatalogerRequired => 'A registered cataloger is required';
 
   @override
-  String get projectWizardCatalogerRequiredBody =>
-      'Next, choose an eligible cataloger or create one with initials and a current personal field number.';
+  String get projectWizardCatalogerRequiredBody => 'Next, choose an eligible cataloger or create one with initials and a current personal field number.';
 
   @override
   String projectWizardPrefixHint(String example) {
@@ -6414,8 +6180,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardCurrentNumberRequired => 'Enter a current number';
 
   @override
-  String get projectWizardAutoIncrementCatalog =>
-      'Auto-increment catalog number';
+  String get projectWizardAutoIncrementCatalog => 'Auto-increment catalog number';
 
   @override
   String projectWizardPersonnelLoadError(String error) {
@@ -6429,16 +6194,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardChooseCataloger => 'Choose a cataloger';
 
   @override
-  String get projectWizardNoCatalogerBody =>
-      'No registered cataloger is available. Create one now; the role and personal field-number registration are filled automatically.';
+  String get projectWizardNoCatalogerBody => 'No registered cataloger is available. Create one now; the role and personal field-number registration are filled automatically.';
 
   @override
-  String get projectWizardCreateAnotherCatalogerBody =>
-      'Create another cataloger. The role and personal field-number registration are filled automatically.';
+  String get projectWizardCreateAnotherCatalogerBody => 'Create another cataloger. The role and personal field-number registration are filled automatically.';
 
   @override
-  String get projectWizardChooseCatalogerBody =>
-      'Choose the cataloger whose initials and current field number will be used for personnel field IDs.';
+  String get projectWizardChooseCatalogerBody => 'Choose the cataloger whose initials and current field number will be used for personnel field IDs.';
 
   @override
   String get projectWizardCatalogerLabel => 'Cataloger*';
@@ -6450,15 +6212,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardCurrentFieldNumberLabel => 'Current field number*';
 
   @override
-  String get projectWizardCurrentFieldNumberHint =>
-      'Enter the next personal field number';
+  String get projectWizardCurrentFieldNumberHint => 'Enter the next personal field number';
 
   @override
   String get projectWizardCatalogerRoleSet => 'Specimen care role: Cataloger';
 
   @override
-  String get projectWizardFieldNumberEnabled =>
-      'Personal field-number registration enabled';
+  String get projectWizardFieldNumberEnabled => 'Personal field-number registration enabled';
 
   @override
   String get projectWizardReviewImported => 'Review imported project';
@@ -6467,8 +6227,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardReviewProject => 'Review project';
 
   @override
-  String get projectWizardImportNote =>
-      'This project-info transfer preserves the source UUID. Records, personnel, taxa, and device settings are not included.';
+  String get projectWizardImportNote => 'This project-info transfer preserves the source UUID. Records, personnel, taxa, and device settings are not included.';
 
   @override
   String get projectName => 'Project name';
@@ -6507,8 +6266,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardTaxonomyReadiness => 'Taxonomy readiness';
 
   @override
-  String get projectWizardTaxaCountUnavailable =>
-      'Available taxa count is unavailable.';
+  String get projectWizardTaxaCountUnavailable => 'Available taxa count is unavailable.';
 
   @override
   String projectWizardAvailableTaxa(int count) {
@@ -6519,8 +6277,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardNoTaxa => 'No taxa are available';
 
   @override
-  String get projectWizardNoTaxaBody =>
-      'Add or import taxa in the Taxon Registry before creating a new specimen record.';
+  String get projectWizardNoTaxaBody => 'Add or import taxa in the Taxon Registry before creating a new specimen record.';
 
   @override
   String get projectWizardSkip => 'Skip';
@@ -6544,8 +6301,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectWizardInitialsTooShort => 'Initials are too short';
 
   @override
-  String get projectWizardFieldNumberRequired =>
-      'Current field number is required';
+  String get projectWizardFieldNumberRequired => 'Current field number is required';
 
   @override
   String get projectWizardInvalidFieldNumber => 'Invalid field number';
@@ -6569,8 +6325,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectNameExists => 'Project name already exists';
 
   @override
-  String get projectUuidExists =>
-      'A project with this UUID already exists on this device.';
+  String get projectUuidExists => 'A project with this UUID already exists on this device.';
 
   @override
   String projectCreateFailed(String error) {
@@ -6628,8 +6383,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectExporting => 'Exporting project';
 
   @override
-  String get projectExportingHint =>
-      'Projects with many photos can take several minutes. Keep NAHPU open until this finishes.';
+  String get projectExportingHint => 'Projects with many photos can take several minutes. Keep NAHPU open until this finishes.';
 
   @override
   String get projectExportAnother => 'Export another';
@@ -6638,8 +6392,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectExportCancelTitle => 'Cancel the export?';
 
   @override
-  String get projectExportCancelBody =>
-      'The export is still running. Leaving now cancels it and no file will be saved.';
+  String get projectExportCancelBody => 'The export is still running. Leaving now cancels it and no file will be saved.';
 
   @override
   String get projectExportKeepExporting => 'Keep exporting';
@@ -6661,15 +6414,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectExportArchiveTitle => 'Backup and transfer archive';
 
   @override
-  String get projectExportArchiveBody =>
-      'Use this archive as a project backup, or to transfer this project to another device and merge it there.';
+  String get projectExportArchiveBody => 'Use this archive as a project backup, or to transfer this project to another device and merge it there.';
 
   @override
   String get projectExportLight => 'Light export';
 
   @override
-  String get projectExportLightBody =>
-      'Export the project without media files for limited-internet uploads. Use TAR.GZ or ZIP for a full project backup.';
+  String get projectExportLightBody => 'Export the project without media files for limited-internet uploads. Use TAR.GZ or ZIP for a full project backup.';
 
   @override
   String get projectExportArchiveContents => 'Archive contents';
@@ -6707,22 +6458,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferChooseFirst => 'Choose a project transfer first';
 
   @override
-  String get projectTransferChooseFirstBody =>
-      'Return to File and safety to select an archive.';
+  String get projectTransferChooseFirstBody => 'Return to File and safety to select an archive.';
 
   @override
   String get projectTransferChooseTitle => 'Choose a NAHPU project transfer';
 
   @override
-  String get projectTransferChooseBody =>
-      'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ contains records only. ZIP and TAR.GZ include media.';
+  String get projectTransferChooseBody => 'Project transfers can be JSON.GZ, ZIP, or TAR.GZ. JSON.GZ contains records only. ZIP and TAR.GZ include media.';
 
   @override
   String get projectTransferReadingArchive => 'Reading archive';
 
   @override
-  String get projectTransferReadingArchiveHint =>
-      'Transfers that include media can take several minutes to unpack. Keep NAHPU open.';
+  String get projectTransferReadingArchiveHint => 'Transfers that include media can take several minutes to unpack. Keep NAHPU open.';
 
   @override
   String get projectTransferChooseArchive => 'Choose archive';
@@ -6737,19 +6485,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferBackupBeforeMerge => 'Back up before merging';
 
   @override
-  String get projectTransferBackupBody =>
-      'A database backup gives you a recovery point if imported changes are not what you expected.';
+  String get projectTransferBackupBody => 'A database backup gives you a recovery point if imported changes are not what you expected.';
 
   @override
   String get projectTransferBackupNow => 'Back up now';
 
   @override
-  String get projectTransferBackupAckImport =>
-      'I understand that I should keep a backup before importing.';
+  String get projectTransferBackupAckImport => 'I understand that I should keep a backup before importing.';
 
   @override
-  String get projectTransferBackupAckMerge =>
-      'I understand that I should keep a backup before merging.';
+  String get projectTransferBackupAckMerge => 'I understand that I should keep a backup before merging.';
 
   @override
   String get projectTransferNewIdentity => 'New project identity';
@@ -6763,8 +6508,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferDestinationName => 'Destination project name';
 
   @override
-  String get projectTransferDestinationNameHelper =>
-      'Names the new project on this device. The archive is not changed.';
+  String get projectTransferDestinationNameHelper => 'Names the new project on this device. The archive is not changed.';
 
   @override
   String projectTransferNameConflict(String name) {
@@ -6775,8 +6519,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferAlreadyExists => 'This project already exists';
 
   @override
-  String get projectTransferAlreadyExistsBody =>
-      'Matching UUIDs identify the same project. Import is blocked. Merge this archive into the existing project instead.';
+  String get projectTransferAlreadyExistsBody => 'Matching UUIDs identify the same project. Import is blocked. Merge this archive into the existing project instead.';
 
   @override
   String get projectTransferOpenMerge => 'Open Merge project';
@@ -6793,8 +6536,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferForceMerge => 'Force merge into the active project';
 
   @override
-  String get projectTransferForceMergeBody =>
-      'Imported project-scoped records will use the active project UUID. Conflicts still require the choices shown later.';
+  String get projectTransferForceMergeBody => 'Imported project-scoped records will use the active project UUID. Conflicts still require the choices shown later.';
 
   @override
   String projectTransferTypeToConfirm(String name) {
@@ -6808,8 +6550,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectCatalogNumberSuffix => 'Catalog number suffix';
 
   @override
-  String get projectTransferProjectInfoBody =>
-      'Current values are kept by default. Select individual imported values when you want to replace them.';
+  String get projectTransferProjectInfoBody => 'Current values are kept by default. Select individual imported values when you want to replace them.';
 
   @override
   String get projectTransferKeepAllCurrent => 'Keep all current';
@@ -6818,12 +6559,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferUseAllImported => 'Use all imported';
 
   @override
-  String get projectTransferReviewMatches =>
-      'Review matches before continuing. “Keep current” maps imported dependencies to the existing record without replacing it.';
+  String get projectTransferReviewMatches => 'Review matches before continuing. “Keep current” maps imported dependencies to the existing record without replacing it.';
 
   @override
-  String get projectTransferBulkTooltip =>
-      'Apply one choice to all matched records';
+  String get projectTransferBulkTooltip => 'Apply one choice to all matched records';
 
   @override
   String projectTransferActionForAll(String action) {
@@ -6849,12 +6588,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferNoConflicts => 'No conflicts';
 
   @override
-  String get projectTransferNoConflictsBody =>
-      'All records in this section can be imported as new.';
+  String get projectTransferNoConflictsBody => 'All records in this section can be imported as new.';
 
   @override
-  String get projectTransferReviewBody =>
-      'Nothing has been written yet. The database changes will be committed together; a failure rolls them all back.';
+  String get projectTransferReviewBody => 'Nothing has been written yet. The database changes will be committed together; a failure rolls them all back.';
 
   @override
   String get projectTransferSourceProject => 'Source project';
@@ -6883,8 +6620,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferMediaFiles => 'Media files';
 
   @override
-  String get projectTransferResolveConflicts =>
-      'Resolve conflicts before merging';
+  String get projectTransferResolveConflicts => 'Resolve conflicts before merging';
 
   @override
   String projectTransferDuplicateIdentifiers(String sections) {
@@ -6901,12 +6637,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferMergeUnfinished => 'Merge did not finish';
 
   @override
-  String get projectTransferImportRetry =>
-      'Return to Review and import and try again.';
+  String get projectTransferImportRetry => 'Return to Review and import and try again.';
 
   @override
-  String get projectTransferMergeRetry =>
-      'Return to Review and merge and try again.';
+  String get projectTransferMergeRetry => 'Return to Review and merge and try again.';
 
   @override
   String get projectTransferImported => 'Project imported';
@@ -6945,8 +6679,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTransferChooseAction => 'Choose an action';
 
   @override
-  String get projectTransferChooseActionToContinue =>
-      'Choose an action to continue';
+  String get projectTransferChooseActionToContinue => 'Choose an action to continue';
 
   @override
   String get projectTransferNotSet => 'Not set';
@@ -6985,8 +6718,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchKeyCatalogNumber => 'Catalog number';
 
   @override
-  String get projectBatchKeyCatalogerFieldNumber =>
-      'Cataloger and field number';
+  String get projectBatchKeyCatalogerFieldNumber => 'Cataloger and field number';
 
   @override
   String get projectBatchKeyTissueId => 'Tissue ID';
@@ -7055,16 +6787,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchModeTitle => 'What do you want to do?';
 
   @override
-  String get projectBatchModeBody =>
-      'Bring records in from a CSV, TSV, or Excel file. Columns can use Darwin Core terms or your own names.';
+  String get projectBatchModeBody => 'Bring records in from a CSV, TSV, or Excel file. Columns can use Darwin Core terms or your own names.';
 
   @override
-  String get projectBatchModeCreateBody =>
-      'Add one record per row. Taxa, personnel, sites, and events are linked when they are already in the project.';
+  String get projectBatchModeCreateBody => 'Add one record per row. Taxa, personnel, sites, and events are linked when they are already in the project.';
 
   @override
-  String get projectBatchModeUpdateBody =>
-      'Match each row to a record by a key column, such as a catalog number, and write the other columns. Blank cells are left unchanged.';
+  String get projectBatchModeUpdateBody => 'Match each row to a record by a key column, such as a catalog number, and write the other columns. Blank cells are left unchanged.';
 
   @override
   String get projectBatchRecords => 'Records';
@@ -7073,15 +6802,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchLinkedRecords => 'Linked records';
 
   @override
-  String get projectBatchLinkedRecordsBody =>
-      'Each row can describe a site, its collecting event, a specimen, and a part. Rows are grouped into sites and events, which you can check before importing.';
+  String get projectBatchLinkedRecordsBody => 'Each row can describe a site, its collecting event, a specimen, and a part. Rows are grouped into sites and events, which you can check before importing.';
 
   @override
   String get projectBatchChooseFile => 'Choose a file';
 
   @override
-  String get projectBatchChooseFileBody =>
-      'The first row must hold the column names. Each row after it is one record.';
+  String get projectBatchChooseFileBody => 'The first row must hold the column names. Each row after it is one record.';
 
   @override
   String get projectBatchSheet => 'Sheet';
@@ -7120,8 +6847,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectBatchKeyColumnBody =>
-      'Rows update the record with the same value.';
+  String get projectBatchKeyColumnBody => 'Rows update the record with the same value.';
 
   @override
   String get projectBatchMatchRecordsBy => 'Match records by';
@@ -7166,8 +6892,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchNoMatchingRecords => 'No matching records.';
 
   @override
-  String get projectBatchNoOtherGroup =>
-      'There is no other group to merge with.';
+  String get projectBatchNoOtherGroup => 'There is no other group to merge with.';
 
   @override
   String get projectBatchMoveToNewGroup => 'Move to new group';
@@ -7176,8 +6901,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchCheckGroups => 'Check groups';
 
   @override
-  String get projectBatchCheckGroupsBody =>
-      'Rows that describe the same site or event are grouped. Link a group to a record the project has, merge groups that are the same place or visit, or split rows out.';
+  String get projectBatchCheckGroupsBody => 'Rows that describe the same site or event are grouped. Link a group to a record the project has, merge groups that are the same place or visit, or split rows out.';
 
   @override
   String projectBatchSitesCount(int count) {
@@ -7328,8 +7052,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectBatchSplitRows => 'Split rows…';
 
   @override
-  String get projectBatchLinkedReviewBody =>
-      'Sites are written first, then events at them, then specimens and their parts.';
+  String get projectBatchLinkedReviewBody => 'Sites are written first, then events at them, then specimens and their parts.';
 
   @override
   String projectBatchSitesSummary(int created, int linked) {
@@ -7362,12 +7085,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectBatchImportSpecimensMissingLinks =>
-      'Import specimens with missing links';
+  String get projectBatchImportSpecimensMissingLinks => 'Import specimens with missing links';
 
   @override
-  String get projectBatchImportSpecimensMissingLinksBody =>
-      'The taxon or person stays empty. Add it to the project first to link it.';
+  String get projectBatchImportSpecimensMissingLinksBody => 'The taxon or person stays empty. Add it to the project first to link it.';
 
   @override
   String projectBatchWritingRecords(int done, int total) {
@@ -7480,12 +7201,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectBatchImportRowsMissingLinks =>
-      'Import rows with missing links';
+  String get projectBatchImportRowsMissingLinks => 'Import rows with missing links';
 
   @override
-  String get projectBatchImportRowsMissingLinksBody =>
-      'The taxon, person, site, or event stays empty. Add it to the project first to link it.';
+  String get projectBatchImportRowsMissingLinksBody => 'The taxon, person, site, or event stays empty. Add it to the project first to link it.';
 
   @override
   String get projectStatsPartQuantity => 'Part quantity';
@@ -7532,11 +7251,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String projectStatsTitleWithBreakdown(
-    String measure,
-    String category,
-    String breakdown,
-  ) {
+  String projectStatsTitleWithBreakdown(String measure, String category, String breakdown) {
     return '$measure by $category and $breakdown';
   }
 
@@ -7554,20 +7269,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsCoordinatesBySpecies => 'Coordinates by species';
 
   @override
-  String get projectStatsSpatialSpecimensTitle =>
-      'Specimen counts by site coordinates';
+  String get projectStatsSpatialSpecimensTitle => 'Specimen counts by site coordinates';
 
   @override
-  String get projectStatsSpatialSpeciesTitle =>
-      'Species counts by site coordinates';
+  String get projectStatsSpatialSpeciesTitle => 'Species counts by site coordinates';
 
   @override
-  String get projectStatsSpatialFamiliesTitle =>
-      'Family counts by site coordinates';
+  String get projectStatsSpatialFamiliesTitle => 'Family counts by site coordinates';
 
   @override
-  String get projectStatsSpatialSelectedSpeciesTitle =>
-      'Selected species counts by coordinates';
+  String get projectStatsSpatialSelectedSpeciesTitle => 'Selected species counts by coordinates';
 
   @override
   String get projectStatsCountSpecimens => 'specimens';
@@ -7729,8 +7440,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsPartQuantityByType => 'Part quantity by type';
 
   @override
-  String get projectStatsPartQuantityByTreatment =>
-      'Part quantity by treatment';
+  String get projectStatsPartQuantityByTreatment => 'Part quantity by treatment';
 
   @override
   String get projectStatsCounts => 'Counts';
@@ -7745,8 +7455,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsNetworkTitle => 'Records linked through specimens';
 
   @override
-  String get projectStatsNetworkHint =>
-      'Tap a record to show what links to it.';
+  String get projectStatsNetworkHint => 'Tap a record to show what links to it.';
 
   @override
   String get projectStatsNetworkRadial => 'Radial';
@@ -7907,20 +7616,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectStatsNoSpecimenCoords =>
-      'No specimens are assigned to project coordinates.';
+  String get projectStatsNoSpecimenCoords => 'No specimens are assigned to project coordinates.';
 
   @override
-  String get projectStatsNoSpeciesCoords =>
-      'No species are associated with project coordinates.';
+  String get projectStatsNoSpeciesCoords => 'No species are associated with project coordinates.';
 
   @override
-  String get projectStatsNoFamilyCoords =>
-      'No families are associated with project coordinates.';
+  String get projectStatsNoFamilyCoords => 'No families are associated with project coordinates.';
 
   @override
-  String get projectStatsNoSelectedSpeciesCoords =>
-      'No specimens of the selected species are assigned to project coordinates.';
+  String get projectStatsNoSelectedSpeciesCoords => 'No specimens of the selected species are assigned to project coordinates.';
 
   @override
   String projectStatsNoSpeciesCoordsFor(String species) {
@@ -7982,8 +7687,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsElevation => 'Elevation';
 
   @override
-  String get projectStatsSelectSpeciesPrompt =>
-      'Select a species to view coordinate abundance.';
+  String get projectStatsSelectSpeciesPrompt => 'Select a species to view coordinate abundance.';
 
   @override
   String get projectStatsCollapseLegend => 'Collapse map legend';
@@ -7995,8 +7699,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsLegend => 'Legend';
 
   @override
-  String get projectStatsLegendCircle =>
-      'Each circle represents\none coordinate';
+  String get projectStatsLegendCircle => 'Each circle represents\none coordinate';
 
   @override
   String get projectStatsLegendGrouped => 'Grouped sites,\nzoom in to split';
@@ -8006,10 +7709,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count records are listed in the table but cannot be mapped because latitude or longitude is missing or invalid.',
-      one:
-          '1 record is listed in the table but cannot be mapped because latitude or longitude is missing or invalid.',
+      other: '$count records are listed in the table but cannot be mapped because latitude or longitude is missing or invalid.',
+      one: '1 record is listed in the table but cannot be mapped because latitude or longitude is missing or invalid.',
     );
     return '$_temp0';
   }
@@ -8024,12 +7725,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsViewFullScreen => 'View map full screen';
 
   @override
-  String get projectStatsNaturalEarthError =>
-      'Unable to load the offline Natural Earth map.';
+  String get projectStatsNaturalEarthError => 'Unable to load the offline Natural Earth map.';
 
   @override
-  String get projectStatsNoValidCoordinates =>
-      'No valid coordinates are available to map.';
+  String get projectStatsNoValidCoordinates => 'No valid coordinates are available to map.';
 
   @override
   String projectStatsMapPrepareError(String error) {
@@ -8105,8 +7804,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectStatsExportStatisticsTable => 'Export statistics table';
 
   @override
-  String get projectStatsExportSpatialTable =>
-      'Export spatial statistics table';
+  String get projectStatsExportSpatialTable => 'Export spatial statistics table';
 
   @override
   String projectStatsExportError(String error) {
@@ -8172,12 +7870,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueScanTubes => 'Scan tubes';
 
   @override
-  String get projectTissueCameraUnavailable =>
-      'Camera scanning is unavailable. Use the scan field instead.';
+  String get projectTissueCameraUnavailable => 'Camera scanning is unavailable. Use the scan field instead.';
 
   @override
-  String get projectTissueCameraError =>
-      'Unable to use the camera. Retry or use the scan field.';
+  String get projectTissueCameraError => 'Unable to use the camera. Retry or use the scan field.';
 
   @override
   String get projectTissueSessionLog => 'Session log';
@@ -8248,8 +7944,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueOverwrite => 'Overwrite existing values';
 
   @override
-  String get projectTissueOverwriteBody =>
-      'Replace a stored location or a different field value';
+  String get projectTissueOverwriteBody => 'Replace a stored location or a different field value';
 
   @override
   String get projectTissueTabBox => 'Box';
@@ -8263,22 +7958,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectTissueFindTubesBody =>
-      'Which tubes the scan and work list match.';
+  String get projectTissueFindTubesBody => 'Which tubes the scan and work list match.';
 
   @override
   String get projectTissueUpdateFieldBody => 'Written to each tube you place.';
 
   @override
-  String get projectTissueBoxSectionBody =>
-      'Size, fill order, and the box being filled.';
+  String get projectTissueBoxSectionBody => 'Size, fill order, and the box being filled.';
 
   @override
   String get projectTissueAdvanced => 'Labels and overwrite';
 
   @override
-  String get projectTissueAdvancedBody =>
-      'Cell label format and how stored values are handled.';
+  String get projectTissueAdvancedBody => 'Cell label format and how stored values are handled.';
 
   @override
   String get projectTissueExportLog => 'Export log';
@@ -8346,8 +8038,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueLogColumns => 'Columns';
 
   @override
-  String get projectTissueLogColumnsBody =>
-      'Curation columns always come first. Add part, specimen, and linked record fields after them.';
+  String get projectTissueLogColumnsBody => 'Curation columns always come first. Add part, specimen, and linked record fields after them.';
 
   @override
   String get projectTissueLogAddColumns => 'Add columns';
@@ -8356,8 +8047,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueLogAddedColumns => 'Added columns';
 
   @override
-  String get projectTissueLogNoAddedColumns =>
-      'No added columns. The export has the curation columns only.';
+  String get projectTissueLogNoAddedColumns => 'No added columns. The export has the curation columns only.';
 
   @override
   String get projectTissueLogHeaderStyle => 'Added column headers';
@@ -8394,10 +8084,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'The next tube you scan or place goes into $cell. $labels lose their location and return to the work list. Undo puts them back.',
-      one:
-          'The next tube you scan or place goes into $cell. $labels loses its location and returns to the work list. Undo puts it back.',
+      other: 'The next tube you scan or place goes into $cell. $labels lose their location and return to the work list. Undo puts them back.',
+      one: 'The next tube you scan or place goes into $cell. $labels loses its location and returns to the work list. Undo puts it back.',
     );
     return '$_temp0';
   }
@@ -8434,8 +8122,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueReady => 'Ready. Scan the first tube.';
 
   @override
-  String get projectTissueWorkListEmpty =>
-      'No unplaced parts match the tissue type and preservation filters.';
+  String get projectTissueWorkListEmpty => 'No unplaced parts match the tissue type and preservation filters.';
 
   @override
   String projectTissueRemaining(int count) {
@@ -8461,8 +8148,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueParasiteCategory => 'Parasite category';
 
   @override
-  String get projectTissueIdParasiteIdOrBarcode =>
-      'Tissue ID, parasite ID, or barcode';
+  String get projectTissueIdParasiteIdOrBarcode => 'Tissue ID, parasite ID, or barcode';
 
   @override
   String get projectTissueFieldIdOrParasiteId => 'Field ID or parasite ID';
@@ -8481,8 +8167,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get projectTissueLogSkippedEmpty =>
-      'Skipped tubes appear here until they are placed.';
+  String get projectTissueLogSkippedEmpty => 'Skipped tubes appear here until they are placed.';
 
   @override
   String get projectTissuePreviousBox => 'Previous box';
@@ -8508,8 +8193,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectTissueCountLabel => 'Count';
 
   @override
-  String get projectTissueTapCellHint =>
-      'Tap an empty cell to jump, or a filled cell to see its tube';
+  String get projectTissueTapCellHint => 'Tap an empty cell to jump, or a filled cell to see its tube';
 
   @override
   String get parasiteRecords => 'Parasite records';
@@ -8646,8 +8330,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parasiteStorageLocation => 'Storage location';
 
   @override
-  String get parasiteStorageLocationHint =>
-      'Enter freezer, cabinet, shelf, or container';
+  String get parasiteStorageLocationHint => 'Enter freezer, cabinet, shelf, or container';
 
   @override
   String get parasiteMuseumPermanent => 'Museum permanent';
@@ -8779,8 +8462,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenRemarks => 'Remarks';
 
   @override
-  String get specimenMeasurementRemarksHint =>
-      'Write notes about the measurements (optional)';
+  String get specimenMeasurementRemarksHint => 'Write notes about the measurements (optional)';
 
   @override
   String get specimenUnusualMeasurement => 'Unusual measurement';
@@ -8789,8 +8471,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mammalChangeSexTitle => 'Change sex?';
 
   @override
-  String get mammalChangeSexBody =>
-      'Changing the sex will clear reproductive data that does not apply to the new selection.';
+  String get mammalChangeSexBody => 'Changing the sex will clear reproductive data that does not apply to the new selection.';
 
   @override
   String get specimenAccuracy => 'Accuracy';
@@ -8799,8 +8480,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenAccuracyHint => 'Select measurement accuracy';
 
   @override
-  String get specimenNoInaccurateSelected =>
-      'No inaccurate measurements selected';
+  String get specimenNoInaccurateSelected => 'No inaccurate measurements selected';
 
   @override
   String specimenInaccurateList(String labels) {
@@ -8819,19 +8499,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenInaccurateMeasurements => 'Inaccurate measurements';
 
   @override
-  String get specimenSelectEveryInaccurate =>
-      'Select every measurement that is inaccurate.';
+  String get specimenSelectEveryInaccurate => 'Select every measurement that is inaccurate.';
 
   @override
-  String get specimenSelectAtLeastOneInaccurate =>
-      'Select at least one inaccurate measurement.';
+  String get specimenSelectAtLeastOneInaccurate => 'Select at least one inaccurate measurement.';
 
   @override
   String get specimenAccuracyRemark => 'Accuracy remark';
 
   @override
-  String get specimenAccuracyRemarkHint =>
-      'Describe why the measurements are inaccurate';
+  String get specimenAccuracyRemarkHint => 'Describe why the measurements are inaccurate';
 
   @override
   String get mammalTestes => 'Testes';
@@ -8963,8 +8640,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mammalFrequencyMaxEnergy => 'Frequency At Max Energy (kHz)';
 
   @override
-  String get mammalFrequencyMaxEnergyHint =>
-      'Enter echolocate frequency at max energy';
+  String get mammalFrequencyMaxEnergyHint => 'Enter echolocate frequency at max energy';
 
   @override
   String get mammalEcholocationDuration => 'Duration (seconds)';
@@ -9081,8 +8757,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get birdOviduct => 'Oviduct';
 
   @override
-  String get birdGonadRemarksHint =>
-      'Add additional information about the gonads';
+  String get birdGonadRemarksHint => 'Add additional information about the gonads';
 
   @override
   String get birdSkullOssification => 'Skull ossification (%)';
@@ -9142,8 +8817,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenSpecimen => 'Specimen';
 
   @override
-  String get specimenRemarksHint =>
-      'Add additional information about the specimen';
+  String get specimenRemarksHint => 'Add additional information about the specimen';
 
   @override
   String get fishStandardLength => 'Standard length (mm)';
@@ -9158,15 +8832,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fishTotalIndividuals => 'Total individuals';
 
   @override
-  String get fishTotalIndividualsHint =>
-      'Enter the number of individuals in the lot';
+  String get fishTotalIndividualsHint => 'Enter the number of individuals in the lot';
 
   @override
   String get fishAutoUpdateRanges => 'Auto-update min and max';
 
   @override
-  String get fishAutoUpdateRangesBody =>
-      'Fill the ranges from the individuals measured below';
+  String get fishAutoUpdateRangesBody => 'Fill the ranges from the individuals measured below';
 
   @override
   String get fishMinStandardLength => 'Min. standard length (mm)';
@@ -9214,8 +8886,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fishTypeLot => 'Lot';
 
   @override
-  String get fishTypeIndividualDescription =>
-      'One fish with its own measurements';
+  String get fishTypeIndividualDescription => 'One fish with its own measurements';
 
   @override
   String get fishTypeLotDescription => 'Many individuals stored together';
@@ -9360,8 +9031,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get partStorageTypeHint => 'Enter storage type';
 
   @override
-  String get partStorageLocationHint =>
-      'It can be cell or jar ID, following your museum convention';
+  String get partStorageLocationHint => 'It can be cell or jar ID, following your museum convention';
 
   @override
   String get partMuseumHint => 'Enter a museum name or abbreviation';
@@ -9385,8 +9055,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get partInvalidBarcode => 'Invalid QR/barcode';
 
   @override
-  String get partBarcodeIdExists =>
-      'QR/barcode ID already exists. Clear the field to generate a new UUID';
+  String get partBarcodeIdExists => 'QR/barcode ID already exists. Clear the field to generate a new UUID';
 
   @override
   String get partTissueIdHint => 'Enter tissue ID';
@@ -9413,8 +9082,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenIdConfidenceHint => 'Choose a confidence level';
 
   @override
-  String get specimenDeterminerHint =>
-      'Choose a determiner (default is cataloger)';
+  String get specimenDeterminerHint => 'Choose a determiner (default is cataloger)';
 
   @override
   String get specimenIdMethod => 'Identification Method';
@@ -9438,8 +9106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenPrepTime => 'Prep. time';
 
   @override
-  String get specimenPreparatorHint =>
-      'Choose a preparator (default is cataloger)';
+  String get specimenPreparatorHint => 'Choose a preparator (default is cataloger)';
 
   @override
   String specimenUuid(String uuid) {
@@ -9467,8 +9134,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenFieldIdSelectCataloger => 'Field ID: select a cataloger';
 
   @override
-  String get specimenFieldIdCatalogerNotSetUp =>
-      'Field ID: cataloger is not set up for field numbers';
+  String get specimenFieldIdCatalogerNotSetUp => 'Field ID: cataloger is not set up for field numbers';
 
   @override
   String get specimenEditFieldId => 'Edit field ID';
@@ -9480,8 +9146,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenFieldIdProject => 'Project';
 
   @override
-  String get specimenFieldIdPersonnelUnavailable =>
-      'Select a Cataloger with personal field-number registration enabled before assigning a personnel field ID.';
+  String get specimenFieldIdPersonnelUnavailable => 'Select a Cataloger with personal field-number registration enabled before assigning a personnel field ID.';
 
   @override
   String get specimenPersonnelFieldNumber => 'Personnel field number';
@@ -9490,8 +9155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenProjectCatalogNumber => 'Project catalog number';
 
   @override
-  String get specimenFieldIdTypeChangeAck =>
-      'I understand that changing identifier type removes the specimen’s previous field ID and that it may already appear in exports or on specimen labels.';
+  String get specimenFieldIdTypeChangeAck => 'I understand that changing identifier type removes the specimen’s previous field ID and that it may already appear in exports or on specimen labels.';
 
   @override
   String get specimenSaving => 'Saving…';
@@ -9564,8 +9228,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get fishDeleteIndividualBody =>
-      'This deletes the individual and unlinks it from any specimen parts and parasites.';
+  String get fishDeleteIndividualBody => 'This deletes the individual and unlinks it from any specimen parts and parasites.';
 
   @override
   String get fishStandardLengthMm => 'SL (mm)';
@@ -9628,8 +9291,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenChangeSiteTitle => 'Change site?';
 
   @override
-  String get specimenChangeSiteBody =>
-      'Except for capture date and time, all fields in the collecting record section will be empty again.';
+  String get specimenChangeSiteBody => 'Except for capture date and time, all fields in the collecting record section will be empty again.';
 
   @override
   String get specimenChooseEvent => 'Choose a collecting event ID';
@@ -9638,8 +9300,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenChangeEventTitle => 'Change collecting event ID?';
 
   @override
-  String get specimenChangeEventBody =>
-      'Except for capture date and time, all fields in the collecting record section will be empty again. The coordinate is kept when it belongs to the same site.';
+  String get specimenChangeEventBody => 'Except for capture date and time, all fields in the collecting record section will be empty again. The coordinate is kept when it belongs to the same site.';
 
   @override
   String get specimenChooseMethod => 'Choose a method type';
@@ -9669,8 +9330,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenCoordinateExtentHint => 'Add the coordinate extent';
 
   @override
-  String get specimenExtentInvalid =>
-      'Extent must be a number greater than zero';
+  String get specimenExtentInvalid => 'Extent must be a number greater than zero';
 
   @override
   String get specimenCaptureTime => 'Capture time';
@@ -9704,8 +9364,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenDetectionRemarks => 'Detection remarks';
 
   @override
-  String get specimenDetectionRemarksHint =>
-      'Enter parasite examination or detection remarks';
+  String get specimenDetectionRemarksHint => 'Enter parasite examination or detection remarks';
 
   @override
   String get specimenCreate => 'Create specimen';
@@ -9731,8 +9390,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenDeleteTitle => 'Delete specimen?';
 
   @override
-  String get specimenDeleteBody =>
-      'You will delete this specimen record, all measurements, and specimen parts.\nYou will need to manually update the field number.';
+  String get specimenDeleteBody => 'You will delete this specimen record, all measurements, and specimen parts.\nYou will need to manually update the field number.';
 
   @override
   String specimenDeleteError(String error) {
@@ -9743,8 +9401,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get specimenDeleteAllTitle => 'Delete all specimens?';
 
   @override
-  String get specimenDeleteAllBody =>
-      'It will remove all specimens records, measurements, and specimen parts';
+  String get specimenDeleteAllBody => 'It will remove all specimens records, measurements, and specimen parts';
 
   @override
   String specimenDeleteAllError(String error) {
@@ -9963,12 +9620,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateTargetField => 'Target field';
 
   @override
-  String get templateConditionalTextHelper =>
-      'Fields such as [mammalAttribute::testisWidth] are filled in.';
+  String get templateConditionalTextHelper => 'Fields such as [mammalAttribute::testisWidth] are filled in.';
 
   @override
-  String get templateReplacementHelper =>
-      'Written when matched; otherwise the original target value is kept. Leave it empty to hide the value.';
+  String get templateReplacementHelper => 'Written when matched; otherwise the original target value is kept. Leave it empty to hide the value.';
 
   @override
   String get templateTypeNormalText => 'Normal Text';
@@ -10016,8 +9671,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateFormatDecimal => 'Decimal (45.123, -122.543)';
 
   @override
-  String get templateFormatCardinalDecimal =>
-      'Cardinal Dec (45.123° N, 122.543° W)';
+  String get templateFormatCardinalDecimal => 'Cardinal Dec (45.123° N, 122.543° W)';
 
   @override
   String get templateFormatPipe => 'Pipe separated (A | B | C)';
@@ -10056,8 +9710,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateFormatDdMonthAbbr => 'DD Month (Abbr) (28 Jun 2026)';
 
   @override
-  String get templateFormatYmdSeconds =>
-      'YYYY-MM-DD seconds (2026-06-28 14:05:09)';
+  String get templateFormatYmdSeconds => 'YYYY-MM-DD seconds (2026-06-28 14:05:09)';
 
   @override
   String get templateFormatIsoMinutes => 'ISO minutes (2026-06-28T14:05)';
@@ -10066,20 +9719,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateFormatIsoSeconds => 'ISO seconds (2026-06-28T14:05:09)';
 
   @override
-  String get templateFormatDdMonthYyyyTime =>
-      'DD Month YYYY 24h (28 June 2026 14:05)';
+  String get templateFormatDdMonthYyyyTime => 'DD Month YYYY 24h (28 June 2026 14:05)';
 
   @override
-  String get templateFormatMonthDdYyyyTime =>
-      'Month DD, YYYY 12h (June 28, 2026 2:05 PM)';
+  String get templateFormatMonthDdYyyyTime => 'Month DD, YYYY 12h (June 28, 2026 2:05 PM)';
 
   @override
-  String get templateFormatDdMonYyyyTime =>
-      'DD Mon YYYY 24h (28 Jun 2026 14:05)';
+  String get templateFormatDdMonYyyyTime => 'DD Mon YYYY 24h (28 Jun 2026 14:05)';
 
   @override
-  String get templateFormatMonDdYyyyTime =>
-      'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)';
+  String get templateFormatMonDdYyyyTime => 'Mon DD, YYYY 12h (Jun 28, 2026 2:05 PM)';
 
   @override
   String get templateFormatTime24 => 'Time 24h (14:05)';
@@ -10219,8 +9868,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get templateNoElements =>
-      'No elements on this side yet. Add one from the Add tools.';
+  String get templateNoElements => 'No elements on this side yet. Add one from the Add tools.';
 
   @override
   String get templateHidden => 'Hidden';
@@ -10361,10 +10009,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       templates,
       locale: localeName,
-      other:
-          'This installation does not have 1 font used by the imported templates. Choose a replacement.',
-      one:
-          'This installation does not have 1 font used by the imported template. Choose a replacement.',
+      other: 'This installation does not have 1 font used by the imported templates. Choose a replacement.',
+      one: 'This installation does not have 1 font used by the imported template. Choose a replacement.',
     );
     return '$_temp0';
   }
@@ -10374,17 +10020,14 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       templates,
       locale: localeName,
-      other:
-          'This installation does not have $fonts fonts used by the imported templates. Choose a replacement for each.',
-      one:
-          'This installation does not have $fonts fonts used by the imported template. Choose a replacement for each.',
+      other: 'This installation does not have $fonts fonts used by the imported templates. Choose a replacement for each.',
+      one: 'This installation does not have $fonts fonts used by the imported template. Choose a replacement for each.',
     );
     return '$_temp0';
   }
 
   @override
-  String get templateInstallOriginalFonts =>
-      'Install the original fonts under Documents > Fonts if you need an exact match.';
+  String get templateInstallOriginalFonts => 'Install the original fonts under Documents > Fonts if you need an exact match.';
 
   @override
   String templateFontPreview(String font) {
@@ -10412,8 +10055,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateUploadFromDevice => 'Upload from device';
 
   @override
-  String get templateUploadFromDeviceBody =>
-      'Copies the file into your template images folder';
+  String get templateUploadFromDeviceBody => 'Copies the file into your template images folder';
 
   @override
   String get templateSavedImages => 'Saved images';
@@ -10447,8 +10089,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateSides => 'Sides';
 
   @override
-  String get templateOneSidedBody =>
-      'Create a template with a Front side only.';
+  String get templateOneSidedBody => 'Create a template with a Front side only.';
 
   @override
   String get templateTwoSided => '2 sided';
@@ -10529,23 +10170,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templateUnsavedChanges => 'Unsaved Changes';
 
   @override
-  String get templateUnsavedChangesBody =>
-      'Do you want to save the changes to the template before leaving?';
+  String get templateUnsavedChangesBody => 'Do you want to save the changes to the template before leaving?';
 
   @override
   String get templateDiscard => 'Discard';
 
   @override
-  String get templatePreviewPartSelection =>
-      'Specimen Part Selection for Preview';
+  String get templatePreviewPartSelection => 'Specimen Part Selection for Preview';
 
   @override
-  String get templatePreviewParasiteSelection =>
-      'Parasite Selection for Preview';
+  String get templatePreviewParasiteSelection => 'Parasite Selection for Preview';
 
   @override
-  String get templatePreviewSpecimenSelection =>
-      'Specimen Selection for Preview';
+  String get templatePreviewSpecimenSelection => 'Specimen Selection for Preview';
 
   @override
   String get templateSizePreset => 'Template Size Preset';
@@ -10611,64 +10248,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get templatePresetSkullBox => 'Skull Box / Micro-Vial';
 
   @override
-  String get templatePresetA4Description =>
-      'International standard default for catalogs, reports, and label sheets.';
+  String get templatePresetA4Description => 'International standard default for catalogs, reports, and label sheets.';
 
   @override
-  String get templatePresetLetterDescription =>
-      'North American standard default for documentation and matrix printing.';
+  String get templatePresetLetterDescription => 'North American standard default for documentation and matrix printing.';
 
   @override
-  String get templatePresetLegalDescription =>
-      'Extended canvas for long field logs, history sheets, or oversized tables.';
+  String get templatePresetLegalDescription => 'Extended canvas for long field logs, history sheets, or oversized tables.';
 
   @override
-  String get templatePresetA5Description =>
-      'Compact size ideal for pocket field books and small log inserts.';
+  String get templatePresetA5Description => 'Compact size ideal for pocket field books and small log inserts.';
 
   @override
-  String get templatePresetA3Description =>
-      'Oversized sheet for map generation, collection drawer layouts, and system grids.';
+  String get templatePresetA3Description => 'Oversized sheet for map generation, collection drawer layouts, and system grids.';
 
   @override
-  String get templatePresetVialSideLargeDescription =>
-      'Standard side-wall label. Fits 3-4 lines of text plus a barcode.';
+  String get templatePresetVialSideLargeDescription => 'Standard side-wall label. Fits 3-4 lines of text plus a barcode.';
 
   @override
-  String get templatePresetVialSideSmallDescription =>
-      'Compact side-wall profile for smaller tissue or DNA aliquots.';
+  String get templatePresetVialSideSmallDescription => 'Compact side-wall profile for smaller tissue or DNA aliquots.';
 
   @override
-  String get templatePresetCapDotSmallDescription =>
-      'Circular top dot fitting 0.5–1.5 mL tube caps for top-down scanning.';
+  String get templatePresetCapDotSmallDescription => 'Circular top dot fitting 0.5–1.5 mL tube caps for top-down scanning.';
 
   @override
-  String get templatePresetCapDotLargeDescription =>
-      'Circular top dot fitting 2.0 mL or larger cryovial screw caps.';
+  String get templatePresetCapDotLargeDescription => 'Circular top dot fitting 2.0 mL or larger cryovial screw caps.';
 
   @override
-  String get templatePresetSelfLaminatingDescription =>
-      'Text prints on a 25.4x12.7mm zone; clear tail wraps over to protect against liquid nitrogen.';
+  String get templatePresetSelfLaminatingDescription => 'Text prints on a 25.4x12.7mm zone; clear tail wraps over to protect against liquid nitrogen.';
 
   @override
-  String get templatePresetPinnedLocalityDescription =>
-      'Rigid boundary for pinned insects; fits 5-6 lines of ultra-compact metadata.';
+  String get templatePresetPinnedLocalityDescription => 'Rigid boundary for pinned insects; fits 5-6 lines of ultra-compact metadata.';
 
   @override
-  String get templatePresetPinnedTaxonDescription =>
-      'Smallest footprint; contains Genus species, author, and determiner info.';
+  String get templatePresetPinnedTaxonDescription => 'Smallest footprint; contains Genus species, author, and determiner info.';
 
   @override
-  String get templatePresetJarInsertDescription =>
-      'Placed inside wet jars (alcohol/formalin). High legibility through curved glass.';
+  String get templatePresetJarInsertDescription => 'Placed inside wet jars (alcohol/formalin). High legibility through curved glass.';
 
   @override
-  String get templatePresetVertebrateTagDescription =>
-      'Standard medium-sized vertebrate curation and hang tag.';
+  String get templatePresetVertebrateTagDescription => 'Standard medium-sized vertebrate curation and hang tag.';
 
   @override
-  String get templatePresetSkullBoxDescription =>
-      'Optimized for 1-to-2 dram glass vials or small cardboard osteological boxes.';
+  String get templatePresetSkullBoxDescription => 'Optimized for 1-to-2 dram glass vials or small cardboard osteological boxes.';
 
   @override
   String get templateElementImage => 'Image';
@@ -10694,8 +10316,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaDeleteSelectedTitle => 'Delete selected media?';
 
   @override
-  String get mediaDeleteSelectedBody =>
-      'Delete the selected media from all NAHPU records and from disk? This cannot be undone.';
+  String get mediaDeleteSelectedBody => 'Delete the selected media from all NAHPU records and from disk? This cannot be undone.';
 
   @override
   String mediaSelectedCount(int count) {
@@ -10753,8 +10374,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mediaDeleteThisFileBody =>
-      'Delete this media file from all NAHPU records and from disk? This cannot be undone.';
+  String get mediaDeleteThisFileBody => 'Delete this media file from all NAHPU records and from disk? This cannot be undone.';
 
   @override
   String get mediaFileAlreadyExists => 'File already exists';
@@ -10793,15 +10413,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaExporting => 'Exporting media';
 
   @override
-  String get mediaExportingHint =>
-      'Large media selections can take several minutes. Keep NAHPU open until this finishes.';
+  String get mediaExportingHint => 'Large media selections can take several minutes. Keep NAHPU open until this finishes.';
 
   @override
   String get mediaExport => 'Export media';
 
   @override
-  String get mediaExportLeaveBody =>
-      'The export is still running. Leaving now cancels it and no file will be saved.';
+  String get mediaExportLeaveBody => 'The export is still running. Leaving now cancels it and no file will be saved.';
 
   @override
   String get mediaArchive => 'Media archive';
@@ -10813,8 +10431,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaLimitDimensions => 'Limit image dimensions';
 
   @override
-  String get mediaLimitDimensionsBody =>
-      'Constrain the longer side without upscaling';
+  String get mediaLimitDimensionsBody => 'Constrain the longer side without upscaling';
 
   @override
   String get mediaMaxDimension => 'Maximum width or height (px)';
@@ -10871,12 +10488,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get mediaCameraAccessRequired =>
-      'Camera access is required to take photos and videos.';
+  String get mediaCameraAccessRequired => 'Camera access is required to take photos and videos.';
 
   @override
-  String get mediaMicrophoneAccessRequired =>
-      'Microphone access is required to record video.';
+  String get mediaMicrophoneAccessRequired => 'Microphone access is required to record video.';
 
   @override
   String get mediaCameraError => 'Unable to use the camera.';
@@ -11067,8 +10682,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mediaAlignBarcode => 'Align the barcode within the frame';
 
   @override
-  String get mediaQrTooLarge =>
-      'Data is too large for a QR code.\nExport it as a file instead.';
+  String get mediaQrTooLarge => 'Data is too large for a QR code.\nExport it as a file instead.';
 
   @override
   String get associatedUnnamed => 'Unnamed associated data';
@@ -11142,8 +10756,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get associatedLinkOriginal => 'Link original';
 
   @override
-  String get associatedLinkOriginalWarning =>
-      'The link will stop working if the original file is moved or deleted.';
+  String get associatedLinkOriginalWarning => 'The link will stop working if the original file is moved or deleted.';
 
   @override
   String get associatedSelectDataType => 'Select a data type.';
@@ -11188,8 +10801,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalPrivacyPolicy => 'Privacy Policy';
 
   @override
-  String get legalBeforeYouStart =>
-      ' before you start. Using NAHPU accepts them.';
+  String get legalBeforeYouStart => ' before you start. Using NAHPU accepts them.';
 
   @override
   String get legalTermsTile => 'Terms and conditions';
@@ -11232,8 +10844,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteSupportedFiles => 'Supported files:';
 
   @override
-  String get siteSupportedFileTypes =>
-      'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.';
+  String get siteSupportedFileTypes => 'CSV, TSV, Excel, GeoJSON/JSON, KML, zipped Shapefile, and GPX.';
 
   @override
   String get siteSelectCoordinateFile => 'Select coordinate file';
@@ -11256,12 +10867,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteChooseAnotherFile => 'Choose another file';
 
   @override
-  String get siteCoordinateChanged =>
-      'The coordinate changed. Refresh the map to update the preview.';
+  String get siteCoordinateChanged => 'The coordinate changed. Refresh the map to update the preview.';
 
   @override
-  String get siteEnterValidCoordinate =>
-      'Enter a valid WGS84 latitude and longitude, then refresh the map.';
+  String get siteEnterValidCoordinate => 'Enter a valid WGS84 latitude and longitude, then refresh the map.';
 
   @override
   String get siteRefreshMap => 'Refresh map';
@@ -11333,8 +10942,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteChangeFormatTitle => 'Change coordinate format?';
 
   @override
-  String get siteChangeFormatBody =>
-      'Changing the format clears the entered coordinate values. Name, elevation, datum, uncertainty, GPS unit, and notes are kept.';
+  String get siteChangeFormatBody => 'Changing the format clears the entered coordinate values. Name, elevation, datum, uncertainty, GPS unit, and notes are kept.';
 
   @override
   String get siteClearAndSwitch => 'Clear and switch';
@@ -11424,10 +11032,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count coordinates are not shown because latitude or longitude is missing or invalid.',
-      one:
-          '1 coordinate is not shown because latitude or longitude is missing or invalid.',
+      other: '$count coordinates are not shown because latitude or longitude is missing or invalid.',
+      one: '1 coordinate is not shown because latitude or longitude is missing or invalid.',
     );
     return '$_temp0';
   }
@@ -11445,8 +11051,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteCoordinateDetails => 'Coordinate Details';
 
   @override
-  String get siteCopiedToClipboard =>
-      'Latitude and Longitude copied to clipboard';
+  String get siteCopiedToClipboard => 'Latitude and Longitude copied to clipboard';
 
   @override
   String get siteNoName => 'No Name';
@@ -11475,11 +11080,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String siteColumnsDetectedInWorksheet(
-    int columns,
-    int rows,
-    String worksheet,
-  ) {
+  String siteColumnsDetectedInWorksheet(int columns, int rows, String worksheet) {
     return '$columns columns and $rows data rows detected in worksheet \"$worksheet\". NAHPU inferred the matches below. Latitude and longitude are required; all other fields are optional.';
   }
 
@@ -11504,8 +11105,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteChooseDataToCopy => 'Choose data to copy';
 
   @override
-  String get siteSelectSourceProject =>
-      'Select the project that contains the site to copy.';
+  String get siteSelectSourceProject => 'Select the project that contains the site to copy.';
 
   @override
   String siteSelectFromProject(String project) {
@@ -11516,8 +11116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteNoSitesInProject => 'No sites found in this project.';
 
   @override
-  String get siteSelectDataToCopy =>
-      'Select the data to copy into the empty site.';
+  String get siteSelectDataToCopy => 'Select the data to copy into the empty site.';
 
   @override
   String get siteNoCopyableData => 'The selected site has no copyable data.';
@@ -11526,15 +11125,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteNoDataInSource => 'No data in source';
 
   @override
-  String get siteMustBeEmptyBody =>
-      'The current site must be empty before copying data. Clear its site information, coordinates, media, and linked data first.';
+  String get siteMustBeEmptyBody => 'The current site must be empty before copying data. Clear its site information, coordinates, media, and linked data first.';
 
   @override
   String get siteMustBeEmpty => 'Site must be empty';
 
   @override
-  String get siteNeedAnotherProject =>
-      'Create or import another project before copying site data.';
+  String get siteNeedAnotherProject => 'Create or import another project before copying site data.';
 
   @override
   String get siteMultipleProjectsRequired => 'Multiple projects required';
@@ -11550,8 +11147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get siteFindLocalityTooltip =>
-      'Type a locality and select a saved one to fill every geography field';
+  String get siteFindLocalityTooltip => 'Type a locality and select a saved one to fill every geography field';
 
   @override
   String get siteFindLocality => 'Find existing locality';
@@ -11578,8 +11174,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sitePreciseLocality => 'Precise Locality';
 
   @override
-  String get sitePreciseLocalityHint =>
-      'Enter a precise locality lower than municipality';
+  String get sitePreciseLocalityHint => 'Enter a precise locality lower than municipality';
 
   @override
   String get siteRemarksHint => 'Enter more info about the site (optional)';
@@ -11594,15 +11189,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteHabitatCondition => 'Habitat Condition';
 
   @override
-  String get siteHabitatConditionHint =>
-      'E.g. \"Pristine\", \"Disturbed\", \"etc.\"';
+  String get siteHabitatConditionHint => 'E.g. \"Pristine\", \"Disturbed\", \"etc.\"';
 
   @override
   String get siteHabitatDescription => 'Habitat Description';
 
   @override
-  String get siteHabitatDescriptionHint =>
-      'Describe the site, e.g. \"A camp site in the middle of the forest.\"';
+  String get siteHabitatDescriptionHint => 'Describe the site, e.g. \"A camp site in the middle of the forest.\"';
 
   @override
   String get siteCanopyCover => 'Canopy Cover';
@@ -11629,12 +11222,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteImport => 'Import site';
 
   @override
-  String siteCopiedSummary(
-    String fields,
-    String coordinates,
-    String site,
-    String project,
-  ) {
+  String siteCopiedSummary(String fields, String coordinates, String site, String project) {
     return 'Copied $fields and $coordinates from $site in $project.';
   }
 
@@ -11662,15 +11250,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteDeleteAllBody => 'You will delete all site records';
 
   @override
-  String get siteDeleteInUse =>
-      'Cannot delete sites. Being used by other records.';
+  String get siteDeleteInUse => 'Cannot delete sites. Being used by other records.';
 
   @override
   String get siteIdentity => 'Site Identity';
 
   @override
-  String get siteIdHint =>
-      'Enter a site ID (max. 40 chars), e.g. \"CAMP-01\", \"LINE-1\"';
+  String get siteIdHint => 'Enter a site ID (max. 40 chars), e.g. \"CAMP-01\", \"LINE-1\"';
 
   @override
   String get siteLeader => 'Site Leader';
@@ -11753,8 +11339,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventCloudCoverHint => 'Select cloud cover';
 
   @override
-  String get eventCloudCoverHelper =>
-      'One okta represents one eighth of the visible sky.';
+  String get eventCloudCoverHelper => 'One okta represents one eighth of the visible sky.';
 
   @override
   String eventInvalidStoredValue(String value) {
@@ -11803,8 +11388,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get eventRecoveryBody =>
-      'Correct or clear the highlighted fields. Other values will not be changed.';
+  String get eventRecoveryBody => 'Correct or clear the highlighted fields. Other values will not be changed.';
 
   @override
   String eventSaveValueError(String error) {
@@ -11911,8 +11495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventCollMethod => 'Collection method';
 
   @override
-  String get eventCountHint =>
-      'How many of this tool were used (if applicable)?';
+  String get eventCountHint => 'How many of this tool were used (if applicable)?';
 
   @override
   String get eventMethodDetails => 'Method details';
@@ -11921,15 +11504,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventBrandModel => 'Brand and Model';
 
   @override
-  String get eventBrandModelHint =>
-      'Enter brand and model of the tool (if applicable)';
+  String get eventBrandModelHint => 'Enter brand and model of the tool (if applicable)';
 
   @override
   String get eventSizeHint => 'Enter size of the tool (if applicable)';
 
   @override
-  String get eventToolNotesHint =>
-      'Enter any notes about the tool (if applicable)';
+  String get eventToolNotesHint => 'Enter any notes about the tool (if applicable)';
 
   @override
   String get eventSelectMethod => 'Select a method';
@@ -11965,8 +11546,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventCreate => 'Create event';
 
   @override
-  String get eventDeleteInUse =>
-      'Failed to delete the events. The events are currently in use by other records.';
+  String get eventDeleteInUse => 'Failed to delete the events. The events are currently in use by other records.';
 
   @override
   String get eventActions => 'Event actions';
@@ -11984,15 +11564,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventDeleteTitle => 'Delete collecting event?';
 
   @override
-  String get eventDeleteBody =>
-      'You will also delete collection methods, collecting personnel, environmental data, and media in this event.';
+  String get eventDeleteBody => 'You will also delete collection methods, collecting personnel, environmental data, and media in this event.';
 
   @override
   String get eventDeleteAllTitle => 'Delete all collecting events?';
 
   @override
-  String get eventDeleteAllBody =>
-      'Deleting all collecting events will also delete all associated collection methods, collecting personnel, environmental data, and media from the database.';
+  String get eventDeleteAllBody => 'Deleting all collecting events will also delete all associated collection methods, collecting personnel, environmental data, and media from the database.';
 
   @override
   String get eventPersonnel => 'Event Personnel';
@@ -12024,22 +11602,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportPreset => 'Export preset';
 
   @override
-  String get exportNoPresets =>
-      'No export presets found. Manage presets in settings to create one.';
+  String get exportNoPresets => 'No export presets found. Manage presets in settings to create one.';
 
   @override
   String get exportManagePresetsButton => 'Manage Presets';
 
   @override
-  String get exportPresetHelper =>
-      'Record type, headers, and field mappings are set by the preset.';
+  String get exportPresetHelper => 'Record type, headers, and field mappings are set by the preset.';
 
   @override
   String get exportPresetDetails => 'Preset details';
 
   @override
-  String get exportSelectPresetPrompt =>
-      'Select an export preset to see details and preview.';
+  String get exportSelectPresetPrompt => 'Select an export preset to see details and preview.';
 
   @override
   String exportPresetName(String name) {
@@ -12103,8 +11678,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportBundling => 'Bundling records';
 
   @override
-  String get exportBundlingHint =>
-      'Packaging writes the records, copies media, compresses the bundle, and then checks it. Keep NAHPU open.';
+  String get exportBundlingHint => 'Packaging writes the records, copies media, compresses the bundle, and then checks it. Keep NAHPU open.';
 
   @override
   String get exportCreateBundle => 'Create bundle';
@@ -12116,8 +11690,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportCancelBundleTitle => 'Cancel the bundle?';
 
   @override
-  String get exportCancelBundleBody =>
-      'The bundle is still being written. Leaving now cancels it and no package will be saved.';
+  String get exportCancelBundleBody => 'The bundle is still being written. Leaving now cancels it and no package will be saved.';
 
   @override
   String get exportKeepBundling => 'Keep bundling';
@@ -12137,8 +11710,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportCompleteData => 'Complete NAHPU data';
 
   @override
-  String get exportCompleteDataBody =>
-      'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.';
+  String get exportCompleteDataBody => 'This bundle includes all NAHPU database tables, a restorable project snapshot, user configurations, available media, and custom fonts.';
 
   @override
   String get exportFrictionless => 'Export is in Frictionless Data Format.';
@@ -12167,12 +11739,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportPackageContents => 'Package contents';
 
   @override
-  String get exportSelectTaxonPrompt =>
-      'Select at least one recorded taxon to list the package contents.';
+  String get exportSelectTaxonPrompt => 'Select at least one recorded taxon to list the package contents.';
 
   @override
-  String get exportPackageContentsBody =>
-      'The list reflects exactly what will be bundled. Empty optional fields and tables are omitted.';
+  String get exportPackageContentsBody => 'The list reflects exactly what will be bundled. Empty optional fields and tables are omitted.';
 
   @override
   String exportRecordsAndFields(int records, int fields) {
@@ -12195,8 +11765,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportBackingUp => 'Backing up database';
 
   @override
-  String get exportBackingUpHint =>
-      'Large media libraries can take several minutes. Keep NAHPU open until this finishes.';
+  String get exportBackingUpHint => 'Large media libraries can take several minutes. Keep NAHPU open until this finishes.';
 
   @override
   String get exportSaveBackup => 'Save backup';
@@ -12208,8 +11777,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportCancelBackupTitle => 'Cancel the backup?';
 
   @override
-  String get exportCancelBackupBody =>
-      'The backup is still running. Leaving now cancels it and no file will be saved.';
+  String get exportCancelBackupBody => 'The backup is still running. Leaving now cancels it and no file will be saved.';
 
   @override
   String get exportKeepBackingUp => 'Keep backing up';
@@ -12221,12 +11789,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportBackupArchive => 'Backup archive';
 
   @override
-  String get exportBackupBody =>
-      'This creates a full NAHPU database backup. For a project-only backup, use Export project.';
+  String get exportBackupBody => 'This creates a full NAHPU database backup. For a project-only backup, use Export project.';
 
   @override
-  String get exportBackupDetail =>
-      'It copies all projects and every file in NAHPU app data, whether or not a project links to it. Run it occasionally in the field, when battery use is not a concern.';
+  String get exportBackupDetail => 'It copies all projects and every file in NAHPU app data, whether or not a project links to it. Run it occasionally in the field, when battery use is not a concern.';
 
   @override
   String get exportWillExport => 'Will export';
@@ -12243,8 +11809,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportNoCustomFields => 'No custom fields available';
 
   @override
-  String get exportNoPrintLayouts =>
-      'No print layouts yet. Load the default layouts, or create one in Document Presets.';
+  String get exportNoPrintLayouts => 'No print layouts yet. Load the default layouts, or create one in Document Presets.';
 
   @override
   String get exportEnterFileNameFirst => 'Enter a file name first.';
@@ -12312,8 +11877,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dataTableSomeChangesFailed =>
-      'Some changes couldn\'t be saved. Check the marked cells.';
+  String get dataTableSomeChangesFailed => 'Some changes couldn\'t be saved. Check the marked cells.';
 
   @override
   String get dataTableNoMoreMatches => 'No more matches.';
@@ -12430,15 +11994,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dataTableComputedNotSearchable =>
-      'Calculated during export: not searchable or sortable';
+  String get dataTableComputedNotSearchable => 'Calculated during export: not searchable or sortable';
 
   @override
   String get dataTableShowAll => 'Show all';
 
   @override
-  String get dataTableAutoSaveTooltip =>
-      'Save each change as you commit it. Undo with Ctrl+Z or ⌘Z while this table is open.';
+  String get dataTableAutoSaveTooltip => 'Save each change as you commit it. Undo with Ctrl+Z or ⌘Z while this table is open.';
 
   @override
   String get dataTableAutoSave => 'Auto-save';
@@ -12503,8 +12065,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataTableDwcOnly => 'Darwin Core-mapped columns only';
 
   @override
-  String get dataTableDwcOnlyBody =>
-      'Leave out columns without a Darwin Core term. Otherwise they keep their NAHPU key.';
+  String get dataTableDwcOnlyBody => 'Leave out columns without a Darwin Core term. Otherwise they keep their NAHPU key.';
 
   @override
   String dataTableReadProgress(int count, int total) {
@@ -12549,8 +12110,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataTableEnterNumber => 'Enter a number.';
 
   @override
-  String get dataTableComputedNotFilterable =>
-      'Calculated during export; not filterable';
+  String get dataTableComputedNotFilterable => 'Calculated during export; not filterable';
 
   @override
   String get dataTableRemoveRule => 'Remove rule';
@@ -12617,8 +12177,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dataTableFishTypeChangeBody =>
-      'Switching between an individual and a lot changes which measurements apply.';
+  String get dataTableFishTypeChangeBody => 'Switching between an individual and a lot changes which measurements apply.';
 
   @override
   String dataTableSkippedReadOnly(int count) {
@@ -12657,29 +12216,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dataTablePastedCutOff =>
-      'Pasted; cut off at the edge of the page.';
+  String get dataTablePastedCutOff => 'Pasted; cut off at the edge of the page.';
 
   @override
   String dataTablePastedSkippedAndCutOff(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'Pasted; skipped $count read-only or linked cells and cut off at the edge of the page.',
-      one:
-          'Pasted; skipped 1 read-only or linked cell and cut off at the edge of the page.',
+      other: 'Pasted; skipped $count read-only or linked cells and cut off at the edge of the page.',
+      one: 'Pasted; skipped 1 read-only or linked cell and cut off at the edge of the page.',
     );
     return '$_temp0';
   }
 
   @override
-  String get dataTableComputedField =>
-      'Calculated during export: not searchable, sortable, or filterable.';
+  String get dataTableComputedField => 'Calculated during export: not searchable, sortable, or filterable.';
 
   @override
-  String get dataTableLinkedDataHint =>
-      'Linked data: double-click or press F2 to edit.';
+  String get dataTableLinkedDataHint => 'Linked data: double-click or press F2 to edit.';
 
   @override
   String get dataTableReadOnlyHere => 'Read-only here.';
@@ -12696,16 +12250,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataTableLoadChoicesError => 'Couldn\'t load the choices.';
 
   @override
-  String get dataTableLinkCatalogerNote =>
-      'The field number follows the new cataloger. The determiner and preparator change too when they were the previous cataloger.';
+  String get dataTableLinkCatalogerNote => 'The field number follows the new cataloger. The determiner and preparator change too when they were the previous cataloger.';
 
   @override
-  String get dataTableLinkEventNote =>
-      'The collecting method and personnel are cleared, and the coordinate follows the new event\'s site.';
+  String get dataTableLinkEventNote => 'The collecting method and personnel are cleared, and the coordinate follows the new event\'s site.';
 
   @override
-  String get dataTableLinkTaxonNote =>
-      'Order, family, genus, and epithet all come from the chosen taxon.';
+  String get dataTableLinkTaxonNote => 'Order, family, genus, and epithet all come from the chosen taxon.';
 
   @override
   String dataTableSaveError(String error) {
@@ -12717,28 +12268,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataTableNotLinked(String noun) {
-    String _temp0 = intl.Intl.selectLogic(noun, {
-      'site': 'This record isn\'t linked to a site yet.',
-      'other': 'This record isn\'t linked to an event yet.',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      noun,
+      {
+        'site': 'This record isn\'t linked to a site yet.',
+        'other': 'This record isn\'t linked to an event yet.',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String dataTableLinkedLoadError(String noun) {
-    String _temp0 = intl.Intl.selectLogic(noun, {
-      'site': 'Couldn\'t load the site.',
-      'other': 'Couldn\'t load the event.',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      noun,
+      {
+        'site': 'Couldn\'t load the site.',
+        'other': 'Couldn\'t load the event.',
+      },
+    );
     return '$_temp0';
   }
 
   @override
   String dataTableLinkShared(String noun, int count) {
-    String _temp0 = intl.Intl.selectLogic(noun, {
-      'site': 'Changes apply to every record linked to this site ($count).',
-      'other': 'Changes apply to every record linked to this event ($count).',
-    });
+    String _temp0 = intl.Intl.selectLogic(
+      noun,
+      {
+        'site': 'Changes apply to every record linked to this site ($count).',
+        'other': 'Changes apply to every record linked to this event ($count).',
+      },
+    );
     return '$_temp0';
   }
 

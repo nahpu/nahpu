@@ -117,8 +117,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Bahasa'), findsOneWidget);
     expect(find.text('Format regional'), findsOneWidget);
-    // The language tile keeps its beta badge in every language.
-    expect(find.text('Beta'), findsOneWidget);
+    // The language and regional format tiles keep their beta badges in
+    // every language.
+    expect(find.text('Beta'), findsNWidgets(2));
   });
 
   testWidgets('regional format changes dates but not labels', (tester) async {

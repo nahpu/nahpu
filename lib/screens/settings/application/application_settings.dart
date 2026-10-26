@@ -66,6 +66,7 @@ class ApplicationSettings extends ConsumerWidget {
           isNavigation: true,
           icon: Icons.public_rounded,
           title: l10n.settingsRegionalFormat,
+          titleBadge: const BetaBadge(),
           label:
               regionalFormat?.nativeLabel ??
               l10n.settingsRegionalFormatMatchLanguage,
