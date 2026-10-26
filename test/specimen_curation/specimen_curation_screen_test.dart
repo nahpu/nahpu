@@ -616,7 +616,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('tissue-include-parasites')));
+    final parasites = find.byKey(const ValueKey('tissue-include-parasites'));
+    await tester.ensureVisible(parasites);
+    await tester.pumpAndSettle();
+    await tester.tap(parasites);
     await tester.pumpAndSettle();
 
     expect(tester.getRect(box), boxRect);
