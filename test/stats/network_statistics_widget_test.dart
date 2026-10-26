@@ -34,7 +34,7 @@ void main() {
     final expanded = container.read(networkLayoutProvider('project-a')).value!;
     expect(
       expanded.nodes.map((node) => node.label),
-      containsAll(['HHA-1', 'HHA-2', 'Ana Lee', 'Bo Smith']),
+      containsAll(['HHA-1', 'HHA-2', 'Skin', 'Ctenophthalmus agyrtes']),
     );
 
     await tester.tap(find.text('Hide links'));
@@ -66,6 +66,38 @@ void main() {
     expect((moved - onScreen).distance, lessThan(1));
   });
 
+  testWidgets('linked record types can be picked for the start type', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final view = networkViewProvider('project-a');
+    expect(
+      find.byKey(const ValueKey('statistics-network-linked-taxon')),
+      findsNothing,
+      reason: 'the start type is not offered as a link',
+    );
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    final myotis = layout.nodes.firstWhere(
+      (node) => node.label == 'Myotis lucifugus',
+    );
+    await _tapNode(tester, myotis);
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-linked-site')),
+    );
+    await _settle(tester);
+    expect(
+      container.read(view).linkedTypes,
+      isNot(contains(NetworkNodeType.site)),
+    );
+    final expanded = container.read(networkLayoutProvider('project-a')).value!;
+    expect(
+      expanded.nodes.map((node) => node.key.type),
+      isNot(contains(NetworkNodeType.site)),
+    );
+    expect(container.read(view).isExpanded(myotis.key), isTrue);
+  });
+
   testWidgets('the layered layout draws one column per record type', (
     tester,
   ) async {
@@ -75,19 +107,107 @@ void main() {
     await _settle(tester);
 
     final layout = container.read(networkLayoutProvider('project-a')).value!;
-    expect(layout.columns.map((column) => column.type), networkDefaultColumns);
+    expect(
+      layout.columns.map((column) => column.column),
+      networkDefaultColumns,
+    );
     expect(
       find.byKey(const ValueKey('statistics-network-column-site')),
       findsOneWidget,
     );
 
     await tester.tap(
-      find.byKey(const ValueKey('statistics-network-column-media')),
+      find.byKey(const ValueKey('statistics-network-column-specimen')),
     );
     await _settle(tester);
     expect(
       container.read(networkViewProvider('project-a')).columns.last,
-      NetworkNodeType.media,
+      const NetworkColumn(NetworkNodeType.specimen),
+    );
+  });
+
+  testWidgets('fields of chosen types become columns, up to seven', (
+    tester,
+  ) async {
+    final container = await _pumpPanel(tester);
+    final view = networkViewProvider('project-a');
+    await tester.tap(find.text('Layered'));
+    await _settle(tester);
+
+    expect(
+      find.byKey(const ValueKey('statistics-network-field-specimenSex')),
+      findsNothing,
+      reason: 'fields are offered only for chosen record types',
+    );
+    expect(find.text('Up to 7 columns'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-field-siteCountry')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-field-eventYear')),
+    );
+    await _settle(tester);
+    expect(container.read(view).columns, hasLength(networkMaxColumns));
+    final layout = container.read(networkLayoutProvider('project-a')).value!;
+    expect(
+      layout.columns.last.column,
+      NetworkColumn.field(NetworkField.eventYear),
+    );
+    expect(
+      layout.nodes.map((node) => node.label),
+      containsAll(['Indonesia', '2024']),
+    );
+
+    final media = tester.widget<FilterChip>(
+      find.byKey(const ValueKey('statistics-network-column-media')),
+    );
+    expect(media.onSelected, isNull, reason: 'no eighth column');
+
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-column-site')),
+    );
+    await _settle(tester);
+    expect(
+      container.read(view).columns,
+      isNot(contains(NetworkColumn.field(NetworkField.siteCountry))),
+      reason: 'a field leaves with its record type',
+    );
+  });
+
+  testWidgets('selecting a site or specimen shows its details', (tester) async {
+    final container = await _pumpPanel(tester);
+    await tester.tap(find.text('Layered'));
+    await _settle(tester);
+    await tester.tap(
+      find.byKey(const ValueKey('statistics-network-column-specimen')),
+    );
+    await _settle(tester);
+
+    var layout = container.read(networkLayoutProvider('project-a')).value!;
+    await _tapNode(tester, layout.nodes.firstWhere((n) => n.label == 'AL 1'));
+    final facts = find.byKey(const ValueKey('statistics-network-record-facts'));
+    expect(facts, findsOneWidget);
+    for (final value in [
+      'MUS-1',
+      'Male',
+      'Liver, Skin',
+      'Ctenophthalmus agyrtes',
+    ]) {
+      expect(
+        find.descendant(of: facts, matching: find.text(value)),
+        findsOneWidget,
+      );
+    }
+
+    layout = container.read(networkLayoutProvider('project-a')).value!;
+    await _tapNode(tester, layout.nodes.firstWhere((n) => n.label == 'HHA-1'));
+    expect(
+      find.descendant(
+        of: facts,
+        matching: find.text('Sulawesi Selatan, Indonesia'),
+      ),
+      findsOneWidget,
     );
   });
 

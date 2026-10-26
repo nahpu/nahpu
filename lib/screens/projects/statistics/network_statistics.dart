@@ -153,62 +153,183 @@ class NetworkFilterPanel extends ConsumerWidget {
             onSelected: controller.setRootType,
           ),
       ],
-      footer: view.layout == NetworkLayout.layered
-          ? _NetworkColumnPicker(
-              columns: view.columns,
-              onChanged: controller.setColumns,
-            )
-          : null,
+      footer: switch (view.layout) {
+        NetworkLayout.radial => _NetworkLinkedPicker(
+          rootType: view.rootType,
+          linkedTypes: view.linkedTypes,
+          onChanged: controller.setLinkedTypes,
+        ),
+        NetworkLayout.layered => _NetworkColumnPicker(
+          columns: view.columns,
+          onChanged: controller.setColumns,
+        ),
+      },
     );
   }
 }
 
-/// Picks the layered columns: tap a type to add it on the right, tap a
-/// chosen one to drop it.
-class _NetworkColumnPicker extends StatelessWidget {
-  const _NetworkColumnPicker({required this.columns, required this.onChanged});
+/// Picks the record types the radial network links to, out of those the
+/// start type supports. The last one can't be dropped.
+class _NetworkLinkedPicker extends StatelessWidget {
+  const _NetworkLinkedPicker({
+    required this.rootType,
+    required this.linkedTypes,
+    required this.onChanged,
+  });
 
-  final List<NetworkNodeType> columns;
+  final NetworkNodeType rootType;
+  final List<NetworkNodeType> linkedTypes;
   final ValueChanged<List<NetworkNodeType>> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final ordered = [
-      ...columns,
-      for (final type in NetworkNodeType.values)
-        if (!columns.contains(type)) type,
+    final supported = rootType.linkableTypes;
+    final chosen = [
+      for (final type in supported)
+        if (linkedTypes.contains(type)) type,
     ];
     return InputDecorator(
       decoration: InputDecoration(
-        labelText: l10n.projectStatsNetworkColumns,
+        labelText: l10n.projectStatsNetworkLinked,
         border: const OutlineInputBorder(),
       ),
       child: Wrap(
         spacing: NahpuSpacing.md,
         runSpacing: NahpuSpacing.xs,
         children: [
-          for (final type in ordered)
+          for (final type in supported)
             FilterChip(
-              key: ValueKey('statistics-network-column-${type.name}'),
-              label: Text(
-                columns.contains(type)
-                    ? '${columns.indexOf(type) + 1}. '
-                          '${type.localizedLabel(l10n)}'
-                    : type.localizedLabel(l10n),
-              ),
-              selected: columns.contains(type),
-              onSelected: (selected) => onChanged(
-                selected
-                    ? [...columns, type]
-                    : [
-                        for (final column in columns)
-                          if (column != type) column,
-                      ],
-              ),
+              key: ValueKey('statistics-network-linked-${type.name}'),
+              label: Text(type.localizedLabel(l10n)),
+              selected: chosen.contains(type),
+              onSelected: chosen.length == 1 && chosen.contains(type)
+                  ? null
+                  : (selected) => onChanged(
+                      selected
+                          ? [...linkedTypes, type]
+                          : [
+                              for (final linked in linkedTypes)
+                                if (linked != type) linked,
+                            ],
+                    ),
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Picks the layered columns: tap a record type or a field of a chosen
+/// type to add it on the right, tap a chosen one to drop it. Holds up to
+/// [networkMaxColumns] columns.
+class _NetworkColumnPicker extends StatelessWidget {
+  const _NetworkColumnPicker({required this.columns, required this.onChanged});
+
+  final List<NetworkColumn> columns;
+  final ValueChanged<List<NetworkColumn>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final records = [
+      for (final column in columns)
+        if (column.field == null) column,
+      for (final type in NetworkNodeType.values)
+        if (!columns.contains(NetworkColumn(type))) NetworkColumn(type),
+    ];
+    final fields = [
+      for (final column in columns)
+        if (column.field == null)
+          for (final field in column.type.fields) NetworkColumn.field(field),
+    ];
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: l10n.projectStatsNetworkColumns,
+        helperText: l10n.projectStatsNetworkMaxColumns(networkMaxColumns),
+        border: const OutlineInputBorder(),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: NahpuSpacing.md,
+            runSpacing: NahpuSpacing.xs,
+            children: [
+              for (final column in records)
+                _NetworkColumnChip(
+                  column: column,
+                  columns: columns,
+                  onChanged: onChanged,
+                ),
+            ],
+          ),
+          if (fields.isNotEmpty) ...[
+            const SizedBox(height: NahpuSpacing.md),
+            Text(
+              l10n.projectStatsNetworkFields,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: NahpuSpacing.xs),
+            Wrap(
+              spacing: NahpuSpacing.md,
+              runSpacing: NahpuSpacing.xs,
+              children: [
+                for (final column in fields)
+                  _NetworkColumnChip(
+                    column: column,
+                    columns: columns,
+                    onChanged: onChanged,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One layered column choice, numbered by its place when chosen and
+/// disabled once [networkMaxColumns] are chosen.
+class _NetworkColumnChip extends StatelessWidget {
+  const _NetworkColumnChip({
+    required this.column,
+    required this.columns,
+    required this.onChanged,
+  });
+
+  final NetworkColumn column;
+  final List<NetworkColumn> columns;
+  final ValueChanged<List<NetworkColumn>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = column.localizedLabel(context.l10n);
+    final index = columns.indexOf(column);
+    final isSelected = index >= 0;
+    final isFull = columns.length >= networkMaxColumns;
+    return FilterChip(
+      key: ValueKey(
+        column.field == null
+            ? 'statistics-network-column-${column.type.name}'
+            : 'statistics-network-field-${column.field!.name}',
+      ),
+      label: Text(isSelected ? '${index + 1}. $label' : label),
+      selected: isSelected,
+      onSelected: !isSelected && isFull
+          ? null
+          : (selected) => onChanged(
+              selected
+                  ? [...columns, column]
+                  : [
+                      for (final other in columns)
+                        if (other != column) other,
+                    ],
+            ),
     );
   }
 }
@@ -326,18 +447,22 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
           _fitCount,
         ),
         labels: NetworkCanvasLabels(
-          typeLabel: (type) => type.localizedLabel(l10n),
+          columnLabel: (column) => column.localizedLabel(l10n),
           overflowLabel: l10n.projectStatsNetworkMore,
         ),
         onNodeTap: (node) => _onNodeTap(view, node),
       );
     }
 
+    final facts = selected == null || !selected.key.isRecord
+        ? null
+        : ref.watch(networkRecordDetailsProvider(selected.key)).value;
     final details = selected == null
         ? null
         : NetworkNodeDetails(
             node: selected,
             layout: view.layout,
+            facts: facts,
             isExpanded: view.isExpanded(selected.key),
             onToggleLinks:
                 view.layout == NetworkLayout.radial &&
@@ -358,8 +483,8 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
         const SizedBox(height: NahpuSpacing.md),
         NetworkLegend(
           types: view.layout == NetworkLayout.radial
-              ? NetworkNodeType.values
-              : view.columns,
+              ? view.radialTypes
+              : {for (final column in view.columns) column.type}.toList(),
         ),
         const SizedBox(height: NahpuSpacing.md),
         Expanded(
@@ -395,7 +520,7 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
                 children: [
                   Expanded(child: canvas),
                   const SizedBox(height: NahpuSpacing.lg),
-                  details,
+                  Flexible(child: details),
                 ],
               );
             },
@@ -417,7 +542,7 @@ class _NetworkWorkspaceState extends ConsumerState<NetworkWorkspace> {
       return;
     }
     if (node.kind == NetworkNodeKind.overflow) {
-      controller.showMore(node.key.type, parent: node.parent);
+      controller.showMore(node.key, parent: node.parent);
       return;
     }
     if (view.layout == NetworkLayout.radial) {

@@ -11,14 +11,17 @@ const networkRootPageSize = 12;
 /// Neighbors shown per record type when a record is expanded.
 const networkNeighborPageSize = 6;
 
+/// Most columns the layered network shows, record types and fields alike.
+const networkMaxColumns = 7;
+
 /// Default layered columns, following specimens from where they were
 /// collected to what they are and what was kept from them.
 const networkDefaultColumns = [
-  NetworkNodeType.site,
-  NetworkNodeType.event,
-  NetworkNodeType.taxon,
-  NetworkNodeType.part,
-  NetworkNodeType.parasite,
+  NetworkColumn(NetworkNodeType.site),
+  NetworkColumn(NetworkNodeType.event),
+  NetworkColumn(NetworkNodeType.taxon),
+  NetworkColumn(NetworkNodeType.part),
+  NetworkColumn(NetworkNodeType.parasite),
 ];
 
 /// Record types shown by default when a radial record is expanded.
@@ -77,9 +80,9 @@ class NetworkViewState {
   /// supports.
   final List<NetworkNodeType> linkedTypes;
 
-  /// Record types of the layered network, left to right.
-  final List<NetworkNodeType> columns;
-  final Map<NetworkNodeType, int> columnLimits;
+  /// Record types and fields of the layered network, left to right.
+  final List<NetworkColumn> columns;
+  final Map<NetworkColumn, int> columnLimits;
   final NetworkNodeKey? selected;
 
   bool isExpanded(NetworkNodeKey key) =>
@@ -99,8 +102,8 @@ class NetworkViewState {
       if (other != type) other,
   ];
 
-  int columnLimit(NetworkNodeType type) =>
-      columnLimits[type] ?? networkRootPageSize;
+  int columnLimit(NetworkColumn column) =>
+      columnLimits[column] ?? networkRootPageSize;
 
   NetworkViewState copyWith({
     NetworkLayout? layout,
@@ -108,8 +111,8 @@ class NetworkViewState {
     int? rootLimit,
     List<NetworkExpansionRequest>? expansions,
     List<NetworkNodeType>? linkedTypes,
-    List<NetworkNodeType>? columns,
-    Map<NetworkNodeType, int>? columnLimits,
+    List<NetworkColumn>? columns,
+    Map<NetworkColumn, int>? columnLimits,
     ValueGetter<NetworkNodeKey?>? selected,
   }) => NetworkViewState(
     layout: layout ?? this.layout,
@@ -153,7 +156,8 @@ class NetworkViewController extends Notifier<NetworkViewState> {
     if (linkedTypes.isEmpty) return;
     final next = state.copyWith(linkedTypes: List.unmodifiable(linkedTypes));
     final parents = {
-      for (final expansion in state.expansions) expansion.parent,
+      for (final expansion in state.expansions)
+        if (next.radialTypes.contains(expansion.parent.type)) expansion.parent,
     };
     final selected = state.selected;
     state = next.copyWith(
@@ -161,7 +165,8 @@ class NetworkViewController extends Notifier<NetworkViewState> {
         for (final parent in parents)
           for (final type in next.expandedTypes(parent.type))
             state.expansions.firstWhere(
-              (expansion) => expansion.parent == parent && expansion.type == type,
+              (expansion) =>
+                  expansion.parent == parent && expansion.type == type,
               orElse: () => NetworkExpansionRequest(
                 parent: parent,
                 type: type,
@@ -176,13 +181,21 @@ class NetworkViewController extends Notifier<NetworkViewState> {
     );
   }
 
-  void setColumns(List<NetworkNodeType> columns) {
-    if (columns.isEmpty) return;
+  /// Sets the layered columns, up to [networkMaxColumns]. A field column
+  /// stays only while its record type is a column too.
+  void setColumns(List<NetworkColumn> columns) {
+    final kept = [
+      for (final column in columns)
+        if (column.field == null ||
+            columns.contains(NetworkColumn(column.type)))
+          column,
+    ];
+    if (kept.isEmpty || kept.length > networkMaxColumns) return;
     final selected = state.selected;
     state = state.copyWith(
-      columns: List.unmodifiable(columns),
+      columns: List.unmodifiable(kept),
       selected: () =>
-          selected != null && columns.contains(selected.type) ? selected : null,
+          selected != null && kept.contains(selected.column) ? selected : null,
     );
   }
 
@@ -207,23 +220,25 @@ class NetworkViewController extends Notifier<NetworkViewState> {
         ...state.expansions,
         for (final type in state.expandedTypes(key.type))
           NetworkExpansionRequest(
-              parent: key,
-              type: type,
-              limit: networkNeighborPageSize,
-            ),
+            parent: key,
+            type: type,
+            limit: networkNeighborPageSize,
+          ),
       ],
       selected: () => key,
     );
   }
 
-  /// Shows the next page behind an overflow node of [type] under [parent],
-  /// the radial hub or a layered column when [parent] is null.
-  void showMore(NetworkNodeType type, {NetworkNodeKey? parent}) {
+  /// Shows the next page behind the [overflow] node under [parent], the
+  /// radial hub or a layered column when [parent] is null.
+  void showMore(NetworkNodeKey overflow, {NetworkNodeKey? parent}) {
+    final type = overflow.type;
     if (state.layout == NetworkLayout.layered) {
+      final column = overflow.column;
       state = state.copyWith(
         columnLimits: {
           ...state.columnLimits,
-          type: state.columnLimit(type) + networkRootPageSize,
+          column: state.columnLimit(column) + networkRootPageSize,
         },
       );
       return;
@@ -247,6 +262,7 @@ class NetworkViewController extends Notifier<NetworkViewState> {
     state = NetworkViewState(
       layout: state.layout,
       rootType: state.rootType,
+      linkedTypes: state.linkedTypes,
       columns: state.columns,
     );
   }
@@ -276,6 +292,14 @@ final networkFocusFlowsProvider = StreamProvider.autoDispose
       return NetworkStatisticsQuery(
         ref.watch(databaseProvider),
       ).watchFocusFlows(request);
+    });
+
+/// Facts about the site or specimen behind a node, or null for other nodes.
+final networkRecordDetailsProvider = StreamProvider.autoDispose
+    .family<NetworkRecordDetails?, NetworkNodeKey>((ref, key) {
+      return NetworkStatisticsQuery(
+        ref.watch(databaseProvider),
+      ).watchRecordDetails(key);
     });
 
 /// The laid-out network for one project, or every project when null.
@@ -337,7 +361,7 @@ AsyncValue<NetworkLayoutResult> _layered(
   final request = NetworkLayeredRequest(
     projectUuid: projectUuid,
     columns: view.columns,
-    limits: [for (final type in view.columns) view.columnLimit(type)],
+    limits: [for (final column in view.columns) view.columnLimit(column)],
     focus: view.selected?.isOverflow ?? true ? null : view.selected,
   );
   final focus = request.focus == null

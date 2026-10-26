@@ -523,11 +523,42 @@ extension NetworkNodeTypeLocalizedLabel on NetworkNodeType {
     NetworkNodeType.event => l10n.projectStatsNetworkEvents,
     NetworkNodeType.specimen => l10n.projectStatsNetworkSpecimenType,
     NetworkNodeType.taxon => l10n.projectStatsNetworkTaxa,
-    NetworkNodeType.collector => l10n.projectStatsNetworkCollectors,
     NetworkNodeType.media => l10n.projectStatsNetworkMedia,
     NetworkNodeType.part => l10n.projectStatsNetworkParts,
     NetworkNodeType.parasite => l10n.projectStatsNetworkParasites,
   };
+}
+
+extension NetworkFieldLocalizedLabel on NetworkField {
+  String localizedLabel(AppLocalizations l10n) => switch (this) {
+    NetworkField.siteCountry => l10n.labelSiteGeographyCountry,
+    NetworkField.siteStateProvince => l10n.sharedSortStateProvince,
+    NetworkField.siteType => l10n.siteCopyFieldSiteType,
+    NetworkField.siteHabitatType => l10n.siteCopyFieldHabitatType,
+    NetworkField.eventMethod => l10n.projectStatsMethod,
+    NetworkField.eventYear => l10n.projectStatsNetworkYear,
+    NetworkField.specimenSex => l10n.projectStatsSex,
+    NetworkField.specimenLifeStage => l10n.projectStatsLifeStage,
+    NetworkField.specimenCondition => l10n.formsSearchCondition,
+    NetworkField.taxonOrder => l10n.projectTaxonOrder,
+    NetworkField.taxonFamily => l10n.projectTaxonFamily,
+    NetworkField.taxonGenus => l10n.projectTaxonGenus,
+    NetworkField.partTreatment => l10n.projectStatsTreatment,
+    NetworkField.parasiteCategory => l10n.projectStatsParasiteCategory,
+    NetworkField.parasiteLocation => l10n.projectStatsAnatomicalLocation,
+    NetworkField.mediaCategory => l10n.mediaCategory,
+  };
+}
+
+extension NetworkColumnLocalizedLabel on NetworkColumn {
+  /// Record type name, followed by the field for a field column.
+  String localizedLabel(AppLocalizations l10n) {
+    final typeLabel = type.localizedLabel(l10n);
+    final field = this.field;
+    return field == null
+        ? typeLabel
+        : '$typeLabel · ${field.localizedLabel(l10n)}';
+  }
 }
 
 extension NetworkLayoutLocalizedLabel on NetworkLayout {

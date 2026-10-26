@@ -9,12 +9,12 @@ import 'package:nahpu/styles/themes.dart';
 /// Text the network painter draws, resolved by the screen.
 class NetworkCanvasLabels {
   const NetworkCanvasLabels({
-    required this.typeLabel,
+    required this.columnLabel,
     required this.overflowLabel,
   });
 
-  /// Plural name of a record type, for the hub and column headers.
-  final String Function(NetworkNodeType type) typeLabel;
+  /// Name of a record type or field column, for the hub and column headers.
+  final String Function(NetworkColumn column) columnLabel;
 
   /// Name of an overflow node standing for [hiddenRecords] records.
   final String Function(int hiddenRecords) overflowLabel;
@@ -288,7 +288,7 @@ class _NetworkPainter extends CustomPainter {
       // One line above the bars; the type name gives way to the count.
       final count = text.layout('(${_compact(column.totalRecords)})', style);
       final name = text.layout(
-        labels.typeLabel(column.type),
+        labels.columnLabel(column.column),
         style,
         maxWidth: column.width - count.width - NahpuSpacing.xs,
       );
@@ -457,7 +457,7 @@ class _NetworkPainter extends CustomPainter {
     }
 
     final name = switch (node.kind) {
-      NetworkNodeKind.hub => labels.typeLabel(node.key.type),
+      NetworkNodeKind.hub => labels.columnLabel(node.key.column),
       NetworkNodeKind.overflow => labels.overflowLabel(node.hiddenRecords),
       NetworkNodeKind.record => node.label,
     };

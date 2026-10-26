@@ -7679,6 +7679,17 @@ class AppLocalizationsId extends AppLocalizations {
   String get projectStatsNetworkColumns => 'Kolom';
 
   @override
+  String get projectStatsNetworkFields => 'Bidang';
+
+  @override
+  String projectStatsNetworkMaxColumns(int count) {
+    return 'Maksimal $count kolom';
+  }
+
+  @override
+  String get projectStatsNetworkYear => 'Tahun';
+
+  @override
   String get projectStatsNetworkLinked => 'Catatan terhubung';
 
   @override
@@ -7754,9 +7765,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get projectStatsNetworkTaxa => 'Spesies';
-
-  @override
-  String get projectStatsNetworkCollectors => 'Kolektor';
 
   @override
   String get projectStatsNetworkMedia => 'Media';

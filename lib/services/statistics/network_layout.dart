@@ -81,13 +81,15 @@ class NetworkLayoutEdge {
 /// A column header in the layered layout.
 class NetworkLayoutColumn {
   const NetworkLayoutColumn({
-    required this.type,
+    required this.column,
     required this.left,
     required this.width,
     required this.totalRecords,
   });
 
-  final NetworkNodeType type;
+  final NetworkColumn column;
+
+  NetworkNodeType get type => column.type;
   final double left;
   final double width;
   final int totalRecords;
@@ -436,7 +438,7 @@ class LayeredNetworkLayout {
       final left = margin + i * (columnWidth + columnGap);
       columns.add(
         NetworkLayoutColumn(
-          type: page.type,
+          column: page.column,
           left: left,
           width: columnWidth,
           totalRecords: page.totalRecords,
@@ -446,7 +448,7 @@ class LayeredNetworkLayout {
         _entries(page),
         i == 0 ? null : data.flows[i - 1],
         {for (final node in previous) node.key: node.center.dy},
-        data.columns[i - (i == 0 ? 0 : 1)].type,
+        data.columns[i - (i == 0 ? 0 : 1)].column,
       );
       final placed = _stack(entries, left, height);
       nodes.addAll(placed);
@@ -483,14 +485,14 @@ class LayeredNetworkLayout {
   static List<_Entry> _entries(NetworkCountPage page) => [
     for (final item in page.items)
       _Entry(
-        key: NetworkNodeKey(page.type, item.id),
+        key: _flowKey(page.column, item.id),
         kind: NetworkNodeKind.record,
         label: item.label,
         count: item.count,
       ),
     if (page.hiddenRecords > 0)
       _Entry(
-        key: NetworkNodeKey.overflow(page.type, ''),
+        key: _flowKey(page.column, null),
         kind: NetworkNodeKind.overflow,
         label: '',
         count: page.hiddenCount,
@@ -505,15 +507,15 @@ class LayeredNetworkLayout {
     List<_Entry> entries,
     List<NetworkFlow>? flows,
     Map<NetworkNodeKey, double> previousY,
-    NetworkNodeType previousType,
+    NetworkColumn previousColumn,
   ) {
     if (flows == null) return entries;
     final sums = <NetworkNodeKey, (double, int)>{};
-    final type = entries.isEmpty ? null : entries.first.key.type;
-    if (type == null) return entries;
+    final column = entries.isEmpty ? null : entries.first.key.column;
+    if (column == null) return entries;
     for (final flow in flows) {
-      final from = _flowKey(previousType, flow.fromId);
-      final to = _flowKey(type, flow.toId);
+      final from = _flowKey(previousColumn, flow.fromId);
+      final to = _flowKey(column, flow.toId);
       final y = previousY[from];
       if (y == null) continue;
       final (sum, weight) = sums[to] ?? (0.0, 0);
@@ -574,16 +576,16 @@ class LayeredNetworkLayout {
     final focus = <(NetworkNodeKey, NetworkNodeKey), int>{
       for (final flow in focusFlows ?? const <NetworkFlow>[])
         (
-          _flowKey(fromPage.type, flow.fromId),
-          _flowKey(toPage.type, flow.toId),
+          _flowKey(fromPage.column, flow.fromId),
+          _flowKey(toPage.column, flow.toId),
         ): flow.weight,
     };
     final links = <_Link>[];
     final outSum = <NetworkNodeKey, int>{};
     final inSum = <NetworkNodeKey, int>{};
     for (final flow in flows) {
-      final from = byKey[_flowKey(fromPage.type, flow.fromId)];
-      final to = byKey[_flowKey(toPage.type, flow.toId)];
+      final from = byKey[_flowKey(fromPage.column, flow.fromId)];
+      final to = byKey[_flowKey(toPage.column, flow.toId)];
       if (from == null || to == null) continue;
       links.add(_Link(from, to, flow.weight, focus[(from.key, to.key)] ?? 0));
       outSum.update(
@@ -639,8 +641,9 @@ class LayeredNetworkLayout {
     ];
   }
 
-  static NetworkNodeKey _flowKey(NetworkNodeType type, String? id) =>
-      id == null ? NetworkNodeKey.overflow(type, '') : NetworkNodeKey(type, id);
+  static NetworkNodeKey _flowKey(NetworkColumn column, String? id) => id == null
+      ? NetworkNodeKey.overflow(column.type, '', field: column.field)
+      : NetworkNodeKey(column.type, id, field: column.field);
 }
 
 class _Entry {

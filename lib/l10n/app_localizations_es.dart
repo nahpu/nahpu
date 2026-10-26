@@ -7885,6 +7885,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get projectStatsNetworkColumns => 'Columnas';
 
   @override
+  String get projectStatsNetworkFields => 'Campos';
+
+  @override
+  String projectStatsNetworkMaxColumns(int count) {
+    return 'Hasta $count columnas';
+  }
+
+  @override
+  String get projectStatsNetworkYear => 'Año';
+
+  @override
   String get projectStatsNetworkLinked => 'Registros vinculados';
 
   @override
@@ -7963,9 +7974,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get projectStatsNetworkTaxa => 'Especies';
-
-  @override
-  String get projectStatsNetworkCollectors => 'Colectores';
 
   @override
   String get projectStatsNetworkMedia => 'Multimedia';

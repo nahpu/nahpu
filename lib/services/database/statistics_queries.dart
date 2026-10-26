@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:nahpu/services/database/coordinate_queries.dart';
 import 'package:nahpu/services/database/database.dart';
+import 'package:nahpu/services/database/statistics_sql.dart';
 import 'package:nahpu/services/types/spatial_statistics.dart';
 import 'package:nahpu/services/types/statistics.dart';
 
@@ -131,26 +132,9 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     END
   ''';
 
-  static const _sexLabel = '''
-    CASE normalized_attributes.sex
-      WHEN 0 THEN 'Male'
-      WHEN 1 THEN 'Female'
-      WHEN 2 THEN 'Unknown'
-      WHEN 3 THEN 'Gynandromorph'
-      WHEN 4 THEN 'Hermaphrodite'
-      WHEN 5 THEN 'Female?'
-      WHEN 6 THEN 'Male?'
-      ELSE 'Not recorded'
-    END
-  ''';
+  static const _sexLabel = StatisticsSql.sexLabel;
 
-  static const _lifeStageLabel = '''
-    CASE
-      WHEN trim(coalesce(normalized_attributes.life_stage, '')) = ''
-      THEN 'Not recorded'
-      ELSE trim(normalized_attributes.life_stage)
-    END
-  ''';
+  static const _lifeStageLabel = StatisticsSql.lifeStageLabel;
 
   static const _partTypeLabel = '''
     CASE
@@ -211,29 +195,7 @@ class StatisticsQuery extends DatabaseAccessor<Database> {
     END
   ''';
 
-  static const _attributeCte = '''
-    attribute_values AS (
-      SELECT specimenUuid, sex, lifeStage AS life_stage FROM mammalAttribute
-      UNION ALL
-      SELECT specimenUuid, sex, lifeStage AS life_stage FROM birdAttribute
-      UNION ALL
-      SELECT specimenUuid, sex, lifeStage AS life_stage FROM herpAttribute
-      UNION ALL
-      SELECT specimenUuid, sex, lifeStage AS life_stage FROM invertebrateAttribute
-      UNION ALL
-      SELECT specimenUuid, sex, lifeStage AS life_stage FROM fishAttribute
-      UNION ALL
-      SELECT specimenUuid, sex, NULL AS life_stage FROM fossilAttribute
-    ),
-    normalized_attributes AS (
-      SELECT
-        specimenUuid,
-        MAX(CASE WHEN sex BETWEEN 0 AND 6 THEN sex END) AS sex,
-        MAX(NULLIF(trim(life_stage), '')) AS life_stage
-      FROM attribute_values
-      GROUP BY specimenUuid
-    )
-  ''';
+  static const _attributeCte = StatisticsSql.attributeCte;
 
   Stream<List<StatisticDatum>> watchStatistics(StatisticRequest request) {
     final query = _statisticsSql(request);

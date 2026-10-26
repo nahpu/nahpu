@@ -12355,6 +12355,24 @@ abstract class AppLocalizations {
   /// **'Columns'**
   String get projectStatsNetworkColumns;
 
+  /// No description provided for @projectStatsNetworkFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields'**
+  String get projectStatsNetworkFields;
+
+  /// No description provided for @projectStatsNetworkMaxColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {count} columns'**
+  String projectStatsNetworkMaxColumns(int count);
+
+  /// No description provided for @projectStatsNetworkYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get projectStatsNetworkYear;
+
   /// No description provided for @projectStatsNetworkLinked.
   ///
   /// In en, this message translates to:
@@ -12456,12 +12474,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Species'**
   String get projectStatsNetworkTaxa;
-
-  /// No description provided for @projectStatsNetworkCollectors.
-  ///
-  /// In en, this message translates to:
-  /// **'Collectors'**
-  String get projectStatsNetworkCollectors;
 
   /// No description provided for @projectStatsNetworkMedia.
   ///
